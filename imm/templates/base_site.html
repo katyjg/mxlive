@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title|escape }}{% endblock %}
+
+{% block user-tools %}
+        {% if user.is_authenticated %}
+        <a href="/profile/">Profile</a>
+        | <a href="/settings/">Settings</a>
+        | <a href="/help/">Help</a>
+        | <a href="/logout/">Sign out</a>
+        {% else %}
+        <a href="/help/">Help</a>
+        | <a href="/login/">Sign in</a>
+        {% endif %}
+{% endblock %}
+

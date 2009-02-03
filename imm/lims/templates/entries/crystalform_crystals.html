@@ -1,0 +1,21 @@
+{%load boxes %}
+{% contentbox "Associated Crystals" "box4" %}
+    <table cellspacing="0" cellpadding="3" border="0" width="100%">
+    <tbody>
+{% if object.crystal_set.count %}
+    {% for crystal in object.crystal_set.all %}
+    <tr>
+    <td onclick="linkto('/project/samples/crystal/{{crystal.id}}/');" class="link-row">
+    <strong>{{crystal.identity}}</strong> : {{crystal.name|escape}} <br/>
+    {{crystal.code|escape}} {%if crystal.comments %} &ndash; {% endif %}{{crystal.comments|truncatewords:8}}
+    </td>
+    </tr>
+    <tr><td colspan="2" class="rule"></td></tr>
+    {% endfor %}
+{% else %}
+    <tr><td colspan="20" align="center" style="padding: 3em;">No associated crystals</td></tr>
+{% endif %}
+    <tr><td style="height: 2em; text-align: center;" colspan="2"><a href="/project/samples/crystal/">show all crystals</a></td></tr>
+    </tbody>
+    </table>
+{% endcontentbox %}

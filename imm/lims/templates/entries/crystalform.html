@@ -1,0 +1,21 @@
+{% extends "entries/samples_entry.html" %}
+{% load humanize %}
+
+{% block title %} Container {{ container.identity }}{% endblock %}
+
+{% block entry-summary%}
+{% include "entries/crystalform_summary.html" %}
+{% endblock %}
+
+{% block entry-info %}
+{# include "entries/crystal_info.html" #}
+{% endblock %}
+
+{% block entry-contents %}
+{% include "entries/crystalform_crystals.html" %}
+{% endblock %}
+
+{% block entry-scratchpad %}
+{% include "entries/crystal_treeview.html" %}
+{% endblock %}
+

@@ -1,0 +1,8 @@
+{% load boxes %}
+{% contentbox "Content Map" "box5"%}
+<ul id="contentmap">
+{% with object as dewar %}
+{% include "entries/dewar_detail.html" %}
+{% endwith %}
+</ul>
+{% endcontentbox %}

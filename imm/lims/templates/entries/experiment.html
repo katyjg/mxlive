@@ -1,0 +1,21 @@
+{% extends "entries/experiment_entry.html" %}
+{% load humanize %}
+
+{% block title %} Experiment {{ experiment.identity }}{% endblock %}
+
+{% block entry-summary%}
+{% include "entries/experiment_summary.html" %}
+{% endblock %}
+
+{% block entry-info %}
+{# include "entries/experiment_info.html" #}
+{% endblock %}
+
+{% block entry-contents %}
+{% include "entries/experiment_crystals.html" %}
+{% endblock %}
+
+{% block entry-scratchpad %}
+{% include "entries/experiment_details.html" %}
+{% endblock %}
+

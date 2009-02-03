@@ -1,0 +1,23 @@
+{% extends "base_site.html" %}
+{% load nav %}
+{% block title %} {{ project.name }} {% endblock %}
+{% block nav-global %}
+{%include "project_navs.html" %}
+<table class="st" cellspacing="0" cellpadding="0" width="100%" align="center" border="0">
+ <tr><td></td><td height=4 align=right style="padding:0px; vertical-align:top">
+ <div class="stur"></div></td></tr>
+ <tr><td colspan="2">{% block content-tools %}{% endblock %} </td></tr>
+</table>
+{% endblock %}
+{% block nav %}
+        <a href="/help/">Help</a>
+        |
+        <a href="/settings/">Settings</a>
+        |
+        <a href="/logout/">Log out</a>
+{% endblock %}
+{% block content %}{% endblock %}
+
+{% block footer %}
+<p>&copy;2008 Canadian Light Source, Inc. - <a href="http://www.lightsource.ca">CLS Home</a> - <a href="http://ex.lightsource.ca/cmcf/">CMCF Home</a> - <a href="/privacy/">Privacy Policy</a></p>
+{% endblock %}

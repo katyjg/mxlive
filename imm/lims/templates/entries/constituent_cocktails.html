@@ -1,0 +1,23 @@
+{%load boxes %}
+{% contentbox "Associated Cocktails" "box4" %}
+    <table cellspacing="0" cellpadding="3" border="0" width="100%">
+    <tbody>
+{% if object.cocktail_set.count %}
+    {% for cocktail in object.cocktail_set.all %}
+    <tr>
+    <td onclick="linkto('/project/samples/cocktail/{{cocktail.pk}}/');" class="link-row">
+    <strong>{{cocktail.identity}}</strong> : {{cocktail.name|escape}} <br/>
+    {%if cocktail.comments %} &ndash; {% endif %}{{cocktail.comments|truncatewords:6}}
+    </td>
+    <td style="text-align: right;">
+    </td>
+    </tr>
+    <tr><td colspan="2" class="rule"></td></tr>
+    {% endfor %}
+{% else %}
+    <tr><td colspan="20" align="center" style="padding: 3em;">No crystals associated with this cocktail</td></tr>
+{% endif %}
+    <tr><td style="height: 2em; text-align: center;" colspan="2"><a href="/project/samples/coctail/">show all crystals</a></td></tr>
+    </tbody>
+    </table>
+{% endcontentbox %}

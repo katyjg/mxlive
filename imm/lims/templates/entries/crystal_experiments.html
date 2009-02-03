@@ -1,0 +1,38 @@
+<div class="box4">
+<div class="title">
+    <table cellpadding="4" cellspacing="0" border="0" width="100%">
+    <tr>
+    <td>Associated Experiments</td>
+    <td align="right">
+    <a href="javascript:load_page('entry-scratchpad', '/project/samples/crystal/x{{object.id}}/new/','');">Add New</a>
+    |
+    <a href="javascript:load_page('entry-scratchpad', '/project/samples/crystal/x{{object.id}}/add/','');">Add To Existing</a>
+    </td>
+    </tr>
+    </table>
+</div>                    
+<div class="boxcontent">
+    <table cellspacing="0" cellpadding="3" border="0" width="100%">
+    <tbody>
+{% if object.experiment_set.count %}
+    {% for experiment in object.experiment_set.all %}
+    <tr>
+    <td onclick="linkto('/project/experiment/request/{{experiment.id}}/');" class="link-row" title="{{experiment.comments}}">
+    <strong>{{experiment.identity}}</strong> : {{experiment.name|escape}} <br/>
+    {{experiment.get_plan_display}} for {{experiment.get_kind_display}} &ndash; {{experiment.get_status_display}}
+    </td>
+    <td style="text-align: right;">
+    <span onclick="load_page('entry-scratchpad', '/project/samples/crystal/u{{object.id}}x{{experiment.id}}/', '');" class="remove-tool">Remove</span>
+    </td>
+    </tr>
+    <tr><td colspan="2" class="rule"></td></tr>
+    {% endfor %}
+{% else %}
+    <tr><td colspan="20" align="center" style="padding: 3em;">No experiments requested for this crystal</td></tr>
+{% endif %}
+    <tr><td style="height: 2em; text-align: center;" colspan="2"><a href="/project/experiment/request/">show all experiment requests</a></td></tr>
+    </tbody>
+    </table>
+</div>
+</div>
+

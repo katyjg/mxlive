@@ -1,0 +1,30 @@
+{% if form.errors %}
+<li><p class="error">Submitted data is invalid. Please Correct the highlighted errors!</p></li>
+{% endif %}
+{% for field in form %}
+    {% if field.is_hidden %}
+        {{field}}
+    {% else %}
+    <li>
+        {% if field.field.widget.is_boolean %}
+            <div>
+            {{field}}
+            {{field.label_tag}}
+            </div>
+        {% else %}
+            {{field.label_tag}}
+            {% if field.field.required %}<span class="req">*</span>{% endif %}
+            <div>
+            {{field}}
+            </div>
+        {% endif %}
+        {% if  field.help_text %}
+        <p class="instruct"><small>{{field.help_text}}</small></p>
+        {% endif %}
+        {% if field.errors %}
+        <small>{{field.errors}}</small>
+        {% endif %}
+    {% endif %}
+    </li>
+{% endfor %}
+

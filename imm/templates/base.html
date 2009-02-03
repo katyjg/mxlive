@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+<title>{% block title %}{% endblock %}</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script type="text/javascript" src="/js/modalpopup_builtin.js"></script>
+    <script type="text/javascript" src="/js/prototype-1.6.0.2.js"></script>
+    <script type="text/javascript" src="/js/ajax.js"></script>
+{% block stylesheet %}    <link rel="stylesheet" type="text/css" href="/dcss/imm.css" />
+    <link rel="stylesheet" href="/css/form.css" type="text/css" />
+{% endblock %}
+{% block extrastyle %}{% endblock %}
+{% block extrahead %}{% endblock %}
+{% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
+</head>
+<body class="t4 {% block bodyclass %}{% endblock %}">
+
+<!-- Container -->
+<div id="container">
+{% if not is_popup %}
+    <!-- Header -->
+<div id="branding" >
+<table style="padding:0px; margin: 0px 0px -2px 0; width: 100%" cellpadding=0 cellspacing=0>
+ <tr>
+ <td style="width:72px"><a href="http://www.lightsource.ca"><img src="/img/clslogo.png" width=72 height=55 border=0 alt="Canadian Light Source"/></a></td>
+ <td style="padding-left: 0.5em">
+ <div style="font-size:120%; font-weight: bold">
+ <a href="/" style="text-decoration:none; color:#000">Canadian Macromolecular Crystallography Facility</a>
+ </div>
+ <div style="font-size:95%; margin-top:3px">
+ <i><a href="/" style="text-decoration:none; color:#000">Laboratory Information Management System.</a></i>
+ </div>
+ </td>
+ <td valign="bottom">
+ <div id="user-tools">
+ {% block user-tools %}{% endblock %}
+ </div>
+ </td>
+ </tr>
+</table>
+</div>
+{% block nav-global %}{% endblock %}
+    <!-- END Header -->
+{% endif %}
+    <!-- Content -->
+    <div id="maincol">
+        {% if messages %}
+        <ul class="messagelist">{% for msg in messages %}<li>{{ msg|escape }}</li>{% endfor %}</ul>
+        {% endif %}
+        {% block content %}
+        {{ content }}
+        {% endblock %}
+    </div>
+    <!-- END Content -->
+
+    <div id="footer">{% block footer %}{% endblock %}</div>
+</div>
+<!-- END Container -->
+<!-- BEGIN FLOATING LAYER CODE //-->
+<div id="popup-window">
+</div>
+<!-- END FLOATING LAYER CODE //--> 
+</body>
+</html>

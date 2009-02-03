@@ -1,0 +1,4 @@
+    <b>{{title}}:</b>
+    {% for choice in choices %}
+    <span{% if choice.selected %} class="selected"{% endif %}><a href="{{ choice.query_string }}">{{ choice.display|escape }}></a></span>
+    {% endfor %}

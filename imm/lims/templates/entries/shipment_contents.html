@@ -1,0 +1,40 @@
+{% with object as shipment %}
+<div class="box4">
+<div class="title">
+    <table cellpadding="4" cellspacing="0" border="0" width="100%">
+    <tr>
+    <td>Dewars in shipment {{shipment.identity}}</td>
+    <td align="right">
+    <a href="javascript:load_page('entry-scratchpad', '/project/shipping/shipment/c{{shipment.id}}/new/','');">Add New</a>
+    |
+    <a href="javascript:load_page('entry-scratchpad', '/project/shipping/shipment/c{{shipment.id}}/add/','');">Add Existing</a>
+    </td>
+    </tr>
+    </table>
+</div>                    
+<div class="boxcontent">
+    <table cellspacing="0" cellpadding="3" border="0" width="100%">
+    <tbody>
+{% if shipment.dewar_set.count  %}
+    {% for dewar in shipment.dewar_set.all %}
+    <tr>
+    <td onclick="linkto('/project/shipping/dewar/{{dewar.id}}/','');" class="link-row">
+    <strong>{{dewar.identity}}</strong> : {{dewar.num_containers}} containers<br/>
+     {{dewar.label}} {%if dewar.comments %} &ndash; {% endif %}{{dewar.comments|truncatewords:8}}
+    </td>
+    <td style="text-align: right;">
+    <span onclick="load_page('entry-scratchpad', '/project/shipping/dewar/u{{dewar.id}}', '');" class="remove-tool">Remove</span>
+    </td>
+    </tr>
+    <tr><td colspan="2" class="rule"> </td></tr>
+    {% endfor %}
+{% else %}
+    <tr><td colspan="20" align="center" style="padding: 3em;">No Dewars in this shipment</td></tr>
+{% endif %}
+    <tr><td style="height: 2em; text-align: center; " colspan="20"><a href="/project/shipping/dewar/">show all dewars</a></td></tr>
+    </tbody>
+    </table>
+
+</div>
+</div>
+{% endwith %}

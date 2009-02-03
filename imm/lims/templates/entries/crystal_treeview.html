@@ -1,0 +1,8 @@
+{% load boxes %}
+{% contentbox "Relation map" "box5"%}
+<ul id="contentmap">
+{% with object as crystal %}
+{% include "entries/crystal_detail.html" %}
+{% endwith %}
+</ul>
+{% endcontentbox %}           

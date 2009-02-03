@@ -1,0 +1,23 @@
+{% load boxes %}
+{% load lister %}
+{% contentbox "Inbox" "box4" %} 
+<div class="tiny-list-tools">
+    {% include "pagination.html" %}
+        <form style="display: inline;" action="" method="get">
+        <input class="field search" type="text" size="15" name="q" value="" id="searchbar" />
+        </form>
+{% if ol.has_search %}
+    {{ol.paginator.count}} of {{ol.total_count}} total | <a href="?all=">All</a>
+{% endif %}
+</div>
+
+<div class="object-list">
+    <table width="100%">
+{% block tiny-list %}
+{% endblock %}
+    </table>
+</div>
+
+{% include "filters.html" %}
+
+{% endcontentbox %}

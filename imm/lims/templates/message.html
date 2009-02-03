@@ -1,0 +1,32 @@
+<div class="title">
+    <table cellpadding="4" cellspacing="0" border="0" width="100%">
+    <tr>
+    <td>Message</td>
+    <td style="cursor:hand; text-align: right;" valign="top">
+    <a href="javascript:ModalPopup.Close('popup-window');">[x] close </a>
+    </td>
+    </tr>
+    </table>
+</div>                    
+<div class="message-info">
+<table>
+	<tr>
+		<th>From:</th>
+		<td>{{ message.sender }}</td>
+	</tr>
+	<tr>
+		<th>Date:</th>
+		<td>{{ message.date_sent}}</td>
+	</tr>
+	<tr>
+		<th>Subject:</th>
+		<td>{{ message.subject|escape}}</td>
+	</tr>
+</table>
+</div>
+<div class="message-content">
+<div class="message-body">
+{{ message.body|safe }}
+</div>
+</div>
+

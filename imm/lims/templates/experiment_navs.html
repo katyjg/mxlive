@@ -1,0 +1,12 @@
+{% load nav %}
+<table cellspacing="0" cellpadding="0" id="minitabs">
+    <tbody><tr>
+    <td class="spacer"> </td>
+    <td class='{% active request "/experiment/?$" %}'><a href="/project/experiment/" >Summary</a></td>
+    <td class="spacer"> </td>
+    <td class='{% active request "/request/" %}'><a href="/project/experiment/request/" >Experiment Requests</a></td>
+    <td class="spacer"> </td>
+    <td class='{% active request "/result/" %}'><a href="/project/experiment/result/" >Results</a></td>
+    <td class="spacer" width="100%"></td>
+    </tr></tbody>
+</table>

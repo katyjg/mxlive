@@ -1,0 +1,36 @@
+{% load humanize %}
+    <div class="header">
+    <table width="100%" cellpadding="5" cellspacing="0" border="0">
+    <tr>
+        <td nowrap="nowrap">
+        {{ object.identity }}
+        </td>
+        <td style="border-right: 1px solid #eee;"></td>
+        <td style="width: 100%;">
+        <div class="h3">{{ object.name }}</div>
+        <i>{{ object.comments }}</i> 
+        </td>
+    </tr>
+    </table>
+    </div>
+    
+        <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%" style="float:left; clear: left;">
+        <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
+        <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
+        <tr valign="top"><th>Cocktail:</th><td><a href="/project/samples/cocktail/{{object.cocktail.id}}/">{{object.cocktail}}</a></td></tr>
+        {% if object.crystal_form %}
+        <tr valign="top"><th>CrystalForm:</th><td><a href="/project/samples/crystalform/{{object.crystal_form.id}}/">{{object.crystal_form|default:"Unknown"}}</a></td></tr>
+        {% endif %}
+        <tr valign="top"><th>Pin/Loop:</th><td>{{object.pin_length}}mm/{{object.loop_size|default:"Unknown"}}</td></tr>
+        <tr valign="top"><th>Container:</th><td>
+        {% if object.is_assigned %}
+        <a href="/project/shipping/container/{{object.container.id}}/">{{object.container.label}} [{{object.container.identity}}]</a>
+        : {{object.container_location}}
+        {% else %}
+        Not assigned to any container.
+        {% endif %}
+        </td></tr>
+        </table>   
+        <img src="/img/samples-crystal.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/> 
+        <div style="clear: both;"></div>
+ 

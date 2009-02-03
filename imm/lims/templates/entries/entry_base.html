@@ -1,0 +1,41 @@
+{% extends "project_base.html" %}
+{% block content %}
+
+<div class="entrypage">
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr>
+    <td id="entry-main" valign="top">
+        
+    <div id="entry-summary" class="box4">
+    {% block entry-summary%}{% endblock %}
+        <div class='toolbar'><div>
+    {% block entry-toolbox%}
+    {% endblock %}
+            <span onclick="linkto('../new/?clone={{object.id}}');" class="clone-tool">Clone</span>
+            <span onclick="load_page('entry-scratchpad', '../e{{object.id}}/', '');" class="edit-tool">Edit</span>
+            <span onclick="load_page('entry-scratchpad', '../e{{object.id}}/', '');" class="delete-tool">Delete</span>
+        </div></div>
+    </div> 
+    <div id="entry-scratchpad">
+    {% block entry-scratchpad %}{% endblock %}
+    </div>
+    </td>
+    <td style="width: 3px;"></td>
+    <td id="entry-sidebar" valign="top">
+    <div id="entry-contents">
+    {% block entry-contents %}{% endblock %}
+    </div> 
+    <div id="entry-info">
+    {% block entry-info %}{% endblock %}
+    </div>
+    
+    </td>
+</tr>
+<tr>
+<td></td>
+</tr>
+</table>
+</div>
+{% endblock %}
+
+

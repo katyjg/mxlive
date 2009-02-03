@@ -1,0 +1,29 @@
+{% load humanize %}
+{% with object as cocktail %}
+    <div class="header">
+    <table width="100%" cellpadding="5" cellspacing="0" border="0">
+    <tr>
+        <td nowrap="nowrap">
+        {{ cocktail.identity }}
+        </td>
+        <td style="border-right: 1px solid #eee;"></td>
+        <td style="width: 100%;">
+        <div class="h3">{{ cocktail.name }}</div>
+        <i>{{ cocktail.comments }}</i> 
+        </td>
+    </tr>
+    </table>
+    </div>
+    
+        <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%" style="float:left; clear: left;">
+        <tr valign="top"><th>Created:</th><td>{{cocktail.created|naturalday}} at {{cocktail.created|date:"H:i T"}}</td></tr>
+        <tr valign="top"><th>Modified:</th><td>{{cocktail.modified|naturalday}} at {{cocktail.modified|date:"H:i T"}}</td></tr>
+        <tr valign="top"><th>Constituents:</th><td>
+        {% for con in cocktail.constituents.all %}
+        <a href="/project/samples/constituent/{{con.pk}}/">{{con.name}} ({{con.acronym}})</a><br/>
+        {% endfor %}
+        </td></tr>
+        </table>
+        <img src="/img/samples-cocktail.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/> 
+        <div style="clear: both;"></div>
+{% endwith %}   

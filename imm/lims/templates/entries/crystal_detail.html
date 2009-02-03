@@ -1,0 +1,24 @@
+<li><ul>
+{% if crystal.experiment_set.count %}
+    <li><a href="/project/experiments/" class="open">Experiments</a>
+    <ul>{% for experiment in crystal.experiment_set.all %}
+        <li><a href="/project/experiment/{{experiment.pk}}">{{experiment.name}} : {{experiment.get_plan_display}} for {{experiment.get_kind_display}}</a></li>
+        {% endfor %}
+    </ul></li>
+{% else %}
+    <li><a href="/project/experiments/">No Experiments</a></li>
+{% endif %}
+    </li>
+
+<li>{% if crystal.container %}<a href="/project/shipping/container/{{crystal.container.pk}}/" class="open">Container : {{crystal.container|default:"None"}}</a>
+    {% else %}<a href="/project/shipping/container/">Unassigned</a>{%endif%}
+<ul>
+    <li>{% if crystal.container.dewar %}<a href="/project/shipping/dewar/{{crystal.container.dewa.pk}}/" class="open">Dewar : {{crystal.container.dewar|default:"None"}}</a>
+        {% else %}<a href="/project/shipping/dewar/">Unassigned</a>{% endif %}
+    <ul>
+        <li>{% if crystal.container.dewar.shipment %}<a href="/project/shipping/shipment/{{crystal.container.dewar.shipment.pk}}/" class="open">Shipment : {{crystal.container.dewar.shipment|default:"None"}}</a>
+            {% else %}<a href="/project/shipping/shipment/">Unassigned</a>{% endif %}
+        </li>
+    </ul></li>
+</ul></li>
+</ul></li>  

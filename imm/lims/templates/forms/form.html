@@ -1,0 +1,24 @@
+<form 
+        method="post"
+        id="lims-form" 
+        class="wufoo"
+{% if target %}
+        action='javascript:post_and_load("{{target}}", "{{action}}", "lims-form");'
+{% else %}
+        action='{{action}}'
+{% endif %}    
+>
+<ul>
+{% include "forms/plain_form.html" %}
+<li class="submit-row">
+<input id='btn0' type="button" value="Cancel" onclick="refresh_window();" />
+{% if info.add_another %}
+<input id='btn1' type="submit" value="Save and add another" name="_addanother" onclick="$('btn2').disable();" />
+<input id='btn2' type="submit" value="Save" class="default" name="_save" onclick="$('btn1').disable();" /></li>
+{% else %}
+<input type="submit" value="Save" name="_save" class="default" /></li>
+{%endif%}
+</ul>
+</form>
+<img src="/img/blank.png" width=1 height=1 onload="init_form('lims-form'); " />
+

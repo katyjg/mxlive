@@ -1,0 +1,35 @@
+<div class="box4">
+<div class="title">
+    <table cellpadding="4" cellspacing="0" border="0" width="100%">
+    <tr>
+    <td>Associated Crystals</td>
+    <td align="right">
+    </td>
+    </tr>
+    </table>
+</div>                    
+<div class="boxcontent">
+    <table cellspacing="0" cellpadding="3" border="0" width="100%">
+    <tbody>
+{% if object.crystals.count %}
+    {% for crystal in object.crystals.all %}
+    <tr>
+    <td onclick="linkto('/project/samples/crystal/{{crystal.id}}/');" class="link-row">
+    <strong>{{crystal.identity}}</strong> : {{crystal.name|escape}} <br/>
+    {{crystal.code|escape}} {%if crystal.comments %} &ndash; {% endif %}{{crystal.comments|truncatewords:8}}
+    </td>
+    <td style="text-align: right;">
+
+    </td>
+    </tr>
+    <tr><td colspan="2" class="rule"></td></tr>
+    {% endfor %}
+{% else %}
+    <tr><td colspan="20" align="center" style="padding: 3em;">No crystals associated with this experiment</td></tr>
+{% endif %}
+    <tr><td style="height: 2em; text-align: center;" colspan="2"><a href="/project/samples/crystal/">show all crystals</a></td></tr>
+    </tbody>
+    </table>
+</div>
+</div>
+
