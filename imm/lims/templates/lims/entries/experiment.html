@@ -1,0 +1,21 @@
+{% extends "lims/entries/experiment_entry.html" %}
+{% load humanize %}
+
+{% block title %} Experiment {{ experiment.identity }}{% endblock %}
+
+{% block entry-summary%}
+{% include "lims/entries/experiment_summary.html" %}
+{% endblock %}
+
+{% block entry-info %}
+{# include "lims/entries/experiment_info.html" #}
+{% endblock %}
+
+{% block entry-contents %}
+{% include "lims/entries/experiment_crystals.html" %}
+{% endblock %}
+
+{% block entry-scratchpad %}
+{% include "lims/entries/experiment_details.html" %}
+{% endblock %}
+

@@ -1,0 +1,21 @@
+{% extends "objlist/tiny_list.html" %}
+{% load humanize %}
+
+{%block tiny-list %}
+<tr><td>
+<ul class='tiny-list'>
+{% if ol.object_list %}
+    {% for message in ol.object_list %}
+    <li class="{{message.get_status_display|lower}}-message" >
+    <div class="link-row" onclick="load_page('popup-window', '/project/message/{{ message.id }}', ''); ModalPopup('popup-window');">
+        <div class="message-subject" >{{ message.subject }}</div><div class="message-date">{{ message.date_sent|date:"P T" }}, {{ message.date_sent|naturalday:"N d" }}</div>
+        <div class="clearall"></div>
+    </div> 
+    </li>
+    {% endfor %}
+{% else %}
+    <li class="list-empty">No messages</li>
+{% endif %}
+</ul>
+</td></tr>
+{% endblock %}

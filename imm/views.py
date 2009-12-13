@@ -11,7 +11,3 @@ def logout_view(request):
     else:
         return render_to_response('logout.html')
         
-@cache_page(60 * 15)
-def get_dcss(request, path):
-    return render_to_response('css/%s' % path, {}, mimetype="text/css; charset=utf-8")
-

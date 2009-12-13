@@ -1,0 +1,21 @@
+{% extends "lims/entries/shipping_entry.html" %}
+{% load humanize %}
+
+{% block title %} Dewar {{ dewar.identity }}{% endblock %}
+
+{% block entry-summary%}
+{% include "lims/entries/dewar_summary.html" %}
+{% endblock %}
+
+{% block entry-info %}
+{# include "lims/entries/dewar_info.html" #}
+{% endblock %}
+
+{% block entry-contents %}
+{% include "lims/entries/dewar_contents.html" %}
+{% endblock %}
+
+{% block entry-scratchpad %}
+{% include "lims/entries/dewar_treeview.html" %}
+{% endblock %}
+

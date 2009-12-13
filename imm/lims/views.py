@@ -6,59 +6,48 @@ from django.template import RequestContext
 from django.contrib.contenttypes.models import ContentType
 
 
-from objectlister import ObjectLister
+from objlist.views import ObjectLister, list_objects
 from django import forms
 from lims.models import *
 from lims.forms import *
-import messaging.models
-
 
 ACTIVITY_LOG_LENGTH  = 10       
         
 @login_required
-def show_home(request):
+def show_project(request):
     user_groups = [str(grp) for grp in request.user.groups.all()]
-    if 'General User' in user_groups:
-        project = request.user.get_profile()   
-        msgs = request.user.inbox.all()[:10]
-        msglist = ObjectLister(request, request.user.inbox)
-
-        statistics = {
-            'shipment': {
-                    'draft': project.shipment_set.filter(status__exact=Shipment.STATES.DRAFT),
-                    'outgoing': project.shipment_set.filter(status__exact=Shipment.STATES.OUTGOING),
-                    'incoming': project.shipment_set.filter(status__exact=Shipment.STATES.INCOMING),
-                    'received': project.shipment_set.filter(status__exact=Shipment.STATES.RECEIVED),
-                    'closed': project.shipment_set.filter(status__exact=Shipment.STATES.CLOSED),                
-                    },
-            'experiment': {
-                    'draft': project.experiment_set.filter(status__exact=Experiment.STATES.DRAFT),
-                    'active': project.experiment_set.filter(status__exact=Experiment.STATES.ACTIVE),
-                    'processing': project.experiment_set.filter(status__exact=Experiment.STATES.PROCESSING),
-                    'paused': project.experiment_set.filter(status__exact=Experiment.STATES.PAUSED),
-                    'closed': project.experiment_set.filter(status__exact=Experiment.STATES.CLOSED),                
-                    },
-                    
-        }
-        return render_to_response('project.html', {
-            'project': project,
-            'statistics': statistics,
-            'inbox': msglist,
-            'link':False,
-            },
-        context_instance=RequestContext(request))
-    else:
+    try:
+        project = request.user.get_profile()
+    except:
         raise Http404
-        
-@login_required
-def get_message(request, id):
-    message = request.user.inbox.get(pk=id)
-    message.status = messaging.models.Message.STATE.READ
-    message.save()
-    return render_to_response('message.html', {
-        'message': message,
-        })
+    msgs = request.user.inbox.all()[:10]
+    msglist = ObjectLister(request, request.user.inbox)
 
+    statistics = {
+        'shipment': {
+                'draft': project.shipment_set.filter(status__exact=Shipment.STATES.DRAFT),
+                'outgoing': project.shipment_set.filter(status__exact=Shipment.STATES.OUTGOING),
+                'incoming': project.shipment_set.filter(status__exact=Shipment.STATES.INCOMING),
+                'received': project.shipment_set.filter(status__exact=Shipment.STATES.RECEIVED),
+                'closed': project.shipment_set.filter(status__exact=Shipment.STATES.CLOSED),                
+                },
+        'experiment': {
+                'draft': project.experiment_set.filter(status__exact=Experiment.STATES.DRAFT),
+                'active': project.experiment_set.filter(status__exact=Experiment.STATES.ACTIVE),
+                'processing': project.experiment_set.filter(status__exact=Experiment.STATES.PROCESSING),
+                'paused': project.experiment_set.filter(status__exact=Experiment.STATES.PAUSED),
+                'closed': project.experiment_set.filter(status__exact=Experiment.STATES.CLOSED),                
+                },
+                
+    }
+    return render_to_response('lims/project.html', {
+        'project': project,
+        'statistics': statistics,
+        'inbox': msglist,
+        'link':False,
+        },
+    context_instance=RequestContext(request))
+        
 @login_required
 def shipping_summary(request):
     try:
@@ -70,7 +59,8 @@ def shipping_summary(request):
         ContentType.objects.get_for_model(Dewar).pk,
         ContentType.objects.get_for_model(Shipment).pk,
     ]
-    return render_to_response('shipping.html',{
+    print 'Shipping Summary'
+    return render_to_response('lims/shipping.html',{
         'logs': project.activitylog_set.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
         'project': project,
         },
@@ -88,7 +78,7 @@ def sample_summary(request):
         ContentType.objects.get_for_model(Cocktail).pk,
         ContentType.objects.get_for_model(CrystalForm).pk,
     ]
-    return render_to_response('samples.html', {
+    return render_to_response('lims/samples.html', {
         'logs': project.activitylog_set.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
         },
         context_instance=RequestContext(request))
@@ -103,7 +93,7 @@ def experiment_summary(request):
         ContentType.objects.get_for_model(Experiment).pk,
         #ContentType.objects.get_for_model(Results).pk,
     ]
-    return render_to_response('experiment.html',{
+    return render_to_response('lims/experiment.html',{
         'logs': project.activitylog_set.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
         },
         context_instance=RequestContext(request))
@@ -148,16 +138,16 @@ def shipment_add_dewar(request, id):
                 form_info['message']
                 )
             request.user.message_set.create(message = form_info['message'])
-            return render_to_response('refresh.html')
+            return render_to_response('lims/refresh.html')
         else:
-            return render_to_response('forms/form_base.html', {
+            return render_to_response('objforms/form_base.html', {
                 'info': form_info,
                 'form': form, 
                 })
     else:
         form = DewarSelectForm()
         form['dewars'].field.queryset = dewars
-        return render_to_response('forms/form_base.html', {
+        return render_to_response('objforms/form_base.html', {
             'info': form_info, 
             'form': form, 
             })
@@ -203,16 +193,16 @@ def dewar_add_container(request, id):
                 form_info['message']
                 )
             request.user.message_set.create(message = form_info['message'])
-            return render_to_response('refresh.html')
+            return render_to_response('lims/refresh.html')
         else:
-            return render_to_response('forms/form_base.html', {
+            return render_to_response('objforms/form_base.html', {
                 'info': form_info,
                 'form': form, 
                 })
     else:
         form = ContainerSelectForm()
         form['container'].field.queryset = containers
-        return render_to_response('forms/form_base.html', {
+        return render_to_response('objforms/form_base.html', {
             'info': form_info, 
             'form': form, 
             })
@@ -233,7 +223,7 @@ def object_detail(request, id, model, template):
 
 
 @login_required
-def create_object(request, model, form, template='forms/new_base.html'):
+def create_object(request, model, form, template='lims/forms/new_base.html'):
     try:
         project = request.user.get_profile()
     except:
@@ -345,14 +335,14 @@ def add_new_object(request, id, model, form, field):
                 frm = form(initial={'project': project.pk, field: related.pk})
                 restrict_to_project(frm, project)
                 frm[field].field.widget.attrs['disabled'] = 'disabled'
-                return render_to_response('forms/form_base.html', {
+                return render_to_response('objforms/form_base.html', {
                     'info': form_info, 
                     'form': frm, 
                     })
             else:
-                return render_to_response('refresh.html')
+                return render_to_response('lims/refresh.html')
         else:
-            return render_to_response('forms/form_base.html', {
+            return render_to_response('objforms/form_base.html', {
                 'info': form_info,
                 'form': frm, 
                 })
@@ -360,14 +350,14 @@ def add_new_object(request, id, model, form, field):
         frm = form(initial={'project': project.pk, field: related.pk})
         restrict_to_project(frm, project)
         frm[field].field.widget.attrs['disabled'] = 'disabled'
-        return render_to_response('forms/form_base.html', {
+        return render_to_response('objforms/form_base.html', {
             'info': form_info, 
             'form': frm, 
             })
 
 
 @login_required
-def project_object_list(request, model, template='lists/list_base.html', link=True, can_add=True):
+def project_object_list(request, model, template='objlist/object_list.html', link=True, can_add=True):
     try:
         project = request.user.get_profile()
     except:
@@ -379,7 +369,7 @@ def project_object_list(request, model, template='lists/list_base.html', link=Tr
     )
 
 @login_required
-def user_object_list(request, model, template='lists/list_base.html', link=True, can_add=True):
+def user_object_list(request, model, template='lims/lists/list_base.html', link=True, can_add=True):
     manager = getattr(request.user, model.__name__.lower()+'_set')
     ol = ObjectLister(request, manager)
     return render_to_response(template, {'ol': ol,'link': link, 'can_add': can_add },
@@ -388,7 +378,7 @@ def user_object_list(request, model, template='lists/list_base.html', link=True,
 
 
 @login_required
-def edit_object_inline(request, id, model, form, template='/forms/form_base.html'):
+def edit_object_inline(request, id, model, form, template='objforms/form_base.html'):
     try:
         project = request.user.get_profile()
         manager = getattr(project, model.__name__.lower()+'_set')
@@ -418,7 +408,7 @@ def edit_object_inline(request, id, model, form, template='/forms/form_base.html
                 form_info['message']
                 )
             request.user.message_set.create(message = form_info['message'])
-            return render_to_response('refresh.html')
+            return render_to_response('lims/refresh.html')
         else:
             return render_to_response(template, {
             'info': form_info, 
@@ -477,11 +467,11 @@ def remove_object(request, id, model, field):
                 form_info['message']
                 )
             request.user.message_set.create(message = form_info['message'])            
-            return render_to_response('refresh.html')
+            return render_to_response('lims/refresh.html')
         else:
-            return render_to_response('refresh.html')
+            return render_to_response('lims/refresh.html')
     else:
-        return render_to_response('forms/confirm_action.html', {
+        return render_to_response('lims/forms/confirm_action.html', {
             'info': form_info, 
             'id': obj.pk,
             'confirm_action': 'Remove %s' % object_type, 

@@ -1,0 +1,11 @@
+{% if dewar.container_set.count %}
+    <li><a href="/project/shipping/dewar/{{dewar.id}}" class="open">{{dewar.label}}</a>
+    <ul>{% for container in dewar.container_set.all %}
+            {% include "lims/entries/container_detail.html" %}
+        {% endfor %}
+    </ul></li>
+{% else %}
+    <li><a href="/project/shipping/dewar/{{dewar.id}}">{{dewar.label}}</a> (empty)</li>
+{% endif %}
+        
+            

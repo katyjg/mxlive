@@ -1,0 +1,21 @@
+{% extends "lims/entries/samples_entry.html" %}
+{% load humanize %}
+
+{% block title %} Cocktail {{ object.identity }}{% endblock %}
+
+{% block entry-summary%}
+{% include "lims/entries/constituent_summary.html" %}
+{% endblock %}
+
+{% block entry-info %}
+{# include "lims/entries/constituent_info.html" #}
+{% endblock %}
+
+{% block entry-contents %}
+{% include "lims/entries/constituent_cocktails.html" %}
+{% endblock %}
+
+{% block entry-scratchpad %}
+{#% include "lims/entries/constituent_details.html" %#}
+{% endblock %}
+

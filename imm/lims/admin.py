@@ -6,28 +6,35 @@ class ConstituentAdmin(admin.ModelAdmin):
     list_filter = ['kind','source','modified']
     list_display = ('id','acronym', 'name', 'kind', 'source')
     list_per_page = 10
+    actions = None
     ordering = ['acronym']
+admin.site.register(Constituent, ConstituentAdmin)
 
 class ShipmentAdmin(admin.ModelAdmin):
     search_fields = ['label', 'comments','status']
     list_filter = ['status','created']
     list_display = ('id','label', 'status', 'date_shipped', 'carrier', 'num_dewars')
     list_per_page = 10
+    actions = None
     ordering = ['-created']
+admin.site.register(Shipment, ShipmentAdmin)
 
 class DewarAdmin(admin.ModelAdmin):
     search_fields = ['label', 'comments']
     list_filter = ['modified','created']
     list_display = ('id', 'label', 'code', 'created', 'modified', 'num_containers')
     ordering = ['-created']
+    actions = None
     list_per_page = 10
+admin.site.register(Dewar, DewarAdmin)
     
-class ActivityLogAdmin(admin.ModelAdmin):
-    list_filter = ['action_type','created']
-    search_fields = ['description','ip_number']
-    list_display = ('content_type','created','action_type','user','ip_number','description')
-    ordering = ('-created',)
-    list_per_page = 10
+#class ActivityLogAdmin(admin.ModelAdmin):
+#    list_filter = ['action_type','created']
+#    search_fields = ['description','ip_number']
+#    list_display = ('content_type','created','action_type','user','ip_number','description')
+#    ordering = ('-created',)
+#    list_per_page = 10
+#admin.site.register(ActivityLog, ActivityLogAdmin)
         
         
 class ExperimentAdmin(admin.ModelAdmin):
@@ -36,19 +43,25 @@ class ExperimentAdmin(admin.ModelAdmin):
     list_display = ('id','name','kind','status','plan','num_crystals')
     ordering = ['-created']
     list_per_page = 10
+    actions = None
+admin.site.register(Experiment, ExperimentAdmin)
 
 class CrystalAdmin(admin.ModelAdmin):
     search_fields = ['name', 'code']
     list_filter = ['modified']
     list_display = ('id', 'name', 'crystal_form', 'cocktail', 'container', 'container_location')       
     ordering = ['-created']
+    actions = None
     list_per_page = 10
+admin.site.register(Crystal, CrystalAdmin)
 
 class CocktailAdmin(admin.ModelAdmin):
     ordering = ['-created']
     search_fields = ['comments','constituents']
     list_filter = ['modified',]
     list_display = ('id', 'name', 'created','modified')
+    actions = None
+admin.site.register(Cocktail, CocktailAdmin)
     
 class CrystalFormAdmin(admin.ModelAdmin):
     ordering = ['id']
@@ -56,12 +69,15 @@ class CrystalFormAdmin(admin.ModelAdmin):
     list_filter = ['modified',]
     list_display = ('id', 'name', 'cell_a', 'cell_b', 'cell_c','cell_alpha', 'cell_beta', 'cell_gamma', 'space_group' )
     list_per_page = 10
+    actions = None
+admin.site.register(CrystalForm, CrystalFormAdmin)
 
 class SpaceGroupAdmin(admin.ModelAdmin):
     ordering = ['id']
     search_fields = ['name','code']
     list_filter = ['crystal_system','lattice_type']
     list_display = ('id', 'name', 'crystal_system', 'lattice_type')
+    actions = None
         
         
 class ContainerAdmin(admin.ModelAdmin):
@@ -70,19 +86,20 @@ class ContainerAdmin(admin.ModelAdmin):
     list_filter = ['modified','kind']
     list_display = ('id', 'label', 'code', 'capacity', 'created', 'modified', 'num_crystals')
     list_per_page = 10
+    actions = None
+admin.site.register(Container, ContainerAdmin)
 
-#class ResultAdmin(admin.ModelAdmin):
+class ProjectInline(admin.TabularInline):
+    model = User
+    
+class UserAdmin(admin.ModelAdmin):
+    inlines = [
+        ProjectInline,
+    ]
+admin.site.register(Project)
+
 
 admin.site.register(Carrier)
 admin.site.register(SpaceGroup)
-admin.site.register(Project)
 admin.site.register(Laboratory)
-admin.site.register(Shipment, ShipmentAdmin)
-admin.site.register(Dewar, DewarAdmin)
-admin.site.register(Container, ContainerAdmin)
-admin.site.register(Crystal, CrystalAdmin)
-admin.site.register(CrystalForm, CrystalFormAdmin)
-admin.site.register(Constituent, ConstituentAdmin)
-admin.site.register(Cocktail, CocktailAdmin)
-admin.site.register(ActivityLog, ActivityLogAdmin)
-admin.site.register(Experiment, ExperimentAdmin)
+

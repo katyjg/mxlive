@@ -11,14 +11,14 @@ import os
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Example:
     (r'^admin/(.*)', admin.site.root),
-    (r'^$', lims.views.show_home),
-    (r'^project/$', lims.views.show_home),
+    (r'^project/message/', include('imm.messaging.urls')),
     (r'^project/',  include('imm.lims.urls')),
     (r'^login/$',  'django.contrib.auth.views.login', {'template_name': 'login.html'}),
     (r'^logout/$', logout_view),
-    (r'^dcss/(?P<path>.*\.css)$', get_dcss),
+    (r'^dcss/', include('imm.dcss.urls')),
+
+
 )
 
 if settings.DEBUG:

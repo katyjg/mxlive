@@ -6,15 +6,15 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
+    ('Michel Fodje', 'michel.fodje@lightsource.ca'),
 )
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'sqlite3'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
-DATABASE_NAME = '/tmp/imm.db'             # Or path to database file if using sqlite3.
-DATABASE_USER = ''             # Not used with sqlite3.
-DATABASE_PASSWORD = ''         # Not used with sqlite3.
+DATABASE_ENGINE = 'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
+DATABASE_NAME = 'imm'             # Or path to database file if using sqlite3.
+DATABASE_USER = 'imm'             # Not used with sqlite3.
+DATABASE_PASSWORD = 'imm'         # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
 
@@ -67,7 +67,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.middleware.doc.XViewMiddleware',
+    #'django.middleware.doc.XViewMiddleware',
+    #'django.middleware.locale.LocaleMiddleware',
 )
 
 ROOT_URLCONF = 'imm.urls'
@@ -87,6 +88,9 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.humanize',
     'imm.lims',
+    'imm.objlist',
+    'imm.dcss',
+    'imm.objforms',
     'imm.messaging',
 )
 
@@ -109,4 +113,5 @@ AUTHENTICATION_BACKENDS = (
 # 'imm.backends.ldapauth.LDAPBackend',
  'django.contrib.auth.backends.ModelBackend',
 )
+
 

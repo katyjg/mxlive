@@ -1,7 +1,7 @@
 from django import forms
-from widgets import *
 from models import *
 from datetime import datetime
+import objforms.widgets
 
 
 class OrderedForm(forms.ModelForm):
@@ -21,10 +21,10 @@ def restrict_to_project(form, project):
 class ShipmentForm(OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     label = forms.CharField(
-        widget=LargeInput,
+        widget=objforms.widgets.LargeInput,
         help_text=Shipment.HELP['label']
         )
-    comments = CommentField(required=False)
+    comments = objforms.widgets.CommentField(required=False)
     class Meta:
         model = Shipment
         fields = ('project','label','comments',)
@@ -33,15 +33,15 @@ class ShipmentSendForm(OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     carrier = forms.ModelChoiceField(
         queryset=Carrier.objects.all(),
-        widget=LargeSelect,
+        widget=objforms.widgets.LargeSelect,
         help_text='Please select the carrier company.',
         required=True
         )
-    tracking_code = LargeCharField(required=True)
+    tracking_code = objforms.widgets.LargeCharField(required=True)
     date_shipped = forms.DateTimeField(required=True,
-        widget=LargeInput,
+        widget=objforms.widgets.LargeInput,
         )
-    comments = CommentField(required=False)
+    comments = objforms.widgets.CommentField(required=False)
     status = forms.CharField(widget=forms.HiddenInput, required=True)
     class Meta:
         model = Shipment
@@ -52,29 +52,29 @@ class DewarForm(OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     shipment = forms.ModelChoiceField(
         queryset=Shipment.objects.all(), 
-        widget=LargeSelect,
+        widget=objforms.widgets.LargeSelect,
         required=False
         )
     label = forms.CharField(
-        widget=LargeInput,
+        widget=objforms.widgets.LargeInput,
         help_text=Dewar.HELP['label']
         )
-    code = BarCodeField(required=False, help_text=Dewar.HELP['code'])
-    comments = CommentField(required=False)
+    code = objforms.widgets.BarCodeField(required=False, help_text=Dewar.HELP['code'])
+    comments = objforms.widgets.CommentField(required=False)
     class Meta:
         model = Dewar
         fields = ('project','label','code','shipment','comments',)
 
 class ContainerForm(OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    dewar = forms.ModelChoiceField(queryset=Dewar.objects.all(), widget=LargeSelect, required=False)
+    dewar = forms.ModelChoiceField(queryset=Dewar.objects.all(), widget=objforms.widgets.LargeSelect, required=False)
     label = forms.CharField(
-        widget=LargeInput,
+        widget=objforms.widgets.LargeInput,
         help_text=Container.HELP['label']
         )
-    code = MatrixCodeField(required=False, help_text=Container.HELP['code'])
-    kind = forms.ChoiceField(choices=Container.TYPE.get_choices(), widget=LargeSelect, initial=Container.TYPE.UNI_PUCK)
-    comments = CommentField(required=False)
+    code = objforms.widgets.MatrixCodeField(required=False, help_text=Container.HELP['code'])
+    kind = forms.ChoiceField(choices=Container.TYPE.get_choices(), widget=objforms.widgets.LargeSelect, initial=Container.TYPE.UNI_PUCK)
+    comments = objforms.widgets.CommentField(required=False)
     
     class Meta:
         model = Container
@@ -83,33 +83,33 @@ class ContainerForm(OrderedForm):
 class SampleForm(OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     name = forms.CharField(
-        widget=LargeInput,
+        widget=objforms.widgets.LargeInput,
         help_text=Crystal.HELP['name']
         )
-    code = MatrixCodeField(required=False, help_text=Crystal.HELP['code'])
+    code = objforms.widgets.MatrixCodeField(required=False, help_text=Crystal.HELP['code'])
     cocktail = forms.ModelChoiceField(
         queryset=Cocktail.objects.all(), 
-        widget=LargeSelect(attrs={'class': 'field select leftHalf'}),
+        widget=objforms.widgets.LargeSelect(attrs={'class': 'field select leftHalf'}),
         help_text='The mixture of protein, buffer, precipitant or heavy atoms that make up your crystal'
         )
     crystal_form = forms.ModelChoiceField(
         queryset=CrystalForm.objects.all(), 
-        widget=LargeSelect(attrs={'class': 'field select rightHalf'}),
+        widget=objforms.widgets.LargeSelect(attrs={'class': 'field select rightHalf'}),
         required=False
         )
-    pin_length = forms.IntegerField(widget=LeftHalfInput, help_text=Crystal.HELP['pin_length'], initial=18 )
-    loop_size = forms.FloatField( widget=RightHalfInput, required=False )
+    pin_length = forms.IntegerField(widget=objforms.widgets.LeftHalfInput, help_text=Crystal.HELP['pin_length'], initial=18 )
+    loop_size = forms.FloatField( widget=objforms.widgets.RightHalfInput, required=False )
     container = forms.ModelChoiceField(
         queryset=Container.objects.all(), 
-        widget=LargeSelect(attrs={'class': 'field select leftHalf'}),
+        widget=objforms.widgets.LargeSelect(attrs={'class': 'field select leftHalf'}),
         required=False,
         )
-    container_location = RightHalfCharField(
+    container_location = objforms.widgets.RightHalfCharField(
         required=False,
         help_text='This field is required only if a container has been selected'
         )
     comments = forms.CharField(
-        widget=CommentInput, 
+        widget=objforms.widgets.CommentInput, 
         max_length=200, 
         required=False,
         help_text= Crystal.HELP['comments'])
@@ -155,17 +155,17 @@ class ContainerSelectForm(forms.Form):
     
 class ExperimentForm(OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    name = LargeCharField(required=True)
-    kind = LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES.get_choices(), required=True)
-    plan = RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS.get_choices(), required=True)
-    hi_res = forms.FloatField(label='Desired High Res.', widget=LeftHalfInput, required=False )
-    lo_res = forms.FloatField(label='Desired Low Res.', widget=RightHalfInput, required=False )
-    i_sigma = forms.FloatField(label='I/Sigma',widget=LeftHalfInput, required=False )
-    r_meas = forms.FloatField(widget=RightHalfInput, required=False )
-    multiplicity = forms.IntegerField(widget=LargeInput, required=False)
-    energy = forms.FloatField(widget=LeftHalfInput, required=False )
-    absorption_edge = RightHalfCharField(required=False )
-    comments = CommentField(required=False)
+    name = objforms.widgets.LargeCharField(required=True)
+    kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES.get_choices(), required=True)
+    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS.get_choices(), required=True)
+    hi_res = forms.FloatField(label='Desired High Res.', widget=objforms.widgets.LeftHalfInput, required=False )
+    lo_res = forms.FloatField(label='Desired Low Res.', widget=objforms.widgets.RightHalfInput, required=False )
+    i_sigma = forms.FloatField(label='I/Sigma',widget=objforms.widgets.LeftHalfInput, required=False )
+    r_meas = forms.FloatField(widget=objforms.widgets.RightHalfInput, required=False )
+    multiplicity = forms.IntegerField(widget=objforms.widgets.LargeInput, required=False)
+    energy = forms.FloatField(widget=objforms.widgets.LeftHalfInput, required=False )
+    absorption_edge = objforms.widgets.RightHalfCharField(required=False )
+    comments = objforms.widgets.CommentField(required=False)
     class Meta:
         model = Experiment
         fields = ('project','name', 'kind', 'plan', 'hi_res',
@@ -175,7 +175,7 @@ class ExperimentForm(OrderedForm):
 class CocktailForm(OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     comments = forms.CharField(
-        widget=CommentInput, 
+        widget=objforms.widgets.CommentInput, 
         max_length=200, 
         required=False,
         help_text= Crystal.HELP['comments'])
@@ -185,36 +185,36 @@ class CocktailForm(OrderedForm):
 
 class CrystalFormForm(OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    name = LargeCharField(required=True)
+    name = objforms.widgets.LargeCharField(required=True)
     space_group = forms.ModelChoiceField(
-        widget=LargeSelect,
+        widget=objforms.widgets.LargeSelect,
         queryset=SpaceGroup.objects.all(), 
         required=False)
-    cell_a = forms.FloatField(label='a', widget=LeftThirdInput,required=False, help_text='Dimension of the cell A-axis')
-    cell_b = forms.FloatField(label='b', widget=MiddleThirdInput,required=False, help_text='Dimension of the cell B-axis')
-    cell_c = forms.FloatField(label='c', widget=RightThirdInput,required=False, help_text='Dimension of the cell C-axis' )
-    cell_alpha = forms.FloatField(label='alpha', widget=LeftThirdInput,required=False)
-    cell_beta = forms.FloatField(label='beta', widget=MiddleThirdInput,required=False)
-    cell_gamma = forms.FloatField(label='gamma', widget=RightThirdInput,required=False)
+    cell_a = forms.FloatField(label='a', widget=objforms.widgets.LeftThirdInput,required=False, help_text='Dimension of the cell A-axis')
+    cell_b = forms.FloatField(label='b', widget=objforms.widgets.MiddleThirdInput,required=False, help_text='Dimension of the cell B-axis')
+    cell_c = forms.FloatField(label='c', widget=objforms.widgets.RightThirdInput,required=False, help_text='Dimension of the cell C-axis' )
+    cell_alpha = forms.FloatField(label='alpha', widget=objforms.widgets.LeftThirdInput,required=False)
+    cell_beta = forms.FloatField(label='beta', widget=objforms.widgets.MiddleThirdInput,required=False)
+    cell_gamma = forms.FloatField(label='gamma', widget=objforms.widgets.RightThirdInput,required=False)
     class Meta:
         model = CrystalForm
         fields = ('project','name', 'space_group','cell_a','cell_b','cell_c','cell_alpha','cell_beta','cell_gamma')
     
 class ConstituentForm(forms.ModelForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    name = LargeCharField(required=True)
-    acronym = LargeCharField(required=True)
-    kind = RightHalfChoiceField(required=True,choices=Constituent.TYPES.get_choices())
-    source = LeftHalfChoiceField(required=True, choices=Constituent.SOURCES.get_choices())
-    is_radioactive = LeftCheckBoxField(required=False)
-    is_contaminant = RightCheckBoxField(required=False)
-    is_toxic = LeftCheckBoxField(required=False)
-    is_oxidising = RightCheckBoxField(required=False)
-    is_explosive = LeftCheckBoxField(required=False)
-    is_corrosive = RightCheckBoxField(required=False)
-    is_inflamable = LeftCheckBoxField(required=False)
-    is_biological_hazard = RightCheckBoxField(required=False)
-    hazard_details = CommentField(required=False)
+    name = objforms.widgets.LargeCharField(required=True)
+    acronym = objforms.widgets.LargeCharField(required=True)
+    kind = objforms.widgets.RightHalfChoiceField(required=True,choices=Constituent.TYPES.get_choices())
+    source = objforms.widgets.LeftHalfChoiceField(required=True, choices=Constituent.SOURCES.get_choices())
+    is_radioactive = objforms.widgets.LeftCheckBoxField(required=False)
+    is_contaminant = objforms.widgets.RightCheckBoxField(required=False)
+    is_toxic = objforms.widgets.LeftCheckBoxField(required=False)
+    is_oxidising = objforms.widgets.RightCheckBoxField(required=False)
+    is_explosive = objforms.widgets.LeftCheckBoxField(required=False)
+    is_corrosive = objforms.widgets.RightCheckBoxField(required=False)
+    is_inflamable = objforms.widgets.LeftCheckBoxField(required=False)
+    is_biological_hazard = objforms.widgets.RightCheckBoxField(required=False)
+    hazard_details = objforms.widgets.CommentField(required=False)
     class Meta:
         model = Constituent
     

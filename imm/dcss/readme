@@ -1,0 +1,29 @@
+This app also enables me to do dynamic CSS using as follows:
+
+# urlpatterns
+urlpatterns = patterns('',
+    (r'^dcss/(?P<path>\w+\.css)$', 'dcss.views.get_css'),
+)
+
+# dynamic css within in /path/to/app/templates/dcss' for example
+{% load var %}
+{% var as col %}
+{
+    "darkbg": "#999",
+    "lightbg": "#666"
+}
+{% endvar %}
+
+{% var as dim %}
+{
+    "thinmargin": "2em",
+    "thickmargin": "10em"
+}
+{% endvar %}
+
+body {
+    background: {{col.darkbg}}; 
+    margin: {{dim.thinmargin}};
+}
+
+# Generated css are cached for speed. Check dcss.views for configuring the caching

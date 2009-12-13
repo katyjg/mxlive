@@ -1,0 +1,14 @@
+{% extends "lims/project_base.html" %}
+{% block content %}
+<table width="100%">
+<td><td width="65%" valign="top">
+{% block main-column %}
+{% endblock %}
+</td><td width="*" valign="top">
+{% block side-column %}
+{% include "lims/activity_log.html" %}
+{% endblock %}
+</td></tr>
+</table>
+{% endblock %}
+
