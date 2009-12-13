@@ -59,7 +59,6 @@ def shipping_summary(request):
         ContentType.objects.get_for_model(Dewar).pk,
         ContentType.objects.get_for_model(Shipment).pk,
     ]
-    print 'Shipping Summary'
     return render_to_response('lims/shipping.html',{
         'logs': project.activitylog_set.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
         'project': project,
