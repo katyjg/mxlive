@@ -137,6 +137,15 @@ class SampleForm(OrderedForm):
                     'loop_size','container','container_location','comments')
 
 
+class ObjectSelectForm(forms.Form):
+    items = forms.ModelMultipleChoiceField(
+        widget=forms.SelectMultiple(attrs={'class': 'field select large'}),
+        queryset=None, 
+        required=False,
+        help_text='Select multiple items and then click submit to add them. Items already assigned will be reassigned.'
+        )
+
+
 class DewarSelectForm(forms.Form):
     dewars = forms.ModelMultipleChoiceField(
         widget=forms.SelectMultiple(attrs={'class': 'field select large'}),

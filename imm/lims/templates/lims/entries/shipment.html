@@ -3,7 +3,7 @@
 
 {% block title %} Shipment {{ shipment.identity }}{% endblock %}
     {% block entry-toolbox%}
-                <span onclick="load_page('entry-scratchpad', '../f{{object.id}}/', '');" class="edit-tool">Send</span>
+                <span onclick="load_page('entry-scratchpad', '../{{object.id}}/send/', '');" class="edit-tool">Send</span>
     {% endblock %}
 {% block entry-summary%}
 {% include "lims/entries/shipment_summary.html" %}
@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block entry-contents %}
-{% include "lims/entries/shipment_contents.html" %}
+{% include "lims/entries/associated_dewars.html" %}
 {% endblock %}
 
 {% block entry-scratchpad %}

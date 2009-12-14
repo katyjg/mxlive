@@ -1,0 +1,34 @@
+{% extends "lims/sidebox.html" %}
+{% block sidebox-title %} Associated Dewars {% endblock %}
+{% block sidebox-tools %}
+    <a href="javascript:load_page('entry-scratchpad', '{% url lims-shipment-new-dewar object.id %}','');">Add New</a>
+    |
+    <a href="javascript:load_page('entry-scratchpad', '{% url lims-shipment-add-dewar object.id %}','');">Add Existing</a>
+{% endblock %}
+
+{% block sidebox-content %}
+    <table cellspacing="0" cellpadding="3" border="0" width="100%">
+    <tbody>
+{% if object.dewar_set.count  %}
+    {% for dewar in object.dewar_set.all %}
+    <tr>
+    <td onclick="linkto('{% url lims-dewar-detail dewar.id %}','');" class="link-row">
+    <strong>{{dewar.identity}}</strong> : {{dewar.num_containers}} containers<br/>
+     {{dewar.label}} {%if dewar.comments %} &ndash; {% endif %}{{dewar.comments|truncatewords:8}}
+    </td>
+    <td style="text-align: right;">
+    <span onclick="load_page('entry-scratchpad', '{% url lims-dewar-remove object.id %}', '');" class="remove-tool">Remove</span>
+    </td>
+    </tr>
+    <tr><td colspan="2" class="rule"> </td></tr>
+    {% endfor %}
+{% else %}
+    <tr><td colspan="20" align="center" style="padding: 3em;">No Dewars in this shipment</td></tr>
+{% endif %}
+    <tr><td style="height: 2em; text-align: center; " colspan="20"><a href="{% url lims-dewar-list %}">show all dewars</a></td></tr>
+    </tbody>
+    </table>
+
+</div>
+</div>
+{% endblock %}

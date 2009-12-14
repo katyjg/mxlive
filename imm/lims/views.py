@@ -153,6 +153,67 @@ def shipment_add_dewar(request, id):
 
 
 @login_required
+def add_existing_object(request, id, parent_model, model, field, form=ObjectSelectForm):
+    id = int(id)
+    try:
+        project = request.user.get_profile()
+        manager = getattr(project, model.__name__.lower()+'_set')
+        parent_manager = getattr(project, parent_model.__name__.lower()+'_set')
+    except:
+        raise Http404
+        
+    parent = parent_manager.get(pk=id)    
+    queryset = manager.filter(models.Q(**{'%s__isnull' % (field): True}) |
+                              ~models.Q(**{'%s__exact' % (field): id}))
+    object_type = model.__name__
+    form_info = {
+        'title': 'Add Existing %s' % (object_type),
+        'sub_title': 'Select existing %ss to add to %s' % (object_type.lower(), parent),
+        'action':  request.path,
+        'target': 'entry-scratchpad',
+    }
+    if request.method == 'POST':
+        frm = form(request.POST)
+        frm['items'].field.queryset = queryset
+        if frm.is_valid():
+            changed = False
+            for item_id in request.POST.getlist('items'):
+                d = manager.get(pk=item_id)
+                setattr(d, field, parent)
+                d.save()
+                changed = True
+            
+            if changed:
+                parent.save()            
+            form_info['message'] = '%d %ss have been successfully added' % (len(request.POST.getlist('items')), object_type.lower())         
+            ActivityLog.objects.log_activity(
+                project.pk,
+                request.user.pk, 
+                request.META['REMOTE_ADDR'],
+                ContentType.objects.get_for_model(parent_model).id,
+                parent.pk, 
+                str(parent), 
+                ActivityLog.TYPE.MODIFY,
+                form_info['message']
+                )
+            request.user.message_set.create(message = form_info['message'])
+            return render_to_response('lims/refresh.html')
+        else:
+            return render_to_response('objforms/form_base.html', {
+                'info': form_info,
+                'form': frm, 
+                })
+    else:
+        frm = form()
+        frm['items'].field.queryset = queryset
+        return render_to_response('objforms/form_base.html', {
+            'info': form_info, 
+            'form': frm, 
+            })
+
+
+
+@login_required
 def dewar_add_container(request, id):
     id = int(id)
     try:
@@ -200,7 +261,7 @@ def dewar_add_container(request, id):
                 })
     else:
         form = ContainerSelectForm()
-        form['container'].field.queryset = containers
+        form['containers'].field.queryset = containers
         return render_to_response('objforms/form_base.html', {
             'info': form_info, 
             'form': form, 
@@ -446,7 +507,7 @@ def remove_object(request, id, model, field):
             )
     }
     if request.method == 'POST':
-        if request.has_key('_confirmed'):
+        if request.POST.has_key('_confirmed'):
             setattr(obj,field,None)
             obj.save()
             form_info['message'] = '%s "%s" removed from %s  "%s".' % (

@@ -12,7 +12,9 @@
 {% endblock %}
 
 {% block entry-contents %}
-{% include "lims/entries/crystalform_crystals.html" %}
+{% with object.crystal_set.all as crystals %}
+{% include "lims/entries/associated_crystals.html" %}
+{% endwith %}
 {% endblock %}
 
 {% block entry-scratchpad %}

@@ -19,7 +19,7 @@
         <tr valign="top"><th>Modified:</th><td>{{dewar.modified|naturalday}} at {{dewar.modified|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Shipment:</th><td>
         {% if dewar.is_assigned %}
-        <a href="/project/shipping/shipment/{{dewar.shipment.id}}/">{{dewar.shipment.identity}}</a>
+        <a href="{% url lims-shipment-detail dewar.shipment.id %}">{{dewar.shipment.identity}}</a>
         {% else %}
         Not assigned to any shipment.
         {% endif %}

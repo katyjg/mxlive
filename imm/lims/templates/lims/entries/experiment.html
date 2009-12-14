@@ -12,7 +12,9 @@
 {% endblock %}
 
 {% block entry-contents %}
-{% include "lims/entries/experiment_crystals.html" %}
+{% with object.crystals.all as crystals %}
+{% include "lims/entries/associated_crystals.html" %}
+{% endwith %}
 {% endblock %}
 
 {% block entry-scratchpad %}

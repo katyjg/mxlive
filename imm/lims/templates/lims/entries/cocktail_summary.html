@@ -19,8 +19,8 @@
         <tr valign="top"><th>Created:</th><td>{{cocktail.created|naturalday}} at {{cocktail.created|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Modified:</th><td>{{cocktail.modified|naturalday}} at {{cocktail.modified|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Constituents:</th><td>
-        {% for con in cocktail.constituents.all %}
-        <a href="/project/samples/constituent/{{con.pk}}/">{{con.name}} ({{con.acronym}})</a><br/>
+        {% for constituent in cocktail.constituents.all %}
+        <a href="{% url lims-constituent-detail constituent.pk %}">{{constituent.name}} ({{constituent.acronym}})</a><br/>
         {% endfor %}
         </td></tr>
         </table>

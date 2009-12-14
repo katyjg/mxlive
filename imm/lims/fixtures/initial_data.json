@@ -25,6 +25,358 @@
     }, 
     {
         "pk": 1, 
+        "model": "lims.laboratory", 
+        "fields": {
+            "city": "Saskatoon", 
+            "name": "Canadian Light source", 
+            "created": "2008-07-14 12:08:53", 
+            "country": "Canada", 
+            "organisation": "", 
+            "contact_fax": "306-657-3735", 
+            "modified": "2008-07-14 12:08:53", 
+            "postal_code": "S7N 0XN", 
+            "address": "101 Perimeter Road", 
+            "contact_phone": "306-657-3758"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "lims.project", 
+        "fields": {
+            "name": "P1-CLS", 
+            "end_date": "2008-09-30", 
+            "title": "Structural Studies", 
+            "created": "2008-07-14 12:09:02", 
+            "modified": "2008-07-14 12:09:02", 
+            "lab": 1, 
+            "summary": "Project summary", 
+            "user": 1, 
+            "beam_time": 100.0, 
+            "start_date": "2008-07-14"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "lims.constituent", 
+        "fields": {
+            "is_explosive": 0, 
+            "kind": 3, 
+            "is_corrosive": 0, 
+            "name": "Ferrochelatase", 
+            "created": "2008-07-18 06:16:29", 
+            "acronym": "FECH", 
+            "is_toxic": 0, 
+            "is_inflamable": 0, 
+            "modified": "2009-12-13 10:52:13", 
+            "project": 1, 
+            "source": 1, 
+            "hazard_details": "", 
+            "is_oxidising": 0, 
+            "is_radioactive": 0, 
+            "is_biological_hazard": 0, 
+            "is_contaminant": 0
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "lims.constituent", 
+        "fields": {
+            "is_explosive": 0, 
+            "kind": 0, 
+            "is_corrosive": 0, 
+            "name": "N-methylmesoporphyrin", 
+            "created": "2008-07-18 06:17:17", 
+            "acronym": "MMP", 
+            "is_toxic": 0, 
+            "is_inflamable": 0, 
+            "modified": "2009-12-13 10:52:22", 
+            "project": 1, 
+            "source": 0, 
+            "hazard_details": "", 
+            "is_oxidising": 0, 
+            "is_radioactive": 0, 
+            "is_biological_hazard": 0, 
+            "is_contaminant": 0
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "lims.constituent", 
+        "fields": {
+            "is_explosive": 0, 
+            "kind": 0, 
+            "is_corrosive": 0, 
+            "name": "Tris", 
+            "created": "2008-07-18 06:17:52", 
+            "acronym": "Tris", 
+            "is_toxic": 0, 
+            "is_inflamable": 0, 
+            "modified": "2009-12-13 10:52:38", 
+            "project": 1, 
+            "source": 0, 
+            "hazard_details": "", 
+            "is_oxidising": 0, 
+            "is_radioactive": 0, 
+            "is_biological_hazard": 0, 
+            "is_contaminant": 0
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "lims.constituent", 
+        "fields": {
+            "is_explosive": 0, 
+            "kind": 2, 
+            "is_corrosive": 0, 
+            "name": "Magnesium Chloride", 
+            "created": "2008-07-18 06:19:03", 
+            "acronym": "MgCl2", 
+            "is_toxic": 0, 
+            "is_inflamable": 0, 
+            "modified": "2009-12-13 10:52:18", 
+            "project": 1, 
+            "source": 0, 
+            "hazard_details": "", 
+            "is_oxidising": 0, 
+            "is_radioactive": 0, 
+            "is_biological_hazard": 0, 
+            "is_contaminant": 0
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "lims.constituent", 
+        "fields": {
+            "is_explosive": 0, 
+            "kind": 0, 
+            "is_corrosive": 0, 
+            "name": "Polyethylene Glycol 4000", 
+            "created": "2008-07-18 06:19:30", 
+            "acronym": "PEG4000", 
+            "is_toxic": 0, 
+            "is_inflamable": 0, 
+            "modified": "2009-12-13 10:52:32", 
+            "project": 1, 
+            "source": 0, 
+            "hazard_details": "", 
+            "is_oxidising": 0, 
+            "is_radioactive": 0, 
+            "is_biological_hazard": 0, 
+            "is_contaminant": 0
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "lims.carrier", 
+        "fields": {
+            "phone_number": "800-742-5877", 
+            "code_regex": "^(1Z)", 
+            "url": "http://wwwapps.ups.com/etracking/tracking.cgi?TypeOfInquiryNumber=T&AcceptUPSLicenseAgreement=yes&submit=Track&InquiryNumber1=", 
+            "name": "UPS", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "lims.carrier", 
+        "fields": {
+            "phone_number": "866-607-6301", 
+            "code_regex": "(CA)$", 
+            "url": "https://obc.canadapost.ca/emo/basicPin.do?trackingCode=PIN&action=query&language=en&sblid=dcsubmitted&trackingId=", 
+            "name": "Canada Post", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "lims.carrier", 
+        "fields": {
+            "phone_number": "800-463-3339", 
+            "code_regex": "^\\d{12,19}$", 
+            "url": "http://www.fedex.com/Tracking?action=track&tracknumbers=", 
+            "name": "FedEx", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "lims.carrier", 
+        "fields": {
+            "phone_number": "800-222-1811", 
+            "code_regex": "\\d{20,}", 
+            "url": "http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=", 
+            "name": "USPS", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "lims.carrier", 
+        "fields": {
+            "phone_number": "800-225-5345", 
+            "code_regex": "^\\d{10,11}$", 
+            "url": "http://track.dhl-usa.com/TrackByNbr.asp?ShipmentNumber=", 
+            "name": "DHL", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "lims.carrier", 
+        "fields": {
+            "phone_number": "888-744-7123", 
+            "code_regex": "*", 
+            "url": "http://shipnow.purolator.com/shiponline/track/purolatortrack.asp?pinno=", 
+            "name": "Purolator", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "lims.shipment", 
+        "fields": {
+            "status": 0, 
+            "tracking_code": "", 
+            "date_shipped": null, 
+            "created": "2008-08-18 13:17:57", 
+            "modified": "2009-12-13 10:53:21", 
+            "return_code": "", 
+            "comments": "", 
+            "label": "Shipment1", 
+            "project": 1, 
+            "date_returned": null, 
+            "carrier": null, 
+            "date_received": null
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "lims.dewar", 
+        "fields": {
+            "storage_location": "", 
+            "created": "2008-08-18 13:18:10", 
+            "modified": "2009-12-13 10:50:47", 
+            "comments": "", 
+            "label": "Dewar1", 
+            "project": 1, 
+            "code": "", 
+            "shipment": 1
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "lims.dewar", 
+        "fields": {
+            "storage_location": "", 
+            "created": "2008-08-18 13:21:52", 
+            "modified": "2009-12-13 10:50:43", 
+            "comments": "", 
+            "label": "Dewar2", 
+            "project": 1, 
+            "code": "", 
+            "shipment": 1
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "lims.dewar", 
+        "fields": {
+            "storage_location": "", 
+            "created": "2008-08-18 13:24:46", 
+            "modified": "2009-12-13 10:50:38", 
+            "comments": "", 
+            "label": "Dewar3", 
+            "project": 1, 
+            "code": "", 
+            "shipment": 1
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "lims.container", 
+        "fields": {
+            "kind": 1, 
+            "code": "", 
+            "created": "2008-08-18 13:30:30", 
+            "modified": "2009-12-13 10:50:05", 
+            "comments": "", 
+            "label": "Cane-1", 
+            "project": 1, 
+            "dewar": 3
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "lims.container", 
+        "fields": {
+            "kind": 1, 
+            "code": "", 
+            "created": "2008-08-18 13:30:39", 
+            "modified": "2009-12-13 10:50:00", 
+            "comments": "", 
+            "label": "Cane-2", 
+            "project": 1, 
+            "dewar": 3
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "lims.container", 
+        "fields": {
+            "kind": 4, 
+            "code": "", 
+            "created": "2008-08-18 13:30:57", 
+            "modified": "2009-12-13 10:49:55", 
+            "comments": "", 
+            "label": "Puck1", 
+            "project": 1, 
+            "dewar": 2
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "lims.container", 
+        "fields": {
+            "kind": 4, 
+            "code": "", 
+            "created": "2008-08-18 13:31:08", 
+            "modified": "2009-12-13 10:49:42", 
+            "comments": "", 
+            "label": "Puck2", 
+            "project": 1, 
+            "dewar": 2
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "lims.container", 
+        "fields": {
+            "kind": 2, 
+            "code": "", 
+            "created": "2008-08-18 13:31:26", 
+            "modified": "2009-12-13 10:49:31", 
+            "comments": "", 
+            "label": "Cassette1", 
+            "project": 1, 
+            "dewar": 1
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "lims.container", 
+        "fields": {
+            "kind": 2, 
+            "code": "", 
+            "created": "2008-08-18 13:31:38", 
+            "modified": "2009-12-13 10:49:26", 
+            "comments": "", 
+            "label": "Cassette2", 
+            "project": 1, 
+            "dewar": 1
+        }
+    }, 
+    {
+        "pk": 1, 
         "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
@@ -606,6 +958,159 @@
             "lattice_type": "P", 
             "crystal_system": "h", 
             "name": "P312"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "lims.crystalform", 
+        "fields": {
+            "cell_beta": 90.0, 
+            "cell_gamma": 90.0, 
+            "name": "Native1", 
+            "created": "2008-08-18 13:37:39", 
+            "cell_c": 60.0, 
+            "cell_b": 50.0, 
+            "cell_a": 40.0, 
+            "space_group": 17, 
+            "project": 1, 
+            "modified": "2009-12-13 10:54:31", 
+            "cell_alpha": 90.0
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "lims.cocktail", 
+        "fields": {
+            "project": 1, 
+            "constituents": [
+                1, 
+                3, 
+                5
+            ], 
+            "modified": "2009-12-13 10:49:12", 
+            "comments": "First crystallization condition tried this year.", 
+            "created": "2008-07-18 06:20:24"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "lims.cocktail", 
+        "fields": {
+            "project": 1, 
+            "constituents": [
+                1, 
+                2, 
+                3, 
+                5
+            ], 
+            "modified": "2009-12-13 10:49:02", 
+            "comments": "Second condition tried without Magnessium chloride but with substrate analog added.", 
+            "created": "2008-07-18 06:21:25"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "lims.crystal", 
+        "fields": {
+            "code": "", 
+            "container": 3, 
+            "name": "xtl1", 
+            "cocktail": 1, 
+            "created": "2008-08-18 13:41:42", 
+            "modified": "2009-12-13 10:54:20", 
+            "pin_length": 18, 
+            "loop_size": 0.20000000000000001, 
+            "project": 1, 
+            "crystal_form": 1, 
+            "comments": "", 
+            "container_location": "15"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "lims.crystal", 
+        "fields": {
+            "code": "", 
+            "container": 4, 
+            "name": "xtl2", 
+            "cocktail": 2, 
+            "created": "2008-08-18 13:42:07", 
+            "modified": "2009-12-13 10:54:12", 
+            "pin_length": 18, 
+            "loop_size": 0.29999999999999999, 
+            "project": 1, 
+            "crystal_form": 1, 
+            "comments": "", 
+            "container_location": "10"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "lims.crystal", 
+        "fields": {
+            "code": "", 
+            "container": 4, 
+            "name": "xtl3", 
+            "cocktail": 1, 
+            "created": "2008-08-18 13:42:34", 
+            "modified": "2009-12-13 10:53:48", 
+            "pin_length": 18, 
+            "loop_size": 0.10000000000000001, 
+            "project": 1, 
+            "crystal_form": 1, 
+            "comments": "Special crystal.", 
+            "container_location": "5"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "lims.experiment", 
+        "fields": {
+            "hi_res": null, 
+            "status": 0, 
+            "lo_res": null, 
+            "name": "First Try", 
+            "created": "2008-08-18 13:43:12", 
+            "r_meas": null, 
+            "energy": null, 
+            "kind": 2, 
+            "comments": "", 
+            "modified": "2009-12-13 10:51:04", 
+            "project": 1, 
+            "i_sigma": null, 
+            "plan": 0, 
+            "absorption_edge": "", 
+            "multiplicity": null, 
+            "crystals": [
+                2, 
+                3
+            ]
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "lims.experiment", 
+        "fields": {
+            "hi_res": 1.8, 
+            "status": 0, 
+            "lo_res": 2.5, 
+            "name": "Second Pass", 
+            "created": "2008-08-18 13:44:13", 
+            "r_meas": 10.0, 
+            "energy": null, 
+            "kind": 0, 
+            "comments": "", 
+            "modified": "2009-12-13 10:50:57", 
+            "project": 1, 
+            "i_sigma": 2.0, 
+            "plan": 2, 
+            "absorption_edge": "", 
+            "multiplicity": 5, 
+            "crystals": [
+                1, 
+                2, 
+                3
+            ]
         }
     }
 ]

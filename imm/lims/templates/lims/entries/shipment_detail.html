@@ -1,5 +1,5 @@
 {% if shipment.dewar_set.count %}
-    <li><a href="/project/shipping/shipment/{{shipment.id}}" class="open">{{shipment.label}}</a>
+    <li><a href="{% url lims-shipment-detail shipment.id %}" class="open">{{shipment.label}}</a>
     <ul>{% for dewar in shipment.dewar_set.all %}
             {% include "lims/entries/dewar_detail.html" %}
         {% endfor %}    

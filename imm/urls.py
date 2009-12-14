@@ -11,7 +11,7 @@ import os
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    (r'^admin/(.*)', admin.site.root),
+    (r'^admin/', include(admin.site.urls)),
     (r'^project/message/', include('imm.messaging.urls')),
     (r'^project/',  include('imm.lims.urls')),
     (r'^login/$',  'django.contrib.auth.views.login', {'template_name': 'login.html'}),

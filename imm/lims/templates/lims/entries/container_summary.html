@@ -21,7 +21,7 @@
         <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Dewar:</th><td>
         {% if object.is_assigned %}
-        <a href="/project/shipping/dewar/{{object.dewar.id}}/">{{object.dewar.identity}}</a>
+        <a href="{% url lims-dewar-detail object.dewar.id %}">{{object.dewar.identity}}</a>
         {% else %}
         Not assigned to any dewar.
         {% endif %}

@@ -13,7 +13,7 @@ class ContentboxNode(Node):
         title = self.title.resolve(context)
         cls = self.cls.resolve(context)
         output = self.nodelist.render(context)
-        return '''<div class="%s"><div class="title">%s</div><div class="boxcontent"%s</div></div>''' % (cls, title, output)
+        return '''<div class="%s"><div class="title">%s</div><div class="boxcontent">%s</div></div>''' % (cls, title, output)
 
 def do_contentbox(parser, token):
     nodelist = parser.parse(('endcontentbox',))

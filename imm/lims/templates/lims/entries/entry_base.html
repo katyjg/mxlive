@@ -12,8 +12,8 @@
     {% block entry-toolbox%}
     {% endblock %}
             <span onclick="linkto('../new/?clone={{object.id}}');" class="clone-tool">Clone</span>
-            <span onclick="load_page('entry-scratchpad', '../e{{object.id}}/', '');" class="edit-tool">Edit</span>
-            <span onclick="load_page('entry-scratchpad', '../e{{object.id}}/', '');" class="delete-tool">Delete</span>
+            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
+            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/delete/', '');" class="delete-tool">Delete</span>
         </div></div>
     </div> 
     <div id="entry-scratchpad">

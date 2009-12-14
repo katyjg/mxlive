@@ -1,0 +1,27 @@
+{% extends "lims/sidebox.html" %}
+{% block sidebox-title %}Associated Experiments{% endblock %}
+{% block sidebox-content %}
+    <table cellspacing="0" cellpadding="3" border="0" width="100%">
+    <tbody>
+{% if object.experiment_set.count %}
+    {% for experiment in object.experiment_set.all %}
+    <tr>
+    <td onclick="linkto('{% url lims-experiment-detail experiment.id %}');" class="link-row" title="{{experiment.comments}}">
+    <strong>{{experiment.identity}}</strong> : {{experiment.name|escape}} <br/>
+    {{experiment.get_plan_display}} for {{experiment.get_kind_display}} &ndash; {{experiment.get_status_display}}
+    </td>
+    <td style="text-align: right;">
+{% comment %}
+    <span onclick="load_page('entry-scratchpad', '{% url lims-experiment-remove object.id experiment.id %}', '');" class="remove-tool">Remove</span>
+{% endcomment %}
+    </td>
+    </tr>
+    <tr><td colspan="2" class="rule"></td></tr>
+    {% endfor %}
+{% else %}
+    <tr><td colspan="20" align="center" style="padding: 3em;">No experiments requested</td></tr>
+{% endif %}
+    <tr><td style="height: 2em; text-align: center;" colspan="2"><a href="{% url lims-experiment-list %}">show all requests</a></td></tr>
+    </tbody>
+    </table>
+{% endblock %}

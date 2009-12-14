@@ -28,13 +28,14 @@ class DewarAdmin(admin.ModelAdmin):
     list_per_page = 10
 admin.site.register(Dewar, DewarAdmin)
     
-#class ActivityLogAdmin(admin.ModelAdmin):
-#    list_filter = ['action_type','created']
-#    search_fields = ['description','ip_number']
-#    list_display = ('content_type','created','action_type','user','ip_number','description')
-#    ordering = ('-created',)
-#    list_per_page = 10
-#admin.site.register(ActivityLog, ActivityLogAdmin)
+class ActivityLogAdmin(admin.ModelAdmin):
+    list_filter = ['action_type','created']
+    search_fields = ['description','ip_number']
+    list_display = ('content_type','created','action_type','user','ip_number','description')
+    ordering = ('-created',)
+    list_per_page = 10
+    actions = None
+admin.site.register(ActivityLog, ActivityLogAdmin)
         
         
 class ExperimentAdmin(admin.ModelAdmin):
@@ -89,16 +90,7 @@ class ContainerAdmin(admin.ModelAdmin):
     actions = None
 admin.site.register(Container, ContainerAdmin)
 
-class ProjectInline(admin.TabularInline):
-    model = User
-    
-class UserAdmin(admin.ModelAdmin):
-    inlines = [
-        ProjectInline,
-    ]
 admin.site.register(Project)
-
-
 admin.site.register(Carrier)
 admin.site.register(SpaceGroup)
 admin.site.register(Laboratory)
