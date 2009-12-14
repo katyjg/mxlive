@@ -2,23 +2,10 @@ from django import forms
 from models import *
 from datetime import datetime
 import objforms.widgets
+import objforms.forms
 
-
-class OrderedForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(OrderedForm, self).__init__(*args, **kwargs)
-        if self._meta.fields:
-            self.fields.keyOrder = self._meta.fields
-
-
-def restrict_to_project(form, project):
-    for fieldname, field in form.fields.items():
-        if fieldname != 'project' and hasattr(field, 'queryset'):
-            queryset = field.queryset
-            if 'project' in queryset.model._meta.get_all_field_names(): # some models will fields will not have a project field
-                field.queryset = queryset.filter(project__exact=project.pk)
             
-class ShipmentForm(OrderedForm):
+class ShipmentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     label = forms.CharField(
         widget=objforms.widgets.LargeInput,
@@ -29,7 +16,7 @@ class ShipmentForm(OrderedForm):
         model = Shipment
         fields = ('project','label','comments',)
 
-class ShipmentSendForm(OrderedForm):
+class ShipmentSendForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     carrier = forms.ModelChoiceField(
         queryset=Carrier.objects.all(),
@@ -48,7 +35,7 @@ class ShipmentSendForm(OrderedForm):
         fields = ('project','carrier', 'tracking_code','date_shipped', 'comments', 'status')
 
 
-class DewarForm(OrderedForm):
+class DewarForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     shipment = forms.ModelChoiceField(
         queryset=Shipment.objects.all(), 
@@ -65,7 +52,7 @@ class DewarForm(OrderedForm):
         model = Dewar
         fields = ('project','label','code','shipment','comments',)
 
-class ContainerForm(OrderedForm):
+class ContainerForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     dewar = forms.ModelChoiceField(queryset=Dewar.objects.all(), widget=objforms.widgets.LargeSelect, required=False)
     label = forms.CharField(
@@ -80,7 +67,7 @@ class ContainerForm(OrderedForm):
         model = Container
         fields = ('project','label','code','kind','dewar','comments')
 
-class SampleForm(OrderedForm):
+class SampleForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     name = forms.CharField(
         widget=objforms.widgets.LargeInput,
@@ -162,7 +149,7 @@ class ContainerSelectForm(forms.Form):
         help_text='Select multiple containers and then click submit to add them to the dewar. Containers already assigned to other dewars will be transfered to the current dewar'
         )
     
-class ExperimentForm(OrderedForm):
+class ExperimentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     name = objforms.widgets.LargeCharField(required=True)
     kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES.get_choices(), required=True)
@@ -181,7 +168,7 @@ class ExperimentForm(OrderedForm):
                   'lo_res','i_sigma', 'r_meas', 'multiplicity',
                   'energy', 'absorption_edge','crystals','comments')
 
-class CocktailForm(OrderedForm):
+class CocktailForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     comments = forms.CharField(
         widget=objforms.widgets.CommentInput, 
@@ -192,7 +179,7 @@ class CocktailForm(OrderedForm):
         model = Cocktail
         fields = ('project','constituents','comments')
 
-class CrystalFormForm(OrderedForm):
+class CrystalFormForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     name = objforms.widgets.LargeCharField(required=True)
     space_group = forms.ModelChoiceField(
@@ -209,7 +196,7 @@ class CrystalFormForm(OrderedForm):
         model = CrystalForm
         fields = ('project','name', 'space_group','cell_a','cell_b','cell_c','cell_alpha','cell_beta','cell_gamma')
     
-class ConstituentForm(forms.ModelForm):
+class ConstituentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     name = objforms.widgets.LargeCharField(required=True)
     acronym = objforms.widgets.LargeCharField(required=True)

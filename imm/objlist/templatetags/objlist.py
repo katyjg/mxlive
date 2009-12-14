@@ -10,18 +10,28 @@ from django.contrib import admin
 register = Library()
 
 @register.inclusion_tag('objlist/one_filter.html')
-def filter(ol, spec):
+def show_one_filter(ol, spec):
+    """
+    Renders a single Filter specification ``spec`` for a given object list ``ol``. 
+    """
     return {'title': spec.title(), 'choices' : list(spec.choices(ol))}
 
 @register.inclusion_tag('objlist/filters.html')
-def filters(ol):
+def show_all_filters(ol):
+    """
+    Renders a full filter list a given object list ``ol``. 
+    """
     return {'ol': ol}
 
 @register.filter
 def truncate(value, arg):
     """
-    Truncates a string after a given number of chars  
-    Argument: Number of chars to truncate after
+    Truncates a string ``value`` after a given number of chars ``arg``.
+    
+    Usage::
+    
+        {% truncate [varname] 10 %}
+    
     """
     try:
         length = int(arg)
@@ -36,9 +46,13 @@ def truncate(value, arg):
         
 @register.inclusion_tag('objlist/list_entry.html', takes_context=True)
 def list_entry(context, obj):
+    """Renders an entry for the object ``obj`` in an object list table. If the
+    ``context`` contains a ``link=True`` variable, a link will be added to
+    the object's detailed page.
+    """ 
     return {'fields': list(object_fields(obj)),
              'object': obj,
-             'link': context['link'],
+             'link': context.get('link', False),
             }
        
 def object_fields(obj):

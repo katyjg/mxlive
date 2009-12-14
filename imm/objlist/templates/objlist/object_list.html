@@ -12,7 +12,7 @@
     <div class="clearall"></div>
 </div>
  
-{% include "objlist/filters.html" %}
+{% show_all_filters ol %}
 <div class="list-tools">
 {% if ol.is_paginated %}
     {% include "objlist/pagination.html" %}

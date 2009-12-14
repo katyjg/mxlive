@@ -5,7 +5,7 @@
 <tr>
     <td style="vertical-align: middle; border-right: 1px solid #999; padding-right: 0.5em; color: #333;">Filters</td>
     <td style="vertical-align: middle; padding-left: 0.5em; width: 100%;">
-    {% for spec in ol.filter_specs %}{% filter ol spec %}{% endfor %}
+    {% for spec in ol.filter_specs %}{% show_one_filter ol spec %}{% endfor %}
     </td>
 </tr>
 </table>

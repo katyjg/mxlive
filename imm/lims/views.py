@@ -79,6 +79,7 @@ def sample_summary(request):
     ]
     return render_to_response('lims/samples.html', {
         'logs': project.activitylog_set.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
+        'project': project,
         },
         context_instance=RequestContext(request))
 
@@ -94,66 +95,18 @@ def experiment_summary(request):
     ]
     return render_to_response('lims/experiment.html',{
         'logs': project.activitylog_set.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
+        'project': project,
         },
         context_instance=RequestContext(request))
 
 @login_required
-def shipment_add_dewar(request, id):
-    id = int(id)
-    try:
-        project = request.user.get_profile()
-        shipment = project.shipment_set.get(pk=id)
-    except:
-        raise Http404
-    dewars = project.dewar_set.filter( models.Q(shipment__isnull=True) | ~models.Q(shipment__exact=id) )
-    form_info = {
-        'title': 'Add Existing Dewar',
-        'sub_title': 'Select existing dewars to add to shipment %s' % shipment.identity(),
-        'action':  request.path,
-        'target': 'entry-scratchpad',
-    }
-    if request.method == 'POST':
-        form = DewarSelectForm(request.POST)
-        form['dewars'].field.queryset = dewars
-        if form.is_valid():
-            changed = False
-            for dewar_id in request.POST.getlist('dewars'):
-                d = project.dewar_set.get(pk=dewar_id)
-                d.shipment = shipment
-                d.save()
-                changed = True
-            
-            if changed:
-                shipment.save()            
-            form_info['message'] = '%d dewars have been successfully added' % len(request.POST.getlist('dewars'))           
-            ActivityLog.objects.log_activity(
-                project.pk,
-                request.user.pk, 
-                request.META['REMOTE_ADDR'],
-                ContentType.objects.get_for_model(Shipment).id,
-                shipment.pk, 
-                str(shipment), 
-                ActivityLog.TYPE.MODIFY,
-                form_info['message']
-                )
-            request.user.message_set.create(message = form_info['message'])
-            return render_to_response('lims/refresh.html')
-        else:
-            return render_to_response('objforms/form_base.html', {
-                'info': form_info,
-                'form': form, 
-                })
-    else:
-        form = DewarSelectForm()
-        form['dewars'].field.queryset = dewars
-        return render_to_response('objforms/form_base.html', {
-            'info': form_info, 
-            'form': form, 
-            })
-
-
-@login_required
 def add_existing_object(request, id, parent_model, model, field, form=ObjectSelectForm):
+    """
+    A generic view which displays a form of type ``form`` which when submitted 
+    will set the foreign key field `field` of one/more existing objects of 
+    type ``model`` to the related object of type `parent_model` identified by the 
+    primary key ``id``.
+    """
     id = int(id)
     try:
         project = request.user.get_profile()
@@ -212,64 +165,12 @@ def add_existing_object(request, id, parent_model, model, field, form=ObjectSele
             })
 
 
-
-@login_required
-def dewar_add_container(request, id):
-    id = int(id)
-    try:
-        project = request.user.get_profile()
-        dewar = project.dewar_set.get(pk=id)
-    except:
-        raise Http404
-    containers = project.container_set.filter( models.Q(dewar__isnull=True) | ~models.Q(dewar__exact=id) )
-    form_info = {
-        'title': 'Add Existing Container',
-        'sub_title': 'Select existing containers to add to dewar %s' % dewar.identity(),
-        'action':  request.path,
-        'target': 'entry-scratchpad',
-    }
-    if request.method == 'POST':
-        form = ContainerSelectForm(request.POST)
-        form['containers'].field.queryset = containers
-        if form.is_valid():
-            changed = False
-            for container_id in request.POST.getlist('containers'):
-                d = project.container_set.get(pk=container_id)
-                d.dewar = dewar
-                d.save()
-                changed = True
-            
-            if changed:
-                dewar.save()            
-            form_info['message'] = '%d containers have been successfully added' % len(request.POST.getlist('containers'))           
-            ActivityLog.objects.log_activity(
-                project.pk,
-                request.user.pk, 
-                request.META['REMOTE_ADDR'],
-                ContentType.objects.get_for_model(Dewar).id,
-                dewar.pk, 
-                str(dewar), 
-                ActivityLog.TYPE.MODIFY,
-                form_info['message']
-                )
-            request.user.message_set.create(message = form_info['message'])
-            return render_to_response('lims/refresh.html')
-        else:
-            return render_to_response('objforms/form_base.html', {
-                'info': form_info,
-                'form': form, 
-                })
-    else:
-        form = ContainerSelectForm()
-        form['containers'].field.queryset = containers
-        return render_to_response('objforms/form_base.html', {
-            'info': form_info, 
-            'form': form, 
-            })
-
-
 @login_required
 def object_detail(request, id, model, template):
+    """
+    A generic view which displays a detailed page for an object of type ``model``
+    identified by the primary key ``id`` using the template ``template``. 
+    """
     try:
         project = request.user.get_profile()
         queryset = model.objects.all().filter(project__exact=project.pk)
@@ -284,6 +185,10 @@ def object_detail(request, id, model, template):
 
 @login_required
 def create_object(request, model, form, template='lims/forms/new_base.html'):
+    """
+    A generic view which displays a Form of type ``form`` using the Template
+    ``template`` and when submitted will create a new object of type ``model``.
+    """
     try:
         project = request.user.get_profile()
     except:
@@ -296,7 +201,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html'):
     }
     if request.method == 'POST':
         frm = form(request.POST)
-        restrict_to_project(frm, project)
+        frm.restrict_by('project', project.pk)
         if frm.is_valid():
             new_obj = frm.save()
             info_msg = 'The %(name)s "%(obj)s" was added successfully.' % {'name': str(model._meta.verbose_name), 'obj': str(new_obj)}
@@ -313,7 +218,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html'):
             request.user.message_set.create(message = info_msg)
             if request.POST.has_key('_addanother'):
                 frm = form(initial={'project': project.pk})            
-                restrict_to_project(frm, project)
+                frm.restrict_by('project', project.pk)
                 return render_to_response(template, {
                     'info': form_info, 
                     'form': frm, 
@@ -329,7 +234,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html'):
                 context_instance=RequestContext(request))
     else:
         frm = form(initial={'project': project.pk})
-        restrict_to_project(frm, project)
+        frm.restrict_by('project', project.pk)
         if request.GET.has_key('clone'):
             clone_id = request.GET['clone']
             try:
@@ -356,6 +261,11 @@ def create_object(request, model, form, template='lims/forms/new_base.html'):
 
 @login_required
 def add_new_object(request, id, model, form, field):
+    """
+    A generic view which displays a form of type `form` which when submitted 
+    will create a new object of type `model` and set it's foreign key field 
+    `field` to the related object identified by the primary key `id`.
+    """
     object_type = model.__name__
     try:
         project = request.user.get_profile()
@@ -376,7 +286,7 @@ def add_new_object(request, id, model, form, field):
         q.update({field: related.pk})
         frm = form(q)
         frm[field].field.widget.attrs['disabled'] = 'disabled'
-        restrict_to_project(frm, project)
+        frm.restrict_by('project', project.pk)
         if frm.is_valid():
             new_obj = frm.save()
             info_msg = '%s "%s" added to %s "%s"' % (object_type, str(new_obj), related_type, str(related))
@@ -393,7 +303,7 @@ def add_new_object(request, id, model, form, field):
             request.user.message_set.create(message = info_msg)
             if request.POST.has_key('_addanother'):
                 frm = form(initial={'project': project.pk, field: related.pk})
-                restrict_to_project(frm, project)
+                frm.restrict_by('project', project.pk)
                 frm[field].field.widget.attrs['disabled'] = 'disabled'
                 return render_to_response('objforms/form_base.html', {
                     'info': form_info, 
@@ -408,7 +318,7 @@ def add_new_object(request, id, model, form, field):
                 })
     else:
         frm = form(initial={'project': project.pk, field: related.pk})
-        restrict_to_project(frm, project)
+        frm.restrict_by('project', project.pk)
         frm[field].field.widget.attrs['disabled'] = 'disabled'
         return render_to_response('objforms/form_base.html', {
             'info': form_info, 
@@ -418,6 +328,15 @@ def add_new_object(request, id, model, form, field):
 
 @login_required
 def project_object_list(request, model, template='objlist/object_list.html', link=True, can_add=True):
+    """
+    A generic view which displays a list of objects of type ``model`` owned by
+    the current users project. The list is displayed using the template
+    `template`. 
+    
+    Keyworded options:
+        - ``link`` (boolean) specifies whether or not to link each item to it's detailed page.
+        - ``can_add`` (boolean) specifies whether or not new entries can be added on the list page.    
+    """
     try:
         project = request.user.get_profile()
     except:
@@ -430,6 +349,18 @@ def project_object_list(request, model, template='objlist/object_list.html', lin
 
 @login_required
 def user_object_list(request, model, template='lims/lists/list_base.html', link=True, can_add=True):
+    """
+    A generic view which displays a list of objects of type ``model`` owned by
+    the current user. The list is displayed using the template
+    ``template``. 
+    
+    Keyworded options
+    -----------------
+        - ``link`` (boolean) specifies whether or not to link each item to it's
+           detailed page.
+        - ``can_add`` (boolean) specifies whether or not new entries can be added
+           on the list page.    
+    """
     manager = getattr(request.user, model.__name__.lower()+'_set')
     ol = ObjectLister(request, manager)
     return render_to_response(template, {'ol': ol,'link': link, 'can_add': can_add },
@@ -439,6 +370,12 @@ def user_object_list(request, model, template='lims/lists/list_base.html', link=
 
 @login_required
 def edit_object_inline(request, id, model, form, template='objforms/form_base.html'):
+    """
+    A generic view which displays a form of type ``form`` using the template 
+    ``template``, for editing an object of type ``model``, identified by primary 
+    key ``id``, which when submitted will update the entry asynchronously through
+    AJAX.
+    """
     try:
         project = request.user.get_profile()
         manager = getattr(project, model.__name__.lower()+'_set')
@@ -453,7 +390,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
     }
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
-        restrict_to_project(frm, project)
+        frm.restrict_by('project', project.pk)
         if frm.is_valid():
             frm.save()
             form_info['message'] = '%s %s successfully modified' % ( model.__name__, obj.identity())
@@ -476,7 +413,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
             })
     else:
         frm = form(instance=obj)
-        restrict_to_project(frm, project)
+        frm.restrict_by('project', project.pk)
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm, 
@@ -484,6 +421,12 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
        
 @login_required
 def remove_object(request, id, model, field):
+    """
+    A generic view which displays a confirmation form and if confirmed, will
+    set the foreign key field ``field`` of the object of type ``model`` identified
+    by primary key ``id`` to null. The model must have specified ``null=True`` as an
+    option of the field.
+    """
     try:
         project = request.user.get_profile()
         manager = getattr(project, model.__name__.lower()+'_set')

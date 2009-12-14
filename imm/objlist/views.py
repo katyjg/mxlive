@@ -24,6 +24,10 @@ TO_FIELD_VAR = 't'
     
 
 class ObjectLister(ChangeList):
+    """ A Clone of the Admin ChangeList which enables us to use changelist like
+    features such as filters, search and pagination in non-admin related applications
+    """
+    
     def __init__(self, request, manager):
         self.manager = manager
         self.model = self.manager.model
@@ -242,6 +246,13 @@ class ObjectLister(ChangeList):
 
 
 def list_objects(request, manager, template='objlist/object_list.html', link=True, can_add=True):
+    """A generic view to display a list of objects retrieved through the Manager
+    ``manager`` using the Template ``template``
+    
+    Keyworded options:
+        - ``link`` (boolean) specifies whether or not to link each item to it's detailed page.
+        - ``can_add`` (boolean) specifies whether or not new entries can be added on the list page.   
+    """ 
     ol = ObjectLister(request, manager)
     return render_to_response(template, {'ol': ol, 'link': link, 'can_add': can_add},
         context_instance=RequestContext(request)

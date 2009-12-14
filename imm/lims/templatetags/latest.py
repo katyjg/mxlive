@@ -13,6 +13,11 @@ class LatestContentNode(Node):
         return ''
  
 def get_latest(parser, token):
+    """
+    Get the ``num`` latest records from the Model ``model`` and return it as 
+    the context variable ``varname``.
+    """
+    
     bits = token.contents.split()
     if len(bits) != 5:
         raise TemplateSyntaxError, "get_latest tag takes exactly four arguments"

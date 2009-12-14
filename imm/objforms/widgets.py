@@ -1,4 +1,9 @@
+"""
+Widgets and Fields with extra html class attributes
+"""
+
 from django import forms
+
 
 
 # Widgets
