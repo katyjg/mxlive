@@ -43,6 +43,7 @@ class ExperimentAdmin(admin.ModelAdmin):
     search_fields = ['comments','name']
     list_filter = ['plan','status','kind','modified']
     list_display = ('id','name','kind','status','plan','num_crystals')
+    filter_horizontal = ['crystals']
     ordering = ['-created']
     list_per_page = 10
     actions = None
@@ -61,6 +62,7 @@ class CocktailAdmin(admin.ModelAdmin):
     ordering = ['-created']
     search_fields = ['comments','constituents']
     list_filter = ['modified',]
+    filter_horizontal = ['constituents']
     list_display = ('id', 'name', 'created','modified')
     actions = None
 admin.site.register(Cocktail, CocktailAdmin)
