@@ -6,6 +6,7 @@ class ConstituentAdmin(admin.ModelAdmin):
     list_filter = ['kind','source','modified']
     list_display = ('id','acronym', 'name', 'kind', 'source')
     list_per_page = 10
+    list_editable = ['acronym', 'name', 'kind', 'source']
     actions = None
     ordering = ['acronym']
 admin.site.register(Constituent, ConstituentAdmin)

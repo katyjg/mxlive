@@ -88,6 +88,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.humanize',
+    'django.contrib.databrowse',
     'imm.lims',
     'imm.objlist',
     'imm.dcss',
