@@ -5,6 +5,7 @@ from datetime import datetime
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from enum import Enum
+from jsonfield import JSONField
 
 
 IDENTITY_FORMAT = '.%y.%m.%d'
@@ -409,16 +410,66 @@ class Experiment(models.Model):
     def identity(self):
         return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     
-class Result(models.Model):
+class Strategy(models.Model):
     STATES = Enum(
-        'New',
-        'Closed',
+        'Waiting', 
+        'Rejected',
+        'Accepted', 
+        'Collected',
     )  
+    project = models.ForeignKey(Project)
+    attenuation = models.FloatField()
+    distance = models.FloatField(default=200.0)
+    start_angle = models.FloatField(default=0.0)
+    delta_angle = models.FloatField(default=1.0)
+    total_angle = models.FloatField(default=180.0)
+    exposure_time = models.FloatField(default=1.0)
+    two_theta = models.FloatField(default=0.0)
+    energy = models.FloatField(default=12.658)
+    status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.WAITING)
+    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
+    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+
+    def identity(self):
+        return 'ST%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+
+    def __unicode__(self):
+        return self.identity()
+    
+
+class Result(models.Model):
+    RESULT_TYPES = Enum(
+        'Screening',   
+        'Collection',
+    )
     project = models.ForeignKey(Project)
     experiment = models.ForeignKey(Experiment)
     crystal = models.ForeignKey(Crystal)
+    name = models.CharField(max_length=200)
+    score = models.FloatField()
+    space_group = models.ForeignKey(SpaceGroup)
+    cell_a = models.FloatField(' a')
+    cell_b = models.FloatField(' b')
+    cell_c = models.FloatField(' c')
+    cell_alpha = models.FloatField(' alpha')
+    cell_beta = models.FloatField(' beta')
+    cell_gamma = models.FloatField(' gamma')
+    resolution = models.FloatField()
+    reflections = models.IntegerField()
+    unique = models.IntegerField()
+    multiplicity = models.FloatField()
+    completeness = models.FloatField()
+    mosaicity = models.FloatField()
+    i_sigma = models.FloatField('I/Sigma')
+    r_meas =  models.FloatField('R-meas')
+    r_mrgd = models.FloatField('R-mrgd-F')
+    sigma_spot = models.FloatField('Sigma(spot)')
+    sigma_angle = models.FloatField('Sigma(angle)')
+    ice_rings = models.IntegerField()
     url = models.CharField(max_length=200)
-    state = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.NEW)
+    strategy = models.ForeignKey(Strategy)
+    kind = models.IntegerField('Result type',max_length=1, choices=RESULT_TYPES.get_choices())
+    details = JSONField()
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
     

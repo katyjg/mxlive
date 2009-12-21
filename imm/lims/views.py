@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.contrib.contenttypes.models import ContentType
 
 
-from objlist.views import ObjectLister, list_objects
+from objlist.views import ObjectList, list_objects
 from django import forms
 from lims.models import *
 from lims.forms import *
@@ -21,7 +21,7 @@ def show_project(request):
     except:
         raise Http404
     msgs = request.user.inbox.all()[:10]
-    msglist = ObjectLister(request, request.user.inbox)
+    msglist = ObjectList(request, request.user.inbox)
 
     statistics = {
         'shipment': {
@@ -342,7 +342,7 @@ def project_object_list(request, model, template='objlist/object_list.html', lin
     except:
         raise Http404
     manager = getattr(project, model.__name__.lower()+'_set')
-    ol = ObjectLister(request, manager)
+    ol = ObjectList(request, manager)
     return render_to_response(template, {'ol': ol, 'link': link, 'can_add': can_add},
         context_instance=RequestContext(request)
     )
@@ -362,7 +362,7 @@ def user_object_list(request, model, template='lims/lists/list_base.html', link=
            on the list page.    
     """
     manager = getattr(request.user, model.__name__.lower()+'_set')
-    ol = ObjectLister(request, manager)
+    ol = ObjectList(request, manager)
     return render_to_response(template, {'ol': ol,'link': link, 'can_add': can_add },
         context_instance=RequestContext(request)
     )

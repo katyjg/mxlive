@@ -99,7 +99,7 @@ INSTALLED_APPS = (
 AUTH_PROFILE_MODULE = 'lims.Project'
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/project/'
 
 # LDAP settings to use the LDAP Authentication backend
 LDAP_DEBUG = True

@@ -49,8 +49,8 @@ _databrowse_model_list = [lims.models.Project,
             lims.models.Crystal,
             lims.models.Experiment,
             lims.models.Result,
-            lims.models.ActivityLog,
-            ]
+            lims.models.ActivityLog,]
+            
 for mod in _databrowse_model_list:
     databrowse.site.register(mod)
 

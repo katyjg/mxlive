@@ -17,8 +17,8 @@
 {% if ol.is_paginated %}
     {% include "objlist/pagination.html" %}
 {% endif %}
-{% if ol.has_search %}
-    Showing {{ol.paginator.count}} of {{ol.total_count}} total | <a href="?all=">Show all</a>
+{% if not ol.all_shown %}
+    Showing {{ol.result_count}} of {{ol.total_count}} total | <a href="?all=">Show all</a>
 {% endif %}
 </div>
 

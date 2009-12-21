@@ -12,7 +12,6 @@ urlpatterns = patterns('lims.views',
     (r'^shipping/shipment/(?P<id>\d+)/new/$', 'add_new_object', {'model': lims.models.Dewar, 'form': lims.forms.DewarForm, 'field':'shipment'}, 'lims-shipment-new-dewar'),
     (r'^shipping/shipment/(?P<id>\d+)/add/$', 'add_existing_object', {'model': lims.models.Dewar, 'parent_model': lims.models.Shipment, 'field':'shipment'}, 'lims-shipment-add-dewar'), 
     (r'^shipping/shipment/new/$', 'create_object', {'model': lims.models.Shipment, 'form': lims.forms.ShipmentForm, 'template': 'lims/forms/shipping_base.html'}, 'lims-shipment-new'),
-    #(r'^shipping/shipment/complete/(?P<id>\d+)/$', 'complete_shipment'),
     #(r'^shipping/shipment/delete/(?P<id>\d+)/$', 'delete_shipment'),
     
     (r'^shipping/dewar/$', 'project_object_list', {'model': lims.models.Dewar, 'template': 'lims/lists/shipping_list.html'}, 'lims-dewar-list'),
@@ -23,7 +22,6 @@ urlpatterns = patterns('lims.views',
     (r'^shipping/dewar/(?P<id>\d+)/add/$', 'add_existing_object', {'model': lims.models.Container, 'parent_model': lims.models.Dewar, 'field':'dewar'}, 'lims-dewar-add-container'),
     (r'^shipping/dewar/new/$', 'create_object', {'model': lims.models.Dewar, 'form': lims.forms.DewarForm, 'template': 'lims/forms/shipping_base.html'}, 'lims-dewar-new'),
     #(r'^shipping/dewar/delete/(?P<id>\d+)/$', 'delete_dewar'),
-    #(r'^shipping/dewar/recycle/(?P<id>\d+)/$', 'recycle_dewar'),
     
     (r'^shipping/container/$', 'project_object_list', {'model': lims.models.Container, 'template': 'lims/lists/shipping_list.html'}, 'lims-container-list'),
     (r'^shipping/container/(?P<id>\d+)/$', 'object_detail', {'model': lims.models.Container, 'template': 'lims/entries/container.html'}, 'lims-container-detail'),
@@ -32,7 +30,6 @@ urlpatterns = patterns('lims.views',
     (r'^shipping/container/(?P<id>\d+)/new/$', 'add_new_object', {'model': lims.models.Crystal, 'form': lims.forms.SampleForm, 'field': 'container'}, 'lims-container-new-crystal'),
     (r'^shipping/container/new/$', 'create_object', {'model': lims.models.Container, 'form': lims.forms.ContainerForm, 'template': 'lims/forms/shipping_base.html'}, 'lims-container-new'),
     #(r'^shipping/container/delete/c(?P<id>\d+)/$', 'delete_container'),
-    #(r'^shipping/container/recycle/(?P<id>\d+)/$', 'recycle_container'),
     
 
     (r'^samples/$', 'sample_summary'),
@@ -42,7 +39,6 @@ urlpatterns = patterns('lims.views',
     (r'^samples/crystal/(?P<id>\d+)/remove/$', 'remove_object', {'model': lims.models.Crystal, 'field':'container'}, 'lims-crystal-remove'),
     (r'^samples/crystal/new/$',  'create_object', {'model': lims.models.Crystal, 'form': lims.forms.SampleForm, 'template': 'lims/forms/samples_base.html'}, 'lims-crystal-new'),
     #(r'^samples/crystal/delete/(?P<id>\d+)/$', 'delete_crystal'),
-    #(r'^samples/crystal/recycle/(?P<id>\d+)/$', 'recycle_crystal'),
 
     (r'^samples/cocktail/$', 'project_object_list', {'model': lims.models.Cocktail, 'template': 'lims/lists/samples_list.html'}, 'lims-cocktail-list'),
     (r'^samples/cocktail/(?P<id>\d+)/$', 'object_detail', {'model': lims.models.Cocktail, 'template': 'lims/entries/cocktail.html'},  'lims-cocktail-detail'),
@@ -66,6 +62,10 @@ urlpatterns = patterns('lims.views',
     (r'^experiment/request/(?P<id>\d+)/$', 'object_detail', {'model': lims.models.Experiment, 'template': 'lims/entries/experiment.html'} , 'lims-experiment-detail'),
     (r'^experiment/request/(?P<id>\d+)/edit/$','edit_object_inline', {'model': lims.models.Experiment, 'form': lims.forms.ExperimentForm, 'template': 'objforms/form_base.html'}, 'lims-experiment-edit'),
     (r'^experiment/request/new/$', 'create_object', {'model': lims.models.Experiment, 'form': lims.forms.ExperimentForm}, 'lims-experiment-new'),
+
+    (r'^experiment/result/$', 'project_object_list', {'model': lims.models.Result, 'template': 'lims/lists/experiment_list.html','can_add':False}, 'lims-experiment-list'),
+    (r'^experiment/result/(?P<id>\d+)/$', 'object_detail', {'model': lims.models.Result, 'template': 'lims/entries/experiment.html'} , 'lims-experiment-detail'),
+    (r'^experiment/result/(?P<id>\d+)/edit/$','edit_object_inline', {'model': lims.models.Result, 'form': lims.forms.ExperimentForm, 'template': 'objforms/form_base.html'}, 'lims-experiment-edit'),
 
     (r'^activity/$', 'user_object_list', {'model': lims.models.ActivityLog, 'template': 'objlist/generic_list.html','link': False, 'can_add': False}),
 )

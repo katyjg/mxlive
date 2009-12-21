@@ -12,12 +12,12 @@
 <div id="content-main">
 <form action="{{ app_path }}" method="post" id="login-form" class="wofoo">
   <div class="form-row">
-    <label for="id_username">Username:</label> <input type="text" name="username" id="id_username" class="field text large" />
+    <label for="id_username">Username:</label> <input type="text" name="username" id="id_username" class="large text field" />
   </div>
   <div class="form-row">
-    <label for="id_password">Password:</label> <input type="password" name="password" id="id_password" class="field text large"/>
+    <label for="id_password">Password:</label> <input type="password" name="password" id="id_password" class="large text field"/>
     <input type="hidden" name="this_is_the_login_form" value="1" />
-    <input type="hidden" name="post_data" value="{{ post_data }}" /> {#<span class="help">Have you <a href="/password_reset/">forgotten your password</a>?</span>#}
+    <input type="hidden" name="post_data" value="{{ post_data }}" /> {#<span class="help">Have you <a href="/password_reset/">forgotten your password</a>?</span> #}
   </div>
   <div class="submit-row">
     <label>&nbsp;</label><input type="submit" value="Sign in" />

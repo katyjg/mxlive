@@ -4,10 +4,10 @@
 <div class="tiny-list-tools">
     {% include "objlist/pagination.html" %}
         <form style="display: inline;" action="" method="get">
-        <input class="field search" type="text" size="15" name="q" value="" id="searchbar" />
+        <input class="search field" type="text" size="15" name="q" value="" id="searchbar" />
         </form>
-{% if ol.has_search %}
-    {{ol.paginator.count}} of {{ol.total_count}} total | <a href="?all=">All</a>
+{% if not ol.all_shown %}
+    {{ol.result_count}} of {{ol.total_count}} total | <a href="?all=">All</a>
 {% endif %}
 </div>
 
