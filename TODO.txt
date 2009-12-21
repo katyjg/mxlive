@@ -16,12 +16,12 @@ Required Changes to existing Django Applications
     2) ability to generate equivalent spreadsheet like in (a) for a shipment currently in the system for download by the user in csv and excel formats. Produced spreadsheet should be readable by the feature in (a) to generate identical information in the database.
     3) ability to generate a PDF "packing-list" file for each shipment containing a the list of crystals, containers, dewars. The PDF file should include a CODE-128 Barcode corresponding to the shipment ID at the top. The file should include information about the laboratory address, contact information, and the shipment details such as date shipped, carrier etc.
     4) Update "Send" functionality so that:
-        a)  Only draft shipments can be sent, edited or deleted by the project user.
+        a)  Only draft shipments can be sent, edited or deleted by the project user. 
         b) Deleting a shipment should orphan it's children rather than removing them from the database. 
         c) Add the ability to close a shipment. Closing a shipment should close and archive all it's children. Except, "Cocktails","Constituents" and "CrystalForms" which are never closed. 
         d) When a user clicks send, the shipment is validated against the following: No dewars can be empty, No containers can be empty, each crystal in the shipment must be linked to at least one experiment, otherwise request confirmation and generate a default "screen and confirm" experiment, including all orphaned crystals.
-        e) Set the status of the shipment to "Outgoing"
-        f) If the shipment validates, generate a PDF of as in (c) and ask the user to print it and include in one of the dewars.
+        e) Set the status of the shipment to "sent"
+        f) If the shipment validates, generate a PDF of as in (3) and ask the user to print it and include in one of the dewars.
     5) General record life-cycle for crystals, containers, dewars, experiments requests and shipments with the following features
         a) Ideally, each instance of those types of objects exists in an active state within the database for users/staff to manipulate. At some point, the objects become inactive and are only useful for historical purposes and are not normally available on "object-lists" except explicitly requested, and also not editable or deletable by users.
         b) Extend the current "ActivityLog" functionality to be able to display a history of changes for each object.
@@ -57,7 +57,7 @@ Required additional Django Applications or features
         d) Staff should be able to "return" a shipment. Clicking "return" on the shipment page should check that all associated experiments have been performed and if not request confirmation to send-anyway. If confirmed, the shipment state should be updated to "returned".
     2) experiment scheduling:
         a) ability for staff to see a list of all un-performed or incomplete experiments linked to shipments "on-site" and prioritize the list by re-ordering the elements in the list to heart's content.
-        b) ability for staff to create and save a run-list of containers from the list in (a). Creation of the shortlist should be constrained by the following
+        b) ability for staff to create and save a run-list of containers from the list in (a). Creation of the run-list should be constrained by the following
             i) Two types of run-lists should be possible: "Automated" and "Manual". "Manual" lists should have no constraints
             ii) "Automated" lists should not contain more items than can be mounded in the Automounter at once. The primary determinants are the type of containers. For example, the automounter has three stalls, each of which can take either one Cassette or up to 4 pucks. No other container type is allowed for the automated mode so experiments linked to samples stored in other container types should not be available to be added to "Automated" lists. The other constraint is that as many samples as possible should be mounted in the automounter at once. More explanation as required here ...
         c) ability for staff to generate a list of containers from the list in (b). This list should include information about which dewar contains the container, and where in the storage, the dewar is located.
