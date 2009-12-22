@@ -1,8 +1,8 @@
 from django import forms
-from models import *
-from datetime import datetime
-import objforms.widgets
-import objforms.forms
+from imm.lims.models import *
+import imm.objforms.widgets
+import imm.objforms.forms
+from imm import objforms
 
             
 class ShipmentForm(objforms.forms.OrderedForm):
@@ -193,7 +193,7 @@ class CrystalFormForm(objforms.forms.OrderedForm):
     cell_beta = forms.FloatField(label='beta', widget=objforms.widgets.MiddleThirdInput,required=False)
     cell_gamma = forms.FloatField(label='gamma', widget=objforms.widgets.RightThirdInput,required=False)
     class Meta:
-        model = CrystalForm
+        model = CrystalForm 
         fields = ('project','name', 'space_group','cell_a','cell_b','cell_c','cell_alpha','cell_beta','cell_gamma')
     
 class ConstituentForm(objforms.forms.OrderedForm):

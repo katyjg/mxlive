@@ -1,42 +1,38 @@
-from django.template.loader import get_template
-from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib.contenttypes.models import ContentType
+from django.db import models
 
-
-from objlist.views import ObjectList, list_objects
-from django import forms
-from lims.models import *
-from lims.forms import *
+from imm.objlist.views import ObjectList
+from imm.lims.models import *
+from imm.lims.forms import ObjectSelectForm
 
 ACTIVITY_LOG_LENGTH  = 10       
         
 @login_required
 def show_project(request):
-    user_groups = [str(grp) for grp in request.user.groups.all()]
     try:
         project = request.user.get_profile()
     except:
         raise Http404
-    msgs = request.user.inbox.all()[:10]
     msglist = ObjectList(request, request.user.inbox)
 
     statistics = {
         'shipment': {
-                'draft': project.shipment_set.filter(status__exact=Shipment.STATES.DRAFT),
-                'outgoing': project.shipment_set.filter(status__exact=Shipment.STATES.OUTGOING),
-                'incoming': project.shipment_set.filter(status__exact=Shipment.STATES.INCOMING),
-                'received': project.shipment_set.filter(status__exact=Shipment.STATES.RECEIVED),
-                'closed': project.shipment_set.filter(status__exact=Shipment.STATES.CLOSED),                
+                'draft': project.shipment_set.filter(status__exact=Shipment.STATES.DRAFT), 
+                'outgoing': project.shipment_set.filter(status__exact=Shipment.STATES.SENT),
+                'incoming': project.shipment_set.filter(status__exact=Shipment.STATES.RETURNED),
+                'received': project.shipment_set.filter(status__exact=Shipment.STATES.ON_SITE),
+                'closed': project.shipment_set.filter(status__exact=Shipment.STATES.ARCHIVED),   
                 },
         'experiment': {
                 'draft': project.experiment_set.filter(status__exact=Experiment.STATES.DRAFT),
                 'active': project.experiment_set.filter(status__exact=Experiment.STATES.ACTIVE),
                 'processing': project.experiment_set.filter(status__exact=Experiment.STATES.PROCESSING),
                 'paused': project.experiment_set.filter(status__exact=Experiment.STATES.PAUSED),
-                'closed': project.experiment_set.filter(status__exact=Experiment.STATES.CLOSED),                
+                'closed': project.experiment_set.filter(status__exact=Experiment.STATES.CLOSED),            
                 },
                 
     }
@@ -55,7 +51,7 @@ def shipping_summary(request):
     except:
         raise Http404
     log_set = [
-        ContentType.objects.get_for_model(Container).pk,
+        ContentType.objects.get_for_model(Container).pk, 
         ContentType.objects.get_for_model(Dewar).pk,
         ContentType.objects.get_for_model(Shipment).pk,
     ]

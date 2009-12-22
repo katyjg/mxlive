@@ -1,15 +1,12 @@
 # Create your views here.
-from django.core.paginator import Paginator, QuerySetPaginator, InvalidPage
-from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist, PermissionDenied
-from django.contrib.admin.filterspecs import FilterSpec
+from django.core.paginator import QuerySetPaginator, InvalidPage
 from django.utils.encoding import force_unicode, smart_str
 from django.utils.safestring import mark_safe
 from django.db import models
-from django.db.models.query import QuerySet
-import operator
 from django.contrib import admin
 from django.contrib.admin.views.main import ChangeList
-from django.contrib.admin.options import IncorrectLookupParameters
+from django.template import RequestContext
+from django.shortcuts import render_to_response
 
 MAX_SHOW_ALL_ALLOWED = 200
 ALL_VAR = 'all'

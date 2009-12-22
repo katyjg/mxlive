@@ -65,8 +65,6 @@ class LDAPBackend(object):
     """ 
 
     import ldap
-    from django.conf import settings
-    from django.contrib.auth.models import User
 
     settings = { 
               'LDAP_SERVER_URI': 'ldap://localhost', 
@@ -136,7 +134,7 @@ class LDAPBackend(object):
 
         try:
             user = self._get_user_by_name(username)
-        except User.DoesNotExist:
+        except User.DoesNotExist: #@UndefinedVariable
             user = self._get_ldap_user(l, username)
 
         if user is not None:

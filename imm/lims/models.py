@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models
-from datetime import datetime
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from enum import Enum
+from imm.enum import Enum
 from jsonfield import JSONField
 
 
@@ -130,10 +129,10 @@ class Carrier(models.Model):
 class Shipment(models.Model):
     STATES = Enum(
         'Draft', 
-        'Outgoing', 
-        'Received', 
-        'Incoming', 
-        'Closed',
+        'Sent', 
+        'On-site', 
+        'Returned', 
+        'Archived',
     )
     HELP = {
         'label': "This should be an externally visible label",
@@ -373,7 +372,7 @@ class Experiment(models.Model):
     EXP_PLANS = Enum(
         'Rank and collect best',
         'Rank and confirm',
-        'Collect first OK',
+        'Collect first good',
         'Screen and confirm',
         'Screen and collect'
     )
@@ -501,6 +500,43 @@ class ActivityLog(models.Model):
     
     def __unicode__(self):
         return str(self.created)
-    
-   
 
+from django.contrib import databrowse
+_databrowse_model_list = [Project, 
+            Laboratory, 
+            Constituent, 
+            Carrier,
+            Shipment,
+            Dewar,
+            Container,
+            SpaceGroup,
+            CrystalForm,
+            Cocktail,
+            Crystal,
+            Experiment,
+            Result,
+            ActivityLog,
+            Strategy,
+            ]
+            
+for mod in _databrowse_model_list:
+    databrowse.site.register(mod)
+    
+__all__ = [
+    'Laboratory',
+    'Project',
+    'BeamUsage',
+    'Constituent',
+    'Cocktail',
+    'Crystal',
+    'CrystalForm',
+    'Shipment',
+    'Container',
+    'Dewar',
+    'Experiment',
+    'Result',
+    'Strategy',
+    'SpaceGroup',
+    'ActivityLog',
+    'Carrier',
+    ]   

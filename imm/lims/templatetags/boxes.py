@@ -19,7 +19,7 @@ def do_contentbox(parser, token):
     nodelist = parser.parse(('endcontentbox',))
     parser.delete_first_token()
     try:
-        tag_name, title, cls = token.split_contents()
+        title, cls = token.split_contents()[1:]
     except ValueError:
         raise TemplateSyntaxError, "%r tag requires exactly three arguments" % \
               token.contents.split()[0]

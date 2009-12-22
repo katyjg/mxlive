@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import *
+from imm.lims.models import *
 
 class ConstituentAdmin(admin.ModelAdmin):
     search_fields = ['acronym', 'name', 'hazard_details']

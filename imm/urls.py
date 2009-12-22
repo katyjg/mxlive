@@ -1,10 +1,8 @@
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns, include
 from django.contrib import admin
 from django.contrib import databrowse
 from django.conf import settings
-from django.contrib.auth.views import login, logout
-import lims.views
-from views import *
+from views import logout_view
 import os
 
 admin.autodiscover()
@@ -35,22 +33,4 @@ if settings.DEBUG:
             }),
     )
 
-import lims.models
-_databrowse_model_list = [lims.models.Project, 
-            lims.models.Laboratory, 
-            lims.models.Constituent, 
-            lims.models.Carrier,
-            lims.models.Shipment,
-            lims.models.Dewar,
-            lims.models.Container,
-            lims.models.SpaceGroup,
-            lims.models.CrystalForm,
-            lims.models.Cocktail,
-            lims.models.Crystal,
-            lims.models.Experiment,
-            lims.models.Result,
-            lims.models.ActivityLog,]
-            
-for mod in _databrowse_model_list:
-    databrowse.site.register(mod)
 

@@ -4,8 +4,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils import dateformat
 from django.utils.html import escape
 from django.utils.text import capfirst
-from django.utils.translation import get_date_formats, get_partial_date_formats
+from django.utils.translation import get_date_formats
 from django.contrib import admin
+from django.conf import settings 
+from django.utils.safestring import mark_safe
 
 register = Library()
 
@@ -56,11 +58,8 @@ def list_entry(context, obj):
             }
        
 def object_fields(obj):
-    first = True
-    pk = obj._meta.pk.attname
     model_admin = admin.site._registry[obj._default_manager.model]
     for field_name in model_admin.list_display:
-        row_class = ''
         try:
             f = obj._meta.get_field(field_name)
         except models.FieldDoesNotExist:
@@ -104,7 +103,6 @@ def object_fields(obj):
                         result_repr = capfirst(dateformat.format(field_val, date_format))
                 else:
                     result_repr = ''
-                row_class = ' class="nowrap"'
             # Booleans are special: We use images.
             elif isinstance(f, models.BooleanField) or isinstance(f, models.NullBooleanField):
                 result_repr = _boolean_icon(field_val)
@@ -122,3 +120,6 @@ def object_fields(obj):
                 result_repr = escape(str(field_val))
         yield result_repr
 
+def _boolean_icon(field_val):
+    BOOLEAN_MAPPING = {True: 'yes', False: 'no', None: 'unknown'}
+    return mark_safe(u'<img src="%simg/admin/icon-%s.gif" alt="%s" />' % (settings.ADMIN_MEDIA_PREFIX, BOOLEAN_MAPPING[field_val], field_val)) 

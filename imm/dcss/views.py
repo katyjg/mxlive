@@ -1,5 +1,5 @@
 # Create your views here.
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import render_to_response
 from django.views.decorators.cache import cache_page
 
 @cache_page(60 * 15)

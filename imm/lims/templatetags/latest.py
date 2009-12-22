@@ -1,4 +1,4 @@
-from django.template import Library, Node
+from django.template import Library, Node, TemplateSyntaxError
 from django.db.models import get_model
      
 register = Library()

@@ -1,16 +1,13 @@
-from django.template.loader import get_template
-from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render_to_response
-from django.template import RequestContext
-from django.contrib.contenttypes.models import ContentType
+from django.shortcuts import render_to_response
 
-import messaging.models
+from imm import messaging
+import imm.messaging.models
 
 @login_required
 def get_message(request, id):
     message = request.user.inbox.get(pk=id)
-    message.status = messaging.models.Message.STATE.READ
+    message.status = messaging.models.Message.STATE.READ #@UndefinedVariable
     message.save()
     return render_to_response('messaging/message.html', {
         'message': message,

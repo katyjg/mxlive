@@ -1,7 +1,6 @@
-from django.contrib.auth import logout, login
-from django.shortcuts import get_object_or_404, render_to_response
-from django.http import HttpResponse, Http404, HttpResponseRedirect
-from django.views.decorators.cache import cache_page
+from django.contrib.auth import logout
+from django.shortcuts import render_to_response
+from django.http import HttpResponseRedirect
 
 
 def logout_view(request):

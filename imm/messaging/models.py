@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from enum import Enum
+from imm.enum import Enum
 
 class Message(models.Model):
     STATE = Enum('Unread', 'Read', 'Deleted')
