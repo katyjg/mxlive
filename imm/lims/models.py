@@ -409,32 +409,7 @@ class Experiment(models.Model):
     def identity(self):
         return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     
-class Strategy(models.Model):
-    STATES = Enum(
-        'Waiting', 
-        'Rejected',
-        'Accepted', 
-        'Collected',
-    )  
-    project = models.ForeignKey(Project)
-    attenuation = models.FloatField()
-    distance = models.FloatField(default=200.0)
-    start_angle = models.FloatField(default=0.0)
-    delta_angle = models.FloatField(default=1.0)
-    total_angle = models.FloatField(default=180.0)
-    exposure_time = models.FloatField(default=1.0)
-    two_theta = models.FloatField(default=0.0)
-    energy = models.FloatField(default=12.658)
-    status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.WAITING)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-
-    def identity(self):
-        return 'ST%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-
-    def __unicode__(self):
-        return self.identity()
-    
+  
 
 class Result(models.Model):
     RESULT_TYPES = Enum(
@@ -466,7 +441,6 @@ class Result(models.Model):
     sigma_angle = models.FloatField('Sigma(angle)')
     ice_rings = models.IntegerField()
     url = models.CharField(max_length=200)
-    strategy = models.ForeignKey(Strategy)
     kind = models.IntegerField('Result type',max_length=1, choices=RESULT_TYPES.get_choices())
     details = JSONField()
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
@@ -474,7 +448,62 @@ class Result(models.Model):
     
     def identity(self):
         return 'RT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+
+    def __unicode__(self):
+        return self.identity()
+
+class Strategy(models.Model):
+    STATES = Enum(
+        'Waiting', 
+        'Rejected',
+        'Accepted', 
+        'Collected',
+    )  
+    project = models.ForeignKey(Project)
+    result = models.ForeignKey(Result)
+    attenuation = models.FloatField()
+    name = models.CharField(max_length=20)
+    distance = models.FloatField(default=200.0)
+    start_angle = models.FloatField(default=0.0)
+    delta_angle = models.FloatField(default=1.0)
+    total_angle = models.FloatField(default=180.0)
+    exposure_time = models.FloatField(default=1.0)
+    two_theta = models.FloatField(default=0.0)
+    energy = models.FloatField(default=12.658)
+    exp_resolution = models.FloatField('Expected Resolution')
+    exp_completeness = models.FloatField('Expected Completeness')
+    exp_multiplicity = models.FloatField('Expected Multiplicity')
+    exp_i_sigma = models.FloatField('Expected I/Sigma')
+    exp_r_factor =models.FloatField('Expected R-factor')
+    status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.WAITING)
+    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
+    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+
+    def identity(self):
+        return 'ST%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+
+    def __unicode__(self):
+        return self.identity()
     
+class ScanResult(models.Model):
+    SCAN_TYPES = Enum(
+        'MAD Scan',   
+        'Excitation Scan',
+    )
+    project = models.ForeignKey(Project)
+    result =  models.ForeignKey(Result)
+    edge = models.CharField(max_length=20)
+    details = JSONField()
+    kind = models.IntegerField('Scan type',max_length=1, choices=SCAN_TYPES.get_choices())
+    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
+    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+    
+    def identity(self):
+        return 'SC%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    
+    def __unicode__(self):
+        return self.identity()
+
     
 class ActivityLogManager(models.Manager):
     def log_activity(self, project_id, user_id, ip_number, content_type_id, object_id, object_repr, action_type, description=''):
@@ -517,6 +546,7 @@ _databrowse_model_list = [Project,
             Result,
             ActivityLog,
             Strategy,
+            ScanResult,
             ]
             
 for mod in _databrowse_model_list:
