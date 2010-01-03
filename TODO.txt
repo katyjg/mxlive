@@ -25,7 +25,7 @@ Required Changes to existing Django Applications
     5) General record life-cycle for crystals, containers, dewars, experiments requests and shipments with the following features
         a) Ideally, each instance of those types of objects exists in an active state within the database for users/staff to manipulate. At some point, the objects become inactive and are only useful for historical purposes and are not normally available on "object-lists" except explicitly requested, and also not editable or deletable by users.
         b) Extend the current "ActivityLog" functionality to be able to display a history of changes for each object.
-    6) Change Experiment such that it is possible to prioritize the experiments within each shipment.
+    6) Change Experiment and/or Crystal such that it is possible to prioritize the experiments within each shipment.
     7) Change Crystal such that it is possible to prioritize the crystals within each experiment
     8) Maybe - integrate django-reversion, so objects can be reverted to previous versions and modify ActivityLog so that it uses post-save and login signals. Activity log may be moved into a separate application.
     9) Modify all models so that row-level ownership is enforced by retrieving data through custom managers. This will simplify the views code.
@@ -47,7 +47,7 @@ Required additional Django Applications or features
     3) When users are authenticated their home page should be their lims-portal. When Staff members are authenticated, their home page should be the staff-portal.
 
 - data download:
-    1) ability for users to download a large tar archive of data stored on a different server than the web-server, using the same credentials they used to authenticate. Data should only be accessible to the authenticated user.
+    1) ability for users to download a large tar archive of data stored on a different server than the web-server, using the same credentials they used to authenticate. Data should only be accessible to the authenticated user. Users should not be able to see or download other's data.
     
 - staff-portal: (for staff) Separate from the lims portal, although some of the views can be reused where it simplifies the development.
     1) shipment handling:

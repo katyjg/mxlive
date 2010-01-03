@@ -80,19 +80,35 @@ class ContainerAdmin(admin.ModelAdmin):
     search_fields = ['label','code']
     list_filter = ['modified','kind']
     list_display = ('id', 'label', 'code', 'capacity', 'created', 'modified', 'num_crystals')
-    list_per_page = 10
+    list_per_page = 15
 admin.site.register(Container, ContainerAdmin)
 
 class ResultAdmin(admin.ModelAdmin):
     ordering = ['-created']
     search_fields = ['name','crystal','score']
     list_filter = ['modified','kind']
-    list_display = ('id', 'name', 'crystal', 'experiment', 'score', 'resolution', 'r_meas')
-    list_per_page = 10
+    list_display = ('id', 'name', 'crystal', 'score', 'space_group', 'resolution', 'r_meas', 'completeness')
+    list_per_page = 15
 admin.site.register(Result, ResultAdmin)
 
-admin.site.register(Strategy)
+class DataAdmin(admin.ModelAdmin):
+    ordering = ['-created']
+    search_fields = ['name','url']
+    list_filter = ['modified','detector', 'kind']
+    list_display = ('id', 'name', 'crystal', 'num_frames', 'delta_angle', 'total_angle', 'wavelength', 'url')
+    list_per_page = 15
+admin.site.register(Data, DataAdmin)
+
+class StrategyAdmin(admin.ModelAdmin):
+    ordering = ['-created']
+    search_fields = ['name']
+    list_filter = ['modified','status']
+    list_display = ('id', 'name', 'result', 'start_angle', 'delta_angle', 'total_angle', 'exposure_time', 'energy', 'exp_completeness')
+    list_per_page = 15
+admin.site.register(Strategy, StrategyAdmin)
+
 admin.site.register(Project)
 admin.site.register(Carrier)
 admin.site.register(Laboratory)
-
+admin.site.register(Session)
+admin.site.register(Beamline)

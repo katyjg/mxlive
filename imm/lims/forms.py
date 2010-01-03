@@ -215,4 +215,7 @@ class ConstituentForm(objforms.forms.OrderedForm):
         model = Constituent
     
 
+class DataForm(forms.ModelForm):
+    class Meta:
+        model = Data
     

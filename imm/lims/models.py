@@ -15,6 +15,16 @@ OBJECT_STATES = Enum(
 
 def cassette_loc_repr(pos):
     return "ABCDEFGHIJKL"[pos/8]+str(1+pos%8)
+
+class Beamline(models.Model):
+    name = models.CharField(max_length=600)
+    energy_lo = models.FloatField(default=4.0)
+    energy_hi = models.FloatField(default=18.5)
+    contact_phone = models.CharField(max_length=60)
+
+    def __unicode__(self):
+        return self.name
+
     
 class Laboratory(models.Model):
     name = models.CharField(max_length=600)
@@ -53,11 +63,13 @@ class Project(models.Model):
     def __unicode__(self):
         return self.name
 
-class BeamUsage(models.Model):
+
+class Session(models.Model):
     project = models.ForeignKey(Project)
+    beamline = models.ForeignKey(Beamline)
     start_time = models.DateTimeField(null=False, blank=False)
     end_time = models.DateTimeField(null=False, blank=False)
-    description = models.CharField(max_length=200)
+    comments = models.TextField()
     
 
 class Constituent(models.Model):
@@ -407,9 +419,44 @@ class Experiment(models.Model):
         return self.identity()
 
     def identity(self):
-        return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+        return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))    
     
-  
+class Data(models.Model):
+    DATA_TYPES = Enum(
+        'Screening',   
+        'Collection',
+    )
+    project = models.ForeignKey(Project)
+    experiment = models.ForeignKey(Experiment)
+    crystal = models.ForeignKey(Crystal)
+    name = models.CharField(max_length=20)
+    distance = models.FloatField()
+    start_angle = models.FloatField()
+    delta_angle = models.FloatField()
+    first_frame = models.IntegerField(default=1)
+    num_frames = models.IntegerField('No. Images')
+    exposure_time = models.FloatField()
+    two_theta = models.FloatField()
+    wavelength = models.FloatField()
+    detector = models.CharField(max_length=20)
+    detector_size = models.IntegerField()
+    pixel_size = models.FloatField()
+    beam_x = models.FloatField()
+    beam_y = models.FloatField()
+    url = models.CharField(max_length=200)
+    kind = models.IntegerField('Data type',max_length=1, choices=DATA_TYPES.get_choices(), default=DATA_TYPES.SCREENING)
+    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
+    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+
+    def __unicode__(self):
+        return '%s, %d images' % (self.name, self.num_frames)
+    
+    def total_angle(self):
+        return self.delta_angle * self.num_frames
+        
+    class Meta:
+        verbose_name_plural = 'Datasets'
+   
 
 class Result(models.Model):
     RESULT_TYPES = Enum(
@@ -419,15 +466,16 @@ class Result(models.Model):
     project = models.ForeignKey(Project)
     experiment = models.ForeignKey(Experiment)
     crystal = models.ForeignKey(Crystal)
-    name = models.CharField(max_length=200)
+    data = models.ForeignKey(Data)
+    name = models.CharField(max_length=20)
     score = models.FloatField()
     space_group = models.ForeignKey(SpaceGroup)
-    cell_a = models.FloatField(' a')
-    cell_b = models.FloatField(' b')
-    cell_c = models.FloatField(' c')
-    cell_alpha = models.FloatField(' alpha')
-    cell_beta = models.FloatField(' beta')
-    cell_gamma = models.FloatField(' gamma')
+    cell_a = models.FloatField('a')
+    cell_b = models.FloatField('b')
+    cell_c = models.FloatField('c')
+    cell_alpha = models.FloatField('alpha')
+    cell_beta = models.FloatField('beta')
+    cell_gamma = models.FloatField('gamma')
     resolution = models.FloatField()
     reflections = models.IntegerField()
     unique = models.IntegerField()
@@ -484,14 +532,18 @@ class Strategy(models.Model):
 
     def __unicode__(self):
         return self.identity()
-    
+        
+    class Meta:
+        verbose_name_plural = 'Strategies'
+
 class ScanResult(models.Model):
     SCAN_TYPES = Enum(
         'MAD Scan',   
         'Excitation Scan',
     )
     project = models.ForeignKey(Project)
-    result =  models.ForeignKey(Result)
+    experiment = models.ForeignKey(Experiment)
+    crystal = models.ForeignKey(Crystal)
     edge = models.CharField(max_length=20)
     details = JSONField()
     kind = models.IntegerField('Scan type',max_length=1, choices=SCAN_TYPES.get_choices())
@@ -529,33 +581,12 @@ class ActivityLog(models.Model):
     
     def __unicode__(self):
         return str(self.created)
-
-from django.contrib import databrowse
-_databrowse_model_list = [Project, 
-            Laboratory, 
-            Constituent, 
-            Carrier,
-            Shipment,
-            Dewar,
-            Container,
-            SpaceGroup,
-            CrystalForm,
-            Cocktail,
-            Crystal,
-            Experiment,
-            Result,
-            ActivityLog,
-            Strategy,
-            ScanResult,
-            ]
-            
-for mod in _databrowse_model_list:
-    databrowse.site.register(mod)
     
 __all__ = [
     'Laboratory',
     'Project',
-    'BeamUsage',
+    'Session',
+    'Beamline',
     'Constituent',
     'Cocktail',
     'Crystal',
@@ -564,7 +595,9 @@ __all__ = [
     'Container',
     'Dewar',
     'Experiment',
+    'ScanResult',
     'Result',
+    'Data',
     'Strategy',
     'SpaceGroup',
     'ActivityLog',

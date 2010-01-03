@@ -89,6 +89,7 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'django.contrib.humanize',
     'django.contrib.databrowse',
+    'jsonrpc',
     'imm.lims',
     'imm.objlist',
     'imm.dcss',
@@ -116,4 +117,5 @@ AUTHENTICATION_BACKENDS = (
  'django.contrib.auth.backends.ModelBackend',
 )
 
+CACHE_BACKEND = 'locmem://'
 

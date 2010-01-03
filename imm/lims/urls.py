@@ -1,9 +1,11 @@
-from django.conf.urls.defaults import patterns
+from django.conf.urls.defaults import patterns, url
+from django.contrib import databrowse
 from imm.lims.models import *
 from imm.lims.forms import *
 
 urlpatterns = patterns('imm.lims.views',
     (r'^$', 'show_project'),
+    (r'^browse/(.*)', databrowse.site.root),
     (r'^shipping/$', 'shipping_summary'),
     (r'^shipping/shipment/$', 'project_object_list', {'model': Shipment, 'template': 'lims/lists/shipping_list.html'}, 'lims-shipment-list'),
     (r'^shipping/shipment/(?P<id>\d+)/$', 'object_detail', {'model': Shipment, 'template': 'lims/entries/shipment.html'}, 'lims-shipment-detail'),
@@ -63,11 +65,44 @@ urlpatterns = patterns('imm.lims.views',
     (r'^experiment/request/(?P<id>\d+)/edit/$','edit_object_inline', {'model': Experiment, 'form': ExperimentForm, 'template': 'objforms/form_base.html'}, 'lims-experiment-edit'),
     (r'^experiment/request/new/$', 'create_object', {'model': Experiment, 'form': ExperimentForm}, 'lims-experiment-new'),
 
-    (r'^experiment/result/$', 'project_object_list', {'model': Result, 'template': 'lims/lists/experiment_list.html','can_add':False}, 'lims-experiment-list'),
-    (r'^experiment/result/(?P<id>\d+)/$', 'object_detail', {'model': Result, 'template': 'lims/entries/experiment.html'} , 'lims-experiment-detail'),
-    (r'^experiment/result/(?P<id>\d+)/edit/$','edit_object_inline', {'model': Result, 'form': ExperimentForm, 'template': 'objforms/form_base.html'}, 'lims-experiment-edit'),
+    (r'^experiment/result/$', 'project_object_list', {'model': Result, 'template': 'lims/lists/experiment_list.html','can_add':False}, 'lims-result-list'),
+    (r'^experiment/result/(?P<id>\d+)/$', 'object_detail', {'model': Result, 'template': 'lims/entries/result.html'} , 'lims-result-detail'),
+
+    (r'^experiment/dataset/$', 'project_object_list', {'model': Data, 'template': 'lims/lists/experiment_list.html','can_add':False}, 'lims-dataset-list'),
+    (r'^experiment/dataset/(?P<id>\d+)/$', 'object_detail', {'model': Data, 'template': 'lims/entries/experiment.html'} , 'lims-dataset-detail'),
+
+    (r'^experiment/strategy/$', 'project_object_list', {'model': Strategy, 'template': 'lims/lists/experiment_list.html','can_add':False}, 'lims-strategy-list'),
+    (r'^experiment/strategy/(?P<id>\d+)/$', 'object_detail', {'model': Strategy, 'template': 'lims/entries/experiment.html'} , 'lims-strategy-detail'),
+    #(r'^experiment/dataset/(?P<id>\d+)/edit/$','edit_object_inline', {'model': Data, 'form': ExperimentForm, 'template': 'objforms/form_base.html'}, 'lims-strategy-edit'),
+
+    url(r'^experiment/result/(\d+)/shellstats.png$', 'plot_shell_stats', name='lims-plot-shells'),
+    url(r'^experiment/result/(\d+)/framestats.png$', 'plot_frame_stats', name='lims-plot-frames'),
+    url(r'^experiment/result/(\d+)/diffstats.png$', 'plot_diff_stats', name='lims-plot-diffs'),
 
     (r'^activity/$', 'user_object_list', {'model': ActivityLog, 'template': 'objlist/generic_list.html','link': False, 'can_add': False}),
 )
 
+from django.contrib import databrowse
+_databrowse_model_list = [
+            Project, 
+            Laboratory, 
+            Constituent, 
+            Carrier,
+            Shipment,
+            Dewar,
+            Container,
+            SpaceGroup,
+            CrystalForm,
+            Cocktail,
+            Crystal,
+            Experiment,
+            Result,
+            Data,
+            ActivityLog,
+            Strategy,
+            ScanResult,
+            ]
+            
+for mod in _databrowse_model_list:
+    databrowse.site.register(mod)
 

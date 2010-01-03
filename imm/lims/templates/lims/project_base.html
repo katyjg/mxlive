@@ -1,12 +1,12 @@
 {% extends "base_site.html" %}
 {% load nav %}
 {% block title %} {{ project.name }} {% endblock %}
-{% block nav-global %}
+{% block nav-main %}
 {%include "lims/project_navs.html" %}
 <table class="st" cellspacing="0" cellpadding="0" width="100%" align="center" border="0">
  <tr><td></td><td height=4 align=right style="padding:0px; vertical-align:top">
  <div class="stur"></div></td></tr>
- <tr><td colspan="2">{% block content-tools %}{% endblock %} </td></tr>
+ <tr><td colspan="2">{% block nav-sub %}{% endblock %} </td></tr>
 </table>
 {% endblock %}
 {% block nav %}

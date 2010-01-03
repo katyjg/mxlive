@@ -1,14 +1,21 @@
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.views.decorators.cache import cache_page
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from imm.objlist.views import ObjectList
 from imm.lims.models import *
-from imm.lims.forms import ObjectSelectForm
+from imm.lims.forms import ObjectSelectForm, DataForm
 
+from jsonrpc import jsonrpc_method
+try:
+    import json
+except:
+    from django.utils import simplejson as json
+    
 ACTIVITY_LOG_LENGTH  = 10       
         
 @login_required
@@ -477,3 +484,221 @@ def remove_object(request, id, model, field):
             }, 
             context_instance=RequestContext(request))
 
+
+@jsonrpc_method('lims.add_data', authenticated=True)
+def add_data(request, data_info):
+    info = {}
+    # convert unicode to str
+    for k,v in data_info.items():
+        info[str(k)] = v
+    info.update({'project_id':1, 
+                 'experiment_id':1, 
+                 'crystal_id': 1})    
+    try:
+        new_obj = Data(**info)
+        new_obj.save()
+        return {'data_id': new_obj.pk}
+    except Exception, e:
+        raise e
+        return {'error': str(e)}
+
+@jsonrpc_method('lims.add_result', authenticated=True)
+def add_result(request, res_info):
+    info = {}
+    # convert unicode to str
+    for k,v in res_info.items():
+        info[str(k)] = v
+    info.update({'project_id':1, 
+                 'experiment_id':1, 
+                 'crystal_id': 1})  
+    new_obj = Result(**info)
+    new_obj.save()
+    return {'result_id': new_obj.pk}
+
+@jsonrpc_method('lims.add_strategy', authenticated=True)
+def add_strategy(request, stg_info):
+    info = {}
+    # convert unicode to str
+    for k,v in stg_info.items():
+        info[str(k)] = v
+    info.update({'project_id':1})  
+    new_obj = Strategy(**info)
+    new_obj.save()
+    return {'strategy_id': new_obj.pk}
+
+@login_required
+@cache_page(60*3600)
+def plot_shell_stats(request, id):
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+    from matplotlib.figure import Figure
+    from matplotlib import rcParams
+    
+    # Adjust Legend parameters
+    rcParams['legend.loc'] = 'best'
+    rcParams['legend.fontsize'] = 10
+    rcParams['legend.isaxes'] = False
+    
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        raise Http404
+    # extract shell statistics to plot
+    data = result.details['shell_statistics']
+    fig = Figure(figsize=(5.5,5), dpi=72)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(data['shell'], data['completeness'], 'r-+')
+    ax1.set_ylabel('completeness', color='r')
+    ax11 = ax1.twinx()
+    ax11.plot(data['shell'], data['r_meas'], 'g-', label='R-meas')
+    ax11.plot(data['shell'], data['r_mrgdf'], 'g:+', label='R-mrgd-F')
+    ax11.legend(loc='best')
+    ax1.grid(True)
+    ax11.set_ylabel('R-factors', color='g')
+    for tl in ax11.get_yticklabels():
+        tl.set_color('g')
+    for tl in ax1.get_yticklabels():
+        tl.set_color('r')
+
+    ax2 = fig.add_subplot(212, sharex=ax1)
+    ax2.plot(data['shell'], data['i_sigma'], 'm-x')
+    ax2.set_xlabel('Resolution Shell')
+    ax2.set_ylabel('I/Sigma(I)', color='m')
+    ax21 = ax2.twinx()
+    ax21.plot(data['shell'], data['sig_ano'], 'b-+')
+    ax2.grid(True)
+    ax21.set_ylabel('SigAno', color='b')
+    for tl in ax21.get_yticklabels():
+        tl.set_color('b')
+    for tl in ax2.get_yticklabels():
+        tl.set_color('m')
+    #ax1.set_title('Dataset Statistics by Resolution Shell')
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+    
+
+@login_required
+#@cache_page(60*3600)
+def plot_diff_stats(request, id):
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+    from matplotlib.figure import Figure
+    from matplotlib import rcParams
+    
+    # Adjust Legend parameters
+    rcParams['legend.loc'] = 'best'
+    rcParams['legend.fontsize'] = 10
+    rcParams['legend.isaxes'] = False
+    
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        raise Http404
+    # extract shell statistics to plot
+    data = result.details['diff_statistics']
+    fig = Figure(figsize=(5.5,5), dpi=72)
+    ax1 = fig.add_subplot(311)
+    ax1.plot(data['frame_diff'], data['rd'], 'r-')
+    ax1.set_ylabel('$R_d$', color='r')
+    ax11 = ax1.twinx()
+    ax11.plot(data['frame_diff'], data['n_refl'], 'g-')
+    ax1.grid(True)
+    ax11.set_ylabel('# Reflections', color='g')
+    for tl in ax11.get_yticklabels():
+        tl.set_color('g')
+    for tl in ax1.get_yticklabels():
+        tl.set_color('r')
+
+    ax2 = fig.add_subplot(312, sharex=ax1)
+    ax2.plot(data['frame_diff'], data['rd_friedel'], 'm-')
+    ax2.set_ylabel('$R_d Friedel$', color='m')
+    ax21 = ax2.twinx()
+    ax21.plot(data['frame_diff'], data['n_friedel'], 'b-')
+    ax2.grid(True)
+    ax21.set_ylabel('# Reflections', color='b')
+    for tl in ax21.get_yticklabels():
+        tl.set_color('b')
+    for tl in ax2.get_yticklabels():
+        tl.set_color('m')
+
+    ax3 = fig.add_subplot(313, sharex=ax1)
+    ax3.plot(data['frame_diff'], data['rd_non_friedel'], 'k-')
+    ax3.set_xlabel('Frame Difference')
+    ax3.set_ylabel('$R_d Non-Friedel$', color='k')
+    ax31 = ax3.twinx()
+    ax31.plot(data['frame_diff'], data['n_non_friedel'], 'c-')
+    ax3.grid(True)
+    ax31.set_ylabel('# Reflections', color='c')
+    for tl in ax31.get_yticklabels():
+        tl.set_color('c')
+    for tl in ax3.get_yticklabels():
+        tl.set_color('k')
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+@login_required
+#@cache_page(60*3600)
+def plot_frame_stats(request, id):
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+    from matplotlib.figure import Figure
+    from matplotlib import rcParams
+    
+    # Adjust Legend parameters
+    rcParams['legend.loc'] = 'best'
+    rcParams['legend.fontsize'] = 10
+    rcParams['legend.isaxes'] = False
+    
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        raise Http404
+    # extract shell statistics to plot
+    data = result.details['frame_statistics']
+    fig = Figure(figsize=(5.5,5), dpi=72)
+    ax1 = fig.add_subplot(311)
+    ax1.plot(data['frame'], data['scale'], 'r-')
+    ax1.set_ylabel('Scale Factor', color='r')
+    ax11 = ax1.twinx()
+    ax11.plot(data['frame'], data['mosaicity'], 'g-')
+    ax1.grid(True)
+    ax11.set_ylabel('Mosaicity', color='g')
+    for tl in ax11.get_yticklabels():
+        tl.set_color('g')
+    for tl in ax1.get_yticklabels():
+        tl.set_color('r')
+
+    ax2 = fig.add_subplot(312, sharex=ax1)
+    ax2.plot(data['frame'], data['divergence'], 'm-')
+    ax2.set_ylabel('Divergence', color='m')
+    ax21 = ax2.twinx()
+    ax21.plot(data['frame'], data['i_sigma'], 'b-')
+    ax2.grid(True)
+    ax21.set_ylabel('I/Sigma(I)', color='b')
+    for tl in ax21.get_yticklabels():
+        tl.set_color('b')
+    for tl in ax2.get_yticklabels():
+        tl.set_color('m')
+
+    ax3 = fig.add_subplot(313, sharex=ax1)
+    ax3.plot(data['frame'], data['r_meas'], 'k-')
+    ax3.set_xlabel('Frame Number')
+    ax3.set_ylabel('R-meas', color='k')
+    ax31 = ax3.twinx()
+    ax31.plot(data['frame'], data['unique'], 'c-')
+    ax3.grid(True)
+    ax31.set_ylabel('Unique Reflections', color='c')
+    for tl in ax31.get_yticklabels():
+        tl.set_color('c')
+    for tl in ax3.get_yticklabels():
+        tl.set_color('k')
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
