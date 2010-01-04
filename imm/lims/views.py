@@ -530,6 +530,7 @@ def add_strategy(request, stg_info):
 @cache_page(60*3600)
 def plot_shell_stats(request, id):
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+    from matplotlib.ticker import FormatStrFormatter, MultipleLocator, MaxNLocator
     from matplotlib.figure import Figure
     from matplotlib import rcParams
     
@@ -545,25 +546,29 @@ def plot_shell_stats(request, id):
         raise Http404
     # extract shell statistics to plot
     data = result.details['shell_statistics']
-    fig = Figure(figsize=(5.5,5), dpi=72)
+    fig = Figure(figsize=(5.6,5), dpi=72)
     ax1 = fig.add_subplot(211)
     ax1.plot(data['shell'], data['completeness'], 'r-+')
-    ax1.set_ylabel('completeness', color='r')
+    ax1.set_ylabel('completeness (%)', color='r')
     ax11 = ax1.twinx()
     ax11.plot(data['shell'], data['r_meas'], 'g-', label='R-meas')
     ax11.plot(data['shell'], data['r_mrgdf'], 'g:+', label='R-mrgd-F')
     ax11.legend(loc='best')
     ax1.grid(True)
-    ax11.set_ylabel('R-factors', color='g')
+    ax11.set_ylabel('R-factors (%)', color='g')
     for tl in ax11.get_yticklabels():
         tl.set_color('g')
     for tl in ax1.get_yticklabels():
         tl.set_color('r')
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax1.set_ylim((0, 105))
+    ax11.set_ylim((0, 105))
 
     ax2 = fig.add_subplot(212, sharex=ax1)
     ax2.plot(data['shell'], data['i_sigma'], 'm-x')
     ax2.set_xlabel('Resolution Shell')
-    ax2.set_ylabel('I/Sigma(I)', color='m')
+    ax2.set_ylabel('I/SigmaI', color='m')
     ax21 = ax2.twinx()
     ax21.plot(data['shell'], data['sig_ano'], 'b-+')
     ax2.grid(True)
@@ -572,7 +577,12 @@ def plot_shell_stats(request, id):
         tl.set_color('b')
     for tl in ax2.get_yticklabels():
         tl.set_color('m')
-    #ax1.set_title('Dataset Statistics by Resolution Shell')
+    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax2.set_ylim((-5, max(data['i_sigma'])+5))
+    ax21.set_ylim((0, max(data['sig_ano'])+1))
+
+
     canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')
     canvas.print_png(response)
@@ -580,9 +590,10 @@ def plot_shell_stats(request, id):
     
 
 @login_required
-#@cache_page(60*3600)
+@cache_page(60*3600)
 def plot_diff_stats(request, id):
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+    from matplotlib.ticker import FormatStrFormatter, MultipleLocator, MaxNLocator
     from matplotlib.figure import Figure
     from matplotlib import rcParams
     
@@ -598,10 +609,10 @@ def plot_diff_stats(request, id):
         raise Http404
     # extract shell statistics to plot
     data = result.details['diff_statistics']
-    fig = Figure(figsize=(5.5,5), dpi=72)
+    fig = Figure(figsize=(5.6,5), dpi=72)
     ax1 = fig.add_subplot(311)
     ax1.plot(data['frame_diff'], data['rd'], 'r-')
-    ax1.set_ylabel('$R_d$', color='r')
+    ax1.set_ylabel('R-d', color='r')
     ax11 = ax1.twinx()
     ax11.plot(data['frame_diff'], data['n_refl'], 'g-')
     ax1.grid(True)
@@ -610,10 +621,14 @@ def plot_diff_stats(request, id):
         tl.set_color('g')
     for tl in ax1.get_yticklabels():
         tl.set_color('r')
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    #ax1.set_ylim((0, 105))
+    #ax11.set_ylim((0, max(data['n_refl'])+5))
 
     ax2 = fig.add_subplot(312, sharex=ax1)
     ax2.plot(data['frame_diff'], data['rd_friedel'], 'm-')
-    ax2.set_ylabel('$R_d Friedel$', color='m')
+    ax2.set_ylabel('R-d Friedel', color='m')
     ax21 = ax2.twinx()
     ax21.plot(data['frame_diff'], data['n_friedel'], 'b-')
     ax2.grid(True)
@@ -622,11 +637,13 @@ def plot_diff_stats(request, id):
         tl.set_color('b')
     for tl in ax2.get_yticklabels():
         tl.set_color('m')
+    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+    ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
 
     ax3 = fig.add_subplot(313, sharex=ax1)
     ax3.plot(data['frame_diff'], data['rd_non_friedel'], 'k-')
     ax3.set_xlabel('Frame Difference')
-    ax3.set_ylabel('$R_d Non-Friedel$', color='k')
+    ax3.set_ylabel('R-d Non-friedel', color='k')
     ax31 = ax3.twinx()
     ax31.plot(data['frame_diff'], data['n_non_friedel'], 'c-')
     ax3.grid(True)
@@ -635,6 +652,8 @@ def plot_diff_stats(request, id):
         tl.set_color('c')
     for tl in ax3.get_yticklabels():
         tl.set_color('k')
+    ax3.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+    ax31.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
 
     canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')
@@ -642,9 +661,10 @@ def plot_diff_stats(request, id):
     return response
 
 @login_required
-#@cache_page(60*3600)
+@cache_page(60*3600)
 def plot_frame_stats(request, id):
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+    from matplotlib.ticker import FormatStrFormatter, MultipleLocator, MaxNLocator
     from matplotlib.figure import Figure
     from matplotlib import rcParams
     
@@ -660,7 +680,7 @@ def plot_frame_stats(request, id):
         raise Http404
     # extract shell statistics to plot
     data = result.details['frame_statistics']
-    fig = Figure(figsize=(5.5,5), dpi=72)
+    fig = Figure(figsize=(5.6,5), dpi=72)
     ax1 = fig.add_subplot(311)
     ax1.plot(data['frame'], data['scale'], 'r-')
     ax1.set_ylabel('Scale Factor', color='r')
@@ -672,6 +692,10 @@ def plot_frame_stats(request, id):
         tl.set_color('g')
     for tl in ax1.get_yticklabels():
         tl.set_color('r')
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+    ax1.set_ylim((min(data['scale'])-0.2, max(data['scale'])+0.2))
+    ax11.set_ylim((min(data['mosaicity'])-0.01, max(data['mosaicity'])+0.01))
 
     ax2 = fig.add_subplot(312, sharex=ax1)
     ax2.plot(data['frame'], data['divergence'], 'm-')
@@ -684,6 +708,9 @@ def plot_frame_stats(request, id):
         tl.set_color('b')
     for tl in ax2.get_yticklabels():
         tl.set_color('m')
+    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.3f'))
+    ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax2.set_ylim((min(data['divergence'])-0.02, max(data['divergence'])+0.02))
 
     ax3 = fig.add_subplot(313, sharex=ax1)
     ax3.plot(data['frame'], data['r_meas'], 'k-')
@@ -697,6 +724,8 @@ def plot_frame_stats(request, id):
         tl.set_color('c')
     for tl in ax3.get_yticklabels():
         tl.set_color('k')
+    ax3.yaxis.set_major_formatter(FormatStrFormatter('%0.3f'))
+    ax31.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
 
     canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')

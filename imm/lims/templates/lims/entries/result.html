@@ -9,7 +9,21 @@
 
 {% block content %}
 <div id="result-page">
-<h2 id="result-title"> Data Processing Report: {{object.identity}}</h2>
+<div id="result-title" class="floatleft size60">
+{% ifequal object.kind object.RESULT_TYPES.SCREENING %}
+<h2> Crystal Screening Report</h2>
+{% else %}
+<h2> Data Processing Report</h2>
+{% endifequal %}
+</div>
+<div id="result-links" class="floatright">
+<ul>
+<li>Crystal: &nbsp;<a href={% url lims-crystal-detail object.crystal.id %}>{{object.crystal}}</a></li>
+<li>Experiment: &nbsp;<a href={% url lims-experiment-detail object.experiment.id %}>{{object.crystal}}</a></li>
+<li>Dataset: &nbsp;<a href={% url lims-dataset-detail object.data.id %}>{{object.data}}</a></li>
+</ul>
+</div>
+<div class="clear"></div>
 <h3>Summary</h3>
 <div id="result-summary">
 <table id="result-table">
@@ -96,7 +110,15 @@
 </table>
 
 <h3>Automatic Space-Group Selection</h3>
-<table class="rtable full">
+<div class="tablenotes floatleft half">
+<h3>Notes</h3>
+<p>The following table contains result from POINTLESS (see Evans, Acta Cryst. D62, 72-82, 2005). </p>
+
+<p>Indistinguishable space groups will have similar probabilities. If two or more of the top candidates have the same probability, the one with the fewest symmetry assumptions is chosen. This usually corresponds to the point group,  trying out higher symmetry space groups within the top tier does not require re-indexing the data as they are already in the same setting. </p>
+
+<p>For more detailed results, please inspect the output file &lsquo;pointless.log&rsquo;.</p>
+</div>
+<table class="rtable floatright size45">
     <thead>
         <tr>
             <th scope="col">Selected</th>
@@ -126,7 +148,7 @@
     <tr><td colspan=4></td></tr>
     </tfoot>
 </table>
-
+<div class="clear spacer"></div>
 <h3>Integration and Scaling Statistics (by shell)</h3>
 <table class="rtable floatleft size40">
     <thead>
@@ -157,7 +179,7 @@
 </table>
 <image class="floatright" src={% url lims-plot-shells object.id %} />
 
-<div class="tablenotes floatright size40">
+<div class="tablenotes floatright size45">
 <h3>Notes</h3>
 <dl class="note-list">
   <dt>[1] -<dt>

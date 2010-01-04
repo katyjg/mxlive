@@ -30,14 +30,10 @@ Required Changes to existing Django Applications
     8) Maybe - integrate django-reversion, so objects can be reverted to previous versions and modify ActivityLog so that it uses post-save and login signals. Activity log may be moved into a separate application.
     9) Modify all models so that row-level ownership is enforced by retrieving data through custom managers. This will simplify the views code.
     10) Modify container editing so that the "kind" of a cassette can not be changed if there are any crystals associated with it.
-    11) Add a model for Strategy such that each "result" optionally points to a strategy.
-    12) Add results view, verification and resubmission for crystals as follows:
-        a) each result corresponds to a particular particular experiment and crystal
-        b) each result can be either a screening result or a data-collection result
-        c) each result is linked to an associated strategy. The strategy for screening results is editable by the user and will be used for data collection. The strategy for data-collection is for information only and not editable by the user.
-        d) Each strategy can be in one of several states "Accepted","Rejected", "Waiting", "Collected". Screening results for "confirm" experiments will have their states set to "Waiting". The user will have the option to switch the state to "accept" or "reject" the strategy. At this point they can also modify the strategy parameters.
+    11) Add strategy view, verification and resubmission for crystals as follows:
+        a) each screening result is linked to a associated strategy. The strategy for screening results is editable by the user and will be used for data collection. The strategy for data-collection is for information only and not editable by the user.
+        b) Each strategy can be in one of several states "Accepted","Rejected", "Waiting", "Collected". Strategies linked to "confirm" experiments will have their states set to "Waiting". The user will have the option to switch the state to "accept" or "reject" the strategy. At this point they can also modify the strategy parameters.
         e) "Collected" strategies are only associated with data-collection results and can not be modified by the user once created.
-        f) Each result should include a url download link to the all associated data.
         
 Required additional Django Applications or features
 ---------------------------------------------------
