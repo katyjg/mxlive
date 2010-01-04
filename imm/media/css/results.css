@@ -50,7 +50,7 @@
 
 #result-summary {
     border-collapse:collapse;
-    border:1px solid #9ce;
+    border:1px solid #c3d9ff;
     float: left;
     width: 60%;
     margin-right:2%;
@@ -107,7 +107,7 @@ h1, h2, h3, h4 {
 }
 #result-links {
     width: 36%;
-    border: 1px solid #9ce; 
+    border: 1px solid #c3d9ff; 
 }
 
 #result-links ul {
