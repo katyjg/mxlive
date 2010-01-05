@@ -14,12 +14,15 @@ Required Changes to existing Django Applications
 - lims-portal: (for users)
     1) ability to load excel and csv spreadsheet and automatically populate tables for (crystals, containers, dewars, experiments, and one shipment per spreadsheet). Sample spreadsheet to be provided but format can be changed to a limited degree to assist the development.
     2) ability to generate equivalent spreadsheet like in (a) for a shipment currently in the system for download by the user in csv and excel formats. Produced spreadsheet should be readable by the feature in (a) to generate identical information in the database.
-    3) ability to generate a PDF "packing-list" file for each shipment containing a the list of crystals, containers, dewars. The PDF file should include a CODE-128 Barcode corresponding to the shipment ID at the top. The file should include information about the laboratory address, contact information, and the shipment details such as date shipped, carrier etc.
+    3) ability to generate a PDF "packing-list" file for each shipment containing the list of crystals, containers, dewars. The PDF file should include a CODE-128 Barcode corresponding to the shipment ID at the top. The file should include information about the laboratory address, contact information, and the shipment details such as date shipped, carrier etc.
     4) Update "Send" functionality so that:
         a)  Only draft shipments can be sent, edited or deleted by the project user. 
         b) Deleting a shipment should orphan it's children rather than removing them from the database. 
         c) Add the ability to close a shipment. Closing a shipment should close and archive all it's children. Except, "Cocktails","Constituents" and "CrystalForms" which are never closed. 
-        d) When a user clicks send, the shipment is validated against the following: No dewars can be empty, No containers can be empty, each crystal in the shipment must be linked to at least one experiment, otherwise request confirmation and generate a default "screen and confirm" experiment, including all orphaned crystals.
+        d) When a user clicks send, the shipment is validated against the following: 
+            - No dewars can be empty, 
+            - No containers can be empty
+            - each crystal in the shipment must be linked to at least one experiment, otherwise request confirmation and generate a default "native, screen and confirm" experiment, including all orphaned crystals.
         e) Set the status of the shipment to "sent"
         f) If the shipment validates, generate a PDF of as in (3) and ask the user to print it and include in one of the dewars.
     5) General record life-cycle for crystals, containers, dewars, experiments requests and shipments with the following features
@@ -34,6 +37,7 @@ Required Changes to existing Django Applications
         a) each screening result is linked to a associated strategy. The strategy for screening results is editable by the user and will be used for data collection. The strategy for data-collection is for information only and not editable by the user.
         b) Each strategy can be in one of several states "Accepted","Rejected", "Waiting", "Collected". Strategies linked to "confirm" experiments will have their states set to "Waiting". The user will have the option to switch the state to "accept" or "reject" the strategy. At this point they can also modify the strategy parameters.
         e) "Collected" strategies are only associated with data-collection results and can not be modified by the user once created.
+    12) Remove desired_low_res from Experiment requests, add delta_phi, total_angle. Also add an additional Experiment Plan, called "Just Collect" work similarly to "Screen and Collect" except, it will use predifined values for delta_phi total_angle and resolution as opposed to just using those values for guidance.
         
 Required additional Django Applications or features
 ---------------------------------------------------

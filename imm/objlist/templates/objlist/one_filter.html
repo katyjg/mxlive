@@ -1,4 +1,5 @@
-    <b>{{title}}:</b>
+    <li class="filter-title">{{title|capfirst}}:</li>
     {% for choice in choices %}
-    <span{% if choice.selected %} class="selected"{% endif %}><a href="{{ choice.query_string }}">{{ choice.display|escape }}></a></span>
+    <li {% if choice.selected %}class="selected"{% endif %}><a href="{{ choice.query_string }}">{{choice.display|escape}}</a></li>
     {% endfor %}
+

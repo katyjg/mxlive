@@ -1,5 +1,5 @@
 {% load objlist %}
-<div class="bubble_bg"><div class="rounded_lr"><div class="rounded_ll">              
+<div class="object-list">    
 <div class="object-tools">
     <div class="left-element">
         <form style="display: inline;" action="" method="get">
@@ -9,7 +9,7 @@
     <div class="right-element" style="padding: 3px;">
         {% if can_add %}<a class="add-tool" href='new/' >Add {{ ol.object_type }}</a>{% endif %}
     </div>
-    <div class="clearall"></div>
+    <div class="clear"></div>
 </div>
  
 {% show_all_filters ol %}
@@ -22,10 +22,9 @@
 {% endif %}
 </div>
 
-<div class="object-list">
-    <table cellspacing="0" cellpadding="2" border="0" id="resultstable" class="results" width="100%">
+    <table cellspacing="0" cellpadding="2" border="0" width="100%">
     <thead>
-    <tr class="headingrow">
+    <tr class="header">
     <th style="border-left: 0pt none; width: 0.1em;"></th>
     {% for header in ol.header_list %}<th{{ header.class_attrib }}>
     {% if header.sortable %}<a href="{{ header.url }}">{% endif %}
@@ -43,12 +42,11 @@
 {% endif %}
     </tbody>
     </table>
-</div>
 
 <div class="list-tools">
 {% if ol.is_paginated %}
     {% include "objlist/pagination.html" %}
 {% endif %}
 </div>
-</div></div></div>
+</div>
 

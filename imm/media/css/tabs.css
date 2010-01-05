@@ -1,7 +1,7 @@
 ul.nav { 
 text-align: left; 
 list-style-type: none;
-margin: 0;
+margin: 0px;
 padding: 3px 10px 3px 10px; /* THIRD number must change with respect to padding-top (X) below */
 }
 
@@ -10,7 +10,6 @@ display: inline;
 }
 
 ul.nav li.tab { 
-border-bottom: 1px solid #fff;
 background-color: #fff; 
 }
 
@@ -46,7 +45,18 @@ border-bottom: 1px solid #5a9abe;
 list-style-type: none;
 background-color: #c3d9ff;
 margin: 0;
-padding: 8px 10px 3px 10px; 
+padding: 6px 10px 3px 10px; 
+-moz-border-radius-topright: 3px;
+-webkit-border-top-right-radius: 3px;
+font-size: 90%
+}
+
+div.navinfo { 
+text-align: left; 
+border-bottom: 1px solid #5a9abe; 
+background-color: #c3d9ff;
+margin: 0;
+padding: 6px 10px 3px 10px; 
 -moz-border-radius-topright: 3px;
 -webkit-border-top-right-radius: 3px;
 }
@@ -70,14 +80,14 @@ border-bottom: none;
 -moz-border-radius-topright: 3px;
 -webkit-border-top-left-radius: 3px;
 -webkit-border-top-right-radius: 3px;
-border-radius: 5px 0px;
+border-radius: 3px 0px;
 }
 
 ul.subnav li.active a {
 background-color: #fff; 
 color: #000;
 position: relative;
-top: 1px;
+top: 2px;
 padding-top: 4px; 
 border-bottom: none;
 }

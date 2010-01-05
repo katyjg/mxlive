@@ -154,18 +154,22 @@ class ExperimentForm(objforms.forms.OrderedForm):
     name = objforms.widgets.LargeCharField(required=True)
     kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES.get_choices(), required=True)
     plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS.get_choices(), required=True)
-    hi_res = forms.FloatField(label='Desired High Res.', widget=objforms.widgets.LeftHalfInput, required=False )
-    lo_res = forms.FloatField(label='Desired Low Res.', widget=objforms.widgets.RightHalfInput, required=False )
-    i_sigma = forms.FloatField(label='I/Sigma',widget=objforms.widgets.LeftHalfInput, required=False )
-    r_meas = forms.FloatField(widget=objforms.widgets.RightHalfInput, required=False )
-    multiplicity = forms.IntegerField(widget=objforms.widgets.LargeInput, required=False)
+    resolution = forms.FloatField(label='Desired Resolution', widget=objforms.widgets.LeftHalfInput, required=False )
+    delta_angle = forms.FloatField(widget=objforms.widgets.RightHalfInput, required=False,
+          help_text='If left blank, an appropriate value will be calculated during screening.')
+    multiplicity = forms.IntegerField(widget=objforms.widgets.LeftHalfInput, required=False,
+          help_text='Values entered here take precedence over the specified "Angle Range".')
+    total_angle = forms.FloatField(label='Angle Range', widget=objforms.widgets.RightHalfInput, required=False,
+          help_text='The total angle range to collect.')    
+    i_sigma = forms.FloatField(label='Desired I/Sigma',widget=objforms.widgets.LeftHalfInput, required=False )
+    r_meas = forms.FloatField(label='Desired R-factor', widget=objforms.widgets.RightHalfInput, required=False )
     energy = forms.FloatField(widget=objforms.widgets.LeftHalfInput, required=False )
     absorption_edge = objforms.widgets.RightHalfCharField(required=False )
     comments = objforms.widgets.CommentField(required=False)
     class Meta:
         model = Experiment
-        fields = ('project','name', 'kind', 'plan', 'hi_res',
-                  'lo_res','i_sigma', 'r_meas', 'multiplicity',
+        fields = ('project','name', 'kind', 'plan', 'resolution',
+                  'delta_angle','multiplicity', 'total_angle', 'i_sigma','r_meas',
                   'energy', 'absorption_edge','crystals','comments')
 
 class CocktailForm(objforms.forms.OrderedForm):

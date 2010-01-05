@@ -1,4 +1,4 @@
- <tr {% if link %}class="bodyrow link-row" onclick="linkto('{{object.pk}}/');"{% endif %}  title="{{ object.comments|escape }}">
+ <tr {% if link %}class="link-row" onclick="linkto('{{object.pk}}/');"{% endif %}  title="{{ object.comments|escape }}">
     <td class="first"> </td>
     {% for field in fields %}
     <td>{{ field }}</td>

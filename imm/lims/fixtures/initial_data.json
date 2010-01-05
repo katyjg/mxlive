@@ -1066,9 +1066,9 @@
         "pk": 1, 
         "model": "lims.experiment", 
         "fields": {
-            "hi_res": null, 
+            "resolution": null, 
             "status": 0, 
-            "lo_res": null, 
+            "delta_angle": null, 
             "name": "First Try", 
             "created": "2008-08-18 13:43:12", 
             "r_meas": null, 
@@ -1080,7 +1080,8 @@
             "i_sigma": null, 
             "plan": 0, 
             "absorption_edge": "", 
-            "multiplicity": null, 
+            "multiplicity": null,
+            "total_angle": null,
             "crystals": [
                 2, 
                 3
@@ -1091,9 +1092,9 @@
         "pk": 2, 
         "model": "lims.experiment", 
         "fields": {
-            "hi_res": 1.8, 
+            "resolution": 1.8, 
             "status": 0, 
-            "lo_res": 2.5, 
+            "delta_angle": 2.5, 
             "name": "Second Pass", 
             "created": "2008-08-18 13:44:13", 
             "r_meas": 10.0, 
@@ -1105,7 +1106,8 @@
             "i_sigma": 2.0, 
             "plan": 2, 
             "absorption_edge": "", 
-            "multiplicity": 5, 
+            "multiplicity": 5,
+            "total_angle": null,
             "crystals": [
                 1, 
                 2, 

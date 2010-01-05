@@ -1,0 +1,45 @@
+@import "/css/tabs.css";
+@import "/css/forms.css";
+
+/* LISTS */
+div.filter-left { padding-right: 0.5em; margin: 0.5em; float:left; border-right: 1px dotted #5a9abe;}
+div.list-filter { padding: 0.3em; }
+ul.filter-choices { padding-left: 0.5em; margin: 0;}
+ul.filter-choices li { display: inline; margin: 0; padding: 0;}
+ul.filter-choices li.filter-title {font-weight: bold; color: #555; }
+ul.filter-choices li a { border: none; margin: 2px; padding: 1px; }
+ul.filter-choices li.selected a { font-weight: bold; color: #6c9 !important}
+ul.filter-choices a:hover { color:#630; }
+
+div.filters { font-size: 90%; background: #e0eefb; padding: 0.3em; }
+div.object-list {background: #c3d9ff; margin-top: 0.5em; padding: 2px 0;}
+
+/* OBJLIST TABLES */
+div.object-list td a { color: #00c ; text-decoration: none; }
+div.object-list th{
+    font-weight:normal;
+    padding:3px 0.4em;
+    border-bottom: 1px solid #ccc; 
+    border-left: 1px solid #ccc; 
+    background: #eeeeee; 
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+div.object-list th a { text-decoration:none;  display: block; padding-right: 12px; }
+div.object-list th.sorted { background-color: #fff !important; }
+div.object-list th.ascending a{ background: url(/img/arrow-down.png) right 50% no-repeat; }
+div.object-list th.descending a{ background: url(/img/arrow-up.png) right 50% no-repeat; }
+div.object-list td { 
+    white-space: nowrap;
+    overflow: hidden;
+    vertical-align:top;
+    padding: 0.3em 0.3em;
+    padding-left: 0.5em;
+    border-bottom: 1px dotted #ccc;
+    background: #fff;
+    vertical-align: middle;
+}
+.link-row { cursor: pointer; color: #333; }
+.link-row:hover{ color: #06c; }
+

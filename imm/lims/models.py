@@ -383,10 +383,10 @@ class Experiment(models.Model):
     )
     EXP_PLANS = Enum(
         'Rank and collect best',
-        'Rank and confirm',
         'Collect first good',
         'Screen and confirm',
-        'Screen and collect'
+        'Screen and collect',
+        'Just Collect',
     )
     STATES = Enum(
         'Draft', 
@@ -397,11 +397,12 @@ class Experiment(models.Model):
     )  
     project = models.ForeignKey(Project)
     name = models.CharField(max_length=60)
-    hi_res = models.FloatField(null=True, blank=True)
-    lo_res = models.FloatField(null=True, blank=True)
-    i_sigma = models.FloatField('I/Sigma', null=True, blank=True)
-    r_meas =  models.FloatField(null=True, blank=True)
+    resolution = models.FloatField('Desired Resolution', null=True, blank=True)
+    delta_angle = models.FloatField(null=True, blank=True)
+    i_sigma = models.FloatField('Desired I/Sigma', null=True, blank=True)
+    r_meas =  models.FloatField('Desired R-factor', null=True, blank=True)
     multiplicity = models.IntegerField(null=True, blank=True)
+    total_angle = models.FloatField('Desired Angle Range', null=True, blank=True)
     energy = models.DecimalField(null=True, max_digits=10, decimal_places=4, blank=True)
     kind = models.IntegerField('exp. type',max_length=1, choices=EXP_TYPES.get_choices(), default=EXP_TYPES.NATIVE)
     absorption_edge = models.CharField(max_length=5, null=True, blank=True)

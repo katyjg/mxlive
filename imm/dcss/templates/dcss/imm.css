@@ -52,13 +52,6 @@ table { border-collapse: collapse;  empty-cells: show;}
 
 #mt { margin-top: 0.5ex; }
 
-.bubble_bg { background: {{col.shades.0.l}}; margin-bottom: 0.6em; }
-.rounded_ul { background: url(/img/ul.png) no-repeat top left; }
-.rounded_ur { background: url(/img/ur.png) no-repeat top right; }
-.rounded_ll { background: url(/img/ll.png) no-repeat bottom left; }
-.rounded_lr { background: url(/img/lr.png) no-repeat bottom right; }
-.bubble { padding: 2px; }
-
 table#mt div.tc1 {
   height: 4px;
   background: url(/img/ul.png) no-repeat top left;
@@ -350,45 +343,6 @@ pre.prettyprint {
 
 .twocol th,.twocol td { border-bottom: 1px solid #ccc; padding: 1px 5px 0 5px }
 .twocol th { border-left: 1px solid #ccc }
-.results td { padding: 4px; }
-.results caption { text-align: left; font-weight: bold; font-size: 110%;}
-.results td a { color: #00c ; text-decoration: none; }
-.results td.id a { color: {{col.link}}; text-decoration: underline;}
-.results td.id { text-align:right;}
-.results td.id a:visited { color: purple; text-decoration: underline; }
-.results td.id a:hover { color: red; text-decoration: underline; }
-
-.headingrow th, .results th {
-    border-bottom: 1px solid #ccc; 
-    border-left: 1px solid #ccc; 
-    background: #eee; 
-    text-align: left;
-    vertical-align: middle;
-    padding-right: 0.4em;
-    padding-left: 0.4em;
-}
-.headingrow th a, .results th a { text-decoration:none; display: block; padding-right: 12px; }
-.headingrow th a:visited {color: {{col.link_hover}} !important;}
-.headingrow th, .results th { white-space: nowrap;}
-
-/* SORTABLE TABLES */
-.headingrow th.sorted { background-color: {{col.shades.0.d}} !important; }
-.headingrow th.ascending a{ background: url(/img/arrow-down.png) right 50% no-repeat; }
-.headingrow th.descending a{ background: url(/img/arrow-up.png) right 50% no-repeat; }
-
-
-.bodyrow td, .results td { 
-    white-space: nowrap;
-    overflow: hidden;
-    vertical-align:top;
-    padding-left: 0.5em;
-    border-bottom: 1px solid #ddd;
-    background: #fff;
-}
-
-.bodyrow td.first {
-    border-left: none;
-}
 
 .p1 { background-color: #fcc; }
 .notes {
@@ -481,7 +435,6 @@ pre.prettyprint {
 
 .label { text-decoration: none; color: green !important; }
 .labelediting input { color: #060; }
-.results .label { font-size: 80% }
 .label:hover { text-decoration: underline;}
 
 .twocol td { border-left: 1px solid #bbb; width: 50%}
@@ -494,7 +447,6 @@ table.twocol {
 }
 div.twocol { width: 46em; }
 .read td, .read th { background: #eef; }
-.results .selected td { background: #ffc; }
 
 .closed .ifOpened { display: none }
 .closed .opened span.ifOpened { display: inline }
@@ -602,8 +554,6 @@ table.entrysummary {
 td.col_ID { text-align: right }
 td.searchoptions { font-size: 80% }
 
-.results td tt { color: #999; font-style: italic; font-weight: bold; }
-
 .notify {
   background: #ec6;
   font-weight: bolder;
@@ -660,7 +610,6 @@ table.attachment tr td { padding: 0; margin: 0; font-size: 95%; }
 
 .grid td, .grid th { border-left: 1px solid #bbb; }
 .grid .idcount { text-align: left }
-.grid .idcount a, .results .id a { color: {{col.link}}; text-decoration: underline;}
 .grid .idcount a { margin-right: 0.6em; }
 .grid .bubble { padding: 3px;}
 
@@ -674,8 +623,6 @@ div.gridtile { background:{{col.shades.0.l}}; width:10em; float:left; margin: 2p
 #container { margin: auto; width: 64em; }
 #maincol { margin-top:3px; padding:0px; min-height: 30em;}
 .t5 #maincol { padding:0; }
-.link-row { cursor: pointer; color: {{col.link_alt}}; }
-.link-row:hover{ color: {{col.link_hover}}; }
 
 div.clearall { clear:both; }
 
@@ -912,17 +859,6 @@ ul#contentmap a:visited,ul#contentmap a {
 	text-decoration: none;
 	color: {{col.link}};
 	}
-
-/*  FILTER COLUMN  */
-.object-list { margin-top: 2px;}
-.list-filter { font-size: 90%; background: {{col.shades.3.l}}; padding: 3px 3px; }
-.list-filter h2 { padding:2px 5px; border-bottom:1px solid #000; }
-.list-filter h3 { margin-bottom:0; }
-.list-filter ul { padding-left:0;margin-left:10px; }
-.list-filter b { margin-left:0.3em; padding-left:0; white-space: nowrap; color: #666;}
-.list-filter a { color:#369; text-decoration: none; }
-.list-filter a:hover { color:#630; }
-.list-filter .selected a { color: #396 !important; }
 
 ul.tiny-list {
     margin: 0;

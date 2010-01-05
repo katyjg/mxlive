@@ -1,13 +1,14 @@
 {% load objlist %}
 {% if ol.has_filters %}
+<div class="filters">
+<div class="filter-left">
+Filters
+</div>
 <div class="list-filter">
-<table width="100%" cellpadding="0" cellspacing="0" border="0">
-<tr>
-    <td style="vertical-align: middle; border-right: 1px solid #999; padding-right: 0.5em; color: #333;">Filters</td>
-    <td style="vertical-align: middle; padding-left: 0.5em; width: 100%;">
+    <ul class="filter-choices">
     {% for spec in ol.filter_specs %}{% show_one_filter ol spec %}{% endfor %}
-    </td>
-</tr>
-</table>
+    </ul>
+</div>
+<div class="clear"></div>
 </div>
 {% endif %}

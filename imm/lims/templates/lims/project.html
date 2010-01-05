@@ -1,11 +1,10 @@
 {% extends "lims/project_base.html" %}
 {% block nav-sub %}
-<table width="100%" cellpadding="5">
-<tr>
-    <td width="70%"><i>{{ project.name }} - {{ project.title }}</i></td>
-    <td align="right"><i>{{ user.first_name}} {{ user.last_name }}</i> (PI)</td>
-</tr>
-</table>
+<div class="navinfo">
+{% if project %}
+<i>{{ project.name }} - {{ project.title }}</i>
+{% endif %}
+</div>
 {% endblock %}
 {% block content %}
 <table width="100%">
