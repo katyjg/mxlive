@@ -1,14 +1,9 @@
 {% load nav %}
-<table cellspacing="0" cellpadding="0" id="minitabs">
-    <tbody><tr>
-    <td class="spacer"> </td>
-    <td class='{% active request "/shipping/?$" %}'><a href="/project/shipping/" >Summary</a></td>
-    <td class="spacer"> </td>
-    <td class='{% active request "/container/" %}'><a href="/project/shipping/container/" >Containers</a></td>
-    <td class="spacer"> </td>
-    <td class='{% active request "/dewar/" %}'><a href="/project/shipping/dewar/" >Dewars</a></td>
-    <td class="spacer"> </td>
-    <td class='{% active request "/shipment/" %}'><a href="/project/shipping/shipment/" >Shipments</a></td>
-    <td class="spacer" width="100%"></td>
-    </tr></tbody>
-</table>
+<ul class="subnav">
+	<li class='tab {% active request "/shipping/?$" %}'><a href="/project/shipping/" >Summary</a></li>
+	<li class='tab {% active request "/container/" %}'><a href="/project/shipping/container/" >Containers</a></li>
+	<li class='tab {% active request "/dewar/" %}'><a href="/project/shipping/dewar/" >Dewars</a></li>
+	<li class='tab {% active request "/samples/crystalform/" %}'><a href="/project/samples/crystalform/" >Crystal Forms</a></li>
+	<li class='tab {% active request "/shipment/" %}'><a href="/project/shipping/shipment/" >Shipments</a></li>
+</ul>
+

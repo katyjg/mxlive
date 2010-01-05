@@ -1,16 +1,9 @@
 {% load nav %}
-<table cellspacing="0" cellpadding="0" id="minitabs">
-    <tbody><tr>
-    <td class="spacer"> </td>
-    <td class='{% active request "/experiment/?$" %}'><a href="/project/experiment/" >Summary</a></td>
-    <td class="spacer"> </td>
-    <td class='{% active request "/request/" %}'><a href="/project/experiment/request/" >Experiment Requests</a></td>
-    <td class="spacer"> </td>
-    <td class='{% active request "/dataset/" %}'><a href="/project/experiment/dataset/" >Datasets</a></td>
-    <td class="spacer"></td>
-    <td class='{% active request "/result/" %}'><a href="/project/experiment/result/" >Results</a></td>
-    <td class="spacer"></td>
-    <td class='{% active request "/strategy/" %}'><a href="/project/experiment/strategy/" >Strategy</a></td>
-    <td class="spacer" width="100%"></td>
-    </tr></tbody>
-</table>
+<ul class="subnav">
+	<li class='tab {% active request "/experiment/?$" %}'><a href="/project/experiment/" >Summary</a></li>
+	<li class='tab {% active request "/request/" %}'><a href="/project/experiment/request/" >Experiment Requests</a></li>
+	<li class='tab {% active request "/dataset/" %}'><a href="/project/experiment/dataset/" >Datasets</a></li>
+	<li class='tab {% active request "/result/" %}'><a href="/project/experiment/result/" >Results</a></li>
+	<li class='tab {% active request "/strategy/" %}'><a href="/project/experiment/strategy/" >Strategy</a></li>
+</ul>
+
