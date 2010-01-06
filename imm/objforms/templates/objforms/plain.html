@@ -12,8 +12,10 @@
             {{field.label_tag}}
             </div>
         {% else %}
+            <div>
             {{field.label_tag}}
             {% if field.field.required %}<span class="req">*</span>{% endif %}
+            </div>
             <div>
             {{field}}
             </div>

@@ -1,22 +1,22 @@
 /* - - - - - - - - - - - - - - - - - - - - -
 
-Title : Wufoo Form Foundation
+Title : objform Form Foundation
 Author : Infinity Box Inc.
-URL : http://wufoo.com
+URL : http://objform.com
 
 Last Updated : November 13, 2007
 
 - - - - - - - - - - - - - - - - - - - - - */
 
-.wufoo{
+.objform{
 	font-family:"Candara", Tahoma, Arial, sans-serif;
 	font-size:small;
 }
-.wufoo li{
+.objform li{
 	width:64%;
 }
 
-form.wufoo {
+form.objform {
     display: none;
 }
 
@@ -132,28 +132,29 @@ form .section p{
 
 /* ----- FIELDS AND LABELS ----- */
 
-label.desc{
-	line-height:150%;
-	padding:0 0 1px 0;
-	border:none;
-	color:#222;
-	display:block;
-	font-size:95%;
-	font-weight:bold;
-}
+
+
+
 form li div label, form li span label{
+	font-weight:normal;
 	margin:0;
 	padding-top:3px;
 	clear:both;
-	font-size:83%;
 	text-align: left;
-	color:#444;
+	color:#000;
+}
+label.desc{
+	padding:0 0 1px 0;
+	border:none;
+	color:#666;
+	display:block;
+	font-size:90%;
+	font-weight: normal;
 }
 
 form li label {
 	margin:0;
 	text-align: left;
-	font-weight:bold;	
 }
 
 /* ----- SIZES ----- */
@@ -553,7 +554,7 @@ li.leftThird .field, li.middleThird .field, li.rightThird .field
 }
 
 .rightHalf div, .rightThird div {
-    text-align: right;
+    text-align: left;
 }
 
 form li div.leftSelect{

@@ -69,8 +69,8 @@ function transform_select(src_el) {
     add_link.observe('click', add_items);
     del_link.observe('click', remove_items);
     
-    src_el.insert({'after': new Element('label', {'for':src_el.id}).update("Available #{nm}".interpolate({'nm': dest_el.name}))});
-    dest_el.insert({'after': new Element('label', {'for':dest_el.id}).update("Selected #{nm}".interpolate({'nm': dest_el.name}))});
+    src_el.insert({'after': new Element('label', {'for':src_el.id, 'class':'desc'}).update("Available #{nm}".interpolate({'nm': dest_el.name}))});
+    dest_el.insert({'after': new Element('label', {'for':dest_el.id, 'class':'desc'}).update("Selected #{nm}".interpolate({'nm': dest_el.name}))});
     
     function transfer(src, dest){
         while (src.selectedIndex != -1){
@@ -118,9 +118,9 @@ function set_rightthird(el){
 }
 
 function init_form(frm) {
-    var field_str = "##{form}.wufoo .field".interpolate({'form': frm});
-    var sel_str =   "##{form}.wufoo select[multiple]".interpolate({'form': frm});
-    var choice_str = "##{form}.wufoo input.checkbox".interpolate({'form': frm});
+    var field_str = "##{form}.objform .field".interpolate({'form': frm});
+    var sel_str =   "##{form}.objform select[multiple]".interpolate({'form': frm});
+    var choice_str = "##{form}.objform input.checkbox".interpolate({'form': frm});
     $$(sel_str).each(transform_select);
     $$(field_str).each( add_focus_handlers );
     $(frm).focusFirstElement();

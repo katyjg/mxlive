@@ -485,7 +485,7 @@ class Result(models.Model):
     mosaicity = models.FloatField()
     i_sigma = models.FloatField('I/Sigma')
     r_meas =  models.FloatField('R-meas')
-    r_mrgd = models.FloatField('R-mrgd-F')
+    r_mrgdf = models.FloatField('R-mrgd-F')
     sigma_spot = models.FloatField('Sigma(spot)')
     sigma_angle = models.FloatField('Sigma(angle)')
     ice_rings = models.IntegerField()

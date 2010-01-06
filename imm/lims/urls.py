@@ -63,7 +63,7 @@ urlpatterns = patterns('imm.lims.views',
     (r'^experiment/request/$', 'project_object_list', {'model': Experiment, 'template': 'lims/lists/experiment_list.html'}, 'lims-experiment-list'),
     (r'^experiment/request/(?P<id>\d+)/$', 'object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html'} , 'lims-experiment-detail'),
     (r'^experiment/request/(?P<id>\d+)/edit/$','edit_object_inline', {'model': Experiment, 'form': ExperimentForm, 'template': 'objforms/form_base.html'}, 'lims-experiment-edit'),
-    (r'^experiment/request/new/$', 'create_object', {'model': Experiment, 'form': ExperimentForm}, 'lims-experiment-new'),
+    (r'^experiment/request/new/$', 'create_object', {'model': Experiment, 'form': ExperimentForm, 'template': 'lims/forms/experiment_base.html'}, 'lims-experiment-new'),
 
     (r'^experiment/result/$', 'project_object_list', {'model': Result, 'template': 'lims/lists/experiment_list.html','can_add':False}, 'lims-result-list'),
     (r'^experiment/result/(?P<id>\d+)/$', 'object_detail', {'model': Result, 'template': 'lims/entries/result.html'} , 'lims-result-detail'),
