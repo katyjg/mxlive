@@ -11,16 +11,18 @@ class JSONField(models.TextField):
 
     def to_python(self, value):
         """Convert our string value to JSON after we load it from the DB"""
-
+        
         if value == "":
             return None
 
         try:
             if isinstance(value, basestring):
-                return json.loads(value)
+                value = value.replace("u'", "'").replace("'",'"')
+                obj = json.loads(value)
+                return obj
+                
         except ValueError:
             pass
-
         return value
 
     def get_db_prep_save(self, value):
@@ -29,7 +31,7 @@ class JSONField(models.TextField):
         if value == "":
             return None
 
-        if isinstance(value, dict):
+        if isinstance(value, dict) or isinstance(value, list):
             value = json.dumps(value, cls=DjangoJSONEncoder)
 
         return super(JSONField, self).get_db_prep_save(value)
