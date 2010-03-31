@@ -1,4 +1,10 @@
 {% extends "lims/entries/associated_crystals.html" %}
 {% block sidebox-tools %}
-    <a href="javascript:load_page('entry-scratchpad', '{% url lims-container-new-crystal object.id %}','');">Add New</a>
+    {% if not request.user.is_superuser %}
+        {% if object.is_editable %}
+            <a href="javascript:load_page('entry-scratchpad', '{% url lims-container-new-crystal object.id %}','');">Add New</a>
+            |
+            <a href="javascript:load_page('entry-scratchpad', '{% url lims-container-add-crystal object.id %}','');">Add Existing</a>
+        {% endif %}
+    {% endif %}
 {% endblock %}

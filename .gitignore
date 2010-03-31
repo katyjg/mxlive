@@ -3,4 +3,6 @@
 *.py[oc]
 *~
 *.cache
+.~lock*
+.svn/
 .settings

@@ -1,4 +1,4 @@
-{% extends "lims/project_base.html" %}
+{% extends request.user.is_superuser|yesno:"lims/staff_base.html,lims/project_base.html" %}
 {% block content %}
 
 <div class="entrypage">
@@ -11,9 +11,17 @@
         <div class='toolbar'><div>
     {% block entry-toolbox%}
     {% endblock %}
+    {% block entry-toolbox-defaults %}
+        {% if not request.user.is_superuser %}
             <span onclick="linkto('../new/?clone={{object.id}}');" class="clone-tool">Clone</span>
-            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
-            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/delete/', '');" class="delete-tool">Delete</span>
+            {% if object.is_editable %}
+                <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
+            {% endif %}
+            {% if object.is_deletable %}
+                <span onclick="load_page('entry-scratchpad', '../{{object.id}}/delete/', '');" class="delete-tool">Delete</span>
+            {% endif %}
+        {% endif %}
+    {% endblock %}
         </div></div>
     </div> 
     <div id="entry-scratchpad">

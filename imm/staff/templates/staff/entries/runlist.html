@@ -1,0 +1,43 @@
+{% extends "lims/entries/entry_base.html" %}
+{% load humanize %}
+
+{% block title %} Runlist {{ runlist.identity }}{% endblock %}
+
+{% block entry-toolbox %}
+{% endblock %}
+{% block entry-toolbox-defaults %}
+    {% if object.is_loadable %}
+        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/load/', 'title=Load Run List');" class="edit-tool">Load</span>
+    {% endif %}
+    {% if object.is_unloadable %}
+        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/unload/', 'title=Unload');" class="edit-tool">Unload</span>
+    {% endif %}
+    {% if object.is_acceptable %}
+        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/accept/', 'title=Accept Run List');" class="edit-tool">Accept</span>
+    {% endif %}
+    {% if object.is_rejectable %}
+        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/reject/', 'title=Reject Run List');" class="edit-tool">Reject</span>
+    {% endif %}
+    {% if object.is_editable %}
+        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
+    {% endif %}
+    {% if object.is_deletable %}
+        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/delete/', '');" class="delete-tool">Delete</span>
+    {% endif %}
+{% endblock %}
+
+{% block entry-summary%}
+{% include "staff/entries/runlist_summary.html" %}
+{% endblock %}
+
+{% block entry-info %}
+{# include "staff/entries/runlist_info.html" #}
+{% endblock %}
+
+{% block entry-contents %}
+{% include "staff/entries/runlist_containers.html" %}
+{% endblock %}
+
+{% block entry-scratchpad %}
+{% include "staff/entries/runlist_treeview.html" %}
+{% endblock %}

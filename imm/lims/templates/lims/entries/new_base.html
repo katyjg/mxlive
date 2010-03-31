@@ -1,4 +1,4 @@
-{% extends "lims/project_base.html" %}
+{% extends request.user.is_superuser|yesno:"lims/staff_base.html,lims/project_base.html" %}
 {% block content %}
 <div class="entrypage">
 <table width="100%" cellspacing="0" cellpadding="0" border="0">

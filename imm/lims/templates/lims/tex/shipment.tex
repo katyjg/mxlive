@@ -1,0 +1,56 @@
+{% load tex %}
+\documentclass[6pt]{article}
+\usepackage{ps4pdf}
+\PSforPDF{
+\usepackage{pst-barcode}
+}
+\usepackage{geometry}
+\geometry{letterpaper}
+\begin{document}
+
+	\section*{Project Details}
+	
+	\begin{tabular}{ll}
+		Username: & {{ project.user.username|texsafe|default:"" }} \\
+		Name: & {{ project.name|texsafe|default:"" }} \\
+		Project Title: & {{ project.title|texsafe|default:"" }} \\
+		Lab Organization: & {{ shipment.laboratory.organization|texsafe|default:"" }} \\
+		Lab Name: & {{ shipment.laboratory.name|texsafe|default:"" }} \\
+		Lab Address: & {{ shipment.laboratory.address|texsafe|default:"" }} \\
+		Lab City: & {{ shipment.laboratory.city|texsafe|default:"" }} \\
+		Lab Postal Code: & {{ shipment.laboratory.postal_code|texsafe|default:"" }} \\
+		Lab Country: & {{ shipment.laboratory.country|texsafe|default:"" }} \\
+		Lab Phone: & {{ shipment.laboratory.contact_phone|texsafe|default:"" }} \\
+		Lab Fax: & {{ shipment.laboratory.contact_fax|texsafe|default:"" }} \\
+	\end{tabular}
+
+	\section*{Shipment Details}
+
+	\begin{tabular}{ll}
+		Shipment Label: & {{ shipment.label|texsafe|default:"" }} \\
+		Tracking Code: & {{ shipment.tracking_code|texsafe|default:"" }} \\
+		Comments: & {{ shipment.comments|texsafe|default:"" }} \\
+		Carrier: & {{ shipment.carrier|texsafe|default:"" }} \\
+		Date Shipped: & {{ shipment.date_shipped|texsafe|default:"" }} \\
+		Date Created: & {{ shipment.created|texsafe|default:"" }} \\
+	\end{tabular}
+	
+	{% for dewar in shipment.dewar_set.all %}
+	\section*{Dewar "{{dewar.label|texsafe|default:""}}"}
+		\PSforPDF{
+			\begin{pspicture}(10cm,2cm)
+				\psbarcode[transy=1em]{^104{{dewar.barcode}}}{includetext}{code128}
+			\end{pspicture}
+		}
+		\subsection*{Contents}
+		\begin{tabular}{ll}
+			{% for container in dewar.container_set.all %}
+				Container: {{ container.label|texsafe|default:"" }} & \\
+				{% for crystal in container.crystal_set.all %}
+					\hspace{2em} Crystal: {{ crystal.name|texsafe|default:"" }} & \\
+				{% endfor %}
+			{% endfor %}
+		\end{tabular}
+	{% endfor %}
+	
+\end{document}

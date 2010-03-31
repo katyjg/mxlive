@@ -3,6 +3,21 @@
 
 {% block title %} Dewar {{ dewar.identity }}{% endblock %}
 
+{% block entry-toolbox-defaults %}
+    {% if request.user.is_superuser %}
+        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
+    {% endif %}
+    {% if not request.user.is_superuser %}
+        <span onclick="linkto('../new/?clone={{object.id}}');" class="clone-tool">Clone</span>
+        {% if object.is_editable %}
+            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
+        {% endif %}
+        {% if object.is_deletable %}
+            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/delete/', '');" class="delete-tool">Delete</span>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
 {% block entry-summary%}
 {% include "lims/entries/dewar_summary.html" %}
 {% endblock %}

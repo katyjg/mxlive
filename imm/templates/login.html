@@ -5,16 +5,18 @@
 {% block breadcrumbs %}{% endblock %}
 
 {% block content %}
-
+<div class="login-error">{{ form.non_field_errors.0 }}</div>
 {% if error_message %}
 <p class="errornote">{{ error_message }}</p>
 {% endif %}
 <div id="content-main">
 <form action="{{ app_path }}" method="post" id="login-form" class="wofoo">
   <div class="form-row">
+    <div class="login-error login-field-error">{{ form.username.errors.0 }}</div>
     <label for="id_username">Username:</label> <input type="text" name="username" id="id_username" class="large text field" />
   </div>
   <div class="form-row">
+    <div class="login-error login-field-error">{{ form.password.errors.0 }}</div>
     <label for="id_password">Password:</label> <input type="password" name="password" id="id_password" class="large text field"/>
     <input type="hidden" name="this_is_the_login_form" value="1" />
     <input type="hidden" name="post_data" value="{{ post_data }}" /> {#<span class="help">Have you <a href="/password_reset/">forgotten your password</a>?</span> #}
@@ -27,3 +29,5 @@
 <img src="/img/blank.png" width=0 height=0 onload="init_form('login-form');" />
 </div>
 {% endblock %}
+
+{% block footer %}{% endblock %}

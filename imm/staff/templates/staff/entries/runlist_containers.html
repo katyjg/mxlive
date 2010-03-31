@@ -1,0 +1,41 @@
+{% with object as runlist %}
+<div class="box4">
+<div class="title">
+    <table cellpadding="4" cellspacing="0" border="0" width="100%">
+    <tr>
+    <td>Containers in Run List {{runlist.identity}}</td>
+    <td align="right">
+    </td>
+    </tr>
+    </table>
+</div>                    
+<div class="boxcontent">
+    <table cellspacing="0" cellpadding="3" border="0" width="100%">
+    <tbody>
+{% if runlist.containers.count %}
+    {% for container in runlist.containers.all %}
+    <tr>
+    <td onclick="linkto('{% url lims-container-detail container.id %}');" class="link-row">
+    <strong>{{container.identity}}</strong> : {{container.num_crystals}} crystals<br/>
+    Label: {{container.label}} {%if container.comments %} &ndash; {% endif %}{{container.comments|truncatewords:8}}<br>
+    Location: {{container.dewar.label}} stored in location <strong>{{container.dewar.storage_location|default:"Unknown"}}</strong>
+    </td>
+    <td style="text-align: right;">
+    {% if request.user.is_superuser %}
+        {% if object.is_editable %}
+            <span onclick="load_page('entry-scratchpad', '{% url lims-container-remove container.id %}', '');" class="remove-tool">Remove</span>
+        {% endif %}
+    {% endif %}
+    </td>
+    </tr>
+    <tr><td colspan="2" class="rule"></td></tr>
+    {% endfor %}
+{% else %}
+    <tr><td colspan="20" align="center" style="padding: 3em;">No containers in this runlist</td></tr>
+{% endif %}
+    <tr><td style="height: 2em; text-align: center;" colspan="2"><a href="{% url lims-container-list %}">show all containers</a></td></tr>
+    </tbody>
+    </table>
+</div>
+</div>
+{% endwith %}

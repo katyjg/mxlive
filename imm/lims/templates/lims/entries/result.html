@@ -1,4 +1,4 @@
-{% extends "lims/project_base.html" %}
+{% extends request.user.is_superuser|yesno:"lims/staff_base.html,lims/project_base.html" %}
 {% load zip %}
 {% block nav-sub %}
 {% include "lims/experiment_navs.html" %}
@@ -24,6 +24,11 @@
 </ul>
 </div>
 <div class="clear"></div>
+
+{% if object.is_resubmittable %}
+<a class="add-tool" href='/project/experiment/result/{{object.get_results_link}}'>Resubmit</a>
+{% endif %}
+
 <h3>Summary</h3>
 <div id="result-summary">
 <table id="result-table">

@@ -1,6 +1,8 @@
 from django.contrib import admin
 from imm.lims.models import *
 
+staff_site = admin.AdminSite()
+
 class ConstituentAdmin(admin.ModelAdmin):
     search_fields = ['acronym', 'name', 'hazard_details']
     list_filter = ['kind','source','modified']
@@ -34,23 +36,30 @@ class ActivityLogAdmin(admin.ModelAdmin):
     list_per_page = 10    
 admin.site.register(ActivityLog, ActivityLogAdmin)
         
-        
 class ExperimentAdmin(admin.ModelAdmin):
     search_fields = ['comments','name']
     list_filter = ['plan','status','kind','modified']
     list_display = ('id','name','kind','status','plan','num_crystals')
     filter_horizontal = ['crystals']
-    ordering = ['-created']
+    ordering = ('-priority', '-created')
     list_per_page = 10   
 admin.site.register(Experiment, ExperimentAdmin)
+
+class ExperimentStaffAdmin(ExperimentAdmin):
+    ordering = ['-staff_priority', '-priority', '-created']
+staff_site.register(Experiment, ExperimentStaffAdmin)
 
 class CrystalAdmin(admin.ModelAdmin):
     search_fields = ['name', 'code']
     list_filter = ['modified']
     list_display = ('id', 'name', 'crystal_form', 'cocktail', 'container', 'container_location')       
-    ordering = ['-created']    
+    ordering = ['-priority', '-created']    
     list_per_page = 10
 admin.site.register(Crystal, CrystalAdmin)
+
+class CrystalStaffAdmin(CrystalAdmin):
+    ordering = ['-staff_priority', '-priority', '-created']
+staff_site.register(Crystal, CrystalAdmin)
 
 class CocktailAdmin(admin.ModelAdmin):
     ordering = ['-created']
@@ -83,6 +92,10 @@ class ContainerAdmin(admin.ModelAdmin):
     list_per_page = 15
 admin.site.register(Container, ContainerAdmin)
 
+class ContainerStaffAdmin(ContainerAdmin):
+    ordering = ['-staff_priority', '-created']
+staff_site.register(Container, ContainerStaffAdmin)
+
 class ResultAdmin(admin.ModelAdmin):
     ordering = ['-created']
     search_fields = ['name','crystal','score']
@@ -103,7 +116,7 @@ class StrategyAdmin(admin.ModelAdmin):
     ordering = ['-created']
     search_fields = ['name']
     list_filter = ['modified','status']
-    list_display = ('id', 'name', 'result', 'start_angle', 'delta_angle', 'total_angle', 'exposure_time', 'energy', 'exp_completeness')
+    list_display = ('id', 'name', 'status', 'result', 'start_angle', 'delta_angle', 'total_angle', 'exposure_time', 'energy', 'exp_completeness')
     list_per_page = 15
 admin.site.register(Strategy, StrategyAdmin)
 
@@ -112,3 +125,4 @@ admin.site.register(Carrier)
 admin.site.register(Laboratory)
 admin.site.register(Session)
 admin.site.register(Beamline)
+

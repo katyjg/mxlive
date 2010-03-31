@@ -1,9 +1,9 @@
 {% load nav %}
 <ul class="subnav">
-	<li class='tab {% active request "/experiment/?$" %}'><a href="/project/experiment/" >Summary</a></li>
-	<li class='tab {% active request "/request/" %}'><a href="/project/experiment/request/" >Experiment Requests</a></li>
-	<li class='tab {% active request "/dataset/" %}'><a href="/project/experiment/dataset/" >Datasets</a></li>
-	<li class='tab {% active request "/result/" %}'><a href="/project/experiment/result/" >Results</a></li>
-	<li class='tab {% active request "/strategy/" %}'><a href="/project/experiment/strategy/" >Strategy</a></li>
+	<li class='tab {% active request "/experiment/?$" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/experiment/" >Summary</a></li>
+	<li class='tab {% active request "/request/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/experiment/request/" >Experiment Requests</a></li>
+	<li class='tab {% active request "/dataset/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/experiment/dataset/" >Datasets</a></li>
+	<li class='tab {% active request "/result/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/experiment/result/" >Results</a></li>
+	<li class='tab {% active request "/strategy/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/experiment/strategy/" >Strategy</a></li>
 </ul>
 

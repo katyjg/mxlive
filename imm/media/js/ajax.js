@@ -9,6 +9,10 @@ function post_and_load(containerid, url, form){
     var myAjax = new Ajax.Updater(containerid, url, {method: 'post', parameters: $(form).serialize(true)});
 };
 
+function post_and_reload(containerid, url){
+    var myAjax = new Ajax.Updater(containerid, url, {method: 'post'});
+};
+
 
 function refresh_window(){
     window.location.reload(true);

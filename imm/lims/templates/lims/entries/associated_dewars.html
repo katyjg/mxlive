@@ -1,9 +1,13 @@
 {% extends "lims/sidebox.html" %}
 {% block sidebox-title %} Associated Dewars {% endblock %}
 {% block sidebox-tools %}
-    <a href="javascript:load_page('entry-scratchpad', '{% url lims-shipment-new-dewar object.id %}','');">Add New</a>
-    |
-    <a href="javascript:load_page('entry-scratchpad', '{% url lims-shipment-add-dewar object.id %}','');">Add Existing</a>
+    {% if not request.user.is_superuser %}
+        {% if object.is_editable %}
+            <a href="javascript:load_page('entry-scratchpad', '{% url lims-shipment-new-dewar object.id %}','');">Add New</a>
+            |
+            <a href="javascript:load_page('entry-scratchpad', '{% url lims-shipment-add-dewar object.id %}','');">Add Existing</a>
+        {% endif %}
+    {% endif %}
 {% endblock %}
 
 {% block sidebox-content %}
@@ -17,7 +21,9 @@
      {{dewar.label}} {%if dewar.comments %} &ndash; {% endif %}{{dewar.comments|truncatewords:8}}
     </td>
     <td style="text-align: right;">
-    <span onclick="load_page('entry-scratchpad', '{% url lims-dewar-remove object.id %}', '');" class="remove-tool">Remove</span>
+    {% if object.is_editable %}
+        <span onclick="load_page('entry-scratchpad', '{% url lims-dewar-remove dewar.id %}', '');" class="remove-tool">Remove</span>
+    {% endif %}
     </td>
     </tr>
     <tr><td colspan="2" class="rule"> </td></tr>

@@ -8,6 +8,8 @@ from django.contrib.admin.views.main import ChangeList
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
+from imm.lims.admin import staff_site
+
 MAX_SHOW_ALL_ALLOWED = 200
 ALL_VAR = 'all'
 ORDER_VAR = 'o'
@@ -25,7 +27,7 @@ class ObjectList(ChangeList):
     features such as filters, search and pagination in non-admin related applications
     """
     
-    def __init__(self, request, manager):
+    def __init__(self, request, manager, admin_site=None):
         self.manager = manager
         self.model = self.manager.model
         self.object_type = self.model.__name__
@@ -33,7 +35,16 @@ class ObjectList(ChangeList):
         self.lookup_opts = self.opts
         
         # initialize variables
-        self.model_admin = admin.site._registry[self.model]
+        if admin_site:
+            self.model_admin = admin_site._registry[self.model]
+            
+        elif request.user.is_superuser:
+            # use the staff AdminSite if available
+            self.model_admin = staff_site._registry.get(self.model, admin.site._registry[self.model])
+            
+        else:
+            self.model_admin = admin.site._registry[self.model]
+            
         self.root_query_set = self.manager.get_query_set()
         self.list_display = self.model_admin.list_display
         self.list_display_links = self.model_admin.list_display_links
@@ -42,6 +53,7 @@ class ObjectList(ChangeList):
         self.search_fields = self.model_admin.search_fields
         self.list_select_related = self.model_admin.list_select_related
         self.list_per_page = self.model_admin.list_per_page
+        self.unsortable = getattr(self.model_admin, 'unsortable', ())
         self.list_editable = []
         
         # remove action_checkbox from list_display
@@ -132,7 +144,7 @@ class ObjectList(ChangeList):
                 new_order_type = {'asc': 'desc', 'desc': 'asc'}[self.order_type.lower()]
 
             yield {"text": header,
-                   "sortable": True,
+                   "sortable": not (field_name in self.unsortable),
                    "url": self.get_query_string({ORDER_VAR: i, ORDER_TYPE_VAR: new_order_type}),
                    "class_attrib": mark_safe(th_classes and ' class="%s"' % ' '.join(th_classes) or '')}
                    

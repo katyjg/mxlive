@@ -1,0 +1,8 @@
+{% load boxes %}
+{% contentbox "Relation Map" "box5"%}
+<ul id="contentmap">
+{% with object as runlist %}
+{% include "staff/entries/runlist_detail.html" %}
+{% endwith %}
+</ul>
+{% endcontentbox %}

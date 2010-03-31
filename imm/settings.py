@@ -1,13 +1,25 @@
 # Django settings for imm project.
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 import os
+import sys
+import site
+import logging
 
+### add missing paths if they are missing.
+## lib_path: /lib/
+lib_path = os.path.join(os.getcwd(), os.pardir, 'lib/')
+if not lib_path in sys.path:
+    site.addsitedir(lib_path)
+    logging.warn("Adding missing lib as a site")
+    
+        
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     ('Michel Fodje', 'michel.fodje@lightsource.ca'),
 )
+ADMIN_MESSAGE_USERNAME = None
 
 MANAGERS = ADMINS
 
@@ -67,8 +79,10 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'imm.middleware.PermissionsMiddleware',
     #'django.middleware.doc.XViewMiddleware',
     #'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.transaction.TransactionMiddleware',
 )
 
 ROOT_URLCONF = 'imm.urls'
@@ -80,6 +94,12 @@ TEMPLATE_DIRS = (
     os.path.join(os.path.dirname(__file__), 'templates').replace('\\','/'),
 )
 
+# PATH to latex, pdflatex, dvips etc.
+TEX_BIN_PATH = '/usr/bin'
+# This is the location of ps4pdf.sty, ps4pdf.sh and other non-standard .sty files that are required
+# for invoice generation.
+TEX_TOOLS_DIR = os.path.join(os.path.dirname(__file__), 'tex')
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -89,22 +109,24 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'django.contrib.humanize',
     'django.contrib.databrowse',
-    'jsonrpc',
     'imm.lims',
+    'imm.staff',
     'imm.objlist',
     'imm.dcss',
     'imm.objforms',
     'imm.messaging',
+    'imm.remote'
 )
+
 
 AUTH_PROFILE_MODULE = 'lims.Project'
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
-LOGIN_REDIRECT_URL = '/project/'
+LOGIN_REDIRECT_URL = '/home/'
 
 # LDAP settings to use the LDAP Authentication backend
 LDAP_DEBUG = True
-LDAP_SERVER_URI = 'ldap://ioc1608-301.cs.cls'
+LDAP_SERVER_URI = 'ldap://ioc1608-301.cs.clsi.ca'
 LDAP_SEARCHDN = 'dc=cmcf,dc=cls'
 LDAP_SEARCH_FILTER = 'cn=%s'
 LDAP_UPDATE_FIELDS = True
@@ -112,10 +134,30 @@ LDAP_FULL_NAME = 'cn'
 LDAP_BINDDN = 'ou=people,dc=cmcf,dc=cls'
 LDAP_BIND_ATTRIBUTE = 'uid'
 
+# LDAP settings to use the LDAP Authentication backend
+#LDAP_DEBUG = True
+#LDAP_SERVER_URI = 'ldap://srv-direx-01.ex.clsi.ca'
+#LDAP_SEARCHDN = 'dc=ex,dc=clsi,dc=ca'
+#LDAP_SEARCH_FILTER = 'cn=%s'
+#LDAP_UPDATE_FIELDS = True
+#LDAP_FULL_NAME = 'cn'
+#LDAP_BINDDN = 'ou=experiments,dc=ex,dc=clsi,dc=ca'
+#LDAP_BIND_ATTRIBUTE = 'uid'
+
 AUTHENTICATION_BACKENDS = (
-# 'imm.backends.ldapauth.LDAPBackend',
+ 'imm.backends.ldapauth.LDAPBackend',
  'django.contrib.auth.backends.ModelBackend',
 )
 
 CACHE_BACKEND = 'locmem://'
+
+# default Laboratory settings (Do not remove)
+DEFAULT_LABORATORY_ID = 0
+DEFAULT_LABORATORY_NAME = 'Canadian Light Source'
+
+try:
+    from settings_local import *
+except ImportError:
+    import logging
+    logging.debug("No settings_local.py, using settings.py only.")
 

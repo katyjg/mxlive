@@ -1,0 +1,9 @@
+{% extends "base_site.html" %}
+{% load nav %}
+{% block title %} Staff {% endblock %}
+{% block nav-main %}
+	{%include "lims/staff_navs.html" %}
+	{% block nav-sub %}
+	{% endblock %}
+{% endblock %}
+{% block content %}{% endblock %}

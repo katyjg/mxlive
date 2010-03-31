@@ -2,9 +2,41 @@
 {% load humanize %}
 
 {% block title %} Shipment {{ shipment.identity }}{% endblock %}
-    {% block entry-toolbox%}
-                <span onclick="load_page('entry-scratchpad', '../{{object.id}}/send/', '');" class="edit-tool">Send</span>
-    {% endblock %}
+{% block entry-toolbox%}
+    {% if request.user.is_superuser %}
+        {% if object.is_receivable %}
+            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/receive/', 'title=Recieve Shipment&tracking_code=');" class="edit-tool">Receive</span>
+        {% endif %}
+        {% if object.is_returnable %}
+            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/return/', 'title=Return Shipment');" class="edit-tool">Return</span>
+        {% endif %}
+    {% endif %}
+    {% if not request.user.is_superuser %}
+        {% if object.is_sendable %}
+            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/send/', 'title=Send Shipment');" class="send-tool">Send</span>
+        {% endif %}
+        {% if object.is_pdfable %}
+            <span onclick="window.open('../{{object.id}}/pdf/');" class="pdf-tool">PDF</span>
+        {% endif %}
+        {% if object.is_xlsable %}
+            <span onclick="window.open('../{{object.id}}/xls/');" class="xls-tool">XLS</span>
+        {% endif %}
+        {% if object.is_closable %}
+            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/close/', '');" class="close-tool">Close</span>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+{% block entry-toolbox-defaults %}
+    {% if not request.user.is_superuser %}
+        <span onclick="linkto('../new/?clone={{object.id}}');" class="clone-tool">Clone</span>
+        {% if object.is_editable %}
+            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
+        {% endif %}
+        {% if object.is_deletable %}
+            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/delete/', '');" class="delete-tool">Delete</span>
+        {% endif %}
+    {% endif %}
+{% endblock %}
 {% block entry-summary%}
 {% include "lims/entries/shipment_summary.html" %}
 {% endblock %}

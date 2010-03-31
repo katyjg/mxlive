@@ -11,6 +11,8 @@ def show_form(form, info):
         'form': form, 
         'action': info.get('action',''), 
         'target': info.get('target',''),
+        'enctype' : info.get('enctype',''),
+        'save_label' : info.get('save_label',''),
         'add_another': info.get('add_another', False)
         }
 

@@ -670,7 +670,7 @@ div.toolbar {
    text-align: right; /* depends on element width */
    }
    
-.edit-tool, .delete-tool, .remove-tool, .add-tool, .clone-tool {
+.edit-tool, .delete-tool, .remove-tool, .add-tool, .clone-tool, .send-tool, .close-tool, .pdf-tool, .xls-tool {
     background:transparent;
     cursor: pointer;
     padding: 2px;   
@@ -680,12 +680,16 @@ div.toolbar {
     font-size: 90%;
     font-style: italic;
 }
-.edit-tool:hover, .delete-tool:hover, .trash-tool:hover, .add-tool:hover, .clone-tool:hover { color: {{col.link_hover}}; }
+.edit-tool:hover, .delete-tool:hover, .trash-tool:hover, .add-tool:hover, .clone-tool:hover, .send-tool:hover, .close-tool:hover, .pdf-tool:hover, .xls-tool:hover { color: {{col.link_hover}}; }
 .edit-tool { background: url(/img/edit-icon.png) no-repeat top left; }
 .delete-tool { background: url(/img/delete-icon.gif) no-repeat left top; }
 .remove-tool { background: url(/img/remove-icon.png) no-repeat left top; }
 .add-tool { background: url(/img/add-icon.png) no-repeat left bottom; }
 .clone-tool{ background: url(/img/clone-icon.png) no-repeat left bottom; }
+.send-tool{ background: url(/img/matrixcode.png) no-repeat left bottom; }
+.close-tool{ background: url(/img/close-icon.png) no-repeat left bottom; }
+.pdf-tool{ background: url(/img/pdf-icon.png) no-repeat left bottom; }
+.xls-tool{ background: url(/img/xls-icon.png) no-repeat left bottom; }
 
 {% for shade in col.shades %}
 .box{{forloop.counter}} { 
@@ -817,6 +821,74 @@ ul#contentmap li li li li a
     background: url(/img/tree/bullet1.gif) no-repeat 68px .3em;
 }
 
+/* fifth level */
+ul#contentmap ul ul ul ul
+{
+    background: url(/img/tree/dot.gif) repeat-y 71px 0;
+}
+
+ul#contentmap li li li li li
+{
+    background: url(/img/tree/dot2.gif) no-repeat 71px .5em;
+}
+
+ul#contentmap li li li li li a
+{
+    padding: 0 0 0 101px;
+    background: url(/img/tree/bullet1.gif) no-repeat 91px .3em;
+}
+
+/* sixth level */
+ul#contentmap ul ul ul ul ul
+{
+    background: url(/img/tree/dot.gif) repeat-y 94px 0;
+}
+
+ul#contentmap li li li li li li
+{
+    background: url(/img/tree/dot2.gif) no-repeat 94px .5em;
+}
+
+ul#contentmap li li li li li li a
+{
+    padding: 0 0 0 124px;
+    background: url(/img/tree/bullet1.gif) no-repeat 114px .3em;
+}
+
+/* seventh level */
+ul#contentmap ul ul ul ul ul ul
+{
+    background: url(/img/tree/dot.gif) repeat-y 117px 0;
+}
+
+ul#contentmap li li li li li li li
+{
+    background: url(/img/tree/dot2.gif) no-repeat 117px .5em;
+}
+
+ul#contentmap li li li li li li li a
+{
+    padding: 0 0 0 147px;
+    background: url(/img/tree/bullet1.gif) no-repeat 137px .3em;
+}
+
+/* 8th level */
+ul#contentmap ul ul ul ul ul ul ul
+{
+    background: url(/img/tree/dot.gif) repeat-y 130px 0;
+}
+
+ul#contentmap li li li li li li li li
+{
+    background: url(/img/tree/dot2.gif) no-repeat 130px .5em;
+}
+
+ul#contentmap li li li li li li li li a
+{
+    padding: 0 0 0 170px;
+    background: url(/img/tree/bullet1.gif) no-repeat 160px .3em;
+}
+
 ul#contentmap a {
     text-decoration: none;
 }
@@ -888,6 +960,10 @@ li.modify-log {
 }
 li.delete-log {
     background: transparent url(/img/delete-icon.png) no-repeat scroll left 0.3em;
+    padding-left: 18px !important;
+}
+li.archive-log {
+    background: transparent url(/img/close-icon.png) no-repeat scroll left 0.3em;
     padding-left: 18px !important;
 }
 

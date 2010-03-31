@@ -97,7 +97,7 @@ class LDAPBackend(object):
             if hasattr(settings, var):
                 self.settings[var] = settings.__getattr__(var)
 
-    def authenticate(self, username=None, password=None):
+    def original_authenticate(self, username=None, password=None):
         # Make sure we have a user and pass
         if not username and password is not None:
             if self.settings['LDAP_DEBUG']:
@@ -148,6 +148,15 @@ class LDAPBackend(object):
             else:
                 logging.info('LDAPBackend.authenticate ok: %s %s' % (user, user.__dict__))
         return user
+    
+    def mock_authenticate(self, username=None, password=None):
+        try:
+            user = self._get_user_by_name(username)
+        except User.DoesNotExist:
+            user = self._create_user_object(username, password)
+        return user
+    
+    authenticate = original_authenticate
 
     # Functions provided to override to customize to your LDAP configuration.
     def _pre_bind(self, l, username):

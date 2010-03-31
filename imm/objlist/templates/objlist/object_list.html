@@ -1,12 +1,15 @@
 {% load objlist %}
 <div class="object-list">    
 <div class="object-tools">
+    <h1>{{instructions}}</h1>
     <div class="left-element">
         <form style="display: inline;" action="" method="get">
         <input class="field search" type="text" size="20" name="q" value="" id="searchbar" />
         </form>
     </div>
     <div class="right-element" style="padding: 3px;">
+        {% if can_receive %}<a class="edit-tool" href='receive/' >Receive {{ ol.object_type }}</a>{% endif %}
+        {% if can_upload %}<a class="xls-tool" href='upload/' >Upload {{ ol.object_type }}</a>{% endif %}
         {% if can_add %}<a class="add-tool" href='new/' >Add {{ ol.object_type }}</a>{% endif %}
     </div>
     <div class="clear"></div>
@@ -22,14 +25,28 @@
 {% endif %}
 </div>
 
+    {% if form.errors %}
+    <div class="error">{{form.primary_error_message}}</div>
+    {% endif %}
+
+    {% if form %}
+    <form method="post">
+    {% endif %}
+
     <table cellspacing="0" cellpadding="2" border="0" width="100%">
     <thead>
     <tr class="header">
     <th style="border-left: 0pt none; width: 0.1em;"></th>
+    {% if can_prioritize %}
+    <th{{ header.class_attrib }}>Priority</th>
+    {% endif %}
     {% for header in ol.header_list %}<th{{ header.class_attrib }}>
     {% if header.sortable %}<a href="{{ header.url }}">{% endif %}
     {{ header.text|capfirst }}
     {% if header.sortable %}</a>{% endif %}</th>{% endfor %}
+    {% if form %}
+    <th{{ header.class_attrib }}>Select</th>
+    {% endif %}
     </tr>
     </thead>
     <tbody>
@@ -49,4 +66,9 @@
 {% endif %}
 </div>
 </div>
+
+{% if form %}
+<input style="float: right; margin-top: 5px;" type="submit" value="Refine Runlist >>"></input>
+</form>
+{% endif %}
 

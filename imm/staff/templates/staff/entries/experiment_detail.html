@@ -1,0 +1,15 @@
+{% load queries %}
+<ul>
+{% if experiment.crystals.count %}
+    <li><a href="{% url lims-crystal-list %}" class="open">Crystals</a>
+    <ul>{% for crystal in experiment.crystals.all %}
+        <li><a href="{% url lims-crystal-detail crystal.pk %}">{{crystal.name}}</a>
+        {% crystal_detail experiment crystal %}
+        </li>
+        {% endfor %}
+    </ul>
+    </li>
+{% else %}
+    <li><a href="{% url lims-crystal-list %}">No Crystals</a></li>
+{% endif %}
+</ul>

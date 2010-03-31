@@ -8,6 +8,9 @@
 {% if info.message %}
     <div class="info">{{info.message}}</div>
 {% endif %}
+{% if form.get_message %}
+    <div>{{form.get_message}}</div>
+{% endif %}
 {% if info.update %}
     <img src="/img/blank.png" width=1 height 1 onload='load_page("{{info.update.target}}","{{info.update.url}}","");' />
 {% endif %}

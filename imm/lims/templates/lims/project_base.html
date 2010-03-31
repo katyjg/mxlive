@@ -2,12 +2,10 @@
 {% load nav %}
 {% block title %} {{ project.name }} {% endblock %}
 {% block nav-main %}
-{%include "lims/project_navs.html" %}
-{% block nav-sub %}
-{% endblock %}
+	{%include "lims/project_navs.html" %}
+	{% block nav-sub %}
+	{% endblock %}
 {% endblock %}
 {% block content %}{% endblock %}
 
-{% block footer %}
-<p>&copy;2008 Canadian Light Source, Inc. - <a href="http://www.lightsource.ca">CLS Home</a> - <a href="http://ex.lightsource.ca/cmcf/">CMCF Home</a> - <a href="/privacy/">Privacy Policy</a></p>
-{% endblock %}
+

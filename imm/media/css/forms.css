@@ -346,7 +346,15 @@ form .error{
 	color:red;
 }
 
-
+form .warning{
+	z-index:900;
+	margin:0 0 0 0px;
+	padding:8px 10px 9px 10px;
+	border:1px solid #e6c3c3;
+	background:#f5d2d2;
+	line-height:130%;
+	color:red;
+}
 
 
 form li.error label{
@@ -621,4 +629,13 @@ input.default[type="submit"]:active, .submit-row input.default:active {
 
 [disabled='disabled'] {
     color: #ccc !important;
+}
+
+/* LOGIN FORM */
+div.login-error {
+    color: red;
+}
+
+div.login-field-error {
+    margin-left: 9.5em;
 }

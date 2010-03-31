@@ -1,0 +1,23 @@
+{% load humanize %}
+    <div class="header">
+    <table width="100%" cellpadding="5" cellspacing="0" border="0">
+    <tr>
+        <td nowrap="nowrap">
+        {{ object.identity }}
+        </td>
+        <td style="border-right: 1px solid #eee;"></td>
+        <td style="width: 100%;">
+        <div class="h3">{{ object.name }}</div>
+        <i>{{ object.comments }}</i> 
+        </td>
+    </tr>
+    </table>
+    </div>
+    
+        <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="100%">
+        <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
+        <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
+        <tr valign="top"><th>Containers:</th><td>{{object.num_containers}}</td></tr>
+        <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
+        </table>    
+

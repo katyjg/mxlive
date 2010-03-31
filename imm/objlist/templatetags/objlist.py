@@ -8,6 +8,7 @@ from django.utils.translation import get_date_formats
 from django.contrib import admin
 from django.conf import settings 
 from django.utils.safestring import mark_safe
+from django.utils.datastructures import MultiValueDict
 
 register = Library()
 
@@ -52,13 +53,28 @@ def list_entry(context, obj):
     ``context`` contains a ``link=True`` variable, a link will be added to
     the object's detailed page.
     """ 
-    return {'fields': list(object_fields(obj)),
+    ol = context.get('ol', None)
+    if ol:
+        model_admin = ol.model_admin
+        
+    checked, form = False, context.get('form', None)
+    if form and hasattr(obj, 'get_form_field'):
+        form_data = MultiValueDict(form.data)
+        checked = str(obj.pk) in form_data.getlist(obj.get_form_field())
+        
+    return {'fields': list(object_fields(obj, model_admin=model_admin)),
              'object': obj,
              'link': context.get('link', False),
+             'form': form,
+             'checked': checked,
+             'can_prioritize': context.get('can_prioritize', False),
+             'request': context,
             }
        
-def object_fields(obj):
-    model_admin = admin.site._registry[obj._default_manager.model]
+def object_fields(obj, model_admin=None):
+    model_admin = model_admin
+    if not model_admin:
+        model_admin = admin.site._registry[obj._default_manager.model]
     for field_name in model_admin.list_display:
         try:
             f = obj._meta.get_field(field_name)

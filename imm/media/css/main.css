@@ -42,4 +42,18 @@ div.object-list td {
 }
 .link-row { cursor: pointer; color: #333; }
 .link-row:hover{ color: #06c; }
+.link-no-pointer { cursor: default; }
+.link-pointer { cursor: pointer; }
 
+div.error{
+	top:6em;
+	left: 100%;
+	z-index:900;
+	margin:8px;
+	padding:8px 10px 9px 10px;
+	border:1px solid #e6c3c3;
+	background:#f5d2d2;
+	line-height:130%;
+	font-size:100%;
+	color:red;
+}

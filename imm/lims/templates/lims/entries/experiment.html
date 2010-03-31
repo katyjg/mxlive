@@ -7,6 +7,21 @@
 {% include "lims/entries/experiment_summary.html" %}
 {% endblock %}
 
+{% block entry-toolbox-defaults %}
+    {% if not request.user.is_superuser %}
+        <span onclick="linkto('../new/?clone={{object.id}}');" class="clone-tool">Clone</span>
+        {% if object.is_editable %}
+            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
+        {% endif %}
+        {% if object.is_deletable %}
+            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/delete/', '');" class="delete-tool">Delete</span>
+        {% endif %}
+        {% if object.is_rejectable %}
+            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/reject/', 'title=Reject Strategy')" class="delete-tool">Reject</span>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
 {% block entry-info %}
 {# include "lims/entries/experiment_info.html" #}
 {% endblock %}

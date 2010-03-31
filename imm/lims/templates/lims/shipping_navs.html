@@ -1,9 +1,9 @@
 {% load nav %}
 <ul class="subnav">
-	<li class='tab {% active request "/shipping/?$" %}'><a href="/project/shipping/" >Summary</a></li>
-	<li class='tab {% active request "/container/" %}'><a href="/project/shipping/container/" >Containers</a></li>
-	<li class='tab {% active request "/dewar/" %}'><a href="/project/shipping/dewar/" >Dewars</a></li>
-	<li class='tab {% active request "/samples/crystalform/" %}'><a href="/project/samples/crystalform/" >Crystal Forms</a></li>
-	<li class='tab {% active request "/shipment/" %}'><a href="/project/shipping/shipment/" >Shipments</a></li>
+	<li class='tab {% active request "/shipping/?$" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/shipping/" >Summary</a></li>
+	<li class='tab {% active request "/container/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/shipping/container/" >Containers</a></li>
+	<li class='tab {% active request "/dewar/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/shipping/dewar/" >Dewars</a></li>
+	<li class='tab {% active request "/samples/crystalform/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/samples/crystalform/" >Crystal Forms</a></li>
+	<li class='tab {% active request "/shipment/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/shipping/shipment/" >Shipments</a></li>
 </ul>
 

@@ -24,6 +24,10 @@
         Not assigned to any shipment.
         {% endif %}
         </td></tr>
+        <tr valign="top"><th>Status:</th><td>{{dewar.get_status_display}}</td></tr>
+        {% ifequal dewar.status dewar.STATES.ON_SITE %}
+        <tr valign="top"><th>Location:</th><td>{{dewar.storage_location|default:"Unknown"}}</td></tr>
+        {% endifequal %}
         </table>    
         <img src="/img/dewar.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/> 
         <div style="clear: both;"></div>

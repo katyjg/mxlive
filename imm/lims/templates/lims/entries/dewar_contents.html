@@ -5,9 +5,13 @@
     <tr>
     <td>Containers in Dewar {{dewar.identity}}</td>
     <td align="right">
-    <a href="javascript:load_page('entry-scratchpad', '{% url lims-dewar-new-container dewar.id %}','');">Add New</a>
-    |
-    <a href="javascript:load_page('entry-scratchpad', '{% url lims-dewar-add-container dewar.id %}','');">Add Existing</a>
+    {% if not request.user.is_superuser %}
+        {% if object.is_editable %}
+            <a href="javascript:load_page('entry-scratchpad', '{% url lims-dewar-new-container dewar.id %}','');">Add New</a>
+            |
+            <a href="javascript:load_page('entry-scratchpad', '{% url lims-dewar-add-container dewar.id %}','');">Add Existing</a>
+        {% endif %}
+    {% endif %}
     </td>
     </tr>
     </table>
@@ -23,7 +27,11 @@
     {{container.label}} {%if container.comments %} &ndash; {% endif %}{{container.comments|truncatewords:8}}
     </td>
     <td style="text-align: right;">
-    <span onclick="load_page('entry-scratchpad', '{% url lims-container-remove container.id %}', '');" class="remove-tool">Remove</span>
+    {% if not request.user.is_superuser %}
+        {% if object.is_editable %}
+            <span onclick="load_page('entry-scratchpad', '{% url lims-container-remove container.id %}', '');" class="remove-tool">Remove</span>
+        {% endif %}
+    {% endif %}
     </td>
     </tr>
     <tr><td colspan="2" class="rule"></td></tr>

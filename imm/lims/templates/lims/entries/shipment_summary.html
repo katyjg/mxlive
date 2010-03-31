@@ -28,6 +28,13 @@
         {% endif %}
         {% endif %}
         <tr valign="top"><th>Status:</th><td>{{shipment.get_status_display}}</td></tr>
+        {% ifequal shipment.status shipment.STATES.DRAFT %}
+            <tr valign="top"><th>Shippable:</th><td>{{shipment.shipping_errors|yesno:"No,Yes"}}
+            {% if shipment.shipping_errors %}
+                <span style="color: red"> : {{shipment.shipping_errors.0}}</span></td></tr>
+            {% endif %}
+        {% endifequal %}
+        </td></tr>
         </table>  
         <img src="/img/shipment.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/> 
         <div style="clear: both;"></div>

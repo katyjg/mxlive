@@ -1,0 +1,69 @@
+[
+    {
+        "pk": 1, 
+        "model": "lims.carrier", 
+        "fields": {
+            "phone_number": "800-742-5877", 
+            "code_regex": "^(1Z)", 
+            "url": "http://wwwapps.ups.com/etracking/tracking.cgi?TypeOfInquiryNumber=T&AcceptUPSLicenseAgreement=yes&submit=Track&InquiryNumber1=", 
+            "name": "UPS", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "lims.carrier", 
+        "fields": {
+            "phone_number": "866-607-6301", 
+            "code_regex": "(CA)$", 
+            "url": "https://obc.canadapost.ca/emo/basicPin.do?trackingCode=PIN&action=query&language=en&sblid=dcsubmitted&trackingId=", 
+            "name": "Canada Post", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "lims.carrier", 
+        "fields": {
+            "phone_number": "800-463-3339", 
+            "code_regex": "^\\d{12,19}$", 
+            "url": "http://www.fedex.com/Tracking?action=track&tracknumbers=", 
+            "name": "FedEx", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "lims.carrier", 
+        "fields": {
+            "phone_number": "800-222-1811", 
+            "code_regex": "\\d{20,}", 
+            "url": "http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=", 
+            "name": "USPS", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "lims.carrier", 
+        "fields": {
+            "phone_number": "800-225-5345", 
+            "code_regex": "^\\d{10,11}$", 
+            "url": "http://track.dhl-usa.com/TrackByNbr.asp?ShipmentNumber=", 
+            "name": "DHL", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "lims.carrier", 
+        "fields": {
+            "phone_number": "888-744-7123", 
+            "code_regex": "*", 
+            "url": "http://shipnow.purolator.com/shiponline/track/purolatortrack.asp?pinno=", 
+            "name": "Purolator", 
+            "fax_number": ""
+        }
+    }
+]
+

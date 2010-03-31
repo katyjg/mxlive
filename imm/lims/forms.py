@@ -1,9 +1,13 @@
+import tempfile
+import logging
+
 from django import forms
 from imm.lims.models import *
 import imm.objforms.widgets
 import imm.objforms.forms
 from imm import objforms
-
+from django.forms.util import ErrorList
+from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
             
 class ShipmentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
@@ -15,6 +19,39 @@ class ShipmentForm(objforms.forms.OrderedForm):
     class Meta:
         model = Shipment
         fields = ('project','label','comments',)
+        
+class ShipmentUploadForm(forms.Form):
+    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
+    excel = forms.Field(widget=forms.FileInput)
+    
+    NUM_ERRORS = 3
+    
+    def clean(self):
+        """ Cleans the form globally. This simply delegates validation to the LimsWorkbook. """
+        cleaned_data = self.cleaned_data
+        if cleaned_data.has_key('project') and cleaned_data.has_key('excel'):
+            temp = tempfile.NamedTemporaryFile()
+            temp.write(self.files['excel'].read())
+            temp.flush()
+            self.workbook = LimsWorkbook(temp.name, cleaned_data['project'])
+            if not self.workbook.is_valid():
+                self._errors['excel'] = self._errors.get('excel', ErrorList())
+                errors = self.workbook.errors[:self.NUM_ERRORS]
+                if len(self.workbook.errors) > len(errors):
+                    errors.append("and %d more errors..." % (len(self.workbook.errors)-len(errors)))
+                self._errors['excel'].extend(errors)
+                del cleaned_data['excel']
+        return cleaned_data
+    
+    def save(self, request=None):
+        """ Saves the form which writes the Shipment spreadsheet data to the database """
+        assert self.is_valid()
+        self.workbook.save(request=request)
+        
+    def add_excel_error(self, error):
+        """ Adds an error message to the 'excel' field """
+        self._errors['excel'] = self._errors.get('excel', ErrorList())
+        self._errors['excel'].append(error)
 
 class ShipmentSendForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
@@ -25,15 +62,27 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
         required=True
         )
     tracking_code = objforms.widgets.LargeCharField(required=True)
-    date_shipped = forms.DateTimeField(required=True,
-        widget=objforms.widgets.LargeInput,
-        )
     comments = objforms.widgets.CommentField(required=False)
-    status = forms.CharField(widget=forms.HiddenInput, required=True)
+    
     class Meta:
         model = Shipment
-        fields = ('project','carrier', 'tracking_code','date_shipped', 'comments', 'status')
-
+        fields = ('project','carrier', 'tracking_code','comments')
+        
+    def warning_message(self):
+        shipment = self.instance
+        if shipment:
+            for crystal in shipment.project.crystal_set.all():
+                if crystal.num_experiments() == 0:
+                    return 'Crystal "%s" is not associated with any Experiments. Sending the Shipment will create a ' \
+                           'default "Screen and confirm" Experiment and assign all unassociated Crystals. Click "Cancel" ' \
+                           'to setup the Experiment manually.' % crystal.name
+                           
+    def clean_tracking_code(self):
+        cleaned_data = self.cleaned_data['tracking_code']
+        # put this here instead of .clean() because objforms does not display form-wide error messages
+        if self.instance.status != Shipment.STATES.DRAFT:
+            raise forms.ValidationError('Shipment already sent.')
+        return cleaned_data
 
 class DewarForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
@@ -63,6 +112,15 @@ class ContainerForm(objforms.forms.OrderedForm):
     kind = forms.ChoiceField(choices=Container.TYPE.get_choices(), widget=objforms.widgets.LargeSelect, initial=Container.TYPE.UNI_PUCK)
     comments = objforms.widgets.CommentField(required=False)
     
+    def clean_kind(self):
+        """ Ensures that the 'kind' of Container cannot be changed when Crystals are associated with it """
+        cleaned_data = self.cleaned_data
+        if self.instance.pk:
+            if unicode(self.instance.kind) != cleaned_data['kind']:
+                if self.instance.num_crystals() > 0:
+                    raise forms.ValidationError('Cannot change kind of Container when Crystals are associated')
+        return cleaned_data['kind']
+    
     class Meta:
         model = Container
         fields = ('project','label','code','kind','dewar','comments')
@@ -77,7 +135,8 @@ class SampleForm(objforms.forms.OrderedForm):
     cocktail = forms.ModelChoiceField(
         queryset=Cocktail.objects.all(), 
         widget=objforms.widgets.LargeSelect(attrs={'class': 'field select leftHalf'}),
-        help_text='The mixture of protein, buffer, precipitant or heavy atoms that make up your crystal'
+        help_text='The mixture of protein, buffer, precipitant or heavy atoms that make up your crystal',
+        required=False
         )
     crystal_form = forms.ModelChoiceField(
         queryset=CrystalForm.objects.all(), 
@@ -112,9 +171,9 @@ class SampleForm(objforms.forms.OrderedForm):
             else:
                 pk = None
             if not self.cleaned_data['container'].location_is_valid( self.cleaned_data['container_location'] ):
-                raise forms.ValidationError('Not a valid location for this container')
+                raise forms.ValidationError('Not a valid location for this container (%s)' % self.cleaned_data['container'].TYPE[self.cleaned_data['container'].kind])
             if not self.cleaned_data['container'].location_is_available( self.cleaned_data['container_location'], pk ):
-                raise forms.ValidationError('Another sample is alreay in that position.')
+                raise forms.ValidationError('Another sample is already in that position.')
         return self.cleaned_data['container_location']
         
         
@@ -132,6 +191,33 @@ class ObjectSelectForm(forms.Form):
         help_text='Select multiple items and then click submit to add them. Items already assigned will be reassigned.'
         )
 
+        
+class SampleSelectForm(forms.Form):
+    """ A form that obeys the same 'items' interface as ObjectSelectForm, but also
+        has the 'parent' model associated with the form.
+    """
+    parent = forms.ModelChoiceField(queryset=None, widget=forms.HiddenInput)
+    items = forms.ModelChoiceField(queryset=None, label='Crystal sample')
+    container_location = forms.ChoiceField(label='Container location')
+    
+    def __init__(self, *args, **kwargs):
+        # construct the form
+        super(SampleSelectForm, self).__init__(*args, **kwargs)
+        
+        # pop the parent model out because it is not valid to pass into superclass
+        pk = self.initial.get('parent', None) or self.data.get('parent', None)
+        container = Container.objects.get(pk=pk)
+        self.fields['parent'].queryset = Container.objects.all()
+        
+        # find the crystals assign to the container, and remove the port choices
+        # that are already assigned
+        choices = list(container.get_location_choices()) # all ports
+        for crystal in container.crystal_set.all():
+            choice = (crystal.container_location, crystal.container_location)
+            if choice in choices:
+                choices.pop(choices.index(choice)) # remove assigned port
+        self.fields['container_location'].choices = tuple(choices)
+        
 
 class DewarSelectForm(forms.Form):
     dewars = forms.ModelMultipleChoiceField(
@@ -157,7 +243,7 @@ class ExperimentForm(objforms.forms.OrderedForm):
     resolution = forms.FloatField(label='Desired Resolution', widget=objforms.widgets.LeftHalfInput, required=False )
     delta_angle = forms.FloatField(widget=objforms.widgets.RightHalfInput, required=False,
           help_text='If left blank, an appropriate value will be calculated during screening.')
-    multiplicity = forms.IntegerField(widget=objforms.widgets.LeftHalfInput, required=False,
+    multiplicity = forms.FloatField(widget=objforms.widgets.LeftHalfInput, required=False,
           help_text='Values entered here take precedence over the specified "Angle Range".')
     total_angle = forms.FloatField(label='Angle Range', widget=objforms.widgets.RightHalfInput, required=False,
           help_text='The total angle range to collect.')    
@@ -172,10 +258,47 @@ class ExperimentForm(objforms.forms.OrderedForm):
                   'delta_angle','multiplicity', 'total_angle', 'i_sigma','r_meas',
                   'energy', 'absorption_edge','crystals','comments')
 
+class ExperimentFromStrategyForm(objforms.forms.OrderedForm):
+    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
+    strategy = forms.ModelChoiceField(queryset=Strategy.objects.all(), widget=forms.HiddenInput)
+    name = objforms.widgets.LargeCharField(required=True)
+    kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES.get_choices(), required=True)
+    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS.get_choices(), required=True)
+    resolution = forms.FloatField(label='Desired Resolution', widget=objforms.widgets.LeftHalfInput, required=False )
+    delta_angle = forms.FloatField(widget=objforms.widgets.RightHalfInput, required=False,
+          help_text='If left blank, an appropriate value will be calculated during screening.')
+    multiplicity = forms.FloatField(widget=objforms.widgets.LeftHalfInput, required=False,
+          help_text='Values entered here take precedence over the specified "Angle Range".')
+    total_angle = forms.FloatField(label='Angle Range', widget=objforms.widgets.RightHalfInput, required=False,
+          help_text='The total angle range to collect.')
+    i_sigma = forms.FloatField(label='Desired I/Sigma',widget=objforms.widgets.LeftHalfInput, required=False )
+    r_meas = forms.FloatField(label='Desired R-factor', widget=objforms.widgets.RightHalfInput, required=False )
+    energy = forms.DecimalField(widget=objforms.widgets.LeftHalfInput, required=False )
+    absorption_edge = objforms.widgets.RightHalfCharField(required=False )
+    crystals = forms.ModelChoiceField(queryset=None, widget=forms.Select)
+    comments = objforms.widgets.CommentField(required=False)
+    class Meta:
+        model = Experiment
+        fields = ('project','strategy', 'name', 'kind', 'plan', 'resolution',
+                  'delta_angle','multiplicity', 'total_angle', 'i_sigma','r_meas',
+                  'energy', 'absorption_edge','crystals','comments')
+
+    def __init__(self, *args, **kwargs):
+        super(ExperimentFromStrategyForm, self).__init__(*args, **kwargs)
+        self.fields['plan'].choices = [(Experiment.EXP_PLANS.JUST_COLLECT, Experiment.EXP_PLANS[Experiment.EXP_PLANS.JUST_COLLECT]),]
+        pkey = self.initial.get('crystals', None) or self.data.get('crystals', None)
+        self.fields['crystals'].queryset = Crystal.objects.filter(pk=pkey)
+        self.fields['crystals'].choices = list(self.fields['crystals'].choices)[1:]
+
+    def clean_crystals(self):
+        if not self.cleaned_data.get('crystals', None):
+            raise forms.ValidationError('Crystal did not exist for Strategy that this Experiment was based on.')
+        return [self.cleaned_data['crystals']]
+            
 class CocktailForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     comments = forms.CharField(
-        widget=objforms.widgets.CommentInput, 
+        widget=objforms.widgets.CommentInput,
         max_length=200, 
         required=False,
         help_text= Crystal.HELP['comments'])
@@ -222,4 +345,13 @@ class ConstituentForm(objforms.forms.OrderedForm):
 class DataForm(forms.ModelForm):
     class Meta:
         model = Data
+        
+class StrategyRejectForm(objforms.forms.OrderedForm):
+    name = objforms.widgets.LargeCharField(widget=forms.HiddenInput, required=False)
+    class Meta:
+        model = Strategy
+        fields = ('name',)
+        
+    def get_message(self):
+        return "Are you sure you want to reject this Strategy?"
     
