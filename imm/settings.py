@@ -126,7 +126,7 @@ LOGIN_REDIRECT_URL = '/home/'
 
 # LDAP settings to use the LDAP Authentication backend
 LDAP_DEBUG = True
-LDAP_SERVER_URI = 'ldap://ioc1608-301.cs.clsi.ca'
+LDAP_SERVER_URI = 'ldap://cmcf-ldap.cs.clsi.ca'
 LDAP_SEARCHDN = 'dc=cmcf,dc=cls'
 LDAP_SEARCH_FILTER = 'cn=%s'
 LDAP_UPDATE_FIELDS = True
