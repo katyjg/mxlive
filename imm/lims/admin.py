@@ -15,7 +15,7 @@ admin.site.register(Constituent, ConstituentAdmin)
 class ShipmentAdmin(admin.ModelAdmin):
     search_fields = ['label', 'comments','status']
     list_filter = ['status','created']
-    list_display = ('id','label', 'status', 'date_shipped', 'carrier', 'num_dewars')
+    list_display = ('id', 'label',  'status', 'date_shipped')#, 'carrier', 'num_dewars')
     list_per_page = 10    
     ordering = ['-created']
 admin.site.register(Shipment, ShipmentAdmin)
@@ -52,7 +52,7 @@ staff_site.register(Experiment, ExperimentStaffAdmin)
 class CrystalAdmin(admin.ModelAdmin):
     search_fields = ['name', 'code']
     list_filter = ['modified']
-    list_display = ('id', 'name', 'crystal_form', 'cocktail', 'container', 'container_location')       
+    list_display = ('id', 'name', 'code', 'container_location')#, 'crystal_form', 'cocktail', 'container', 'container_location')       
     ordering = ['-priority', '-created']    
     list_per_page = 10
 admin.site.register(Crystal, CrystalAdmin)

@@ -128,7 +128,7 @@ LOGIN_REDIRECT_URL = '/home/'
 LDAP_DEBUG = True
 LDAP_SERVER_URI = 'ldap://cmcf-ldap.cs.clsi.ca'
 LDAP_SEARCHDN = 'dc=cmcf,dc=cls'
-LDAP_SEARCH_FILTER = 'cn=%s'
+LDAP_SEARCH_FILTER = 'uid=%s'
 LDAP_UPDATE_FIELDS = True
 LDAP_FULL_NAME = 'cn'
 LDAP_BINDDN = 'ou=people,dc=cmcf,dc=cls'
