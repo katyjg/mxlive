@@ -983,6 +983,36 @@ def add_strategy(request, stg_info):
     new_obj.save()
     return {'strategy_id': new_obj.pk}
 
+@jsonrpc_method('lims.get_user_samples', authenticated=True)
+def get_user_samples(request, user_info):
+
+    cnt_list = Container.objects.filter(
+        models.Q(project__name__exact=user_info['user'],
+                 status__exact=Container.STATES.SENT))
+    xtl_list = Crystal.objects.filter(
+        models.Q(project__name__exact=user_info['user'],
+                 status__exact=Container.STATES.SENT))
+    exp_list = Experiment.objects.filter(
+        models.Q(project__name__exact=user_info['user'],
+                 status__exact=Experiment.STATES.DRAFT))
+    containers = {}
+    crystals = {}
+    experiments = {}
+    for cnt_obj in cnt_list:
+        cnt = cnt_obj.json_dict()
+        containers[cnt_obj.label] = cnt
+    for xtl_obj in xtl_list:
+        xtl = xtl_obj.json_dict()
+        crystals[xtl_obj.name] = xtl
+    for exp_obj in exp_list:
+        ex = exp_obj.json_dict()
+        experiments[exp_obj.name] = ex
+    
+    
+    return {'containers': containers, 'crystals': crystals, 'experiments': experiments}
+        
+
+
 @login_required
 @cache_page(60*3600)
 def plot_shell_stats(request, id):

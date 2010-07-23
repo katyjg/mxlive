@@ -617,6 +617,19 @@ class Container(models.Model):
     def get_form_field(self):
         return 'container'
 
+    def json_dict(self, crystal_filters=None):
+        """ Returns a json dictionary of the Runlist """
+        crystal_filters = crystal_filters or {}
+        return {
+            'project_id': self.project.pk,
+            'id': self.pk,
+            'name': self.label,
+            'type': self.TYPE[self.kind],
+            'comments': self.comments,
+            'dewar': self.dewar and self.dewar.pk or None,
+            'crystals': [ crystal.pk for crystal in self.crystal_set.filter(**crystal_filters)]
+        }
+
 class SpaceGroup(models.Model):
     CS_CHOICES = (
         ('a','triclinic'),
@@ -775,9 +788,14 @@ class Crystal(models.Model):
     def json_dict(self):
         return {
             'project_id': self.project.pk,
-            'container_id': self.container.pk,
+            'container': self.container.label,
             'id': self.pk,
-            'name': self.name
+            'name': self.name,
+            'barcode': self.code,
+            'port': self.container_location,
+            'comments': self.comments,
+            'priority': self.priority,
+            'experiments': [experiment.pk for experiment in self.experiment_set.all()],
         }
 
 class Experiment(models.Model):
@@ -866,7 +884,20 @@ class Experiment(models.Model):
             'project_id': self.project.pk,
             'id': self.pk,
             'name': self.name,
-            'crystals': [crystal.json_dict() for crystal in self.crystals.filter(**crystal_filters)]
+            'r_meas': self.r_meas,
+            'i_sigma': self.i_sigma,
+            'plan_desc': self.EXP_PLANS[self.plan],
+            'plan': self.plan,
+            'absorption_edge': self.absorption_edge,
+            'type': self.kind,
+            'type_desc': self.EXP_TYPES[self.kind],
+            'resolution': self.resolution,
+            'priority': self.priority,
+            'delta_angle': self.delta_angle,
+            'total_angle': self.total_angle,
+            'multiplicity': self.multiplicity,
+            'comments': self.comments,
+            'crystals': [crystal.pk for crystal in self.crystals.filter(**crystal_filters)]
         }
         
 # The following set of pre/post save/delete methods are responsible for updating the priority of
