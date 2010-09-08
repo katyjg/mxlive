@@ -1011,6 +1011,16 @@ def get_user_samples(request, user_info):
     
     return {'containers': containers, 'crystals': crystals, 'experiments': experiments}
         
+@jsonrpc_method('loadCurrentRun')
+def loadCurrentRun(request):
+    return [{"ExpName":"project-05-10", "ExpPlan": 4, "ExpType": 2, 'energy': 17, 'edge': "Se-K", 'delta': 0.5,
+                "Crystals":[{"CrystalName": "Pyrene1", "Resolution": 3.2, "port": "3L" },
+                            {"CrystalName": "Pyrene2", "Resolution": 2.2, "port": "4B" },
+                            {"CrystalName": "Pyrene3", "Resolution": 3.1, "port": "3L" } ] },
+            {"ExpName":"project-07-10", "ExpPlan": 1, "ExpType": 0, 'energy': 15, 'delta': 0.5, 'edge': 'Br-K',
+                "Crystals":[{"CrystalName": "Pyrene4", "Resolution": 3.1, "port": "2F" },
+                            {"CrystalName": "Pyrene5", "Resolution": 3.1, "port": "3L" },
+                            {"CrystalName": "Pyrene6", "Resolution": 3.1, "port": "3L" } ] } ]
 
 
 @login_required

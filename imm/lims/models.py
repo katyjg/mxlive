@@ -32,7 +32,6 @@ class Beamline(models.Model):
     def __unicode__(self):
         return self.name
 
-    
 class Laboratory(models.Model):
     name = models.CharField(max_length=600)
     address = models.CharField(max_length=600)
