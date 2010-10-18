@@ -1,21 +1,42 @@
-{% extends "lims/entries/samples_entry.html" %}
 {% load humanize %}
 
-{% block title %} Container {{ container.identity }}{% endblock %}
+{% include "lims/tools.html" %}
 
-{% block entry-summary%}
-{% include "lims/entries/crystal_summary.html" %}
-{% endblock %}
+<h3>{{ object.name }} ({{ object.identity }})</h3>
+<img src="/img/samples-crystal.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
 
-{% block entry-info %}
-{# include "lims/entries/crystal_info.html" #}
-{% endblock %}
+<table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
+    <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
+    <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
+</table>
 
-{% block entry-contents %}
-{% include "lims/entries/associated_experiments.html" %}
-{% endblock %}
+<h3>Cocktail</h3>
+<img src="/img/samples-cocktail.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
 
-{% block entry-scratchpad %}
-{% include "lims/entries/crystal_treeview.html" %}
-{% endblock %}
+{% if object.cocktail %}
+    <ul class="treeview">
+        <li class="cocktail draggable-link-parent">
+            <a class="cocktail" href="{% url lims-cocktail-detail object.cocktail.id %}">{{object.cocktail.name}} ({{ object.cocktail.identity }})</a>
+        </li>
+    </ul>
+{% else %}
+    (No cocktail assigned to this Crystal).
+{% endif %}
 
+<h3>Crystal Form </h3>
+<img src="/img/samples-crystalform.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
+
+{% if object.crystal_form %}
+    <ul class="treeview">
+        <li class="crystal_form draggable-link-parent">
+            <a class="crystal_form" href="{% url lims-crystalform-detail object.crystal_form.id %}">{{object.crystal_form.name}} ({{ object.crystal_form.identity }})</a>
+        </li>
+    </ul>
+{% else %}
+    (No Crystal Form assigned to this Crystal).
+{% endif %}
+
+{% comment %}
+    {% include "lims/entries/associated_experiments.html" %}
+    {% include "lims/entries/crystal_treeview.html" %}
+{% endcomment %}

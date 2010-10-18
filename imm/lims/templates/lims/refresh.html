@@ -1,2 +1,4 @@
-<img src='/img/blank.png' width=1 height=1 onload='refresh_window();' />
+{% for msg in messages %}
+jQuery.jGrowl("{{msg|escape}}");
+{% endfor %}
 

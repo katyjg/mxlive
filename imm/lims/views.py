@@ -31,6 +31,8 @@ from imm.lims.models import *
 from imm.lims.forms import ObjectSelectForm, DataForm
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
   
+from imm.remote.user_api import UserApi
+  
 #from imm.remote.user_api import UserApi
 
 from jsonrpc import jsonrpc_method
@@ -39,7 +41,7 @@ try:
 except:
     from django.utils import simplejson as json
     
-ACTIVITY_LOG_LENGTH  = 10       
+ACTIVITY_LOG_LENGTH  = 5       
 
 def admin_login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME):
     """
@@ -54,40 +56,85 @@ def admin_login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME)
         return actual_decorator(function)
     return actual_decorator
 
-def get_default_laboratory():
-    """ Gets a default Canadian Light Source Laboratory object if it exists
-        and creates it if it doesn't
-    """
-    try:
-        default_lab = Laboratory.objects.get(id=settings.DEFAULT_LABORATORY_ID, name=settings.DEFAULT_LABORATORY_NAME)
-    except Laboratory.DoesNotExist:
-        default_lab = Laboratory(id=settings.DEFAULT_LABORATORY_ID, name=settings.DEFAULT_LABORATORY_NAME)
-        default_lab.save()
-        
-    return default_lab
-     
-def create_default_project(user):
+def create_and_update_project_and_laboratory(user, fetcher=None):
     if not user:
         raise ValueError('"user" must not be None')
-
-    cls_lab = get_default_laboratory()
     
-    # todo: use remote.user_api
-    # user_api = UserApi(settings.SOMEHOST)
-    # user_api.get_profile_details(user.id)
-    # populate with retrieved data
-    project_args = {'user': user,
-                    'name': user.username,
-                    'title': '%s_project' % user.username,
-                    'summary': '',
-                    'beam_time': 0,
-                    'lab': cls_lab,
-                    'start_date': datetime.datetime.now(),
-                    'end_date': datetime.datetime.now()
-                    }
-    project = Project(**project_args)
-    project.save()
+    user_api = UserApi(settings.USER_API_HOST, fetcher=fetcher)
+    profile_details = user_api.get_profile_details(user.username)
+    
+    try:
+        project = user.get_profile()
+        if project.permit_no != profile_details['experimentId']:
+            project.permit_no = profile_details['experimentId']
+            project.save()
+        if project.name != profile_details['title']:
+            project.name = profile_details['title']
+            project.save()
+        if project.lab.organisation != profile_details['primaryContact']['institution']:
+            project.lab.organisation = profile_details['primaryContact']['institution']
+            project.lab.save()
+        if project.lab.name != profile_details['primaryContact']['department']:
+            project.lab.name = profile_details['primaryContact']['department']
+            project.lab.save()
+        if project.lab.contact_phone != profile_details['primaryContact']['phoneNum']:
+            project.lab.contact_phone = profile_details['primaryContact']['phoneNum']
+            project.lab.save()
+        
+    except Project.DoesNotExist:
+        laboratory = Laboratory(organisation=profile_details['primaryContact']['institution'],
+                                name=profile_details['primaryContact']['department'],
+                                contact_phone=profile_details['primaryContact']['phoneNum'])
+        laboratory.save()
+        project = Project(user=user, 
+                          lab=laboratory,
+                          permit_no=profile_details['experimentId'],
+                          name=profile_details['title'],
+                          beam_time=0,
+                          start_date=datetime.datetime.now(),
+                          end_date=datetime.datetime.now())
+        project.save()
+#        user.email = contact_phone=profile_details['primaryContact']['email']
+#        user.first_name, user.last_name = contact_phone=profile_details['primaryContact']['name'].split(' ')
+#        user.save()
+    
     return project
+    
+
+#def get_default_laboratory():
+#    """ Gets a default Canadian Light Source Laboratory object if it exists
+#        and creates it if it doesn't
+#    """
+#    try:
+#        default_lab = Laboratory.objects.get(id=settings.DEFAULT_LABORATORY_ID, name=settings.DEFAULT_LABORATORY_NAME)
+#    except Laboratory.DoesNotExist:
+#        default_lab = Laboratory(id=settings.DEFAULT_LABORATORY_ID, name=settings.DEFAULT_LABORATORY_NAME)
+#        default_lab.save()
+#        
+#    return default_lab
+#     
+#def create_default_project(user):
+#    if not user:
+#        raise ValueError('"user" must not be None')
+#
+#    cls_lab = get_default_laboratory()
+#    
+#    # todo: use remote.user_api
+#    # user_api = UserApi(settings.SOMEHOST)
+#    # user_api.get_profile_details(user.id)
+#    # populate with retrieved data
+#    project_args = {'user': user,
+#                    'name': user.username,
+#                    'title': '%s_project' % user.username,
+#                    'summary': '',
+#                    'beam_time': 0,
+#                    'lab': cls_lab,
+#                    'start_date': datetime.datetime.now(),
+#                    'end_date': datetime.datetime.now()
+#                    }
+#    project = Project(**project_args)
+#    project.save()
+#    return project
 
 def project_required(function):
     """ Decorator that enforces the existence of a imm.lims.models.Project """
@@ -151,18 +198,18 @@ def manager_required(function):
 
 def project_assurance(function):
     """ Decorator that creates a default imm.lims.models.Project if there isn't one """
-    def project_assurance_wrapper(request):
+    def project_assurance_wrapper(request, fetcher=None):
         try:
             request.user.get_profile() # test for existence of the project 
         except Project.DoesNotExist:
-            request.project = create_default_project(request.user)
+            request.project = create_and_update_project_and_laboratory(request.user, fetcher=fetcher)
         return function(request)
     return project_assurance_wrapper
 
 @login_required
 def home(request):
     """ The /home/ page selects and redirects the user to either
-      1. /project/ - for users
+      1. /lims/ - for users
       2. /staff/ - for staff
     """
     if request.user.is_superuser:
@@ -251,6 +298,7 @@ def shipping_summary(request, model=ActivityLog):
     return render_to_response('lims/shipping.html',{
         'logs': request.manager.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
         'project': request.project,
+        'request': request,
         },
         context_instance=RequestContext(request))
 
@@ -266,6 +314,7 @@ def sample_summary(request, model=ActivityLog):
     return render_to_response('lims/samples.html', {
         'logs': request.manager.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
         'project': request.project,
+        'request': request,
         },
         context_instance=RequestContext(request))
 
@@ -278,6 +327,7 @@ def experiment_summary(request, model=ActivityLog):
     return render_to_response('lims/experiment.html',{
         'logs': request.manager.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
         'project': request.project,
+        'request': request,
         },
         context_instance=RequestContext(request))
 
@@ -336,7 +386,7 @@ def add_existing_object(request, id, parent_model, model, field, additional_fiel
                 form_info['message']
                 )
             request.user.message_set.create(message = form_info['message'])
-            return render_to_response('lims/refresh.html')
+            return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
         else:
             return render_to_response('objforms/form_base.html', {
                 'info': form_info,
@@ -366,6 +416,7 @@ def object_detail(request, id, model, template):
         raise Http404
     return render_to_response(template, {
         'object': obj,
+        'handler' : request.path
         },
         context_instance=RequestContext(request))
 
@@ -405,21 +456,9 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
                 info_msg
                 )
             request.user.message_set.create(message = info_msg)
-            if request.POST.has_key('_addanother'):
-                frm = form(initial={'project': project.pk})            
-                frm.restrict_by('project', project.pk)
-                return render_to_response(template, {
-                    'info': form_info, 
-                    'form': frm, 
-                    }, 
-                    context_instance=RequestContext(request))            
-            else:
-                if redirect:
-                    # this is the ajax path
-                    return render_to_response('lims/redirect.html', {'redirect' : reverse(redirect)})
-                else:
-                    # this is the non-ajax path
-                    return HttpResponseRedirect(request.path+'../%s/' % new_obj.pk)
+
+            # messages are simply passed down to the template via the request context
+            return render_to_response("lims/message.html", context_instance=RequestContext(request))
         else:
             return render_to_response(template, {
                 'info': form_info,
@@ -506,14 +545,14 @@ def add_new_object(request, id, model, form, field):
                 return render_to_response('objforms/form_base.html', {
                     'info': form_info, 
                     'form': frm, 
-                    })
+                    }, context_instance=RequestContext(request))
             else:
-                return render_to_response('lims/refresh.html')
+                return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
         else:
             return render_to_response('objforms/form_base.html', {
                 'info': form_info,
                 'form': frm, 
-                })
+                }, context_instance=RequestContext(request))
     else:
         frm = form(initial={'project': project.pk, field: related.pk})
         frm.restrict_by('project', project.pk)
@@ -521,7 +560,7 @@ def add_new_object(request, id, model, form, field):
         return render_to_response('objforms/form_base.html', {
             'info': form_info, 
             'form': frm, 
-            })
+            }, context_instance=RequestContext(request))
 
 @login_required
 @manager_required
@@ -536,15 +575,26 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
         - ``can_add`` (boolean) specifies whether or not new entries can be added on the list page.   
         - 
     """
-    ol = ObjectList(request, request.manager)
+    ol = ObjectList(request, request.manager)    
     return render_to_response(template, {'ol': ol, 
                                          'link': link, 
                                          'can_add': can_add, 
                                          'can_upload': can_upload, 
                                          'can_receive': can_receive, 
-                                         'can_prioritize': can_prioritize},
+                                         'can_prioritize': can_prioritize,
+                                         'handler': request.path},
         context_instance=RequestContext(request)
     )
+
+@login_required
+@manager_required    
+def basic_object_list(request, model, template='objlist/basic_object_list.html'):
+    """
+    A very basic object list that will only display .name and .id for the entity
+    The template this uses will be rendered in the sidebar controls.
+    """
+    ol = ObjectList(request, request.manager)
+    return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
 @login_required
 def user_object_list(request, model, template='lims/lists/list_base.html', link=True, can_add=True):
@@ -596,6 +646,24 @@ def change_priority(request, id,  model, action, field):
         obj.save()
     
     return render_to_response('lims/refresh.html')
+
+@login_required
+@transaction.commit_on_success
+def priority(request, id,  model, field):
+    
+    if request.method == 'POST':
+        pks = request.POST.getlist('objlist-list-table[]')
+        pks.reverse()
+        i = 0
+        for pk in pks:
+            if pk: # not all rows have ids (hidden ones)
+                pk = int(pk)
+                instance = model.objects.get(pk=pk)
+                setattr(instance, field, i)
+                instance.save()
+                i += 1
+            
+    return HttpResponse()
     
 @login_required
 @manager_required
@@ -713,9 +781,9 @@ def remove_object(request, id, model, field):
                 form_info['message']
                 )
             request.user.message_set.create(message = form_info['message'])            
-            return render_to_response('lims/refresh.html')
+            return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
         else:
-            return render_to_response('lims/refresh.html')
+            return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
     else:
         return render_to_response('lims/forms/confirm_action.html', {
             'info': form_info, 
@@ -776,9 +844,10 @@ def delete_object(request, id, model, redirect, orphan_models=None):
                     form_info['message']
                     )
             request.user.message_set.create(message = form_info['message'])            
-            return render_to_response('lims/redirect.html', {'redirect' : reverse(redirect)})
+            return render_to_response('lims/redirect.html', {'redirect' : reverse(redirect)}, 
+                                      context_instance=RequestContext(request))
         else:
-            return render_to_response('lims/refresh.html')
+            return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
     else:
         return render_to_response('lims/forms/confirm_action.html', {
             'info': form_info, 
@@ -835,9 +904,10 @@ def close_object(request, id, model, redirect):
                 form_info['message']
                 )
             request.user.message_set.create(message = form_info['message'])            
-            return render_to_response('lims/redirect.html', {'redirect' : reverse(redirect)})
+            return render_to_response('lims/redirect.html', {'redirect' : reverse(redirect)},
+                                      context_instance=RequestContext(request))
         else:
-            return render_to_response('lims/refresh.html')
+            return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
     else:
         return render_to_response('lims/forms/confirm_action.html', {
             'info': form_info, 
@@ -928,7 +998,7 @@ def shipment_xls(request, id):
         # create a temporary directory
         temp_dir = tempfile.mkdtemp()
         # create a temporary file into which the .xls will be written
-        temp_file = tempfile.mkstemp(dir=temp_dir, suffix='.tex')[1]
+        temp_file = tempfile.mkstemp(dir=temp_dir, suffix='.xls')[1]
         
         # export it
         workbook = LimsWorkbookExport(project.experiment_set.all(), project.crystal_set.all())
@@ -982,46 +1052,6 @@ def add_strategy(request, stg_info):
     new_obj = Strategy(**info)
     new_obj.save()
     return {'strategy_id': new_obj.pk}
-
-@jsonrpc_method('lims.get_user_samples', authenticated=True)
-def get_user_samples(request, user_info):
-
-    cnt_list = Container.objects.filter(
-        models.Q(project__name__exact=user_info['user'],
-                 status__exact=Container.STATES.SENT))
-    xtl_list = Crystal.objects.filter(
-        models.Q(project__name__exact=user_info['user'],
-                 status__exact=Container.STATES.SENT))
-    exp_list = Experiment.objects.filter(
-        models.Q(project__name__exact=user_info['user'],
-                 status__exact=Experiment.STATES.DRAFT))
-    containers = {}
-    crystals = {}
-    experiments = {}
-    for cnt_obj in cnt_list:
-        cnt = cnt_obj.json_dict()
-        containers[cnt_obj.label] = cnt
-    for xtl_obj in xtl_list:
-        xtl = xtl_obj.json_dict()
-        crystals[xtl_obj.name] = xtl
-    for exp_obj in exp_list:
-        ex = exp_obj.json_dict()
-        experiments[exp_obj.name] = ex
-    
-    
-    return {'containers': containers, 'crystals': crystals, 'experiments': experiments}
-        
-@jsonrpc_method('loadCurrentRun')
-def loadCurrentRun(request):
-    return [{"ExpName":"project-05-10", "ExpPlan": 4, "ExpType": 2, 'energy': 17, 'edge': "Se-K", 'delta': 0.5,
-                "Crystals":[{"CrystalName": "Pyrene1", "Resolution": 3.2, "port": "3L" },
-                            {"CrystalName": "Pyrene2", "Resolution": 2.2, "port": "4B" },
-                            {"CrystalName": "Pyrene3", "Resolution": 3.1, "port": "3L" } ] },
-            {"ExpName":"project-07-10", "ExpPlan": 1, "ExpType": 0, 'energy': 15, 'delta': 0.5, 'edge': 'Br-K',
-                "Crystals":[{"CrystalName": "Pyrene4", "Resolution": 3.1, "port": "2F" },
-                            {"CrystalName": "Pyrene5", "Resolution": 3.1, "port": "3L" },
-                            {"CrystalName": "Pyrene6", "Resolution": 3.1, "port": "3L" } ] } ]
-
 
 @login_required
 @cache_page(60*3600)

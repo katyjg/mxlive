@@ -17,8 +17,7 @@ from imm.lims.models import Shipment
 from imm.lims.models import Experiment
 from imm.lims.models import perform_action
 
-from imm.lims.views import get_default_laboratory
-from imm.lims.views import create_default_project
+from imm.lims.views import create_and_update_project_and_laboratory
 from imm.lims.views import project_required
 from imm.lims.views import manager_required
 from imm.lims.views import project_assurance
@@ -54,48 +53,37 @@ from imm.lims.tests.test_utils import convert_dict_of_QuerySet_to_dict_of_list
 from imm.lims.tests.test_utils import convert_ObjectList_to_list
 from imm.lims.tests.test_utils import TEST_FILES
 
-class GetDefaultLaboratoryTest(DjangoTestCase):
-    """ Tests for get_default_laboratory """
-    
-    def test_get_default_laboratory_returns_existing_laboratory(self):
-        # create the default laboratory
-        default_lab = create_Laboratory(id=settings.DEFAULT_LABORATORY_ID, name=settings.DEFAULT_LABORATORY_NAME)
-        
-        self.assertEqual(1, Laboratory.objects.all().count())
-        self.assertEqual(default_lab, get_default_laboratory())
-        self.assertEqual(1, Laboratory.objects.all().count())
-        
-    def test_get_default_laboratory_creates_missing_laboratory(self):
-        self.assertEqual(0, Laboratory.objects.all().count())
-        default_lab = get_default_laboratory()
-        self.assertEqual(1, Laboratory.objects.all().count())
-        self.assertEqual(settings.DEFAULT_LABORATORY_ID, default_lab.id)
-        self.assertEqual(settings.DEFAULT_LABORATORY_NAME, default_lab.name)
+def userApiFetcher(url):
+    from remote.views import MOCK_USER_API_CONTENT
+    return MOCK_USER_API_CONTENT
         
 class CreateDefaultProjectTest(DjangoTestCase):
     """ Tests for create_default_project """
     
     def test_create_default_project_no_user(self):
-        self.assertRaises(ValueError, create_default_project, None)
+        self.assertRaises(ValueError, create_and_update_project_and_laboratory, None)
         
     def test_create_default_project_creates_project(self):
         # create the user
         user = create_User(username='testuser')
 
         self.assertEqual(0, Project.objects.all().count())
+        self.assertEqual(0, Laboratory.objects.all().count())
         
-        project = create_default_project(user)
+        project = create_and_update_project_and_laboratory(user, fetcher=userApiFetcher)
 
         # assert correct values
         self.assertNotEqual(None, project)
-        self.assertEqual(project.name, 'testuser')
-        self.assertEqual(project.title, 'testuser_project')
+        self.assertEqual(project.permit_no, '12-1')
+        self.assertEqual(project.name, 'Proposal for Crystal Method')
+        self.assertEqual(project.title, '')
         self.assertEqual(project.summary, '')
         self.assertEqual(project.beam_time, 0)
-        self.assertEqual(project.lab, get_default_laboratory())
+        self.assertNotEqual(None, project.lab)
         
         # ensure it was saved
         self.assertEqual(1, Project.objects.all().count())
+        self.assertEqual(1, Laboratory.objects.all().count())
         
 @project_required
 def project_required_function(request):
@@ -158,7 +146,7 @@ class ManagerRequiredTest(DjangoTestCase):
         self.assertNotEqual(None, request.manager)
         
 @project_assurance
-def project_assurance_function(request):
+def project_assurance_function(request, fetcher=None):
     pass
 
 class ProjectAssuranceTest(DjangoTestCase):
@@ -183,9 +171,9 @@ class ProjectAssuranceTest(DjangoTestCase):
         request = RequestMock(user=user)
         
         self.assertEqual(0, Project.objects.all().count())
-        project_assurance_function(request)
+        project_assurance_function(request, fetcher=userApiFetcher)
         self.assertEqual(1, Project.objects.all().count())
-        self.assertEqual('testuser', Project.objects.all()[0].name)
+        self.assertEqual('Proposal for Crystal Method', Project.objects.all()[0].name)
         
         
 class HomeTest(DjangoTestCase):
@@ -195,7 +183,7 @@ class HomeTest(DjangoTestCase):
         request = get_request(is_superuser=False)
         response = home(request)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], '/project/')
+        self.assertEqual(response['Location'], '/lims/')
         
     def test_superuser(self):
         request = get_request(is_superuser=True)
@@ -204,7 +192,7 @@ class HomeTest(DjangoTestCase):
         self.assertEqual(response['Location'], '/staff/')
         
 class ShowProjectTest(DjangoTestCase):
-    """ Test the /project/ view """
+    """ Test the /lims/ view """
     
     def setUp(self):
         super(ShowProjectTest, self).setUp()
@@ -240,13 +228,14 @@ class ShipmentExportTest(DjangoTestCase):
     def test_xls(self):
         request = self.get_request()
         response = shipment_xls(request, self.shipment.pk)
-        self.assertEqual(9728, len(response.content))
+        self.assertEqual(17920, len(response.content))
         
 class ShipmentUploadTest(DjangoTestCase):
     
     def setUp(self):
         super(ShipmentUploadTest, self).setUp()
         self.set_up_default_project()
+        self.set_up_default_space_group(name='P2(1)2(1)2(1)')
         self.mock_out_render_to_response()
         
     def test_GET(self):
@@ -660,7 +649,7 @@ class CreateObject_Shipment_Test(DjangoTestCase):
         response = create_object(request, Shipment, ShipmentForm, redirect='lims-shipment-list')
         self.assertEqual(2, Shipment.objects.count())
         self.assertEqual(200, response.status_code)
-        self.assertEqual(('lims/redirect.html', {'redirect': '/project/shipping/shipment/'}), response.rendered_args)
+        self.assertEqual(('lims/redirect.html', {'redirect': '/lims/shipping/shipment/'}), response.rendered_args)
         self.assertEqual({}, response.rendered_kwargs)
         
 class CreateObject_ExperimentFromStrategy_Test(DjangoTestCase):
@@ -714,7 +703,7 @@ class CreateObject_ExperimentFromStrategy_Test(DjangoTestCase):
         response = create_object(request, Experiment, ExperimentFromStrategyForm, action='resubmit', redirect='lims-experiment-list')
         self.assertEqual(2, Experiment.objects.count())
         self.assertEqual(200, response.status_code)
-        self.assertEqual(('lims/redirect.html', {'redirect': '/project/experiment/request/'}), response.rendered_args)
+        self.assertEqual(('lims/redirect.html', {'redirect': '/lims/experiment/request/'}), response.rendered_args)
         self.assertEqual({}, response.rendered_kwargs)
 
     def test_POST_missing_strategy_ajax(self):

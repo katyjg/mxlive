@@ -109,16 +109,22 @@ class Runlist(models.Model):
     def json_dict(self):
         """ Returns a json dictionary of the Runlist """
         
+        # fetch the containers and crystals
+        containers = {}
+        crystals = {}
+        for container in self.containers.all():
+            container_json = container.json_dict()
+            containers[container.pk] = container_json
+            for crystal_pk in container_json['crystals']:
+                crystal = Crystal.objects.get(pk=crystal_pk)
+                crystals[crystal.pk] = crystal.json_dict()
+        
         # determine the list of Experiments in the Runlist
         experiments = []
         for experiment in self.experiments:
-            json = experiment.json_dict(crystal_filters={'status__exact': Crystal.STATES.LOADED})
-            experiments.append(json)
-            
-            # determine the best Crystal (by Result.score) in the Experiment
-            if experiment.plan == Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST:
-                results = Result.objects.filter(experiment=experiment, crystal__in=experiment.crystals.all()).order_by('-score')
-                if results:
-                    json['best_crystal'] = results[0].crystal.json_dict()
+            experiment_json = experiment.json_dict()
+            experiments.append(experiment_json)
         
-        return {'experiments': experiments}
+        return {'containers': containers, 
+                'crystals': crystals, 
+                'experiments': experiments}

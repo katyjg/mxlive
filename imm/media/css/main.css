@@ -1,5 +1,18 @@
-@import "/css/tabs.css";
+@import "/css/imm.css";
 @import "/css/forms.css";
+@import "/css/results.css";
+
+#close_x {
+    background:url("/img/modal.close.png") no-repeat scroll left top transparent;
+    display:block;
+    height:23px;
+    overflow:hidden;
+    position:absolute;
+    right:5px;
+    text-indent:-9999px;
+    top:5px;
+    width:24px;
+}
 
 /* LISTS */
 div.filter-left { padding-right: 0.5em; margin: 0.5em; float:left; border-right: 1px dotted #5a9abe;}
@@ -37,11 +50,10 @@ div.object-list td {
     padding: 0.3em 0.3em;
     padding-left: 0.5em;
     border-bottom: 1px dotted #ccc;
-    background: #fff;
     vertical-align: middle;
 }
 .link-row { cursor: pointer; color: #333; }
-.link-row:hover{ color: #06c; }
+.link-row:hover { background: #c8b9d7; }
 .link-no-pointer { cursor: default; }
 .link-pointer { cursor: pointer; }
 
@@ -56,4 +68,85 @@ div.error{
 	line-height:130%;
 	font-size:100%;
 	color:red;
+}
+
+td.first {
+    background: url("/img/icon.expand.png") no-repeat scroll 5px 6px;
+    width: 10px;
+}
+
+tr.expanded {
+    border: 1px solid #999;
+    border-bottom: 0px; }
+    tr.expanded td.first {
+        background: url("/img/icon.expanded.png") no-repeat scroll 4px 6px;}
+    tr.expanded td {
+        background-color: #C6AFDE !important;}
+
+tr.expander {
+    background: #e7e7e7;
+    border: 1px solid #999;
+    border-top: 0px; }
+    tr.expander h3 {
+        border-bottom: 1px dashed #999;
+        clear: both;
+    }
+
+ul.treeview {
+    list-style-type: none;
+    padding-left: 5px; }
+    ul.treeview li a {
+        background: url("/img/treeview.closed.png") no-repeat scroll 0 0 transparent;
+        padding-left: 40px;
+        padding-top: 9px;
+        height: 25px;
+        display: inline-block;}
+        ul.treeview li a.expanded {
+            background: url("/img/treeview.open.png") no-repeat scroll 0 0 transparent; }
+    ul.treeview ul.treeview { /* this should handle all levels of depth */
+        padding-left: 34px;
+        background: url("/img/treeview.skeleton.png") repeat-y scroll 0 0 transparent;
+    }
+
+ul.reports {
+    list-style-type: none;
+    padding: 10px;
+    margin: 0px;}
+    ul.reports li a {
+        width: 100%;
+        background: url("/img/icon.resultset.png") no-repeat scroll left top transparent;
+        display: inline-block;
+        height: 20px;
+        padding-left: 20px;
+    }
+
+.tools {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  overflow: hidden;
+  float: right;
+  *zoom: 1; }
+  .tools li {
+    list-style-image: none;
+    list-style-type: none;
+    margin-left: 0px;
+    white-space: nowrap;
+    display: inline;
+    float: left;
+    padding-left: 4px;
+    padding-right: 4px; }
+    .tools li:first-child, .tools li.first {
+      padding-left: 0px; }
+    .tools li:last-child, .tools li.last {
+      padding-right: 0px; }
+
+
+tr.odd td {
+    background-color: #ccc;
+}
+
+tr.even td {
+    background-color: #dcdcdc;
 }

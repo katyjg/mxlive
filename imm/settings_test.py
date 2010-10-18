@@ -12,6 +12,7 @@ if not lib_path in sys.path:
     
 # use sqlite db for tests
 DATABASE_ENGINE = 'sqlite3'
+CACHE_BACKEND = 'dummy://' # not quite sure why locmem:// does not work
 
 SITE_ID = 1
 ROOT_URLCONF = 'imm.urls'
@@ -35,14 +36,19 @@ INSTALLED_APPS = (
     'imm.lims',
     'imm.staff',
     'imm.objlist',
-    'imm.dcss',
     'imm.objforms',
     'imm.messaging',
     'imm.remote'
 )
+
+LDAP_GID = None
+LDAP_SU_GIDS = []
 
 ADMIN_MESSAGE_USERNAME = 'adminuser'
 
 # default Laboratory settings (Do not remove)
 DEFAULT_LABORATORY_ID = 0
 DEFAULT_LABORATORY_NAME = 'Canadian Light Source'
+
+USER_API_HOST = 'localhost:8001'
+USER_API_CACHE_SECONDS = 1

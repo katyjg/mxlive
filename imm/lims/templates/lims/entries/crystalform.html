@@ -1,23 +1,35 @@
-{% extends "lims/entries/samples_entry.html" %}
 {% load humanize %}
 
-{% block title %} Container {{ container.identity }}{% endblock %}
-
-{% block entry-summary%}
-{% include "lims/entries/crystalform_summary.html" %}
-{% endblock %}
-
-{% block entry-info %}
-{# include "lims/entries/crystal_info.html" #}
-{% endblock %}
-
-{% block entry-contents %}
+<li>
+    <table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
+        <tr valign="top">
+            <th>Created:</th>
+            <td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td>
+        </tr>
+        <tr valign="top">
+            <th>Modified:</th>
+            <td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td>
+        </tr>
+        <tr valign="top">
+            <th>Lattice:</th>
+            <td>{{object.space_group}}</a></td>
+        </tr>
+        <tr valign="top">
+            <th>Cell:</th>
+            <td>
+                {{object.cell_a|default:"Unknown"}},
+                {{object.cell_b|default:"Unknown"}},
+                {{object.cell_c|default:"Unknown"}},
+                {{object.cell_alpha|default:"Unknown"}},
+                {{object.cell_beta|default:"Unknown"}},
+                {{object.cell_gamma|default:"Unknown"}}
+            </td>
+        </tr>
+    </table>
+</li>
+{% comment %}
 {% with object.crystal_set.all as crystals %}
-{% include "lims/entries/associated_crystals.html" %}
+    {% include "lims/entries/associated_crystals.html" %}
 {% endwith %}
-{% endblock %}
-
-{% block entry-scratchpad %}
 {% include "lims/entries/crystal_treeview.html" %}
-{% endblock %}
-
+{% endcomment %}

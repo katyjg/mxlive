@@ -1,38 +1,40 @@
-<div class="infotext">
-<table class="listing" id="packaging">
-    <thead><tr><th colspan="2">
-    Project Summary Statistics
-    </th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Beam Time</td>
-        <td>Of the <strong>{{ project.beam_time }} Hrs</strong> allocated to the project,
-        <strong>{{ project.beam_time }} Hrs</strong> have been used-up during <strong><a href="">XX{{ project.beam_usage}}XX sessions</a></strong>. 
-        <strong>{{ project.beam_time }} Hrs</strong> are available.</td>
-      </tr>
-      <tr>
-        <td>Samples</td>
-        <td>{{project.crystal_set.count}} Crystals have been defined in this project, 
-        of which {{project.crystal_set.count}} are active and 0 are closed and archived.</td>
-      </tr>
-      <tr>
-        <td>Experiments</td>
-        <td>A total of <strong><a href="/project/experiment/request/">{{project.experiment_set.count}}</a></strong> Experiments have been requested in this project, 
-        of which there are <strong><a href="/project/experiment/request/?status__exact=0">{{statistics.experiment.draft.count}} draft experiments</a></strong> still to be activated,
-        <strong><a href="/project/experiment/request/?status__exact=1">{{statistics.experiment.active.count}} active experiments</a></strong>, 
-        <strong><a href="/project/experiment/request/?status__exact=2">{{statistics.experiment.processing.count}} experiments in progress</a></strong> at the synchrotron,
-        <strong><a href="/project/experiment/request/?status__exact=3">{{statistics.experiment.paused.count}} experiments waiting for your input</a></strong>,
-        and <strong><a href="/project/experiment/request/?status__exact=4">{{statistics.experiment.closed.count}} closed</a></strong> and archived. </td>
-      </tr>
-      <tr>
-        <td>Shipping</td>
-        <td>A total of <strong><a href="/project/shipping/shipment/">{{project.shipment_set.count}} Shipments</a></strong> have been created in this project, 
-        of which there are <strong><a href="/project/shipping/shipment/?status__exact=0">{{statistics.shipment.draft.count}} draft shipments</a></strong> still to be finalized,
-        <strong><a href="/project/shipping/shipment/?status__exact=1">{{statistics.shipment.outgoing.count}} outgoing shipments</a></strong>, 
-        <strong><a href="/project/shipping/shipment/?status__exact=3">{{statistics.shipment.incoming.count}} incoming</a></strong>,
-        and <strong><a href="/project/shipping/shipment/?status__exact=4">{{statistics.shipment.closed.count}} closed</a></strong> and archived. </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+<h2>Project Stats</h2>
+
+<ul class="stats">
+    <li>
+        <span class="category">Beam Time</span>
+        <span class="details">
+            Of the <em>{{ project.beam_time }} Hrs</em> allocated to the project,
+            <em>{{ project.beam_time }} Hrs</em> have been used up during <em>XX{{ project.beam_usage }}XX sessions</em>.
+            <em>{{ project.beam_time }} Hrs</em> are available.
+        </span>
+    </li>
+    <li>
+        <span class="category">Samples</span>
+        <span class="details">
+            {{ project.crystal_set.count }} Crystals have been defined in this project,
+            of which {{ project.crystal_set.count }} are active and 0 are closed and archived.
+        </span>
+    </li>
+    <li>
+        <span class="category">Experiments</span>
+        <span class="details">
+            A total of <em><a href="/lims/experiment/">{{project.experiment_set.count}}</a></em> Experiments have been requested in this project,
+            of which there are <em><a href="/lims/experiment/?status__exact=0">{{statistics.experiment.draft.count}} draft experiments</a></em> still to be activated,
+            <em><a href="/lims/experiment/?status__exact=1">{{statistics.experiment.active.count}} active experiments</a></em>,
+            <em><a href="/lims/experiment/?status__exact=2">{{statistics.experiment.processing.count}} experiments in progress</a></em> at the synchrotron,
+            <em><a href="/lims/experiment/?status__exact=3">{{statistics.experiment.paused.count}} experiments waiting for your input</a></em>,
+            and <em><a href="/lims/experiment/?status__exact=4">{{statistics.experiment.closed.count}} closed</a></em> and archived.
+        </span>
+    </li>
+    <li>
+        <span class="category">Shipping</span>
+        <span class="details">
+            A total of <em><a href="/lims/shipping/">{{project.shipment_set.count}} Shipments</a></em> have been created in this project,
+            of which there are <em><a href="/lims/shipping/?status__exact=0">{{statistics.shipment.draft.count}} draft shipments</a></em> still to be finalized,
+            <em><a href="/lims/shipping/?status__exact=1">{{statistics.shipment.outgoing.count}} outgoing shipments</a></em>,
+            <em><a href="/lims/shipping/?status__exact=3">{{statistics.shipment.incoming.count}} incoming</a></em>,
+            and <em><a href="/lims/shipping/?status__exact=4">{{statistics.shipment.closed.count}} closed</a></em> and archived.
+        </span>
+    </li>
+</ul>

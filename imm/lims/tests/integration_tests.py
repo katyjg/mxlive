@@ -90,24 +90,24 @@ class IntegerationTests(DjangoTestCase):
     def home(self, client):
         response = client.get('/home/')
         self.assertEqual(302, response.status_code)
-        self.assert_location(response, '/project/')
+        self.assert_location(response, '/lims/')
         
     def project_(self, client):
         self.assertEqual(0, Project.objects.count())
-        response = client.get('/project/')
+        response = client.get('/lims/')
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, Project.objects.count())
     
     def upload_shipment(self, client): 
         self.assertEqual(0, Shipment.objects.count())
         excel = open(os.path.join(DOC_DIR, 'sample_spreadsheet.xls'), 'r')
-        response = client.post('/project/shipping/shipment/upload/', {'project': '1', 'excel':excel})
+        response = client.post('/lims/shipping/shipment/upload/', {'project': '1', 'excel':excel})
         self.assertEqual(302, response.status_code)
         self.assertEqual(1, Shipment.objects.count())
         
     def send_shipment(self, client):
         self.assertEqual(Shipment.STATES.DRAFT, Shipment.objects.get(pk=1).status)
-        response = client.post('/project/shipping/shipment/1/send/', {'project': '1', 'carrier': '1', 'tracking_code': '1'})
+        response = client.post('/lims/shipping/shipment/1/send/', {'project': '1', 'carrier': '1', 'tracking_code': '1'})
         self.assertEqual(200, response.status_code)
         self.assertEqual(Shipment.STATES.SENT, Shipment.objects.get(pk=1).status)
         

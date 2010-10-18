@@ -1,17 +1,19 @@
 {% load humanize %}
-{% load boxes %}
-{% contentbox "Recent Activity" "box4" %}
-<ul class="tiny-list">
-{% if logs %}
-    {% for log in logs %}
-    <li class="{{log.get_action_type_display|lower}}-log">
-        <div style="clear:both" >{{log.content_type|capfirst}}: 	&lsquo;{{ log.object_repr }}&rsquo;</div>
-        <div style="float:left;">by {{ log.user|capfirst }}</div>
-        <div style="float-right; text-align: right;">{{ log.created|date:"P T" }}, {{ log.created|naturalday:"N d"}}</div>      
-    </li>
-    {% endfor %}
-{% else %}
-    <li class="list-empty">No Activity</li>
-{% endif %}
+
+<h2>Recent Activity</h2>
+
+<ul>
+    {% if logs %}
+        {% for log in logs %}
+        <li class="{{log.get_action_type_display|lower}}-log">
+            {{log.content_type|capfirst}}: 	&lsquo;{{ log.object_repr }}&rsquo;
+            {% if log.user.is_admin or log.user.is_staff %}
+            by {{ log.user|capfirst }} 
+            {% endif %}
+            {{ log.created|date:"d/m/y" }}
+        </li>
+        {% endfor %}
+    {% else %}
+        <li class="list-empty">No Activity</li>
+    {% endif %}
 </ul>
-{% endcontentbox %}

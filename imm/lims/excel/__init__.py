@@ -13,38 +13,55 @@ from imm.lims.models import Container
 from imm.lims.models import Constituent
 from imm.lims.models import Cocktail
 from imm.lims.models import ActivityLog
+from imm.lims.models import SpaceGroup
+from imm.lims.models import CrystalForm
 from django.contrib.contenttypes.models import ContentType
+
+COLUMN_MAP = dict([(index, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[index]) for index in range(26)])
 
 EXPERIMENT_SHEET_NUM = 1
 EXPERIMENT_SHEET_NAME = 'Groups'
 EXPERIMENT_NAME = 0
-EXPERIMENT_NAME_ERROR = 'Invalid Experiment name "%s" in cell Groups!$A$%d.'
+EXPERIMENT_NAME_ERROR = 'Invalid Experiment name "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_NAME] + '$%d.'
 EXPERIMENT_KIND = 1
-EXPERIMENT_KIND_ERROR = 'Invalid Experiment type "%s" in cell Groups!$B$%d.'
+EXPERIMENT_KIND_ERROR = 'Invalid Experiment type "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_KIND] + '$%d.'
 EXPERIMENT_PLAN = 2
-EXPERIMENT_PLAN_ERROR = 'Invalid Experiment plan "%s" in cell Groups!$C$%d.'
+EXPERIMENT_PLAN_ERROR = 'Invalid Experiment plan "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_PLAN] + '$%d.'
 EXPERIMENT_PRIORITY = 3
 EXPERIMENT_ABSORPTION_EDGE = 4
-EXPERIMENT_R_MEAS = 5
-EXPERIMENT_R_MEAS_ERROR = 'Invalid Experiment R-factor "%s" in cell Groups!$F$%d.'
-EXPERIMENT_I_SIGMA = 6
-EXPERIMENT_I_SIGMA_ERROR = 'Invalid Experiment I/Sigma "%s" in cell Groups!$G$%d.'
-EXPERIMENT_RESOLUTION = 7
-EXPERIMENT_RESOLUTION_ERROR = 'Invalid Experiment resolution "%s" in cell Groups!$H$%d.'
+EXPERIMENT_ABSORPTION_EDGE_ERROR = 'Invalid Experiment absorption edge "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_ABSORPTION_EDGE] + '$%d.'
+EXPERIMENT_ENERGY = 5
+EXPERIMENT_TOTAL_ANGLE = 6
+EXPERIMENT_DELTA_ANGLE = 7
+EXPERIMENT_R_MEAS = 8
+EXPERIMENT_R_MEAS_ERROR = 'Invalid Experiment R-factor "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_R_MEAS] + '$%d.'
+EXPERIMENT_I_SIGMA = 9
+EXPERIMENT_I_SIGMA_ERROR = 'Invalid Experiment I/Sigma "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_I_SIGMA] + '$%d.'
+EXPERIMENT_RESOLUTION = 10
+EXPERIMENT_RESOLUTION_ERROR = 'Invalid Experiment resolution "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_RESOLUTION] + '$%d.'
+EXPERIMENT_SPACE_GROUP = 11
+EXPERIMENT_SPACE_GROUP_ERROR = 'Invalid Experiment space group "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_RESOLUTION] + '$%d.'
+EXPERIMENT_CELL_A = 12
+EXPERIMENT_CELL_B = 13
+EXPERIMENT_CELL_C = 14
+EXPERIMENT_CELL_ALPHA = 15
+EXPERIMENT_CELL_BETA = 16
+EXPERIMENT_CELL_GAMMA = 17
 
 CRYSTAL_SHEET_NUM = 0
 CRYSTAL_SHEET_NAME = 'Crystals'
 CRYSTAL_NAME = 0
-CRYSTAL_NAME_ERROR = 'Invalid Crystal name "%s" in cell Crystals!$A$%d.'
-CRYSTAL_CODE = 1
+CRYSTAL_NAME_ERROR = 'Invalid Crystal name "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_NAME] + '$%d.'
+CRYSTAL_BARCODE = 1
+CRYSTAL_BARCODE_ERROR = 'Invalid Crystal barcode "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_BARCODE] + '$%d.'
 CRYSTAL_EXPERIMENT = 2
-CRYSTAL_EXPERIMENT_ERROR = 'Invalid Group/Experiment name "%s" in cell Crystals!$B$%d.'
+CRYSTAL_EXPERIMENT_ERROR = 'Invalid Group/Experiment name "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_EXPERIMENT] + '$%d.'
 CRYSTAL_CONTAINER = 3
-CRYSTAL_CONTAINER_ERROR = 'Invalid Container name "%s" in cell Crystals!$C$%d.'
+CRYSTAL_CONTAINER_ERROR = 'Invalid Container name "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_CONTAINER] + '$%d.'
 CRYSTAL_CONTAINER_KIND = 4
-CRYSTAL_CONTAINER_KIND_ERROR = 'Invalid Container kind "%s" in cell Crystals!$D$%d.'
+CRYSTAL_CONTAINER_KIND_ERROR = 'Invalid Container kind "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_CONTAINER_KIND] + '$%d.'
 CRYSTAL_CONTAINER_LOCATION = 5
-CRYSTAL_CONTAINER_LOCATION_ERROR = 'Invalid Container location "%s" in cell Crystals!$E$%d.'
+CRYSTAL_CONTAINER_LOCATION_ERROR = 'Invalid Container location "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_CONTAINER_LOCATION] + '$%d.'
 CRYSTAL_PRIORITY = 6
 CRYSTAL_COCKTAIL = 7
 CRYSTAL_COMMENTS = 8
@@ -86,6 +103,8 @@ class LimsWorkbook(object):
         self.constituents = self._get_constituents()
         self.cocktails = self._get_cocktails()
         self.crystals = self._get_crystals()
+        self.space_groups = self._get_space_groups()
+        self.crystal_forms = self._get_crystal_forms()
         
     def _get_shipment(self):
         """ Returns a Shipment
@@ -178,6 +197,71 @@ class LimsWorkbook(object):
                 cocktails[Cocktail.NAME_JOIN_STRING.join(normalized_names)] = cocktail
         return cocktails
     
+    def _get_space_groups(self):
+        """ Returns a dict of {'experiment_name' : SpaceGroup} from the Excel file 
+        
+        @return: dict of {'experiment_name' : SpaceGroup}
+        """
+        space_groups = {}
+        for row_num in range(1, self.experiments_sheet.nrows):
+            row_values = self.experiments_sheet.row_values(row_num)
+            if row_values[EXPERIMENT_SPACE_GROUP]:
+                try:
+                    space_group = SpaceGroup.objects.get(name=row_values[EXPERIMENT_SPACE_GROUP])
+                    space_groups[row_values[EXPERIMENT_NAME]] = space_group
+                except SpaceGroup.DoesNotExist:
+                    self.errors.append(EXPERIMENT_SPACE_GROUP_ERROR % (row_values[EXPERIMENT_SPACE_GROUP], row_num))
+        return space_groups
+    
+    def _get_crystal_forms(self):
+        """ Returns a dict of {'name' : CrystalForm} from the Excel file 
+        
+        @return: dict of {'name' : CrystalForm}
+        """
+        crystal_forms = {}
+        for row_num in range(1, self.experiments_sheet.nrows):
+            row_values = self.experiments_sheet.row_values(row_num)
+            if row_values[EXPERIMENT_CELL_A] or \
+               row_values[EXPERIMENT_CELL_B] or \
+               row_values[EXPERIMENT_CELL_C] or \
+               row_values[EXPERIMENT_CELL_ALPHA] or \
+               row_values[EXPERIMENT_CELL_BETA] or \
+               row_values[EXPERIMENT_CELL_GAMMA]:
+                crystal_form = CrystalForm(project=self.project)
+                
+                try:
+                    crystal_form.cell_a = float(row_values[EXPERIMENT_CELL_A])
+                except ValueError:
+                    pass
+                    
+                try:
+                    crystal_form.cell_b = float(row_values[EXPERIMENT_CELL_B])
+                except ValueError:
+                    pass
+                    
+                try:
+                    crystal_form.cell_c = float(row_values[EXPERIMENT_CELL_C])
+                except ValueError:
+                    pass
+                    
+                try:
+                    crystal_form.cell_alpha = float(row_values[EXPERIMENT_CELL_ALPHA])
+                except ValueError:
+                    pass
+                    
+                try:
+                    crystal_form.cell_beta = float(row_values[EXPERIMENT_CELL_BETA])
+                except ValueError:
+                    pass
+                    
+                try:
+                    crystal_form.cell_gamma = float(row_values[EXPERIMENT_CELL_GAMMA])
+                except ValueError:
+                    pass
+                    
+                crystal_forms[row_values[EXPERIMENT_NAME]] = crystal_form
+        return crystal_forms
+    
     def _get_experiments(self):
         """ Returns a dict of {'name' : Experiment} from the Excel file 
         
@@ -206,6 +290,16 @@ class LimsWorkbook(object):
                 
             if row_values[EXPERIMENT_ABSORPTION_EDGE]:
                 experiment.absorption_edge = row_values[EXPERIMENT_ABSORPTION_EDGE]
+                
+            if row_values[EXPERIMENT_ENERGY]:
+                # cast to str which will eventually get cast to decimal.Decimal
+                experiment.energy = str(row_values[EXPERIMENT_ENERGY])
+                
+            if row_values[EXPERIMENT_TOTAL_ANGLE]:
+                experiment.total_angle = row_values[EXPERIMENT_TOTAL_ANGLE]
+                
+            if row_values[EXPERIMENT_DELTA_ANGLE]:
+                experiment.delta_angle = row_values[EXPERIMENT_DELTA_ANGLE]
                 
             if row_values[EXPERIMENT_R_MEAS]:
                 experiment.r_meas = row_values[EXPERIMENT_R_MEAS]
@@ -240,6 +334,9 @@ class LimsWorkbook(object):
                 crystal.name = row_values[CRYSTAL_NAME]
             else:
                 self.errors.append(CRYSTAL_NAME_ERROR % (row_values[CRYSTAL_NAME], row_num))
+                
+            if row_values[CRYSTAL_BARCODE]:
+                crystal.code = row_values[CRYSTAL_BARCODE]
                 
             crystal.tmp_experiment = None
             if row_values[CRYSTAL_EXPERIMENT] and row_values[CRYSTAL_EXPERIMENT] in self.experiments:
@@ -276,9 +373,6 @@ class LimsWorkbook(object):
             if row_values[CRYSTAL_COMMENTS]:
                 crystal.comments = row_values[CRYSTAL_COMMENTS]
                 
-            if row_values[CRYSTAL_CODE]:
-                crystal.code = row_values[CRYSTAL_CODE]
-
             crystals[crystal.name] = crystal
         return crystals
     
@@ -324,6 +418,17 @@ class LimsWorkbook(object):
             self.log_activity(self.dewar, request)
             for experiment in self.experiments.values():
                 experiment.save()
+                
+                # manage the CrystalForm/SpaceGroup relationship
+                if self.crystal_forms.has_key(experiment.name):
+                    crystal_form = self.crystal_forms[experiment.name]
+                    crystal_form.save()
+                    if self.space_groups.has_key(experiment.name):
+                        space_group = self.space_groups[experiment.name]
+                        space_group.save()
+                        crystal_form.space_group = space_group
+                        crystal_form.save()
+                        
                 self.log_activity(experiment, request)
             for container in self.containers.values():
                 container.dewar = self.dewar
@@ -347,6 +452,13 @@ class LimsWorkbook(object):
                     # update the Experiment<->Crystal mapping
                     crystal.tmp_experiment.crystals.add(crystal)
                     crystal.tmp_experiment.save()
+                    
+                    # manage the Crystal/CrystalForm relationship
+                    if self.crystal_forms.has_key(crystal.tmp_experiment.name):
+                        crystal_form = self.crystal_forms[crystal.tmp_experiment.name]
+                        crystal.crystal_form = crystal_form
+                        crystal.save()
+                        
         return self.errors
         
 class LimsWorkbookExport(object):
@@ -400,6 +512,15 @@ class LimsWorkbookExport(object):
             if experiment.absorption_edge:
                 row.write(EXPERIMENT_ABSORPTION_EDGE, experiment.absorption_edge)
                 
+            if experiment.energy:
+                row.write(EXPERIMENT_ENERGY, experiment.energy)
+                
+            if experiment.total_angle:
+                row.write(EXPERIMENT_TOTAL_ANGLE, experiment.total_angle)
+                
+            if experiment.delta_angle:
+                row.write(EXPERIMENT_DELTA_ANGLE, experiment.delta_angle)
+                
             if experiment.r_meas:
                 row.write(EXPERIMENT_R_MEAS, experiment.r_meas)
                 
@@ -408,6 +529,31 @@ class LimsWorkbookExport(object):
                 
             if experiment.resolution:
                 row.write(EXPERIMENT_RESOLUTION, experiment.resolution)
+                
+            crystal_forms = [crystal.crystal_form for crystal in experiment.crystals.all()]
+            if len(set(crystal_forms)) == 1 and None not in crystal_forms:
+                crystal_form = crystal_forms[0]
+                
+                if crystal_form.cell_a is not None:
+                    row.write(EXPERIMENT_CELL_A, crystal_form.cell_a)
+                    
+                if crystal_form.cell_b is not None:
+                    row.write(EXPERIMENT_CELL_B, crystal_form.cell_b)
+                    
+                if crystal_form.cell_c is not None :
+                    row.write(EXPERIMENT_CELL_C, crystal_form.cell_c)
+                    
+                if crystal_form.cell_alpha is not None:
+                    row.write(EXPERIMENT_CELL_ALPHA, crystal_form.cell_alpha)
+                    
+                if crystal_form.cell_beta is not None:
+                    row.write(EXPERIMENT_CELL_BETA, crystal_form.cell_beta)
+                    
+                if crystal_form.cell_gamma is not None:
+                    row.write(EXPERIMENT_CELL_GAMMA, crystal_form.cell_gamma)
+                    
+                if crystal_form.space_group:
+                    row.write(EXPERIMENT_SPACE_GROUP, crystal_form.space_group.name)
                 
             row_num += 1
             
@@ -419,6 +565,9 @@ class LimsWorkbookExport(object):
             
             if crystal.name:
                 row.write(CRYSTAL_NAME, crystal.name)
+                
+            if crystal.code:
+                row.write(CRYSTAL_BARCODE, crystal.code)
                 
             if crystal.num_experiments() > 0:
                 experiment = crystal.experiment_set.all()[0]

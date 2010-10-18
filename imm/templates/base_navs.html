@@ -3,6 +3,6 @@
 	{% if user.is_superuser %}
 		<li class='tab {% active request "^/(staff/)?$" %}'><a href="/staff/">Staff&nbsp;Home</a></li>
 	{% else %}
-		<li class='tab {% active request "^/(project/)?$" %}'><a href="/project/">Project&nbsp;Home</a></li>
+		<li class='tab {% active request "^/(lims/)?$" %}'><a href="/lims/">Project&nbsp;Home</a></li>
 	{% endif %}
 </ul>

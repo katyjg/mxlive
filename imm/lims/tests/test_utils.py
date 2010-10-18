@@ -30,6 +30,8 @@ from imm.lims.models import Carrier
 from imm.lims.models import Strategy
 from imm.lims.models import Data
 from imm.lims.models import Result
+from imm.lims.models import SpaceGroup
+from imm.lims.models import CrystalForm
 
 from imm.staff.models import Runlist
 
@@ -39,7 +41,7 @@ class DjangoTestCase(unittest.TestCase):
     
     def _flush_db_tables(self):
         """ Flushes all of the tables currently in the DB """
-        sql_list = sql_flush(no_style(), only_django=True)
+        sql_list = sql_flush(no_style(), connection, only_django=True)
         try:
             cursor = connection.cursor()
             for sql in sql_list:
@@ -56,6 +58,8 @@ class DjangoTestCase(unittest.TestCase):
         self.shipment = None
         self.dewar = None
         self.container = None
+        self.space_group = None
+        self.crystal_form = None
         self.crystal = None
         self.experiment = None
         self.strategy = None
@@ -124,11 +128,26 @@ class DjangoTestCase(unittest.TestCase):
         self.set_up_default_dewar()
         self.container = getattr(self, 'container', None) or create_Container(project=self.project, dewar=self.dewar, label='container123')
         
+    def set_up_default_space_group(self, name='SpaceGroup'):
+        """ Sets up a default SpaceGroup
+        """
+        self.space_group = getattr(self, 'space_group', None) or create_SpaceGroup(name=name)
+        
+    def set_up_default_crystal_form(self):
+        """ Sets up a default CrystalForm
+        """
+        self.set_up_default_project()
+        self.set_up_default_space_group()
+        self.crystal_form = getattr(self, 'crystal_form', None) or create_CrystalForm(project=self.project, space_group=self.space_group)
+        
     def set_up_default_crystal(self):
         """ Sets up a default Crystal and all associated/valid Containers/Dewars etc.
         """
         self.set_up_default_container()
-        self.crystal = getattr(self, 'crystal', None) or create_Crystal(project=self.project, container=self.container, container_location='A1', name='crystal123')
+        self.set_up_default_crystal_form()
+        self.crystal = getattr(self, 'crystal', None) or create_Crystal(project=self.project, container=self.container, container_location='A1', name='crystal123',
+                                                                        code='abc123', crystal_form=self.crystal_form)
+        #print self.crystal.crystal_form.space_group
         
     def set_up_default_experiment(self):
         """ Sets up a default Experiment.
@@ -188,6 +207,10 @@ class DjangoTestCase(unittest.TestCase):
             self.data = Data.objects.get(id=self.data.id)
         if self.result:
             self.result = Result.objects.get(id=self.result.id)
+        if self.space_group:
+            self.space_group = SpaceGroup.objects.get(id=self.space_group.id)
+        if self.crystal_form:
+            self.crystal_form = CrystalForm.objects.get(id=self.crystal_form.id)
             
     def get_request(self, data=None, is_superuser=False):
         """ Returns an HttpRequest with request.user initialized to self.user """
@@ -296,6 +319,25 @@ def create_Container(**kwargs):
     """
     defaults = {'kind' : Container.TYPE.CASSETTE}
     return create_instance(Container, defaults, **kwargs)
+
+def create_SpaceGroup(**kwargs):
+    """Create a SpaceGroup using a common test interface
+    """
+    defaults = {'lattice_type': 1, 
+                'crystal_system': 1}
+    return create_instance(SpaceGroup, defaults, **kwargs)
+
+def create_CrystalForm(**kwargs):
+    """Create a CrystalForm using a common test interface
+    """
+    defaults = {'name': 'CrystalForm',
+                'cell_a': 0.00, 
+                'cell_b': 1.00, 
+                'cell_c': 2.00,
+                'cell_alpha': 0.00, 
+                'cell_beta': 1.00, 
+                'cell_gamma': 2.00}
+    return create_instance(CrystalForm, defaults, **kwargs)
 
 def create_Crystal(**kwargs):
     """Create a Crystal using a common test interface

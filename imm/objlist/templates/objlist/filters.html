@@ -1,14 +1,15 @@
 {% load objlist %}
+
 {% if ol.has_filters %}
-<div class="filters">
-<div class="filter-left">
-Filters
-</div>
-<div class="list-filter">
-    <ul class="filter-choices">
-    {% for spec in ol.filter_specs %}{% show_one_filter ol spec %}{% endfor %}
-    </ul>
-</div>
-<div class="clear"></div>
-</div>
+    <div class="filters">
+        <div class="filter-left">
+            Filters
+        </div>
+        <div class="list-filter">
+            <ul class="filter-choices">
+                {% for spec in ol.filter_specs %}{% show_one_filter ol spec url %}{% endfor %}
+            </ul>
+        </div>
+        <div class="clear"></div>
+    </div>
 {% endif %}

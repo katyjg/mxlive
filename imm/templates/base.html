@@ -1,69 +1,209 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
-<head>
-<title>{% block title %}{% endblock %}</title>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <script type="text/javascript" src="/js/modalpopup_builtin.js"></script>
-    <script type="text/javascript" src="/js/prototype.js"></script>
-    <script type="text/javascript" src="/js/ajax.js"></script>
-{% block stylesheet %}    
-    <link rel="stylesheet" type="text/css" href="/dcss/imm.css" />
-    <link rel="stylesheet" href="/css/main.css" type="text/css" />
-{% endblock %}
-{% block extrastyle %}{% endblock %}
-{% block extrahead %}{% endblock %}
-{% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
-</head>
-<body class="t4 {% block bodyclass %}{% endblock %}">
-
-<!-- Container -->
-<div id="container">
-{% if not is_popup %}
-    <!-- Header -->
-<div id="branding" >
-<table style="padding:0px; margin: 0px 0px -2px 0; width: 100%" cellpadding=0 cellspacing=0>
- <tr>
- <td style="width:72px"><a href="/"><img src="/img/clslogo.png" width=72 height=55 border=0 alt="Canadian Light Source"/></a></td>
- <td style="padding-left: 0.5em;">
- <div style="font-size:120%; font-weight: bold">
- <a href="/" style="text-decoration:none; color:#000">Canadian Macromolecular Crystallography Facility</a>
- </div>
- <div style="font-size:95%; margin-top:3px">
- <i><a href="/" style="text-decoration:none; color:#000">Laboratory Information Management System.</a></i>
- </div>
- </td>
- <td valign="bottom">
- <div id="user-tools">
- {% block user-tools %}{% endblock %}
- </div>
- </td>
- </tr>
-</table>
-</div>
-{% block nav-main %}{% endblock %}
-    <!-- END Header -->
-{% endif %}
-    <!-- Content -->
-    <div id="maincol">
-        {% if messages %}
-        <ul class="messagelist">{% for msg in messages %}<li>{{ msg|escape }}</li>{% endfor %}</ul>
-        {% endif %}
-        {% block content %}
-        {{ content }}
+    <head>
+        <title>
+            {% block title %}
+                {% if user.is_superuser %}
+                   Staff | {{ title|escape }}
+                {% else %}
+                   {{ project.name }} | {{ title|escape }}
+                {% endif %}
+            {% endblock %}
+        </title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="robots" content="NONE,NOARCHIVE" />
+        <script src="/js/modalpopup_builtin.js"></script>
+        <script src="/js/jquery-1.4.2.min.js"></script>
+        <script src="/js/jquery-ui-1.8.5.custom.min.js"></script>
+        <script src="/js/jquery.jgrowl_minimized.js"></script>
+        <script src="/js/jquery.form.js"></script>
+        <script src="/js/jquery.tablednd_0_5.js"></script>
+        {% comment %}
+            As we add more scripts if this starts to get unruly it might make sense to integrate the YUI Loader pattern.
+        {% endcomment %}
+        <script>
+            $.noConflict(); // puts jquery into noconflict mode as the prototype library utilizes the $ namespace.
+        </script>
+        <script src="/js/jquery.lightbox_me.js"></script>
+        <script src="/js/prototype.js"></script>
+        <script src="/js/ajax.js"></script>
+        {% block stylesheet %}
+            <link rel="stylesheet" href="/css/main.css" />
+            <link rel="stylesheet" href="/css/jquery.jgrowl.css" />
         {% endblock %}
-    </div>
-    <!-- END Content -->
+        {% block extrastyle %}{% endblock %}
+    </head>
 
-	{% if not is_popup %}
-	<!-- Footer  -->
-    <div id="footer">{% block footer %}<p>&copy;2008 Canadian Light Source, Inc. - <a href="http://www.lightsource.ca">CLS Home</a> - <a href="http://ex.lightsource.ca/cmcf/">CMCF Home</a> - <a href="/privacy/">Privacy Policy</a></p>{% endblock %}</div>
-	<!-- END Footer -->
-	{% endif %}
-</div>
-<!-- END Container -->
-<!-- BEGIN FLOATING LAYER CODE //-->
-<div id="popup-window">
-</div>
-<!-- END FLOATING LAYER CODE //--> 
-</body>
+    <body class="{% block bodyclass %}{% endblock %}">
+        <div id="container">
+
+            {% block content-override %}
+
+                <div id="header" >
+                    <a href="/" class="logo"><img src="/img/header.logo.png" alt="Canadian Light Source"/></a>
+                    <h1>
+                        <span class="title">Canadian Macromolecular Crystallography Facility</span>
+                        <span class="subtitle">Laboratory Information Management System.</span>
+                    </h1>
+                    <span id="user-tools">
+                        {% if user.is_superuser %}
+                            <a href="/admin/">Site Admin</a> |
+                        {% endif %}
+                            <a href="/help/">Help</a> |
+                        {% if user.is_authenticated %}
+                            <a href="/logout/">Sign out</a>
+                        {% else %}
+                            <a href="/login/">Sign in</a>
+                        {% endif %}
+                    </span>
+                </div><!-- end header -->
+
+                <div id="subcontainer">
+                    <div id="navigation">
+                        <div class="project-info">LIMS</div>
+                        {% block nav-main %}
+                            {% if user.is_superuser %}
+                                {%include "lims/staff_navs.html" %}
+                            {% else %}
+                                {%include "lims/project_navs.html" %}
+                            {% endif %}
+                        {% endblock %}
+                        {% block activity %}{% endblock %}
+                    </div><!-- end navigation -->
+
+                    <div id="content">
+                        {# moving this block here temporarily #}
+                        {% block nav-sub %}{% endblock %}
+                        {% if messages %}
+                            <script>
+                            {% for msg in messages %}
+                            jQuery.jGrowl("{{msg|escape}}");
+                            {% endfor %}
+                            </script>
+                        {% endif %}
+                        {% block content %}
+                            {{ content }}
+                        {% endblock %}
+                    </div><!-- end maincol -->
+
+                    <div id="sidebar">
+                        {% block sidebar %}
+                            {% include "lims/activity_log.html" %}
+                        {% endblock %}
+                    </div><!-- end sidebar -->
+                </div><!-- end subcontainer -->
+
+                <div id="footer">
+                    {% block footer %}
+                        <p>&copy;2008 Canadian Light Source, Inc. - <a href="http://www.lightsource.ca">CLS Home</a> - <a href="http://ex.lightsource.ca/cmcf/">CMCF Home</a> - <a href="/privacy/">Privacy Policy</a></p>
+                    {% endblock %}
+                </div><!-- end footer -->
+
+            {% endblock %}
+
+        </div><!-- end container -->
+
+        <div id="popup-window"></div><!-- end popup-window -->
+
+        {% block script %}
+        
+        <script>
+        
+        function loadDewarsWidget() {
+            jQuery("#dewars.widget ul").load("{% url lims-dewar-basic-list %}?shipment__isnull=True", function() { });
+        }
+
+        function loadContainersWidget() {
+            jQuery("#containers.widget ul").load("{% url lims-container-basic-list %}?dewar__isnull=True", function() { });
+        }
+
+        function loadCrystalsWidget() {
+            jQuery("#crystals.widget ul").load("{% url lims-crystal-basic-list %}?container__isnull=True", function() { });
+        }
+        
+        function loadAllWidgets() {
+            loadDewarsWidget();
+            loadContainersWidget();
+            loadCrystalsWidget();
+        }
+        
+        function add(jQuery_droppable, jQuery_draggable) {
+            var droppableUrl = jQuery_droppable.attr("rel");
+            var draggableId = jQuery_draggable.children("a").attr("href").split("/")[1];
+            jQuery.ajax({
+                type: "POST",
+                url: droppableUrl + "add/",
+                data: { items: draggableId },
+                dataType: "script",
+                success: function() { loadAllWidgets(); }
+            });
+        }
+        
+        function remove(jQuery_draggable) {
+            var draggableUrl = jQuery_draggable.children().attr("href");
+            jQuery.ajax({
+                type: "POST",
+                url: draggableUrl + "remove/",
+                data: { "_confirmed": 1 },
+                dataType: "script",
+                success: function() { loadAllWidgets(); }
+            });
+        }
+
+        function setupTableDragAndDrop(selector, url) {
+            var serializedAtStart;
+            jQuery(selector + " table").tableDnD({
+                onDragClass: "lims-droppable-active",
+                onDragStart: function(table, row) {
+                    serializedAtStart = jQuery.tableDnD.serialize();
+                },
+                onDrop: function(table, row) {
+                    var serializedAtDrop = jQuery.tableDnD.serialize();
+                    if (serializedAtStart != serializedAtDrop) {
+                        var jQuery_tr = jQuery(selector + " table tr#" + row.id);
+                        jQuery.ajax({
+                            type: "POST",
+                            url: jQuery_tr.attr("rel") + "priority/",
+                            data: jQuery.tableDnD.serialize(),
+                            success: function() {
+                                jQuery_tr.parents(".content-list").load(url, function() {
+                                    setupTableDragAndDrop(selector, url);
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        
+        function setupDragAndDrop() {
+            jQuery(".draggable-link-parent").draggable({ revert: "invalid" });
+            jQuery(".droppable").droppable({
+                accept: function( jQuery_draggable ) { 
+                    return jQuery_draggable.hasClass(jQuery(this).attr("accept")); 
+                },
+                drop: function( event, ui ) { 
+                    if (jQuery(this).hasClass("droppable-add")) {
+                        add(jQuery(this), ui.draggable); 
+                    }
+                    if (jQuery(this).hasClass("droppable-remove")) {
+                        remove(ui.draggable); 
+                    }
+                    jQuery("tr.expander.loaded").each( function() {
+                        jQuery(this).children("td").load(jQuery(this).prev().attr("rel"), function() {});
+                    });
+                },
+                activeClass: "lims-droppable-active",
+                hoverClass: "lims-droppable-hover"
+            });
+        }
+        
+        jQuery("#sidebar, #content").live("DOMSubtreeModified", function() { setupDragAndDrop();});
+        
+        loadAllWidgets();
+
+        </script>
+        
+        {% endblock %}
+    </body>
 </html>

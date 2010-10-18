@@ -4,7 +4,7 @@
     <property name="srcdir" value="imm"/>
     <property name="test.verbosity" value="0"/>
     <property name="test.name" value=""/>
-    <property name="test.app.name" value=""/>
+    <property name="test.app.name" value="lims staff remote"/>
     
     <!--
     build - builds the app

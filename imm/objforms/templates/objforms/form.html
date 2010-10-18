@@ -1,7 +1,7 @@
 <form 
         method="post"
         id="lims-form" 
-        class="objform"
+        class="objform ajax"
 {% if target %}
         action='javascript:post_and_load("{{target}}", "{{action}}", "lims-form");'
 {% else %}
@@ -10,11 +10,10 @@
 {% if enctype %}
         enctype='{{enctype}}'
 {% endif %}
->
+>{% csrf_token %}
 <ul>
 {% include "objforms/plain.html" %}
 <li class="submit-row">
-<input id='btn0' type="button" value="Cancel" onclick="refresh_window();" />
 {% if info.add_another %}
 <input id='btn1' type="submit" value="{{ save_label|default:"Save" }} and add another" name="_addanother" onclick="$('btn2').disable();" />
 <input id='btn2' type="submit" value="{{ save_label|default:"Save" }}" class="default" name="_save" onclick="$('btn1').disable();" /></li>
@@ -24,4 +23,22 @@
 </ul>
 </form>
 <img src="/img/blank.png" width=1 height=1 onload="init_form('lims-form'); " />
+
+<script>
+    jQuery(function() { // form plugin bindings
+        jQuery("form.ajax").ajaxForm(function(response) {
+            var $modal = jQuery(".modal-content").not(":hidden"); // at this point, the modal will be visible
+            var error = response.indexOf("error") > -1; // given an error there will be an error string present
+            var $close = $modal.find('a.close');
+
+            if(error) {
+                $modal.find('.content').html(response); // the response includes the full html of the form as well as errors
+            } else {
+                // close the modal, show confirmation, reload affected panes in the sidebar).
+                $close.trigger("click");
+                jQuery.jGrowl(response);
+            }
+        });
+    });
+</script>
 

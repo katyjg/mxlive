@@ -1,10 +1,40 @@
-{% extends "lims/summary_base.html" %}
+{% extends "base.html" %}
+
+{% comment %}
 {% block nav-sub %}
-{% include "lims/experiment_navs.html" %}
+    {% include "lims/experiment_navs.html" %}
+{% endblock %}
+{% endcomment %}
+
+{% block content %}
+    <h2>Experiments</h2>
+
+    <div class="content-list" id="experiments-list">
+        {% comment %}
+            The content for this div is loaded via ajax in the script block below.
+        {% endcomment %}
+    </div>
 {% endblock %}
 
-{% block main-column %}
-{% include "lims/experiment_summary.html" %}
-{% include "lims/experiment_help.html" %}
+{% block sidebar %}
+    <div id="crystals" class="widget droppable droppable-remove" accept="crystal">
+        <h3>Crystals</h3>
+        <ul>
+            <li><a href="#">Content Not Loaded.</a></li>
+        </ul>
+        <a href="{% url lims-crystal-new %}" class="action add modal" rel="#add-crystal">add crystal</a>
+    </div>
+    {{ block.super }}
+{% endblock %}
+
+{% block script %}
+{{ block.super }}
+    <script>
+        jQuery(function() {
+            jQuery("#experiments-list").load("{% url lims-experiment-list %}{% if request.META.QUERY_STRING %}?{{request.META.QUERY_STRING}}{% endif %}", function() {
+                setupTableDragAndDrop("#experiments-list", "{% url lims-experiment-list %}");
+            });
+        });
+    </script>
 {% endblock %}
 

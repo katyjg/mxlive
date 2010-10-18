@@ -70,5 +70,10 @@ Required additional Django Applications or features
         a) TBD
         
         
-        
+
+PHASE II
+--------
+
+* Add barcode column to spreadsheet
+* UI Review
         

@@ -1,36 +1,54 @@
-{% extends "lims/entries/shipping_entry.html" %}
 {% load humanize %}
 
-{% block title %} Dewar {{ dewar.identity }}{% endblock %}
-
-{% block entry-toolbox-defaults %}
-    {% if request.user.is_superuser %}
+{% comment %}
+{% if request.user.is_superuser %}
+    <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
+{% endif %}
+{% if not request.user.is_superuser %}
+    <span onclick="linkto('../new/?clone={{object.id}}');" class="clone-tool">Clone</span>
+    {% if object.is_editable %}
         <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
     {% endif %}
-    {% if not request.user.is_superuser %}
-        <span onclick="linkto('../new/?clone={{object.id}}');" class="clone-tool">Clone</span>
-        {% if object.is_editable %}
-            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
-        {% endif %}
-        {% if object.is_deletable %}
-            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/delete/', '');" class="delete-tool">Delete</span>
-        {% endif %}
+    {% if object.is_deletable %}
+        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/delete/', '');" class="delete-tool">Delete</span>
     {% endif %}
-{% endblock %}
+{% endif %}
+{% endcomment %}
 
-{% block entry-summary%}
-{% include "lims/entries/dewar_summary.html" %}
-{% endblock %}
+{% with object as dewar %}
+    {% comment %}
+    <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
+        <tr valign="top">
+            <th>Created:</th>
+            <td>{{dewar.created|naturalday}} at {{dewar.created|date:"H:i T"}}</td>
+        </tr>
+        <tr valign="top">
+            <th>Modified:</th>
+            <td>{{dewar.modified|naturalday}} at {{dewar.modified|date:"H:i T"}}</td>
+        </tr>
+        <tr valign="top">
+            <th>Status:</th>
+            <td>{{dewar.get_status_display}}</td>
+        </tr>
+        {% ifequal dewar.status dewar.STATES.ON_SITE %}
+            <tr valign="top">
+                <th>Location:</th>
+                <td>{{dewar.storage_location|default:"Unknown"}}</td>
+            </tr>
+        {% endifequal %}
+    </table>
+    {% endcomment %}
+    {% if dewar.container_set.count %}
+        {% for container in dewar.container_set.all %}
+            <li><a href="{% url lims-container-detail container.id %}">{{ container.label }} ({{ container.identity }})</a></li>
+        {% endfor %}
+    {% else %}
+        (No containers are assigned to this Dewar).
+    {% endif %}
 
-{% block entry-info %}
-{# include "lims/entries/dewar_info.html" #}
-{% endblock %}
+{% endwith %}
 
-{% block entry-contents %}
+{% comment %}
 {% include "lims/entries/dewar_contents.html" %}
-{% endblock %}
-
-{% block entry-scratchpad %}
 {% include "lims/entries/dewar_treeview.html" %}
-{% endblock %}
-
+{% endcomment %}

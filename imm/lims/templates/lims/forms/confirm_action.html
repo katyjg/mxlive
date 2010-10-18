@@ -16,7 +16,7 @@
 {% else %}
         action='{{info.action}}'
 {% endif %}    
->
+>{% csrf_token %}
 <ul>
 <li><input id="id_id" type="hidden" value="{{id}}" name="id"/></li>
 <li class="submit-row">

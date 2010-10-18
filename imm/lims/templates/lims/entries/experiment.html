@@ -1,38 +1,73 @@
-{% extends "lims/entries/experiment_entry.html" %}
 {% load humanize %}
 
-{% block title %} Experiment {{ experiment.identity }}{% endblock %}
+<div id="view-report" class="hidden modal-content wide"></div>
 
-{% block entry-summary%}
-{% include "lims/entries/experiment_summary.html" %}
-{% endblock %}
+{% include "lims/tools.html" %}
 
-{% block entry-toolbox-defaults %}
-    {% if not request.user.is_superuser %}
-        <span onclick="linkto('../new/?clone={{object.id}}');" class="clone-tool">Clone</span>
-        {% if object.is_editable %}
-            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
-        {% endif %}
-        {% if object.is_deletable %}
-            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/delete/', '');" class="delete-tool">Delete</span>
-        {% endif %}
-        {% if object.is_rejectable %}
-            <span onclick="load_page('entry-scratchpad', '../{{object.id}}/reject/', 'title=Reject Strategy')" class="delete-tool">Reject</span>
-        {% endif %}
-    {% endif %}
-{% endblock %}
+<h3>{{ object.name }} ({{ object.identity }})</h3>
+<img src="/img/constituent.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
 
-{% block entry-info %}
-{# include "lims/entries/experiment_info.html" #}
-{% endblock %}
+<table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
+    <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
+    <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
+    <tr valign="top"><th>Type:</th><td>{{object.get_kind_display}}</td></tr>
+    <tr valign="top"><th>Plan:</th><td>{{object.get_plan_display}}</td></tr>
+    <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
+</table>
 
-{% block entry-contents %}
+<h3>Associated Crystals</h3>
+<img src="/img/samples-crystal.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
+
+{% if object.crystals %}
+    <ul class="treeview">
+    {% for crystal in object.crystals.all %}
+        <li class="crystal draggable-link-parent">
+            <a class="crystal" href="{% url lims-crystal-detail crystal.id %}">{{ crystal.name }} ({{ crystal.identity }})</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    (No crystals have been associated with this experiment).
+{% endif %}
+
+<h3>Experiment Results</h3>
+
+{% if object.crystals %}
+    <table style="width: 100%;">
+        <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Crystal</th>
+            <th>Number of Result Sets</th>
+        </tr>
+        {% for crystal in object.crystals.all %}
+            {% if crystal.result_set.all.count %}
+                <tr class="{% cycle 'odd' 'even' %} link-row">
+                    <td class="first"></td>
+                    <td>{{ crystal.name }}</td>
+                    <td>{{ crystal.identity }}</td>
+                    <td>{{ crystal.result_set.all.count }}</td>
+                </tr>
+                {% with crystal.result_set.all as results %}
+                    <tr class="expander hidden static">
+                        <td colspan="4">
+                            <ul class="reports">
+                                {% for result in results %}
+                                    <li>
+                                        <a rel="#view-report" class="modal" href="{% url lims-result-detail result.id %}">{{ result.name }}</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                {% endwith %}
+            {% endif %}
+        {% endfor %}
+    </table>
+{% endif %}
+
+{% comment %}
 {% with object.crystals.all as crystals %}
-{% include "lims/entries/associated_crystals.html" %}
+    {% include "lims/entries/associated_crystals.html" %}
 {% endwith %}
-{% endblock %}
-
-{% block entry-scratchpad %}
-{% include "lims/entries/experiment_details.html" %}
-{% endblock %}
-
+{% endcomment %}

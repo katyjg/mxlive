@@ -1,24 +1,24 @@
-{% extends "lims/project_base.html" %}
-{% block nav-sub %}
-<div class="navinfo">
-{% if project %}
-<i>{{ project.name }} - {{ project.title }}</i>
-{% endif %}
-</div>
-{% endblock %}
+{% extends "base.html" %}
+
 {% block content %}
-<table width="100%">
-<td><td width="60%" valign="top">
-{% include "lims/project_help.html" %}
-{% include "lims/project_summary.html" %}
-</td><td width="*" valign="top">
-{% with inbox as ol %}
-<div id="inbox">
-{% include "lims/inbox.html" %}
-</div>
-{% endwith %}
-{#% include "lims/calendar.html" %#}
-</td></tr>
-</table>
+    <h2>Welcome, {{ user }}</h2>
+    {% include "lims/project_help.html" %}
+    <div class="content-list" id="inbox">
+        {% comment %}
+        The content for this div is loaded via ajax in the script block below.
+        {% endcomment %}
+    </div>
+{% endblock %}
+
+{% block sidebar %}
+    {% include "lims/project_summary.html" %}    
+{% endblock %}
+
+{% block script %}
+<script>
+jQuery(function() {
+    jQuery("#inbox").load("{% url lims-inbox %}", function() {});
+});
+</script>
 {% endblock %}
 

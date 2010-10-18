@@ -1,9 +1,9 @@
 {% load nav %}
 <ul class="subnav">
-	<li class='tab {% active request "/samples/?$" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/samples/" >Summary</a></li>
-	<li class='tab {% active request "/samples/constituent/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/samples/constituent/" >Constituents</a></li>
-	<li class='tab {% active request "/samples/cocktail/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/samples/cocktail/" >Cocktails</a></li>
-	<li class='tab {% active request "/samples/crystalform/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/samples/crystalform/" >Crystal Forms</a></li>
-	<li class='tab {% active request "/samples/crystal/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,project"}}/samples/crystal/">Crystals</a></li>
+	<li class='tab {% active request "/samples/?$" %}'><a href="/{{request.user.is_superuser|yesno:"staff,lims"}}/samples/" >Summary</a></li>
+	<li class='tab {% active request "/samples/constituent/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,lims"}}/samples/constituent/" >Constituents</a></li>
+	<li class='tab {% active request "/samples/cocktail/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,lims"}}/samples/cocktail/" >Cocktails</a></li>
+	<li class='tab {% active request "/samples/crystalform/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,lims"}}/samples/crystalform/" >Crystal Forms</a></li>
+	<li class='tab {% active request "/samples/crystal/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,lims"}}/samples/crystal/">Crystals</a></li>
 </ul>
 

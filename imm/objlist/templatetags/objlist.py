@@ -13,18 +13,18 @@ from django.utils.datastructures import MultiValueDict
 register = Library()
 
 @register.inclusion_tag('objlist/one_filter.html')
-def show_one_filter(ol, spec):
+def show_one_filter(ol, spec, url):
     """
     Renders a single Filter specification ``spec`` for a given object list ``ol``. 
     """
-    return {'title': spec.title(), 'choices' : list(spec.choices(ol))}
+    return {'title': spec.title(), 'choices' : list(spec.choices(ol)), 'url' : url}
 
 @register.inclusion_tag('objlist/filters.html')
-def show_all_filters(ol):
+def show_all_filters(ol, url):
     """
     Renders a full filter list a given object list ``ol``. 
     """
-    return {'ol': ol}
+    return {'ol': ol, 'url': url}
 
 @register.filter
 def truncate(value, arg):
@@ -48,7 +48,7 @@ def truncate(value, arg):
         return value
         
 @register.inclusion_tag('objlist/list_entry.html', takes_context=True)
-def list_entry(context, obj):
+def list_entry(context, obj, handler, loop_count):
     """Renders an entry for the object ``obj`` in an object list table. If the
     ``context`` contains a ``link=True`` variable, a link will be added to
     the object's detailed page.
@@ -56,7 +56,7 @@ def list_entry(context, obj):
     ol = context.get('ol', None)
     if ol:
         model_admin = ol.model_admin
-        
+
     checked, form = False, context.get('form', None)
     if form and hasattr(obj, 'get_form_field'):
         form_data = MultiValueDict(form.data)
@@ -69,6 +69,8 @@ def list_entry(context, obj):
              'checked': checked,
              'can_prioritize': context.get('can_prioritize', False),
              'request': context,
+             'handler' : handler,
+             'row_state' : "odd" if loop_count % 2 == 1 else "even"
             }
        
 def object_fields(obj, model_admin=None):

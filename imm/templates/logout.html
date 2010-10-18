@@ -1,19 +1,20 @@
 {% extends "base.html" %}
+
 {% block bodyclass %}login{% endblock %}
 {% block content_title %}{% endblock %}
-{% block breadcrumbs %}{% endblock %}
 
-{% block content %}
+{% block content-override %}
 
-{% if error_message %}
-<p class="errornote">{{ error_message }}</p>
-{% endif %}
-<div id="content-main">
-    <h2>Signed out!</h2>
-    <p>Thanks for spending some quality time with the CMCF LIMS today.</p>
+    {% if error_message %}      
+        <p class="errornote">{{ error_message }}</p>
+    {% endif %}
 
-    <p><a href="/login/">Sign in again</a></p>
-</div>
+    <div id="content-main">
+        <h2>Signed out!</h2>
+        <p>Thanks for spending some quality time with the CMCF LIMS today.</p>
+
+        <p><a href="/login/">Sign in again</a></p>
+    </div>
 {% endblock %}
 
 {% block footer %}{% endblock %}

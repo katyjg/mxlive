@@ -43,6 +43,7 @@ class ShipmentUploadFormTest(DjangoTestCase):
     def setUp(self):
         super(ShipmentUploadFormTest, self).setUp()
         self.set_up_default_project()
+        self.set_up_default_space_group(name='P2(1)2(1)2(1)')
         
     def test_invalid_file(self):
         form = ShipmentUploadForm({'project': self.project.pk}, {'excel' : file(os.path.join(TEST_FILES, 'not_a_spreadsheet.txt'), 'r')})
@@ -242,8 +243,10 @@ class ExperimentFromStrategyFormTest(DjangoTestCase):
                  'name': 'Resubmitted'+self.strategy.name+'_'+self.strategy.result.crystal.name, \
                  'kind': Experiment.EXP_TYPES.NATIVE, 'plan': Experiment.EXP_PLANS.JUST_COLLECT, \
                  'crystals': self.strategy.result.crystal.pk})
-
-        self.assertEqual([(1, u'crystal123 / XT001.10.03.31')], form.fields['crystals'].choices)
+        import datetime
+        today = datetime.date.today()
+        self.assertEqual([(1, u'crystal123 / XT001.%02d.%02d.%02d' % (today.year-2000, today.month, today.day))], 
+                         form.fields['crystals'].choices)
         # There should only be one cystal in choices list since it's populated from strategy.result.crystal
         # (which is only one crystal)
         self.assertEqual(1, len(form.fields['crystals'].choices))

@@ -14,7 +14,7 @@ def active(request, pattern):
     
     Example::
     
-        {% active request "^/project/experiment/" %}
+        {% active request "^/lims/experiment/" %}
     """
     import re
     if re.search(pattern, request.path):
@@ -33,7 +33,7 @@ def active_exact(request, path):
     
     Example::
     
-        {% active_exact request "^/project/experiment/" %}
+        {% active_exact request "^/lims/experiment/" %}
     """
     if request.path == path:
         return 'active'

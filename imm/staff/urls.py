@@ -12,6 +12,7 @@ from imm.lims.models import CrystalForm
 from imm.lims.models import Constituent
 from imm.lims.models import ExcludeManagerWrapper
 from imm.staff.models import Runlist
+from imm.lims.models import ActivityLog
 
 from imm.lims.forms import ExperimentForm
 
@@ -28,19 +29,20 @@ from imm.staff.forms import RunlistAcceptForm
 urlpatterns = patterns('',
     (r'^$', 'imm.staff.views.staff_home', {}, 'staff-home'),
     
-    (r'^shipping/shipment/$', 'imm.lims.views.object_list', {'model': Shipment, 'template': 'lims/lists/shipping_list.html', 'can_receive': True}, 'staff-shipment-list'),
-    (r'^shipping/shipment/receive/$', 'imm.staff.views.receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'lims/forms/shipping_base.html', 'action': 'receive'}, 'staff-shipment-receive-any'),
+    (r'^shipping/shipment/$', 'imm.lims.views.object_list', {'model': Shipment, 'template': 'objlist/object_list.html', 'can_receive': True}, 'staff-shipment-list'),
+    (r'^shipping/shipment/receive/$', 'imm.staff.views.receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-shipment-receive-any'),
     (r'^shipping/shipment/(?P<id>\d+)/receive/$', 'imm.lims.views.edit_object_inline', {'model': Shipment, 'form': ShipmentReceiveForm, 'template': 'objforms/form_base.html', 'action' : 'receive'}, 'staff-shipment-receive'),
     (r'^shipping/shipment/(?P<id>\d+)/return/$', 'imm.lims.views.edit_object_inline', {'model': Shipment, 'form': ShipmentReturnForm, 'template': 'objforms/form_base.html', 'action' : 'return'}, 'staff-shipment-return'),
     
     (r'^shipping/dewar/(?P<id>\d+)/edit/$', 'imm.lims.views.edit_object_inline', {'model': Dewar, 'form': DewarForm, 'template': 'objforms/form_base.html'}, 'staff-dewar-edit'),
     
-    (r'^samples/crystal/$', 'imm.lims.views.object_list', {'model': Crystal, 'template': 'lims/lists/samples_list.html'}, 'staff-crystal-list'),
+    (r'^samples/crystal/$', 'imm.lims.views.object_list', {'model': Crystal, 'template': 'objlist/object_list.html'}, 'staff-crystal-list'),
     (r'^samples/crystal/(?P<id>\d+)/up/$', 'imm.lims.views.change_priority', {'model': Crystal, 'action': 'up', 'field': 'staff_priority'}, 'staff-crystal-up'),
     (r'^samples/crystal/(?P<id>\d+)/down/$', 'imm.lims.views.change_priority', {'model': Crystal, 'action': 'down', 'field': 'staff_priority'}, 'staff-crystal-down'),
     
-    (r'^experiment/request/$', 'imm.lims.views.object_list', {'model': Experiment, 'template': 'lims/lists/experiment_list.html'}, 'staff-experiment-list'),
+    (r'^experiment/request/$', 'imm.lims.views.object_list', {'model': Experiment, 'template': 'objlist/object_list.html'}, 'staff-experiment-list'),
     
+    (r'^runlist_summary/$', 'imm.staff.views.runlist_summary', {'model': ActivityLog}, 'lims-runlist-summary'),
     (r'^runlist/$', 'imm.lims.views.object_list', {'model': Runlist, 'template': 'staff/lists/runlist_list.html', 'can_add': True, 'can_prioritize': True}, 'staff-runlist-list'),
     (r'^runlist/new/$', 'imm.staff.views.runlist_object_list', {'model': Experiment, 'form': ExperimentSelectForm, 'template': 'staff/lists/runlist_list.html', 'can_prioritize': True, 'link': False, 'redirect': 'staff-runlist-new-step2', 'instructions': 'Prioritize and select some Experiments.'}, 'staff-runlist-new'),
     (r'^runlist/new/step2/$', 'imm.staff.views.runlist_object_list', {'model': Container, 'form': ContainerSelectForm, 'parent_model': Experiment, 'link_field': 'crystal', 'template': 'staff/lists/runlist_list.html', 'link': False, 'redirect': 'staff-runlist-new-step3', 'instructions': 'Select some Containers.'}, 'staff-runlist-new-step2'),

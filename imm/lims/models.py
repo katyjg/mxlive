@@ -10,6 +10,7 @@ import logging
 
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_save
 from django.db.models.signals import post_delete
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -32,6 +33,7 @@ class Beamline(models.Model):
     def __unicode__(self):
         return self.name
 
+    
 class Laboratory(models.Model):
     name = models.CharField(max_length=600)
     address = models.CharField(max_length=600)
@@ -144,6 +146,7 @@ class OrderByManagerWrapper(ManagerWrapper):
         
 class Project(models.Model):
     user = models.ForeignKey(User, unique=True)
+    permit_no = models.CharField(max_length=20)
     name = models.SlugField()
     title = models.CharField(max_length=200)
     summary = models.TextField()
@@ -203,6 +206,11 @@ class Constituent(models.Model):
     hazard_details = models.TextField(blank=True)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+    
+    FIELD_TO_ENUM = {
+        'source': SOURCES,
+        'kind': TYPES,
+    }
 
     def get_hazard_designation(self):
         HD_DICT = {
@@ -348,7 +356,14 @@ class Shipment(models.Model):
     carrier = models.ForeignKey(Carrier, null=True, blank=True)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-
+    
+    FIELD_TO_ENUM = {
+        'status': STATES,
+    }
+    
+    def accept(self):
+        return "dewar"
+    
     def num_dewars(self):
         return self.dewar_set.count()
     
@@ -461,6 +476,10 @@ class Dewar(models.Model):
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
     status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.DRAFT)
     
+    FIELD_TO_ENUM = {
+        'status': STATES,
+    }
+    
     def is_assigned(self):
         return self.shipment is not None
 
@@ -542,6 +561,11 @@ class Container(models.Model):
     status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.DRAFT)
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
+    
+    FIELD_TO_ENUM = {
+        'status': STATES,
+        'kind': TYPE,
+    }
 
     def experiments(self):
         experiments = set([])
@@ -615,18 +639,16 @@ class Container(models.Model):
     
     def get_form_field(self):
         return 'container'
-
-    def json_dict(self, crystal_filters=None):
-        """ Returns a json dictionary of the Runlist """
-        crystal_filters = crystal_filters or {}
+    
+    def json_dict(self):
         return {
             'project_id': self.project.pk,
             'id': self.pk,
             'name': self.label,
-            'type': self.TYPE[self.kind],
+            'type': Container.TYPE[self.kind],
+            'load_position': 'TODO',
             'comments': self.comments,
-            'dewar': self.dewar and self.dewar.pk or None,
-            'crystals': [ crystal.pk for crystal in self.crystal_set.filter(**crystal_filters)]
+            'crystals': [crystal.pk for crystal in self.crystal_set.all()]
         }
 
 class SpaceGroup(models.Model):
@@ -647,13 +669,12 @@ class SpaceGroup(models.Model):
         ('R','rhombohedral'),       
     )
     
-    id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=20)
     crystal_system = models.CharField(max_length=1, choices=CS_CHOICES)
     lattice_type = models.CharField(max_length=1, choices=LT_CHOICES)
     
     def __unicode__(self):
-        return '%s #%d %c%c ' % (self.name, self.id, self.crystal_system, self.lattice_type)
+        return '%s %c%c ' % (self.name, self.crystal_system, self.lattice_type)
     
 class CrystalForm(models.Model):
     project = models.ForeignKey(Project)
@@ -746,6 +767,10 @@ class Crystal(models.Model):
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
     
+    FIELD_TO_ENUM = {
+        'status': STATES,
+    }
+    
     class Meta:
         unique_together = (
             ("project", "container", "container_location"),
@@ -787,15 +812,18 @@ class Crystal(models.Model):
     def json_dict(self):
         return {
             'project_id': self.project.pk,
-            'container': self.container.label,
+            'container_id': self.container.pk,
             'id': self.pk,
             'name': self.name,
-            'barcode': self.code,
-            'port': self.container_location,
-            'comments': self.comments,
-            'priority': self.priority,
-            'experiments': [experiment.pk for experiment in self.experiment_set.all()],
+            'barcode': self.barcode(),
+            'container_location': self.container_location,
+            'comments': self.comments
         }
+        
+    def _experiment(self, experiment):
+        self.experiment_set.add(experiment)
+    
+    experiment = property(None, _experiment)
 
 class Experiment(models.Model):
     EXP_TYPES = Enum(
@@ -847,6 +875,15 @@ class Experiment(models.Model):
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
     
+    FIELD_TO_ENUM = {
+        'status': STATES,
+        'kind': EXP_TYPES,
+        'plan': EXP_PLANS,
+    }
+    
+    def accept(self):
+        return "crystal"
+    
     def num_crystals(self):
         return self.crystals.count()
     
@@ -876,27 +913,31 @@ class Experiment(models.Model):
         strategy = data['strategy']
         perform_action(strategy, 'resubmit')
         
-    def json_dict(self, crystal_filters=None):
+    def best_crystal(self):
+        if self.plan == Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST:
+            results = Result.objects.filter(experiment=self, crystal__in=self.crystals.all()).order_by('-score')
+            if results:
+                return results[0].crystal.pk
+        
+    def json_dict(self):
         """ Returns a json dictionary of the Runlist """
-        crystal_filters = crystal_filters or {}
         return {
             'project_id': self.project.pk,
             'id': self.pk,
             'name': self.name,
+            'plan': Experiment.EXP_PLANS[self.plan],
             'r_meas': self.r_meas,
             'i_sigma': self.i_sigma,
-            'plan_desc': self.EXP_PLANS[self.plan],
-            'plan': self.plan,
             'absorption_edge': self.absorption_edge,
-            'type': self.kind,
-            'type_desc': self.EXP_TYPES[self.kind],
+            'energy': self.energy,
+            'type': Experiment.EXP_TYPES[self.kind],
             'resolution': self.resolution,
-            'priority': self.priority,
             'delta_angle': self.delta_angle,
             'total_angle': self.total_angle,
             'multiplicity': self.multiplicity,
             'comments': self.comments,
-            'crystals': [crystal.pk for crystal in self.crystals.filter(**crystal_filters)]
+            'crystals': [crystal.pk for crystal in self.crystals.all()],
+            'best_crystal': self.best_crystal()
         }
         
 # The following set of pre/post save/delete methods are responsible for updating the priority of
@@ -955,6 +996,10 @@ class Data(models.Model):
     kind = models.IntegerField('Data type',max_length=1, choices=DATA_TYPES.get_choices(), default=DATA_TYPES.SCREENING)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+    
+    FIELD_TO_ENUM = {
+        'kind': DATA_TYPES,
+    }
 
     def __unicode__(self):
         return '%s, %d images' % (self.name, self.num_frames)
@@ -1001,6 +1046,10 @@ class Result(models.Model):
     details = JSONField()
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+    
+    FIELD_TO_ENUM = {
+        'kind': RESULT_TYPES,
+    }
     
     def identity(self):
         return 'RT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -1065,6 +1114,10 @@ class Strategy(models.Model):
     status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.WAITING)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+    
+    FIELD_TO_ENUM = {
+        'status': STATES,
+    }
 
     def identity(self):
         return 'ST%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -1102,6 +1155,10 @@ class ScanResult(models.Model):
     kind = models.IntegerField('Scan type',max_length=1, choices=SCAN_TYPES.get_choices())
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+    
+    FIELD_TO_ENUM = {
+        'kind': SCAN_TYPES,
+    }
     
     def identity(self):
         return 'SC%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -1193,3 +1250,81 @@ __all__ = [
     'archive',
     'perform_action',
     ]   
+
+def ActivityLog_pre_save(sender, **kwargs):
+    """ pre_save handler """
+    # values in the current (to be saved) instance
+    instance = kwargs['instance']
+    instanceVars = vars(instance)
+    
+    try:
+        # values in the existing (already in db) instance
+        existingInstance = sender._default_manager.get(pk=instance.pk)
+        existingInstanceVars = vars(existingInstance)
+        
+        # flag to indicate an ActivityLog MODIFY or CREATED entity
+        instance._ActivityLog_type = None
+        changes = {}
+        
+        # iterate of the dictionaries to see if anything notable has changed
+        for key in set(instanceVars.keys() + existingInstanceVars.keys()):
+            if key in ['created', 'modified'] or key.startswith('_') or key.startswith('tmp_'):
+                continue
+            if instanceVars.get(key) != existingInstanceVars.get(key):
+                changes[key] = (existingInstanceVars.get(key), instanceVars.get(key))
+                
+        # if there are changes, construct a message for the ActivityLog entry that shows the changes
+        # to each field in the format "field": "oldValue" -> "newValue"
+        if changes:
+            instance._ActivityLog_type = ActivityLog.TYPE.MODIFY
+            messages = []
+            for key, value in changes.items():
+                value = list(value)
+                for i, v in enumerate(value):
+                    if isinstance(v, basestring):
+                        value[i] = '"%s"' % v
+                    elif hasattr(sender, 'FIELD_TO_ENUM'):
+                        if sender.FIELD_TO_ENUM.has_key(key):
+                            value[i] = '"%s"' % sender.FIELD_TO_ENUM[key][v]
+                messages.append('%s: %s -> %s' % (key, value[0], value[1]))
+            instance._ActivityLog_message = ','.join(messages)
+            
+    except sender.DoesNotExist:
+        # this is a new entity, create a simple ActivityLog entry
+        instance._ActivityLog_type = ActivityLog.TYPE.CREATE
+        instance._ActivityLog_message = 'Created'
+        
+def ActivityLog_post_save(sender, **kwargs):
+    """ post_save handler """
+    # if the instance was created of changed, then create an ActivityLog entry
+    instance = kwargs['instance']
+    if instance._ActivityLog_type is not None:
+        project = instance.project
+        ActivityLog.objects.log_activity(
+                project.pk,
+                project.user.pk,
+                '0.0.0.0', # no access to request object, just use a dummy IP address
+                ContentType.objects.get_for_model(sender).id,
+                instance.pk, 
+                str(instance), 
+                instance._ActivityLog_type,
+                instance._ActivityLog_message,
+                )
+        
+ACTIVITY_LOG_MODELS = [Constituent, Cocktail, Crystal, CrystalForm, Shipment, Container,  Dewar,
+                       Experiment, ScanResult, Result, Data, Strategy]
+
+def connectActivityLog():
+    """ Hooks ActivityLog_post_save to all relevant models """
+    for modelClass in ACTIVITY_LOG_MODELS:
+        pre_save.connect(ActivityLog_pre_save, sender=modelClass)
+        post_save.connect(ActivityLog_post_save, sender=modelClass)
+        
+def disconnectActivityLog():
+    """ Unhooks ActivityLog_post_save from all relevant models """
+    for modelClass in ACTIVITY_LOG_MODELS:
+        pre_save.disconnect(ActivityLog_pre_save, sender=modelClass)
+        post_save.disconnect(ActivityLog_post_save, sender=modelClass)
+        
+connectActivityLog()
+    

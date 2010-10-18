@@ -1,23 +1,21 @@
-{% extends "lims/entries/shipping_entry.html" %}
 {% load humanize %}
 
-{% block title %} Container {{ container.identity }}{% endblock %}
+{% comment %}
+<table class="entrysummary left" cellpadding="2" cellspacing="0" border="0" width="60%">
+    <tr valign="top"><th>Type:</th><td>{{object.get_kind_display}}</td></tr>
+    <tr valign="top"><th>Capacity:</th><td>{{object.capacity}}</td></tr>
+    <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
+    <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
+    <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
+</table>
 
-{% block entry-summary%}
-{% include "lims/entries/container_summary.html" %}
-{% endblock %}
+<img src="/img/container-{{object.get_kind_display|lower}}.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
+{% endcomment %}
 
-{% block entry-info %}
-{# include "lims/entries/container_info.html" #}
-{% endblock %}
-
-{% block entry-contents %}
-{% with object.crystal_set.all as crystals %}
-{% include "lims/entries/container_crystals.html" %}
-{% endwith %}
-{% endblock %}
-
-{% block entry-scratchpad %}
-{% include "lims/entries/container_treeview.html" %}
-{% endblock %}
-
+{% if object.crystal_set.all %}
+    {% for crystal in object.crystal_set.all %}
+        <li><a href="{% url lims-crystal-detail crystal.id %}">{{ crystal.name }} ({{ crystal.identity }})</a></li>
+    {% endfor %}
+{% else %}
+    (No crystals have been assigned to this Container).
+{% endif %}

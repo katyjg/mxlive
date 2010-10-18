@@ -1,22 +1,11 @@
-{% extends "lims/staff_base.html" %}
-{% block nav-sub %}
-	<div class="navinfo">Administration</div>
-{% endblock %}
+{% extends "base.html" %}
 
 {% block content %}
-	<table width="100%">
-		<tr>
-			<td width="60%" valign="top">
-				Content coming soon...
-			</td>
-			<td width="*" valign="top">
-				{% with inbox as ol %}
-					<div id="inbox">
-						{% include "lims/inbox.html" %}
-					</div>
-				{% endwith %}
-				{#% include "lims/calendar.html" %#}
-			</td>
-		</tr>
-	</table>
+    <h2>Welcome, </h2>
+    Content coming soon...			
+    {% with inbox as ol %}
+        <div id="inbox">
+            {% include "lims/inbox.html" %}
+        </div>
+    {% endwith %}
 {% endblock %}

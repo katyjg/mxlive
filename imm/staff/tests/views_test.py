@@ -57,7 +57,7 @@ class StaffHomeTest(DjangoTestCase):
         request.user = create_User(username='testuser')
         response = staff_home(request)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], '/project/')
+        self.assertEqual(response['Location'], '/lims/')
         
     def test_renders_if_staff(self):
         request = self.get_request()
@@ -342,20 +342,18 @@ class DetailedRunlistTest(DjangoTestCase):
         
     def _filter(self, retval):
         for data in retval:
+            for container_pk, container in data['containers'].items():
+                for key in container.keys():
+                    if key not in ['crystals', 'id']:
+                        container.pop(key)
+            for crystal_pk, crystal in data['crystals'].items():
+                for key in crystal.keys():
+                    if key not in ['id']:
+                        crystal.pop(key)
             for experiment in data['experiments']:
                 for key in experiment.keys():
                     if key not in ['crystals', 'id', 'best_crystal']:
                         experiment.pop(key)
-                    elif key == 'crystals':
-                        for crystal in experiment[key]:
-                            for key2 in crystal.keys():
-                                if key2 not in ['id']:
-                                    crystal.pop(key2)
-                    elif key == 'best_crystal':
-                        crystal = experiment[key]
-                        for key2 in experiment[key].keys():
-                            if key2 not in ['id']:
-                                crystal.pop(key2)
         return retval
         
     def _test(self, multiple_experiments=False, multiple_crystals=False, multiple_containers=False, multiple_runlists=False):
@@ -424,7 +422,9 @@ class DetailedRunlistTest(DjangoTestCase):
     def test__single_experiment__single_crystal__single_container__single_runlist(self):
         results = self._test()
         self.assertEqual(
-            [{'experiments': [{'crystals': [{'id': 1}], 'id': 1}]}], 
+            [{'containers': {1: {'crystals': [1], 'id': 1}},
+              'crystals': {1: {'id': 1}},
+              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}]}], 
             results
         )
         
@@ -433,14 +433,19 @@ class DetailedRunlistTest(DjangoTestCase):
     def test__multiple_experiments__single_crystal__single_container__single_runlist(self):
         results = self._test(multiple_experiments=True)
         self.assertEqual(
-            [{'experiments': [{'crystals': [{'id': 1}], 'id': 1}, {'crystals': [{'id': 1}], 'id': 2}]}], 
+            [{'containers': {1: {'crystals': [1], 'id': 1}},
+              'crystals': {1: {'id': 1}},
+              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}, 
+                              {'crystals': [1], 'id': 2, 'best_crystal': None}]}], 
             results
         )
         
     def test__single_experiment__multiple_crystals__single_container__single_runlist(self):
         results = self._test(multiple_crystals=True)
         self.assertEqual(
-            [{'experiments': [{'crystals': [{'id': 1}, {'id': 2}], 'id': 1}]}], 
+            [{'containers': {1: {'crystals': [1, 2], 'id': 1}},
+              'crystals': {1: {'id': 1}, 2: {'id': 2}},
+              'experiments': [{'crystals': [1, 2], 'id': 1, 'best_crystal': None}]}], 
             results
         )
     
@@ -450,8 +455,12 @@ class DetailedRunlistTest(DjangoTestCase):
     def test__single_experiment__single_crystal__single_container__multiple_runlists(self):
         results = self._test(multiple_runlists=True)
         self.assertEqual(
-            [{'experiments': [{'crystals': [{'id': 1}], 'id': 1}]}, 
-             {'experiments': [{'crystals': [{'id': 1}], 'id': 1}]}], 
+            [{'containers': {1: {'crystals': [1], 'id': 1}},
+              'crystals': {1: {'id': 1}},
+              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}]},
+              {'containers': {1: {'crystals': [1], 'id': 1}},
+              'crystals': {1: {'id': 1}},
+              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}]}], 
             results
         )
     
@@ -460,7 +469,10 @@ class DetailedRunlistTest(DjangoTestCase):
     def test__multiple_experiments__multiple_crystals__single_container__single_runlist(self):
         results = self._test(multiple_experiments=True, multiple_crystals=True)
         self.assertEqual(
-            [{'experiments': [{'crystals': [{'id': 1}], 'id': 1}, {'crystals': [{'id': 2}], 'id': 2}]}], 
+            [{'containers': {1: {'crystals': [1, 2], 'id': 1}},
+              'crystals': {1: {'id': 1}, 2: {'id': 2}},
+              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}, 
+                              {'crystals': [2], 'id': 2, 'best_crystal': None}]}], 
             results
         )
     
@@ -470,23 +482,35 @@ class DetailedRunlistTest(DjangoTestCase):
     def test__multiple_experiments__single_crystal__single_container__multiple_runlists(self):
         results = self._test(multiple_experiments=True, multiple_runlists=True)
         self.assertEqual(
-            [{'experiments': [{'crystals': [{'id': 1}], 'id': 1}, {'crystals': [{'id': 1}], 'id': 2}]}, 
-             {'experiments': [{'crystals': [{'id': 1}], 'id': 1}, {'crystals': [{'id': 1}], 'id': 2}]}], 
+            [{'containers': {1: {'crystals': [1], 'id': 1}},
+              'crystals': {1: {'id': 1}},
+              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}, 
+                              {'crystals': [1], 'id': 2, 'best_crystal': None}]},
+             {'containers': {1: {'crystals': [1], 'id': 1}},
+              'crystals': {1: {'id': 1}},
+              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}, 
+                              {'crystals': [1], 'id': 2, 'best_crystal': None}]}], 
             results
         )
     
     def test__single_experiment__multiple_crystals__multiple_containers__single_runlist(self):
         results = self._test(multiple_crystals=True, multiple_containers=True)
         self.assertEqual(
-            [{'experiments': [{'crystals': [{'id': 1}, {'id': 2}], 'id': 1}]}], 
+            [{'containers': {1: {'crystals': [1], 'id': 1}, 2: {'crystals': [2], 'id': 2}},
+              'crystals': {1: {'id': 1}, 2: {'id': 2}},
+              'experiments': [{'crystals': [1,2], 'id': 1, 'best_crystal': None}]}], 
             results
         )
     
     def test__single_experiment__multiple_crystals__single_container__multiple_runlists(self):
         results = self._test(multiple_crystals=True, multiple_runlists=True)
         self.assertEqual(
-            [{'experiments': [{'crystals': [{'id': 1}, {'id': 2}], 'id': 1}]},
-             {'experiments': [{'crystals': [{'id': 1}, {'id': 2}], 'id': 1}]}], 
+            [{'containers': {1: {'crystals': [1, 2], 'id': 1}},
+              'crystals': {1: {'id': 1}, 2: {'id': 2}},
+              'experiments': [{'crystals': [1, 2], 'id': 1, 'best_crystal': None}]},
+             {'containers': {1: {'crystals': [1, 2], 'id': 1}},
+              'crystals': {1: {'id': 1}, 2: {'id': 2}},
+              'experiments': [{'crystals': [1, 2], 'id': 1, 'best_crystal': None}]}], 
             results
         )
     
@@ -498,15 +522,24 @@ class DetailedRunlistTest(DjangoTestCase):
     def test__multiple_experiments__multiple_crystals__mutiple_containers__single_runlist(self):
         results = self._test(multiple_experiments=True, multiple_crystals=True, multiple_containers=True)
         self.assertEqual(
-            [{'experiments': [{'crystals': [{'id': 1}], 'id': 1}, {'crystals': [{'id': 2}], 'id': 2}]}], 
+            [{'containers': {1: {'crystals': [1], 'id': 1}, 2: {'crystals': [2], 'id': 2}},
+              'crystals': {1: {'id': 1}, 2: {'id': 2}},
+              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}, 
+                              {'crystals': [2], 'id': 2, 'best_crystal': None}]}], 
             results
         )
     
     def test__multiple_experiments__multiple_crystals__single_container__multiple_runlists(self):
         results = self._test(multiple_experiments=True, multiple_crystals=True, multiple_runlists=True)
         self.assertEqual(
-            [{'experiments': [{'crystals': [{'id': 1}], 'id': 1}, {'crystals': [{'id': 2}], 'id': 2}]}, 
-             {'experiments': [{'crystals': [{'id': 1}], 'id': 1}, {'crystals': [{'id': 2}], 'id': 2}]}], 
+            [{'containers': {1: {'crystals': [1, 2], 'id': 1}},
+              'crystals': {1: {'id': 1}, 2: {'id': 2}},
+              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}, 
+                              {'crystals': [2], 'id': 2, 'best_crystal': None}]},
+             {'containers': {1: {'crystals': [1, 2], 'id': 1}},
+              'crystals': {1: {'id': 1}, 2: {'id': 2}},
+              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}, 
+                              {'crystals': [2], 'id': 2, 'best_crystal': None}]}], 
             results
         )
     
@@ -516,8 +549,12 @@ class DetailedRunlistTest(DjangoTestCase):
     def test__single_experiment__multiple_crystals__multiple_containers__multiple_runlists(self):
         results = self._test(multiple_crystals=True, multiple_containers=True, multiple_runlists=True)
         self.assertEqual(
-            [{'experiments': [{'crystals': [{'id': 1}], 'id': 1}]}, 
-             {'experiments': [{'crystals': [{'id': 2}], 'id': 1}]}], 
+            [{'containers': {1: {'crystals': [1], 'id': 1}},
+              'crystals': {1: {'id': 1}},
+              'experiments': [{'crystals': [1,2], 'id': 1, 'best_crystal': None}]},
+             {'containers': {2: {'crystals': [2], 'id': 2}},
+              'crystals': {2: {'id': 2}},
+              'experiments': [{'crystals': [1,2], 'id': 1, 'best_crystal': None}]}], 
             results
         )
         
@@ -526,8 +563,12 @@ class DetailedRunlistTest(DjangoTestCase):
     def test__multiple_experiments__multiple_crystals__multiple_containers__multiple_runlists(self):
         results = self._test(multiple_experiments=True, multiple_crystals=True, multiple_containers=True, multiple_runlists=True)
         self.assertEqual(
-            [{'experiments': [{'crystals': [{'id': 1}], 'id': 1}]}, 
-             {'experiments': [{'crystals': [{'id': 2}], 'id': 2}]}], 
+            [{'containers': {1: {'crystals': [1], 'id': 1}},
+              'crystals': {1: {'id': 1}},
+              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}]}, 
+             {'containers': {2: {'crystals': [2], 'id': 2}},
+              'crystals': {2: {'id': 2}},
+              'experiments': [{'crystals': [2], 'id': 2, 'best_crystal': None}]}], 
             results
         )
         
@@ -547,13 +588,19 @@ class DetailedRunlistTest(DjangoTestCase):
         request = self.get_request()
         
         response = detailed_runlist(request, self.runlist.pk)
-        self.assertEqual({'experiments': [{'crystals': [{'id': 1}, {'id': 2}], 'id': 1}]}, self._filter([response])[0])
+        self.assertEqual({'containers': {1: {'crystals': [1, 2], 'id': 1}},
+                          'crystals': {1: {'id': 1}, 2: {'id': 2}},
+                          'experiments': [{'crystals': [1,2], 'id': 1, 'best_crystal': None}]}, 
+                         self._filter([response])[0])
         
         self.experiment.plan = Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST
         self.experiment.save()
         
         response = detailed_runlist(request, self.runlist.pk)
-        self.assertEqual({'experiments': [{'crystals': [{'id': 1}, {'id': 2}], 'id': 1, 'best_crystal': {'id': 2}}]}, self._filter([response])[0])
+        self.assertEqual({'containers': {1: {'crystals': [1, 2], 'id': 1}},
+                          'crystals': {1: {'id': 1}, 2: {'id': 2}},
+                          'experiments': [{'crystals': [1,2], 'id': 1, 'best_crystal': 2}]}, 
+                         self._filter([response])[0])
         
     def test_best_crystal_in_another_runlist(self):
         self.set_up_default_runlist()
@@ -573,10 +620,16 @@ class DetailedRunlistTest(DjangoTestCase):
         request = self.get_request()
         
         response = detailed_runlist(request, self.runlist.pk)
-        self.assertEqual({'experiments': [{'crystals': [{'id': 1}], 'id': 1}]}, self._filter([response])[0])
+        self.assertEqual({'containers': {1: {'crystals': [1], 'id': 1}},
+                          'crystals': {1: {'id': 1}},
+                          'experiments': [{'crystals': [1,2], 'id': 1, 'best_crystal': None}]}, 
+                         self._filter([response])[0])
         
         self.experiment.plan = Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST
         self.experiment.save()
         
         response = detailed_runlist(request, self.runlist.pk)
-        self.assertEqual({'experiments': [{'crystals': [{'id': 1}], 'id': 1, 'best_crystal': {'id': 2}}]}, self._filter([response])[0])
+        self.assertEqual({'containers': {1: {'crystals': [1], 'id': 1}},
+                          'crystals': {1: {'id': 1}},
+                          'experiments': [{'crystals': [1,2], 'id': 1, 'best_crystal': 2}]}, 
+                         self._filter([response])[0])

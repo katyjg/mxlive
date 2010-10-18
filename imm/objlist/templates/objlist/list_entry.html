@@ -1,28 +1,35 @@
- <tr {% if link %}class="link-row"{% endif %} title="{{ object.comments|escape }}">
-    <td class="first" {% if link %} onclick="linkto('{{object.pk}}/');" {% endif %}> </td>
+ <tr {% if link %}
+        class="link-row {{ row_state }} droppable droppable-add"
+         {% if object.is_strategy_type %}
+            rel="../result/{{ object.pk }}/"
+         {% else %}
+            rel="{{ handler }}{{ object.pk }}/"
+         {% endif %}
+     {% endif %} 
+     accept="{{object.accept}}"
+     title="{{ object.comments|escape }}"
+     id="{{object.pk}}">
+    <td class="first"></td>
     {% if can_prioritize %}
-    <td class="link-no-pointer">
-        <img class="link-pointer" src="/img/up_arrow.gif" onclick="post_and_reload('container', '{{object.pk}}/up/')"/>
+    <td>
         {% if request.user.is_superuser %}
             {{ object.staff_priority }}
         {% else %}
             {{ object.priority }}
         {% endif %}
-        <img class="link-pointer" src="/img/down_arrow.gif" onclick="post_and_reload('container', '{{object.pk}}/down/')"/>
     </td>
     {% endif %}
     {% for field in fields %}
-    <td {% if link %}
-            {# Check if object is type Strategy, since Strategy's link to Result details (instead of Strategy details) #}
-            {% if object.is_strategy_type %}
-                onclick="linkto('../result/{{object.pk}}/');"
-            {% else %}
-                onclick="linkto('{{object.pk}}/');"
-            {% endif %}
-        {% endif %}>{{ field }}</td>
+        <td>{{ field }}</td>
     {% endfor %}
     {% if form %}
-    <td><input type="checkbox" name="{{object.get_form_field}}" value="{{object.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
+        <td><input type="checkbox" name="{{object.get_form_field}}" value="{{object.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
     {% endif %}
- </tr> 
+ </tr>
+<tr class='expander hidden'>
+    {# We add 2 because the priority field isn't included in fields|length, and there is a spacer at the beginning #}
+    <td colspan="{{ fields|length|add:"2" }}">
+        This should be replaced by an AJAX query when the tr.link-row is clicked
+    </td>
+</tr>
 

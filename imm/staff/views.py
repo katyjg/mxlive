@@ -42,6 +42,18 @@ def staff_home(request):
                               context_instance=RequestContext(request))
     
 @admin_login_required
+@manager_required
+def runlist_summary(request, model=ActivityLog):
+    log_set = [
+        ContentType.objects.get_for_model(Runlist).pk, 
+    ]
+    return render_to_response('staff/runlist.html',{
+        'logs': request.manager.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
+        'request': request,
+        },
+        context_instance=RequestContext(request))
+    
+@admin_login_required
 @transaction.commit_on_success
 def receive_shipment(request, model, form, template='objforms/form_base.html', action=None):
     """
@@ -137,7 +149,8 @@ def runlist_object_list(request, model, form, parent_model=None, link_field=None
                                          'can_upload': can_upload, 
                                          'can_receive': can_receive, 
                                          'can_prioritize': can_prioritize,
-                                         'instructions': instructions
+                                         'instructions': instructions,
+                                         'handler' : request.path
                                          },
         context_instance=RequestContext(request)
     )
