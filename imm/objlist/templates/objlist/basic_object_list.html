@@ -1,0 +1,4 @@
+{% for object in ol.object_list %}
+    {# object.name or object.label will be displayed, as no models have both a name and a label #}    
+    <li class="draggable-link-parent {{ type }}"><a href="{{ type }}/{{ object.id }}" class="{{ type }}">{{ object.name }}{{ object.label }}</a></li>
+{% endfor %}
