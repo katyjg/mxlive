@@ -275,8 +275,9 @@ def upload_shipment(request, model, form, template='lims/forms/new_base.html'):
             # to the user, rather than a 500 page
             try:
                 frm.save(request)
-                return HttpResponseRedirect(reverse('lims-shipment-list'))
-            
+                request.user.message_set.create(message = "The data was uploaded correctly.")
+                return render_to_response("lims/message.html", context_instance=RequestContext(request))
+
             except IntegrityError:
                 transaction.rollback()
                 frm.add_excel_error('This data has been uploaded already')
@@ -341,6 +342,7 @@ def add_existing_object(request, id, parent_model, model, field, additional_fiel
     type ``model`` to the related object of type `parent_model` identified by the 
     primary key ``id``.
     """
+    
     id = int(id)
     project = request.project
     try:
@@ -364,17 +366,20 @@ def add_existing_object(request, id, parent_model, model, field, additional_fiel
         frm['items'].field.queryset = queryset
         if frm.is_valid():
             changed = False
-            for item_id in request.POST.getlist('items'):
-                d = manager.get(pk=item_id)
-                setattr(d, field, parent)
-                for additional_field in additional_fields or []:
-                    setattr(d, additional_field, frm.cleaned_data[additional_field])
-                d.save()
-                changed = True
-            
+            if parent.is_editable():
+                for item_id in request.POST.getlist('items'):
+                    d = manager.get(pk=item_id)
+                    setattr(d, field, parent)
+                    for additional_field in additional_fields or []:
+                        setattr(d, additional_field, frm.cleaned_data[additional_field])
+                    d.save()
+                    changed = True
+                
             if changed:
                 parent.save()            
-            form_info['message'] = '%d %ss have been successfully added' % (len(request.POST.getlist('items')), object_type.lower())         
+                form_info['message'] = '%d %ss have been successfully added' % (len(request.POST.getlist('items')), object_type.lower())
+            else:
+                form_info['message'] = '%d %ss have not been added, as the destination is not editable' %  (len(request.POST.getlist('items')), object_type.lower())        
             ActivityLog.objects.log_activity(
                 project.pk,
                 request.user.pk, 
@@ -645,7 +650,7 @@ def change_priority(request, id,  model, action, field):
         setattr(obj, field, getattr(next_obj or obj, field) + delta)
         obj.save()
     
-    return render_to_response('lims/refresh.html')
+    return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
 
 @login_required
 @transaction.commit_on_success
@@ -700,7 +705,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
             # if an action ('send', 'close') is specified, the perform the action
             if action:
                 perform_action(obj, action, data=frm.cleaned_data)
-            form_info['message'] = '%s %s successfully modified' % ( model.__name__, obj.identity())
+            form_info['message'] = '%s %s %s successfully modified' % ( model.__name__, obj.__unicode__(), obj.identity())
             if hasattr(obj, 'project'):
                 ActivityLog.objects.log_activity(
                     obj.project.pk,
@@ -713,7 +718,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
                     form_info['message']
                     )
             request.user.message_set.create(message = form_info['message'])
-            return render_to_response('lims/refresh.html')
+            return render_to_response('lims/message.html', context_instance=RequestContext(request))
         else:
             return render_to_response(template, {
             'info': form_info, 
@@ -792,74 +797,74 @@ def remove_object(request, id, model, field):
             }, 
             context_instance=RequestContext(request))
         
+        
 @login_required
 @manager_required
 @transaction.commit_on_success
-def delete_object(request, id, model, redirect, orphan_models=None):
+def delete_object(request, id, model, form, template='objforms/form_base.html', orphan_models = None):
     """
-    A generic view which displays a confirmation form and if confirmed, will
-    delete the object of type ``model`` identified by primary key ``id``.
-    
-    After deletion, the browser is redirect to the named url ``redirect``.
-    
-    If supplied, all instances of ``orphan_models`` (which is a list of tuples 
-    of (Model, fk_field)) with a ForeignKey referencing ``model``/``id`` will have
-    fk_field set to None prior to deletion, thus avoiding the cascading delete.
+    A generic view which displays a form of type ``form`` using the template 
+    ``template``, for deleting an object of type ``model``, identified by primary 
+    key ``id``, which when submitted will delete the entry asynchronously through
+    AJAX.
     """
-    orphan_models = orphan_models or []
-    
     try:
-        obj = request.manager.get(id=id)
+        obj = request.manager.get(pk=id)
     except:
         raise Http404
-    object_type = model.__name__
+    
+    orphan_models = orphan_models or []
     
     form_info = {
-        'title': 'Delete %s?' % object_type.lower(),
-        'sub_title': 'The %s will be deleted.' % object_type.lower(),
+        'title': 'Delete %s?' % obj.__unicode__(),
+        'sub_title': 'The %s %s will be deleted' % ( model.__name__, obj.__unicode__()),
         'action':  request.path,
         'target': 'entry-scratchpad',
         'message': 'Are you sure you want to delete %s "%s"?' % (
-            object_type.lower(), 
-            str(obj)
-            )
+            model.__name__, obj.__unicode__()
+            ),
+        'save_label': 'Delete'
     }
     if request.method == 'POST':
-        if request.POST.has_key('_confirmed'):
-            str_obj = str(obj)
+        frm = form(request.POST, instance=obj)
+        if request.project:
+            frm.restrict_by('project', request.project.pk)
+        if request.POST.has_key('_save'):
             delete(model, id, orphan_models)
-            form_info['message'] = '%s "%s" deleted.' % (
-                object_type, 
-                str_obj
-                )
-            if request.project:
+            form_info['message'] = '%s %s successfully deleted' % ( model.__name__, obj.__unicode__())
+            if hasattr(obj, 'project'):
                 ActivityLog.objects.log_activity(
                     request.project.pk,
                     request.user.pk, 
                     request.META['REMOTE_ADDR'],
                     ContentType.objects.get_for_model(model).id,
                     obj.pk, 
-                    str_obj, 
+                    str(obj), 
                     ActivityLog.TYPE.DELETE,
                     form_info['message']
                     )
-            request.user.message_set.create(message = form_info['message'])            
-            return render_to_response('lims/redirect.html', {'redirect' : reverse(redirect)}, 
-                                      context_instance=RequestContext(request))
+            request.user.message_set.create(message = form_info['message'])
+            # messages are simply passed down to the template via the request context
+            return render_to_response("lims/message.html", context_instance=RequestContext(request))
         else:
-            return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
-    else:
-        return render_to_response('lims/forms/confirm_action.html', {
+            return render_to_response(template, {
             'info': form_info, 
-            'id': obj.pk,
-            'confirm_action': 'Delete %s' % object_type, 
-            }, 
-            context_instance=RequestContext(request))
-        
+            'form' : frm, 
+            })
+    else:
+        frm = form(instance=obj, initial=None) 
+        if request.project:
+            frm.restrict_by('project', request.project.pk)
+        return render_to_response(template, {
+        'info': form_info, 
+        'form' : frm, 
+        'save_label': 'Delete',
+        })
+
 @login_required
 @project_required
 @transaction.commit_on_success
-def close_object(request, id, model, redirect):
+def close_object(request, id, model, form, template="objforms/form_base.html"):
     """
     A generic view which displays a confirmation form and if confirmed, will
     archive the object of type ``model`` identified by primary key ``id``.
@@ -870,28 +875,30 @@ def close_object(request, id, model, redirect):
     """
     project = request.project
     try:
-        obj = model.objects.get(id=id)
+        obj = model.objects.get(pk=id)
     except:
         raise Http404
     object_type = model.__name__
     
+
     form_info = {
-        'title': 'Close %s?' % object_type.lower(),
-        'sub_title': 'The %s will be closed.' % object_type.lower(),
+        'title': 'Close %s?' % obj.__unicode__(),
+        'sub_title': 'The %s %s will be closed.' % (model.__name__, obj.__unicode__()),
         'action':  request.path,
         'target': 'entry-scratchpad',
         'message': 'Are you sure you want to close %s "%s"?' % (
-            object_type.lower(), 
-            str(obj)
-            )
+            model.__name__, 
+            obj.__unicode__()
+            ),
+        'save_label': 'Close'
     }
     if request.method == 'POST':
-        if request.POST.has_key('_confirmed'):
+        if request.POST.has_key('_save'):
             str_obj = str(obj)
             archive(model, id)
             form_info['message'] = '%s "%s" closed.' % (
-                object_type, 
-                str_obj
+                model.__name__, 
+                obj.__unicode__()
                 )
             ActivityLog.objects.log_activity(
                 project.pk,
@@ -899,22 +906,24 @@ def close_object(request, id, model, redirect):
                 request.META['REMOTE_ADDR'],
                 ContentType.objects.get_for_model(model).id,
                 obj.pk, 
-                str_obj, 
+                obj.__unicode__(), 
                 ActivityLog.TYPE.ARCHIVE,
                 form_info['message']
                 )
-            request.user.message_set.create(message = form_info['message'])            
-            return render_to_response('lims/redirect.html', {'redirect' : reverse(redirect)},
-                                      context_instance=RequestContext(request))
+            request.user.message_set.create(message = form_info['message'])   
+            return render_to_response("lims/message.html", context_instance=RequestContext(request))         
+            
         else:
             return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
     else:
-        return render_to_response('lims/forms/confirm_action.html', {
-            'info': form_info, 
-            'id': obj.pk,
-            'confirm_action': 'Close %s' % object_type, 
-            }, 
-            context_instance=RequestContext(request))
+        frm = form(instance=obj, initial=None) 
+        if request.project:
+            frm.restrict_by('project', request.project.pk)
+        return render_to_response(template, {
+        'info': form_info, 
+        'form' : frm, 
+        'save_label': 'Delete',
+        })
         
 @login_required
 @project_required

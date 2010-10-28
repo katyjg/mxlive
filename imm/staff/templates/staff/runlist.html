@@ -2,22 +2,5 @@
 
 {% block content %}
     <h2>Run Lists</h2>
-    <div class="content-list" id="runlist-list">
-        {% comment %}
-            The content for this div is loaded via ajax in the script block below.
-        {% endcomment %}
-    </div>
-{% endblock %}
-
-{% block script %}
-{{ block.super }}
-    <script>
-    jQuery(function() {
-        jQuery("#runlist-list").load("{% url staff-runlist-list %}{% if request.META.QUERY_STRING %}?{{request.META.QUERY_STRING}}{% endif %}", function() {});
-    });
-    jQuery("#content").delegate("#runlist-list .add-tool", "click", function() {
-        jQuery("#runlist-list").load("{% url staff-runlist-new %}", function() {});
-        return false;
-    });
-    </script>
+    <div class="content-list datalist" id="runlist-list" data="{% url staff-runlist-list %}{% if request.META.QUERY_STRING %}?{{request.META.QUERY_STRING}}{% endif %}"></div>
 {% endblock %}

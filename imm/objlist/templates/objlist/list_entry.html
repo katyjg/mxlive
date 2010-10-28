@@ -26,7 +26,7 @@
         <td><input type="checkbox" name="{{object.get_form_field}}" value="{{object.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
     {% endif %}
  </tr>
-<tr class='expander hidden'>
+<tr id="{{object.pk}}" accept="{{object.accept}}" class='expander hidden droppable droppable-add' rel="{{ handler }}{{ object.pk }}/">
     {# We add 2 because the priority field isn't included in fields|length, and there is a spacer at the beginning #}
     <td colspan="{{ fields|length|add:"2" }}">
         This should be replaced by an AJAX query when the tr.link-row is clicked

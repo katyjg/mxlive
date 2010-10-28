@@ -20,6 +20,14 @@ class ShipmentForm(objforms.forms.OrderedForm):
         model = Shipment
         fields = ('project','label','comments',)
         
+class ShipmentDeleteForm(objforms.forms.OrderedForm):
+    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
+    #label = forms.CharField(widget=objforms.widgets.LargeInput, help_text='Delete'  )
+    class Meta:
+        model = Shipment
+        fields = ('project',)
+    
+        
 class ShipmentUploadForm(forms.Form):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     excel = forms.Field(widget=forms.FileInput)

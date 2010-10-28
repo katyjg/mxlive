@@ -1,14 +1,8 @@
 {% extends "base.html" %}
 
-{% comment %}
-{% block nav-sub %}
-    {% include "lims/shipping_navs.html" %}
-{% endblock %}
-{% endcomment %}
-
 {% block content %}
     <h2>Shipping</h2>
-    <div class="content-list" id="shipments-list">
+    <div class="content-list datalist" id="shipments-list" data="{% url lims-shipment-list %}">
         {% comment %}
             The content for this div is loaded via ajax in the script block below.
         {% endcomment %}
@@ -19,35 +13,28 @@
 {% endblock %}
 
 {% block sidebar %}
-    <div id="dewars" class="widget droppable droppable-remove" accept="dewar">
-        <h3>Dewars</h3>
-        <ul>
-            <li><a href="#">Content Not Loaded.</a></li>
-        </ul>
-        <a href="{% url lims-dewar-new %}" class="action add modal" rel="#add-dewar">add dewar</a>
-    </div>
-    <div id="containers" class="widget droppable droppable-remove" accept="container">
-        <h3>Containers</h3>
-        <ul>
-            <li><a href="#">Content Not Loaded.</a></li>
-        </ul>
-        <a href="{% url lims-container-new %}" class="action add modal" rel="#add-container">add container</a>
-    </div>
-    <div id="crystals" class="widget droppable droppable-remove" accept="crystal">
-        <h3>Crystals</h3>
-        <ul>
-            <li><a href="#">Content Not Loaded.</a></li>
-        </ul>
-        <a href="{% url lims-crystal-new %}" class="action add modal" rel="#add-crystal">add crystal</a>
-    </div>
+    {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
+        <div id="dewars" class="widget droppable droppable-remove" accept="dewar" data="{% url lims-dewar-basic-list %}?shipment__isnull=True">
+            <h3>Dewars</h3>
+            <ul>
+                <li><a href="#">Content Not Loaded.</a></li>
+            </ul>
+            <a href="{% url lims-dewar-new %}" class="action add modal" rel="#add-dewar">add dewar</a>
+        </div>
+        <div id="containers" class="widget droppable droppable-remove" accept="container" data="{% url lims-container-basic-list %}?dewar__isnull=True">
+            <h3>Containers</h3>
+            <ul>
+                <li><a href="#">Content Not Loaded.</a></li>
+            </ul>
+            <a href="{% url lims-container-new %}" class="action add modal" rel="#add-container">add container</a>
+        </div>
+        <div id="crystals" class="widget droppable droppable-remove" accept="crystal" data="{% url lims-crystal-basic-list %}?container__isnull=True">
+            <h3>Crystals</h3>
+            <ul>
+                <li><a href="#">Content Not Loaded.</a></li>
+            </ul>
+            <a href="{% url lims-crystal-new %}" class="action add modal" rel="#add-crystal">add crystal</a>
+        </div>
+    {% endif %}
     {{ block.super }}
-{% endblock %}
-
-{% block script %}
-{{ block.super }}
-    <script>
-    jQuery(function() {
-        jQuery("#shipments-list").load("{% url lims-shipment-list %}{% if request.META.QUERY_STRING %}?{{request.META.QUERY_STRING}}{% endif %}", function() {});
-    });
-    </script>
 {% endblock %}

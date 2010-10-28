@@ -98,7 +98,20 @@
                 if(status === "success") {
                     $modal.lightbox_me({
                         centered: true,
-                        destroyOnClose: false
+                        destroyOnClose: false,
+                        overlaySpeed: "fast",
+                        overlayDisappearSpeed: "fast",
+                        lightboxSpeed: "fast",
+                        lightboxdisappearSpeed: "fast",
+                        onLoad: function() {
+                            // FIXME: find a better place for this
+                            jQuery(".slideview").slideView();
+                        },
+                        onClose: function() {
+                            // reload the relevant forms that have been updated
+                            loadWidgets();
+                            loadDatalists();
+                        }
                     });
                 }
             });
@@ -131,7 +144,7 @@
         });
 
         // handle filters and column headings
-        jQuery("a.filter, a.header").click(function() {
+        jQuery("a.filter, a.header, div.pagination a").click(function() {
             var $a = jQuery(this);
             var contentURL = $a.attr("href");
             $a.parents(".content-list").load(contentURL, function() {});

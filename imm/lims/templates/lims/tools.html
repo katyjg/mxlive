@@ -3,27 +3,27 @@
     note: this file defines tools for both staff and users
 {% endcomment %}
 
-<div id="recieve-shipment" class="hidden modal-content"></div>
-<div id="return-shipment" class="hidden modal-content"></div>
-<div id="send-shipment" class="hidden modal-content"></div>
-<div id="close-shipment" class="hidden modal-content"></div>
-<div id="clone-shipment" class="hidden modal-content"></div>
-<div id="edit-shipment" class="hidden modal-content"></div>
-<div id="delete-shipment" class="hidden modal-content"></div>
+<div id="receive-object" class="hidden modal-content"></div>
+<div id="return-object" class="hidden modal-content"></div>
+<div id="send-object" class="hidden modal-content"></div>
+<div id="close-object" class="hidden modal-content"></div>
+<div id="clone-object" class="hidden modal-content"></div>
+<div id="edit-object" class="hidden modal-content"></div>
+<div id="delete-object" class="hidden modal-content"></div>
 
 <ul class="tools">
     {# STAFF TOOLS #}
     {% if request.user.is_superuser %}
         {% if object.is_receivable %}
             <li>
-                <a href="{{ handler }}receive/?title=Recieve%20Shipment&tracking_code=" rel="#recieve-shipment" class="action modal edit-tool">
+                <a href="{{ handler }}receive/?title=Recieve%20Shipment&tracking_code=" rel="#receive-object" class="action modal edit-tool">
                     Receive
                 </a>
             </li>
         {% endif %}
         {% if object.is_returnable %}
             <li>
-                <a href="{{handler}}return/?title=Return%20Shipment" rel="#return-shipment" class="action modal edit-tool">
+                <a href="{{handler}}return/?title=Return%20Shipment" rel="#return-object" class="action modal edit-tool">
                     Return
                 </a>
             </li>
@@ -32,7 +32,7 @@
     {% else %}
         {% if object.is_sendable %}
             <li>
-                <a href="{{handler}}send/?title=Send%20Shipment" rel="#send-shipment" class="action modal send-tool">
+                <a href="{{handler}}send/?title=Send%20Shipment" rel="#send-object" class="action modal send-tool">
                     Send
                 </a>
             </li>
@@ -53,7 +53,7 @@
         {% endif %}
         {% if object.is_closable %}
             <li>
-                <a href="{{handler}}close/" rel="#close-shipment" class="action modal close-tool">
+                <a href="{{handler}}close/" rel="#close-object" class="action modal close-tool">
                     Close
                 </a>
             </li>
@@ -67,14 +67,14 @@
         {% endcomment %}
         {% if object.is_editable %}
             <li>
-                <a href="{{ handler }}edit/" rel="#edit-shipment" class="action modal edit-tool">
+                <a href="{{ handler }}edit/" rel="#edit-object" class="action modal edit-tool">
                     Edit
                 </a>
             </li>
         {% endif %}
         {% if object.is_deletable %}
             <li>
-                <a href="{{ handler }}delete/" rel="#delete-shipment" class="action modal delete-tool">
+                <a href="{{ handler }}delete/" rel="#delete-object" class="action modal delete-tool">
                     Delete
                 </a>
             </li>

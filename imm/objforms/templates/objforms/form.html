@@ -2,11 +2,7 @@
         method="post"
         id="lims-form" 
         class="objform ajax"
-{% if target %}
-        action='javascript:post_and_load("{{target}}", "{{action}}", "lims-form");'
-{% else %}
         action='{{action}}'
-{% endif %}
 {% if enctype %}
         enctype='{{enctype}}'
 {% endif %}

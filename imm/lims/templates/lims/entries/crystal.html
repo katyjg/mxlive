@@ -15,7 +15,7 @@
 
 {% if object.cocktail %}
     <ul class="treeview">
-        <li class="cocktail draggable-link-parent">
+        <li class="cocktail draggable-link-parent droppable droppable-add" accept="constituent" rel="{% url lims-cocktail-detail object.cocktail.id %}">
             <a class="cocktail" href="{% url lims-cocktail-detail object.cocktail.id %}">{{object.cocktail.name}} ({{ object.cocktail.identity }})</a>
         </li>
     </ul>
@@ -35,8 +35,3 @@
 {% else %}
     (No Crystal Form assigned to this Crystal).
 {% endif %}
-
-{% comment %}
-    {% include "lims/entries/associated_experiments.html" %}
-    {% include "lims/entries/crystal_treeview.html" %}
-{% endcomment %}

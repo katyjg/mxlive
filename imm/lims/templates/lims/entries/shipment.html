@@ -44,7 +44,7 @@
         {% if dewars.count %}
             <ul class="treeview">
                 {% for dewar in dewars.all %}
-                <li class="dewar draggable-link-parent">
+                <li class="dewar draggable-link-parent droppable droppable-add" accept="container" rel="{% url lims-dewar-detail dewar.id %}">
                     <a class="dewar"  href="{% url lims-dewar-detail dewar.id %}">{{ dewar.label }} ({{ dewar.identity }})</a>
                 </li>
                 {% endfor %}
@@ -55,8 +55,3 @@
     {% endwith %}
 
 {% endwith %}
-
-{% comment %}
-    {% include "lims/entries/associated_dewars.html" %}
-    {% include "lims/entries/shipment_treeview.html" %}
-{% endcomment %}

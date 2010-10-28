@@ -9,15 +9,18 @@
 {% block content %}
     <h2>Experiments</h2>
 
-    <div class="content-list" id="experiments-list">
+    <div class="content-list datalist requires-dragdrop" id="experiments-list" data="{% url lims-experiment-list %}{% if request.META.QUERY_STRING %}?{{request.META.QUERY_STRING}}{% endif %}">
         {% comment %}
             The content for this div is loaded via ajax in the script block below.
         {% endcomment %}
     </div>
+    
+    <div id="add-crystal" class="hidden modal-content"></div>
+    
 {% endblock %}
 
 {% block sidebar %}
-    <div id="crystals" class="widget droppable droppable-remove" accept="crystal">
+    <div id="crystals" class="widget droppable droppable-remove" accept="crystal" data="{% url lims-crystal-basic-list %}">
         <h3>Crystals</h3>
         <ul>
             <li><a href="#">Content Not Loaded.</a></li>
@@ -25,16 +28,5 @@
         <a href="{% url lims-crystal-new %}" class="action add modal" rel="#add-crystal">add crystal</a>
     </div>
     {{ block.super }}
-{% endblock %}
-
-{% block script %}
-{{ block.super }}
-    <script>
-        jQuery(function() {
-            jQuery("#experiments-list").load("{% url lims-experiment-list %}{% if request.META.QUERY_STRING %}?{{request.META.QUERY_STRING}}{% endif %}", function() {
-                setupTableDragAndDrop("#experiments-list", "{% url lims-experiment-list %}");
-            });
-        });
-    </script>
 {% endblock %}
 

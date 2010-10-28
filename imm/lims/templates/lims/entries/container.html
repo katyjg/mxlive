@@ -12,10 +12,17 @@
 <img src="/img/container-{{object.get_kind_display|lower}}.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
 {% endcomment %}
 
-{% if object.crystal_set.all %}
-    {% for crystal in object.crystal_set.all %}
-        <li><a href="{% url lims-crystal-detail crystal.id %}">{{ crystal.name }} ({{ crystal.identity }})</a></li>
-    {% endfor %}
-{% else %}
-    (No crystals have been assigned to this Container).
-{% endif %}
+{% for loc, crystal in object.location_and_crystal %}
+    {% if crystal %}
+    <li class="crystal draggable-link-parent">
+        <a href="{% url lims-crystal-detail crystal.id %}">{{ crystal.name }} ({{ crystal.identity }}) - {{ loc }}</a>
+    </li>
+    {% else %}
+    <li class="container droppable droppable-add" 
+        accept="crystal" 
+        parent="{{ object.id }}"
+        rel="{% url lims-container-detail object.id %}"
+        container_location="{{ loc }}">{{ loc }}</li>
+    {% endif %}
+{% endfor %}
+

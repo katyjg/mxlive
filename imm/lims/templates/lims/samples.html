@@ -2,7 +2,7 @@
 
 {% block content %}
     <h2>Crystals</h2>
-    <div class="content-list" id="crystals-list">
+    <div class="content-list datalist requires-dragdrop" id="crystals-list" data="{% url lims-crystal-list %}">
         {% comment %}
             The content for this div is loaded via ajax in the script block below.
         {% endcomment %}
@@ -13,21 +13,21 @@
 {% endblock %}
 
 {% block sidebar %}
-    <div id="cocktails" class="widget">
+    <div id="cocktails" class="widget droppable droppable-remove" accept="cocktail" data="{% url lims-cocktail-basic-list %}">
         <h3>Cocktails</h3>
         <ul>
             <li><a href="#">Content Not Loaded.</a></li>
         </ul>
         <a href="{% url lims-cocktail-new %}" rel="#add-cocktail" class="action add modal">add cocktail</a>
     </div>
-    <div id="constituents" class="widget">
+    <div id="constituents" class="widget droppable droppable-remove" accept="constituent" data="{% url lims-constituent-basic-list %}">
         <h3>Constituents</h3>
         <ul>
             <li><a href="#">Content Not Loaded.</a></li>
         </ul>
         <a href="{% url lims-constituent-new %}" rel="#add-constituent" class="action add modal">add constituent</a>
     </div>
-    <div id="crystalforms" class="widget">
+    <div id="crystalforms" class="widget droppable droppable-remove" accept="crystal_form" data="{% url lims-crystalform-basic-list %}">
         <h3>Crystal Forms</h3>
         <ul>
             <li><a href="#">Content Not Loaded.</a></li>
@@ -35,19 +35,4 @@
         <a href="{% url lims-crystalform-new %}" rel="#add-crystalform" class="action add modal">add crystal form</a>
     </div>
    {{ block.super }}
-{% endblock %}
-
-{% block script %}
-{{ block.super }}
-    <script>
-        // Loading Content for this Page
-        jQuery(function() {
-            // Main Content
-            jQuery("#crystals-list").load("{% url lims-crystal-list %}", function() {});
-            // Sidebar
-            jQuery("#cocktails.widget ul").load("{% url lims-cocktail-basic-list %}", function() {});
-            jQuery("#constituents.widget ul").load("{% url lims-constituent-basic-list %}", function() {});
-            jQuery("#crystalforms.widget ul").load("{% url lims-crystalform-basic-list %}", function() {});
-        });
-    </script>
 {% endblock %}

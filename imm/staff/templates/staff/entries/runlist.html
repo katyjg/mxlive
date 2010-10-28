@@ -1,43 +1,32 @@
-{% extends "lims/entries/entry_base.html" %}
 {% load humanize %}
 
-{% block title %} Runlist {{ runlist.identity }}{% endblock %}
+{% include "staff/tools.html" %}
 
-{% block entry-toolbox %}
-{% endblock %}
-{% block entry-toolbox-defaults %}
-    {% if object.is_loadable %}
-        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/load/', 'title=Load Run List');" class="edit-tool">Load</span>
-    {% endif %}
-    {% if object.is_unloadable %}
-        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/unload/', 'title=Unload');" class="edit-tool">Unload</span>
-    {% endif %}
-    {% if object.is_acceptable %}
-        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/accept/', 'title=Accept Run List');" class="edit-tool">Accept</span>
-    {% endif %}
-    {% if object.is_rejectable %}
-        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/reject/', 'title=Reject Run List');" class="edit-tool">Reject</span>
-    {% endif %}
-    {% if object.is_editable %}
-        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
-    {% endif %}
-    {% if object.is_deletable %}
-        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/delete/', '');" class="delete-tool">Delete</span>
-    {% endif %}
-{% endblock %}
+{% with object as runlist %}
 
-{% block entry-summary%}
-{% include "staff/entries/runlist_summary.html" %}
-{% endblock %}
+    <h3>{{ runlist.name }}</h3>
+    <img src="/img/runlist.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/>
 
-{% block entry-info %}
-{# include "staff/entries/runlist_info.html" #}
-{% endblock %}
+    <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
+        <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
+        <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
+    </table>
+    <div style="clear: both;"></div>
 
-{% block entry-contents %}
-{% include "staff/entries/runlist_containers.html" %}
-{% endblock %}
+    <h3>Containers</h3>
+    {% with runlist.container_set as containers %}
+        {% if containers.count %}
+            <ul class="treeview">
+                {% for container in containers %}
+                    <li class="container" rel="{% url lims-container-detail container.id %}">
+                        <a class="container" href="{% url lims-container-detail container.id %}">
+                            {{ container.label }} {{ container.identity }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
 
-{% block entry-scratchpad %}
-{% include "staff/entries/runlist_treeview.html" %}
-{% endblock %}
+{% endwith %}
+

@@ -40,7 +40,10 @@
     {% endcomment %}
     {% if dewar.container_set.count %}
         {% for container in dewar.container_set.all %}
-            <li><a href="{% url lims-container-detail container.id %}">{{ container.label }} ({{ container.identity }})</a></li>
+            <li class="container draggable-link-parent" 
+                rel="{% url lims-container-detail container.id %}">
+                <a href="{% url lims-container-detail container.id %}">{{ container.label }} ({{ container.identity }})</a>
+            </li>
         {% endfor %}
     {% else %}
         (No containers are assigned to this Dewar).

@@ -1,5 +1,7 @@
 {% load zip %}
 
+<div id="view-images" class="hidden modal-content"></div>
+
 <div id="result-page">
     <div id="result-title" class="floatleft size60">
     {% ifequal object.kind object.RESULT_TYPES.SCREENING %}
@@ -14,6 +16,7 @@
             <li>Crystal: &nbsp;<a href={% url lims-crystal-detail object.crystal.id %}>{{object.crystal}}</a></li>
             <li>Experiment: &nbsp;<a href={% url lims-experiment-detail object.experiment.id %}>{{object.crystal}}</a></li>
             <li>Dataset: &nbsp;<a href={% url lims-dataset-detail object.data.id %}>{{object.data}}</a></li>
+            <li>Images: &nbsp;<a class="modal" rel="#view-images"  href="{{ object.data.url }}/{{ object.data.id }}">view images</a></li>
         </ul>
     </div>
 

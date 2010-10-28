@@ -232,6 +232,11 @@ class Constituent(models.Model):
         
     def identity(self):
         return 'CO%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    
+    def _cocktail(self, cocktail):
+        self.cocktail_set.add(cocktail)
+    
+    cocktail = property(None, _cocktail)
         
 class Carrier(models.Model):
     name = models.CharField(max_length=60)
@@ -621,6 +626,16 @@ class Container(models.Model):
     def location_is_available(self, loc, id=None):
         occupied_positions = [xtl.container_location for xtl in self.crystal_set.all().exclude(pk=id) ]
         return loc not in occupied_positions
+    
+    def location_and_crystal(self):
+        retval = []
+        for location in self.valid_locations():
+            xtl = None
+            for crystal in self.crystal_set.all():
+                if crystal.container_location == location:
+                    xtl = crystal
+            retval.append((location, xtl))
+        return retval
         
     def __unicode__(self):
         return self.label
@@ -1009,6 +1024,18 @@ class Data(models.Model):
         
     class Meta:
         verbose_name_plural = 'Datasets'
+        
+    def thumbUrls(self):
+        urls = []
+        for i in range(self.num_frames):
+            urls.append("%s/%s/images/frame_thumb.png" % (self.url, self.pk))
+        return urls
+    
+    def mediumUrls(self):
+        urls = []
+        for i in range(self.num_frames):
+            urls.append("%s/%s/images/frame_medium.png" % (self.url, self.pk))
+        return urls
    
 
 class Result(models.Model):

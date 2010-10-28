@@ -10,18 +10,13 @@
 <form 
         method="post"
         id="lims-form" 
-        class="wufoo"
-{% if info.target %}
-        action='javascript:post_and_load("{{info.target}}", "{{info.action}}", "lims-form");'
-{% else %}
-        action='{{info.action}}'
-{% endif %}    
+        class="objform ajax"
+        action='{{info.action}}'  
 >{% csrf_token %}
 <ul>
 <li><input id="id_id" type="hidden" value="{{id}}" name="id"/></li>
 <li class="submit-row">
-<input id='cancel_btn' type="submit" value="Cancel" name="_cancel" onclick="$('submit_btn').disable();"/>
-<input id='submit_btn' type="submit" value="{{confirm_action}}" name="_confirmed" onclick="$('cancel_btn').disable();" /></li>
+<input id='submit_btn' type="submit" value="{{confirm_action}}" name="_confirmed" /></li>
 </ul>
 </form>
 <img src="/img/blank.png" width=1 height=1 onload="init_form('lims-form'); " />
