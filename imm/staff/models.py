@@ -37,6 +37,8 @@ class Runlist(models.Model):
     priority = models.IntegerField(default=0)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+    comments = models.TextField(blank=True, null=True)
+    experiments = models.ManyToManyField(Experiment)
     
     def identity(self):
         return self.name
@@ -49,12 +51,11 @@ class Runlist(models.Model):
         return_value = []
         for container in self.containers.all():
             for crystal in container.crystal_set.all():
-                for experiment in crystal.experiment_set.all():
-                    if experiment not in return_value:
-                        return_value.append(experiment)
+                if crystal.experiment not in return_value:
+                    return_value.append(crystal.experiment)
         return return_value
     
-    experiments = property(get_experiments)
+   # experiments = property(get_experiments)
     
     def container_list(self):
         containers = [c.label for c in self.containers.all()]
@@ -67,6 +68,9 @@ class Runlist(models.Model):
     
     def is_deletable(self):
         return True
+    
+    def is_editable(self):
+        return self.status == self.STATES.PENDING
     
     def is_loadable(self):
         return self.status == self.STATES.PENDING

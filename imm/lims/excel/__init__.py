@@ -450,8 +450,10 @@ class LimsWorkbook(object):
                 self.log_activity(crystal, request)
                 if crystal.tmp_experiment:
                     # update the Experiment<->Crystal mapping
-                    crystal.tmp_experiment.crystals.add(crystal)
-                    crystal.tmp_experiment.save()
+                    crystal.experiment = crystal.tmp_experiment
+                    crystal.save()
+#                    crystal.tmp_experiment.crystals.add(crystal)
+#                    crystal.tmp_experiment.save()
                     
                     # manage the Crystal/CrystalForm relationship
                     if self.crystal_forms.has_key(crystal.tmp_experiment.name):
@@ -570,7 +572,7 @@ class LimsWorkbookExport(object):
                 row.write(CRYSTAL_BARCODE, crystal.code)
                 
             if crystal.num_experiments() > 0:
-                experiment = crystal.experiment_set.all()[0]
+                experiment = crystal.experiment
                 if experiment.name:
                     row.write(CRYSTAL_EXPERIMENT, experiment.name)
                     

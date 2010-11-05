@@ -49,7 +49,9 @@ urlpatterns = patterns('imm.lims.views',
     (r'^samples/crystal/basic/$', 'basic_object_list', {'model': Crystal, 'template': 'objlist/basic_object_list.html', }, 'lims-crystal-basic-list'),
     (r'^samples/crystal/(?P<id>\d+)/$', 'object_detail', {'model': Crystal, 'template': 'lims/entries/crystal.html'}, 'lims-crystal-detail'),
     (r'^samples/crystal/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Crystal, 'form': SampleForm, 'template': 'objforms/form_base.html'}, 'lims-crystal-edit'),
+    # this url removes a crystal from a container. 
     (r'^samples/crystal/(?P<id>\d+)/remove/$', 'remove_object', {'model': Crystal, 'field':'container'}, 'lims-crystal-remove'),
+    
     (r'^samples/crystal/(?P<id>\d+)/delete/$', 'delete_object', {'model': Crystal, 'redirect' : 'lims-crystal-list', 'orphan_models' : []}, 'lims-crystal-delete'),
     (r'^samples/crystal/new/$',  'create_object', {'model': Crystal, 'form': SampleForm, 'template': 'objforms/form_base.html'}, 'lims-crystal-new'),
     #(r'^samples/crystal/delete/(?P<id>\d+)/$', 'delete_crystal'),
@@ -79,7 +81,7 @@ urlpatterns = patterns('imm.lims.views',
 
     (r'^experiment/$', 'experiment_summary', {'model': ActivityLog}, 'lims-experiment-summary'),
     (r'^experiment/request/$', 'object_list', {'model': Experiment, 'template': 'objlist/object_list.html', 'can_add': True, 'can_prioritize': True}, 'lims-experiment-list'),
-    (r'^experiment/request/(?P<id>\d+)/$', 'object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html'} , 'lims-experiment-detail'),
+    (r'^experiment/request/(?P<id>\d+)/$', 'experiment_object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html'} , 'lims-experiment-detail'),
     (r'^experiment/request/(?P<id>\d+)/edit/$','edit_object_inline', {'model': Experiment, 'form': ExperimentForm, 'template': 'objforms/form_base.html'}, 'lims-experiment-edit'),
     (r'^experiment/request/new/$', 'create_object', {'model': Experiment, 'form': ExperimentForm, 'template': 'objforms/form_base.html'}, 'lims-experiment-new'),
     (r'^experiment/request/(?P<id>\d+)/up/$', 'change_priority', {'model': Experiment, 'action': 'up', 'field': 'priority'}, 'lims-experiment-up'),

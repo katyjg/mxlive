@@ -5,14 +5,20 @@
 {% include "lims/tools.html" %}
 
 <h3>{{ object.name }} ({{ object.identity }})</h3>
+{% if object.comments %}
+	<div>{{object.comments}}</div>
+{% endif %}
 <img src="/img/constituent.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
 
 <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
-    <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
-    <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
-    <tr valign="top"><th>Type:</th><td>{{object.get_kind_display}}</td></tr>
-    <tr valign="top"><th>Plan:</th><td>{{object.get_plan_display}}</td></tr>
-    <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
+	<tr valign="top"><th>Desired Resolution:</th><td>{{object.resolution}}</td></tr>
+	<tr valign="top"><th>Delta Angle:</th><td>{{object.delta_angle}}</td></tr>
+	<tr valign="top"><th>Multiplicity:</th><td>{{object.multiplicity}}</td></tr>
+	<tr valign="top"><th>Angle Range:</th><td>{{object.delta_angle}}</td></tr>
+	<tr valign="top"><th>I/Sigma:</th><td>{{object.i_sigma}}</td></tr>
+	<tr valign="top"><th>Desired R-factor:</th><td>{{object.r_meas}}</td></tr>
+	<tr valign="top"><th>Energy:</th><td>{{object.energy}}</td></tr>
+	<tr valign="top"><th>Absorption Edge:</th><td>{{object.absorption_edge}}</td></tr>
 </table>
 
 <h3>Associated Crystals</h3>
@@ -30,38 +36,57 @@
     (No crystals have been associated with this experiment).
 {% endif %}
 
-<h3>Experiment Results</h3>
+<h3>Datasets</h3>
+<!-- load Data objects with project and experiment id matches -->
+	<table style="width: 100%;">
+		<tr>
+			<th></th>
+			<th>Id</th>
+			<th>Name</th>
+			<th>Crystal</th>
+			<th>Frames</th>
+			<th>Total Angle</th>
+			<th>Result</th>
+		</tr>	
+		<!-- TODO: Don't like this implementation. Should use filter instead -->
+		{% for data in datasets %}
+			<tr class="{% cycle 'odd' 'even' %} link-row">
+				<td class="first"></td>
+				<td>{{ data.id }}</td>
+				<td>{{ data.name }}</td>
+				<td>{{ data.crystal }}</td>
+				<td>{{ data.num_frames }}</td>
+				<td>{{ data.delta_angle }}</td>
+				<td></td>
+			</tr>
+		{% endfor %}
+	</table>
 
-{% if object.crystals %}
+
+
+<h3>Experiment Results</h3>
+<!-- load Result objects with project and experiment id matches -->
+
     <table style="width: 100%;">
         <tr>
             <th></th>
+            <th>Id</th>
             <th>Name</th>
             <th>Crystal</th>
-            <th>Number of Result Sets</th>
+            <th>Score</th>
+            <th>Result</th>
+            <th>R-Factor</th>
         </tr>
-        {% for crystal in object.crystals.all %}
-            {% if crystal.result_set.all.count %}
-                <tr class="{% cycle 'odd' 'even' %} link-row">
-                    <td class="first"></td>
-                    <td>{{ crystal.name }}</td>
-                    <td>{{ crystal.identity }}</td>
-                    <td>{{ crystal.result_set.all.count }}</td>
-                </tr>
-                {% with crystal.result_set.all as results %}
-                    <tr class="expander hidden static">
-                        <td colspan="4">
-                            <ul class="reports">
-                                {% for result in results %}
-                                    <li>
-                                        <a rel="#view-report" class="modal" href="{% url lims-result-detail result.id %}">{{ result.name }}</a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        </td>
-                    </tr>
-                {% endwith %}
-            {% endif %}
+        <!-- TODO: Don't like this implementation. Should use filter instead -->
+        {% for result in results %}
+			<tr class="{% cycle 'odd' 'even' %} link-row">
+				<td class="first"></td>
+				<td>{{ result.id }}</td>
+				<td>{{ result.name }}</td>
+				<td>{{ result.crystal }}</td>
+				<td>{{ result.score }}</td>
+				<td></td>
+				<td></td>
+			</tr>
         {% endfor %}
     </table>
-{% endif %}

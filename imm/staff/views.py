@@ -175,7 +175,9 @@ def runlist_create_object(request, model, form, template='lims/forms/new_base.ht
         frm = form(request.POST)
         if frm.is_valid():
             new_obj = frm.save()
-            return HttpResponseRedirect(request.path+'../../%s/' % new_obj.pk)
+            request.user.message_set.create(message = 'New Runlist created.')
+            return render_to_response('lims/message.html', context_instance=RequestContext(request))
+            #return HttpResponseRedirect(request.path+'../../%s/' % new_obj.pk)
         
     else:
         # pull args like foo=1&foo=2  (singular) and insert them into the form filed 'foos' (plural)

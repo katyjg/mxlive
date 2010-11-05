@@ -1007,7 +1007,8 @@
             "project": 1, 
             "crystal_form": 1, 
             "comments": "", 
-            "container_location": "15"
+            "container_location": "15",
+            "experiment": 2
         }
     }, 
     {
@@ -1025,7 +1026,8 @@
             "project": 1, 
             "crystal_form": 1, 
             "comments": "", 
-            "container_location": "10"
+            "container_location": "10",
+            "experiment": 1
         }
     }, 
     {
@@ -1043,7 +1045,8 @@
             "project": 1, 
             "crystal_form": 1, 
             "comments": "Special crystal.", 
-            "container_location": "5"
+            "container_location": "5",
+            "experiment": 1
         }
     }, 
     {
@@ -1065,11 +1068,7 @@
             "plan": 0, 
             "absorption_edge": "", 
             "multiplicity": null,
-            "total_angle": null,
-            "crystals": [
-                2, 
-                3
-            ]
+            "total_angle": null
         }
     }, 
     {
@@ -1091,12 +1090,7 @@
             "plan": 2, 
             "absorption_edge": "", 
             "multiplicity": 5,
-            "total_angle": null,
-            "crystals": [
-                1, 
-                2, 
-                3
-            ]
+            "total_angle": null
         }
     },
    {

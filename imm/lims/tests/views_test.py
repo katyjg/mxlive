@@ -272,7 +272,8 @@ class ShipmentUploadTest(DjangoTestCase):
         excel = open(os.path.join(TEST_FILES, 'test.xls'))
         request = self.post_request(data={'project': self.project.pk}, files={'excel' : excel})
         response = upload_shipment(request, Shipment, ShipmentUploadForm)
-        self.assertEqual(302, response.status_code)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(request.user.get_and_delete_messages()[0], "The data was uploaded correctly.")
         
         self.assertEqual(1, Shipment.objects.count())
         self.assertEqual(4, Container.objects.count())
@@ -286,7 +287,8 @@ class ShipmentUploadTest(DjangoTestCase):
         excel = open(os.path.join(TEST_FILES, 'test.xls'))
         request = self.post_request(data={'project': self.project.pk}, files={'excel' : excel})
         response = upload_shipment(request, Shipment, ShipmentUploadForm)
-        self.assertEqual(302, response.status_code)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(request.user.get_and_delete_messages()[0], "The data was uploaded correctly.")
         
         self.assertEqual(1, Shipment.objects.count())
         self.assertEqual(4, Container.objects.count())
@@ -639,6 +641,7 @@ class CreateObject_Shipment_Test(DjangoTestCase):
         response = create_object(request, Shipment, ShipmentForm)
         self.assertEqual(2, Shipment.objects.count())
         self.assertEqual(302, response.status_code)
+        #TODO: Fails here, due to improper test. Need to decide how to repair it
         self.assertEqual('../2/', response['Location'])
         
     def test_POST_valid_with_redirect(self):
@@ -649,6 +652,7 @@ class CreateObject_Shipment_Test(DjangoTestCase):
         response = create_object(request, Shipment, ShipmentForm, redirect='lims-shipment-list')
         self.assertEqual(2, Shipment.objects.count())
         self.assertEqual(200, response.status_code)
+        #TODO: fails here, improper test. Need to decide how to repair. 
         self.assertEqual(('lims/redirect.html', {'redirect': '/lims/shipping/shipment/'}), response.rendered_args)
         self.assertEqual({}, response.rendered_kwargs)
         

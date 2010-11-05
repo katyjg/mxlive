@@ -412,8 +412,9 @@ class Shipment(models.Model):
             experiment = Experiment(project=self.project, name='Default Experiment')
             experiment.save()
             for unassociated_crystal in unassociated_crystals:
-                experiment.crystals.add(unassociated_crystal)
-            experiment.save()
+                unassociated_crystal.experiment = experiment
+                unassociated_crystal.save()
+#            experiment.save()
     
     def barcode(self):
         return self.tracking_code or self.label
@@ -585,11 +586,11 @@ class Container(models.Model):
         for field in ['priority', 'staff_priority']:
             priority = None
             for crystal in self.crystal_set.all():
-                if crystal.experiment_set.count():
+                if crystal.experiment:
                     if priority is None:
-                        priority = max([getattr(experiment, field) for experiment in crystal.experiment_set.all()])
+                        priority = getattr(crystal.experiment, field)
                     else:
-                        priority = max(priority, max([getattr(experiment, field) for experiment in crystal.experiment_set.all()]))
+                        priority = max(priority, getattr(crystal.experiment, field))
             if priority is not None:
                 setattr(self, field, priority)
     
@@ -734,111 +735,6 @@ class Cocktail(models.Model):
     def identity(self):
         return 'CT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
 
-     
-class Crystal(models.Model):
-    STATES = Enum(
-        'Draft', 
-        'Sent', 
-        'On-site', 
-        'Loaded',
-        'Returned', 
-        'Archived',
-    )
-    TRANSITIONS = {
-        STATES.DRAFT: [STATES.SENT],
-        STATES.SENT: [STATES.ON_SITE],
-        STATES.ON_SITE: [STATES.RETURNED, STATES.LOADED],
-        STATES.LOADED: [STATES.ON_SITE],
-        STATES.RETURNED: [STATES.ARCHIVED],
-    }
-    ACTIONS = {
-        'send': { 'status': STATES.SENT },
-        'receive': { 'status': STATES.ON_SITE, 'methods': ['activate_associated_experiments',] },
-        'load': { 'status': STATES.LOADED },
-        'unload': { 'status': STATES.ON_SITE },
-        'return': { 'status': STATES.RETURNED  },
-        'archive': { 'status': STATES.ARCHIVED },
-    }
-    HELP = {
-        'name': "Give the sample a name by which you can recognize it",
-        'code': "If there is a datamatrix code on sample, please scan or input the value here",
-        'pin_length': "18 mm pins are standard. Please make sure you discuss other sizes with Beamline staff before sending the sample!",
-        'comments': 'Add extra notes for your own use here',
-        'cocktail': '',
-    }
-    project = models.ForeignKey(Project)
-    name = models.CharField(max_length=60)
-    code = models.SlugField(null=True, blank=True)
-    crystal_form = models.ForeignKey(CrystalForm, null=True, blank=True)
-    pin_length = models.IntegerField(max_length=2, default=18)
-    loop_size = models.FloatField(null=True, blank=True)
-    cocktail = models.ForeignKey(Cocktail, null=True, blank=True)
-    container = models.ForeignKey(Container, null=True, blank=True)
-    container_location = models.CharField(max_length=10, null=True, blank=True)
-    comments = models.TextField(blank=True, null=True)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-    status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.DRAFT)
-    priority = models.IntegerField(default=0)
-    staff_priority = models.IntegerField(default=0)
-    
-    FIELD_TO_ENUM = {
-        'status': STATES,
-    }
-    
-    class Meta:
-        unique_together = (
-            ("project", "container", "container_location"),
-            ("project","name"),
-        )
-        
-    def __unicode__(self):
-        return '%s / %s' % (self.name, self.identity())
-
-    def is_assigned(self):
-        return self.container is not None
-    
-    def num_experiments(self):
-        return self.experiment_set.count()
-
-    def identity(self):
-        return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    
-    def barcode(self):
-        return self.code or self.name
-    
-    def get_children(self):
-        return []
-    
-    def activate_associated_experiments(self, data=None):
-        """ Updates the status of the associated Experiment to 'Active' if all the Crystals are 'On-Site'
-        """
-        for experiment in self.experiment_set.all():
-            all_crystals_received = True
-            for crystal in experiment.crystals.all():
-                all_crystals_received = all_crystals_received and crystal.status == Crystal.STATES.ON_SITE
-            if all_crystals_received:
-                experiment.status = Experiment.STATES.ACTIVE
-                experiment.save()
-                
-    def is_editable(self):
-        return self.status == self.STATES.DRAFT 
-    
-    def json_dict(self):
-        return {
-            'project_id': self.project.pk,
-            'container_id': self.container.pk,
-            'id': self.pk,
-            'name': self.name,
-            'barcode': self.barcode(),
-            'container_location': self.container_location,
-            'comments': self.comments
-        }
-        
-    def _experiment(self, experiment):
-        self.experiment_set.add(experiment)
-    
-    experiment = property(None, _experiment)
 
 class Experiment(models.Model):
     EXP_TYPES = Enum(
@@ -886,7 +782,7 @@ class Experiment(models.Model):
     status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.DRAFT)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-    crystals = models.ManyToManyField(Crystal)
+#    crystals = models.ManyToManyField(Crystal)
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
     
@@ -895,6 +791,11 @@ class Experiment(models.Model):
         'kind': EXP_TYPES,
         'plan': EXP_PLANS,
     }
+    
+    def get_crystals(self):
+        return Crystal.objects.filter(experiment=self)
+    
+    crystals = property(get_crystals)
     
     def accept(self):
         return "crystal"
@@ -954,6 +855,127 @@ class Experiment(models.Model):
             'crystals': [crystal.pk for crystal in self.crystals.all()],
             'best_crystal': self.best_crystal()
         }
+        
+     
+class Crystal(models.Model):
+    STATES = Enum(
+        'Draft', 
+        'Sent', 
+        'On-site', 
+        'Loaded',
+        'Returned', 
+        'Archived',
+    )
+    TRANSITIONS = {
+        STATES.DRAFT: [STATES.SENT],
+        STATES.SENT: [STATES.ON_SITE],
+        STATES.ON_SITE: [STATES.RETURNED, STATES.LOADED],
+        STATES.LOADED: [STATES.ON_SITE],
+        STATES.RETURNED: [STATES.ARCHIVED],
+    }
+    ACTIONS = {
+        'send': { 'status': STATES.SENT },
+        'receive': { 'status': STATES.ON_SITE, 'methods': ['activate_associated_experiments',] },
+        'load': { 'status': STATES.LOADED },
+        'unload': { 'status': STATES.ON_SITE },
+        'return': { 'status': STATES.RETURNED  },
+        'archive': { 'status': STATES.ARCHIVED },
+    }
+    HELP = {
+        'name': "Give the sample a name by which you can recognize it",
+        'code': "If there is a datamatrix code on sample, please scan or input the value here",
+        'pin_length': "18 mm pins are standard. Please make sure you discuss other sizes with Beamline staff before sending the sample!",
+        'comments': 'Add extra notes for your own use here',
+        'cocktail': '',
+    }
+    project = models.ForeignKey(Project)
+    name = models.CharField(max_length=60)
+    code = models.SlugField(null=True, blank=True)
+    crystal_form = models.ForeignKey(CrystalForm, null=True, blank=True)
+    pin_length = models.IntegerField(max_length=2, default=18)
+    loop_size = models.FloatField(null=True, blank=True)
+    cocktail = models.ForeignKey(Cocktail, null=True, blank=True)
+    container = models.ForeignKey(Container, null=True, blank=True)
+    container_location = models.CharField(max_length=10, null=True, blank=True)
+    comments = models.TextField(blank=True, null=True)
+    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
+    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+    status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.DRAFT)
+    priority = models.IntegerField(default=0)
+    staff_priority = models.IntegerField(default=0)
+    experiment = models.ForeignKey(Experiment, null=True, blank=True)
+    
+    FIELD_TO_ENUM = {
+        'status': STATES,
+    }
+    
+    class Meta:
+        unique_together = (
+            ("project", "container", "container_location"),
+            ("project","name"),
+        )
+        
+    def __unicode__(self):
+        return '%s / %s' % (self.name, self.identity())
+
+    def is_assigned(self):
+        return self.container is not None
+    
+    def num_experiments(self):
+        if self.experiment:
+            return 1
+        return 0
+
+    def identity(self):
+        return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    
+    def barcode(self):
+        return self.code or self.name
+    
+    def get_children(self):
+        return []
+    
+    def activate_associated_experiments(self, data=None):
+        """ Updates the status of the associated Experiment to 'Active' if all the Crystals are 'On-Site'
+        """
+        assert self.experiment
+        all_crystals_received = True
+        for crystal in self.experiment.crystal_set.all():
+            all_crystals_received = all_crystals_received and crystal.status == Crystal.STATES.ON_SITE
+        if all_crystals_received:
+            self.experiment.status = Experiment.STATES.ACTIVE
+            self.experiment.save()
+#        
+#        for experiment in self.experiment_set.all():
+#            all_crystals_received = True
+#            for crystal in experiment.crystals.all():
+#                all_crystals_received = all_crystals_received and crystal.status == Crystal.STATES.ON_SITE
+#            if all_crystals_received:
+#                experiment.status = Experiment.STATES.ACTIVE
+#                experiment.save()
+                
+    def is_editable(self):
+        return self.status == self.STATES.DRAFT 
+    
+    def is_deletable(self):
+        return self.status == self.STATES.DRAFT
+    
+    def json_dict(self):
+        return {
+            'project_id': self.project.pk,
+            'container_id': self.container.pk,
+            'id': self.pk,
+            'name': self.name,
+            'barcode': self.barcode(),
+            'container_location': self.container_location,
+            'comments': self.comments
+        }
+        
+#    def _experiment(self, experiment):
+#        self.experiment_set.add(experiment)
+#    
+#    experiment = property(None, _experiment)
+
         
 # The following set of pre/post save/delete methods are responsible for updating the priority of
 # a Runlist Container to the maximum priority of the associated Experiments. Container.priority/staff_priority 

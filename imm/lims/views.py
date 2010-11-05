@@ -424,6 +424,29 @@ def object_detail(request, id, model, template):
         'handler' : request.path
         },
         context_instance=RequestContext(request))
+    
+@login_required
+@manager_required
+def experiment_object_detail(request, id, model, template):
+    """
+    Experiment needs a unique detail since it needs to pass the relevant information
+    from results and datasets into it's detail.
+    """
+    try:
+        obj = request.manager.get(pk=id)
+    except:
+        raise Http404
+    
+    datasets = Data.objects.filter(experiment__exact=obj)
+    results = Result.objects.filter(experiment__exact=obj)
+    
+    return render_to_response(template, {
+        'object': obj,
+        'handler': request.path,
+        'datasets': datasets,
+        'results': results
+        }, 
+        context_instance=RequestContext(request))
 
 @login_required
 @project_required
@@ -751,7 +774,7 @@ def remove_object(request, id, model, field):
         raise Http404
     object_type = model.__name__
     related = getattr(obj, field)
-    related_type = related._meta.verbose_name
+    related_type = related._meta.verbose_name    
     
     form_info = {
         'title': 'Remove %s?' % object_type.lower(),

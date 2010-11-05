@@ -5,28 +5,44 @@
 {% with object as runlist %}
 
     <h3>{{ runlist.name }}</h3>
+    <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="100%">
+    	<tr valign=top"><th>Comments:</th><td>{{object.comments}}</td></tr>
+    </table>
+    
     <img src="/img/runlist.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/>
-
-    <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
+    
+    <!-- width set to 70% to give the image space to sit side by side -->
+    <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="70%">
         <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
     </table>
     <div style="clear: both;"></div>
 
+	<h3>Experiments</h3>
+	{% if object.experiments.count > 0 %}
+		<ul class="treeview">
+			{% for experiment in object.experiments.all %}
+				<li class="experiment" rel="{ url lims-experiment-detail experiment.id %}">
+					<a class="experiment" href="{% url lims-experiment-detail experiment.id %}">
+						{{experiment.name}} {{ experiment.identity }}
+					</a>
+				</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+
     <h3>Containers</h3>
-    {% with runlist.container_set as containers %}
-        {% if containers.count %}
-            <ul class="treeview">
-                {% for container in containers %}
-                    <li class="container" rel="{% url lims-container-detail container.id %}">
-                        <a class="container" href="{% url lims-container-detail container.id %}">
-                            {{ container.label }} {{ container.identity }}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
+    {% if object.num_containers > 0 %}
+    	<ul class="treeview">
+    		{% for container in object.containers.all %}
+    			<li class="container" rel="{% url lims-container-detail container.id %}">
+    				<a class="container" href="{% url lims-container-detail container.id %}">
+    					{{container.label }} {{ container.identity }}
+    				</a>
+    			</li>
+    		{% endfor %}
+    	</ul>
+    {% endif %}
 
 {% endwith %}
 

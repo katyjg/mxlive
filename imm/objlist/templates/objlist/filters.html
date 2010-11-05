@@ -2,14 +2,16 @@
 
 {% if ol.has_filters %}
     <div class="filters">
-        <div class="filter-left">
-            Filters
-        </div>
-        <div class="list-filter">
-            <ul class="filter-choices">
-                {% for spec in ol.filter_specs %}{% show_one_filter ol spec url %}{% endfor %}
-            </ul>
-        </div>
+    	<table cellspacing="0" cellpadding="2" border="0">
+	        <tr class="filter-left link-row">
+	            Show Filters
+	        </tr>
+	        <tr class="list-filter hidden expander static">
+	            <ul class="filter-choices">
+	                {% for spec in ol.filter_specs %}<ul>{% show_one_filter ol spec url %}</ul>{% endfor %}
+	            </ul>
+	        </tr>
+        </table>
         <div class="clear"></div>
     </div>
 {% endif %}

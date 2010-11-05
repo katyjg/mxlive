@@ -176,13 +176,27 @@ class ContainerSelectForm(objforms.forms.OrderedForm):
     
 class RunlistForm(objforms.forms.OrderedForm):
     """ Form used to create a Runlist """
-    experiments = forms.ModelMultipleChoiceField(queryset=Experiment.objects.all(), widget=widgets.MultipleHiddenInput)
-    containers = forms.ModelMultipleChoiceField(queryset=Container.objects.all(), widget=widgets.MultipleHiddenInput)
+    experiments = forms.ModelMultipleChoiceField(queryset=Experiment.objects.all())
+    # want this container list to only contain containers that are in the selected experiments. 
+    # maybe info on which containers are with what experiment?
+    containers = forms.ModelMultipleChoiceField(queryset=Container.objects.all())
     name = forms.CharField()
+    comments = objforms.widgets.CommentField(required=False)
     
     class Meta:
         model = Runlist
-        fields = ('experiments', 'containers', 'name')
+        fields = ('name', 'comments', 'experiments', 'containers')
+        
+    def _update(self):
+        cleaned_data = self.cleaned_data
+        experiments = cleaned_data.get('experiments', [])
+        
+        # containers don't have experiments. Need to go to crystals in container, iterate them, 
+            # and add container once one crystal is in the experiment...
+        #choices = Container.objects.all().filter(crystal.experiment=experiments)
+        
+        self.fields['containers'].queryset = choices
+        
         
 class RunlistEmptyForm(objforms.forms.OrderedForm):
     """ Form used to load/complete a Runlist """

@@ -154,9 +154,11 @@ class DjangoTestCase(unittest.TestCase):
         """
         self.set_up_default_crystal()
         self.experiment = getattr(self, 'experiment', None) or create_Experiment(project=self.project, name='experiment123')
-        self.experiment.crystals.add(self.crystal)
+#        self.experiment.crystals.add(self.crystal)
+        self.crystal.experiment = self.experiment
         self.experiment.save()
-        assert 0 < self.crystal.experiment_set.count()
+        self.crystal.save()
+#        assert 0 < self.crystal.experiment_set.count()
         
     def set_up_default_data(self):
         """ Sets up a default Data.
@@ -365,9 +367,10 @@ def create_Experiment(**kwargs):
                 'resolution' : 1.1}
     crystals = kwargs.pop('crystals', [])
     instance = create_instance(Experiment, defaults, **kwargs)
-    for c in crystals:
-        instance.crystals.add(c)
     instance.save()
+    for c in crystals:
+        c.experiment = instance
+        c.save()
     return instance
 
 def create_Project(**kwargs):

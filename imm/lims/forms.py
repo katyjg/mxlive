@@ -264,7 +264,7 @@ class ExperimentForm(objforms.forms.OrderedForm):
         model = Experiment
         fields = ('project','name', 'kind', 'plan', 'resolution',
                   'delta_angle','multiplicity', 'total_angle', 'i_sigma','r_meas',
-                  'energy', 'absorption_edge','crystals','comments')
+                  'energy', 'absorption_edge','comments')
 
 class ExperimentFromStrategyForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)

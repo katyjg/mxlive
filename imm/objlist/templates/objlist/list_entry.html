@@ -19,8 +19,10 @@
         {% endif %}
     </td>
     {% endif %}
+    {# should add a check here for maximum size. Don't want something like a long label ruining everything #}
+    {% load truncate_filters %}
     {% for field in fields %}
-        <td>{{ field }}</td>
+    	<td>{{ field|truncate_chars:30 }}</td>
     {% endfor %}
     {% if form %}
         <td><input type="checkbox" name="{{object.get_form_field}}" value="{{object.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>

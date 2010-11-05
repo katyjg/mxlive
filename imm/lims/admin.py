@@ -41,7 +41,7 @@ class ExperimentAdmin(admin.ModelAdmin):
     list_filter = ['plan','status','kind','modified']
 #    list_display = ('id','name','kind','status','plan','num_crystals')
     list_display = ('id','name','kind','status','plan')
-    filter_horizontal = ['crystals']
+#    filter_horizontal = ['crystals']
     ordering = ('-priority', '-created')
     list_per_page = 10   
 admin.site.register(Experiment, ExperimentAdmin)

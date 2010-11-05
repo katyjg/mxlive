@@ -16,7 +16,7 @@ class ExperimentRunlistAdmin(admin.ModelAdmin):
     search_fields = ['comments','name']
     list_filter = []
     list_display = ('id','project','name','kind','status','plan','num_crystals')
-    filter_horizontal = ['crystals']
+#    filter_horizontal = ['crystals']
     ordering = ['-staff_priority', '-priority', '-created']
     unsortable = list_display
     list_per_page = 999999

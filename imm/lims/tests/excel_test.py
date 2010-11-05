@@ -190,6 +190,7 @@ class LimsWorkbookRoundTripTest(DjangoTestCase):
         for experiment in experiments1:
             random.shuffle(tmp_crystals)
             crystal_form = None
+            experiment.save()
             if random.randint(0, 100) < 50:
                 space_group = None
                 if random.randint(0, 100) < 50:
@@ -201,9 +202,9 @@ class LimsWorkbookRoundTripTest(DjangoTestCase):
             for crystal_index in range(num_crystals/num_experiments):
                 crystal = tmp_crystals.pop()
                 crystal.crystal_form = crystal_form
+                crystal.experiment = experiment
                 crystal.save()
-                experiment.crystals.add(crystal)
-            experiment.save()
+
             
         space_group = list(SpaceGroup.objects.all())
         crystal_form = list(CrystalForm.objects.all())

@@ -142,9 +142,10 @@ class CrystalTest(DjangoTestCase):
         
     def test_update_associated_experiments_many_crystals(self):
         self.set_up_default_experiment()
-        c2 = create_Crystal(project=self.project)
-        self.experiment.crystals.add(c2)
         self.experiment.save()
+        c2 = create_Crystal(project=self.project)
+        c2.experiment = self.experiment
+        c2.save()
         
         self.assertEqual(Crystal.STATES.DRAFT, self.crystal.status)
         self.assertEqual(Crystal.STATES.DRAFT, c2.status)

@@ -302,7 +302,7 @@ table.entrysummary {
   #samples a {
       background: url("/img/icon.samples.png") no-repeat scroll 14px 5px transparent;
   }
-  #experiments a {
+  #experiments-main a { /* need way to specify only experiments main link, not basic list */
       background: url("/img/icon.experiments.png") no-repeat scroll 14px 5px transparent;
   }
   #shipping a {
@@ -312,6 +312,7 @@ table.entrysummary {
   #runlists a {
       background: url("/img/icon.runlist.png") no-repeat scroll 14px 5px transparent;
   }
+  
 
 #footer .text { padding-top: 20px; }
 

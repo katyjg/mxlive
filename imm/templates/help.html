@@ -1,17 +1,5 @@
-{% extends "base.html" %}
 
-{% load nav %}
-{% block title %} Help {% endblock %}
-
-{% block nav-main %}
-	{%include "base_navs.html" %}
-	{% block nav-sub %}
-		<div class="navinfo">Help</div>
-	{% endblock %}
-{% endblock %}
-
-{% block content %}
 
 <p style="color: maroon; font-size: 120%;">Help content needs to be defined!</p>
 
-{% endblock %}
+{% include "lims/project_help.html" %}

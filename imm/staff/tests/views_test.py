@@ -120,7 +120,8 @@ class ShipmentDewarReceiveTest(DjangoTestCase):
         request.user = create_User(username='adminuser', is_superuser=True)
         request.POST['code'] = self.dewar.code
         response = receive_shipment(request, Dewar, DewarReceiveForm, action='receive')
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(request.user.get_and_delete_messages()[0], "Dewar %s successfully received" % ( self.dewar.identity()) )
         self.reload_models()
         self.assertEqual(Dewar.STATES.ON_SITE, self.dewar.status)
         
@@ -129,7 +130,9 @@ class ShipmentDewarReceiveTest(DjangoTestCase):
         request.user = create_User(username='adminuser', is_superuser=True)
         request.POST['code'] = self.dewar.code
         response = receive_shipment(request, Dewar, DewarReceiveForm, action='receive')
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(request.user.get_and_delete_messages()[0], "Dewar %s successfully received" % ( self.dewar.identity()) )
+        
         response = receive_shipment(request, Dewar, DewarReceiveForm, action='receive')
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.rendered_args[1]['form'].is_valid())
@@ -316,7 +319,9 @@ class CreateObjectTest(DjangoTestCase):
         request.POST['experiments'] = '1'
         self.assertEqual(0, Runlist.objects.count())
         response = runlist_create_object(request, Runlist, RunlistForm)
-        self.assertEqual(302, response.status_code)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(request.user.get_and_delete_messages()[0], "New Runlist created." )
+        
         self.assertEqual(1, Runlist.objects.count())
         runlist = Runlist.objects.get(pk=1)
         self.assertEqual([self.experiment], list(runlist.experiments))
@@ -365,9 +370,13 @@ class DetailedRunlistTest(DjangoTestCase):
                 crystal2 = create_Crystal(project=self.project, container=container2, name='crystal2')
                 if multiple_experiments:
                     experiment2 = create_Experiment(project=self.project, crystals=[crystal2], name='experiment2')
+                    crystal2.experiment = experiment2
+                    crystal2.save()
                 else:
-                    self.experiment.crystals.add(crystal2)
-                    self.experiment.save()
+#                    self.experiment.crystals.add(crystal2)
+                    crystal2.experiment = self.experiment
+                    crystal2.save()
+#                    self.experiment.save()
             else:
                 raise ValueError()
             
@@ -376,12 +385,16 @@ class DetailedRunlistTest(DjangoTestCase):
                 crystal2 = create_Crystal(project=self.project, container=self.container, name='crystal2')
                 if multiple_experiments:
                     experiment2 = create_Experiment(project=self.project, crystals=[crystal2], name='experiment2')
+                    crystal2.experiment = experiment2
+                    crystal2.save()
                 else:
-                    self.experiment.crystals.add(crystal2)
-                    self.experiment.save()
+#                    self.experiment.crystals.add(crystal2)
+                    crystal2.experiment = self.experiment
+                    crystal2.save()
+#                    self.experiment.save()
             else:
                 if multiple_experiments:
-                    experiment2 = create_Experiment(project=self.project, crystals=[self.crystal], name='experiment2')
+                    raise ValueError()
                 else:
                     pass # 1 container/crystal/experiment
                 
@@ -430,15 +443,16 @@ class DetailedRunlistTest(DjangoTestCase):
         
     # 1 'multiple'
         
-    def test__multiple_experiments__single_crystal__single_container__single_runlist(self):
-        results = self._test(multiple_experiments=True)
-        self.assertEqual(
-            [{'containers': {1: {'crystals': [1], 'id': 1}},
-              'crystals': {1: {'id': 1}},
-              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}, 
-                              {'crystals': [1], 'id': 2, 'best_crystal': None}]}], 
-            results
-        )
+    # test removed, as a crystal may now only be in a single experiment    
+#    def test__multiple_experiments__single_crystal__single_container__single_runlist(self):
+#        results = self._test(multiple_experiments=True)
+#        self.assertEqual(
+#            [{'containers': {1: {'crystals': [1], 'id': 1}},
+#              'crystals': {1: {'id': 1}},
+#              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}, 
+#                              {'crystals': [1], 'id': 2, 'best_crystal': None}]}], 
+#            results
+#        )
         
     def test__single_experiment__multiple_crystals__single_container__single_runlist(self):
         results = self._test(multiple_crystals=True)
@@ -479,20 +493,22 @@ class DetailedRunlistTest(DjangoTestCase):
     def test__multiple_experiments__single_crystal__multiple_containers__single_runlist(self):
         self.assertRaises(ValueError, self._test, multiple_experiments=True, multiple_containers=True)
     
-    def test__multiple_experiments__single_crystal__single_container__multiple_runlists(self):
-        results = self._test(multiple_experiments=True, multiple_runlists=True)
-        self.assertEqual(
-            [{'containers': {1: {'crystals': [1], 'id': 1}},
-              'crystals': {1: {'id': 1}},
-              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}, 
-                              {'crystals': [1], 'id': 2, 'best_crystal': None}]},
-             {'containers': {1: {'crystals': [1], 'id': 1}},
-              'crystals': {1: {'id': 1}},
-              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}, 
-                              {'crystals': [1], 'id': 2, 'best_crystal': None}]}], 
-            results
-        )
-    
+    # test removed, as this case can no longer happen
+#    def test__multiple_experiments__single_crystal__single_container__multiple_runlists(self):
+#        results = self._test(multiple_experiments=True, multiple_runlists=True)
+#        self.assertEqual(
+#            [{'containers': {1: {'crystals': [1], 'id': 1}},
+#              'crystals': {1: {'id': 1}},
+#              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}, 
+#                              {'crystals': [1], 'id': 2, 'best_crystal': None}]},
+#             {'containers': {1: {'crystals': [1], 'id': 1}},
+#              'crystals': {1: {'id': 1}},
+#              'experiments': [{'crystals': [1], 'id': 1, 'best_crystal': None}, 
+#                              {'crystals': [1], 'id': 2, 'best_crystal': None}]}], 
+#            results
+#        )
+#    
+    # should be possible, but need to check on 
     def test__single_experiment__multiple_crystals__multiple_containers__single_runlist(self):
         results = self._test(multiple_crystals=True, multiple_containers=True)
         self.assertEqual(
@@ -576,8 +592,10 @@ class DetailedRunlistTest(DjangoTestCase):
         self.set_up_default_runlist()
         
         crystal2 = create_Crystal(project=self.project, name='crystal2', container=self.container)
-        self.experiment.crystals.add(crystal2)
+#        self.experiment.crystals.add(crystal2)
         self.experiment.save()
+        crystal2.experiment = self.experiment
+        crystal2.save()
         data2 = create_Data(project=self.project, experiment=self.experiment, crystal=crystal2)
         result2 = create_Result(project=self.project, experiment=self.experiment, crystal=crystal2, data=data2)
         
@@ -607,8 +625,10 @@ class DetailedRunlistTest(DjangoTestCase):
         
         container2 = create_Container(project=self.project, label='container2')
         crystal2 = create_Crystal(project=self.project, name='crystal2', container=container2)
-        self.experiment.crystals.add(crystal2)
+#        self.experiment.crystals.add(crystal2)
         self.experiment.save()
+        crystal2.experiment = self.experiment
+        crystal2.save()
         data2 = create_Data(project=self.project, experiment=self.experiment, crystal=crystal2)
         result2 = create_Result(project=self.project, experiment=self.experiment, crystal=crystal2, data=data2)
         runlist2 = create_Runlist(name='runlist2', containers=[container2])
