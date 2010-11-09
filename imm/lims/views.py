@@ -988,8 +988,10 @@ def shipment_pdf(request, id):
                         env={'TEXINPUTS' : '.:' + settings.TEX_TOOLS_DIR + ':',
                              'PATH' : settings.TEX_BIN_PATH},
                         cwd=temp_dir,
-                        stdout=stdout.fileno(),
-                        stderr=stderr.fileno(),
+                        #stdout=stdout.fileno(),
+                        #stderr=stderr.fileno(),
+                        stdout = devnull,
+                        stderr = devnull,
                         stdin=devnull
                         )
         
