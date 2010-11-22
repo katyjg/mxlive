@@ -455,11 +455,13 @@ class PriorityTest(DjangoTestCase):
         self.assertEqual(self.container.staff_priority, 0)
         
         self.experiment.staff_priority = 1
+        self.experiment.update_priority()
         self.experiment.save()
         self.reload_models()
         
         self.assertEqual(self.experiment.staff_priority, 1)
         self.assertEqual(self.experiment2.staff_priority, 0)
+        self.container.update_priority()
         self.assertEqual(self.container.staff_priority, 1)
         
         self.experiment2.staff_priority = 2

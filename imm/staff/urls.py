@@ -45,6 +45,8 @@ urlpatterns = patterns('',
     (r'^experiment/basic/$', 'imm.lims.views.basic_object_list', {'model': Experiment, 'template': 'objlist/basic_object_list.html'}, 'staff-experiment-basic-list'),
     (r'^experiment/(<?P<id>\d+)/$', 'experiment_object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html'}, 'staff-experiment-basic-detail'),
     
+    (r'^container/basic/(\d+)/$', 'imm.staff.views.container_basic_object_list', {'model':Container, 'template': 'objlist/basic_object_list.html'}, 'staff-container-basic-list'),
+    
     (r'^runlist_summary/$', 'imm.staff.views.runlist_summary', {'model': ActivityLog}, 'lims-runlist-summary'),
     (r'^runlist/$', 'imm.lims.views.object_list', {'model': Runlist, 'template': 'staff/lists/runlist_list.html', 'can_add': True, 'can_prioritize': True}, 'staff-runlist-list'),
     #(r'^runlist/new/$', 'imm.staff.views.runlist_object_list', {'model': Experiment, 'form': ExperimentSelectForm, 'template': 'staff/lists/runlist_list.html', 'can_prioritize': True, 'link': False, 'redirect': 'staff-runlist-new-step2', 'instructions': 'Prioritize and select some Experiments.'}, 'staff-runlist-new'),
@@ -61,4 +63,11 @@ urlpatterns = patterns('',
     (r'^runlist/(?P<id>\d+)/unload/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'unload'}, 'staff-runlist-complete'),
     (r'^runlist/(?P<id>\d+)/accept/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistAcceptForm, 'template': 'objforms/form_base.html', 'action' : 'accept'}, 'staff-runlist-accept'),
     (r'^runlist/(?P<id>\d+)/reject/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'reject'}, 'staff-runlist-reject'),
+    
+    # new drag and drop model methods
+    # Runlist page
+    (r'^runlist_summary/widget/(?P<src_id>\d+)/runlist/(?P<dest_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.lims.views.add_existing_object', {'destination':Runlist, 'object':Experiment }, 'staff-runlist-add-experiment'),
+    (r'^runlist_summary/widget/(?P<src_id>\d+)/runlist/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'imm.lims.views.add_existing_object', {'destination':Runlist, 'object':Container }, 'staff-runlist-add-container'),
+    (r'^runlist_summary/runlist/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.lims.views.remove_object', {'source':Runlist, 'object':Experiment }, 'staff-runlist-remove-experiment'),
+    (r'^runlist_summary/runlist/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'imm.lims.views.remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),
 )

@@ -59,7 +59,7 @@ class LimsWorkbookTest(DjangoTestCase):
         self.assertEqual(3, Cocktail.objects.count())
         self.assertEqual(1, SpaceGroup.objects.count())
         self.assertEqual(2, CrystalForm.objects.count())
-        self.assertEqual(['Insulin', 'Insulin/Lysozyme', 'Lysozyme'], sorted([c.name() for c in Cocktail.objects.all()]))
+        self.assertEqual(['Insulin', 'Insulin/Lysozyme', 'Lysozyme'], sorted([c.name for c in Cocktail.objects.all()]))
         
 class LimsWorkbookExportTest(DjangoTestCase):
     
@@ -137,7 +137,8 @@ class LimsWorkbookRoundTripTest(DjangoTestCase):
         self.assertNotEqual(dewar.label, self.dewar.label)
         
         # links
-        self.assertEqual([crystal], list(experiment.crystals.all()))
+        self.assertEqual(crystal.experiment, experiment)
+        #self.assertEqual([crystal], experiment.crystals)
         self.assertEqual(container, crystal.container)
         self.assertEqual(container.dewar, dewar)
         self.assertEqual(shipment, dewar.shipment)

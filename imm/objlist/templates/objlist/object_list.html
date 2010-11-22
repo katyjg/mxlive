@@ -124,6 +124,17 @@
             var $row = jQuery(this);
             var contentURL = $row.attr("rel");
             var $loader = $row.next("tr.expander");
+            
+            // This should only run if the single class is found.
+            if ($row.hasClass("single") || $loader.hasClass("single")) {
+	            // should find all visible expander item, and hide them
+	            // find all expanded items, toggle expanded off. 
+	            if (!($row.hasClass("expanded"))) {
+		            var $expanded_items = $row.parent().children(".expanded");
+		            $expanded_items.toggleClass("expanded");
+		            $expanded_items.next("tr.expander").toggleClass("hidden");
+	            }
+            }
 
             // don't re-load the content if we've loaded it already
             // static content exists in the page already and won't be pulled in via ajax, hence the bypass for "static"

@@ -366,8 +366,8 @@ class Shipment(models.Model):
         'status': STATES,
     }
     
-    def accept(self):
-        return "dewar"
+#    def accept(self):
+#        return "dewar"
     
     def num_dewars(self):
         return self.dewar_set.count()
@@ -377,6 +377,11 @@ class Shipment(models.Model):
     
     def __unicode__(self):
         return "%s" % (self.label)
+    
+    def _name(self):
+        return self.label
+    
+    name = property(_name)
 
     def identity(self):
         return 'SH%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -497,6 +502,11 @@ class Dewar(models.Model):
 
     def __unicode__(self):
         return self.label
+    
+    def _name(self):
+        return self.label
+    
+    name = property(_name)
 
     def identity(self):
         return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -580,6 +590,22 @@ class Container(models.Model):
                 experiments.add('%s-%s' % (experiment.project.name, experiment.name))
         return ', '.join(experiments)
     
+    def contains_experiment(self, experiment):
+        """
+        Checks if the specified experiment is in the container.
+        """
+        for crystal in self.crystal_set.all():
+            for crys_experiment in crystal.experiment_set.all():
+                if crys_experiment == experiment:
+                    return true
+        return false
+    
+    def contains_experiments(self, experiment_list):
+        for experiment in experiment_list:
+            if self.contains_experiment(experiment):
+                return true
+        return false
+    
     def update_priority(self):
         """ Updates the Container's priority/staff_priority to max(Experiment priorities) 
         """
@@ -656,6 +682,11 @@ class Container(models.Model):
     def get_form_field(self):
         return 'container'
     
+    def _name(self):
+        return self.label
+    
+    name = property(_name)
+        
     def json_dict(self):
         return {
             'project_id': self.project.pk,
@@ -728,9 +759,11 @@ class Cocktail(models.Model):
     def name(self):
         names = sorted([c.acronym for c in self.constituents.all()])
         return self.NAME_JOIN_STRING.join(names)
+    
+    name = property(name)
         
     def __unicode__(self):
-        return self.name()
+        return self.name
 
     def identity(self):
         return 'CT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -805,7 +838,7 @@ class Experiment(models.Model):
     
     def update_priority(self):
         """ Updates the priority/staff_priority of all associated Containers """
-        for crystal in self.crystals.all():
+        for crystal in self.crystals:
             if crystal.container:
                 crystal.container.update_priority()
                 crystal.container.save()

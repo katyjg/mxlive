@@ -70,7 +70,8 @@ def list_entry(context, obj, handler, loop_count):
              'can_prioritize': context.get('can_prioritize', False),
              'request': context,
              'handler' : handler,
-             'row_state' : "odd" if loop_count % 2 == 1 else "even"
+             'row_state' : "odd" if loop_count % 2 == 1 else "even",
+             'type' : ol.object_type
             }
        
 def object_fields(obj, model_admin=None):

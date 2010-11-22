@@ -125,7 +125,7 @@ class Runlist(models.Model):
         
         # determine the list of Experiments in the Runlist
         experiments = []
-        for experiment in self.experiments:
+        for experiment in self.experiments.all():
             experiment_json = experiment.json_dict()
             experiments.append(experiment_json)
         

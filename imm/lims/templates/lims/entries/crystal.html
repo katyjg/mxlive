@@ -8,14 +8,14 @@
     <tr valign="top"><th>Comments:</th><td>{{ object.comments|wordwrap:10 }}</td></tr>
 </table>
 
-<img src="/img/samples-crystal.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
+<img src="/img/samples-crystal.png" class="crystal droppable droppable-replace" accept="crystalform cocktail" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
 
 <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
 	<tr valign="top"><th>Barcode:</th><td>{{ object.code }}</td></tr>
 	<tr valign="top"><th>Loop-size:</th><td>{{ object.loop_size }}</td></tr>
 	<tr valign="top"><th>Pin-length:</th><td>{{ object.pin_length }}</td></tr>
-	<tr valign="top"><th>Crystal Form:</th><td>{{ object.crystal_form }}</td></tr>
-	<tr valign="top"><th>Cocktail:</th><td>{{ object.cocktail }}</td></tr>
+	<tr valign="top" class="crystal draggable-link-parent droppable droppable-replace" accept="crystalform" rel="{% url lims-cocktail-detail object.cocktail.id %}"><th NOWRAP>Crystal Form:</th><td>{{ object.crystal_form }}</td></tr>
+	<tr valign="top" class="crystal draggable-link-parent droppable droppable-replace" accept="cocktail" rel="{% url lims-cocktail-detail object.cocktail.id %}"><th>Cocktail:</th><td>{{ object.cocktail }}</td></tr>
 	<tr valign="top"><th>Container:</th><td>{{ object.container }}</td></tr>
 	<tr valign="top"><th>Experiment:</th><td>{{ object.experiment }}</td></tr>
 	<tr valign="top"><th>Results:</th><td> </td></tr>

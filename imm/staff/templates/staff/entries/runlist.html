@@ -9,40 +9,41 @@
     	<tr valign=top"><th>Comments:</th><td>{{object.comments}}</td></tr>
     </table>
     
-    <img src="/img/runlist.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/>
+    <img src="/img/runlist.png" class="droppable droppable-add" accept="container experiment" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/>
     
     <!-- width set to 70% to give the image space to sit side by side -->
     <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="70%">
         <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
+        <tr valign="top"><th>Status:</th><td>{{ object.get_status_display }}</td></tr>
+        <tr valign="top"><th>Projects:</th><td>
+        	{% for experiment in object.experiments.all %}
+        		{{ experiment.project }}  
+        	{% endfor %}
+        </td></tr>
+        <tr valign="top" class="experiment draggable-link-parent droppable droppable-add" accept="experiment"><th>Experiments:</th><td>
+        	{% for experiment in object.experiments.all %}
+        		{{ experiment.name }} 
+        	{% endfor %}
+        </td></tr>
+        
     </table>
     <div style="clear: both;"></div>
 
-	<h3>Experiments</h3>
-	{% if object.experiments.count > 0 %}
-		<ul class="treeview">
-			{% for experiment in object.experiments.all %}
-				<li class="experiment" rel="{ url lims-experiment-detail experiment.id %}">
-					<a class="experiment" href="{% url lims-experiment-detail experiment.id %}">
-						{{experiment.name}} {{ experiment.identity }}
-					</a>
-				</li>
-			{% endfor %}
-		</ul>
-	{% endif %}
+	<h3>Automounter Configuration:</h3>
+	<!-- insert automounter widgets here. -->
+
 
     <h3>Containers</h3>
-    {% if object.num_containers > 0 %}
     	<ul class="treeview">
     		{% for container in object.containers.all %}
-    			<li class="container" rel="{% url lims-container-detail container.id %}">
+    			<li id="{{ container.id }}" class="container draggable-link-parent" rel="{% url lims-container-detail container.id %}/">
     				<a class="container" href="{% url lims-container-detail container.id %}">
     					{{container.label }} {{ container.identity }}
     				</a>
     			</li>
     		{% endfor %}
     	</ul>
-    {% endif %}
 
 {% endwith %}
 

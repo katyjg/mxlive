@@ -107,6 +107,24 @@ urlpatterns = patterns('imm.lims.views',
     url(r'^experiment/result/(\d+)/diffstats.png$', 'plot_diff_stats', name='lims-plot-diffs'),
 
     (r'^activity/$', 'user_object_list', {'model': ActivityLog, 'template': 'objlist/generic_list.html','link': False}),
+    
+    #new model handling urls (rest style, src/src_id/dest/dest_id/object/obj_id)
+    # samples page
+    (r'^samples/widget/(?P<src_id>\d+)/crystal/(?P<dest_id>\d+)/cocktail/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Crystal, 'object':Cocktail, 'replace': True}, 'lims-crystal-add-cocktail'),
+    (r'^samples/widget/(?P<src_id>\d+)/crystal/(?P<dest_id>\d+)/crystal_form/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Crystal, 'object': CrystalForm, 'replace':True}, 'lims-crystal-add-crystalform'),
+    (r'^samples/crystal/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/cocktail/(?P<obj_id>\d+)/$', 'remove_object', {'source':Crystal, 'object':Cocktail}, 'lims-crystal-remove-cocktail'),
+    (r'^samples/crystal/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/crystal_form/(?P<obj_id>\d+)/$', 'remove_object', {'source':Crystal, 'object':CrystalForm}, 'lims-crystal-remove-crystalform'),
+
+    # experiments page
+    # due to these models working differently (experiment main page, but it's a property on crystal) handled abnormal
+    (r'^experiment/widget/(?P<src_id>\d+)/experiment/(?P<dest_id>\d+)/crystal/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Experiment, 'object':Crystal, 'reverse':True}, 'lims-experiment-add-crystal'),
+    (r'^experiment/experiment/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/crystal/(?P<obj_id>\d+)/$', 'remove_object', {'source':Experiment, 'object':Crystal, 'reverse':True}, 'lims-experiment-remove-crystal'),
+    
+    # shipments page
+    (r'^shipping/widget/(?P<src_id>\d+)/shipment/(?P<dest_id>\d+)/dewar/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Shipment, 'object':Dewar, 'reverse':True}, 'lims-shipment-add-dewar'),
+    (r'^shipping/widget/(?P<src_id>\d+)/dewar/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Dewar, 'object':Container}, 'lims-shipment-add-container'),
+    (r'^shipping/dewar/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'remove_object', {'source':Dewar, 'object':Container}, 'lims-shipment-remove-container'),
+    (r'^shipping/shipment/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/dewar/(?P<obj_id>\d+)/$', 'remove_object', {'source':Shipment, 'object':Dewar, 'reverse':True}, 'lims-shipment-remove-dewar'),
 )
 
 from django.contrib import databrowse

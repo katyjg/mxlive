@@ -338,10 +338,11 @@ class LimsWorkbook(object):
             if row_values[CRYSTAL_BARCODE]:
                 crystal.code = row_values[CRYSTAL_BARCODE]
                 
-            crystal.tmp_experiment = None
+            # changed, as experiment is actually a crystal property now.
+            crystal.experiment = None
             if row_values[CRYSTAL_EXPERIMENT] and row_values[CRYSTAL_EXPERIMENT] in self.experiments:
                 # patch the reference - it will be put in the Experiment in .save()
-                crystal.tmp_experiment = self.experiments[row_values[CRYSTAL_EXPERIMENT]]
+                crystal.experiment = self.experiments[row_values[CRYSTAL_EXPERIMENT]]
             else:
                 self.errors.append(CRYSTAL_EXPERIMENT_ERROR % (row_values[CRYSTAL_EXPERIMENT], row_num))
                 
@@ -448,17 +449,16 @@ class LimsWorkbook(object):
                 crystal.cocktail = crystal.cocktail # force the fk reln
                 crystal.save()
                 self.log_activity(crystal, request)
-                if crystal.tmp_experiment:
-                    # update the Experiment<->Crystal mapping
-                    crystal.experiment = crystal.tmp_experiment
-                    crystal.save()
-#                    crystal.tmp_experiment.crystals.add(crystal)
-#                    crystal.tmp_experiment.save()
-                    
+                
+                # unneeded. Crystal read just puts it in to experiment now. 
+                # buffer was needed to add crystal to experiment.
+                if crystal.experiment:
                     # manage the Crystal/CrystalForm relationship
-                    if self.crystal_forms.has_key(crystal.tmp_experiment.name):
-                        crystal_form = self.crystal_forms[crystal.tmp_experiment.name]
+                    if self.crystal_forms.has_key(crystal.experiment.name):
+                        crystal_form = self.crystal_forms[crystal.experiment.name]
                         crystal.crystal_form = crystal_form
+                        crystal.crystal_form.name = crystal.crystal_form.identity()
+                        crystal.crystal_form.save()
                         crystal.save()
                         
         return self.errors

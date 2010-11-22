@@ -25,7 +25,7 @@ class RunlistTest(DjangoTestCase):
     def test_required(self):
         a = Runlist()
         a.save()
-        self.assertEqual([], list(a.experiments))
+        self.assertEqual([], list(a.experiments.all()))
         self.assertEqual([], list(a.containers.all()))
         
     def test_change_status(self):

@@ -23,6 +23,7 @@ from imm.lims.models import DistinctManagerWrapper
 from imm.lims.models import perform_action
 from imm.lims.models import ActivityLog
 from imm.lims.models import Crystal
+from imm.lims.models import Container
 from imm.staff.models import Runlist
 from imm.objlist.views import ObjectList
 
@@ -193,6 +194,48 @@ def runlist_create_object(request, model, form, template='lims/forms/new_base.ht
         }, 
         context_instance=RequestContext(request))
     
+
+
+@login_required
+@manager_required
+def container_basic_object_list(request, runlist_id, model, template='objlist/basic_object_list.html'):
+    """
+    Slightly more complex than above. Should display name and id for entity, but filter
+    to only display containers with a crystal in the specified experiments.
+    """
+    import logging
+    
+    ol = ObjectList(request, request.manager)
+    try:
+        runlist = Runlist.objects.get(pk=runlist_id)
+        experiment_list = runlist.get_experiments
+        # currently selected containers
+        active_containers = runlist.containers
+    except:
+        runlist = None
+        experiment_list = None
+        ol.object_list= None
+    
+    
+    """ only want containers that pass experiment check. """
+#    experiment_list = [1,2]
+    if experiment_list != None:
+        ol.object_list = Container.objects.filter(crystal__experiment__in=experiment_list).distinct().exclude(id__in=active_containers.all()) #.remove(active_containers)
+#    if experiment_list != None:
+#        return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
+#        ol.object_list = ol.object_list.filter(crystal_set__experiment__in=experiment_list)
+    
+#    orig_list = ol.object_list
+#    ol.object_list.clear()
+#    for container in orig_list:
+#        keep = false;
+#        for experiment in experiment_list:
+#            if container.contains_experiment(experiment):
+#                keep = true
+#        if keep == true:
+#            ol.object_list.add(container)
+    return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
+
     
 @jsonrpc_method('lims.detailed_runlist', authenticated=True, safe=True)
 def detailed_runlist(request, runlist_id):
@@ -203,4 +246,3 @@ def detailed_runlist(request, runlist_id):
     if runlist.status != Runlist.STATES.LOADED:
         raise InvalidRequestError("Runlist is not loaded.")
     return runlist.json_dict()
-    

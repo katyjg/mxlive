@@ -11,7 +11,7 @@
 <img src="/img/constituent.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
 
 <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
-	<tr valign="top"><th>Desired Resolution:</th><td>{{object.resolution}}</td></tr>
+	<tr valign="top"><th NOWRAP>Desired Resolution:</th><td>{{object.resolution}}</td></tr>
 	<tr valign="top"><th>Delta Angle:</th><td>{{object.delta_angle}}</td></tr>
 	<tr valign="top"><th>Multiplicity:</th><td>{{object.multiplicity}}</td></tr>
 	<tr valign="top"><th>Angle Range:</th><td>{{object.delta_angle}}</td></tr>
@@ -27,7 +27,7 @@
 {% if object.crystals %}
     <ul class="treeview">
     {% for crystal in object.crystals.all %}
-        <li class="crystal draggable-link-parent">
+        <li id="{{crystal.id}}" class="crystal draggable-link-parent">
             <a class="crystal" href="{% url lims-crystal-detail crystal.id %}">{{ crystal.name }} ({{ crystal.identity }})</a>
         </li>
     {% endfor %}

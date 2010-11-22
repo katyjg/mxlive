@@ -662,12 +662,22 @@ div.help {
     font-size:95%;
 }
 
+img.lims-droppable-active {
+	background:url("/img/drop.png") no-repeat scroll transparent;
+}
+
 .lims-droppable-active, .lims-droppable-active td {
-    background-color: red !important;
+    //background-color: red !important;
+    border-style:solid;
+    border-width:1px;
+    border-color:#999999;
 }
 
 .lims-droppable-hover, .lims-droppable-hover td {
-    background-color: green !important;
+    //background-color: green !important;
+    border-style:solid;
+    order-width:1px;
+    border-color:#BB88D3;
 }
 
 li.modify-log {

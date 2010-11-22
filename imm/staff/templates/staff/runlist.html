@@ -2,7 +2,7 @@
 
 {% block content %}
     <h2>Run Lists</h2>
-    <div class="content-list datalist" id="runlist-list" data="{% url staff-runlist-list %}">
+    <div class="content-list datalist parent-stop runlist" id="runlist-list" data="{% url staff-runlist-list %}">
         {% comment %}
             The content for this div is loaded via ajax in the script block below.
         {% endcomment %}
@@ -12,11 +12,17 @@
 {% endblock %}
 
 {% block sidebar %}
-	<div id="experiments" class="widget droppable droppable-remove" accept="experiments" data="{% url staff-experiment-basic-list %}">
+	<div id="experiments" class="widget droppable droppable-remove parent-stop" accept="experiment" data="{% url staff-experiment-basic-list %}">
         <h3>Experiments</h3>
         <ul>
             <li><a href="#">Content Not Loaded.</a></li>
         </ul>
+    </div>
+    <div id="containers" class="widget droppable droppable-remove parent-stop" accept="container" data='{% url staff-container-basic-list 0 %}'>
+    	<h3>Containers</h3>
+    	<ul>
+    		<li><a href="#">Content Not Loaded.</a></li>
+    	</ul>
     </div>
 
 
@@ -27,7 +33,10 @@
 {{ block.super }}
     <script>
     jQuery(function() {
-        jQuery("#runlist-list").load("{% url staff-runlist-list %}{% if request.META.QUERY_STRING %}?{{request.META.QUERY_STRING}}{% endif %}", function() {});
+        jQuery("#runlist-list").load("{% url staff-runlist-list %}{% if request.META.QUERY_STRING %}?{{request.META.QUERY_STRING}}{% endif %}", function() { 
+			// update the runlist table in this case to be single
+			jQuery(".expander").addClass("single"); 
+		});
     });
     
     // handles all the '+ add' buttons.
@@ -64,6 +73,16 @@
         });
         return false;
     });
+    
+    // attach another function to the link-row live click event to reload the container widget with the active runlist
+    jQuery(".link-row").live("click", function() {
+    	// just reload the data for the widget, with the arg of this items id
+    	var $id = jQuery(this).attr("id");
+    	var $widget = jQuery("#containers");
+    	$widget.attr("data", "{% url staff-container-basic-list 0 %}../" + $id);
+    	loadWidgets();
+    });
+    
     
     </script>
 {% endblock %}

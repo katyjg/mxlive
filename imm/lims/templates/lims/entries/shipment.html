@@ -5,35 +5,38 @@
 {% with object as shipment %}
 
     <h3>{{ shipment.label }} ({{ shipment.identity }})</h3>
-    <img src="/img/shipment.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/>
+    <table class="entrysummary" cellpadding="0" cellspacing="0" border="0" width="100%" style="float:left; clear: left;">
+    	<tr valign="top"><th>Comments:</th><td>{{ shipment.comments }}</td></tr>
+    	{% if shipment.shipping_errors %}
+    		<tr valign="top"><th>Messages:</th><td style="color: red">{{ shipment.shipping_errors.0 }}</td></tr>
+    	{% endif  %}
+    </table>
+    
+    <img class="droppable droppable-add drop-image" accept="container dewar crystal" src="/img/shipment.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/>
 
     <table class="entrysummary" cellpadding="0" cellspacing="0" border="0" width="60%" style="float:left; clear: left;">
-        <tr valign="top"><th>Created:</th><td>{{shipment.created|naturalday}} at {{shipment.created|date:"H:i T"}}</td></tr>
-        <tr valign="top"><th>Modified:</th><td>{{shipment.modified|naturalday}} at {{shipment.modified|date:"H:i T"}}</td></tr>
-        {% if shipment.date_shipped %}
-            <tr valign="top"><th>Shipped:</th><td>{{shipment.date_shipped|naturalday}} at {{shipment.date_shipped|date:"H:i T"}}</td></tr>
-            {% if shipment.date_received %}
-                <tr valign="top"><th>Received:</th><td>{{shipment.date_received|naturalday}} at {{shipment.date_shipped|date:"H:i T"}}</td></tr>
-                {% if shipment.date_returned %}
-                    <tr valign="top"><th>Returned:</th><td>{{shipment.date_returned|naturalday}}</td></tr>
-                {% endif %}
-            {% endif %}
-        {% endif %}
-        <tr valign="top">
-            <th>Status:</th>
-            <td>{{shipment.get_status_display}}</td>
-        </tr>
+        <tr valign="top"><th>Status:</th><td>{{ shipment.get_status_display }}</td></tr>
         {% ifequal shipment.status shipment.STATES.DRAFT %}
             <tr valign="top">
                 <th>Shippable:</th>
                     <td>
                         {{shipment.shipping_errors|yesno:"No,Yes"}}
-                        {% if shipment.shipping_errors %}
-                            <span style="color: red"> : {{shipment.shipping_errors.0}}</span>
-                        {% endif %}
                     </td>
             </tr>
         {% endifequal %}
+        {% if shipment.date_shipped %}
+        	<tr valign="top"><th>Carrier:</th><td>{{ shipment.carrier }}</td></tr>
+        	<tr valign="top"><th>Shipped:</th><td>{{shipment.date_shipped|naturalday}} at {{shipment.date_shipped|date:"H:i T"}}</td></tr>
+        	<tr valign="top"><th NOWRAP>Tracking Code:</th><td>{{ shipment.tracking_code }}</td></tr>
+        {% endif %}
+        {% if shipment.date_received %}
+        	<tr valign="top"><th>Received:</th><td>{{shipment.date_received|naturalday}} at {{shipment.date_received|date:"H:i T"}}</td></tr>
+        {% endif %}
+        {% if shipment.date_returned %}
+        	<tr valign="top"><th>Returned:</th><td>{{shipment.date_returned|naturalday}}</td></tr>
+        	<tr valign="top"><th NOWRAP>Return Code:</th><td>{{ shipment.return_code }}</td></tr>
+        {% endif %}
+        
     </table>
     <div style="clear: both;"></div>
 
@@ -44,7 +47,7 @@
         {% if dewars.count %}
             <ul class="treeview">
                 {% for dewar in dewars.all %}
-                <li class="dewar draggable-link-parent droppable droppable-add" accept="container" rel="{% url lims-dewar-detail dewar.id %}">
+                <li id="{{dewar.id}}" class="dewar draggable-link-parent droppable droppable-add" accept="container" rel="{% url lims-dewar-detail dewar.id %}">
                     <a class="dewar"  href="{% url lims-dewar-detail dewar.id %}">{{ dewar.label }} ({{ dewar.identity }})</a>
                 </li>
                 {% endfor %}

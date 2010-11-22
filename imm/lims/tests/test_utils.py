@@ -155,8 +155,8 @@ class DjangoTestCase(unittest.TestCase):
         self.set_up_default_crystal()
         self.experiment = getattr(self, 'experiment', None) or create_Experiment(project=self.project, name='experiment123')
 #        self.experiment.crystals.add(self.crystal)
-        self.crystal.experiment = self.experiment
         self.experiment.save()
+        self.crystal.experiment = self.experiment
         self.crystal.save()
 #        assert 0 < self.crystal.experiment_set.count()
         
@@ -184,8 +184,9 @@ class DjangoTestCase(unittest.TestCase):
         """
         self.set_up_default_experiment()
         self.set_up_default_container()
-        self.runlist = getattr(self, 'runlist', None) or create_Runlist(containers=[self.container], name='runlist123')
-        assert self.runlist.experiments == [self.experiment]
+        self.runlist = getattr(self, 'runlist', None) or create_Runlist(containers=[self.container], experiments=[self.experiment], name='runlist123')
+        assert len(self.runlist.experiments.all()) == 1
+        assert self.runlist.experiments.all()[0] == self.experiment
         
     def reload_models(self):
         """ Reloads the self.* Models from the database """
@@ -352,7 +353,10 @@ def create_Runlist(**kwargs):
     """
     defaults = {}
     containers = kwargs.pop('containers', [])
+    experiments = kwargs.pop('experiments', [])
     instance = create_instance(Runlist, defaults, **kwargs)
+    for e in experiments:
+        instance.experiments.add(e)
     for c in containers:
         instance.containers.add(c)
     instance.save()

@@ -331,11 +331,107 @@ def experiment_summary(request, model=ActivityLog):
         'request': request,
         },
         context_instance=RequestContext(request))
+    
+@login_required
+@transaction.commit_on_success
+def add_existing_object(request, dest_id, obj_id, destination, object, src_id=None, source=None, replace=False, reverse=False):
+    """
+    New add method. Meant for AJAX, so only intended to be POST'd to. This will add an object of type 'object'
+    and id 'obj_id' to the object of type 'destination' with the id of 'dest_id'.
+    Replace means if the field already has an item in it, replace it, else fail
+    Reverse means, due to model layout, you are actually adding destination to object
+    """
+    if request.method != 'POST':
+        raise Http404
+    
+    if reverse:
+        # swap obj and destination
+        obj_id, dest_id = dest_id, obj_id
+        object, destination = destination, object
+
+    model = destination;
+    manager = model.objects
+    request.project = None
+    if not request.user.is_superuser:
+        try:
+            project = request.user.get_profile()
+            request.project = project
+            manager = FilterManagerWrapper(manager, project__exact=project)
+        except Project.DoesNotExist:
+            raise Http404    
+
+    model = object;
+    obj_manager = model.objects
+    request.project = None
+    if not request.user.is_superuser:
+        try:
+            project = request.user.get_profile()
+            request.project = project
+            obj_manager = FilterManagerWrapper(obj_manager, project__exact=project)
+        except Project.DoesNotExist:
+            raise Http404    
+
+#    #project = request.project
+#    try:
+#        # get all items of the type we want to add to
+#        manager = getattr(project, destination.__name__.lower()+'_set')
+#        obj_manager = getattr(project, object.__name__.lower()+'_set')
+#        
+#    except: 
+#        raise Http404
+#    
+    #get just the items we want
+    dest = manager.get(pk=dest_id)
+    to_add = obj_manager.get(pk=obj_id)
+    # get the display name
+    display_name = to_add.name
+    if reverse:
+        display_name = dest.name
+        
+    lookup_name = object.__name__.lower()
+    if lookup_name == 'crystalform':
+        lookup_name = 'crystal_form'
+    
+    if dest.is_editable():
+        #if replace == True or dest.(object.__name__.lower()) == None
+        try:
+            getattr(dest, lookup_name)
+            setattr(dest, lookup_name, to_add)
+        except AttributeError:
+            # attrib didn't exist, append 's' for many field
+            try:
+                current = getattr(dest, '%ss' % lookup_name)
+                # want destination.objects.add(to_add)
+                current.add(to_add)
+                #setattr(dest, '%ss' % object.__name__.lower(), current_values)
+            except AttributeError:
+                message = '%s has not been added. No Field (tried %s and %s)' % (display_name, lookup_name, '%ss' % lookup_name)
+                request.user.message_set.create(message = message)
+                return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
+                
+        
+        dest.save()
+        message = '%s has been successfully added' % display_name
+    else:
+        message = '%s has not been added, as %s is not editable' % (display_name, dest.name)
+    ActivityLog.objects.log_activity(
+        0,
+        request.user.pk, 
+        request.META['REMOTE_ADDR'],
+        obj_id,
+        dest_id, 
+        str(destination), 
+        ActivityLog.TYPE.MODIFY,
+        message
+        )
+    request.user.message_set.create(message = message)
+    return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
+    
 
 @login_required
 @project_required
 @transaction.commit_on_success
-def add_existing_object(request, id, parent_model, model, field, additional_fields=None, form=ObjectSelectForm):
+def add_existing_object_old(request, src_id, dest_id, obj_id, parent_model, model, field, additional_fields=None, form=ObjectSelectForm):
     """
     A generic view which displays a form of type ``form`` which when submitted 
     will set the foreign key field `field` of one/more existing objects of 
@@ -343,7 +439,7 @@ def add_existing_object(request, id, parent_model, model, field, additional_fiel
     primary key ``id``.
     """
     
-    id = int(id)
+    id = int(obj_id)
     project = request.project
     try:
         manager = getattr(project, model.__name__.lower()+'_set')
@@ -367,19 +463,19 @@ def add_existing_object(request, id, parent_model, model, field, additional_fiel
         if frm.is_valid():
             changed = False
             if parent.is_editable():
-                for item_id in request.POST.getlist('items'):
-                    d = manager.get(pk=item_id)
-                    setattr(d, field, parent)
-                    for additional_field in additional_fields or []:
-                        setattr(d, additional_field, frm.cleaned_data[additional_field])
-                    d.save()
-                    changed = True
+                item_id = obj_id
+                d = manager.get(pk=item_id)
+                setattr(d, field, parent)
+                for additional_field in additional_fields or []:
+                    setattr(d, additional_field, frm.cleaned_data[additional_field])
+                d.save()
+                changed = True
                 
             if changed:
                 parent.save()            
-                form_info['message'] = '%d %ss have been successfully added' % (len(request.POST.getlist('items')), object_type.lower())
+                form_info['message'] = '%ss has been successfully added' % object_type.lower()
             else:
-                form_info['message'] = '%d %ss have not been added, as the destination is not editable' %  (len(request.POST.getlist('items')), object_type.lower())        
+                form_info['message'] = '%ss has not been added, as the destination is not editable' %  object_type.lower()        
             ActivityLog.objects.log_activity(
                 project.pk,
                 request.user.pk, 
@@ -623,6 +719,7 @@ def basic_object_list(request, model, template='objlist/basic_object_list.html')
     """
     ol = ObjectList(request, request.manager)
     return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower() }, context_instance=RequestContext(request))
+    
 
 @login_required
 def user_object_list(request, model, template='lims/lists/list_base.html', link=True, can_add=True):
@@ -756,10 +853,102 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
         'form' : frm, 
         })
        
+       
+@login_required
+@transaction.commit_on_success
+def remove_object(request, src_id, obj_id, source, object, dest_id=None, destination=None, reverse=False):
+    """
+    New way to remove objects. Expected to be called via AJAX. By default removes object with id obj_id 
+    from source with src_id. 
+    reverse instead removes source from object. 
+    """
+    if request.method != 'POST':
+        raise Http404
+    
+    if reverse:
+        # swap obj and destination
+        obj_id, src_id = src_id, obj_id
+        object, source = source, object
+    
+    model = source;
+    manager = model.objects
+    request.project = None
+    if not request.user.is_superuser:
+        try:
+            project = request.user.get_profile()
+            request.project = project
+            manager = FilterManagerWrapper(manager, project__exact=project)
+        except Project.DoesNotExist:
+            raise Http404    
+
+    model = object;
+    obj_manager = model.objects
+    request.project = None
+    if not request.user.is_superuser:
+        try:
+            project = request.user.get_profile()
+            request.project = project
+            obj_manager = FilterManagerWrapper(obj_manager, project__exact=project)
+        except Project.DoesNotExist:
+            raise Http404
+    
+#    try:
+#        # get all items of the type we want to add to
+#        manager = getattr(project, source.__name__.lower()+'_set')
+#        obj_manager = getattr(project, object.__name__.lower()+'_set')
+#        
+#    except: 
+#        raise Http404
+    
+    #get just the items we want
+    src = manager.get(pk=src_id)
+    to_remove = obj_manager.get(pk=obj_id)
+    # get the display name
+    display_name = to_remove.name
+    if reverse:
+        display_name = src.name
+    
+    
+    if src.is_editable():
+        #if replace == True or dest.(object.__name__.lower()) == None
+        try:
+            getattr(src, object.__name__.lower())
+            setattr(src, object.__name__.lower(), None)
+        except AttributeError:
+            # attrib didn't exist, append 's' for many field
+            try:
+                current = getattr(src, '%ss' % object.__name__.lower())
+                # want destination.objects.add(to_add)
+                current.remove(to_remove)
+                #setattr(dest, '%ss' % object.__name__.lower(), current_values)
+            except AttributeError:
+                message = '%s has not been removed. No Field (tried %s and %s)' % (display_name, object.__name__.lower(), '%ss' % object.__name__.lower())
+                request.user.message_set.create(message = message)
+                return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
+                
+        
+        src.save()
+        message = '%s has been successfully removed' % display_name
+    
+    else:
+        message = '%s has not been removed, as %s is not editable' % (display_name, src.name)
+    ActivityLog.objects.log_activity(
+        to_remove.project.pk,
+        request.user.pk, 
+        request.META['REMOTE_ADDR'],
+        obj_id,
+        src_id, 
+        str(destination), 
+        ActivityLog.TYPE.MODIFY,
+        message
+        )
+    request.user.message_set.create(message = message)
+    return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
+
 @login_required
 @project_required
 @transaction.commit_on_success
-def remove_object(request, id, model, field):
+def remove_object_old(request, id, model, field):
     """
     A generic view which displays a confirmation form and if confirmed, will
     set the foreign key field ``field`` of the object of type ``model`` identified
@@ -988,10 +1177,8 @@ def shipment_pdf(request, id):
                         env={'TEXINPUTS' : '.:' + settings.TEX_TOOLS_DIR + ':',
                              'PATH' : settings.TEX_BIN_PATH},
                         cwd=temp_dir,
-                        #stdout=stdout.fileno(),
-                        #stderr=stderr.fileno(),
-                        stdout = devnull,
-                        stderr = devnull,
+                        stdout=stdout.fileno(),
+                        stderr=stderr.fileno(),
                         stdin=devnull
                         )
         
