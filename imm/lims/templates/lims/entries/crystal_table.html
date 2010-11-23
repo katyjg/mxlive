@@ -1,0 +1,31 @@
+{% load humanize %}
+
+<h3>Crystals</h3>
+
+{% if object.crystals %}
+   <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
+        <thead>
+            <tr class="header">
+                <th style="border-left: 0pt none; width: 0.1em;"></th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Data</th>
+                <th>Results</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for crystal in object.crystals.all %}
+	            <tr>
+	            	<td></td>
+	            	<td>{{ crystal.name }}</td>
+	            	<td>{{ crystal.status }}</td>
+	            	<td>{% </td>
+	            	<td></td>
+	            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% else %}
+    (No crystals associated).
+{% endif %}
