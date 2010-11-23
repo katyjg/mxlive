@@ -990,6 +990,9 @@ class Crystal(models.Model):
     def is_editable(self):
         return self.status == self.STATES.DRAFT 
     
+    def is_clonable(self):
+        return True
+    
     def is_deletable(self):
         return self.status == self.STATES.DRAFT
     
@@ -1053,7 +1056,9 @@ class Data(models.Model):
     start_angle = models.FloatField()
     delta_angle = models.FloatField()
     first_frame = models.IntegerField(default=1)
-    num_frames = models.IntegerField('No. Images')
+    #changed to frame_sets 
+    frame_sets = models.CharField(max_length=200)
+    #num_frames = models.IntegerField('No. Images')
     exposure_time = models.FloatField()
     two_theta = models.FloatField()
     wavelength = models.FloatField()
@@ -1071,8 +1076,13 @@ class Data(models.Model):
         'kind': DATA_TYPES,
     }
 
+    # need a method to determine how many frames are in item
+    def num_frames(self):
+        # STUBBED
+        return 0;
+
     def __unicode__(self):
-        return '%s, %d images' % (self.name, self.num_frames)
+        return '%s, %d images' % (self.name, self.num_frames())
     
     def total_angle(self):
         return self.delta_angle * self.num_frames

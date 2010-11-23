@@ -391,7 +391,7 @@ def create_Data(**kwargs):
     defaults = {'distance': 1,
                 'start_angle': 1,
                 'delta_angle': 1,
-                'num_frames': 1,
+                'frame_sets': '1-2',
                 'exposure_time': 1,
                 'two_theta': 1,
                 'wavelength': 1,

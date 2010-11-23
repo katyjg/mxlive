@@ -110,7 +110,7 @@ class DataAdmin(admin.ModelAdmin):
     ordering = ['-created']
     search_fields = ['name','url']
     list_filter = ['modified','detector', 'kind']
-    list_display = ('id', 'name', 'crystal', 'num_frames', 'delta_angle', 'total_angle', 'wavelength')
+    list_display = ('id', 'name', 'crystal', 'frame_sets', 'delta_angle', 'total_angle', 'wavelength')
     list_per_page = 15
 admin.site.register(Data, DataAdmin)
 
