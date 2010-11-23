@@ -588,8 +588,8 @@ class LimsWorkbookExport(object):
 #            if crystal.priority:
 #                row.write(CRYSTAL_PRIORITY, crystal.priority)
 
-            if crystal.cocktail and crystal.cocktail.name():
-                row.write(CRYSTAL_COCKTAIL, crystal.cocktail.name())
+            if crystal.cocktail and crystal.cocktail.name:
+                row.write(CRYSTAL_COCKTAIL, crystal.cocktail.name)
                 
             if crystal.comments:
                 row.write(CRYSTAL_COMMENTS, crystal.comments)

@@ -96,13 +96,12 @@ ul.treeview {
     list-style-type: none;
     padding-left: 5px; }
     ul.treeview li a {
-        background: url("/img/treeview.closed.png") no-repeat scroll 0 0 transparent;
-        padding-left: 40px;
-        padding-top: 9px;
-        height: 25px;
+    	background: url("/img/icon.expand.png") no-repeat scroll 0 0 transparent; 
+        padding-left: 20px;
+        height: 20px;
         display: inline-block;}
         ul.treeview li a.expanded {
-            background: url("/img/treeview.open.png") no-repeat scroll 0 0 transparent; }
+            background: url("/img/icon.expanded.png") no-repeat scroll 0 0 transparent; }
     ul.treeview ul.treeview { /* this should handle all levels of depth */
         padding-left: 34px;
         background: url("/img/treeview.skeleton.png") repeat-y scroll 0 0 transparent;

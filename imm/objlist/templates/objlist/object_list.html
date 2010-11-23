@@ -40,9 +40,7 @@
         <thead>
             <tr class="header">
                 <th style="border-left: 0pt none; width: 0.1em;"></th>
-                {% if can_prioritize %}
-                    <th{{ header.class_attrib }}>Priority</th>
-                {% endif %}
+
                 {% for header in ol.header_list %}<th{{ header.class_attrib }}>
                     {% if header.sortable %}<a class="header" href="{{ handler }}{{ header.url }}">{% endif %}
                     {{ header.text|capfirst }}

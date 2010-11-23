@@ -15,4 +15,4 @@ LDAP_FULL_NAME = 'cn'
 LDAP_BINDDN = 'ou=people,dc=cmcf,dc=cls'
 LDAP_BIND_ATTRIBUTE = 'uid'
 
-USER_API_HOST = 'localhost:8001'
+

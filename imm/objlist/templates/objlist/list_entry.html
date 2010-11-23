@@ -10,25 +10,20 @@
      title="{{ object.comments|escape }}"
      id="{{object.id}}">
     <td class="first"></td>
-    {% if can_prioritize %}
-    <td>
-        {% if request.user.is_superuser %}
-            {{ object.staff_priority }}
-        {% else %}
-            {{ object.priority }}
-        {% endif %}
-    </td>
-    {% endif %}
     {# should add a check here for maximum size. Don't want something like a long label ruining everything #}
     {% load truncate_filters %}
     {% for field in fields %}
-    	<td>{{ field|truncate_chars:30 }}</td>
+    	{% if field == object.id %}
+    		<td>{{ object.identity }}</td>
+    	{% else %}
+    		<td>{{ field|truncate_chars:30 }}</td>
+    	{% endif %}
     {% endfor %}
     {% if form %}
         <td><input type="checkbox" name="{{object.get_form_field}}" value="{{object.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
     {% endif %}
  </tr>
-<tr id="{{object.id}}" accept="{{object.accept}}" class='expander hidden droppable droppable-add parent-stop {{ type|lower }}' rel="{{ handler }}{{ object.pk }}/">
+<tr id="{{object.id}}" accept="{{object.accept}}" class='expander hidden parent-stop {{ type|lower }} nodrag' rel="{{ handler }}{{ object.pk }}/">
     {# We add 2 because the priority field isn't included in fields|length, and there is a spacer at the beginning #}
     <td colspan="{{ fields|length|add:"2" }}">
         This should be replaced by an AJAX query when the tr.link-row is clicked

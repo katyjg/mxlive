@@ -46,7 +46,7 @@ urlpatterns = patterns('imm.lims.views',
 
     (r'^samples/$', 'sample_summary', {'model': ActivityLog}, 'lims-sample-summary'),
     (r'^samples/crystal/$', 'object_list', {'model': Crystal, 'template': 'objlist/object_list.html', 'can_add': True, 'can_prioritize': True}, 'lims-crystal-list'),
-    (r'^samples/crystal/basic/$', 'basic_object_list', {'model': Crystal, 'template': 'objlist/basic_object_list.html', }, 'lims-crystal-basic-list'),
+    (r'^samples/crystal/basic/$', 'basic_crystal_list', {'model': Crystal, 'template': 'objlist/basic_object_list.html', }, 'lims-crystal-basic-list'),
     (r'^samples/crystal/(?P<id>\d+)/$', 'object_detail', {'model': Crystal, 'template': 'lims/entries/crystal.html'}, 'lims-crystal-detail'),
     (r'^samples/crystal/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Crystal, 'form': SampleForm, 'template': 'objforms/form_base.html'}, 'lims-crystal-edit'),
     # this url removes a crystal from a container. 
@@ -122,8 +122,9 @@ urlpatterns = patterns('imm.lims.views',
     
     # shipments page
     (r'^shipping/widget/(?P<src_id>\d+)/shipment/(?P<dest_id>\d+)/dewar/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Shipment, 'object':Dewar, 'reverse':True}, 'lims-shipment-add-dewar'),
-    (r'^shipping/widget/(?P<src_id>\d+)/dewar/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Dewar, 'object':Container}, 'lims-shipment-add-container'),
-    (r'^shipping/dewar/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'remove_object', {'source':Dewar, 'object':Container}, 'lims-shipment-remove-container'),
+    (r'^shipping/widget/(?P<src_id>\d+)/dewar/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Dewar, 'object':Container, 'reverse':True}, 'lims-dewar-add-container'),
+    (r'^shipping/widget/(?P<src_id>\d+)/shipment/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Shipment, 'object':Container}, 'lims-shipment-add-container'),
+    (r'^shipping/dewar/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'remove_object', {'source':Dewar, 'object':Container, 'reverse':True}, 'lims-shipment-remove-container'),
     (r'^shipping/shipment/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/dewar/(?P<obj_id>\d+)/$', 'remove_object', {'source':Shipment, 'object':Dewar, 'reverse':True}, 'lims-shipment-remove-dewar'),
 )
 

@@ -40,7 +40,7 @@
     {% endcomment %}
     {% if dewar.container_set.count %}
         {% for container in dewar.container_set.all %}
-            <li class="container draggable-link-parent" 
+            <li id="{{ container.id }}" class="container draggable-link-parent parent-stop ui-draggable" 
                 rel="{% url lims-container-detail container.id %}">
                 <a href="{% url lims-container-detail container.id %}">{{ container.label }} ({{ container.identity }})</a>
             </li>

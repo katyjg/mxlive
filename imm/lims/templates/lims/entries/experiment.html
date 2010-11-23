@@ -8,7 +8,7 @@
 {% if object.comments %}
 	<div>{{object.comments}}</div>
 {% endif %}
-<img src="/img/constituent.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
+<img src="/img/constituent.png" class="experiment droppable droppable-replace" accept="crystal" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
 
 <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
 	<tr valign="top"><th NOWRAP>Desired Resolution:</th><td>{{object.resolution}}</td></tr>
@@ -20,9 +20,17 @@
 	<tr valign="top"><th>Energy:</th><td>{{object.energy}}</td></tr>
 	<tr valign="top"><th>Absorption Edge:</th><td>{{object.absorption_edge}}</td></tr>
 </table>
+<div style="clear: both;"></div>
 
 <h3>Associated Crystals</h3>
 <img src="/img/samples-crystal.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
+
+<!-- want below replaced with the crystal resulting table -->
+
+<!-- object.crystals contains all the crystals -->
+{% load crystal_table %}
+
+{% crystal_table object.crystals %}
 
 {% if object.crystals %}
     <ul class="treeview">
@@ -35,6 +43,7 @@
 {% else %}
     (No crystals have been associated with this experiment).
 {% endif %}
+<div style="clear: both;"></div>
 
 <h3>Datasets</h3>
 <!-- load Data objects with project and experiment id matches -->
@@ -61,6 +70,7 @@
 			</tr>
 		{% endfor %}
 	</table>
+	<div style="clear: both;"></div>
 
 
 
@@ -90,3 +100,4 @@
 			</tr>
         {% endfor %}
     </table>
+    <div style="clear: both;"></div>

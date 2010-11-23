@@ -205,23 +205,31 @@ def container_basic_object_list(request, runlist_id, model, template='objlist/ba
     """
     import logging
     
+    active_containers = None
+    experiment_list = None
+    
     ol = ObjectList(request, request.manager)
     try:
         runlist = Runlist.objects.get(pk=runlist_id)
+
+    except:
+        runlist = None
+        ol.object_list = None
+    
+    if runlist != None:
         experiment_list = runlist.get_experiments
         # currently selected containers
         active_containers = runlist.containers
-    except:
-        runlist = None
-        experiment_list = None
-        ol.object_list= None
-    
     
     """ only want containers that pass experiment check. """
 #    experiment_list = [1,2]
     if experiment_list != None:
-        ol.object_list = Container.objects.filter(crystal__experiment__in=experiment_list).distinct().exclude(id__in=active_containers.all()) #.remove(active_containers)
-#    if experiment_list != None:
+        if active_containers.count != 0:
+            ol.object_list = Container.objects.filter(crystal__experiment__in=experiment_list).distinct().exclude(id__in=active_containers.all()) #.remove(active_containers)
+        else:
+            ol.object_list = Container.objects.filter(crystal__experiment__in=experiment_list)
+#    
+#if experiment_list != None:
 #        return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 #        ol.object_list = ol.object_list.filter(crystal_set__experiment__in=experiment_list)
     

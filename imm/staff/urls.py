@@ -41,7 +41,7 @@ urlpatterns = patterns('',
     (r'^samples/crystal/(?P<id>\d+)/up/$', 'imm.lims.views.change_priority', {'model': Crystal, 'action': 'up', 'field': 'staff_priority'}, 'staff-crystal-up'),
     (r'^samples/crystal/(?P<id>\d+)/down/$', 'imm.lims.views.change_priority', {'model': Crystal, 'action': 'down', 'field': 'staff_priority'}, 'staff-crystal-down'),
     
-    (r'^experiment/request/$', 'imm.lims.views.object_list', {'model': Experiment, 'template': 'objlist/object_list.html'}, 'staff-experiment-list'),
+    (r'^experiment/request/$', 'imm.lims.views.object_list', {'model': Experiment, 'template': 'objlist/object_list.html', 'can_prioritize': False}, 'staff-experiment-list'),
     (r'^experiment/basic/$', 'imm.lims.views.basic_object_list', {'model': Experiment, 'template': 'objlist/basic_object_list.html'}, 'staff-experiment-basic-list'),
     (r'^experiment/(<?P<id>\d+)/$', 'experiment_object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html'}, 'staff-experiment-basic-detail'),
     
