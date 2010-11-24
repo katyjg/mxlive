@@ -447,10 +447,13 @@ class LimsWorkbook(object):
             for crystal in self.crystals.values():
                 crystal.container = crystal.container # force the fk reln
                 crystal.cocktail = crystal.cocktail # force the fk reln
+                crystal.experiment = crystal.experiment
                 crystal.save()
                 self.log_activity(crystal, request)
                 
                 # unneeded. Crystal read just puts it in to experiment now. 
+                # needed for order of operations?
+                    
                 # buffer was needed to add crystal to experiment.
                 if crystal.experiment:
                     # manage the Crystal/CrystalForm relationship

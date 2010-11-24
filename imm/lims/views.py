@@ -1264,15 +1264,19 @@ def add_data(request, data_info):
         raise e
         return {'error': str(e)}
 
-@jsonrpc_method('lims.add_result', authenticated=True)
+@jsonrpc_method('lims.add_result', authenticated=True, safe=True)
 def add_result(request, res_info):
     info = {}
     # convert unicode to str
     for k,v in res_info.items():
         info[str(k)] = v
-    new_obj = Result(**info)
-    new_obj.save()
-    return {'result_id': new_obj.pk}
+    try:
+        new_obj = Result(**info)
+        new_obj.save()
+        return {'result_id': new_obj.pk}
+    except Exception, e:
+        raise e
+        return {'error':str(e)}
 
 @jsonrpc_method('lims.add_strategy', authenticated=True)
 def add_strategy(request, stg_info):
