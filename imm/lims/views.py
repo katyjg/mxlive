@@ -1195,7 +1195,6 @@ def shipment_pdf(request, id):
                         )
         
         # open the resulting .pdf and write it out to the response/browser
-	print temp_file
         pdf_file = open(temp_file.replace('.tex', '.pdf'), 'r')
         pdf = pdf_file.read()
         pdf_file.close()
