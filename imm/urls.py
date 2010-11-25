@@ -37,6 +37,7 @@ urlpatterns = patterns('',
     url(r'^json/browse/$', 'jsonrpc.views.browse', name="jsonrpc_browse"),
     (r'^json/(?P<method>[a-zA-Z0-9._]+)/$', jsonrpc_site.dispatch),
     (r'^api/profile/detail/', mock_user_api),
+    (r'^download/', include('imm.download.urls')),
 )
 
 if settings.DEBUG:
