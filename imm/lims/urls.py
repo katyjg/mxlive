@@ -52,7 +52,7 @@ urlpatterns = patterns('imm.lims.views',
     # this url removes a crystal from a container. 
     (r'^samples/crystal/(?P<id>\d+)/remove/$', 'remove_object', {'model': Crystal, 'field':'container'}, 'lims-crystal-remove'),
     
-    (r'^samples/crystal/(?P<id>\d+)/delete/$', 'delete_object', {'model': Crystal, 'redirect' : 'lims-crystal-list', 'orphan_models' : []}, 'lims-crystal-delete'),
+    (r'^samples/crystal/(?P<id>\d+)/delete/$', 'delete_object', {'model': Crystal, 'form': ShipmentDeleteForm,'orphan_models' : []}, 'lims-crystal-delete'),
     (r'^samples/crystal/new/$',  'create_object', {'model': Crystal, 'form': SampleForm, 'template': 'objforms/form_base.html'}, 'lims-crystal-new'),
     #(r'^samples/crystal/delete/(?P<id>\d+)/$', 'delete_crystal'),
     (r'^samples/crystal/(?P<id>\d+)/up/$', 'change_priority', {'model': Crystal, 'action': 'up', 'field': 'priority'}, 'lims-crystal-up'),

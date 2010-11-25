@@ -257,7 +257,7 @@ class ExperimentForm(objforms.forms.OrderedForm):
           help_text='The total angle range to collect.')    
     i_sigma = forms.FloatField(label='Desired I/Sigma',widget=objforms.widgets.LeftHalfInput, required=False )
     r_meas = forms.FloatField(label='Desired R-factor', widget=objforms.widgets.RightHalfInput, required=False )
-    energy = forms.FloatField(widget=objforms.widgets.LeftHalfInput, required=False )
+    energy = forms.DecimalField( max_digits=10, decimal_places=4, widget=objforms.widgets.LeftHalfInput, required=False )
     absorption_edge = objforms.widgets.RightHalfCharField(required=False )
     comments = objforms.widgets.CommentField(required=False)
     class Meta:
