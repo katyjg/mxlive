@@ -349,8 +349,6 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
         obj_id, dest_id = dest_id, obj_id
         object, destination = destination, object
 
-    
-
     model = destination;
     manager = model.objects
     request.project = None
@@ -383,12 +381,8 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
 #        raise Http404
 #    
     #get just the items we want
-    try:
-        dest = manager.get(pk=dest_id)
-        to_add = obj_manager.get(pk=obj_id)
-    except:
-        raise Http404
-        
+    dest = manager.get(pk=dest_id)
+    to_add = obj_manager.get(pk=obj_id)
     # get the display name
     display_name = to_add.name
     if reverse:
@@ -1186,6 +1180,8 @@ def shipment_pdf(request, id):
         devnull = file('/dev/null', 'rw')
         stdout = sys.stdout
         stderr = sys.stderr
+	stdout = devnull
+	stderr = devnull
         if not settings.DEBUG:
             stdout = devnull
             stderr = devnull
@@ -1193,12 +1189,13 @@ def shipment_pdf(request, id):
                         env={'TEXINPUTS' : '.:' + settings.TEX_TOOLS_DIR + ':',
                              'PATH' : settings.TEX_BIN_PATH},
                         cwd=temp_dir,
-                        stdout=stdout.fileno(),
+                        stdout=stdout.fileno,
                         stderr=stderr.fileno(),
                         stdin=devnull
                         )
         
         # open the resulting .pdf and write it out to the response/browser
+	print temp_file
         pdf_file = open(temp_file.replace('.tex', '.pdf'), 'r')
         pdf = pdf_file.read()
         pdf_file.close()
@@ -1270,7 +1267,7 @@ def add_data(request, data_info):
         raise e
         return {'error': str(e)}
 
-@jsonrpc_method('lims.add_result', authenticated=True)
+@jsonrpc_method('lims.add_result', authenticated=True, safe=True)
 def add_result(request, res_info):
     info = {}
     # convert unicode to str
