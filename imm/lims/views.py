@@ -1180,8 +1180,6 @@ def shipment_pdf(request, id):
         devnull = file('/dev/null', 'rw')
         stdout = sys.stdout
         stderr = sys.stderr
-	stdout = devnull
-	stderr = devnull
         if not settings.DEBUG:
             stdout = devnull
             stderr = devnull
