@@ -602,7 +602,7 @@ class AddExistingObject_ShipmentDewar_Test(DjangoTestCase):
         # post data isn't used anymore. It's all in the url.
         # actually raises a 404, since it is missin the dewar id
         
-        self.assertRaises(Http404, add_existing_object, request, self.shipment.pk, Shipment, Dewar, 'shipment')
+        self.assertRaises(Http404, add_existing_object, request, dest_id=self.shipment.pk, destination=Shipment, object=Dewar, obj_id=-1)
 #        self.assertEqual(200, response.status_code)
 #        self.assertEqual([], list(self.shipment.dewar_set.all()))
 #        self.assertEqual(('lims/refresh.html',), response.rendered_args)

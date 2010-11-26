@@ -112,6 +112,9 @@ class Runlist(models.Model):
             
     def json_dict(self):
         """ Returns a json dictionary of the Runlist """
+        # meta data first
+        meta = {'id': str(self.pk), 'name': self.name}
+                    
         
         # fetch the containers and crystals
         containers = {}
@@ -129,6 +132,7 @@ class Runlist(models.Model):
             experiment_json = experiment.json_dict()
             experiments.append(experiment_json)
         
-        return {'containers': containers, 
+        return {'meta': meta,
+                'containers': containers, 
                 'crystals': crystals, 
                 'experiments': experiments}

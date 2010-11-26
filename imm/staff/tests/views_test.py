@@ -379,7 +379,6 @@ class DetailedRunlistTest(DjangoTestCase):
                     experiment2.save()
                     crystal2.experiment = experiment2
                     crystal2.save()
-                    logging.critical("Mid a Experment 2: %r, Crystal2: %r", experiment2, crystal2.experiment)
                 else:
 #                    self.experiment.crystals.add(crystal2)
                     crystal2.experiment = self.experiment
@@ -397,7 +396,6 @@ class DetailedRunlistTest(DjangoTestCase):
                     experiment2.save()
                     crystal2.experiment = experiment2
                     crystal2.save()
-                    logging.critical("Mid b Experment 2: %r, Crystal2: %r", experiment2, crystal2.experiment)
                 else:
 #                    self.experiment.crystals.add(crystal2)
                     crystal2.experiment = self.experiment
@@ -439,16 +437,7 @@ class DetailedRunlistTest(DjangoTestCase):
             response2 = detailed_runlist(request, runlist2.pk)
             retval = [response, response2]
             
-        if experiment2 and crystal2:
-            logging.critical("End Experment 2: %r, Crystal2: %r", experiment2, crystal2.experiment)
-            
-        logging.critical("----------------------")
-        logging.critical(retval)
         ret_val = self._filter(retval)
-        
-        logging.critical("----------------------")
-        logging.critical(ret_val)
-        logging.critical("----------------------")
         
         return ret_val
     
@@ -503,7 +492,6 @@ class DetailedRunlistTest(DjangoTestCase):
     # 2 'multiple'
     
     def test__multiple_experiments__multiple_crystals__single_container__single_runlist(self):
-        logging.critical("*********************************")
         results = self._test(multiple_experiments=True, multiple_crystals=True)
         self.assertEqual(
             [{'containers': {1: {'crystals': [1, 2], 'id': 1}},
@@ -512,7 +500,6 @@ class DetailedRunlistTest(DjangoTestCase):
                               {'crystals': [2], 'id': 2, 'best_crystal': None}]}], 
             results
         )
-        logging.critical("**********************************")
     
     def test__multiple_experiments__single_crystal__multiple_containers__single_runlist(self):
         self.assertRaises(ValueError, self._test, multiple_experiments=True, multiple_containers=True)

@@ -124,6 +124,7 @@
                     });
                 }
 
+				// This collapses any expanded items.
                 function loadDatalists() {
                     jQuery(".datalist").each(function(i, datalist) {
                         var $datalist = jQuery(datalist);
@@ -134,6 +135,39 @@
                             }
                         });
                     });
+                }
+                
+                // refresh the datalist table
+                function refreshDatalist() {
+                	// store what is expanded
+                	var $expanded_items  = new Array();
+                	// find items that are expanded, store id
+                	jQuery(".expanded").each(function(i, expanded) {
+                	var $exp = jQuery(expanded);
+                		$expanded_items.push($exp.attr("id"));
+                	});
+                	console.log($expanded_items);
+                	// reload all the table data and rows
+                	// replicate code, as I need the re-expanding to happen on success of reload. 
+                	jQuery(".datalist").each(function(i, datalist) {
+                        var $datalist = jQuery(datalist);
+                        $datalist.load($datalist.attr("data"), function() {
+                            // check to see if drag and drop needs to be setup for this datalist
+                            if($datalist.hasClass("requires-dragdrop")) {
+                                setupTableDragAndDrop("#" + $datalist.attr("id"), $datalist.attr("data"));
+                            }
+                            
+                            // re-expand what was previously expanded
+		                	for (x in $expanded_items) {
+		                		// find item with that id and class link-row (should only be one)
+		                		var $table_item = jQuery("#" + $expanded_items[x]).filter(".link-row").first();
+		                		console.log($table_item);
+		                		// basically click it
+		                		$table_item.click();
+		                	}
+                        });
+                    });
+                	
                 }
 
                 function serialize(table) {
@@ -284,7 +318,8 @@
                             		// Maybe this is the call that should be removed. Need to just update datalist, not load it. 
                             		// this does "fix" the collapsing views. Investigation what will be broken. 
                             		// looks like it shouldn't be needed. 
-                            		// loadDatalists();
+                            		 //loadDatalists();
+                            		 refreshDatalist();
                        		 	},
                        		 	error: function() {
                        		 		// error, just reload the widget
