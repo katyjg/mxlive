@@ -17,4 +17,5 @@ LDAP_BIND_ATTRIBUTE = 'uid'
 
 TEXINPUTS = ':/var/website/lims-website/imm/tex//'
 USER_API_HOST = 'localhost:10001'
-DOWNLOAD_FRONTEND = 'django'
+#DOWNLOAD_FRONTEND = 'django'
+DOWNLOAD_CACHE_DIR = '/webcache/cache'
