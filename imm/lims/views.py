@@ -1191,7 +1191,8 @@ def shipment_pdf(request, id):
                         #stderr=stderr.fileno(),
                         stdout=stdout,
                         stderr=stderr,
-                        stdin=devnull
+                        #stdin=devnull
+                        stdin=sys.stdin
                         )
         
         # open the resulting .pdf and write it out to the response/browser
