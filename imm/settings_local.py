@@ -15,7 +15,7 @@ LDAP_FULL_NAME = 'cn'
 LDAP_BINDDN = 'ou=people,dc=cmcf,dc=cls'
 LDAP_BIND_ATTRIBUTE = 'uid'
 
-TEXINPUTS = ':/var/website/lims-website/imm/tex//'
+#TEXINPUTS = ':/var/website/lims-website/imm/tex//'
 USER_API_HOST = 'localhost:10001'
 #DOWNLOAD_FRONTEND = 'django'
 DOWNLOAD_CACHE_DIR = '/webcache/cache'
