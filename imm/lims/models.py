@@ -421,6 +421,14 @@ class Shipment(models.Model):
                 unassociated_crystal.save()
 #            experiment.save()
     
+    def is_processed():
+        # if all containers in shipment are complete, then it is a processed shipment. 
+        dewar_list = Dewar.models.filter(shipment=self)
+        for dewar in dewar_list:
+            if dewar.is_complete() == False:
+                return False
+        return True
+    
     def barcode(self):
         return self.tracking_code or self.label
     
@@ -529,6 +537,14 @@ class Dewar(models.Model):
             
     def is_editable(self):
         return self.status == self.STATES.DRAFT
+    
+    def is_completed(self):
+        # dewar is complete if all containers in it are complete.
+        cont_list = Container.models.filter(dewar==self)
+        for container in cont_list:
+            if container.is_complete() == False:
+                return False
+        return True
 
 class Container(models.Model):
     STATES = Enum(
@@ -635,6 +651,16 @@ class Container(models.Model):
         
     def is_assigned(self):
         return self.dewar is not None
+    
+    def is_completed(self):
+        # complete if all crystals in container have a screened OR collected. Depends on experiment type. 
+        # nope. complete if all associated experiments are complete?
+        crystals = Crystal.models.filter(container==self)
+        for crystal in crystals:
+            if crystal.is_completed() == False:
+                return False
+        return True
+        
     
     def get_location_choices(self):
         vp = self.valid_locations()
@@ -789,15 +815,25 @@ class Experiment(models.Model):
         'Paused', 
         'Closed',
     )  
+    EXP_STATES = Enum(
+        'Incomplete',
+        'Complete',
+        'Reviewed',
+    )
+    
     TRANSITIONS = {
         STATES.DRAFT: [STATES.ACTIVE],
         STATES.ACTIVE: [STATES.PROCESSING],
         STATES.PROCESSING: [STATES.PAUSED],
         STATES.PAUSED: [STATES.CLOSED],
+        EXP_STATES.INCOMPLETE: [EXP_STATES.COMPLETE],
+        EXP_STATES.COMPLETE: [EXP_STATES.REVIEWED, EXP_STATES.INCOMPLETE],
+        
     }
 
     ACTIONS = {
         'resubmit': { 'status': STATES.ACTIVE, 'methods': ['set_strategy_status_resubmitted',] },
+        'review': { 'exp_status': EXP_STATES.REVIEWED, 'methods': ['set']}
     }
     project = models.ForeignKey(Project)
     name = models.CharField(max_length=60)
@@ -813,6 +849,7 @@ class Experiment(models.Model):
     plan = models.IntegerField(max_length=1, choices=EXP_PLANS.get_choices(), default=EXP_PLANS.SCREEN_AND_CONFIRM)
     comments = models.TextField(blank=True, null=True)
     status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.DRAFT)
+    exp_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.INCOMPLETE)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
 #    crystals = models.ManyToManyField(Crystal)
@@ -868,6 +905,45 @@ class Experiment(models.Model):
             if results:
                 return results[0].crystal.pk
         
+    def is_complete(self):
+        """
+        Checks experiment type, and depending on type, determines if it's fully completed or not. 
+        """
+        if plan == EXP_PLANS.RANK_AND_COLLECT_BEST:
+            # complete if all crystals are "screened" or "collected"
+            for crystal in self.get_crystals():
+                if crystal.exp_status == Crystal.EXP_STATES.PENDING:
+                    return False
+            return True
+        elif plan == EXP_PLANS.SCREEN_AND_CONFIRM:
+            # complete if all crystals are "screened" or "collected"
+            for crystal in self.get_crystals():
+                if crystal.exp_status == Crystal.EXP_STATES.PENDING:
+                    return False
+            return True
+        elif plan == EXP_PLANS.SCREEN_AND_COLLECT:
+            # complete if all crystals are "screened" or "collected" 
+            for crystal in self.get_crystals():
+                if crystal.exp_status == Crystal.EXP_STATES.PENDING:
+                    return False
+            return True
+        elif plan == EXP_PLANS.COLLECT_FIRST_GOOD:
+            # complete if 1 crystal is collected. 
+            for crystal in self.get_crystals():
+                if crystal.exp_status == Crystal.EXP_STATES.COLLECTED:
+                    return True
+            return False
+        elif plan == EXP_PLANS.JUST_COLLECT:
+            # complete if all crystals are "collected"
+            for crystal in self.get_crystals():
+                if crystal.exp_status != Crystal.EXP_STATES.COLLECTED:
+                    return False
+            return True
+        else:
+            # should never get here.
+            raise Exception('Invalid plan')  
+        
+        
     def json_dict(self):
         """ Returns a json dictionary of the Runlist """
         return {
@@ -921,6 +997,11 @@ class Crystal(models.Model):
         'comments': 'Add extra notes for your own use here',
         'cocktail': '',
     }
+    EXP_STATES = Enum(
+        'Pending',
+        'Screened',
+        'Collected',
+    )
     project = models.ForeignKey(Project)
     name = models.CharField(max_length=60)
     code = models.SlugField(null=True, blank=True)
@@ -934,6 +1015,7 @@ class Crystal(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
     status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.DRAFT)
+    exp_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.PENDING)
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
     experiment = models.ForeignKey(Experiment, null=True, blank=True)
@@ -986,6 +1068,23 @@ class Crystal(models.Model):
 #            if all_crystals_received:
 #                experiment.status = Experiment.STATES.ACTIVE
 #                experiment.save()
+
+    def is_completed(self):
+        # checks type of it's experiment, and gives results as needed.
+        #first, if the experiment is done, crystal should be done (collect first good case) 
+        if self.experiment.is_complete():
+            return True
+        
+        #just collect needs all to be collected
+        if self.experiment.plan == Experiment.EXP_PLANS.JUST_COLLECT:
+            if self.status == Crystal.EXP_STATES.COLLECTED:
+                return True
+            return False
+        
+        # all others expect eithe rscreened or collected
+        if self.status == Crystal.EXP_STATES.PENDING:
+            return False
+        return True
                 
     def is_editable(self):
         return self.status == self.STATES.DRAFT 
@@ -1085,7 +1184,7 @@ class Data(models.Model):
         return '%s, %d images' % (self.name, self.num_frames())
     
     def total_angle(self):
-        return self.delta_angle * self.num_frames
+        return self.delta_angle * self.num_frames()
         
     class Meta:
         verbose_name_plural = 'Datasets'
@@ -1127,6 +1226,7 @@ class Result(models.Model):
     multiplicity = models.FloatField()
     completeness = models.FloatField()
     mosaicity = models.FloatField()
+    wavelength = models.FloatField(blank=True, null=True)
     i_sigma = models.FloatField('I/Sigma')
     r_meas =  models.FloatField('R-meas')
     r_mrgdf = models.FloatField('R-mrgd-F')

@@ -2,11 +2,22 @@
 
 <h3>Crystals</h3>
 
-{% if object.crystals %}
+{% if crystals %}
+	{% if admin %}
+		<form method="post">
+			<select style="float:right; font-size:100%; border-width: 2px;" name="action" onchange="change_script">
+				<option value="default" selected="selected">Select Action</option>
+				<option value="rescreen">Re-Screen</option>
+				<option value="recollect">Re-Collect</option>
+			</select>
+	{% endif %}
+
    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
         <thead>
             <tr class="header">
-                <th style="border-left: 0pt none; width: 0.1em;"></th>
+            	{% if admin %}
+           			<th style="border-left: 0pt none; width: 0.1em;"></th>
+           		{% endif %}
                 <th>Name</th>
                 <th>Status</th>
                 <th>Data</th>
@@ -14,18 +25,43 @@
             </tr>
         </thead>
         <tbody>
-            {% for crystal in object.crystals.all %}
-	            <tr>
-	            	<td></td>
+            {% for crystal in crystals %}
+            <!-- "odd" if loop_count % 2 == 1 else "even" -->
+	            <tr class="{% cycle 'odd' 'even'%}">
+	            	<!-- checkbox for actions, only admin -->
+	            	{% if admin %}
+	            		<td><input type="checkbox" value="{{crystal.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
+	            	{% endif %}
 	            	<td>{{ crystal.name }}</td>
-	            	<td>{{ crystal.status }}</td>
-	            	<td>{% </td>
-	            	<td></td>
+	            	<td>{{ crystal.get_status_display }}</td>
+	            	<td>
+	            	{% for data in datasets %}
+	            		{% if data.crystal == crystal %}
+	            			<a href="{% url lims-result-detail data.pk %}">{{ data.name }}</a><br/> 
+	            			
+	            		{% endif %}
+	            	{% endfor %}
+	            	</td>
+	            	<td>
+	            	{% for result in results %}
+	            		{% if result.crystal == crystal %}
+	            			<a href="{% url lims-dataset-detail result.pk %}">{{ result.name }} ({{ result.score|floatformat:2 }})</a><br/> 
+	            		{% endif %}
+	            	{% endfor %}
+	            	</td>
 	            </tr>
             {% endfor %}
         </tbody>
     </table>
+    
+    {% if admin %}
+    	</form>
+    {% endif %}
 
 {% else %}
     (No crystals associated).
 {% endif %}
+
+<script>
+	change_script
+</script>

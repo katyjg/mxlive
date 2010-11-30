@@ -22,82 +22,9 @@
 </table>
 <div style="clear: both;"></div>
 
-<h3>Associated Crystals</h3>
-<img src="/img/samples-crystal.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
-
-<!-- want below replaced with the crystal resulting table -->
-
 <!-- object.crystals contains all the crystals -->
 {% load crystal_table %}
 
-{% crystal_table object.crystals %}
+{% crystal_table object.crystals request.user.is_superuser %}
 
-{% if object.crystals %}
-    <ul class="treeview">
-    {% for crystal in object.crystals.all %}
-        <li id="{{crystal.id}}" class="crystal draggable-link-parent">
-            <a class="crystal" href="{% url lims-crystal-detail crystal.id %}">{{ crystal.name }} ({{ crystal.identity }})</a>
-        </li>
-    {% endfor %}
-    </ul>
-{% else %}
-    (No crystals have been associated with this experiment).
-{% endif %}
 <div style="clear: both;"></div>
-
-<h3>Datasets</h3>
-<!-- load Data objects with project and experiment id matches -->
-	<table style="width: 100%;">
-		<tr>
-			<th></th>
-			<th>Id</th>
-			<th>Name</th>
-			<th>Crystal</th>
-			<th>Frames</th>
-			<th>Total Angle</th>
-			<th>Result</th>
-		</tr>	
-		<!-- TODO: Don't like this implementation. Should use filter instead -->
-		{% for data in datasets %}
-			<tr class="{% cycle 'odd' 'even' %} link-row">
-				<td class="first"></td>
-				<td>{{ data.id }}</td>
-				<td>{{ data.name }}</td>
-				<td>{{ data.crystal }}</td>
-				<td>{{ data.frame_sets }}</td>
-				<td>{{ data.delta_angle }}</td>
-				<td></td>
-			</tr>
-		{% endfor %}
-	</table>
-	<div style="clear: both;"></div>
-
-
-
-<h3>Experiment Results</h3>
-<!-- load Result objects with project and experiment id matches -->
-
-    <table style="width: 100%;">
-        <tr>
-            <th></th>
-            <th>Id</th>
-            <th>Name</th>
-            <th>Crystal</th>
-            <th>Score</th>
-            <th>Result</th>
-            <th>R-Factor</th>
-        </tr>
-        <!-- TODO: Don't like this implementation. Should use filter instead -->
-        {% for result in results %}
-			<tr class="{% cycle 'odd' 'even' %} link-row">
-				<td class="first"></td>
-				<td>{{ result.id }}</td>
-				<td>{{ result.name }}</td>
-				<td>{{ result.crystal }}</td>
-				<td>{{ result.score }}</td>
-				<td></td>
-				<td></td>
-			</tr>
-        {% endfor %}
-    </table>
-    <div style="clear: both;"></div>

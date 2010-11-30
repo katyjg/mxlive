@@ -43,7 +43,7 @@ urlpatterns = patterns('',
     
     (r'^experiment/request/$', 'imm.lims.views.object_list', {'model': Experiment, 'template': 'objlist/object_list.html', 'can_prioritize': False}, 'staff-experiment-list'),
     (r'^experiment/basic/$', 'imm.lims.views.basic_object_list', {'model': Experiment, 'template': 'objlist/basic_object_list.html'}, 'staff-experiment-basic-list'),
-    (r'^experiment/(<?P<id>\d+)/$', 'experiment_object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html'}, 'staff-experiment-basic-detail'),
+    (r'^experiment/(<?P<id>\d+)/$', 'experiment_object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html' }, 'staff-experiment-basic-detail'),
     
     (r'^container/basic/(\d+)/$', 'imm.staff.views.container_basic_object_list', {'model':Container, 'template': 'objlist/basic_object_list.html'}, 'staff-container-basic-list'),
     

@@ -47,6 +47,7 @@ class ExperimentAdmin(admin.ModelAdmin):
 admin.site.register(Experiment, ExperimentAdmin)
 
 class ExperimentStaffAdmin(ExperimentAdmin):
+    list_display = ('identity','project','name','kind','status','plan','num_crystals')
     ordering = ['-staff_priority', '-priority', '-created']
 staff_site.register(Experiment, ExperimentStaffAdmin)
 
