@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import datetime
 
+from django.conf import settings
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
@@ -1219,12 +1221,12 @@ class Data(models.Model):
                 frame_numbers.extend(v)
                   # check that frame is in frame_numbers
          
-        image_url = ""
+        image_url = settings.IMAGE_PREPEND or ''
         if frame in frame_numbers:
-            image_url = "/download/images/%s/%s_%03d" % (self.url, self.name, frame)
+            image_url = image_url + "/download/images/%s/%s_%03d" % (self.url, self.name, frame)
         
         # confirm brightness is valid
-        if brightness != "nm" or brightness != "lt" or brightness != "dk":
+        if not (brightness == "nm" or brightness == "lt" or brightness == "dk"):
             brightness = None
         
         if brightness == None:
@@ -1232,8 +1234,7 @@ class Data(models.Model):
         else:
             image_url = image_url + "-" + brightness + ".png"
             
-
-        return None   
+        return image_url   
     
     def start_angle_for_frame(self, frame):
         return (frame - self.first_frame) * self.delta_angle + self.start_angle 
