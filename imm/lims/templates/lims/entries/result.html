@@ -14,7 +14,7 @@
     <div id="result-links" class="floatright">
         <ul>
             <li>Crystal: &nbsp;<a href={% url lims-crystal-detail object.crystal.id %}>{{object.crystal}}</a></li>
-            <li>Experiment: &nbsp;<a href={% url lims-experiment-detail object.experiment.id %}>{{object.crystal}}</a></li>
+            <li>Experiment: &nbsp;<a href={% url lims-experiment-detail object.experiment.id %}>{{object.experiment.name}}</a></li>
             <li>Dataset: &nbsp;<a href={% url lims-dataset-detail object.data.id %}>{{object.data}}</a></li>
             <li>Images: &nbsp;<a class="modal" rel="#view-images"  href="{{ object.data.url }}/{{ object.data.id }}">view images</a></li>
         </ul>
@@ -119,7 +119,7 @@
     </table>
 
     <h3>Automatic Space-Group Selection</h3>
-    <div class="tablenotes floatleft half">
+    <div class="tablenotes floatright size45">
         <h3>Notes</h3>
         <p>The following table contains result from POINTLESS (see Evans, Acta Cryst. D62, 72-82, 2005). </p>
 
@@ -128,7 +128,7 @@
         <p>For more detailed results, please inspect the output file &lsquo;pointless.log&rsquo;.</p>
     </div>
 
-    <table class="rtable floatright size45">
+    <table class="rtable floatleft size45">
         <thead>
             <tr>
                 <th scope="col">Selected</th>
@@ -191,7 +191,7 @@
     </table>
     <image class="floatright" src={% url lims-plot-shells object.id %} />
 
-    <div class="tablenotes floatright size45">
+    <div class="tablenotes floatright size30">
         <h3>Notes</h3>
         <dl class="note-list">
             <dt>[1] -<dt>

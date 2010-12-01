@@ -2,6 +2,8 @@
 
 <h3>Crystals</h3>
 
+<div id="view-data" class="hidden modal-content"></div>
+
 {% if crystals %}
 	{% if admin %}
 		<form method="post">
@@ -9,7 +11,7 @@
 				<option value="default" selected="selected">Select Action</option>
 				<option value="rescreen">Re-Screen</option>
 				<option value="recollect">Re-Collect</option>
-			</select>
+			</select> <br/>
 	{% endif %}
 
    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
@@ -37,7 +39,7 @@
 	            	<td>
 	            	{% for data in datasets %}
 	            		{% if data.crystal == crystal %}
-	            			<a href="{% url lims-result-detail data.pk %}">{{ data.name }}</a><br/> 
+	            			<a href="{% url lims-result-detail data.pk %}" class="modal" rel="#view-data">{{ data.name }}</a><br/> 
 	            			
 	            		{% endif %}
 	            	{% endfor %}
