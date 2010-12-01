@@ -17,3 +17,4 @@ LDAP_BIND_ATTRIBUTE = 'uid'
 
 USER_API_HOST = 'localhost:10001'
 DOWNLOAD_CACHE_DIR = '/webcache/cache'
+IMAGE_PREPEND = 'https://cmcf.lightsource.ca'
