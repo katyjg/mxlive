@@ -146,7 +146,6 @@
                 	var $exp = jQuery(expanded);
                 		$expanded_items.push($exp.attr("id"));
                 	});
-                	console.log($expanded_items);
                 	// reload all the table data and rows
                 	// replicate code, as I need the re-expanding to happen on success of reload. 
                 	jQuery(".datalist").each(function(i, datalist) {
@@ -161,7 +160,6 @@
 		                	for (x in $expanded_items) {
 		                		// find item with that id and class link-row (should only be one)
 		                		var $table_item = jQuery("#" + $expanded_items[x]).filter(".link-row").first();
-		                		console.log($table_item);
 		                		// basically click it
 		                		$table_item.click();
 		                	}
