@@ -115,8 +115,7 @@ INSTALLED_APPS = (
     'imm.objlist',
     'imm.objforms',
     'imm.messaging',
-    'imm.remote',
-    'imm.download'
+    'imm.remote'
 )
 
 
