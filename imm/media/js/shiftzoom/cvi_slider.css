@@ -1,0 +1,205 @@
+div.navig { 
+	display: block; 
+	position: absolute;
+	width: 56px; 
+	height: 56px;
+	top: 16px;
+	left: 4px;
+	padding: 0px; 
+	margin: 0px;
+	border: 0px none;
+	white-space: nowrap;
+	visibility: hidden;
+	background:transparent url(images/navig/compass.png) 0px 0px no-repeat;
+	z-index: 98;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	user-select: none;
+	-moz-drag-select: none;
+	-khtml-drag-select: none;
+	drag-select: none;
+	-webkit-touch-callout: none;
+	-webkit-tap-highlight-color:rgba(0,0,0,0);
+}
+div.navig_north {
+	display: block; 
+	position: absolute;
+	top: 0px;
+	left: 15px;
+	width: 26px; 
+	height: 15px;
+	padding: 0px; 
+	margin: 0px;
+	cursor: pointer;
+	border: 0px none;
+} 
+div.navig_west {
+	display: block; 
+	position: absolute;
+	top: 15px;
+	left: 0px;
+	width: 15px; 
+	height: 26px;
+	padding: 0px; 
+	margin: 0px;
+	cursor: pointer;
+	border: 0px none;
+} 
+div.navig_info {
+	display: block; 
+	position: absolute;
+	top: 15px;
+	left: 15px;
+	width: 26px; 
+	height: 26px;
+	padding: 0px; 
+	margin: 0px;
+	border: 0px none;
+	cursor: pointer;
+	background:transparent url(images/navig/info_off.png) 0px 0px no-repeat;
+} 
+div.navig_info:hover, div.navig_info:focus {
+	background:transparent url(images/navig/info_on.png) 0px 0px no-repeat;
+} 
+div.navig_east {
+	display: block; 
+	position: absolute;
+	top: 15px;
+	right: 0px;
+	width: 15px; 
+	height: 26px;
+	padding: 0px; 
+	margin: 0px;
+	cursor: pointer;
+	border: 0px none;
+} 
+div.navig_south {
+	display: block; 
+	position: absolute;
+	bottom: 0px;
+	left: 15px;
+	width: 26px; 
+	height: 15px;
+	padding: 0px; 
+	margin: 0px;
+	cursor: pointer;
+	border: 0px none;
+} 
+div.slider_outer { 
+	display: block; 
+	position: absolute;
+	top: 72px;
+	left: 17px;
+	width: 30px; 
+	height: 129px;
+	padding: 0px; 
+	margin: 0px;
+	border: 0px none;
+	white-space: nowrap;
+	visibility: hidden;
+	background:transparent url(images/navig/scale.png) 0px 0px no-repeat;
+	z-index: 98;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	user-select: none;
+	-moz-drag-select: none;
+	-khtml-drag-select: none;
+	drag-select: none;
+	-webkit-touch-callout: none;
+	-webkit-tap-highlight-color:rgba(0,0,0,0);
+}
+div.slider_plus {
+	display: block; 
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 26px; 
+	height: 26px;
+	padding: 0px; 
+	margin: 0px;
+	cursor: pointer;
+	border: 0px none;
+	background:transparent url(images/navig/plus_off.png) no-repeat 0px 0px;
+} 
+div.slider_plus:hover, div.slider_plus:focus {
+	background:transparent url(images/navig/plus_on.png) no-repeat 0px 0px;
+} 
+div.slider_minus {
+	display: block; 
+	position: absolute;
+	bottom: 2px;
+	left: 2px;
+	width: 26px; 
+	height: 26px;
+	padding: 0px; 
+	margin: 0px;
+	cursor: pointer;
+	border: 0px none;
+	background:transparent url(images/navig/minus_off.png) no-repeat 0px 0px;
+} 
+div.slider_minus:hover, div.slider_minus:focus {
+	background:transparent url(images/navig/minus_on.png) no-repeat 0px 0px;
+} 
+div.slider_inner { 
+	display: block; 
+	position: relative;
+	width: 30px; 
+	height: 69px;
+	padding: 0px; 
+	margin: 30px 0 30px 0;
+	border: 0px none;
+	background:transparent;
+}
+div.slider_knob { 
+	display: block; 
+	position: absolute;
+	left: 0px;
+	bottom: 0px;
+	width: 30px; 
+	height: 11px;
+	padding: 0px; 
+	margin: 0px;
+	cursor: pointer;
+	border: 0px none;
+	background:transparent url(images/navig/slider_off.png) no-repeat 0px 0px;
+}
+div.slider_knob:hover, div.slider_knob:focus, div.slider_knob.onfocus {
+	background:transparent url(images/navig/slider_on.png) no-repeat 0px 0px;
+} 
+* html div.navig {
+	background-color: transparent; 
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="images/navig/compass.png", sizingMethod="image");
+}
+* html div.navig_info {
+	background-color: transparent; 
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="images/navig/info_off.png", sizingMethod="image");
+}
+* html div.slider_outer {
+	background-color: transparent; 
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="images/navig/scale.png", sizingMethod="image");
+}
+* html div.slider_plus {
+	background-color: transparent; 
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="images/navig/plus_off.png", sizingMethod="image");
+}
+* html div.slider_minus {
+	background-color: transparent; 
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="images/navig/minus_off.png", sizingMethod="image");
+}
+* html div.slider_knob {
+	z-index: 99;
+	background-color: transparent; 
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="images/navig/slider_off.png", sizingMethod="image");
+} 
+* html div.slider_knob.onfocus {
+	z-index: 99;
+	background-color: transparent; 
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="images/navig/slider_on.png", sizingMethod="image");
+} 
