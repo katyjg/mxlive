@@ -2,6 +2,7 @@
 
 <h3>Crystals</h3>
 
+<div id="view-result" class="hidden modal-content"></div>
 <div id="view-data" class="hidden modal-content"></div>
 
 {% if crystals %}
@@ -39,7 +40,7 @@
 	            	<td>
 	            	{% for data in datasets %}
 	            		{% if data.crystal == crystal %}
-	            			<a href="{% url lims-result-detail data.pk %}" class="modal" rel="#view-data">{{ data.name }}</a><br/> 
+	            			<a href="{% url lims-dataset-detail data.pk %}" class="modal" rel="#view-data">{{ data.name }}</a><br/> 
 	            			
 	            		{% endif %}
 	            	{% endfor %}
@@ -47,7 +48,7 @@
 	            	<td>
 	            	{% for result in results %}
 	            		{% if result.crystal == crystal %}
-	            			<a href="{% url lims-dataset-detail result.pk %}">{{ result.name }} ({{ result.score|floatformat:2 }})</a><br/> 
+	            			<a href="{% url lims-result-detail result.pk %}" class="modal" rel="#view-result">{{ result.name }} ({{ result.score|floatformat:2 }})</a><br/> 
 	            		{% endif %}
 	            	{% endfor %}
 	            	</td>

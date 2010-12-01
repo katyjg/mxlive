@@ -1151,7 +1151,7 @@ class Data(models.Model):
     experiment = models.ForeignKey(Experiment)
     crystal = models.ForeignKey(Crystal)
     name = models.CharField(max_length=20)
-    distance = models.FloatField()
+    resolution = models.FloatField()
     start_angle = models.FloatField()
     delta_angle = models.FloatField()
     first_frame = models.IntegerField(default=1)
@@ -1177,8 +1177,14 @@ class Data(models.Model):
 
     # need a method to determine how many frames are in item
     def num_frames(self):
-        # STUBBED
-        return 0;
+        frame_numbers = []
+        wlist = [map(int, w.split('-')) for w in self.frame_sets.split(',')]
+        for v in wlist:
+            if len(v) == 2:
+                frame_numbers.extend(range(v[0],v[1]+1))
+            elif len(v) == 1:
+                frame_numbers.extend(v)        
+        return len(frame_numbers)            
 
     def __unicode__(self):
         return '%s, %d images' % (self.name, self.num_frames())
@@ -1200,7 +1206,37 @@ class Data(models.Model):
         for i in range(self.num_frames):
             urls.append("%s/%s/images/frame_medium.png" % (self.url, self.pk))
         return urls
-   
+    
+    def generate_image_url(self, frame, brightness=None):
+        # brightness is assumed to be "nm" "dk" or "lt" 
+        frame_numbers = []
+        wlist = [map(int, w.split('-')) for w in self.frame_sets.split(',')]
+        for v in wlist:
+            if len(v) == 2:
+                frame_numbers.extend(range(v[0],v[1]+1))
+            elif len(v) == 1:
+                frame_numbers.extend(v)
+                  # check that frame is in frame_numbers
+         
+        image_url = ""
+        if frame in frame_numbers:
+            image_url = "/download/images/%s/%s_%03d" % (self.url, self.name, frame)
+        
+        # confirm brightness is valid
+        if brightness != "nm" or brightness != "lt" or brightness != "dk":
+            brightness = None
+        
+        if brightness == None:
+            image_url = image_url + ".img"
+        else:
+            image_url = image_url + "-" + brightness + ".png"
+            
+
+        return None   
+    
+    def start_angle_for_frame(self, frame):
+        return (frame - self.first_frame) * self.delta_angle + self.start_angle 
+
 
 class Result(models.Model):
     RESULT_TYPES = Enum(

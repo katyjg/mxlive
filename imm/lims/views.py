@@ -1500,3 +1500,18 @@ def plot_frame_stats(request, id):
     response = HttpResponse(content_type='image/png')
     canvas.print_png(response)
     return response
+
+@login_required
+def data_viewer(request, id):
+    # use the data_viewer template
+    # load data for displaying
+    manager = Data.objects
+    
+    try:
+        data = manager.get(pk=id)
+    except:
+        raise Http404
+    
+    results = Result.objects.filter(data__id=id)
+    
+    return render_to_response('lims/entries/data.html', {'data':data, 'results':results})

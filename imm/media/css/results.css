@@ -122,6 +122,21 @@ h1, h2, h3, h4 {
     margin-top: 1em;
 }
 
+#meta-data {
+    width: 36%;
+    border: 1px solid #c3d9ff; 
+}
+
+#meta-data ul {
+    list-style: none;
+    padding:  1em 2em;
+}
+
+#image-nav {
+	width: 36%;
+	border: 1px solid #c3d9ff;
+}
+
 
 div.hr hr {
   border:0;
