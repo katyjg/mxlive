@@ -1,0 +1,76 @@
+{% load zip %}
+
+<script type="text/javascript" src="/js/shiftzoom/shiftzoom.js"></script>
+
+<div class="floatleft">
+	<h2>{{ data.name }} - 
+	{% if data.kind == Data.DATA_TYPES.SCREENING %}
+		Screening
+	{% else %}
+		Full Dataset
+	{% endif %}
+	</h2>
+</div>
+<div class="clear"></div>
+
+{% load image_url %}
+
+<!-- image viewer aspect -->
+<div id="image" class="floatleft" style="border: 1px solid #c3d9ff;">
+	<!-- making assumption that data.url will be filled, with the key, and it's data name -->
+	<img id="shiftzoomimg" src="{% image_url data 1 'lt' %}" onLoad="shiftzoom.add(this);" class="shiftzoom" width="400" height="400">
+</div>
+
+<!-- Display of metaData -->
+<div id="meta-data" class="floatright">
+	<ul>
+		<li>Experiment: {{ data.experiment.name }}</li>
+		<li>Crystal: {{ data.crystal.name }}</li>
+		<li>Resolution Limit: {{ data.resolution }}</li>
+		<li>Frame Set: {{ data.frame_sets }}</li>
+		<li>Wavelength: {{ data.wavelength }}</li>
+		<li>Beam X:	{{ data.beam_x }}</li>
+		<li>Beam Y: {{ data.beam_y }}</li>
+		<li>Pixel Size: {{ data.pixel_size }}</li>
+		<li>Two Theta: {{ data.two_theta }}</li>
+		{% for result in results %}
+			<li>Result: <a href="{% url lims-result-detail result.pk %}" class="modal" rel="#view-result">{{ result.name }} ({{ result.score|floatformat:2 }})</a></li>
+		{% endfor %}
+	</ul>
+	<ul>
+		<li>Frame: </li>
+		<li>Osc.Start: </li>
+		<li>Osc.End: </li>
+	</ul>
+
+</div>
+
+<div class="clear"></div>
+
+<!-- image navigation -->
+<div id="image-nav" class="floatleft" width="400">
+	<div class="floatleft">
+		<button onclick="darkClicked();">Dark</button>
+		<button onclick="normalClicked();">Normal</button>
+		<button onclick="lightClicked();">Light</button>
+	</div>
+	<div class="floatright">
+		<button onclick="prevClicked();">Prev</button>
+		<button onclick="nextClicked();">Next</button>
+	</div>
+</div> 
+
+<script>
+	function darkClicked() {
+		shiftzoom.source(document.getElementById('shiftzoomimg'), '{% image_url data 1 "dk" %}', true);
+	}
+	
+	function lightClicked() {
+		shiftzoom.source(document.getElementById('shiftzoomimg'), '{% image_url data 1 "lt" %}', true);
+	}
+	
+	function normalClicked() {
+		shiftzoom.source(document.getElementById('shiftzoomimg'), '{% image_url data 1 "nm" %}', true);
+	}
+
+</script>
