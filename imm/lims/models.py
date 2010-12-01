@@ -998,9 +998,9 @@ class Crystal(models.Model):
         'cocktail': '',
     }
     EXP_STATES = Enum(
+        'Ignore',
         'Pending',
-        'Screened',
-        'Collected',
+        'Completed',
     )
     project = models.ForeignKey(Project)
     name = models.CharField(max_length=60)
@@ -1015,7 +1015,8 @@ class Crystal(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
     status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.DRAFT)
-    exp_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.PENDING)
+    collect_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.IGNORE)
+    screen_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.IGNORE)
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
     experiment = models.ForeignKey(Experiment, null=True, blank=True)

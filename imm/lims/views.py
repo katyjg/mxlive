@@ -1193,7 +1193,7 @@ def shipment_pdf(request, id):
         subprocess.call(['/bin/bash', settings.TEX_TOOLS_DIR + '/ps4pdf.sh', arg], 
                         env={'TEXINPUTS' : '.:' + settings.TEX_TOOLS_DIR + ':',
                              'PATH' : settings.TEX_BIN_PATH},
-                        cwd=temp_dir,
+                        cwd=temp_dir#,
                         #stdout=stdout.fileno(),
                         #stderr=stderr.fileno(),
                         #stdin=devnull
