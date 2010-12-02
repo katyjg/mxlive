@@ -1513,5 +1513,6 @@ def data_viewer(request, id):
         raise Http404
     
     results = Result.objects.filter(data__id=id)
+    expanded_frame_set = data.get_frame_list();
     
-    return render_to_response('lims/entries/data.html', {'data':data, 'results':results})
+    return render_to_response('lims/entries/data.html', {'data':data, 'results':results, 'expanded_frame_set': expanded_frame_set})

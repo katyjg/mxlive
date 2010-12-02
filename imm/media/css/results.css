@@ -123,13 +123,14 @@ h1, h2, h3, h4 {
 }
 
 #meta-data {
-    width: 36%;
+    width: 26%;
     border: 1px solid #c3d9ff; 
 }
 
 #meta-data ul {
     list-style: none;
-    padding:  1em 2em;
+    margin: 5px;
+    padding: 5px;
 }
 
 #image-nav {

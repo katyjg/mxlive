@@ -18,7 +18,7 @@
 <!-- image viewer aspect -->
 <div id="image" class="floatleft" style="border: 1px solid #c3d9ff;">
 	<!-- making assumption that data.url will be filled, with the key, and it's data name -->
-	<img id="shiftzoomimg" src="{% image_url data 1 'lt' %}" onLoad="shiftzoom.add(this);" class="shiftzoom" width="400" height="400">
+	<img id="shiftzoomimg" src="{% image_url data 1 'nm' %}" onLoad="shiftzoom.add(this);" class="shiftzoom" width="512" height="512">
 </div>
 
 <!-- Display of metaData -->
@@ -38,21 +38,28 @@
 		{% endfor %}
 	</ul>
 	<ul>
-		<li>Frame: </li>
-		<li>Osc.Start: </li>
-		<li>Osc.End: </li>
+		<li id="framename">frame: </li>
+		<li id="oscstart">Osc.Start: </li>
+		<li id="oscend">Osc.End: </li> 
 	</ul>
 
 </div>
 
+<div id="meta-data" class="floatright">
+	<ul style="height: 200px; overflow:auto; overflow-x:hidden;">
+	{% for frame_id in expanded_frame_set %}
+		<li onclick="toFrame({{frame_id}});"><a>{{data.name}}_{{ frame_id|stringformat:"03d" }}</a></li>
+	{% endfor %}
+	</ul>
+</div>
 <div class="clear"></div>
 
 <!-- image navigation -->
 <div id="image-nav" class="floatleft" width="400">
 	<div class="floatleft">
-		<button onclick="darkClicked();">Dark</button>
-		<button onclick="normalClicked();">Normal</button>
-		<button onclick="lightClicked();">Light</button>
+		<button onclick="changeBrightness('dk');">Dark</button>
+		<button onclick="changeBrightness('nm');">Normal</button>
+		<button onclick="changeBrightness('lt');">Light</button>
 	</div>
 	<div class="floatright">
 		<button onclick="prevClicked();">Prev</button>
@@ -60,17 +67,99 @@
 	</div>
 </div> 
 
-<script>
-	function darkClicked() {
-		shiftzoom.source(document.getElementById('shiftzoomimg'), '{% image_url data 1 "dk" %}', true);
+<script type="text/javascript">
+	var $current_frame_to_display = 1;
+	var $current_brightness_to_display = 'nm';
+	var $expanded_frame_set = {{ expanded_frame_set }};
+
+	function changeBrightness(brightness) {
+		if (brightness == $current_brightness_to_display) {
+			return;
+		}
+		$current_brightness_to_display = brightness;
+		shiftzoom.source(document.getElementById('shiftzoomimg'), makeCorrectUrl(), true);
+	};
+
+	function makeCorrectUrl() {
+		url = '{% image_url data 1 "dk" %}';
+		// remove the 001-dk.png
+		url = url.slice(0, -10);
+		// add the frame number, 3 digits.
+		var number = '' + $current_frame_to_display;
+		while (number.length <  3) {
+			number = '0' + number;
+		}
+		url = url + number + "-" + $current_brightness_to_display + ".png";
+		return url;
 	}
 	
-	function lightClicked() {
-		shiftzoom.source(document.getElementById('shiftzoomimg'), '{% image_url data 1 "lt" %}', true);
+	function generateFrameName(frame) {
+		name = "{{ data.name }}" + "_";
+		number = '' + frame;
+		while (number.length <  3) {
+			number = '0' + number;
+		}
+		name = name + number;
+		return name;
 	}
 	
-	function normalClicked() {
-		shiftzoom.source(document.getElementById('shiftzoomimg'), '{% image_url data 1 "nm" %}', true);
+	jQuery(document).ready( function() {
+		$current_frame_to_display = {{ data.first_frame }};
+		$current_brightness_to_display = "nm";
+		updateFrameDetails();
+		$expanded_frame_set = {{ data.get_frame_list }};
+		console.log($expanded_frame_set);
+	});
+	
+	function updateFrameDetails() {
+		// use jQuery to find and update the frame specific elements. 
+		element = jQuery('#framename');
+		element.text("Frame: " + generateFrameName($current_frame_to_display));
+		
+		osc = ($current_frame_to_display - {{data.first_frame}}) * {{data.delta_angle}} + {{data.start_angle}};
+		jQuery('#oscstart').text("Osc. Start: " + osc);
+		
+		osc = osc + {{data.delta_angle}};
+		jQuery('#oscend').text("Osc. End: " + osc);
+	}	
+	
+	function nextClicked() {
+		// get next frame in set.
+		index = $expanded_frame_set.indexOf($current_frame_to_display);
+		if ((index != -1) && (index < $expanded_frame_set.length -1)) {
+			index++;
+			$current_frame_to_display = $expanded_frame_set[index];
+		
+			shiftzoom.source(document.getElementById('shiftzoomimg'), makeCorrectUrl(), true);
+		
+			updateFrameDetails();
+		}
+		return;
+	}
+	
+	function prevClicked() {
+		// get previous frame in set
+		index = $expanded_frame_set.indexOf($current_frame_to_display);
+		if ((index != -1) && (index > 0)) {
+			index--;
+			$current_frame_to_display = $expanded_frame_set[index];
+		
+			shiftzoom.source(document.getElementById('shiftzoomimg'), makeCorrectUrl(), true);
+		
+			updateFrameDetails();
+		}
+		return;
+	}		
+	
+	function toFrame(frame) {
+		index = $expanded_frame_set.indexOf(frame);
+		if (index != -1) {
+			$current_frame_to_display = $expanded_frame_set[index];
+			shiftzoom.source(document.getElementById('shiftzoomimg'), makeCorrectUrl(), true);
+		
+			updateFrameDetails();
+		}
+		return;
 	}
 
 </script>

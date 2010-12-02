@@ -1180,14 +1180,17 @@ class Data(models.Model):
 
     # need a method to determine how many frames are in item
     def num_frames(self):
+        return len(self.get_frame_list())          
+    
+    def get_frame_list(self):
         frame_numbers = []
         wlist = [map(int, w.split('-')) for w in self.frame_sets.split(',')]
         for v in wlist:
             if len(v) == 2:
                 frame_numbers.extend(range(v[0],v[1]+1))
             elif len(v) == 1:
-                frame_numbers.extend(v)        
-        return len(frame_numbers)            
+                frame_numbers.extend(v) 
+        return frame_numbers
 
     def __unicode__(self):
         return '%s, %d images' % (self.name, self.num_frames())
