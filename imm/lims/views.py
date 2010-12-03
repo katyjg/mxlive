@@ -1516,3 +1516,14 @@ def data_viewer(request, id):
     expanded_frame_set = data.get_frame_list();
     
     return render_to_response('lims/entries/data.html', {'data':data, 'results':results, 'expanded_frame_set': expanded_frame_set})
+
+@login_required
+def result_print(request, id):
+    manager = Result.objects
+    
+    try:
+        result = manager.get(pk=id)
+    except:
+        raise Http404
+    
+    return render_to_response('lims/entries/result_print.html', {'object':result})

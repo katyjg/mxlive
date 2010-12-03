@@ -8,7 +8,7 @@
 {% if crystals %}
 	{% if admin %}
 		<form method="post">
-			<select style="float:right; font-size:100%; border-width: 2px;" name="action" onchange="change_script">
+			<select style="float:right; font-size:100%; border-width: 2px;" name="action" onchange="changeScript(this);">
 				<option value="default" selected="selected">Select Action</option>
 				<option value="rescreen">Re-Screen</option>
 				<option value="recollect">Re-Collect</option>
@@ -66,5 +66,9 @@
 {% endif %}
 
 <script>
-	change_script
+	function changeScript(select_item) {
+		// Pop up a confirmation window. 
+		// if confirmed then change the marked crystals the indicated way.
+		// can potentially do via Django. 
+	}
 </script>

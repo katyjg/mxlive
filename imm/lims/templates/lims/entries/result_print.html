@@ -1,6 +1,6 @@
 {% load zip %}
 
-<div id="view-images" class="hidden modal-content"></div>
+<link rel="stylesheet" href="/css/main.css" />
 
 <div id="result-page">
     <div id="result-title" class="floatleft size60">
@@ -13,18 +13,13 @@
 
     <div id="result-links" class="floatright">
         <ul>
-            <li>Crystal: &nbsp;<a href={% url lims-crystal-detail object.crystal.id %}>{{object.crystal}}</a></li>
-            <li>Experiment: &nbsp;<a href={% url lims-experiment-detail object.experiment.id %}>{{object.experiment.name}}</a></li>
-            <li>Dataset: &nbsp;<a href={% url lims-dataset-detail object.data.id %}>{{object.data}}</a></li>
-            <li>Print: <a href="{% url lims-result-print object.id %}">Click to print</a></li>
+            <li>Crystal: &nbsp;{{object.crystal}}</a></li>
+            <li>Experiment: &nbsp;{{object.experiment.name}}</a></li>
+            <li>Dataset: &nbsp;{{object.data}}</a></li>
         </ul>
     </div>
 
     <div class="clear"></div>
-
-    {% if object.is_resubmittable %}
-        <a class="add-tool" href='/lims/experiment/result/{{object.get_results_link}}'>Resubmit</a>
-    {% endif %}
 
     <h3>Summary</h3>
     <div id="result-summary">
@@ -62,7 +57,7 @@
         </table>
     </div>
 
-    <div class="tablenotes floatright size30">
+    <div class="tablenotes floatright" style="width:25%;">
         <h3>Notes</h3>
             <dl class="note-list">
             <dt>[1] -<dt>
@@ -119,7 +114,7 @@
     </table>
 
     <h3>Automatic Space-Group Selection</h3>
-    <div class="tablenotes floatright size45">
+    <div class="tablenotes floatright" style="width:30%;">
         <h3>Notes</h3>
         <p>The following table contains result from POINTLESS (see Evans, Acta Cryst. D62, 72-82, 2005). </p>
 
@@ -190,7 +185,7 @@
         </tfoot>
     </table>
 
-    <div class="tablenotes floatright size30">
+    <div class="tablenotes floatright" style="width:20%;">
         <h3>Notes</h3>
         <dl class="note-list">
             <dt>[1] -<dt>

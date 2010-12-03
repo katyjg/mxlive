@@ -91,6 +91,7 @@ urlpatterns = patterns('imm.lims.views',
 
     (r'^experiment/result/$', 'object_list', {'model': Result, 'template': 'objlist/object_list.html'}, 'lims-result-list'),
     (r'^experiment/result/(?P<id>\d+)/$', 'object_detail', {'model': Result, 'template': 'lims/entries/result.html'} , 'lims-result-detail'),
+    (r'^experiment/result/(?P<id>\d+)/print/$', 'result_print', {}, 'lims-result-print'),
 
     (r'^experiment/dataset/$', 'object_list', {'model': Data, 'template': 'objlist/object_list.html'}, 'lims-dataset-list'),
     #(r'^experiment/dataset/(?P<id>\d+)/$', 'object_detail', {'model': Data, 'template': 'lims/entries/experiment.html'} , 'lims-dataset-detail'),
