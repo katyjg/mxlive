@@ -84,8 +84,8 @@ var cvi_szclback, cvi_sztimer, cvi_szactive, cvi_szimage=null, shiftzoom = { _sh
 			if(document.images&&document.createElement&&document.getElementById&&document.getElementsByTagName) {
 				var st,over,view,div=ele.parentNode,img=shiftzoom.E('div'),xref=shiftzoom.E('img'),outer=shiftzoom.E('div'); img.xid=(ele.id!=""?ele.id:ele.id=uniqueID()); 
 				div.appendChild(outer); outer.id=img.xid+'_wrap'; outer.appendChild(xref); outer.appendChild(img); img.wrapid=outer.id; img.opts=defopts; img.highres=ele.src;
-				if(ele.naturalWidth && ele.naturalHeight) {img.xfactor=roundTo(ele.naturalWidth/ele.width,4); img.yfactor=roundTo(ele.naturalHeight/ele.height,4); img.maxwidth=ele.naturalWidth; img.maxheight=ele.naturalHeight;}
-				else {var tmp=new Image; tmp.src=ele.src; img.xfactor=roundTo(tmp.width/ele.width,4); img.yfactor=roundTo(tmp.height/ele.height,4); img.maxwidth=tmp.width; img.maxheight=tmp.height; tmp=null; delete tmp;}
+				if(ele.naturalWidth && ele.naturalHeight) {img.xfactor=roundTo(ele.naturalWidth/ele.width,4); img.yfactor=roundTo(ele.naturalHeight/ele.height,4); img.maxwidth=ele.naturalWidth*4; img.maxheight=ele.naturalHeight*4;}
+				else {var tmp=new Image; tmp.src=ele.src; img.xfactor=roundTo(tmp.width/ele.width,4); img.yfactor=roundTo(tmp.height/ele.height,4); img.maxwidth=tmp.width*4; img.maxheight=tmp.height*4; tmp=null; delete tmp;}
 				if(ele.width>=100&&ele.width<img.maxwidth&&ele.height>=100&&ele.height<img.maxheight){
 					img.fading=(typeof opts['fading']==='boolean'?opts['fading']:shiftzoom.defaultFading);
 					img.buttons=(typeof opts['buttons']==='boolean'?opts['buttons']:shiftzoom.defaultButtons);
