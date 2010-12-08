@@ -1265,6 +1265,13 @@ def add_data(request, data_info):
         info[str(k)] = v
     try:
         new_obj = Data(**info)
+        # check type, and change status accordingly
+        if new_obj.kind == Result.RESULT_TYPES.SCREENING:
+            new_obj.crystal.screen_status = Crystal.EXP_STATES.COMPLETED
+            new_obj.crystal.save()
+        elif new_obj.kind == Result.RESULT_TYPES.COLLECTION:
+            new_obj.crystal.collect_status = Crystal.EXP_STATES.COMPLETED
+            new_obj.crystal.save()
         new_obj.save()
         return {'data_id': new_obj.pk}
     except Exception, e:

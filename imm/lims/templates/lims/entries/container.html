@@ -7,6 +7,7 @@
     <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
     <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
     <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
+    <tr valign="top"><th>Completed:</th><td>{% if object.is_completed %}Yes{% else %} No {% endif %}</td></tr>
 </table>
 
 <img src="/img/container-{{object.get_kind_display|lower}}.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>

@@ -36,6 +36,7 @@
         	<tr valign="top"><th>Returned:</th><td>{{shipment.date_returned|naturalday}}</td></tr>
         	<tr valign="top"><th NOWRAP>Return Code:</th><td>{{ shipment.return_code }}</td></tr>
         {% endif %}
+        <tr valign="top"><th>Processed:</th><td>{% if shipment.is_processed %}Yes{% else %} No {% endif %}</td></tr>
         
     </table>
     <div style="clear: both;"></div>

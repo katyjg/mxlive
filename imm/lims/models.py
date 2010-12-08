@@ -910,41 +910,56 @@ class Experiment(models.Model):
     def is_complete(self):
         """
         Checks experiment type, and depending on type, determines if it's fully completed or not. 
+        Updates Exp Status if considered complete. 
         """
-        if plan == EXP_PLANS.RANK_AND_COLLECT_BEST:
+        if self.plan == Crystal.EXP_PLANS.RANK_AND_COLLECT_BEST:
             # complete if all crystals are "screened" and at least 1 is "collected"
             success_collected = False
             for crystal in self.get_crystals():
                 if crystal.screen_status != Crystal.EXP_STATES.COMPLETED:
+                    self.exp_status = Experiment.EXP_STATES.INCOMPLETE
                     return False
                 if crystal.collect_status == Crystal.EXP_STATES.COMPLETED:
                     success_collected = True
+            if success_collected:
+                self.exp_status = Experiment.EXP_STATES.COMPLETE
+            else:
+                self.exp_status = Experiment.EXP_STATES.INCOMPLETE
             return success_collected
-        elif plan == EXP_PLANS.SCREEN_AND_CONFIRM:
+        elif self.plan == Crystal.EXP_PLANS.SCREEN_AND_CONFIRM:
             # complete if all crystals are "screened" or "collected"
             for crystal in self.get_crystals():
                 if crystal.screen_status != Crystal.EXP_STATES.COMPLETED:
+                    self.exp_status = Experiment.EXP_STATES.INCOMPLETE
                     return False
+            self.exp_status = Experiment.EXP_STATES.COMPLETE
             return True
-        elif plan == EXP_PLANS.SCREEN_AND_COLLECT:
+        elif self.plan == Crystal.EXP_PLANS.SCREEN_AND_COLLECT:
             # complete if all crystals are "screened" or "collected" 
             for crystal in self.get_crystals():
                 if crystal.screen_status != Crystal.EXP_STATES.COMPLETED:
+                    self.exp_status = Experiment.EXP_STATES.INCOMPLETE
                     return False
                 if crystal.collect_status != Crystal.EXP_STATES.COMPLETED:
+                    self.exp_status = Experiment.EXP_STATES.INCOMPLETE
                     return False    
+            self.exp_status = Experiment.EXP_STATES.COMPLETE
             return True
-        elif plan == EXP_PLANS.COLLECT_FIRST_GOOD:
+        elif self.plan == Crystal.EXP_PLANS.COLLECT_FIRST_GOOD:
             # complete if 1 crystal is collected. 
             for crystal in self.get_crystals():
                 if crystal.collect_status == Crystal.EXP_STATES.COMPLETED:
+                    self.exp_status = Experiment.EXP_STATES.COMPLETE
                     return True
+            self.exp_status = Experiment.EXP_STATES.INCOMPLETE
             return False
-        elif plan == EXP_PLANS.JUST_COLLECT:
+        elif self.plan == Crystal.EXP_PLANS.JUST_COLLECT:
             # complete if all crystals are "collected"
             for crystal in self.get_crystals():
                 if crystal.collect_status != Crystal.EXP_STATES.COMPLETED:
+                    self.exp_status = Experiment.EXP_STATES.INCOMPLETE
                     return False
+            self.exp_status = Experiment.EXP_STATES.COMPLETE
             return True
         else:
             # should never get here.
@@ -1064,25 +1079,25 @@ class Crystal(models.Model):
         """
         assert self.experiment
         all_crystals_received = True
-        for crystal in self.experiment.crystal_set.all():
-            all_crystals_received = all_crystals_received and crystal.status == Crystal.STATES.ON_SITE
-        if all_crystals_received:
-            self.experiment.status = Experiment.STATES.ACTIVE
-            self.experiment.save()
-            if self.experiment.plan == Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST:
-                self.screen_status = Crystal.EXP_STATES.PENDING
-                self.save()
-                return
-            if self.experiment.plan == Experiment.EXP_PLANS.COLLECT_FIRST_GOOD:
-                return
-            if self.experiment.plan == Experiment.EXP_PLANS.JUST_COLLECT:
-                self.collect_status = Crystal.EXP_STATES.PENDING
-                self.save()
-                return
+#        for crystal in self.experiment.crystal_set.all():
+#            all_crystals_received = all_crystals_received and crystal.status == Crystal.STATES.ON_SITE
+#        if all_crystals_received:
+        self.experiment.status = Experiment.STATES.ACTIVE
+        self.experiment.save()
+        if self.experiment.plan == Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST:
             self.screen_status = Crystal.EXP_STATES.PENDING
-            if self.experiment.plan == Experiment.EXP_PLANS.SCREEN_AND_COLLECT:
-                self.collect_status = Crystal.EXP_STATES.PENDING
             self.save()
+            return
+        if self.experiment.plan == Experiment.EXP_PLANS.COLLECT_FIRST_GOOD:
+            return
+        if self.experiment.plan == Experiment.EXP_PLANS.JUST_COLLECT:
+            self.collect_status = Crystal.EXP_STATES.PENDING
+            self.save()
+            return
+        self.screen_status = Crystal.EXP_STATES.PENDING
+        if self.experiment.plan == Experiment.EXP_PLANS.SCREEN_AND_COLLECT:
+            self.collect_status = Crystal.EXP_STATES.PENDING
+        self.save()
             
 #        
 #        for experiment in self.experiment_set.all():
@@ -1120,7 +1135,15 @@ class Crystal(models.Model):
         # Rank and collect best, and collect first good
         # all crystals aren't considered done unless the experiment is done.
         return False
-                
+    
+    def rescreen(self):
+        if self.screen_status == self.EXP_STATES.COMPLETED:
+            self.screen_status = self.EXP_STATES.PENDING
+        
+    def recollect(self):
+        if self.collect_status == self.EXP_STATES.COMPLETED:
+            self.collect_status = self.EXP_STATES.PENDING
+        
     def is_editable(self):
         return self.status == self.STATES.DRAFT 
     

@@ -19,6 +19,7 @@
 	<tr valign="top"><th>Desired R-factor:</th><td>{{object.r_meas}}</td></tr>
 	<tr valign="top"><th>Energy:</th><td>{{object.energy}}</td></tr>
 	<tr valign="top"><th>Absorption Edge:</th><td>{{object.absorption_edge}}</td></tr>
+	<tr valign="top"><th>Completed:</th><td>{% if object.is_complete %}Yes{% else %} No {% endif %}</td></tr>
 </table>
 <div style="clear: both;"></div>
 
