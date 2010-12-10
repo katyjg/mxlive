@@ -8,6 +8,7 @@ from imm.lims.models import Experiment
 from imm.lims.models import Dewar
 
 from imm.staff.models import Runlist
+from imm.staff.models import AutomounterLayout
 
 from django.forms.util import ErrorList
 

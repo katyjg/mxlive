@@ -306,7 +306,7 @@ def change_status(instance, status):
         return
     if status not in instance.TRANSITIONS[instance.status]:
         raise ValueError("Invalid transition on '%s.%s':  '%s' -> '%s'" % (instance.__class__, instance.pk, instance.STATES[instance.status], instance.STATES[status]))
-    logging.info("Changing status of '%s.%s': '%s' -> '%s'" % (instance.__class__, instance.pk, instance.STATES[instance.status], instance.STATES[status]))
+    #logging.info("Changing status of '%s.%s': '%s' -> '%s'" % (instance.__class__, instance.pk, instance.STATES[instance.status], instance.STATES[status]))
     instance.status = status
     
 class Shipment(models.Model):

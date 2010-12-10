@@ -1,6 +1,11 @@
 # define models here
 from django.db import models
 
+try: 
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
 from imm.lims.models import Container
 from imm.lims.models import Experiment
 from imm.lims.models import Crystal
@@ -13,6 +18,222 @@ from django.contrib.auth.models import User
 
 from django.conf import settings
 
+class PickledObject(str):
+    """A subclass of string so it can be told whether a string is
+       a pickled object or not (if the object is an instance of this class
+       then it must [well, should] be a pickled one)."""
+    pass
+
+class PickledObjectField(models.Field):
+    __metaclass__ = models.SubfieldBase
+    
+    def to_python(self, value):
+        if isinstance(value, PickledObject):
+            # If the value is a definite pickle; and an error is raised in de-pickling
+            # it should be allowed to propogate.
+            return pickle.loads(str(value))
+        else:
+            try:
+                return pickle.loads(str(value))
+            except:
+                # If an error was raised, just return the plain value
+                return value
+    
+    def get_db_prep_save(self, value):
+        if value is not None and not isinstance(value, PickledObject):
+            value = PickledObject(pickle.dumps(value))
+        return value
+    
+    def get_internal_type(self): 
+        return 'TextField'
+    
+    def get_db_prep_lookup(self, lookup_type, value):
+        if lookup_type == 'exact':
+            value = self.get_db_prep_save(value)
+            return super(PickledObjectField, self).get_db_prep_lookup(lookup_type, value)
+        elif lookup_type == 'in':
+            value = [self.get_db_prep_save(v) for v in value]
+            return super(PickledObjectField, self).get_db_prep_lookup(lookup_type, value)
+        else:
+            raise TypeError('Lookup type %s is not supported.' % lookup_type)
+
+
+        
+class AutomounterLayout(models.Model):
+    # contains just the locational information of an automounter
+    
+    # Discussion with KO
+    # Each side has a field, if the field contains just an id, it's a cane that fills the whole side.
+    # if the side is a list, it's a list of pucks, max size 4.
+    # if the field is none, that whole side is empty
+    
+    left = PickledObjectField(null=True)
+    middle = PickledObjectField(null=True)
+    right = PickledObjectField(null=True)
+    
+    def add_container(self, container):
+        # check container type
+        if container.kind == Container.TYPE.CASSETTE:
+            # cassette take all 4 potential spots. 
+            if self.left == None:
+                self.left = container.pk
+                self.save()
+                return True
+            if self.middle == None:
+                self.middle = container.pk
+                self.save()
+                return True
+            if self.right == None:
+                self.right = container.pk
+                self.save()
+                return True
+            return False
+        elif container.kind == Container.TYPE.UNI_PUCK:
+            check_list = self.left
+            if check_list == None:
+                check_list = list([container.pk])
+                self.left = check_list
+                self.save()
+                return True
+            if type(check_list) == type(list()):
+                if len(check_list) < 4:
+                    check_list.append(container.pk)
+                    self.save()
+                    return True
+            
+            check_list = self.middle
+            if check_list == None:
+                check_list = list([container.pk])
+                self.middle = check_list
+                self.save()
+                return True
+            if type(check_list) == type(list()):
+                if len(check_list) < 4:
+                    check_list.append(container.pk)
+                    self.save()
+                    return True
+                
+            check_list = self.right
+            if check_list == None:
+                check_list = list([container.pk])
+                self.right = check_list
+                self.save()
+                return True
+            if type(check_list) == type(list()):
+                if len(check_list) < 4:
+                    check_list.append(container.pk)
+                    self.save()
+                    return True
+            
+            return False
+        else:
+            # invalid container
+            return False
+    
+    def remove_container(self, container):
+        # need a remove method to iterate through potential lists. 
+        if self.left != None:
+            check_list = self.left
+            if type(check_list) == type(list()):
+                # iterate through the list.
+                if container.pk in check_list:
+                    check_list.remove(container.pk)
+                    self.left = check_list
+                    self.save()
+                    return True
+            elif check_list == container.pk:
+                check_list = None
+                self.left = check_list
+                self.save()
+                return True
+            
+            
+        if self.middle != None:
+            check_list = self.middle
+            if type(check_list) == type(list()):
+                # iterate through the list.
+                if container.pk in check_list:
+                    check_list.remove(container.pk)
+                    self.middle = check_list
+                    self.save()
+                    return True
+            elif check_list == container.pk:
+                check_list = None
+                self.middle = check_list
+                self.save()
+                return True
+            
+        if self.right != None:
+            check_list = self.right
+            if type(check_list) == type(list()):
+                # iterate through the list.
+                if container.pk in check_list:
+                    check_list.remove(container.pk)
+                    self.right = check_list
+                    self.save()
+                    return True
+            elif check_list == container.pk:
+                check_list = None
+                self.right = check_list
+                self.save()
+                return True
+            
+        return False
+    
+    def get_position(self, container):
+        import logging
+        # gets the position of a container in the automounter. Returns none if not in
+        logging.critical("containter is " + str(container.pk))
+        if self.left != None:
+           check_list = self.left
+           if type(check_list) == type(list()):
+               logging.critical("check_list is a list")
+               # iterate through the list.
+               if container.pk in check_list:
+                   return 'L' + str(check_list.index(container.pk) + 1)
+           elif check_list == container.pk:
+               logging.critical("check_list is container")
+               return 'L1'
+           logging.critical("check list failed")
+        
+        if self.middle != None:
+           check_list = self.middle
+           if type(check_list) == type(list()):
+               logging.critical("check_list is a list")
+               # iterate through the list.
+               if container.pk in check_list:
+                   return 'M' + str(check_list.index(container.pk) + 1)
+           elif check_list == container.pk:
+               logging.critical("check_list is container")
+               return 'M1'
+           
+        if self.right != None:
+           check_list = self.right
+           if type(check_list) == type(list()):
+               # iterate through the list.
+               if container.pk in check_list:
+                   return 'R' + str(check_list.index(container.pk) + 1)
+           elif check_list == container.pk:
+               return 'R1'  
+    
+        return None
+    
+    def reset(self):
+        # resets the item to blank
+        self.left = None
+        self.middle = None
+        self.Right = None
+        self.save()
+    
+    def json_dict(self):
+        # gives a json dictionary of the automounter config
+        # TODO: Currently not real full json, just for debugging purposes.
+        
+        return {'left': self.left or 'None',
+                'middle': self.middle or 'None',
+                'right': self.right or 'None'}
+    
+                  
 class Runlist(models.Model):
     STATES = Enum(
         'Pending', 
@@ -39,6 +260,13 @@ class Runlist(models.Model):
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
     comments = models.TextField(blank=True, null=True)
     experiments = models.ManyToManyField(Experiment)
+    automounter = models.ForeignKey(AutomounterLayout)
+    
+#    def __init__(self, *args, **kwargs):
+#        mounter = AutomounterLayout()
+#        mounter.save()
+#        super(Runlist, self).__init__(*args, **kwargs)
+#        self.automounter = mounter      
     
     def identity(self):
         return self.name
@@ -121,6 +349,10 @@ class Runlist(models.Model):
         crystals = {}
         for container in self.containers.all():
             container_json = container.json_dict()
+            # if container is in automounter, override it's location
+            auto_pos = self.automounter.get_position(container)
+            if auto_pos != None:
+                container_json['load_position'] = auto_pos
             containers[container.pk] = container_json
             for crystal_pk in container_json['crystals']:
                 crystal = Crystal.objects.get(pk=crystal_pk)
@@ -136,3 +368,68 @@ class Runlist(models.Model):
                 'containers': containers, 
                 'crystals': crystals, 
                 'experiments': experiments}
+        
+    def save(self, *args, **kwargs):
+        import logging
+        super(Runlist, self).save(*args, **kwargs)
+        self.automounter.reset()
+        for container in self.containers.all():
+            self.automounter.add_container(container)
+            
+#        if self.pk is not None:
+#            orig = Runlist.objects.get(pk=self.pk)
+#            # these two seem to always match. Doesn't actually give me old and new. 
+#            logging.critical(self.containers.all())
+#            logging.critical(orig.containers.all())
+#            for container in self.containers.all():
+#                logging.critical("self.pk exists, checking container")
+#                if container not in orig.containers.all():
+#                    logging.critical("adding")
+#                    self.automounter.add_container(container)
+#            for container in orig.containers.all():
+#                if container not in self.containers.all():
+#                    logging.critical("removing")
+#                    self.automounter.remove_container(container)
+#            super(Runlist, self).save(*args, **kwargs)
+#        else:
+#            logging.critical("pk doesn't exist, add all")
+#            super(Runlist, self).save(*args, **kwargs)
+#            logging.critical(self.containers.all())
+#            for container in self.containers.all():
+#                logging.critical("Adding")
+#                self.automounter.add_container(container)
+        
+def update_automounter(signal, sender, instance, **kwargs):
+    if sender != Runlist:
+        return
+    # this checks containers on save, and calls the correct automounter functions as needed
+    # compare containers in instance and current model.
+    import logging
+    logging.critical("Update_automounter caught signal")
+    try:
+        current = Runlist.objects.get(pk=instance.pk)
+    except:
+        current = None
+        # can't do anything here as 
+        return
+
+    for container in instance.containers.all():
+        logging.critical(container)
+        if len(current.containers.all()) == 0:
+            logging.critical("Adding as empty")
+            instance.automounter.add_container(container)
+        if container not in current.containers.all():
+            logging.critical("Adding")
+            instance.automounter.add_container(container)
+    for container in current.containers.all():
+        logging.critical(container)
+        if container not in instance.containers.all():
+            logging.critical("Removing")
+            instance.automounter.remove_container(container)
+        
+    # for debugging
+    logging.critical(instance.automounter.json_dict())
+
+from django.db.models.signals import pre_save
+
+#pre_save.connect(update_automounter, sender=Runlist)

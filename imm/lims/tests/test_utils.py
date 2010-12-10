@@ -34,6 +34,7 @@ from imm.lims.models import SpaceGroup
 from imm.lims.models import CrystalForm
 
 from imm.staff.models import Runlist
+from imm.staff.models import AutomounterLayout
 
 TEST_FILES = os.path.join(os.path.dirname(__file__), 'xls/')
 
@@ -351,9 +352,12 @@ def create_Crystal(**kwargs):
 def create_Runlist(**kwargs):
     """Create a Runlist using a common test interface
     """
-    defaults = {}
+    automounter = AutomounterLayout()
+    automounter.save()
+    defaults = {'automounter': automounter}
     containers = kwargs.pop('containers', [])
     experiments = kwargs.pop('experiments', [])
+    
     instance = create_instance(Runlist, defaults, **kwargs)
     for e in experiments:
         instance.experiments.add(e)
@@ -388,7 +392,7 @@ def create_Project(**kwargs):
 def create_Data(**kwargs):
     """Create a Data using a common test interface
     """
-    defaults = {'distance': 1,
+    defaults = {'resolution': 1,
                 'start_angle': 1,
                 'delta_angle': 1,
                 'frame_sets': '1-2',

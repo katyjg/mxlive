@@ -1302,6 +1302,20 @@ def add_strategy(request, stg_info):
     new_obj.save()
     return {'strategy_id': new_obj.pk}
 
+@jsonrpc_method('lims.detailed_runlist', authenticated=False, safe=True)
+def detailed_runlist(request, runlist_id):
+    import logging
+    logging.critical("Start of detailed")
+    try:
+        runlist = Runlist.objects.get(pk=0)#runlist_id)
+    except Runlist.DoesNotExist:
+        raise MethodNotFoundError("Runlist does not exist.")
+ #   if runlist.status != Runlist.STATES.LOADED:
+ #       raise InvalidRequestError("Runlist is not loaded.")
+    
+    logging.critical(runlist.json_dict())
+    return runlist.json_dict()
+
 @login_required
 @cache_page(60*3600)
 def plot_shell_stats(request, id):

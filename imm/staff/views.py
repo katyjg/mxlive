@@ -25,6 +25,7 @@ from imm.lims.models import ActivityLog
 from imm.lims.models import Crystal
 from imm.lims.models import Container
 from imm.staff.models import Runlist
+from imm.staff.models import AutomounterLayout
 from imm.objlist.views import ObjectList
 
 from jsonrpc import jsonrpc_method
@@ -175,7 +176,10 @@ def runlist_create_object(request, model, form, template='lims/forms/new_base.ht
     if request.method == 'POST':
         frm = form(request.POST)
         if frm.is_valid():
-            new_obj = frm.save()
+            auto = AutomounterLayout()
+            auto.save()
+            runlist = Runlist(automounter=auto, name=frm.cleaned_data['name'], comments=frm.cleaned_data['comments'])
+            runlist.save()
             request.user.message_set.create(message = 'New Runlist created.')
             return render_to_response('lims/message.html', context_instance=RequestContext(request))
             #return HttpResponseRedirect(request.path+'../../%s/' % new_obj.pk)
@@ -243,14 +247,18 @@ def container_basic_object_list(request, runlist_id, model, template='objlist/ba
 #        if keep == true:
 #            ol.object_list.add(container)
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
-
-    
-@jsonrpc_method('lims.detailed_runlist', authenticated=True, safe=True)
-def detailed_runlist(request, runlist_id):
-    try:
-        runlist = Runlist.objects.get(pk=runlist_id)
-    except Runlist.DoesNotExist:
-        raise MethodNotFoundError("Runlist does not exist.")
-    if runlist.status != Runlist.STATES.LOADED:
-        raise InvalidRequestError("Runlist is not loaded.")
-    return runlist.json_dict()
+#
+#    
+#@jsonrpc_method('lims.detailed_runlist', authenticated=False, safe=True)
+#def detailed_runlist(request, runlist_id):
+#    import logging
+#    logging.critical("Start of detailed")
+#    try:
+#        runlist = Runlist.objects.get(pk=0)#runlist_id)
+#    except Runlist.DoesNotExist:
+#        raise MethodNotFoundError("Runlist does not exist.")
+# #   if runlist.status != Runlist.STATES.LOADED:
+# #       raise InvalidRequestError("Runlist is not loaded.")
+#    
+#    logging.critical(runlist.json_dict())
+#    return runlist.json_dict()
