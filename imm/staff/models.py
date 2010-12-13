@@ -279,12 +279,14 @@ class Runlist(models.Model):
     
     def get_experiments(self):
         """ Returns the list of Experiments associated with this Runlist """
-        return_value = []
-        for container in self.containers.all():
-            for crystal in container.crystal_set.all():
-                if crystal.experiment not in return_value:
-                    return_value.append(crystal.experiment)
-        return return_value
+        # this is stupid. Why not use the experiments field
+#        return_value = []
+#        for container in self.containers.all():
+#            for crystal in container.crystal_set.all():
+#                if crystal.experiment not in return_value:
+#                    return_value.append(crystal.experiment)
+#        return return_value
+        return self.experiments.all()
     
    # experiments = property(get_experiments)
     

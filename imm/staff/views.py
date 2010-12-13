@@ -221,17 +221,19 @@ def container_basic_object_list(request, runlist_id, model, template='objlist/ba
         ol.object_list = None
     
     if runlist != None:
-        experiment_list = runlist.get_experiments
+        experiment_list = runlist.get_experiments()
         # currently selected containers
         active_containers = runlist.containers
     
     """ only want containers that pass experiment check. """
-#    experiment_list = [1,2]
+    #    experiment_list = [1,2]
     if experiment_list != None:
-        if active_containers.count != 0:
+        if active_containers == None:
+            ol.object_list = Container.objects.filter(crystal__experiment__in=experiment_list).distinct()
+        elif active_containers.count != 0:
             ol.object_list = Container.objects.filter(crystal__experiment__in=experiment_list).distinct().exclude(id__in=active_containers.all()) #.remove(active_containers)
         else:
-            ol.object_list = Container.objects.filter(crystal__experiment__in=experiment_list)
+            ol.object_list = Container.objects.filter(crystal__experiment__in=experiment_list).distinct()
 #    
 #if experiment_list != None:
 #        return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
@@ -246,6 +248,7 @@ def container_basic_object_list(request, runlist_id, model, template='objlist/ba
 #                keep = true
 #        if keep == true:
 #            ol.object_list.add(container)
+    logging.critical(ol.object_list)
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
 @jsonrpc_method('lims.detailed_runlist', safe=True)
