@@ -28,6 +28,7 @@ import logging
 
 from imm.objlist.views import ObjectList
 from imm.lims.models import *
+from imm.staff.models import Runlist
 from imm.lims.forms import ObjectSelectForm, DataForm
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
   
@@ -35,6 +36,7 @@ from imm.remote.user_api import UserApi
   
 #from imm.remote.user_api import UserApi
 
+import jsonrpc
 from jsonrpc import jsonrpc_method
 try:
     import json
@@ -1302,19 +1304,6 @@ def add_strategy(request, stg_info):
     new_obj.save()
     return {'strategy_id': new_obj.pk}
 
-@jsonrpc_method('lims.detailed_runlist', authenticated=False, safe=True)
-def detailed_runlist(request, runlist_id):
-    import logging
-    logging.critical("Start of detailed")
-    try:
-        runlist = Runlist.objects.get(pk=0)#runlist_id)
-    except Runlist.DoesNotExist:
-        raise MethodNotFoundError("Runlist does not exist.")
- #   if runlist.status != Runlist.STATES.LOADED:
- #       raise InvalidRequestError("Runlist is not loaded.")
-    
-    logging.critical(runlist.json_dict())
-    return runlist.json_dict()
 
 @login_required
 @cache_page(60*3600)
@@ -1548,3 +1537,4 @@ def result_print(request, id):
         raise Http404
     
     return render_to_response('lims/entries/result_print.html', {'object':result})
+

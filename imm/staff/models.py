@@ -98,6 +98,7 @@ class AutomounterLayout(models.Model):
             if type(check_list) == type(list()):
                 if len(check_list) < 4:
                     check_list.append(container.pk)
+                    self.left = check_list
                     self.save()
                     return True
             
@@ -110,6 +111,7 @@ class AutomounterLayout(models.Model):
             if type(check_list) == type(list()):
                 if len(check_list) < 4:
                     check_list.append(container.pk)
+                    self.middle = check_list
                     self.save()
                     return True
                 
@@ -122,6 +124,7 @@ class AutomounterLayout(models.Model):
             if type(check_list) == type(list()):
                 if len(check_list) < 4:
                     check_list.append(container.pk)
+                    self.right = check_list
                     self.save()
                     return True
             
@@ -343,15 +346,19 @@ class Runlist(models.Model):
         # meta data first
         meta = {'id': str(self.pk), 'name': self.name}
                     
-        
+        import logging
         # fetch the containers and crystals
         containers = {}
         crystals = {}
+        logging.critical(self.automounter.json_dict())
+        
         for container in self.containers.all():
             container_json = container.json_dict()
             # if container is in automounter, override it's location
             auto_pos = self.automounter.get_position(container)
             if auto_pos != None:
+                
+                logging.critical("changing loadposition")
                 container_json['load_position'] = auto_pos
             containers[container.pk] = container_json
             for crystal_pk in container_json['crystals']:
@@ -375,6 +382,9 @@ class Runlist(models.Model):
         self.automounter.reset()
         for container in self.containers.all():
             self.automounter.add_container(container)
+        
+        logging.critical("save updated automounter")
+        logging.critical(self.automounter.json_dict())
             
 #        if self.pk is not None:
 #            orig = Runlist.objects.get(pk=self.pk)

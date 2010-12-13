@@ -247,18 +247,17 @@ def container_basic_object_list(request, runlist_id, model, template='objlist/ba
 #        if keep == true:
 #            ol.object_list.add(container)
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
-#
-#    
-#@jsonrpc_method('lims.detailed_runlist', authenticated=False, safe=True)
-#def detailed_runlist(request, runlist_id):
-#    import logging
-#    logging.critical("Start of detailed")
-#    try:
-#        runlist = Runlist.objects.get(pk=0)#runlist_id)
-#    except Runlist.DoesNotExist:
-#        raise MethodNotFoundError("Runlist does not exist.")
-# #   if runlist.status != Runlist.STATES.LOADED:
-# #       raise InvalidRequestError("Runlist is not loaded.")
-#    
-#    logging.critical(runlist.json_dict())
-#    return runlist.json_dict()
+
+@jsonrpc_method('lims.detailed_runlist', safe=True)
+def detailed_runlist(request, runlist_id):
+    import logging
+    logging.critical("Start of detailed")
+    try:
+        runlist = Runlist.objects.get(pk=runlist_id)
+    except Runlist.DoesNotExist:
+        logging.critical("Runlist doesn't exist")
+        raise MethodNotFoundError("Runlist does not exist.")
+ #   if runlist.status != Runlist.STATES.LOADED:
+ #       raise InvalidRequestError("Runlist is not loaded.")
+    
+    return runlist.json_dict()
