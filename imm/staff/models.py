@@ -187,16 +187,19 @@ class AutomounterLayout(models.Model):
         import logging
         # gets the position of a container in the automounter. Returns none if not in
         logging.critical("containter is " + str(container.pk))
+        # making an array for the postfix letter
+        postfix = ['A', 'B', 'C', 'D']
         if self.left != None:
            check_list = self.left
            if type(check_list) == type(list()):
                logging.critical("check_list is a list")
                # iterate through the list.
                if container.pk in check_list:
-                   return 'L' + str(check_list.index(container.pk) + 1)
+                   # needs to return LA, LB, LC, or LD
+                   return 'L' + postfix[check_list.index(container.pk)]
            elif check_list == container.pk:
                logging.critical("check_list is container")
-               return 'L1'
+               return 'L'
            logging.critical("check list failed")
         
         if self.middle != None:
@@ -205,19 +208,19 @@ class AutomounterLayout(models.Model):
                logging.critical("check_list is a list")
                # iterate through the list.
                if container.pk in check_list:
-                   return 'M' + str(check_list.index(container.pk) + 1)
+                   return 'M' + postfix[check_list.index(container.pk)]
            elif check_list == container.pk:
                logging.critical("check_list is container")
-               return 'M1'
+               return 'M'
            
         if self.right != None:
            check_list = self.right
            if type(check_list) == type(list()):
                # iterate through the list.
                if container.pk in check_list:
-                   return 'R' + str(check_list.index(container.pk) + 1)
+                   return 'R' + postfix[check_list.index(container.pk)]
            elif check_list == container.pk:
-               return 'R1'  
+               return 'R'  
     
         return None
     
@@ -346,7 +349,7 @@ class Runlist(models.Model):
     def json_dict(self):
         """ Returns a json dictionary of the Runlist """
         # meta data first
-        meta = {'id': str(self.pk), 'name': self.name}
+        meta = {'id': self.pk, 'name': self.name}
                     
         import logging
         # fetch the containers and crystals

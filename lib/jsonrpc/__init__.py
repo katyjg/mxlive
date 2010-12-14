@@ -221,6 +221,9 @@ def jsonrpc_method(name, authenticated=False, safe=False, validate=False,
     _func.json_safe = safe
     _func.json_sig = X['name']
     _func.json_validate = validate
+    import logging
+    logging.critical("Registering func lib")
+    logging.critical(name)
     site.register(method, _func)
     return _func
   return decorator

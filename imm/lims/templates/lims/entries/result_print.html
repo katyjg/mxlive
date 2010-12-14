@@ -184,6 +184,7 @@
         <tr><td colspan=4></td></tr>
         </tfoot>
     </table>
+    <image class="center" src={% url lims-plot-shells object.id %} />
 
     <div class="tablenotes floatright" style="width:20%;">
         <h3>Notes</h3>
@@ -200,6 +201,24 @@
                 deviation (|F(+)-F(-)|/Sigma). F(+), F(-) are structure factor estimates
                 obtained from the merged intensity observations in each parity class.
             </dd>
+        </dl>
+    </div>
+
+    <div class="clear spacer"></div>
+    
+    <h3>Integration and Scaling Statistics (by frame/frame difference)</h3>
+    <image class="center" src={% url lims-plot-frames object.id %} />
+    <image class="center" src={% url lims-plot-diffs object.id %} />
+
+    <div class="clear"></div>
+
+    <div class="tablenotes">
+        <h3>Notes</h3>
+        <dl class="note-list">
+            <dt>Divergence -<dt>
+            <dd>Estimated Standard Deviation of Beam divergence</dd>
+            <dt>R<sub>d</sub> -<dt>
+            <dd>R-factors as a function of frame difference. See Diederichs K. (2006) Acta Cryst D62, 96-101.</dd>
         </dl>
     </div>
 

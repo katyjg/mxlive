@@ -27,7 +27,7 @@ class ObjectList(ChangeList):
     features such as filters, search and pagination in non-admin related applications
     """
     
-    def __init__(self, request, manager, admin_site=None):
+    def __init__(self, request, manager, admin_site=None, num_show=None):
         self.manager = manager
         self.model = self.manager.model
         self.object_type = self.model.__name__
@@ -52,7 +52,10 @@ class ObjectList(ChangeList):
         self.date_hierarchy = self.model_admin.date_hierarchy
         self.search_fields = self.model_admin.search_fields
         self.list_select_related = self.model_admin.list_select_related
-        self.list_per_page = self.model_admin.list_per_page
+        if num_show == None:
+            self.list_per_page = self.model_admin.list_per_page
+        else:
+            self.list_per_page = num_show
         self.unsortable = getattr(self.model_admin, 'unsortable', ())
         self.list_editable = []
         

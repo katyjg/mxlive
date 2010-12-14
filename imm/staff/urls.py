@@ -45,6 +45,10 @@ urlpatterns = patterns('',
     (r'^experiment/basic/$', 'imm.lims.views.basic_object_list', {'model': Experiment, 'template': 'objlist/basic_object_list.html'}, 'staff-experiment-basic-list'),
     (r'^experiment/(<?P<id>\d+)/$', 'experiment_object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html' }, 'staff-experiment-basic-detail'),
     
+    url(r'^experiment/result/(\d+)/shellstats.png$', 'imm.lims.views.plot_shell_stats', name='staff-plot-shells'),
+    url(r'^experiment/result/(\d+)/framestats.png$', 'imm.lims.views.plot_frame_stats', name='staff-plot-frames'),
+    url(r'^experiment/result/(\d+)/diffstats.png$', 'imm.lims.views.plot_diff_stats', name='staff-plot-diffs'),
+    
     (r'^container/basic/(\d+)/$', 'imm.staff.views.container_basic_object_list', {'model':Container, 'template': 'objlist/basic_object_list.html'}, 'staff-container-basic-list'),
     
     (r'^runlist_summary/$', 'imm.staff.views.runlist_summary', {'model': ActivityLog}, 'lims-runlist-summary'),

@@ -3,6 +3,8 @@ import logging
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 
+from django.conf import settings
+
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db import transaction
@@ -251,7 +253,7 @@ def container_basic_object_list(request, runlist_id, model, template='objlist/ba
     logging.critical(ol.object_list)
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
-@jsonrpc_method('lims.detailed_runlist', safe=True)
+@jsonrpc_method('lims.detailed_runlist', authenticated=settings.AUTH_REQ or True)
 def detailed_runlist(request, runlist_id):
     import logging
     logging.critical("Start of detailed")
@@ -264,3 +266,22 @@ def detailed_runlist(request, runlist_id):
  #       raise InvalidRequestError("Runlist is not loaded.")
     
     return runlist.json_dict()
+
+@jsonrpc_method('lims.get_active',  authenticated=settings.AUTH_REQ or True, safe=True)
+def get_active(request):
+    import logging
+    logging.critical("Start of get_active")
+    try:
+        # should only be one runlist loaded at a time
+        runlist = Runlist.objects.get(status=Runlist.STATES.LOADED)
+    except Runlist.DoesNotExist:
+        # can't just except, need to return no runlist found.
+        logging.critical("excepted!")
+        return 'None'
+    except Runlist.MultipleObjectsReturned:
+        # too many runlists are considered loaded
+        return 'Too many'
+    
+    logging.critical("end of get_active")
+    return runlist.json_dict()
+        

@@ -726,7 +726,8 @@ def basic_object_list(request, model, template='objlist/basic_object_list.html')
     A very basic object list that will only display .name and .id for the entity
     The template this uses will be rendered in the sidebar controls.
     """
-    ol = ObjectList(request, request.manager)
+    ol = ObjectList(request, request.manager, num_show=200)
+
     return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower() }, context_instance=RequestContext(request))
     
 @login_required
@@ -1196,9 +1197,9 @@ def shipment_pdf(request, id):
                         env={'TEXINPUTS' : '.:' + settings.TEX_TOOLS_DIR + ':',
                              'PATH' : settings.TEX_BIN_PATH},
                         cwd=temp_dir,
-                        #stdout=stdout.fileno(),
-                        #stderr=stderr.fileno(),
-                        #stdin=devnull
+                        stdout=stdout.fileno(),
+                        stderr=stderr.fileno(),
+                        stdin=devnull
                         )
         
         # open the resulting .pdf and write it out to the response/browser
@@ -1259,7 +1260,7 @@ def shipment_xls(request, id):
             # remove the tempfiles
             shutil.rmtree(temp_dir)
     
-@jsonrpc_method('lims.add_data', authenticated=True)
+@jsonrpc_method('lims.add_data', authenticated=settings.AUTH_REQ or True)
 def add_data(request, data_info):
     info = {}
     # convert unicode to str
@@ -1280,7 +1281,7 @@ def add_data(request, data_info):
         raise e
         return {'error': str(e)}
 
-@jsonrpc_method('lims.add_result', authenticated=True)
+@jsonrpc_method('lims.add_result', authenticated=settings.AUTH_REQ or True)
 def add_result(request, res_info):
     info = {}
     # convert unicode to str
@@ -1294,7 +1295,7 @@ def add_result(request, res_info):
         raise e
         return {'error':str(e)}
 
-@jsonrpc_method('lims.add_strategy', authenticated=True)
+@jsonrpc_method('lims.add_strategy', authenticated=settings.AUTH_REQ or True)
 def add_strategy(request, stg_info):
     info = {}
     # convert unicode to str

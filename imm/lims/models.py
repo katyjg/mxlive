@@ -161,6 +161,7 @@ class Project(models.Model):
     
     def identity(self):
         return 'PR%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
         
     def __unicode__(self):
         return self.name
@@ -234,6 +235,7 @@ class Constituent(models.Model):
         
     def identity(self):
         return 'CO%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
     
     def _cocktail(self, cocktail):
         self.cocktail_set.add(cocktail)
@@ -387,6 +389,7 @@ class Shipment(models.Model):
 
     def identity(self):
         return 'SH%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
     
     def shipping_errors(self):
         """ Returns a list of descriptive string error messages indicating the Shipment is not
@@ -520,6 +523,7 @@ class Dewar(models.Model):
 
     def identity(self):
         return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
     
     def barcode(self):
         return self.code or self.label
@@ -697,6 +701,7 @@ class Container(models.Model):
 
     def identity(self):
         return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
     
     def barcode(self):
         return self.code or self.label
@@ -721,7 +726,7 @@ class Container(models.Model):
             'id': self.pk,
             'name': self.label,
             'type': Container.TYPE[self.kind],
-            'load_position': 'TODO',
+            'load_position': '',
             'comments': self.comments,
             'crystals': [crystal.pk for crystal in self.crystal_set.all()]
         }
@@ -769,6 +774,7 @@ class CrystalForm(models.Model):
 
     def identity(self):
         return 'CF%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
     
     class Meta:
         verbose_name = 'Crystal Form'
@@ -787,6 +793,7 @@ class Cocktail(models.Model):
     def name(self):
         names = sorted([c.acronym for c in self.constituents.all()])
         return self.NAME_JOIN_STRING.join(names)
+    name.admin_order_field = 'pk'
     
     name = property(name)
         
@@ -795,6 +802,7 @@ class Cocktail(models.Model):
 
     def identity(self):
         return 'CT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
 
 
 class Experiment(models.Model):
@@ -887,6 +895,7 @@ class Experiment(models.Model):
 
     def identity(self):
         return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))    
+    identity.admin_order_field = 'pk'
     
     def is_editable(self):
         return self.status == self.STATES.DRAFT
@@ -902,10 +911,11 @@ class Experiment(models.Model):
         perform_action(strategy, 'resubmit')
         
     def best_crystal(self):
+        # need to change to [id, score]
         if self.plan == Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST:
             results = Result.objects.filter(experiment=self, crystal__in=self.crystals.all()).order_by('-score')
             if results:
-                return results[0].crystal.pk
+                return [results[0].crystal.pk, results[0].score]
         
     def is_complete(self):
         """
@@ -1066,9 +1076,10 @@ class Crystal(models.Model):
 
     def identity(self):
         return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
     
     def barcode(self):
-        return self.code or self.name
+        return self.code or None
     
     def get_children(self):
         return []
@@ -1341,6 +1352,7 @@ class Result(models.Model):
     
     def identity(self):
         return 'RT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
 
     def __unicode__(self):
         return self.identity()
@@ -1409,6 +1421,7 @@ class Strategy(models.Model):
 
     def identity(self):
         return 'ST%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
 
     def __unicode__(self):
         return self.identity()
@@ -1450,6 +1463,7 @@ class ScanResult(models.Model):
     
     def identity(self):
         return 'SC%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
     
     def __unicode__(self):
         return self.identity()

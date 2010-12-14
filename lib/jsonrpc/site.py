@@ -82,6 +82,9 @@ class JSONRPCSite(object):
     self.content_type = 'application/json-rpc'
   
   def register(self, name, method):
+    import logging
+    logging.critical(self)
+    logging.critical(name)
     self.urls[unicode(name)] = method
   
   def empty_response(self, version='1.0'):
