@@ -32,12 +32,7 @@
 {% block script %}
 {{ block.super }}
     <script>
-    jQuery(function() {
-        jQuery("#runlist-list").load("{% url staff-runlist-list %}{% if request.META.QUERY_STRING %}?{{request.META.QUERY_STRING}}{% endif %}", function() { 
-			// update the runlist table in this case to be single
-			jQuery(".expander").addClass("single"); 
-		});
-    });
+
     
     // handles all the '+ add' buttons.
     jQuery("a.modal").live("click", function() {

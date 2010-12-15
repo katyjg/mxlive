@@ -30,16 +30,14 @@
     </table>
     <div style="clear: both;"></div>
 
-	<h3>Automounter Configuration:</h3>
-	<!-- insert automounter widgets here. -->
-
+{% load get_location %}
 
     <h3>Containers</h3>
     	<ul class="treeview">
     		{% for container in object.containers.all %}
     			<li id="{{ container.id }}" class="container draggable-link-parent" rel="{% url lims-container-detail container.id %}/">
     				<a class="container" href="{% url lims-container-detail container.id %}">
-    					{{container.label }} {{ container.identity }}
+    					{{container.label }} {{ container.identity }} - {% get_location runlist.automounter container %}
     				</a>
     			</li>
     		{% endfor %}

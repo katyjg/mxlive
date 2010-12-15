@@ -900,6 +900,9 @@ class Experiment(models.Model):
     def is_editable(self):
         return self.status == self.STATES.DRAFT
     
+    def is_deletable(self):
+        return self.status == self.STATES.DRAFT
+    
     def get_form_field(self):
         return 'experiment'
 

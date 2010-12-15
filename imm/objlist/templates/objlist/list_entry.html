@@ -1,5 +1,5 @@
  <tr {% if link %}
-        class="link-row {{ row_state }} droppable droppable-add parent-stop {{ type|lower }}"
+        class="link-row {{ row_state }} droppable droppable-add parent-stop {{ type|lower }} {{ single }}"
          {% if object.is_strategy_type %}
             rel="../result/{{ object.pk }}/"
          {% else %}

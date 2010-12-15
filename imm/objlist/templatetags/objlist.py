@@ -10,6 +10,8 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.utils.datastructures import MultiValueDict
 
+from imm.staff.models import Runlist
+
 register = Library()
 
 @register.inclusion_tag('objlist/one_filter.html')
@@ -56,6 +58,10 @@ def list_entry(context, obj, handler, loop_count):
     ol = context.get('ol', None)
     if ol:
         model_admin = ol.model_admin
+        
+    single = ''
+    if ol.object_type.lower() == 'runlist':
+        single = 'single'
 
     checked, form = False, context.get('form', None)
     if form and hasattr(obj, 'get_form_field'):
@@ -71,7 +77,8 @@ def list_entry(context, obj, handler, loop_count):
              'request': context,
              'handler' : handler,
              'row_state' : "odd" if loop_count % 2 == 1 else "even",
-             'type' : ol.object_type
+             'type' : ol.object_type,
+             'single' : single
             }
        
 def object_fields(obj, model_admin=None):
