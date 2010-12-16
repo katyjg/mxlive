@@ -267,8 +267,8 @@ def detailed_runlist(request, runlist_id):
     
     return runlist.json_dict()
 
-@jsonrpc_method('lims.get_active',  authenticated=settings.AUTH_REQ or True, safe=True)
-def get_active(request):
+@jsonrpc_method('lims.get_active_runlist',  authenticated=settings.AUTH_REQ or True, safe=True)
+def get_active_runlist(request):
     import logging
     logging.critical("Start of get_active")
     try:

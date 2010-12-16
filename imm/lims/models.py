@@ -612,6 +612,13 @@ class Container(models.Model):
                 experiments.add('%s-%s' % (experiment.project.name, experiment.name))
         return ', '.join(experiments)
     
+    def get_experiment_list(self):
+        experiments = list()
+        for crystal in self.crystal_set.all():
+            if crystal.experiment not in experiments:
+                experiments.append(crystal.experiment)
+        return experiments
+    
     def contains_experiment(self, experiment):
         """
         Checks if the specified experiment is in the container.
