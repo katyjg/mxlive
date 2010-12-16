@@ -7,15 +7,16 @@
 
 {% if crystals %}
 	{% if admin %}
-		<form method="post">
-			<button style="float:right;">Perform Action</button>
-			<select style="float:right; font-size:100%; border-width: 2px;" name="action">
-				<option value="default" selected="selected">Select Action</option>
-				<option value="rescreen">Re-Screen</option>
-				<option value="recollect">Re-Collect</option>
-			</select> 
-			
-			<br/>
+	<form method="post">
+		<button style="float:right;">Perform Action</button>
+		<select style="float:right; font-size:100%; border-width: 2px;" name="action">
+			<option value="default" selected="selected">Select Action</option>
+			<option value="rescreen">Re-Screen</option>
+			<option value="recollect">Re-Collect</option>
+			<option value="complete">Complete</option>
+		</select> 
+		
+		<br/>
 	{% endif %}
 
    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
@@ -25,9 +26,12 @@
            			<th style="border-left: 0pt none; width: 0.1em;"></th>
            		{% endif %}
                 <th>Name</th>
-                <th>Status</th>
+            	<th>Status</th>
                 <th>Data</th>
                 <th>Results</th>
+                {% if not admin %}
+                <th></th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
@@ -36,10 +40,33 @@
 	            <tr class="{% cycle 'odd' 'even'%}">
 	            	<!-- checkbox for actions, only admin -->
 	            	{% if admin %}
-	            		<td><input type="checkbox" value="{{crystal.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
-	            	{% endif %}
+            			<td><input type="checkbox" value="{{crystal.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
+            		{% endif %}
 	            	<td>{{ crystal.name }}</td>
-	            	<td>{{ crystal.get_status_display }}</td>
+	            	{% if admin %}
+	            		<td>
+	            			{% if crystal.collect_status == Crystal.EXP_STATES.PENDING %}
+	            				to collect
+	            			{% endif %}
+	            			{% if crystal.collect_status == Crystal.EXP_STATES.COMPLETED %}
+	            				collected
+	            			{% endif %}
+	            			{% if crystal.collect_status != Crystal.EXP_STATES.IGNORE %}
+	            				{% if crystal.screen_status != Crystal.EXP_STATES.IGNORE %}
+	            				, 
+	            				{% endif %}
+	            			{% endif %}
+	            			{% if crystal.screen_status == Crystal.EXP_STATES.PENDING %}
+	            				to screen
+	            			{% endif %}
+	            			{% if crystal.screen_status == Crystal.EXP_STATES.COMPLETED %}
+	            				screened
+	            			{% endif %}
+	            			
+	            		</td>
+	            	{% else %}
+	            		<td>{{ crystal.get_status_display }}</td>
+	            	{% endif %}
 	            	<td>
 	            	{% for data in datasets %}
 	            		{% if data.crystal == crystal %}
@@ -55,6 +82,11 @@
 	            		{% endif %}
 	            	{% endfor %}
 	            	</td>
+	            	{% if not admin %}
+	            		<td>
+	            			<a rel="{% url lims-experiment-remove-crystal experiment 0 crystal.pk %}" onclick="remove_item(this);">Remove</a>
+	            		</td>
+	            	{% endif %}
 	            </tr>
             {% endfor %}
         </tbody>
@@ -67,3 +99,17 @@
 {% else %}
     (No crystals associated).
 {% endif %}
+
+	<script>
+		function remove_item(element) {
+			console.log(element);
+			jQuery.ajax({
+                type: "POST",
+                url: element.rel,
+                data: "",
+                success: function() {
+                    refreshDatalist();
+                }
+            });
+        }
+    </script>

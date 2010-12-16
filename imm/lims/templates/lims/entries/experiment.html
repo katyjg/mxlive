@@ -26,6 +26,6 @@
 <!-- object.crystals contains all the crystals -->
 {% load crystal_table %}
 
-{% crystal_table object.crystals request.user.is_superuser %}
+{% crystal_table object.crystals request.user.is_superuser object.pk %}
 
 <div style="clear: both;"></div>

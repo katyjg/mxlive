@@ -37,7 +37,7 @@
     		{% for container in object.containers.all %}
     			<li id="{{ container.id }}" class="container draggable-link-parent" rel="{% url lims-container-detail container.id %}/">
     				<a class="container" href="{% url lims-container-detail container.id %}">
-    					{{container.label }} {{ container.identity }} - {% get_location runlist.automounter container %}
+    					{% get_location runlist.automounter container %} - {{container.label }} {{ container.identity }} 
     				</a>
     			</li>
     		{% endfor %}

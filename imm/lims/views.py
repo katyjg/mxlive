@@ -708,7 +708,9 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
         - ``can_add`` (boolean) specifies whether or not new entries can be added on the list page.   
         - 
     """
-    ol = ObjectList(request, request.manager)    
+    import logging
+    logging.critical(request)
+    ol = ObjectList(request, request.manager, num_show=25)    
     return render_to_response(template, {'ol': ol, 
                                          'link': link, 
                                          'can_add': can_add, 
@@ -727,8 +729,11 @@ def basic_object_list(request, model, template='objlist/basic_object_list.html')
     The template this uses will be rendered in the sidebar controls.
     """
     ol = ObjectList(request, request.manager, num_show=200)
-
-    return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower() }, context_instance=RequestContext(request))
+    handler = request.path
+    # if path has /basic on it, remove that. 
+    if 'basic' in handler:
+        handler = handler[0:-6]
+    return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
     
 @login_required
 @manager_required
@@ -736,10 +741,14 @@ def basic_crystal_list(request, model, template="objlist/basic_object_list.html"
     # get all crystals
     # filter result to just this project
     #filer results to just ones with experiment = none
-    ol = ObjectList(request, request.manager)
+    ol = ObjectList(request, request.manager, num_show=200)
+    handler = request.path
+    # if path has /basic on it, remove that. 
+    if 'basic' in handler:
+        handler = handler[0:-6]
     ol.object_list = Crystal.objects.filter(experiment=None).filter(project=request.project)
     # filter ol.object_list to just crystals with no experiment
-    return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower() }, context_instance=RequestContext(request))
+    return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
 
 @login_required
 def user_object_list(request, model, template='lims/lists/list_base.html', link=True, can_add=True):

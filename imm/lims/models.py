@@ -405,9 +405,9 @@ class Shipment(models.Model):
                 if container.num_crystals() == 0:
                     errors.append("empty Container (%s)" % container.label)
         # these are the orphaned crystals
-        for crystal in self.project.crystal_set.all():
-            if not crystal.is_assigned():
-                errors.append("Crystal (%s) not in Container" % crystal.name)
+#        for crystal in self.project.crystal_set.all():
+#            if not crystal.is_assigned():
+#                errors.append("Crystal (%s) not in Container" % crystal.name)
         return errors
     
     def setup_default_experiment(self, data=None):

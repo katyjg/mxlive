@@ -17,7 +17,7 @@ from imm.lims.models import Result
 register = Library()
 
 @register.inclusion_tag('lims/entries/crystal_table.html', takes_context=True)
-def crystal_table(context, crystals, admin):
+def crystal_table(context, crystals, admin, experiment):
     # want crystals to be the whole crystal set.
     # want datasets to be a list of datasets, from all datasets, filtered to just have crystals in crystals
     # want results as a list of results from all results, filtered to just have ones relevant to crystals. 
@@ -28,5 +28,6 @@ def crystal_table(context, crystals, admin):
     return { 'crystals': crystals,
             'datasets': datasets,
             'results': results,
-            'admin': admin
+            'admin': admin,
+            'experiment': experiment
             }
