@@ -1272,7 +1272,8 @@ def shipment_xls(request, id):
         ship_experiments = list()
         for cont in containers:
             for exp in cont.get_experiment_list():
-                ship_experiments.append(exp)
+                if exp not in ship_experiments:
+                    ship_experiments.append(exp)
         logging.critical(ship_experiments)
     
         workbook = LimsWorkbookExport(ship_experiments, crystals)

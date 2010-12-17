@@ -184,7 +184,11 @@
         <tr><td colspan=4></td></tr>
         </tfoot>
     </table>
-    <image class="center" src={% url lims-plot-shells object.id %} />
+    <image class="center" src={% if admin %}
+    	{% url staff-plot-shells object.id %}
+    	{% else %}
+    	{% url lims-plot-shells object.id %} 
+    	{% endif %}/> />
 
     <div class="tablenotes floatright" style="width:20%;">
         <h3>Notes</h3>
@@ -207,8 +211,16 @@
     <div class="clear spacer"></div>
     
     <h3>Integration and Scaling Statistics (by frame/frame difference)</h3>
-    <image class="center" src={% url lims-plot-frames object.id %} />
-    <image class="center" src={% url lims-plot-diffs object.id %} />
+    <image class="center" src={% if admin %}
+    	{% url staff-plot-frames object.id %} 
+    	{% else %}
+    	{% url lims-plot-frames object.id %}
+    	{% endif %} />
+    <image class="center" src={% if admin %}
+	    {% url staff-plot-diffs object.id %}
+	    {% else %}
+	    {% url lims-plot-diffs object.id %} 
+	    {% endif %}/>
 
     <div class="clear"></div>
 

@@ -3,7 +3,7 @@
 <script type="text/javascript" src="/js/shiftzoom/shiftzoom.js"></script>
 
 <div class="floatleft">
-	<h2>{{ data.name }} - 
+	<h2 id="maintitle">{{ data.name }} - 
 	{% if data.kind == Data.DATA_TYPES.SCREENING %}
 		Screening
 	{% else %}
@@ -121,6 +121,9 @@
 		
 		osc = osc + {{data.delta_angle}};
 		jQuery('#oscend').text("Osc. End: " + osc);
+		
+		jQuery('#maintitle').text("{{ data.name }} - {% if data.kind == Data.DATA_TYPES.SCREENING %}Screening{% else %}Full Dataset{% endif %} - " 
+			+ generateFrameName($current_frame_to_display)	);
 	}	
 	
 	function nextClicked() {
