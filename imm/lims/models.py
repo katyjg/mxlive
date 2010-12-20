@@ -1160,10 +1160,17 @@ class Crystal(models.Model):
     def rescreen(self):
         if self.screen_status == self.EXP_STATES.COMPLETED:
             self.screen_status = self.EXP_STATES.PENDING
+            self.save()
         
     def recollect(self):
         if self.collect_status == self.EXP_STATES.COMPLETED:
             self.collect_status = self.EXP_STATES.PENDING
+            self.save()
+            
+    def complete(self):
+        self.collect_status = self.EXP_STATES.COMPLETED
+        self.screen_status = self.EXP_STATES.COMPLETED
+        self.save()
         
     def is_editable(self):
         return self.status == self.STATES.DRAFT 

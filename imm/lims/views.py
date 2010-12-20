@@ -70,8 +70,9 @@ def create_and_update_project_and_laboratory(user, fetcher=None):
         if project.permit_no != profile_details['experimentId']:
             project.permit_no = profile_details['experimentId']
             project.save()
-        if project.name != profile_details['title']:
-            project.name = profile_details['title']
+        # want this to be the login name for th euser. 
+        if project.name != user.name:
+            project.name = user.name
             project.save()
         if project.lab.organisation != profile_details['primaryContact']['institution']:
             project.lab.organisation = profile_details['primaryContact']['institution']
@@ -1571,5 +1572,23 @@ def result_print(request, id):
     except:
         raise Http404
     
-    return render_to_response('lims/entries/result_print.html', {'object':result})
+    admin = request.user.is_superuser
+    return render_to_response('lims/entries/result_print.html', {'object':result, 'admin':admin})
 
+@login_required
+def rescreen(request, id):
+    crystal = Crystal.objects.get(pk=id)
+    crystal.rescreen()
+    return render_to_response('lims/refresh.html')
+    
+@login_required
+def recollect(request, id):
+    crystal = Crystal.objects.get(pk=id)
+    crystal.recollect()
+    return render_to_response('lims/refresh.html')
+    
+@login_required
+def complete(request, id):
+    crystal = Crystal.objects.get(pk=id)
+    crystal.complete()
+    return render_to_response('lims/refresh.html')

@@ -49,6 +49,10 @@ urlpatterns = patterns('',
     url(r'^experiment/result/(\d+)/framestats.png$', 'imm.lims.views.plot_frame_stats', name='staff-plot-frames'),
     url(r'^experiment/result/(\d+)/diffstats.png$', 'imm.lims.views.plot_diff_stats', name='staff-plot-diffs'),
     
+    (r'^experiment/crystal/(?P<id>\d+)/rescreen/$', 'imm.lims.views.rescreen', {}, 'staff-crystal-rescreen'),
+    (r'^experiment/crystal/(?P<id>\d+)/recollect/$', 'imm.lims.views.recollect', {}, 'staff-crystal-recollect'),
+    (r'^experiment/crystal/(?P<id>\d+)/complete/$', 'imm.lims.views.complete', {}, 'staff-crystal-complete'),
+    
     (r'^container/basic/(\d+)/$', 'imm.staff.views.container_basic_object_list', {'model':Container, 'template': 'objlist/basic_object_list.html'}, 'staff-container-basic-list'),
     
     (r'^runlist_summary/$', 'imm.staff.views.runlist_summary', {'model': ActivityLog}, 'lims-runlist-summary'),

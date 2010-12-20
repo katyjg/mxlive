@@ -97,6 +97,10 @@ urlpatterns = patterns('imm.lims.views',
     (r'^experiment/dataset/$', 'object_list', {'model': Data, 'template': 'objlist/object_list.html'}, 'lims-dataset-list'),
     #(r'^experiment/dataset/(?P<id>\d+)/$', 'object_detail', {'model': Data, 'template': 'lims/entries/experiment.html'} , 'lims-dataset-detail'),
     (r'^experiment/dataset/(?P<id>\d+)/$', 'data_viewer', {}, 'lims-dataset-detail'),
+    
+    (r'^experiment/crystal/(?P<id>\d+)/rescreen/$', 'rescreen', {}, 'lims-crystal-rescreen'),
+    (r'^experiment/crystal/(?P<id>\d+)/recollect/$', 'recollect', {}, 'lims-crystal-recollect'),
+    (r'^experiment/crystal/(?P<id>\d+)/complete/$', 'complete', {}, 'lims-crystal-complete'),
 
     (r'^experiment/strategy/$', 'object_list', {'model': Strategy, 'template': 'objlist/object_list.html'}, 'lims-strategy-list'),
     (r'^experiment/strategy/(?P<id>\d+)/$', 'object_detail', {'model': Strategy, 'template': 'lims/entries/experiment.html'} , 'lims-strategy-detail'),

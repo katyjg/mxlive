@@ -7,9 +7,9 @@
 
 {% if crystals %}
 	{% if admin %}
-	<form method="post">
+	<form id="action_form" method="post">
 		<button style="float:right;">Perform Action</button>
-		<select style="float:right; font-size:100%; border-width: 2px;" name="action">
+		<select id="selector" style="float:right; font-size:100%; border-width: 2px;" name="action">
 			<option value="default" selected="selected">Select Action</option>
 			<option value="rescreen">Re-Screen</option>
 			<option value="recollect">Re-Collect</option>
@@ -26,7 +26,11 @@
            			<th style="border-left: 0pt none; width: 0.1em;"></th>
            		{% endif %}
                 <th>Name</th>
-            	<th>Status</th>
+                {% if admin %}
+                	<th>Collect, Screen</th>
+                {% else %}
+            		<th>Status</th>
+            	{% endif %}
                 <th>Data</th>
                 <th>Results</th>
                 {% if not admin %}
@@ -40,27 +44,21 @@
 	            <tr class="{% cycle 'odd' 'even'%}">
 	            	<!-- checkbox for actions, only admin -->
 	            	{% if admin %}
-            			<td><input type="checkbox" value="{{crystal.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
+            			<td><input type="checkbox" class="checkbox" name="crystal_chk" value="{{crystal.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
             		{% endif %}
 	            	<td>{{ crystal.name }}</td>
 	            	{% if admin %}
 	            		<td>
-	            			{% if crystal.collect_status == Crystal.EXP_STATES.PENDING %}
-	            				to collect
-	            			{% endif %}
-	            			{% if crystal.collect_status == Crystal.EXP_STATES.COMPLETED %}
-	            				collected
+	            			{% if crystal.collect_status != Crystal.EXP_STATES.IGNORE %}
+	            				{{ crystal.get_collect_status_display }}
 	            			{% endif %}
 	            			{% if crystal.collect_status != Crystal.EXP_STATES.IGNORE %}
 	            				{% if crystal.screen_status != Crystal.EXP_STATES.IGNORE %}
 	            				, 
 	            				{% endif %}
 	            			{% endif %}
-	            			{% if crystal.screen_status == Crystal.EXP_STATES.PENDING %}
-	            				to screen
-	            			{% endif %}
-	            			{% if crystal.screen_status == Crystal.EXP_STATES.COMPLETED %}
-	            				screened
+	            			{% if crystal.screen_status != Crystal.EXP_STATES.IGNORE %}
+	            				{{ crystal.get_screen_status_display }}
 	            			{% endif %}
 	            			
 	            		</td>
@@ -84,7 +82,7 @@
 	            	</td>
 	            	{% if not admin %}
 	            		<td>
-	            			<a rel="{% url lims-experiment-remove-crystal experiment 0 crystal.pk %}" onclick="remove_item(this);">Remove</a>
+	            			<a rel="{% url lims-experiment-remove-crystal experiment 0 crystal.pk %}" href="#" onclick="remove_item(this);">Remove</a>
 	            		</td>
 	            	{% endif %}
 	            </tr>
@@ -101,6 +99,45 @@
 {% endif %}
 
 	<script>
+		jQuery('#action_form').submit(function() {
+			// check what action to do
+			var $action_id = document.getElementById('selector').selectedIndex;
+			var $url = "/lims/experiment/crystal/";
+			jQuery('.checkbox').filter(':checked').each( function()
+			{
+				var $crys_id = jQuery(this).val();
+				$url = $url + $crys_id;
+				console.log($crys_id);
+				if ($action_id == 1) {
+					// rescreen
+					$url = $url + '/rescreen/';
+				};
+				if ($action_id == 2) {
+					// recollect
+					$url = $url + '/recollect/';
+				};
+				if ($action_id == 3) {
+					// complete
+					$url = $url + '/complete/';
+				};
+				jQuery.ajax({
+					type: "POST",
+					url: $url,
+					dataType: "script",
+					success: function() {
+						loadWidgets();
+						refreshDatalist();
+					},
+					error: function() {
+						// error, just reload the widget
+						loadWidgets();
+					}
+				});
+			});
+			document.getElementById('selector').selectedIndex = 0;
+			return false;
+		});
+	
 		function remove_item(element) {
 			console.log(element);
 			jQuery.ajax({
