@@ -15,6 +15,7 @@ from imm.enum import Enum
 from imm.messaging.models import Message
 
 from django.contrib.auth.models import User
+from django.utils.encoding import smart_str
 
 from django.conf import settings
 
@@ -31,10 +32,10 @@ class PickledObjectField(models.Field):
         if isinstance(value, PickledObject):
             # If the value is a definite pickle; and an error is raised in de-pickling
             # it should be allowed to propogate.
-            return pickle.loads(str(value))
+            return pickle.loads(smart_str(value))
         else:
             try:
-                return pickle.loads(str(value))
+                return pickle.loads(smart_str(value))
             except:
                 # If an error was raised, just return the plain value
                 return value

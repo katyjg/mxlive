@@ -16,6 +16,7 @@ from imm.lims.models import ActivityLog
 from imm.lims.models import SpaceGroup
 from imm.lims.models import CrystalForm
 from django.contrib.contenttypes.models import ContentType
+from django.utils.encoding import smart_str
 
 COLUMN_MAP = dict([(index, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[index]) for index in range(26)])
 
@@ -392,9 +393,9 @@ class LimsWorkbook(object):
                         request.META['REMOTE_ADDR'],
                         ContentType.objects.get_for_model(obj.__class__).id,
                         obj.pk, 
-                        str(obj), 
+                        smart_str(obj), 
                         ActivityLog.TYPE.CREATE,
-                        'The %(name)s "%(obj)s" was uploaded successfully.' % {'name': str(obj.__class__._meta.verbose_name), 'obj': str(obj)}
+                        'The %(name)s "%(obj)s" was uploaded successfully.' % {'name': smart_str(obj.__class__._meta.verbose_name), 'obj': smart_str(obj)}
                         )
     
     def save(self, request=None):

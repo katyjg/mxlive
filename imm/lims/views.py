@@ -23,6 +23,7 @@ from django.db import IntegrityError
 from django.template import loader
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.utils.datastructures import MultiValueDict
+from django.utils.encoding import smart_str
 
 import logging
 
@@ -429,7 +430,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
         request.META['REMOTE_ADDR'],
         obj_id,
         dest_id, 
-        str(destination), 
+        smart_str(destination), 
         ActivityLog.TYPE.MODIFY,
         message
         )
@@ -491,7 +492,7 @@ def add_existing_object_old(request, src_id, dest_id, obj_id, parent_model, mode
                 request.META['REMOTE_ADDR'],
                 ContentType.objects.get_for_model(parent_model).id,
                 parent.pk, 
-                str(parent), 
+                smart_str(parent), 
                 ActivityLog.TYPE.MODIFY,
                 form_info['message']
                 )
@@ -578,14 +579,14 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
             new_obj = frm.save()
             if action:
                 perform_action(new_obj, action, data=frm.cleaned_data)
-            info_msg = 'The %(name)s "%(obj)s" was added successfully.' % {'name': str(model._meta.verbose_name), 'obj': str(new_obj)}
+            info_msg = 'The %(name)s "%(obj)s" was added successfully.' % {'name': smart_str(model._meta.verbose_name), 'obj': smart_str(new_obj)}
             ActivityLog.objects.log_activity(
                 project.pk,
                 request.user.pk, 
                 request.META['REMOTE_ADDR'],
                 ContentType.objects.get_for_model(model).id,
                 new_obj.pk, 
-                str(new_obj), 
+                smart_str(new_obj), 
                 ActivityLog.TYPE.CREATE,
                 info_msg
                 )
@@ -611,7 +612,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
                 manager = getattr(project, model.__name__.lower()+'_set')
                 clone_obj = manager.get(pk=clone_id)
             except:
-                info_msg = 'Could not clone %(name)s!' % {'name': str(model._meta.verbose_name)}
+                info_msg = 'Could not clone %(name)s!' % {'name': smart_str(model._meta.verbose_name)}
                 request.user.message_set.create(message = info_msg)
             else:
                 for name, field in frm.fields.items():
@@ -647,7 +648,7 @@ def add_new_object(request, id, model, form, field):
         raise Http404
     form_info = {
         'title': 'New %s' % object_type,
-        'sub_title': 'Adding a new %s to %s "%s"' % (object_type, related_type, str(related)),
+        'sub_title': 'Adding a new %s to %s "%s"' % (object_type, related_type, smart_str(related)),
         'action':  request.path,
         'target': 'entry-scratchpad',
         'add_another': True,
@@ -660,14 +661,14 @@ def add_new_object(request, id, model, form, field):
         frm.restrict_by('project', project.pk)
         if frm.is_valid():
             new_obj = frm.save()
-            info_msg = '%s "%s" added to %s "%s"' % (object_type, str(new_obj), related_type, str(related))
+            info_msg = '%s "%s" added to %s "%s"' % (object_type, smart_str(new_obj), related_type, smart_str(related))
             ActivityLog.objects.log_activity(
                 project.pk,
                 request.user.pk,
                 request.META['REMOTE_ADDR'],
                 ContentType.objects.get_for_model(model).id,
                 new_obj.pk, 
-                str(new_obj), 
+                smart_str(new_obj), 
                 ActivityLog.TYPE.CREATE,
                 info_msg
                 )
@@ -863,7 +864,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
                     request.META['REMOTE_ADDR'],
                     ContentType.objects.get_for_model(model).id,
                     obj.pk, 
-                    str(obj), 
+                    smart_str(obj), 
                     ActivityLog.TYPE.MODIFY,
                     form_info['message']
                     )
@@ -968,7 +969,7 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
         request.META['REMOTE_ADDR'],
         obj_id,
         src_id, 
-        str(destination), 
+        smart_str(destination), 
         ActivityLog.TYPE.MODIFY,
         message
         )
@@ -1002,9 +1003,9 @@ def remove_object_old(request, id, model, field):
         'target': 'entry-scratchpad',
         'message': 'Are you sure you want to remove %s "%s" from %s "%s"?' % (
             object_type.lower(), 
-            str(obj), 
+            smart_str(obj), 
             related_type.lower(), 
-            str(related)
+            smart_str(related)
             )
     }
     if request.method == 'POST':
@@ -1013,9 +1014,9 @@ def remove_object_old(request, id, model, field):
             obj.save()
             form_info['message'] = '%s "%s" removed from %s  "%s".' % (
                 object_type, 
-                str(obj), 
+                smart_str(obj), 
                 related_type.lower(), 
-                str(related)
+                smart_str(related)
                 )
             ActivityLog.objects.log_activity(
                 project.pk,
@@ -1023,7 +1024,7 @@ def remove_object_old(request, id, model, field):
                 request.META['REMOTE_ADDR'],
                 ContentType.objects.get_for_model(model).id,
                 obj.pk, 
-                str(obj), 
+                smart_str(obj), 
                 ActivityLog.TYPE.MODIFY,
                 form_info['message']
                 )
@@ -1081,7 +1082,7 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
                     request.META['REMOTE_ADDR'],
                     ContentType.objects.get_for_model(model).id,
                     obj.pk, 
-                    str(obj), 
+                    smart_str(obj), 
                     ActivityLog.TYPE.DELETE,
                     form_info['message']
                     )
@@ -1136,7 +1137,7 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
     }
     if request.method == 'POST':
         if request.POST.has_key('_save'):
-            str_obj = str(obj)
+            str_obj = smart_str(obj)
             archive(model, id)
             form_info['message'] = '%s "%s" closed.' % (
                 model.__name__, 
@@ -1207,9 +1208,9 @@ def shipment_pdf(request, id):
                         env={'TEXINPUTS' : '.:' + settings.TEX_TOOLS_DIR + ':',
                              'PATH' : settings.TEX_BIN_PATH},
                         cwd=temp_dir,
-                        #stdout=stdout.fileno(),
-                        #stderr=stderr.fileno(),
-                        #stdin=devnull
+                        stdout=stdout.fileno(),
+                        stderr=stderr.fileno(),
+                        stdin=devnull
                         )
         
         # open the resulting .pdf and write it out to the response/browser
@@ -1300,7 +1301,7 @@ def add_data(request, data_info):
     info = {}
     # convert unicode to str
     for k,v in data_info.items():
-        info[str(k)] = v
+        info[smart_str(k)] = v
     try:
         new_obj = Data(**info)
         # check type, and change status accordingly
@@ -1321,7 +1322,7 @@ def add_result(request, res_info):
     info = {}
     # convert unicode to str
     for k,v in res_info.items():
-        info[str(k)] = v
+        info[smart_str(k)] = v
     try:
         new_obj = Result(**info)
         new_obj.save()
@@ -1335,7 +1336,7 @@ def add_strategy(request, stg_info):
     info = {}
     # convert unicode to str
     for k,v in stg_info.items():
-        info[str(k)] = v
+        info[smart_str(k)] = v
     new_obj = Strategy(**info)
     new_obj.save()
     return {'strategy_id': new_obj.pk}

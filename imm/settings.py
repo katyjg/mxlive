@@ -116,7 +116,6 @@ INSTALLED_APPS = (
     'imm.objforms',
     'imm.messaging',
     'imm.remote',
-    'imm.download',
     'jsonrpc'
 )
 

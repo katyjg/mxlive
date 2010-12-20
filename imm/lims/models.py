@@ -453,7 +453,8 @@ class Shipment(models.Model):
         return self.is_sendable() or self.status >= self.STATES.SENT
     
     def is_xlsable(self):
-        return self.is_sendable() or self.status >= self.STATES.SENT
+        # removed is_sendable check. orphan crystals don't get the default created experiment until sent. 
+        return self.status >= self.STATES.SENT
     
     def is_closable(self):
         return self.status == self.STATES.RETURNED 
@@ -990,6 +991,7 @@ class Experiment(models.Model):
         """ Returns a json dictionary of the Runlist """
         return {
             'project_id': self.project.pk,
+            'project_name': self.project.name,
             'id': self.pk,
             'name': self.name,
             'plan': Experiment.EXP_PLANS[self.plan],

@@ -9,6 +9,7 @@ from django.contrib import admin
 from django.conf import settings 
 from django.utils.safestring import mark_safe
 from django.utils.datastructures import MultiValueDict
+from django.utils.encoding import smart_str
 
 from imm.staff.models import Runlist
 
@@ -43,7 +44,7 @@ def truncate(value, arg):
     except ValueError: # invalid literal for int()
         return value # Fail silently.
     if not isinstance(value, basestring):
-        value = str(value)
+        value = smart_str(value)
     if (len(value) > length):
         return value[:length] + "..."
     else:
@@ -101,7 +102,7 @@ def object_fields(obj, model_admin=None):
                     allow_tags = True
                     result_repr = _boolean_icon(attr)
                 else:
-                    result_repr = str(attr)
+                    result_repr = smart_str(attr)
             except (AttributeError, ObjectDoesNotExist):
                 result_repr = ''
             else:
@@ -143,7 +144,7 @@ def object_fields(obj, model_admin=None):
             elif f.choices:
                 result_repr = dict(f.choices).get(field_val, '')
             else:
-                result_repr = escape(str(field_val))
+                result_repr = escape(smart_str(field_val))
         yield result_repr
 
 def _boolean_icon(field_val):

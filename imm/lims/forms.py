@@ -82,7 +82,7 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
             for crystal in shipment.project.crystal_set.all():
                 if crystal.num_experiments() == 0:
                     return 'Crystal "%s" is not associated with any Experiments. Sending the Shipment will create a ' \
-                           'default "Screen and confirm" Experiment and assign all unassociated Crystals. Click "Cancel" ' \
+                           'default "Screen and confirm" Experiment and assign all unassociated Crystals. Close this window ' \
                            'to setup the Experiment manually.' % crystal.name
                            
     def clean_tracking_code(self):

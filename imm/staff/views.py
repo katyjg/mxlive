@@ -13,6 +13,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpRequest
 from django.utils.datastructures import MultiValueDict
 from django.http import Http404
+from django.utils.encoding import smart_str
 
 from imm.lims.views import admin_login_required
 from imm.lims.views import manager_required
@@ -86,7 +87,7 @@ def receive_shipment(request, model, form, template='objforms/form_base.html', a
                 request.META['REMOTE_ADDR'],
                 ContentType.objects.get_for_model(model).id,
                 obj.pk, 
-                str(obj), 
+                smart_str(obj), 
                 ActivityLog.TYPE.MODIFY,
                 form_info['message']
                 )

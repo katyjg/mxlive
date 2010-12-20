@@ -219,7 +219,7 @@
     <image class="center" src={% if admin %}
     	{% url staff-plot-frames object.id %} 
     	{% else %}
-    	{% url lims-plot-frames object.if %}
+    	{% url lims-plot-frames object.id %}
     	{% endif %} />
     <image class="center" src={% if admin %}
 	    {% url staff-plot-diffs object.id %}
