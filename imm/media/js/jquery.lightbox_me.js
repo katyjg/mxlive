@@ -115,6 +115,8 @@
                     }
 
                     opts.destroyOnClose ? $self.remove() : $self.hide()
+                    // NOTE: Removed the check for the option, We always want the modal destroyed.
+                    //$self.remove()
 
 
                     $self.find(opts.closeSelector).unbind('click');
