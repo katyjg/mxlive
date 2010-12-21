@@ -187,31 +187,25 @@ class AutomounterLayout(models.Model):
     def get_position(self, container):
         import logging
         # gets the position of a container in the automounter. Returns none if not in
-        logging.critical("containter is " + str(container.pk))
         # making an array for the postfix letter
         postfix = ['A', 'B', 'C', 'D']
         if self.left != None:
            check_list = self.left
            if type(check_list) == type(list()):
-               logging.critical("check_list is a list")
                # iterate through the list.
                if container.pk in check_list:
                    # needs to return LA, LB, LC, or LD
                    return 'L' + postfix[check_list.index(container.pk)]
            elif check_list == container.pk:
-               logging.critical("check_list is container")
                return 'L'
-           logging.critical("check list failed")
         
         if self.middle != None:
            check_list = self.middle
            if type(check_list) == type(list()):
-               logging.critical("check_list is a list")
                # iterate through the list.
                if container.pk in check_list:
                    return 'M' + postfix[check_list.index(container.pk)]
            elif check_list == container.pk:
-               logging.critical("check_list is container")
                return 'M'
            
         if self.right != None:
@@ -352,11 +346,9 @@ class Runlist(models.Model):
         # meta data first
         meta = {'id': self.pk, 'name': self.name}
                     
-        import logging
         # fetch the containers and crystals
         containers = {}
         crystals = {}
-        logging.critical(self.automounter.json_dict())
         
         for container in self.containers.all():
             container_json = container.json_dict()
@@ -364,7 +356,6 @@ class Runlist(models.Model):
             auto_pos = self.automounter.get_position(container)
             if auto_pos != None:
                 
-                logging.critical("changing loadposition")
                 container_json['load_position'] = auto_pos
             containers[container.pk] = container_json
             for crystal_pk in container_json['crystals']:
@@ -383,14 +374,11 @@ class Runlist(models.Model):
                 'experiments': experiments}
         
     def save(self, *args, **kwargs):
-        import logging
         super(Runlist, self).save(*args, **kwargs)
         self.automounter.reset()
         for container in self.containers.all():
             self.automounter.add_container(container)
         
-        logging.critical("save updated automounter")
-        logging.critical(self.automounter.json_dict())
             
 #        if self.pk is not None:
 #            orig = Runlist.objects.get(pk=self.pk)
@@ -420,8 +408,6 @@ def update_automounter(signal, sender, instance, **kwargs):
         return
     # this checks containers on save, and calls the correct automounter functions as needed
     # compare containers in instance and current model.
-    import logging
-    logging.critical("Update_automounter caught signal")
     try:
         current = Runlist.objects.get(pk=instance.pk)
     except:
@@ -430,21 +416,14 @@ def update_automounter(signal, sender, instance, **kwargs):
         return
 
     for container in instance.containers.all():
-        logging.critical(container)
         if len(current.containers.all()) == 0:
-            logging.critical("Adding as empty")
             instance.automounter.add_container(container)
         if container not in current.containers.all():
-            logging.critical("Adding")
             instance.automounter.add_container(container)
     for container in current.containers.all():
-        logging.critical(container)
         if container not in instance.containers.all():
-            logging.critical("Removing")
             instance.automounter.remove_container(container)
         
-    # for debugging
-    logging.critical(instance.automounter.json_dict())
 
 from django.db.models.signals import pre_save
 

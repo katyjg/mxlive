@@ -710,8 +710,6 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
         - ``can_add`` (boolean) specifies whether or not new entries can be added on the list page.   
         - 
     """
-    import logging
-    logging.critical(request)
     ol = ObjectList(request, request.manager, num_show=25)    
     return render_to_response(template, {'ol': ol, 
                                          'link': link, 
@@ -1208,9 +1206,9 @@ def shipment_pdf(request, id):
                         env={'TEXINPUTS' : '.:' + settings.TEX_TOOLS_DIR + ':',
                              'PATH' : settings.TEX_BIN_PATH},
                         cwd=temp_dir,
-                        #stdout=stdout.fileno(),
-                        #stderr=stderr.fileno(),
-                        #stdin=devnull
+                        stdout=stdout.fileno(),
+                        stderr=stderr.fileno(),
+                        stdin=devnull
                         )
         
         # open the resulting .pdf and write it out to the response/browser
@@ -1252,31 +1250,26 @@ def shipment_xls(request, id):
         # create a temporary file into which the .xls will be written
         temp_file = tempfile.mkstemp(dir=temp_dir, suffix='.xls')[1]
         
-        import logging
         # export it
         # why we use all?
         #workbook = LimsWorkbookExport(project.experiment_set.all(), project.crystal_set.all())
         dewars = shipment.dewar_set.all()
-        logging.critical(dewars)
         
         containers = list()
         for dewar in dewars:
             for cont in dewar.container_set.all():
                 containers.append(cont)
-        logging.critical(containers)
         
         crystals = list()
         for cont in containers:
             for crys in cont.crystal_set.all():
                 crystals.append(crys)
-        logging.critical(crystals)
         
         ship_experiments = list()
         for cont in containers:
             for exp in cont.get_experiment_list():
                 if exp not in ship_experiments:
                     ship_experiments.append(exp)
-        logging.critical(ship_experiments)
     
         workbook = LimsWorkbookExport(ship_experiments, crystals)
         errors = workbook.save(temp_file)

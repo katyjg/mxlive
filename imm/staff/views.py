@@ -210,8 +210,6 @@ def container_basic_object_list(request, runlist_id, model, template='objlist/ba
     Slightly more complex than above. Should display name and id for entity, but filter
     to only display containers with a crystal in the specified experiments.
     """
-    import logging
-    
     active_containers = None
     experiment_list = None
     
@@ -251,17 +249,13 @@ def container_basic_object_list(request, runlist_id, model, template='objlist/ba
 #                keep = true
 #        if keep == true:
 #            ol.object_list.add(container)
-    logging.critical(ol.object_list)
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
 @jsonrpc_method('lims.detailed_runlist', authenticated=settings.AUTH_REQ or True)
 def detailed_runlist(request, runlist_id):
-    import logging
-    logging.critical("Start of detailed")
     try:
         runlist = Runlist.objects.get(pk=runlist_id)
     except Runlist.DoesNotExist:
-        logging.critical("Runlist doesn't exist")
         raise MethodNotFoundError("Runlist does not exist.")
  #   if runlist.status != Runlist.STATES.LOADED:
  #       raise InvalidRequestError("Runlist is not loaded.")
@@ -270,19 +264,15 @@ def detailed_runlist(request, runlist_id):
 
 @jsonrpc_method('lims.get_active_runlist',  authenticated=settings.AUTH_REQ or True, safe=True)
 def get_active_runlist(request):
-    import logging
-    logging.critical("Start of get_active")
     try:
         # should only be one runlist loaded at a time
         runlist = Runlist.objects.get(status=Runlist.STATES.LOADED)
     except Runlist.DoesNotExist:
         # can't just except, need to return no runlist found.
-        logging.critical("excepted!")
         return 'None'
     except Runlist.MultipleObjectsReturned:
         # too many runlists are considered loaded
         return 'Too many'
     
-    logging.critical("end of get_active")
     return runlist.json_dict()
         
