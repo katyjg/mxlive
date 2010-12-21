@@ -2,26 +2,29 @@
 <li><p class="warning">{{form.warning_message}}</p></li>
 {% endif %}
 {% if form.errors %}
-<li><p class="error">Submitted data is invalid. Please Correct the highlighted errors!</p></li>
+<li class="field"><p class="error">Submitted data is invalid. Please Correct the highlighted errors!</p></li>
 {% endif %}
 {% for field in form %}
     {% if field.is_hidden %}
         {{field}}
     {% else %}
-    <li>
+    <li class="{{field.field.widget.attrs.class}}">
         {% if field.field.widget.is_boolean %}
-            <div>
+            <div class="choice">
             {{field}}
             {{field.label_tag}}
             </div>
         {% else %}
             <div>
-            {{field.label_tag}}
-            {% if field.field.required %}<span class="req">*</span>{% endif %}
+            {{field.label_tag}}{% if field.field.required %}<span class="req">*</span>{% endif %}
             </div>
             <div>
-            {{field}}
-            </div>
+            {% if field.field.widget.is_multiselect %}
+                {{field}}
+            {% else %}
+                {{field}}
+            {% endif %}
+            <div>
         {% endif %}
         {% if  field.help_text %}
         <p class="instruct"><small>{{field.help_text}}</small></p>
@@ -29,7 +32,7 @@
         {% if field.errors %}
         <small>{{field.errors}}</small>
         {% endif %}
-    {% endif %}
     </li>
+    {% endif %}
 {% endfor %}
 

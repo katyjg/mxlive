@@ -9,19 +9,26 @@ Last Updated : November 13, 2007
 - - - - - - - - - - - - - - - - - - - - - */
 
 .objform{
-	font-family:"Candara", Tahoma, Arial, sans-serif;
-	font-size:small;
+	font-family:"Cantarell", "Candara", "Tahoma", sans-serif;
+	font-size: 13px;
+	display: block;
 }
-.objform li{
+
+.objform ul.form-body {
+    width: 550px;
+    min-height: 150px;
+}
+
+.objform li.field{
 	width:64%;
 }
+
 
 form ul{
 	margin:0;
 	padding:0;
 	list-style-type:none;
 	width:100%;
-	font-size:100%;
 }
 form li{
 	margin:0;
@@ -87,9 +94,10 @@ form li div.right{
 	display:block;
 }
 .heading h2{
-	font-weight:normal;
-	font-size:120%;
-	margin:0 ;
+    font-family: Cantarell, sans-serif;
+	font-weight:bold;
+	font-size:150%;
+	margin: 0.5em 0.2em;
 	clear:left;
 }
 .heading p{
@@ -122,7 +130,6 @@ form .section h3{
 	margin:0 0 2px 0;
 }
 form .section p{
-	font-size:85%;
 	margin:0 0 10px 0;
 }
 
@@ -144,7 +151,6 @@ label.desc{
 	border:none;
 	color:#666;
 	display:block;
-	font-size:90%;
 	font-weight: normal;
 }
 
@@ -193,7 +199,7 @@ input.text, input.file, textarea.textarea, select.select, input.barcode, input.m
 }
 
 
-input, textarea, .firefox select{
+input.field, textarea.field, .firefox select.field{
 	border-color: #7C7C7C #CECECE #C3C3C3 #7C7C7C;
 	border-style: solid;
 	border-width: 1px;
@@ -222,7 +228,7 @@ input.search {
 }
 
 
-label.choice{
+div.choice label{
 	font-size:100%;
 	display:block;
 	line-height:1.5em;
@@ -327,20 +333,6 @@ input.btTxt{
 	padding:2px 3px;
 	color:red;
 }
-form .error{
-	position:absolute;
-	top:6em;
-	left: 100%;
-	z-index:900;
-	width:10em;
-	margin:0 0 0 8px;
-	padding:8px 10px 9px 10px;
-	border:1px solid #e6c3c3;
-	background:#f5d2d2;
-	line-height:130%;
-	font-size:90%;
-	color:red;
-}
 
 form .warning{
 	z-index:900;
@@ -397,26 +389,36 @@ form .req{
 	margin:0;
 }
 
-/* ----- INSTRUCTIONS ----- */
+/* ----- INSTRUCTIONS and ERRORS ----- */
 
 form li.focused{
-	background-color:#fff7c0;
+	background-color: #cce;
 }
-form .instruct{
+
+form .instruct, form .error{
 	position:absolute;
 	top:0;
 	left:100%;
-	z-index:1000;
-	width:10em;
+	z-index:1001;
+	width:150px;
 	margin:0 0 0 8px;
 	padding:8px 10px 9px 10px;
 	border:1px solid #ccc;
-	background:#fff;
+	background:#e5e5e5;
 	line-height:130%;
-	font-size:85%;
 	color:#666;
 	visibility:hidden;
 }
+
+form .error{
+	top:6em;
+	z-index:900;
+	border:1px solid #e6c3c3;
+	background:#f5d2d2;
+	color:red;
+	visibility:visible;
+}
+
 
 li.leftHalf .instruct, li.middleThird .instruct {
     left: 200%;
@@ -599,28 +601,16 @@ img.topshadow, img.bottomshadow {
 .submit-row { padding:5px 7px; text-align:right; margin:5px 0; }
 .submit-row input { margin:0 0 0 5px; }
 .submit-row p { margin-top:0.3em; }
+li.submit-row {
+    border-top: solid 1px #ccc;
+}
 
 input[type="submit"], input[type="button"], .submit-row input {
-    background:white url(/img/admin/nav-bg.gif) repeat-x scroll center bottom;
-    border-color:#DDDDDD rgb(170, 170, 170) rgb(170, 170, 170) rgb(221, 221, 221);
-    border-style:solid;
-    border-width:1px;
-    color:black;
-    padding:2px;
+    padding: 3px 10px;
+    margin: 4px;
 }
 input.default[type="submit"], .submit-row input.default {
-    background:#7CA0C7 url(/img/admin/default-bg.gif) repeat-x scroll center bottom;
-    border:1px solid #5B80B2;
-    color:white;
     font-weight:bold;
-}
-
-input[type="submit"]:active, input[type="button"]:active, .submit-row input:active {
-    background:#7CA0C7 url(/img/admin/nav-bg-reverse.gif) repeat-x scroll center bottom;
-}
-
-input.default[type="submit"]:active, .submit-row input.default:active {
-    background:#7CA0C7 url(/img/admin/default-bg-reverse.gif) repeat-x scroll center bottom;
 }
 
 [disabled='disabled'] {

@@ -122,6 +122,14 @@ class CustomRadioInput(forms.CheckboxInput):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('attrs',{'class': 'field radio'})
         super(CustomRadioInput, self).__init__(*args, **kwargs)
+        
+        
+class CustomSelectMultiple(forms.SelectMultiple):
+    is_multiselect = True       
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('attrs',{'class': 'field select large'})
+        super(CustomSelectMultiple, self).__init__(*args, **kwargs)
+       
     
 # Fields
 
