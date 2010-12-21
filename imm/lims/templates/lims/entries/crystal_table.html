@@ -7,7 +7,7 @@
 
 {% if crystals %}
 	{% if admin %}
-	<form id="action_form" method="post">{% csrf_token %}
+	<form id="action_form" method="post">
 		<button style="float:right;">Perform Action</button>
 		<select id="selector" style="float:right; font-size:100%; border-width: 2px;" name="action">
 			<option value="default" selected="selected">Select Action</option>

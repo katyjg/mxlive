@@ -193,7 +193,7 @@ class SampleForm(objforms.forms.OrderedForm):
 
 class ObjectSelectForm(forms.Form):
     items = forms.ModelMultipleChoiceField(
-        widget=objforms.widgets.CustomSelectMultiple(attrs={'class': 'field select large'}),
+        widget=forms.SelectMultiple(attrs={'class': 'field select large'}),
         queryset=None, 
         required=False,
         help_text='Select multiple items and then click submit to add them. Items already assigned will be reassigned.'
@@ -229,7 +229,7 @@ class SampleSelectForm(forms.Form):
 
 class DewarSelectForm(forms.Form):
     dewars = forms.ModelMultipleChoiceField(
-        widget=objforms.widgets.CustomSelectMultiple(attrs={'class': 'field select large'}),
+        widget=forms.SelectMultiple(attrs={'class': 'field select large'}),
         queryset=Dewar.objects.all(), 
         required=False,
         help_text='Select multiple dewars and then click submit to add them to the shipment. Dewars already assigned to other shipments will be transfered to the current shipment'
@@ -237,7 +237,7 @@ class DewarSelectForm(forms.Form):
     
 class ContainerSelectForm(forms.Form):
     containers = forms.ModelMultipleChoiceField(
-        widget=objforms.widgets.CustomSelectMultiple(attrs={'class': 'field select large'}),
+        widget=forms.SelectMultiple(attrs={'class': 'field select large'}),
         queryset=Container.objects.all(), 
         required=False,
         help_text='Select multiple containers and then click submit to add them to the dewar. Containers already assigned to other dewars will be transfered to the current dewar'
@@ -305,11 +305,6 @@ class ExperimentFromStrategyForm(objforms.forms.OrderedForm):
             
 class CocktailForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    constituents = forms.ModelMultipleChoiceField(
-        widget=objforms.widgets.CustomSelectMultiple(attrs={'class': 'field select large'}),
-        queryset=Constituent.objects.all(), 
-        required=False,
-        help_text='Select multiple items and then click submit to add them.')    
     comments = forms.CharField(
         widget=objforms.widgets.CommentInput,
         max_length=200, 

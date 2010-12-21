@@ -18,7 +18,7 @@ table { border-collapse: collapse;  empty-cells: show;}
 .object-tools a, .at a, .object-tools a:visited, .at a:visited { color: #5b80b2;}
 .object-tools { padding: 2px; }
 
-h2 { color: #666; margin-top: 5px;}
+h2 { color: #666; border-bottom: 1px dashed #666; margin-top: 5px;}
 
 img { border: 0; }
 
@@ -29,18 +29,46 @@ img { border: 0; }
 }
 
 .modal-content {
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-    -moz-box-shadow: 0px 3px 10px #333;
-    background: #eee;
-    /*width: 700px;*/
-    min-height: 250px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    background: white;
+    width: 700px;
+    min-height: 450px;
     padding: 10px;}
-.modal-content.wide {
-    width: 900px !important;
+    .modal-content.wide {
+        width: 900px !important;
+    }
+
+#popup-window {
+  display: none;
+  border: 1px solid #000;
+  border-top: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  width: 60%;
+  height: 30em;
+  padding: 2px;
+  background: #e5ecf9;
+  margin: auto;
 }
 
+#popup-window .title {
+  background: #c3d9ff;
+  font-weight: bold;
+}
+
+#popup-window .title a {
+  text-decoration: none;
+}
+
+#popup-window .message-info {
+  padding: 0.5em 1em;
+}
+
+#popup-window .message-info th {
+   text-align: left;
+   width: 5em;
+}
 
 .message-content {
   border: 1px solid #999;
@@ -634,27 +662,9 @@ div.help {
     font-size:95%;
 }
 
-#help-modal {
-    width: 600px;
-    font-family: Cantarell, sans-serif;
-    font-size: 14px;
-    line-height: 140%;
+img.lims-droppable-active {
+	background:url("/img/drop.png") no-repeat scroll transparent;
 }
-
-div.crystal.droppable {
-  background: url(/img/samples-crystal.png) top left no-repeat;
-  height: 200px;
-  width: 135px;
-  float: right;
-  border: 1px solid #ccc;
-  position: relative;
-  margin-top: 0;
-
-}
-div.crystal.droppable.lims-droppable-hover {
-  background: url(/img/samples-crystal.png) top right no-repeat;
-}
-
 
 .lims-droppable-active, .lims-droppable-active td {
     //background-color: red !important;
