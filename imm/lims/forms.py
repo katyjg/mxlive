@@ -305,6 +305,11 @@ class ExperimentFromStrategyForm(objforms.forms.OrderedForm):
             
 class CocktailForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
+    constituents = forms.ModelMultipleChoiceField(
+        widget=forms.SelectMultiple(attrs={'class': 'field select large'}),
+        queryset=Constituent.objects.all(),
+        required=False,
+        help_text='Select multiple items and then click submit to add them.') 
     comments = forms.CharField(
         widget=objforms.widgets.CommentInput,
         max_length=200, 

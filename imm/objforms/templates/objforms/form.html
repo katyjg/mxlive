@@ -2,13 +2,12 @@
         method="post"
         id="lims-form" 
         class="objform ajax"
-        action='{{action}}'
-{% if enctype %}
-        enctype='{{enctype}}'
-{% endif %}
->{% csrf_token %}
-<ul>
+        action='{{action}}' {% if enctype %}enctype='{{enctype}}' {% endif %}>
+{% csrf_token %}
+<ul class="form-body">
 {% include "objforms/plain.html" %}
+</ul>
+<ul class="form-buttons">
 <li class="submit-row">
 {% if info.add_another %}
 <input id='btn1' type="submit" value="{{ save_label|default:"Save" }} and add another" name="_addanother" onclick="$('btn2').disable();" />
@@ -18,9 +17,9 @@
 {%endif%}
 </ul>
 </form>
-<img src="/img/blank.png" width=1 height=1 onload="init_form('lims-form'); " />
 
 <script>
+    init_form('lims-form'); //initialize form and transform any select boxes into multi-select widgets
     jQuery(function() { // form plugin bindings
         jQuery("form.ajax").ajaxForm(function(response) {
             var $modal = jQuery(".modal-content").not(":hidden"); // at this point, the modal will be visible

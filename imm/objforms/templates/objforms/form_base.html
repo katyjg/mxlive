@@ -1,10 +1,12 @@
 {% load objforms %}
 <div class="heading">
     <h2>{{info.title}}</h2>
-    {{info.sub_title}}
 </div>
 {% if info.message %}
-    <div class="info">{{info.message}}</div>
+    <div class="info">
+    <p>{{info.sub_title}}.</p>
+    {{info.message}}
+    </div>
 {% endif %}
 {% if form.get_message %}
     <div>{{form.get_message}}</div>
