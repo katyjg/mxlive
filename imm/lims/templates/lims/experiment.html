@@ -20,13 +20,15 @@
 {% endblock %}
 
 {% block sidebar %}
-    <div id="crystals" class="widget droppable droppable-remove parent-stop" accept="crystal" data="{% url lims-crystal-basic-list %}">
-        <h3>Crystals</h3>
-        <ul>
-            <li><a href="#">Content Not Loaded.</a></li>
-        </ul>
-        <a href="{% url lims-crystal-new %}" class="action add modal" rel="#add-crystal">add crystal</a>
-    </div>
+	{% if not user.is_superuser %}
+		<div id="crystals" class="widget droppable droppable-remove parent-stop" accept="crystal" data="{% url lims-crystal-basic-list %}">
+		    <h3>Crystals</h3>
+		    <ul>
+		        <li><a href="#">Content Not Loaded.</a></li>
+		    </ul>
+		    <a href="{% url lims-crystal-new %}" class="action add modal" rel="#add-crystal">add crystal</a>
+		</div>
+    {% endif %}
     {{ block.super }}
 {% endblock %}
 

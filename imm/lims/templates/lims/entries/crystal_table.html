@@ -105,6 +105,7 @@
 			var $url = "/lims/experiment/crystal/";
 			jQuery('.checkbox').filter(':checked').each( function()
 			{
+				$url = "/lims/experiment/crystal/";
 				var $crys_id = jQuery(this).val();
 				$url = $url + $crys_id;
 				console.log($crys_id);
@@ -146,6 +147,7 @@
                 data: "",
                 success: function() {
                     refreshDatalist();
+                    loadWidgets();
                 }
             });
         }
