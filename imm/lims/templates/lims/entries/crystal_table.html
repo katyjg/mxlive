@@ -108,7 +108,6 @@
 				$url = "/lims/experiment/crystal/";
 				var $crys_id = jQuery(this).val();
 				$url = $url + $crys_id;
-				console.log($crys_id);
 				if ($action_id == 1) {
 					// rescreen
 					$url = $url + '/rescreen/';
@@ -140,7 +139,6 @@
 		});
 	
 		function remove_item(element) {
-			console.log(element);
 			jQuery.ajax({
                 type: "POST",
                 url: element.rel,
