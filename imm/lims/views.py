@@ -32,7 +32,7 @@ from imm.lims.models import *
 from imm.staff.models import Runlist
 from imm.lims.forms import ObjectSelectForm, DataForm
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
-  
+from imm.download.views import create_download_key 
 from imm.remote.user_api import UserApi
   
 #from imm.remote.user_api import UserApi
@@ -1326,11 +1326,14 @@ def shipment_xls(request, id):
             # remove the tempfiles
             shutil.rmtree(temp_dir)
     
-@jsonrpc_method('lims.add_data', authenticated=settings.AUTH_REQ or True)
+@jsonrpc_method('lims.add_data', authenticated=getattr(settings, 'AUTH_REQ', True))
 def add_data(request, data_info):
     info = {}
     # convert unicode to str
+    data_owner = Project.objects.get(pk=data_info['project_id'])
     for k,v in data_info.items():
+        if k == 'url':
+            v = create_download_key(v, data_owner.pk)
         info[smart_str(k)] = v
     try:
         new_obj = Data(**info)
@@ -1347,11 +1350,14 @@ def add_data(request, data_info):
         raise e
         return {'error': str(e)}
 
-@jsonrpc_method('lims.add_result', authenticated=settings.AUTH_REQ or True)
+@jsonrpc_method('lims.add_result', authenticated=getattr(settings, 'AUTH_REQ', True))
 def add_result(request, res_info):
     info = {}
     # convert unicode to str
+    data_owner = Project.objects.get(pk=res_info['project_id'])
     for k,v in res_info.items():
+        if k == 'url':
+            v = create_download_key(v, data_owner.pk)
         info[smart_str(k)] = v
     try:
         new_obj = Result(**info)
@@ -1361,7 +1367,7 @@ def add_result(request, res_info):
         raise e
         return {'error':str(e)}
 
-@jsonrpc_method('lims.add_strategy', authenticated=settings.AUTH_REQ or True)
+@jsonrpc_method('lims.add_strategy', authenticated=getattr(settings, 'AUTH_REQ', True))
 def add_strategy(request, stg_info):
     info = {}
     # convert unicode to str

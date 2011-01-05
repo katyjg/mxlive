@@ -251,7 +251,7 @@ def container_basic_object_list(request, runlist_id, model, template='objlist/ba
 #            ol.object_list.add(container)
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
-@jsonrpc_method('lims.detailed_runlist', authenticated=settings.AUTH_REQ or True)
+@jsonrpc_method('lims.detailed_runlist', authenticated=getattr(settings, 'AUTH_REQ', True))
 def detailed_runlist(request, runlist_id):
     try:
         runlist = Runlist.objects.get(pk=runlist_id)
@@ -262,7 +262,7 @@ def detailed_runlist(request, runlist_id):
     
     return runlist.json_dict()
 
-@jsonrpc_method('lims.get_active_runlist',  authenticated=settings.AUTH_REQ or True, safe=True)
+@jsonrpc_method('lims.get_active_runlist',  authenticated=getattr(settings, 'AUTH_REQ', True), safe=True)
 def get_active_runlist(request):
     try:
         # should only be one runlist loaded at a time

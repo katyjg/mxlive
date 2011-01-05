@@ -1,30 +1,6 @@
 [
     {
         "pk": 1, 
-        "model": "auth.group", 
-        "fields": {
-            "name": "LIMS Users", 
-            "permissions": []
-        }
-    }, 
-    {
-        "pk": 2, 
-        "model": "auth.group", 
-        "fields": {
-            "name": "LIMS Staff", 
-            "permissions": []
-        }
-    }, 
-    {
-        "pk": 3, 
-        "model": "auth.group", 
-        "fields": {
-            "name": "LIMS Admin", 
-            "permissions": []
-        }
-    }, 
-    {
-        "pk": 1, 
         "model": "lims.laboratory", 
         "fields": {
             "city": "Saskatoon", 

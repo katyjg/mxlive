@@ -1,8 +1,10 @@
-DATABASE_ENGINE = 'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
-DATABASE_NAME = 'imm'             # Or path to database file if using sqlite3.
-DATABASE_USER = 'imm'             # Not used with sqlite3.
-DATABASE_PASSWORD = 'imm123'         # Not used with sqlite3.
-DATABASE_HOST = 'cmcf-sqldb.cs.clsi.ca'             # Set to empty string for localhost. Not used with sqlite3.
+
+
+DATABASE_ENGINE = 'sqlite3' #'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
+DATABASE_NAME =  'imm.db' #'imm'             # Or path to database file if using sqlite3.
+#DATABASE_USER = 'imm'             # Not used with sqlite3.
+#DATABASE_PASSWORD = 'imm123'         # Not used with sqlite3.
+#DATABASE_HOST = 'cmcf-sqldb.cs.clsi.ca'             # Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
 
 # LDAP settings to use the LDAP Authentication backend
@@ -17,5 +19,7 @@ LDAP_BIND_ATTRIBUTE = 'uid'
 
 USER_API_HOST = 'localhost:10001'
 DOWNLOAD_CACHE_DIR = '/webcache/cache'
-IMAGE_PREPEND = 'https://cmcf.lightsource.ca'
+IMAGE_PREPEND = ''
+DOWNLOAD_FRONTEND = 'django'
+DOWNLOAD_CACHE_DIR = '/tmp'
 AUTH_REQ = False

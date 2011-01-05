@@ -6,3 +6,4 @@
 .~lock*
 .svn/
 .settings
+*.db
