@@ -1,6 +1,11 @@
-{% load humanize %}
+{% extends "base.html" %}
+{% block content %}
 
-<div id="view-report" class="hidden modal-content wide"></div>
+{% load humanize %}
+<div id="headline"><h2>{{object.name}}</h2></div>
+
+<div id="edit-object" class="hidden modal-content"></div>
+<div id="delete-object" class="hidden modal-content"></div>
 
 {% include "lims/tools.html" %}
 
@@ -28,4 +33,27 @@
 
 {% crystal_table object.crystals request.user.is_superuser object.pk %}
 
+    <div id="edit-modal" class="hidden modal-content"></div>
+    <div id="add-crystal" class="hidden modal-content"></div>
+
+
 <div style="clear: both;"></div>
+
+
+
+{% endblock %}
+
+{% block sidebar %}
+	{% if not user.is_superuser %}
+		<div id="crystals" class="widget droppable droppable-remove parent-stop" accept="crystal" data="{% url lims-crystal-basic-list %}">
+		    <h3>Crystals</h3>
+		    <ul>
+		        <li><a href="#">Content Not Loaded.</a></li>
+		    </ul>
+		    <a href="{% url lims-crystal-new %}" class="action add modal" rel="#add-crystal">add crystal</a>
+		</div>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}
+
+

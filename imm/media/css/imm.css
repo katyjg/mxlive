@@ -293,8 +293,7 @@ table.entrysummary {
   #container, #subcontainer {
     display: block; }
   #subcontainer {
-      /*background: url("/img/content.bg.png") top left repeat-y;K*/
-      background: url("/img/content.back.png") top repeat-y;
+      /*background: url("/img/content.back.png") top repeat-y;*/
       position: relative;
       z-index: 0;
       margin-top: -3px;
@@ -842,6 +841,10 @@ li.modify-log {
 
 li.create-log {
     background:url("/img/in-icon.png") no-repeat scroll transparent;
+    padding-left: 20px !important;
+}
+li.delete-log { 
+    background: url(/img/delete_x.gif) no-repeat scroll transparent; 
     padding-left: 20px !important;
 }
 ul.filter-choices ul {

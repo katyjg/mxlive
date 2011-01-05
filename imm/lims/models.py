@@ -812,6 +812,8 @@ class Cocktail(models.Model):
         return 'CT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
 
+    is_editable = True
+
 class Experiment(models.Model):
     EXP_TYPES = Enum(
         'Native',   
