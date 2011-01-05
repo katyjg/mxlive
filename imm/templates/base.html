@@ -333,47 +333,6 @@
                 refreshDatalist();
                 //loadDatalists();
 
-
-    jQuery(function() {
-        // handles all the '+ add' buttons.
-        jQuery("a.modal").live("click", function() {
-            var $button = jQuery(this);
-            var contentURL = $button.attr("href");
-            var $modal = jQuery($button.attr("rel"));
-            // this attempts to preload the content
-            if(!$modal.find("a.close").length) {
-                $modal.append("<div class='content'></div>");
-                $modal.append('<a href="#" class="close" id="close_x">close</a>');
-            }
-
-            $modal.find('.content').load(contentURL, function(e, status) {
-                if(status === "success") {
-                    $modal.lightbox_me({
-                        centered: true,
-                        destroyOnClose: true,
-                        overlaySpeed: "fast",
-                        overlayDisappearSpeed: "fast",
-                        lightboxSpeed: "fast",
-                        lightboxdisappearSpeed: "fast",
-                        onLoad: function() {
-                            // FIXME: find a better place for this
-                            jQuery(".slideview").slideView();
-                        },
-                        onClose: function() {
-                            // reload the relevant forms that have been updated
-                            loadWidgets();
-                            refreshDatalist();
-                            loadDatalists();
-                            window.location.reload();
-                        }
-                    });
-                }
-            });
-            return false;
-        });
-    });
-
-
             </script>
         
         {% endblock %}
