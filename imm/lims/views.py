@@ -1243,9 +1243,9 @@ def shipment_pdf(request, id):
                         env={'TEXINPUTS' : '.:' + settings.TEX_TOOLS_DIR + ':',
                              'PATH' : settings.TEX_BIN_PATH},
                         cwd=temp_dir,
-                        stdout=stdout.fileno(),
-                        stderr=stderr.fileno(),
-                        stdin=devnull
+                        #stdout=stdout.fileno(),
+                        #stderr=stderr.fileno(),
+                        #stdin=devnull
                         )
         
         # open the resulting .pdf and write it out to the response/browser
