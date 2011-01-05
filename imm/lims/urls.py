@@ -72,6 +72,7 @@ urlpatterns = patterns('imm.lims.views',
     (r'^experiment/requests/(?P<id>\d+)/down/$', 'change_priority', {'model': Experiment, 'action': 'down', 'field': 'priority'}, 'lims-experiment-up'),
     (r'^experiment/requests/(?P<id>\d+)/priority/$', 'priority', {'model': Experiment, 'field': 'priority'}, 'lims-experiment-priority'),
     (r'^experiment/requests/(?P<id>\d+)/add/$', 'add_existing_object', {'model': Crystal, 'parent_model': Experiment, 'field':'experiment'}, 'lims-experiment-add-crystal'),
+    (r'^experiment/requests/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/none/0/crystal/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Experiment, 'object':Crystal, 'reverse':True}, 'lims-experiment-add-crystal'),
     ######################
     #REPORTS##############
     (r'^experiment/reports/$', 'object_list', {'model': Result, 'template': 'objlist/generic_list.html'}, 'lims-result-list'),

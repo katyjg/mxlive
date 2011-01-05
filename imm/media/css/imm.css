@@ -380,6 +380,10 @@ table.entrysummary {
             background-color: #c8b9d7;
         }
 
+td.action {
+    width: 20px;
+}
+
 .stats .category {
     display: block;
     margin-bottom: 10px;
