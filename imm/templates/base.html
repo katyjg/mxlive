@@ -34,79 +34,71 @@
             <link rel="stylesheet" href="/css/main.css" />
             <link rel="stylesheet" href="/css/jquery.jgrowl.css" />
             <link rel="stylesheet" href="/css/slideview.css" />
+            <link rel="stylesheet" href="/css/fonts.css">
         {% endblock %}
         {% block extrastyle %}{% endblock %}
     </head>
 
     <body class="{% block bodyclass %}{% endblock %}">
         <div id="container">
-
             {% block content-override %}
 
                 <div id="header" >
-                    <a href="/" class="logo"><img src="/img/header.logo.png" alt="Canadian Light Source"/></a>
-                    <h1>
-                        <span class="title">Canadian Macromolecular Crystallography Facility</span>
-                        <span class="subtitle">Laboratory Information Management System.</span>
-                    </h1>
-                    <span id="user-tools">
-                        {% if user.is_superuser %}
-                            <a href="/admin/">Site Admin</a> |
-                        {% endif %}
-                            <a class="modal" rel="#help-modal" href="/help/">Help</a> |
-                            <div id="help-modal" class="hidden modal-content"></div>
-                        {% if user.is_authenticated %}
-                            <a href="/logout/">Sign out</a>
-                        {% else %}
-                            <a href="/login/">Sign in</a>
-                        {% endif %}
-                    </span>
-                    
-                </div><!-- end header -->
-
-                <div id="subcontainer">
-                    <div id="navigation">
-                        <div class="project-info">LIMS</div>
-                        {% block nav-main %}
+                    <div class="banner">
+                        <div class="logo">
+                            <span id="user-tools">
+                                {% if user.is_superuser %}
+                                    <a href="/admin/">Site Admin</a> |
+                                {% endif %}
+                                    <a class="modal" rel="#help-modal" href="/help/">Help</a> |
+                                    <div id="help-modal" class="hidden modal-content"></div>
+                                {% if user.is_authenticated %}
+                                    <a href="/logout/">Sign out</a>
+                                {% else %}
+                                    <a href="/login/">Sign in</a>
+                                {% endif %}
+                            </span>
+                        </div>
+                            {% block nav-sub %}
                             {% if user.is_superuser %}
                                 {%include "lims/staff_navs.html" %}
                             {% else %}
                                 {%include "lims/project_navs.html" %}
                             {% endif %}
-                        {% endblock %}
-                        {% block activity %}{% endblock %}
-                    </div><!-- end navigation -->
-
-                    <div id="content">
-                        {# moving this block here temporarily #}
-                        {% block nav-sub %}{% endblock %}
-                        {% if messages %}
-                            <script>
-                                {% for msg in messages %}
-                                    jQuery.jGrowl("{{msg|escape}}");
-                                {% endfor %}
-                            </script>
-                        {% endif %}
-                        {% block content %}
-                            {{ content }}
-                        {% endblock %}
-                    </div><!-- end maincol -->
-
-                    <div id="sidebar">
-                        {% block sidebar %}
-                            {% include "lims/activity_log.html" %}
-                        {% endblock %}
-                    </div><!-- end sidebar -->
+                            {% endblock %}
+                    </div>
+                </div><!-- end header -->
+                <div id="subcontainer">
+                    <div class="wrapper"><!--K-->
+                        <div id="content">
+                            {# moving this block here temporarily #}
+                            {% if messages %}
+                                <script>
+                                    {% for msg in messages %}
+                                        jQuery.jGrowl("{{msg|escape}}");
+                                    {% endfor %}
+                                </script>
+                            {% endif %}
+                            {% block content %}
+                                {{ content }}
+                            {% endblock %}
+                        </div><!-- end content -->
+    
+                        <div id="sidebar">
+                            {% block sidebar %}
+                                {% include "lims/activity_log.html" %}
+                            {% endblock %}
+                        </div><!-- end sidebar -->
+                    </div><!-- end wrapper -->
                 </div><!-- end subcontainer -->
 
                 <div id="footer">
                     {% block footer %}
-                        <p>&copy;2008 Canadian Light Source, Inc. - <a href="http://www.lightsource.ca">CLS Home</a> - <a href="http://ex.lightsource.ca/cmcf/">CMCF Home</a> - <a href="/privacy/">Privacy Policy</a></p>
+                        <p>&copy;2008 Canadian Light Source, Inc. - <a href="http://www.lightsource.ca">CLS Home</a> - <a href="http://cmcf.lightsource.ca">CMCF Home</a> - <a href="/privacy/">Privacy Policy</a></p>
                     {% endblock %}
                 </div><!-- end footer -->
 
             {% endblock %}
-
         </div><!-- end container -->
 
         <div id="popup-window"></div><!-- end popup-window -->

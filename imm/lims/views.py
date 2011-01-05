@@ -337,6 +337,20 @@ def experiment_summary(request, model=ActivityLog):
         context_instance=RequestContext(request))
     
 @login_required
+@manager_required
+def container_summary(request, model=ActivityLog):
+    log_set = [
+        ContentType.objects.get_for_model(Container).pk,
+        ContentType.objects.get_for_model(Crystal).pk,
+    ]
+    return render_to_response('lims/container.html',{
+        'logs': request.manager.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
+        'project': request.project,
+        'request': request,
+        },
+        context_instance=RequestContext(request))
+
+@login_required
 @transaction.commit_on_success
 def add_existing_object(request, dest_id, obj_id, destination, object, src_id=None, source=None, replace=False, reverse=False):
     """
@@ -345,9 +359,10 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     Replace means if the field already has an item in it, replace it, else fail
     Reverse means, due to model layout, you are actually adding destination to object
     """
+
     if request.method != 'POST':
         raise Http404
-    
+
     if reverse:
         # swap obj and destination
         obj_id, dest_id = dest_id, obj_id
@@ -392,7 +407,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
         to_add = obj_manager.get(pk=obj_id)
     except:
         raise Http404
-        
+
     # get the display name
     display_name = to_add.name
     if reverse:
@@ -699,7 +714,7 @@ def add_new_object(request, id, model, form, field):
 
 @login_required
 @manager_required
-def object_list(request, model, template='objlist/object_list.html', link=True, can_add=False, can_upload=False, can_receive=False, can_prioritize=False):
+def object_list(request, model, template='objlist/object_list.html', link=True, can_add=False, can_upload=False, can_receive=False, can_prioritize=False, is_individual=False):
     """
     A generic view which displays a list of objects of type ``model`` owned by
     the current users project. The list is displayed using the template
@@ -710,6 +725,12 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
         - ``can_add`` (boolean) specifies whether or not new entries can be added on the list page.   
         - 
     """
+    if model == Cocktail or model == CrystalForm:
+        for ct in Cocktail.objects.all():
+            for xtal in Crystal.objects.filter(project=ct.project):
+                if xtal.cocktail == ct:
+                    print "hello"
+
     ol = ObjectList(request, request.manager, num_show=25)    
     return render_to_response(template, {'ol': ol, 
                                          'link': link, 
@@ -717,6 +738,7 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
                                          'can_upload': can_upload, 
                                          'can_receive': can_receive, 
                                          'can_prioritize': can_prioritize,
+                                         'is_individual': is_individual,
                                          'handler': request.path},
         context_instance=RequestContext(request)
     )
@@ -747,6 +769,21 @@ def basic_crystal_list(request, model, template="objlist/basic_object_list.html"
     if 'basic' in handler:
         handler = handler[0:-6]
     ol.object_list = Crystal.objects.filter(experiment=None).filter(project=request.project)
+    # filter ol.object_list to just crystals with no experiment
+    return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
+
+@login_required
+@manager_required
+def container_crystal_list(request, model, template="objlist/basic_object_list.html"):
+    # get all crystals
+    # filter result to just this project
+    #filer results to just ones with experiment = none
+    ol = ObjectList(request, request.manager, num_show=200)
+    handler = request.path
+    # if path has /basic on it, remove that. 
+    if 'basic' in handler:
+        handler = handler[0:-6]
+    ol.object_list = Crystal.objects.filter(container=None).filter(project=request.project)
     # filter ol.object_list to just crystals with no experiment
     return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
 

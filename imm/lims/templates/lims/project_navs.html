@@ -1,8 +1,31 @@
 {% load nav %}
 <ul class="nav">
 	<li id="home" class='{% active request "^/(lims/)?$" %}'><a href="/lims/">Project&nbsp;Home</a></li>
-	<li id="samples" class='{% active request "^/lims/samples/" %}'><a href="/lims/samples/">Samples</a></li>
-	<li id="experiments-main" class='{% active request "^/lims/experiment/" %}'><a href="/lims/experiment/">Experiments</a></li>
-	<li id="shipping" class='{% active request "^/lims/shipping/" %}'><a href="/lims/shipping/">Shipping</a></li>
+	<li id="containers" class='{% active request "^/lims/containers/" %}'><a href="/lims/containers/">Containers</a></li>
+	<li id="samples" class='{% active request "^/lims/samples/" %}'>
+        <a href="/lims/samples/">Samples</a>
+        <ul class="nav-submenu">
+            <li><a href="/lims/samples/crystals/">Crystals</a></li>
+            <li><a href="/lims/samples/cocktails/">Cocktails</a></li>
+            <li><a href="/lims/samples/crystalforms/">Crystal Forms</a></li>
+            <li><a href="/lims/shipping/containers/">Containers</a></li>
+        </ul>
+    </li>
+	<li id="experiments-main" class='{% active request "^/lims/experiment/" %}'>
+        <a href="/lims/experiment/">Experiments</a>
+        <ul class="nav-submenu">
+            <li><a href="/lims/experiment/requests/">Experiments</a></li>
+            <li><a href="/lims/experiment/datasets/">Datasets</a></li>
+            <li><a href="/lims/experiment/reports/">Reports</a></li>
+            <li><a href="/lims/experiment/scans/">Scans</a></li>
+        </ul>
+    </li>
+	<li id="shipping" class='{% active request "^/lims/shipping/" %}'><a href="/lims/shipping/">Shipping</a>
+        <ul class="nav-submenu">
+            <li><a href="/lims/shipping/shipments/">Shipments</a></li>
+            <li><a href="/lims/shipping/dewars/">Dewars</a></li>
+            <li><a href="/lims/shipping/containers/">Containers</a></li>
+        </ul>
+</li>
 </ul>
 

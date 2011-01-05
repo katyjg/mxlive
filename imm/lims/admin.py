@@ -14,7 +14,7 @@ admin.site.register(Constituent, ConstituentAdmin)
 
 class ShipmentAdmin(admin.ModelAdmin):
     search_fields = ['label', 'comments','status']
-    list_filter = ['status','created']
+    list_filter = ['created','status']
     list_display = ('identity','label', 'status', 'date_shipped', 'carrier', 'num_dewars')
     list_per_page = 10    
     ordering = ['-created']
@@ -22,7 +22,7 @@ admin.site.register(Shipment, ShipmentAdmin)
 
 class DewarAdmin(admin.ModelAdmin):
     search_fields = ['label', 'comments']
-    list_filter = ['modified','created']
+    list_filter = ['modified']
     list_display = ('identity', 'label', 'code', 'created', 'modified', 'num_containers')
     ordering = ['-created']    
     list_per_page = 10
@@ -38,7 +38,8 @@ admin.site.register(ActivityLog, ActivityLogAdmin)
         
 class ExperimentAdmin(admin.ModelAdmin):
     search_fields = ['comments','name']
-    list_filter = ['plan','status','kind','modified']
+#    list_filter = ['plan','status','kind','modified']
+    list_filter = ['modified','status']
     list_display = ('identity','name','kind','status','plan','num_crystals')
 #    list_display = ('id','name','kind','status','plan')
 #    filter_horizontal = ['crystals']
@@ -56,7 +57,8 @@ class CrystalAdmin(admin.ModelAdmin):
     list_filter = ['modified']
 #    list_display = ('id', 'name', 'crystal_form', 'cocktail', 'container', 'container_location')
     list_display = ('identity', 'name', 'status', 'cocktail', 'comments')       
-    ordering = ['-priority', '-created']
+#    ordering = ['-priority', '-created']
+    ordering = ['-created', '-priority']
     list_per_page = 10
 admin.site.register(Crystal, CrystalAdmin)
 
@@ -66,8 +68,8 @@ staff_site.register(Crystal, CrystalAdmin)
 
 class CocktailAdmin(admin.ModelAdmin):
     ordering = ['-created']
-    search_fields = ['comments','constituents']
-    list_filter = ['modified',]
+    search_fields = ['comments','constituents','identity']
+    list_filter = ['modified']
     filter_horizontal = ['constituents']
     list_display = ('identity', 'name', 'created','modified')    
 admin.site.register(Cocktail, CocktailAdmin)
@@ -75,7 +77,7 @@ admin.site.register(Cocktail, CocktailAdmin)
 class CrystalFormAdmin(admin.ModelAdmin):
     ordering = ['id']
     search_fields = ['name','space_group']
-    list_filter = ['modified',]
+    list_filter = ['modified']
     list_display = ('identity', 'name', 'cell_a', 'cell_b', 'cell_c','cell_alpha', 'cell_beta', 'cell_gamma', 'space_group' )
     list_per_page = 10    
 admin.site.register(CrystalForm, CrystalFormAdmin)
@@ -91,7 +93,8 @@ class ContainerAdmin(admin.ModelAdmin):
     ordering = ['-created']
     search_fields = ['label','code']
     list_filter = ['modified','kind']
-    list_display = ('identity', 'label', 'code', 'capacity', 'created', 'modified', 'num_crystals')
+    #list_display = ('identity', 'label', 'code', 'capacity', 'created', 'modified', 'num_crystals')
+    list_display = ('identity', 'label', 'kind', 'capacity', 'num_crystals', 'status')
     list_per_page = 15
 admin.site.register(Container, ContainerAdmin)
 

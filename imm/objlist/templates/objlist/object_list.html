@@ -3,7 +3,7 @@
 <div class="object-list">
     
     <div class="object-tools">
-        <h1>{{instructions}}</h1>
+        {% if instructions %}<h1>{{instructions}}</h1>{% endif %}
         <div class="left-element">
             <form class="search-object-list" style="display: inline;" action="{{ handler }}" method="get">
                 <input class="field search" type="text" size="20" name="q" value="" id="searchbar" />

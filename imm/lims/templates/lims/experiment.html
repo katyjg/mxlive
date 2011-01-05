@@ -7,7 +7,7 @@
 {% endcomment %}
 
 {% block content %}
-    <h2>Experiments</h2>
+    <div id="headline"><h2>Experiments</h2></div>
 
     <div class="content-list datalist requires-dragdrop" id="experiments-list" data="{% url lims-experiment-list %}{% if request.META.QUERY_STRING %}?{{request.META.QUERY_STRING}}{% endif %}">
         {% comment %}
