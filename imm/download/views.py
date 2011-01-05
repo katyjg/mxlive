@@ -18,11 +18,12 @@ CACHE_DIR = getattr(settings, 'DOWNLOAD_CACHE_DIR', '/tmp')
 BRIGHTNESS_VALUES = getattr(settings, 'DOWNLOAD_BRIGHTNESS_VALUES', {'nm': 0.0, 'dk': -0.5, 'lt': 1.5})
 FRONTEND = getattr(settings, 'DOWNLOAD_FRONTEND', 'xsendfile')
 
-def create_download_key(path):
+def create_download_key(path, owner_id):
     """Convenience method to create and return a key for a given path"""
 
     obj = SecurePath()
     obj.path = path
+    obj.owner_id = owner_id
     obj.save()
     return obj.key
 
@@ -30,6 +31,7 @@ def get_download_path(key):
     """Convenience method to return a path for a key"""
     
     obj = SecurePath.objects.get(key=key)
+    print obj.path
     return obj.path
 
 
@@ -98,6 +100,7 @@ def send_png(request, key, path, brightness):
     obj = get_object_or_404(SecurePath, key=key)
     img_file = os.path.join(obj.path, '%s.img' % path)
     png_file = os.path.join(CACHE_DIR, obj.key, '%s-%s.png' % (path, brightness))
+
     if not os.path.exists(png_file):
         try:
             create_png(img_file, png_file, BRIGHTNESS_VALUES[brightness])

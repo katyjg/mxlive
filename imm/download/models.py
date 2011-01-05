@@ -1,12 +1,14 @@
 from django.db import models
 import hashlib
 from django.core.exceptions import ObjectDoesNotExist
+from imm.lims.models import Project
 
 
 class SecurePath( models.Model ):
     """Stores Download Keys for given paths"""
     path = models.CharField(max_length=200)
     key = models.CharField(max_length=200, db_index=True)
+    owner = models.ForeignKey(Project)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
         
     def save(self, *args, **kwargs):
