@@ -252,7 +252,7 @@ def show_project(request):
         'link':False,
         },
     context_instance=RequestContext(request))
-    
+ 
 @login_required
 @project_required
 @transaction.commit_on_success
@@ -725,12 +725,9 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
         - ``can_add`` (boolean) specifies whether or not new entries can be added on the list page.   
         - 
     """
-    if model == Cocktail or model == CrystalForm:
-        for ct in Cocktail.objects.all():
-            for xtal in Crystal.objects.filter(project=ct.project):
-                if xtal.cocktail == ct:
-                    print "hello"
-
+    log_set = [
+        ContentType.objects.get_for_model(model).pk, 
+    ]
     ol = ObjectList(request, request.manager, num_show=25)    
     return render_to_response(template, {'ol': ol, 
                                          'link': link, 
@@ -739,7 +736,8 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
                                          'can_receive': can_receive, 
                                          'can_prioritize': can_prioritize,
                                          'is_individual': is_individual,
-                                         'handler': request.path},
+                                         'handler': request.path,
+                                         'logs': ActivityLog.objects.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]},
         context_instance=RequestContext(request)
     )
 

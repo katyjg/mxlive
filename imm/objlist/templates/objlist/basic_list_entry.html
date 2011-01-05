@@ -12,9 +12,12 @@
         <td><input type="checkbox" name="{{object.get_form_field}}" value="{{object.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
     {% endif %}
         <td>
-            {% if object.is_editable %}<a href="{{ handler }}{{object.pk}}/edit/" rel="#edit-object" class="action modal edit-tool">Edit </a>{% endif %}
-
-            {% if object.is_deletable %}<a href="{{ handler }}{{object.pk}}/delete/" rel="#delete-object" class="action modal delete-tool"> </a>{% endif %}
+            {% if object.is_editable %}<a href="{{ handler }}{{object.pk}}/edit/" rel="#edit-object" class="action modal edit-tool" title="Edit"></a>{% endif %}
+        </td>
+        <td>
+            {% if object.is_deletable %}<a href="{{ handler }}{{object.pk}}/delete/" rel="#delete-object" class="action modal delete-tool" title="Delete"></a>{% endif %}
         </td>
  </tr>
+
+
 

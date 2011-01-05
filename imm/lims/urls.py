@@ -56,13 +56,11 @@ urlpatterns = patterns('imm.lims.views',
     (r'^samples/cocktails/$', 'object_list', {'model': Cocktail, 'template': 'objlist/generic_list.html', 'can_add': True}, 'lims-cocktail-list'),
     (r'^samples/cocktails/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Cocktail, 'form': CocktailForm, 'template': 'objforms/form_base.html'}, 'lims-cocktail-edit'),
     (r'^samples/cocktails/new/$', 'create_object', {'model': Cocktail, 'form': CocktailForm, 'template': 'objforms/form_base.html'}, 'lims-cocktail-new'),
-    (r'^samples/cocktails/(?P<id>\d+)/delete/$', 'delete_object', {'model': Cocktail, 'form': ShipmentDeleteForm,'orphan_models' : []}, 'lims-cocktail-delete'),
     ############################
     #CRYSTAL FORMS##############
     (r'^samples/crystalforms/$', 'object_list', {'model': CrystalForm, 'template': 'objlist/generic_list.html', 'can_add': True}, 'lims-crystalform-list'),
     (r'^samples/crystalforms/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': CrystalForm, 'form': CrystalFormForm, 'template': 'objforms/form_base.html'}, 'lims-crystalform-edit'),
     (r'^samples/crystalforms/new/$', 'create_object', {'model': CrystalForm, 'form': CrystalFormForm, 'template': 'objforms/form_base.html'}, 'lims-crystalform-new'),
-    (r'^samples/crystalforms/(?P<id>\d+)/delete/$', 'delete_object', {'model': CrystalForm, 'form': ShipmentDeleteForm,'orphan_models' : []}, 'lims-crystalform-delete'),
     #######################
     #REQUESTS##############
     (r'^experiment/requests/$', 'object_list', {'model': Experiment, 'template': 'objlist/generic_list.html', 'can_add': True, 'can_prioritize': True, 'is_individual': True}, 'lims-experiment-list'),
@@ -82,7 +80,7 @@ urlpatterns = patterns('imm.lims.views',
     ####################
     #SCANS##############
     (r'^experiment/scans/$', 'object_list', {'model': ScanResult, 'template': 'objlist/generic_list.html'}, 'lims-scan-list'),
-    (r'^experiment/scans/(?P<id>\d+)/$', 'object_detail', {'model': Result, 'template': 'lims/entries/result.html'} , 'lims-scan-detail'),
+    (r'^experiment/scans/(?P<id>\d+)/$', 'object_detail', {'model': Result, 'template': 'lims/entries/scan.html'} , 'lims-scan-detail'),
     #######################
     #DATASETS##############
     (r'^experiment/datasets/$', 'object_list', {'model': Data, 'template': 'objlist/generic_list.html'}, 'lims-dataset-list'),
