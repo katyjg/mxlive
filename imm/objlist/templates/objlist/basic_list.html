@@ -1,0 +1,126 @@
+{% load objlist %}
+<div id="edit-object" class="hidden modal-content"></div>
+<div id="delete-object" class="hidden modal-content"></div>
+
+<div class="wrapper">
+    <div id="headline">
+        <h2>{{ol.object_type}}</h2>
+    </div>
+</div>
+
+<div class="object-list">
+    <div class="object-tools">
+        {% if instructions %}<h1>{{instructions}}</h1>{% endif %}
+        <div class="left-element">
+            <form class="search-object-list" style="display: inline;" action="{{ handler }}" method="get">
+                <input class="field search" type="text" size="20" name="q" value="" id="searchbar" />
+            </form>
+        </div>
+        <div class="mid-element{% if ol.has_filters %}{% for spec in ol.filter_specs %}{% ifequal forloop.counter 2 %} raise{% endifequal %}{% endfor %}{% endif %}">
+            {% show_filters ol handler %}
+        </div>
+        <div class="right-element">
+            {% if can_receive %}<a class="edit-tool modal" rel="#edit-modal" href='{{ handler }}receive/' >Receive {{ ol.object_type }}</a>{% endif %}
+            {% if can_upload %}<a class="xls-tool modal" rel="#xls-modal" href='{{ handler }}upload/' >Upload {{ ol.object_type }}</a>{% endif %}
+            {% if can_add %}<a class="add-tool modal" rel="#add-modal" href='{{ handler }}new/' >Add {{ ol.object_type }}</a>{% endif %}
+        </div>
+        <div class="clear"></div>
+    </div>
+ 
+    <div class="list-tools">
+        {% if ol.is_paginated %}
+            {% include "objlist/pagination.html" %}
+        {% endif %}
+        {% if not ol.all_shown %}
+            Showing {{ol.result_count}} of {{ol.total_count}} total | <a href="?all=">Show all</a>
+        {% endif %}
+        {% if form.errors %}
+            <div class="error">{{form.primary_error_message}}</div>
+        {% endif %}
+        {% if form %}
+            <form method="post">{% csrf_token %}
+        {% endif %}
+    </div>
+
+    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">
+        <thead>
+            <tr class="header">
+                {% for header in ol.header_list %}<th{{ header.class_attrib }}>
+                    {% if header.sortable %}<a class="header" href="{{ handler }}{{ header.url }}">{% endif %}
+                    {{ header.text|capfirst }}
+                    {% if header.sortable %}</a>{% endif %}</th>
+                {% endfor %}
+                {% if form %}
+                    <th{{ header.class_attrib }}>Select</th>
+                {% endif %}
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ol.object_list %}
+                {% for object in ol.object_list %}
+                    {% basic_list_entry object handler is_individual forloop.counter %}
+                {% endfor %}
+            {% else %}
+                <td colspan="20" align="center" style="padding: 3em; background: #ccc;">No {{ol.object_type}} to show</td>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="list-tools">
+        {% if ol.is_paginated %}
+            {% include "objlist/pagination.html" %}
+        {% endif %}
+    </div>
+</div>
+
+{# these divs get loaded with the associated action pages for this object_list.html #}
+<div id="add-modal" class="hidden modal-content"></div>
+<div id="edit-modal" class="hidden modal-content"></div>
+<div id="xls-modal" class="hidden modal-content"></div>
+
+{% if form %}
+    <input style="float: right; margin-top: 5px;" type="submit" value="Refine Runlist >>"></input>
+    </form>
+{% endif %}
+
+<script>
+    jQuery(function() {
+        // handles all the '+ add' buttons.
+        jQuery("a.modal").live("click", function() {
+            var $button = jQuery(this);
+            var contentURL = $button.attr("href");
+            var $modal = jQuery($button.attr("rel"));
+            // this attempts to preload the content
+            if(!$modal.find("a.close").length) {
+                $modal.append("<div class='content'></div>");
+                $modal.append('<a href="#" class="close" id="close_x">close</a>');
+            }
+
+            $modal.find('.content').load(contentURL, function(e, status) {
+                if(status === "success") {
+                    $modal.lightbox_me({
+                        centered: true,
+                        destroyOnClose: true,
+                        overlaySpeed: "fast",
+                        overlayDisappearSpeed: "fast",
+                        lightboxSpeed: "fast",
+                        lightboxdisappearSpeed: "fast",
+                        onLoad: function() {
+                            // FIXME: find a better place for this
+                            jQuery(".slideview").slideView();
+                        },
+                        onClose: function() {
+                            // reload the relevant forms that have been updated
+                            loadWidgets();
+                            refreshDatalist();
+                            loadDatalists();
+                            window.location.reload();
+                        }
+                    });
+                }
+            });
+            return false;
+        });
+    });
+</script>

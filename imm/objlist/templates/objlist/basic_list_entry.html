@@ -1,0 +1,20 @@
+ <tr class="{{ row_state }} {{ type|lower }}">
+    {# should add a check here for maximum size. Don't want something like a long label ruining everything #}
+    {% load truncate_filters %}
+    {% for field in fields %}
+    	{% if field == object.id %}
+    		<td>{% if is_individual %}<a href="{{handler}}{{object.id}}/">{% endif %}{{ object.identity }}{% if is_individual %}</a>{% endif %}</td>
+    	{% else %}{% if field == object.identity %}<td>{% if is_individual %}<a href='{{ handler }}{{ object.pk }}/'>{% endif %}{{ object.identity }}{% if is_individual %}</a>{% endif %}</td>{% else %}
+    		<td>{{ field|truncate_chars:30 }}</td>
+    	{% endif %}{% endif %}
+    {% endfor %}
+    {% if form %}
+        <td><input type="checkbox" name="{{object.get_form_field}}" value="{{object.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
+    {% endif %}
+        <td>
+            {% if object.is_editable %}<a href="{{ handler }}{{object.pk}}/edit/" rel="#edit-object" class="action modal edit-tool">Edit </a>{% endif %}
+
+            {% if object.is_deletable %}<a href="{{ handler }}{{object.pk}}/delete/" rel="#delete-object" class="action modal delete-tool"> </a>{% endif %}
+        </td>
+ </tr>
+
