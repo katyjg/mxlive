@@ -2,13 +2,8 @@
 <div id="edit-object" class="hidden modal-content"></div>
 <div id="delete-object" class="hidden modal-content"></div>
 
-<div class="wrapper">
-    <div id="headline">
-        <h2>{{ol.object_type}}</h2>
-    </div>
-</div>
-
 <div class="object-list">
+{% comment %}
     <div class="object-tools">
         {% if instructions %}<h1>{{instructions}}</h1>{% endif %}
         <div class="left-element">
@@ -26,7 +21,7 @@
         </div>
         <div class="clear"></div>
     </div>
- 
+{% endcomment %} 
     <div class="list-tools">
         {% if ol.is_paginated %}
             {% include "objlist/pagination.html" %}
