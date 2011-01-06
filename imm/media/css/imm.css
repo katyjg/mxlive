@@ -1,24 +1,25 @@
 @charset "utf-8";
 
-a { color: #5b80b2; text-decoration: none; }
-a:link, a:visited { color: #5b80b2; text-decoration:none; }
-a:hover { color: #036; text-decoration: underline;}
-a img { border:none; }
-
-body { background: #eee; margin: 0px;}
-body, select, input { font-family: "Candara", sans-serif; }
-body { font-size: 83%;}
-td td, th th, th td, td th { font-size: 100%;}
-pre { font-size: 110%;}
-form { padding:0; margin:0;}
 
 table { border-collapse: collapse;  empty-cells: show;}
+#content-title h2 {
+    font-size: 20px;
+    font-weight: bold;
+    padding-right: 48px;
+    line-height: 60px;
+    display: block;
+    float: left;
+    
+}
 
-.object-tools, .at { padding:4px 3px 3px 4px; }
-.object-tools a, .at a, .object-tools a:visited, .at a:visited { color: #5b80b2;}
-.object-tools { padding: 2px; max-height: 25px}
 
-h2 { color: #666; margin-top: 5px;}
+.object-tools a, .at a, .object-tools a:visited, .at a:visited { 
+    color: #5b80b2; text-decoration: none !important;
+}
+.object-tools { 
+    padding: 18px 0;
+    position: relative;
+    }
 
 img { border: 0; }
 
@@ -87,6 +88,7 @@ table.entrysummary {
     margin: 0.3em;
 }
 
+<<<<<<< HEAD
 /* Root Level Structure */
 /* 3 column layout: #navigation, #content, div#sidebar */
 /* Note: nav styles are in tabs.css */
@@ -379,6 +381,8 @@ table.entrysummary {
         #sidebar .widget a.add:hover {
             background-color: #c8b9d7;
         }
+=======
+>>>>>>> 17ea9b195417f5e964ffc4ad1b81ed536470a17d
 
 td.action {
     width: 20px;
@@ -407,57 +411,6 @@ td.action {
   height: 53px;
 }
 
-/*K.nav {
-  list-style-type: none; }
-  .nav, .nav li {
-    margin: 0px;
-    padding: 0px;
-    display: inline; }
-  .nav li {
-      display: block; }
-    .nav li a {
-        display: block;
-        height: 20px;
-        color: white;
-        padding-top: 7px;
-        padding-left: 40px;
-    }
-    .nav li:hover {
-        background: url("/img/nav.indicator.hover.png") no-repeat scroll top right #c8b9d7;
-    }
-  .nav li.active {
-      background: url("/img/nav.indicator.png") no-repeat scroll top right #666;
-      font-weight: bold;
-  }
-K*//*
-  #home a {
-      background: url("/img/icon.home.png") no-repeat scroll 6px 8px transparent;
-      margin-left: 10px;
-  }
-  #samples a {
-      background: url("/img/icon.samples.png") no-repeat scroll 6px 8px transparent; *//*14px 5px*//*
-  }
-  #experiments-main a { /* need way to specify only experiments main link, not basic list *//*
-      background: url("/img/icon.experiments.png") no-repeat scroll 6px 8px transparent;
-  }
-  #shipping a {
-      background: url("/img/icon.shipping.png") no-repeat scroll 6px 8px transparent;
-  }
-
-  #runlists a {
-      background: url("/img/icon.runlist.png") no-repeat scroll 6px 8px transparent;
-  }K*/
-  
-
-#footer .text { padding-top: 20px; }
-
-#footer p {
-    border-top:1px solid #c3d9ff;
-    color:#666;
-    font-size:90%;
-    padding:0.8em 0pt 0pt;
-}
-
 /* Clear Hack */
 div.clearall { clear:both; }
 
@@ -475,18 +428,22 @@ div.toolbar {
    float: left;
    text-align: left;
    margin: 0px;
+   padding: 3px 0px;
    }
+
+.right-element {
+   float:right;
+   margin: 0px;
+   padding: 3px 0px;
+   text-align: right; /* depends on element width */
+}
+
 .mid-element {
    float: left;
    padding-left: 10px;
    max-width: 405px;
 }
 .raise { margin-top: -5px; }
-.right-element {
-   float:right;
-   margin: 0px;
-   text-align: right; /* depends on element width */
-}
 
 .back-tool, .edit-tool, .delete-tool, .remove-tool, .add-tool, .clone-tool, .send-tool, .close-tool, .pdf-tool, .xls-tool {
     background:transparent;
@@ -820,7 +777,6 @@ div.crystal.droppable {
   width: 135px;
   float: right;
   border: 1px solid #ccc;
-  position: relative;
   margin-top: 0;
 
 }

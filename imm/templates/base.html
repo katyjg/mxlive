@@ -1,219 +1,319 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html>
-    <head>
-        <title>
-            {% block title %}
-                {% if user.is_superuser %}
-                   Staff | {{ title|escape }}
-                {% else %}
-                   {{ project.name }} | {{ title|escape }}
-                {% endif %}
-            {% endblock %}
-        </title>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <meta name="robots" content="NONE,NOARCHIVE" />
-        <script src="/js/modalpopup_builtin.js"></script>
-        <script src="/js/jquery-1.4.2.min.js"></script>
-        <script src="/js/jquery-ui-1.8.5.custom.min.js"></script>
-        <script src="/js/jquery.jgrowl_minimized.js"></script>
-        <script src="/js/jquery.form.js"></script>
-        <script src="/js/jquery.tablednd_0_5.js"></script>
-        <script src="/js/jquery.easing.1.3.js" type="text/javascript"></script>
-        <script src="/js/jquery.slideviewer.1.2.js" type="text/javascript"></script> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta name="robots" content="NONE,NOARCHIVE" />
+	<title>CMCF LIMS &middot; Lab Info Management System</title>
 
-        {% comment %}
-            As we add more scripts if this starts to get unruly it might make sense to integrate the YUI Loader pattern.
-        {% endcomment %}
-        <script>
-            $.noConflict(); // puts jquery into noconflict mode as the prototype library utilizes the $ namespace.
-        </script>
-        <script src="/js/jquery.lightbox_me.js"></script>
-        <script src="/js/prototype.js"></script>
-        <script src="/js/ajax.js"></script>
-        {% block stylesheet %}
-            <link rel="stylesheet" href="/css/main.css" />
-            <link rel="stylesheet" href="/css/jquery.jgrowl.css" />
-            <link rel="stylesheet" href="/css/slideview.css" />
-            <link rel="stylesheet" href="/css/fonts.css">
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js"></script>
+    <script type="text/javascript"  src="/js/jquery.jgrowl_minimized.js"></script>
+    <script type="text/javascript"  src="/js/jquery.form.js"></script>
+    <script type="text/javascript"  src="/js/jquery.tablednd_0_5.js"></script>
+    <script type="text/javascript" src="/js/jquery.easing.1.3.js"></script>
+    <script type="text/javascript" src="/js/jquery.slideviewer.1.2.js"></script> 
+    <script type="text/javascript" src="/js/jquery.lightbox_me.js"></script>
+    <script>
+        $.noConflict(); // puts jquery into noconflict mode as the prototype library utilizes the $ namespace.
+    </script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1/prototype.js"></script>
+    <script type="text/javascript" src="/js/ajax.js"></script>
+    {% block stylesheet %}
+        <link href='http://fonts.googleapis.com/css?family=Cantarell:regular,italic,bold,bolditalic' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="/css/style.css" />
+        <link rel="stylesheet" href="/css/imm.css" />
+        <link rel="stylesheet" href="/css/jquery.jgrowl.css" />
+    {% endblock %}
+    {% block extrastyle %}{% endblock %}
+</head>
+<body class="{% block bodyclass %}{% endblock %}">
+    <!-- start banner -->
+    <div id="header"><div id="banner">
+	    <div id="logo">
+		    <h1>Canadian Macromolecular Crystallography Facility</h1>
+		    <p id="slogan">Laboratory Information Management System.</p>
+	    </div>
+        {% if user.is_authenticated %}
+        <div id="user-tools">
+            Welcome, {{user}} |
+            {% if user.is_superuser %}<a href="/admin/">Site Admin</a> | {% endif %}
+                <a class="modal" rel="#help-modal" href="/help/">Help</a> |
+                <div id="help-modal" class="hidden modal-content"></div>
+            <a href="/logout/">Sign out</a>
+        </div>
+        <!-- start navigation -->
+        {% block nav-main %}
+            {% if user.is_superuser %}
+                {%include "lims/staff_navs.html" %}
+            {% else %}
+                {%include "lims/project_navs.html" %}
+            {% endif %}
         {% endblock %}
-        {% block extrastyle %}{% endblock %}
-    </head>
+        <!-- end navigation -->
+    {% endif %}
+	</div></div>
+    <!-- end barner -->
 
-    <body class="{% block bodyclass %}{% endblock %}">
-        <div id="container">
-            {% block content-override %}
-
-                <div id="header" >
-                    <div class="banner">
-                        <div class="logo">
-                            <span id="user-tools">
-                                {% if user.is_superuser %}
-                                    <a href="/admin/">Site Admin</a> |
-                                {% endif %}
-                                    <a class="modal" rel="#help-modal" href="/help/">Help</a> |
-                                    <div id="help-modal" class="hidden modal-content"></div>
-                                {% if user.is_authenticated %}
-                                    <a href="/logout/">Sign out</a>
-                                {% else %}
-                                    <a href="/login/">Sign in</a>
-                                {% endif %}
-                            </span>
-                        </div>
-                            {% block nav-sub %}
-                            {% if user.is_superuser %}
-                                {%include "lims/staff_navs.html" %}
-                            {% else %}
-                                {%include "lims/project_navs.html" %}
-                            {% endif %}
-                            {% endblock %}
-                    </div>
-                </div><!-- end header -->
-                <div id="subcontainer">
-                    <div class="wrapper"><!--K-->
-                        <div id="content">
-                            {# moving this block here temporarily #}
-                            {% if messages %}
-                                <script>
-                                    {% for msg in messages %}
-                                        jQuery.jGrowl("{{msg|escape}}");
-                                    {% endfor %}
-                                </script>
-                            {% endif %}
-                            {% block content %}
-                                {{ content }}
-                            {% endblock %}
-                        </div><!-- end content -->
+    <div id="headline">
+	    <div class="wrapper">
+	    <div class="col-12">
+        {% block headline %}{% endblock %}
+        {% block object-tools %}{% endblock %}
+        </div>
+	    </div>
+    </div>
     
-                        <div id="sidebar">
-                            {% block sidebar %}
-                                {% include "lims/activity_log.html" %}
-                            {% endblock %}
-                        </div><!-- end sidebar -->
-                    </div><!-- end wrapper -->
-                </div><!-- end subcontainer -->
+    <div id="container">
+{% block content-override %}
+    {% block activity %}{% endblock %}
+    {% if messages %}
+        <script>
+            {% for msg in messages %}
+                jQuery.jGrowl("{{msg|escape}}");
+            {% endfor %}
+        </script>
+    {% endif %}
 
-                <div id="footer">
-                    {% block footer %}
-                        <p>&copy;2008 Canadian Light Source, Inc. - <a href="http://www.lightsource.ca">CLS Home</a> - <a href="http://cmcf.lightsource.ca">CMCF Home</a> - <a href="/privacy/">Privacy Policy</a></p>
-                    {% endblock %}
-                </div><!-- end footer -->
+    <div id="subcontainer">
+    <!-- maincol -->
+	<div id="content" class="col-9">
+    {% block content %}
+        {{ content }}
+    {% endblock %}
+    </div>
+    <!-- end maincol -->
+    <!-- sidebar -->
+    <div id="sidebar" class="col-3">
+        {% block sidebar %}
+            {% include "lims/activity_log.html" %}
+        {% endblock %}
+    </div>
+    <!-- end sidebar -->   
+    </div><!-- end subcontainer -->
+    <!-- footer -->
+    <div id="footer" class="col-12">
+        {% block footer %}
+            <p>&copy;2008 Canadian Light Source, Inc. - <a href="http://www.lightsource.ca">CLS Home</a> - <a href="http://ex.lightsource.ca/cmcf/">CMCF Home</a> - <a href="/privacy/">Privacy Policy</a></p>
+        {% endblock %}
+    </div>
+    <!-- end footer -->
+    </div><!-- end container -->
+    <div id="popup-window"></div><!-- end popup-window -->
+{% endblock %}
+{% block script %}
+    <script>
 
-            {% endblock %}
-        </div><!-- end container -->
+        // TODO: add generic way to overlay a loading indicator on widgets and datalists.
 
-        <div id="popup-window"></div><!-- end popup-window -->
+        function loadWidgets() {
+            jQuery(".widget").each(function(i, widget) {
+                var $widget = jQuery(widget);
+                $widget.find("ul").load($widget.attr("data"), function() {});
+            });
+        }
 
-        {% block script %}
-        
-            <script>
-
-                // TODO: add generic way to overlay a loading indicator on widgets and datalists.
-
-                function loadWidgets() {
-                    jQuery(".widget").each(function(i, widget) {
-                        var $widget = jQuery(widget);
-                        $widget.find("ul").load($widget.attr("data"), function() {});
-                    });
-                }
-
-				// This collapses any expanded items.
-                function loadDatalists() {
-                    jQuery(".datalist").each(function(i, datalist) {
-                        var $datalist = jQuery(datalist);
-                        $datalist.load($datalist.attr("data"), function() {
-                            // check to see if drag and drop needs to be setup for this datalist
-                            if($datalist.hasClass("requires-dragdrop")) {
-                                setupTableDragAndDrop("#" + $datalist.attr("id"), $datalist.attr("data"));
-                            }
-                        });
-                    });
-                }
-                
-                // refresh the datalist table
-                function refreshDatalist() {
-                	// store what is expanded
-                	var $expanded_items  = new Array();
-                	// find items that are expanded, store id
-                	jQuery(".expanded").each(function(i, expanded) {
-                	var $exp = jQuery(expanded);
-                		$expanded_items.push($exp.attr("id"));
-                	});
-                	// reload all the table data and rows
-                	// replicate code, as I need the re-expanding to happen on success of reload. 
-                	jQuery(".datalist").each(function(i, datalist) {
-                        var $datalist = jQuery(datalist);
-                        $datalist.load($datalist.attr("data"), function() {
-                            // check to see if drag and drop needs to be setup for this datalist
-                            if($datalist.hasClass("requires-dragdrop")) {
-                                setupTableDragAndDrop("#" + $datalist.attr("id"), $datalist.attr("data"));
-                            }
-                            
-                            // re-expand what was previously expanded
-		                	for (x in $expanded_items) {
-		                		// find item with that id and class link-row (should only be one)
-		                		var $table_item = jQuery("#" + $expanded_items[x]).filter(".link-row").first();
-		                		// basically click it
-		                		$table_item.click();
-		                	}
-                        });
-                    });
-                	
-                }
-
-                function serialize(table) {
-                    var rowIds = [];
-                    var rows = table.tBodies[0].rows;
-                    for (var i = 0; i < rows.length; i++) {
-                        var jQuery_row = jQuery(rows[i]);
-                        if ( jQuery_row.hasClass("link-row") ) {
-                            rowIds.push("objlist-list-table[]=" + jQuery_row.attr("id"));
-                        }
+		// This collapses any expanded items.
+        function loadDatalists() {
+            jQuery(".datalist").each(function(i, datalist) {
+                var $datalist = jQuery(datalist);
+                $datalist.load($datalist.attr("data"), function() {
+                    // check to see if drag and drop needs to be setup for this datalist
+                    if($datalist.hasClass("requires-dragdrop")) {
+                        setupTableDragAndDrop("#" + $datalist.attr("id"), $datalist.attr("data"));
                     }
-                    return rowIds.join("&");
-                }
+                });
+            });
+        }
+        
+        // refresh the datalist table
+        function refreshDatalist() {
+        	// store what is expanded
+        	var $expanded_items  = new Array();
+        	// find items that are expanded, store id
+        	jQuery(".expanded").each(function(i, expanded) {
+        	var $exp = jQuery(expanded);
+        		$expanded_items.push($exp.attr("id"));
+        	});
+        	// reload all the table data and rows
+        	// replicate code, as I need the re-expanding to happen on success of reload. 
+        	jQuery(".datalist").each(function(i, datalist) {
+                var $datalist = jQuery(datalist);
+                $datalist.load($datalist.attr("data"), function() {
+                    // check to see if drag and drop needs to be setup for this datalist
+                    if($datalist.hasClass("requires-dragdrop")) {
+                        setupTableDragAndDrop("#" + $datalist.attr("id"), $datalist.attr("data"));
+                    }
+                    
+                    // re-expand what was previously expanded
+                	for (x in $expanded_items) {
+                		// find item with that id and class link-row (should only be one)
+                		var $table_item = jQuery("#" + $expanded_items[x]).filter(".link-row").first();
+                		// basically click it
+                		$table_item.click();
+                	}
+                });
+            });
+        	
+        }
 
-                function setupTableDragAndDrop(selector, url) {
-                    var serializedAtStart;
-                    jQuery(selector + " table").tableDnD({
-                        onDragClass: "lims-droppable-active",
-                        onDragStart: function(table, row) {
-                            serializedAtStart = serialize(table);
-                        },
-                        onDrop: function(table, row) {
-                            var serializedAtDrop = serialize(table);
-                            if (serializedAtStart != serializedAtDrop) {
-                                var jQuery_tr = jQuery(selector + " table tr#" + row.id);
-                                jQuery.ajax({
-                                    type: "POST",
-                                    url: jQuery_tr.attr("rel") + "priority/",
-                                    data: serializedAtDrop,
-                                    success: function() {
-                                        jQuery_tr.parents(".content-list").load(url, function() {
-                                            setupTableDragAndDrop(selector, url);
-                                        });
-                                    }
+        function serialize(table) {
+            var rowIds = [];
+            var rows = table.tBodies[0].rows;
+            for (var i = 0; i < rows.length; i++) {
+                var jQuery_row = jQuery(rows[i]);
+                if ( jQuery_row.hasClass("link-row") ) {
+                    rowIds.push("objlist-list-table[]=" + jQuery_row.attr("id"));
+                }
+            }
+            return rowIds.join("&");
+        }
+
+        function setupTableDragAndDrop(selector, url) {
+            var serializedAtStart;
+            jQuery(selector + " table").tableDnD({
+                onDragClass: "lims-droppable-active",
+                onDragStart: function(table, row) {
+                    serializedAtStart = serialize(table);
+                },
+                onDrop: function(table, row) {
+                    var serializedAtDrop = serialize(table);
+                    if (serializedAtStart != serializedAtDrop) {
+                        var jQuery_tr = jQuery(selector + " table tr#" + row.id);
+                        jQuery.ajax({
+                            type: "POST",
+                            url: jQuery_tr.attr("rel") + "priority/",
+                            data: serializedAtDrop,
+                            success: function() {
+                                jQuery_tr.parents(".content-list").load(url, function() {
+                                    setupTableDragAndDrop(selector, url);
                                 });
                             }
-                        }
-                    });
+                        });
+                    }
                 }
-                
-                function getModel(object) {
-                	// widget first, so we know if it's from the sidebar widget area
-                	if (object.hasClass("widget-item")) { return 'widget-item'; }
-                	if (object.hasClass('widget')) { return 'widget'; }
-                	if (object.hasClass('crystal')) { return 'crystal'; }
-                	if (object.hasClass('experiment')) { return 'experiment'; }
-                	if (object.hasClass('container')) { return 'container'; }
-                	if (object.hasClass('cocktail')) { return 'cocktail'; } 
-                	if (object.hasClass('constituent')) { return 'constituent'; }
-                	if (object.hasClass('crystalform')) { return 'crystal_form'; }
-                	if (object.hasClass('shipment')) { return 'shipment'; }
-                	if (object.hasClass('dewar')) { return 'dewar'; }
-                	if (object.hasClass('runlist')) { return 'runlist'; }
-                	return 'none';
-                }
+            });
+        }
+        
+        function getModel(object) {
+        	// widget first, so we know if it's from the sidebar widget area
+        	if (object.hasClass("widget-item")) { return 'widget-item'; }
+        	if (object.hasClass('widget')) { return 'widget'; }
+        	if (object.hasClass('crystal')) { return 'crystal'; }
+        	if (object.hasClass('experiment')) { return 'experiment'; }
+        	if (object.hasClass('container')) { return 'container'; }
+        	if (object.hasClass('cocktail')) { return 'cocktail'; } 
+        	if (object.hasClass('constituent')) { return 'constituent'; }
+        	if (object.hasClass('crystalform')) { return 'crystal_form'; }
+        	if (object.hasClass('shipment')) { return 'shipment'; }
+        	if (object.hasClass('dewar')) { return 'dewar'; }
+        	if (object.hasClass('runlist')) { return 'runlist'; }
+        	return 'none';
+        }
 
+        function setupDragAndDrop() {
+            jQuery(".draggable-link-parent").draggable({
+                revert: "invalid",
+                start: function(event, ui){
+                	// when starting the drag, store it's parent element (drag source)
+                	if (getModel(jQuery(this)) == 'none') {
+                		var $parent_dom_el = jQuery(this).parents('.parent-stop').first();
+                		jQuery(this).data('parent_dom_el', $parent_dom_el);
+                	
+                	}
+                	else {
+                		var $parent_dom_el = jQuery(this);
+                		jQuery(this).data('parent_dom_el', $parent_dom_el);
+                	}
+                }
+            });
+            jQuery(".droppable").droppable({
+                accept: function( jQuery_draggable ) {
+                <!-- need to modify this to allow for multiple acceptable drop items -->
+                <!-- field of is() with . doesn't seem to work. 
+                	<!-- split attr on space -->
+                	accept_str = jQuery(this).attr("accept");
+                	split_str = accept_str.split(" ");
+                	for (count=0; count<split_str.length; count=count+1)
+                	{
+                		if (jQuery_draggable.hasClass(split_str[count])) {
+                			return true;
+                		}
+                	}
+                    return false;
+                },
+                drop: function( event, ui ) {
+                	// when dropping, retreive it's parent element (drag source)
+                	var destination = jQuery(this);
+                	if (!destination.hasClass('parent-stop')) {
+               			destination = jQuery(this).parents('.parent-stop').first();
+               		}
+                	
+                    // Location object is dragged to is jQuery(this)
+                    var dragged_obj = ui.draggable;
+                 
+                    // Object being dragged is ui.draggable
+                    var source = ui.draggable.parents('.parent-stop').first();
+                    
+                    // generate the action url
+                    // something like src/src_id/dest/dest_id/obj/obj_id
+                    // ajax call url if it has droppable attr
+                    // url will map to correct handler (eg: src experiment, dest widget, obj crystal will remove crystal from experiment)
+                    // looks like /experiment/1/Crys_widget/0/crystal/2 (crystal id 2 removed from experiment 1, widget checked to determine remove, 0 unused)
+                    
+                    // call to that URL replaces all of this, add, remove, and replace code...
+                    // makes the logic all in the url space, easy to adjsut behaviour of one operation
+                    // will give a lot of endpoints to maintain / worry about. 
+                    
+                    var end_url = getModel(source);
+                    if ((getModel(source) == 'widget') || (getModel(source) == 'none'))
+                    {
+                    	end_url = end_url + '/0/';
+                    }
+                    else {
+                    	end_url = end_url + '/' + source.attr('id') + '/';
+                    }
+                    
+                    end_url = end_url + getModel(destination);
+                    if (getModel(destination) == 'widget' || getModel(destination) == 'none')
+                    {
+                    	end_url = end_url + '/0/';
+                    }
+                    else {
+                    	end_url = end_url + '/' + destination.attr('id') + '/';
+                    }
+                    
+                    end_url = end_url + getModel(dragged_obj);
+                    if (getModel(dragged_obj) == 'widget' || getModel(dragged_obj) == 'none')
+                    {
+                    	end_url = end_url + '/0/';
+                    }
+                    else {
+                    	end_url = end_url + '/' + dragged_obj.attr('id') + '/';
+                    }
+                   
+                    // call out to Ajax to perform the operation
+                    // if this is a staff page we need to add project
+                    
+                    jQuery.ajax({
+  		            	type: "POST",
+                		url: end_url,
+                		//data: { items: draggableId, parent: parent, container_location: container_location }, // I think all ignored
+                		dataType: "script",
+                		success: function() {
+                    		loadWidgets();
+                    		// Maybe this is the call that should be removed. Need to just update datalist, not load it. 
+                    		// this does "fix" the collapsing views. Investigation what will be broken. 
+                    		// looks like it shouldn't be needed. 
+                    		 //loadDatalists();
+                    		 refreshDatalist();
+               		 	},
+               		 	error: function() {
+               		 		// error, just reload the widget
+               		 		loadWidgets();
+               		 	}
+            		});
+
+<<<<<<< HEAD
                 function setupDragAndDrop() {
                     jQuery(".draggable-link-parent").draggable({
                         revert: "invalid",
@@ -332,17 +432,25 @@
                         activeClass: "lims-droppable-active",
                         hoverClass: "lims-droppable-hover",
                         tolerance: "pointer"
+=======
+                    jQuery("tr.expander.loaded").each( function() {
+                        jQuery(this).children("td").load(jQuery(this).prev().attr("rel"), function() {});
+>>>>>>> 17ea9b195417f5e964ffc4ad1b81ed536470a17d
                     });
-                }
+                },
+                activeClass: "lims-droppable-active",
+                hoverClass: "lims-droppable-hover",
+                tolerance: "pointer"
+            });
+        }
 
-                jQuery("#sidebar, #content").live("DOMSubtreeModified", function() { setupDragAndDrop();});
+        jQuery("#sidebar, #content").live("DOMSubtreeModified", function() { setupDragAndDrop();});
 
-                loadWidgets();
-                refreshDatalist();
-                //loadDatalists();
+        loadWidgets();
+        refreshDatalist();
+        //loadDatalists();
 
-            </script>
-        
-        {% endblock %}
-    </body>
+    </script>
+{% endblock %}
+</body>
 </html>

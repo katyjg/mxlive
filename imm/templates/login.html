@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block bodyclass %}login{% endblock %}
-
 {% block content-override %}
     <div class="login-error">{{ form.non_field_errors.0 }}</div>
     {% if error_message %}
