@@ -3,13 +3,7 @@
     note: this file defines tools for both staff and users
 {% endcomment %}
 
-<div id="receive-object" class="hidden modal-content"></div>
-<div id="return-object" class="hidden modal-content"></div>
-<div id="send-object" class="hidden modal-content"></div>
-<div id="close-object" class="hidden modal-content"></div>
-<div id="clone-object" class="hidden modal-content"></div>
-<div id="edit-object" class="hidden modal-content"></div>
-<div id="delete-object" class="hidden modal-content"></div>
+<div id="headline"><h2>{{object.name}} ({{object.identity}})</h2></div>
 
 <ul class="tools">
     {# STAFF TOOLS #}
@@ -81,3 +75,4 @@
         {% endif %}
     {% endif %}
 </ul>
+

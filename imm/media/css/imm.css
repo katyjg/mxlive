@@ -260,6 +260,7 @@ table.entrysummary {
 	background: #eee;
 	border-bottom: 1px solid #bbb;
     margin-left: -14px;
+    margin-top: -12px;
 }
 
 #headline h2 {
@@ -296,7 +297,6 @@ table.entrysummary {
       /*background: url("/img/content.back.png") top repeat-y;*/
       position: relative;
       z-index: 0;
-      margin-top: -3px;
       /*padding-top: 10px;K*/
   }
 
@@ -327,7 +327,7 @@ table.entrysummary {
 #sidebar {
   display: inline;
   float: right;/*Kleft*/
-  margin-top: 70px;/*K*/  
+  margin-top: 50px;/*K*/  
   margin-right: 10px;/*K0*/
   width: 180px;
   background: #eee;
@@ -471,7 +471,6 @@ div.toolbar {
     -moz-border-radius-bottomleft: 4px;
     -moz-border-radius-bottomright: 4px;
 }
-
 .left-element {
    float: left;
    text-align: left;
@@ -489,7 +488,7 @@ div.toolbar {
    text-align: right; /* depends on element width */
 }
 
-.edit-tool, .delete-tool, .remove-tool, .add-tool, .clone-tool, .send-tool, .close-tool, .pdf-tool, .xls-tool {
+.back-tool, .edit-tool, .delete-tool, .remove-tool, .add-tool, .clone-tool, .send-tool, .close-tool, .pdf-tool, .xls-tool {
     background:transparent;
     cursor: pointer;
     padding: 2px;
@@ -499,7 +498,7 @@ div.toolbar {
     font-size: 90%;
     font-style: italic;
 }
-.edit-tool:hover, .delete-tool:hover, .trash-tool:hover, .add-tool:hover, .clone-tool:hover, .send-tool:hover, .close-tool:hover, .pdf-tool:hover, .xls-tool:hover { color: #036; }
+.back-tool, .edit-tool:hover, .delete-tool:hover, .trash-tool:hover, .add-tool:hover, .clone-tool:hover, .send-tool:hover, .close-tool:hover, .pdf-tool:hover, .xls-tool:hover { color: #036; }
 .edit-tool { background: url(/img/edit-icon.png) no-repeat top left; }
 .delete-tool { background: url(/img/delete-icon.gif) no-repeat left top; }
 .remove-tool { background: url(/img/remove-icon.png) no-repeat left top; }
@@ -509,6 +508,12 @@ div.toolbar {
 .close-tool{ background: url(/img/close-icon.png) no-repeat left bottom; }
 .pdf-tool{ background: url(/img/pdf-icon.png) no-repeat left bottom; }
 .xls-tool{ background: url(/img/xls-icon.png) no-repeat left bottom; }
+.back-tool { background: url(/img/back_icon.gif) no-repeat center left; 
+    font-weight: bold;
+    padding: 10px;
+    padding-left: 25px;
+    }
+
 
 ul#contentmap
 {

@@ -3,6 +3,8 @@
  
 {% load humanize %}
 
+{% include "lims/tools.html" %}
+<div class="back-tool"><a href="{% url lims-crystal-list %}">Back to Full List</a></div>
 {% comment %}
 {% if request.user.is_superuser %}
     <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
@@ -58,4 +60,22 @@
 {% include "lims/entries/dewar_contents.html" %}
 {% include "lims/entries/dewar_treeview.html" %}
 {% endcomment %}
+
+<div id="add-container" class="hidden modal-content"></div>
+
+{% include "lims/entries/popup.html" %}
+
+{% endblock %}
+
+{% block sidebar %}
+    {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
+        <div id="containers" class="widget droppable droppable-remove parent-stop" accept="container" data="{% url lims-container-basic-list %}?dewar__isnull=True">
+            <h3>Containers</h3>
+            <ul>
+                <li><a href="#">Content Not Loaded.</a></li>
+            </ul>
+            <a href="{% url lims-container-new %}" class="action add modal" rel="#add-container">add container</a>
+        </div>
+    {% endif %}
+    {{ block.super }}
 {% endblock %}

@@ -545,6 +545,30 @@ def object_detail(request, id, model, template):
         'handler' : request.path
         },
         context_instance=RequestContext(request))
+
+@login_required
+@manager_required
+def crystal_object_detail(request, id, model, template, admin=False):
+    """
+    Experiment needs a unique detail since it needs to pass the relevant information
+    from results and datasets into it's detail.
+    """
+    try:
+        obj = request.manager.get(pk=id)
+    except:
+        raise Http404
+    
+    datasets = Data.objects.filter(crystal__exact=obj)
+    results = Result.objects.filter(crystal__exact=obj)
+    
+    return render_to_response(template, {
+        'object': obj,
+        'handler': request.path,
+        'datasets': datasets,
+        'results': results,
+        'admin': admin
+        }, 
+        context_instance=RequestContext(request))
     
 @login_required
 @manager_required

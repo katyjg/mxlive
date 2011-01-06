@@ -276,16 +276,19 @@
                             else {
                             	end_url = end_url + '/' + source.attr('id') + '/';
                             }
-                            
-                            end_url = end_url + getModel(destination);
-                            if (getModel(destination) == 'widget' || getModel(destination) == 'none')
-                            {
-                            	end_url = end_url + '/0/';
+
+                            if (getModel(dragged_obj) == 'container')
+                            {                                    
+                                end_url = end_url + getModel(destination);
+                                if (getModel(destination) == 'widget' || getModel(destination) == 'none')
+                                {
+                                	end_url = end_url + '/0/';
+                                }
+                                else {
+                                	end_url = end_url + '/' + destination.attr('id') + '/';
+                                }
                             }
-                            else {
-                            	end_url = end_url + '/' + destination.attr('id') + '/';
-                            }
-                            
+
                             end_url = end_url + getModel(dragged_obj);
                             if (getModel(dragged_obj) == 'widget' || getModel(dragged_obj) == 'none')
                             {
@@ -293,6 +296,10 @@
                             }
                             else {
                             	end_url = end_url + '/' + dragged_obj.attr('id') + '/';
+                            }
+                            if (getModel(dragged_obj) == 'crystal' && getModel(destination) == 'container')
+                            {
+                                end_url = end_url + '/loc/' + destination.attr('container_location') + '/';
                             }
                            
                             // call out to Ajax to perform the operation
@@ -308,8 +315,9 @@
                             		// Maybe this is the call that should be removed. Need to just update datalist, not load it. 
                             		// this does "fix" the collapsing views. Investigation what will be broken. 
                             		// looks like it shouldn't be needed. 
-                            		 //loadDatalists();
-                            		 refreshDatalist();
+                            		//loadDatalists();
+                            		refreshDatalist();
+                                    window.location.reload();
                        		 	},
                        		 	error: function() {
                        		 		// error, just reload the widget
