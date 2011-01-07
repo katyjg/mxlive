@@ -47,6 +47,7 @@ html
 	font-variant:normal!important;
 	text-align:left;
 	overflow-y:scroll;
+	height: 100%;
 }
 
 body
@@ -56,8 +57,8 @@ body
 	font-family:"Segoe UI", Cantarell, serif;
 	line-height:1.5em;
 	color:#333;
-	margin-bottom:40px;
 	background-color:#fff;
+	height: 100%;
 }
 
 table
@@ -192,10 +193,18 @@ img
 {
 	width:932px;
 }
+#main-wrapper
+{
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0;
+}
 
 #header
 {
-	background:#ccc url(/img/header.gradient.png) top left repeat-x;
+	/*background:#ccc url(/img/header.gradient.png) top left repeat-x;*/
+	background-color: #883a6a;
 	min-width:932px;
 }
 
@@ -225,25 +234,28 @@ img
 
 #logo
 {
-	background:url(/img/clslogo.png) no-repeat left;
+	background:url(/img/clslogo-white.png) no-repeat left;
 	min-height:50px;
-	width:400px;
+	width:466px;
 	float:left;
 	padding:5px;
-	color:#000;
+	color:#fff;
+	text-shadow:#000 0 0 2px;
+
 }
 
 #logo h1
 {
-	font-size:15px;
-	margin-left:80px;
+	font-size:17px;
+	font-weight: normal;
+	margin-left:72px;
 	line-height:15px;
 }
 
 #slogan
 {
 	font-size:13px;
-	margin:0 0 0 80px;
+	margin:0 0 0 72px;
 	padding:0;
 }
 
@@ -273,12 +285,11 @@ img
 /* MENU */
 #nav
 {
-	margin:12px 0 0 14px;
-	float:right;
+	margin:12px 0 0;
+	float:left;
 	height:24px;
-	margin-right:14px;
-	min-width:400px;
-	max-width:532px;
+	min-width:300px;
+	max-width:456px;
 	list-style:none;
 }
 
@@ -384,13 +395,18 @@ img
 }
 
 /* footer */
-#footer
-{
-	float:left;
-	clear:both;
-	color:gray;
-	margin:20px 15px;
-	border-top:1px solid #B0D0DC;
+#footer {
+    position: relative;
+    background: none repeat scroll 0 0 #F7F7F7;
+    border-top: 1px solid #DFDFDF;
+    height: 99px;
+    text-align: center;
+    margin-top: -100px;
+}
+
+.push {
+    height: 124px;
+    clear: both;
 }
 
 /* sidebar */
@@ -728,17 +744,15 @@ tr.even td
 /* RESULTS */
 #result-page
 {
-	margin:0 auto;
 	text-align:left;
-	padding:0;
 }
 
 #result-table
 {
-	font-size:88%;
 	border-collapse:collapse;
 	text-align:left;
 	width:100%;
+
 }
 
 #result-table th
@@ -780,6 +794,7 @@ tr.even td
 	border:1px solid #ccc;
 	float:left;
 	text-align:left;
+	width: 452px;
 }
 
 div.tablenotes
@@ -829,7 +844,7 @@ dl.note-list dd
 	font-size:190%;
 	line-height:1.2em;
 	margin-bottom:.8em;
-	margin-top:1em;
+	margin-top:1.2em;
 	color:#666;
 }
 
@@ -859,7 +874,8 @@ dl.note-list dd
 {
 	font-size:130%;
 	border-bottom:1px dotted #ccc;
-	margin-top:.3em;
+	margin-top: 1.0em;
+	margin-bottom: 0.5em;
 	page-break-after:avoid;
 }
 

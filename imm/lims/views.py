@@ -43,7 +43,9 @@ try:
     import json
 except:
     from django.utils import simplejson as json
-    
+
+
+ 
 ACTIVITY_LOG_LENGTH  = 5       
 
 def admin_login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME):
@@ -1400,213 +1402,6 @@ def add_strategy(request, stg_info):
     new_obj.save()
     return {'strategy_id': new_obj.pk}
 
-
-@login_required
-@cache_page(60*3600)
-def plot_shell_stats(request, id):
-    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-    from matplotlib.ticker import FormatStrFormatter, MultipleLocator, MaxNLocator
-    from matplotlib.figure import Figure
-    from matplotlib import rcParams
-    
-    # Adjust Legend parameters
-    rcParams['legend.loc'] = 'best'
-    rcParams['legend.fontsize'] = 10
-    rcParams['legend.isaxes'] = False
-    
-    try:
-        project = request.user.get_profile()
-        result = project.result_set.get(pk=id)
-    except:
-        raise Http404
-    # extract shell statistics to plot
-    data = result.details['shell_statistics']
-    fig = Figure(figsize=(5.6,5), dpi=72)
-    ax1 = fig.add_subplot(211)
-    ax1.plot(data['shell'], data['completeness'], 'r-+')
-    ax1.set_ylabel('completeness (%)', color='r')
-    ax11 = ax1.twinx()
-    ax11.plot(data['shell'], data['r_meas'], 'g-', label='R-meas')
-    ax11.plot(data['shell'], data['r_mrgdf'], 'g:+', label='R-mrgd-F')
-    ax11.legend(loc='best')
-    ax1.grid(True)
-    ax11.set_ylabel('R-factors (%)', color='g')
-    for tl in ax11.get_yticklabels():
-        tl.set_color('g')
-    for tl in ax1.get_yticklabels():
-        tl.set_color('r')
-    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
-    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
-    ax1.set_ylim((0, 105))
-    ax11.set_ylim((0, 105))
-
-    ax2 = fig.add_subplot(212, sharex=ax1)
-    ax2.plot(data['shell'], data['i_sigma'], 'm-x')
-    ax2.set_xlabel('Resolution Shell')
-    ax2.set_ylabel('I/SigmaI', color='m')
-    ax21 = ax2.twinx()
-    ax21.plot(data['shell'], data['sig_ano'], 'b-+')
-    ax2.grid(True)
-    ax21.set_ylabel('SigAno', color='b')
-    for tl in ax21.get_yticklabels():
-        tl.set_color('b')
-    for tl in ax2.get_yticklabels():
-        tl.set_color('m')
-    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
-    ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
-    ax2.set_ylim((-5, max(data['i_sigma'])+5))
-    ax21.set_ylim((0, max(data['sig_ano'])+1))
-
-
-    canvas = FigureCanvas(fig)
-    response = HttpResponse(content_type='image/png')
-    canvas.print_png(response)
-    return response
-    
-
-@login_required
-@cache_page(60*3600)
-def plot_diff_stats(request, id):
-    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-    from matplotlib.ticker import FormatStrFormatter, MultipleLocator, MaxNLocator
-    from matplotlib.figure import Figure
-    from matplotlib import rcParams
-    
-    # Adjust Legend parameters
-    rcParams['legend.loc'] = 'best'
-    rcParams['legend.fontsize'] = 10
-    rcParams['legend.isaxes'] = False
-    
-    try:
-        project = request.user.get_profile()
-        result = project.result_set.get(pk=id)
-    except:
-        raise Http404
-    # extract shell statistics to plot
-    data = result.details['diff_statistics']
-    fig = Figure(figsize=(5.6,5), dpi=72)
-    ax1 = fig.add_subplot(311)
-    ax1.plot(data['frame_diff'], data['rd'], 'r-')
-    ax1.set_ylabel('R-d', color='r')
-    ax11 = ax1.twinx()
-    ax11.plot(data['frame_diff'], data['n_refl'], 'g-')
-    ax1.grid(True)
-    ax11.set_ylabel('# Reflections', color='g')
-    for tl in ax11.get_yticklabels():
-        tl.set_color('g')
-    for tl in ax1.get_yticklabels():
-        tl.set_color('r')
-    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
-    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
-    #ax1.set_ylim((0, 105))
-    #ax11.set_ylim((0, max(data['n_refl'])+5))
-
-    ax2 = fig.add_subplot(312, sharex=ax1)
-    ax2.plot(data['frame_diff'], data['rd_friedel'], 'm-')
-    ax2.set_ylabel('R-d Friedel', color='m')
-    ax21 = ax2.twinx()
-    ax21.plot(data['frame_diff'], data['n_friedel'], 'b-')
-    ax2.grid(True)
-    ax21.set_ylabel('# Reflections', color='b')
-    for tl in ax21.get_yticklabels():
-        tl.set_color('b')
-    for tl in ax2.get_yticklabels():
-        tl.set_color('m')
-    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
-    ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
-
-    ax3 = fig.add_subplot(313, sharex=ax1)
-    ax3.plot(data['frame_diff'], data['rd_non_friedel'], 'k-')
-    ax3.set_xlabel('Frame Difference')
-    ax3.set_ylabel('R-d Non-friedel', color='k')
-    ax31 = ax3.twinx()
-    ax31.plot(data['frame_diff'], data['n_non_friedel'], 'c-')
-    ax3.grid(True)
-    ax31.set_ylabel('# Reflections', color='c')
-    for tl in ax31.get_yticklabels():
-        tl.set_color('c')
-    for tl in ax3.get_yticklabels():
-        tl.set_color('k')
-    ax3.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
-    ax31.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
-
-    canvas = FigureCanvas(fig)
-    response = HttpResponse(content_type='image/png')
-    canvas.print_png(response)
-    return response
-
-@login_required
-@cache_page(60*3600)
-def plot_frame_stats(request, id):
-    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-    from matplotlib.ticker import FormatStrFormatter, MultipleLocator, MaxNLocator
-    from matplotlib.figure import Figure
-    from matplotlib import rcParams
-    
-    # Adjust Legend parameters
-    rcParams['legend.loc'] = 'best'
-    rcParams['legend.fontsize'] = 10
-    rcParams['legend.isaxes'] = False
-    
-    try:
-        project = request.user.get_profile()
-        result = project.result_set.get(pk=id)
-    except:
-        raise Http404
-    # extract shell statistics to plot
-    data = result.details['frame_statistics']
-    fig = Figure(figsize=(5.6,5), dpi=72)
-    ax1 = fig.add_subplot(311)
-    ax1.plot(data['frame'], data['scale'], 'r-')
-    ax1.set_ylabel('Scale Factor', color='r')
-    ax11 = ax1.twinx()
-    ax11.plot(data['frame'], data['mosaicity'], 'g-')
-    ax1.grid(True)
-    ax11.set_ylabel('Mosaicity', color='g')
-    for tl in ax11.get_yticklabels():
-        tl.set_color('g')
-    for tl in ax1.get_yticklabels():
-        tl.set_color('r')
-    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
-    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
-    ax1.set_ylim((min(data['scale'])-0.2, max(data['scale'])+0.2))
-    ax11.set_ylim((min(data['mosaicity'])-0.01, max(data['mosaicity'])+0.01))
-
-    ax2 = fig.add_subplot(312, sharex=ax1)
-    ax2.plot(data['frame'], data['divergence'], 'm-')
-    ax2.set_ylabel('Divergence', color='m')
-    ax21 = ax2.twinx()
-    ax21.plot(data['frame'], data['i_sigma'], 'b-')
-    ax2.grid(True)
-    ax21.set_ylabel('I/Sigma(I)', color='b')
-    for tl in ax21.get_yticklabels():
-        tl.set_color('b')
-    for tl in ax2.get_yticklabels():
-        tl.set_color('m')
-    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.3f'))
-    ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
-    ax2.set_ylim((min(data['divergence'])-0.02, max(data['divergence'])+0.02))
-
-    ax3 = fig.add_subplot(313, sharex=ax1)
-    ax3.plot(data['frame'], data['r_meas'], 'k-')
-    ax3.set_xlabel('Frame Number')
-    ax3.set_ylabel('R-meas', color='k')
-    ax31 = ax3.twinx()
-    ax31.plot(data['frame'], data['unique'], 'c-')
-    ax3.grid(True)
-    ax31.set_ylabel('Unique Reflections', color='c')
-    for tl in ax31.get_yticklabels():
-        tl.set_color('c')
-    for tl in ax3.get_yticklabels():
-        tl.set_color('k')
-    ax3.yaxis.set_major_formatter(FormatStrFormatter('%0.3f'))
-    ax31.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
-
-    canvas = FigureCanvas(fig)
-    response = HttpResponse(content_type='image/png')
-    canvas.print_png(response)
-    return response
-
 @login_required
 def data_viewer(request, id):
     # use the data_viewer template
@@ -1652,3 +1447,364 @@ def complete(request, id):
     crystal = Crystal.objects.get(pk=id)
     crystal.complete()
     return render_to_response('lims/refresh.html')
+
+
+# -------------------------- PLOTTING ----------------------------------------#
+import numpy
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.ticker import Formatter, FormatStrFormatter, Locator
+from matplotlib.figure import Figure
+from matplotlib import rcParams
+from matplotlib.colors import LogNorm, Normalize
+import matplotlib.cm as cm
+from mpl_toolkits.axes_grid import AxesGrid
+
+# Adjust rc parameters
+rcParams['legend.loc'] = 'best'
+rcParams['legend.fontsize'] = 10
+rcParams['legend.isaxes'] = False
+rcParams['figure.facecolor'] = 'white'
+rcParams['figure.edgecolor'] = 'white'
+
+class ResFormatter(Formatter):
+    def __call__(self, x, pos=None):
+        if x <= 0.0:
+            return u""
+        else:
+            return u"%0.2f" % (x**-0.5)
+
+class ResLocator(Locator):
+    def __call__(self, *args, **kwargs):
+        locs = numpy.linspace(0.0156, 1, 30 )
+        return locs
+
+
+PLOT_WIDTH = 8
+PLOT_HEIGHT = 6
+PLOT_DPI = 75
+IMG_WIDTH = int(round(PLOT_WIDTH * PLOT_DPI))
+
+@login_required
+@cache_page(60*3600)
+def plot_shell_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        raise Http404
+    # extract shell statistics to plot
+    data = result.details['shell_statistics']
+    shell = numpy.array(data['shell'])**-2
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(shell, data['completeness'], 'r-')
+    ax1.set_ylabel('completeness (%)', color='r')
+    ax11 = ax1.twinx()
+    ax11.plot(shell, data['r_meas'], 'g-', label='R-meas')
+    ax11.plot(shell, data['r_mrgdf'], 'g:+', label='R-mrgd-F')
+    ax11.legend(loc='center left')
+    ax1.grid(True)
+    ax11.set_ylabel('R-factors (%)', color='g')
+    for tl in ax11.get_yticklabels():
+        tl.set_color('g')
+    for tl in ax1.get_yticklabels():
+        tl.set_color('r')
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax1.set_ylim((0, 105))
+    ax11.set_ylim((0, 105))
+
+    ax2 = fig.add_subplot(212, sharex=ax1)
+    ax2.plot(shell, data['i_sigma'], 'm-')
+    ax2.set_xlabel('Resolution Shell')
+    ax2.set_ylabel('I/SigmaI', color='m')
+    ax21 = ax2.twinx()
+    ax21.plot(shell, data['sig_ano'], 'b-')
+    ax2.grid(True)
+    ax21.set_ylabel('SigAno', color='b')
+    for tl in ax21.get_yticklabels():
+        tl.set_color('b')
+    for tl in ax2.get_yticklabels():
+        tl.set_color('m')
+    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax2.set_ylim((-5, max(data['i_sigma'])+5))
+    ax21.set_ylim((0, max(data['sig_ano'])+1))
+
+    ax1.xaxis.set_major_formatter(ResFormatter())
+    ax1.xaxis.set_minor_formatter(ResFormatter())
+    ax1.xaxis.set_major_locator(ResLocator())
+    ax2.xaxis.set_major_formatter(ResFormatter())
+    ax2.xaxis.set_minor_formatter(ResFormatter())
+    ax2.xaxis.set_major_locator(ResLocator())
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+
+@login_required
+@cache_page(60*3600)
+def plot_error_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        raise Http404
+
+    data = result.details['standard_errors'] # extract data to plot
+    shell = numpy.array(data['shell'])**-2    
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(shell, data['chi_sq'], 'r-')
+    ax1.set_ylabel(r'$\chi^{2}$', color='r')
+    ax11 = ax1.twinx()
+    ax11.plot(shell, data['i_sigma'], 'b-')
+    ax11.set_ylabel('I/Sigma', color='b')
+    ax1.grid(True)
+    for tl in ax11.get_yticklabels():
+        tl.set_color('b')
+    for tl in ax1.get_yticklabels():
+        tl.set_color('r')
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax1.set_ylim((0, 3))
+    #ax11.set_ylim((0, 105))
+
+    ax2 = fig.add_subplot(212, sharex=ax1)
+    ax2.plot(shell, data['r_obs'], 'g-', label='R-observed')
+    ax2.plot(shell, data['r_exp'], 'r:', label='R-expected')
+    ax2.set_xlabel('Resolution Shell')
+    ax2.set_ylabel('R-factors (%)')
+    ax2.legend(loc='best')
+    ax2.grid(True)
+    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax2.set_ylim((0,105))
+
+    ax1.xaxis.set_major_formatter(ResFormatter())
+    ax1.xaxis.set_minor_formatter(ResFormatter())
+    ax1.xaxis.set_major_locator(ResLocator())
+
+    ax2.xaxis.set_major_formatter(ResFormatter())
+    ax2.xaxis.set_minor_formatter(ResFormatter())
+    ax2.xaxis.set_major_locator(ResLocator())
+
+    # make and return png image
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+
+@login_required
+@cache_page(60*3600)
+def plot_diff_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        raise Http404
+        
+    # extract statistics to plot
+    data = result.details['diff_statistics']
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.6), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    ax1.plot(data['frame_diff'], data['rd'], 'r-', label="all")
+    ax1.set_ylabel('R-d')
+    ax1.grid(True)
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+
+    ax1.plot(data['frame_diff'], data['rd_friedel'], 'm-', label="friedel")
+    ax1.plot(data['frame_diff'], data['rd_non_friedel'], 'k-', label="non_friedel")
+    ax1.set_xlabel('Frame Difference')
+    ax1.legend()
+
+    # make and return png image
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+
+@login_required
+@cache_page(60*3600)
+def plot_wilson_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        raise Http404
+        
+    # extract statistics to plot
+    data = result.details['wilson_plot']
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.6), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    plot_data = zip(data['inv_res_sq'], data['log_i_sigma'])
+    plot_data.sort()
+    plot_data = numpy.array(plot_data)
+    ax1.plot(plot_data[:,0], plot_data[:,1], 'r-+')
+    ax1.set_xlabel('Resolution')
+    ax1.set_ylabel(r'$ln({<I>}/{\Sigma(f)^2})$')
+    ax1.grid(True)
+    ax1.xaxis.set_major_formatter(ResFormatter())
+    ax1.xaxis.set_major_locator(ResLocator())
+    
+    # set font parameters for the ouput table
+    wilson_line = results['details']['wilson_line']
+    wilson_scale = results['details']['wilson_scale']
+    fontpar = {}
+    fontpar["family"]="monospace"
+    fontpar["size"]=9
+    info =  "Estimated B: %0.3f\n" % wilson_line[0]
+    info += "sigma a: %8.3f\n" % wilson_line[1]
+    info += "sigma b: %8.3f\n" % wilson_line[2]
+    info += "Scale factor: %0.3f\n" % wilson_scale    
+    fig.text(0.55,0.65, info, fontdict=fontpar, color='k')
+
+    # make and return png image
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+
+@login_required
+@cache_page(60*3600)
+def plot_frame_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        raise Http404
+    # extract statistics to plot
+    data = result.details['frame_statistics']
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(311)
+    ax1.plot(data['frame'], data['scale'], 'r-')
+    ax1.set_ylabel('Scale Factor', color='r')
+    ax11 = ax1.twinx()
+    ax11.plot(data['frame'], data['mosaicity'], 'g-')
+    ax1.grid(True)
+    ax11.set_ylabel('Mosaicity', color='g')
+    for tl in ax11.get_yticklabels():
+        tl.set_color('g')
+    for tl in ax1.get_yticklabels():
+        tl.set_color('r')
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+    ax1.set_ylim((min(data['scale'])-0.2, max(data['scale'])+0.2))
+    ax11.set_ylim((min(data['mosaicity'])-0.01, max(data['mosaicity'])+0.01))
+
+    ax2 = fig.add_subplot(312, sharex=ax1)
+    ax2.plot(data['frame'], data['divergence'], 'm-')
+    ax2.set_ylabel('Divergence', color='m')
+    ax2.set_ylim((min(data['divergence'])-0.02, max(data['divergence'])+0.02))
+    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.3f'))
+    ax2.grid(True)
+    if data.get('frame_no') is not None:
+        ax21 = ax2.twinx()
+        ax21.plot(data['frame_no'], data['i_sigma'], 'b-')
+
+        ax21.set_ylabel('I/Sigma(I)', color='b')
+        for tl in ax21.get_yticklabels():
+            tl.set_color('b')
+        for tl in ax2.get_yticklabels():
+            tl.set_color('m')
+
+        ax3 = fig.add_subplot(313, sharex=ax1)
+        ax3.plot(data['frame_no'], data['r_meas'], 'k-')
+        ax3.set_xlabel('Frame Number')
+        ax3.set_ylabel('R-meas', color='k')
+        ax31 = ax3.twinx()
+        ax31.plot(data['frame_no'], data['unique'], 'c-')
+        ax3.grid(True)
+        ax31.set_ylabel('Unique Reflections', color='c')
+        for tl in ax31.get_yticklabels():
+            tl.set_color('c')
+        for tl in ax3.get_yticklabels():
+            tl.set_color('k')
+        ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+        ax3.yaxis.set_major_formatter(FormatStrFormatter('%0.3f'))
+        ax31.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+
+@login_required
+@cache_page(60*3600)
+def plot_twinning_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        raise Http404
+    # extract statistics to plot
+    data = result.details['twinning_l_test']
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.6), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    ax1.plot(data['abs_l'], data['observed'], 'b-+', label='observed')
+    ax1.plot(data['abs_l'], data['untwinned'], 'r-+', label='untwinned')
+    ax1.plot(data['abs_l'], data['twinned'], 'm-+', label='twinned')
+    ax1.set_xlabel('$|L|$')
+    ax1.set_ylabel('$P(L>=1)$')
+    ax1.grid(True)
+    
+    # set font parameters for the ouput table
+    l_statistic = results['details']['twinning_l_statistic']
+    fontpar = {}
+    fontpar["family"]="monospace"
+    fontpar["size"]=9
+    info =  "Observed:     %0.3f\n" % l_statistic[0]
+    info += "Untwinned:    %0.3f\n" % l_statistic[1]
+    info += "Perfect twin: %0.3f\n" % l_statistic[2]
+    fig.text(0.6,0.2, info, fontdict=fontpar, color='k')
+    ax1.legend()
+    
+
+    # make and return png image
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+@login_required
+@cache_page(60*3600)
+def plot_profiles_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        raise Http404
+    # extract statistics to plot
+    data = result.details['integration_profiles']
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_WIDTH), dpi=PLOT_DPI)
+    cmap = cm.get_cmap('gray_r')
+    norm = Normalize(None, 100, clip=True)
+    grid = AxesGrid(fig, 111,
+                    nrows_ncols = (9,10),
+                    share_all=True,
+                    axes_pad = 0,
+                    label_mode = '1',
+                    cbar_mode=None)
+    for i, profile in enumerate(profiles):
+        grid[i*10].plot([profile['x']],[profile['y']], 'cs', markersize=15)
+        for loc in ['left','top','bottom','right']:
+            grid[i*10].axis[loc].toggle(ticklabels=False, ticks=False)
+        for j,spot in enumerate(profile['spots']):
+            idx = i*10 + j+1
+            _a = numpy.array(spot).reshape((9,9))
+            intpl = 'nearest' #'mitchell'
+            grid[idx].imshow(_a, cmap=cmap, norm=norm, interpolation=intpl)
+            for loc in ['left','top','bottom','right']:
+                grid[idx].axis[loc].toggle(ticklabels=False, ticks=False)
+    
+    # make and return png image
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+

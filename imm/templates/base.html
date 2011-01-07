@@ -20,13 +20,14 @@
     <script type="text/javascript" src="/js/ajax.js"></script>
     {% block stylesheet %}
         <link href='http://fonts.googleapis.com/css?family=Cantarell:regular,italic,bold,bolditalic' rel='stylesheet' type='text/css'>
-        <link rel="stylesheet" href="/css/style.css" />
         <link rel="stylesheet" href="/css/imm.css" />
+        <link rel="stylesheet" href="/css/style.css" />
         <link rel="stylesheet" href="/css/jquery.jgrowl.css" />
     {% endblock %}
     {% block extrastyle %}{% endblock %}
 </head>
 <body class="{% block bodyclass %}{% endblock %}">
+    <div id="main-wrapper">
     <!-- start banner -->
     <div id="header"><div id="banner">
 	    <div id="logo">
@@ -66,7 +67,6 @@
     </div>
     
     <div id="container">
-{% block content-override %}
     {% block activity %}{% endblock %}
     {% if messages %}
         <script>
@@ -77,6 +77,7 @@
     {% endif %}
 
     <div id="subcontainer">
+{% block content-override %}
     <!-- maincol -->
 	<div id="content" class="col-9">
     {% block content %}
@@ -91,17 +92,17 @@
         {% endblock %}
     </div>
     <!-- end sidebar -->   
+{% endblock %}
     </div><!-- end subcontainer -->
+    </div><!-- end container -->
+    <div class="push"></div>
+    </div><!-- end main-wrapper -->
     <!-- footer -->
-    <div id="footer" class="col-12">
+    <div id="footer">
         {% block footer %}
             <p>&copy;2008 Canadian Light Source, Inc. - <a href="http://www.lightsource.ca">CLS Home</a> - <a href="http://ex.lightsource.ca/cmcf/">CMCF Home</a> - <a href="/privacy/">Privacy Policy</a></p>
         {% endblock %}
-    </div>
-    <!-- end footer -->
-    </div><!-- end container -->
-    <div id="popup-window"></div><!-- end popup-window -->
-{% endblock %}
+    </div><!-- end footer -->
 {% block script %}
     <script>
 
@@ -315,7 +316,6 @@
                     		// looks like it shouldn't be needed. 
                     		 //loadDatalists();
                     		 refreshDatalist();
-                            window.location.reload();
                		 	},
                		 	error: function() {
                		 		// error, just reload the widget
@@ -340,12 +340,7 @@
         //loadDatalists();
 
     </script>
-
-
 {% endblock %}
 </body>
 </html>
-
-
-
 
