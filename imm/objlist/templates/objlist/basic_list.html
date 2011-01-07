@@ -10,7 +10,7 @@
             </form>
         </div>
         <div class="mid-element{% if ol.has_filters %}{% for spec in ol.filter_specs %}{% ifequal forloop.counter 2 %} raise{% endifequal %}{% endfor %}{% endif %}">
-            {% show_filters ol handler %}
+            {% show_all_filters ol handler %}
         </div>
         <div class="right-element">
             {% if can_receive %}<a class="edit-tool modal" rel="#edit-modal" href='{{ handler }}receive/' >Receive {{ ol.object_type }}</a>{% endif %}
@@ -46,7 +46,11 @@
                 {% if form %}
                     <th{{ header.class_attrib }}>Select</th>
                 {% endif %}
-                <th></th><th></th>
+                {% if not is_individual %}
+                    {% comment %}Put this back in once delete functionality is finished for cocktails and crystal forms.
+                    <th></th>
+                    {% endcomment %}
+                {% endif %}
             </tr>
         </thead>
         <tbody>

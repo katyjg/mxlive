@@ -6,11 +6,19 @@
 <h2>{{object.name}} ({{object.identity}})</h2>
 {% endblock %}
 
+{% block object-tools %}
+<div class="object-tools">
+    {% include "lims/tools.html" %}
+    <ul class="tools">
+        <li>
+            <a class="back-tool" href="{% url lims-experiment-list %}">Back to Full List</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
 {% block content %}
 
-
-{% include "lims/tools.html" %}
-<div class="back-tool"><a href="{% url lims-crystal-list %}">Back to Full List</a></div>
 {% comment %}
 {% if request.user.is_superuser %}
     <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>

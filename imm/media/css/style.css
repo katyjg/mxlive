@@ -702,9 +702,9 @@ ul.reports li a
 {
 	margin:0;
 	padding:0;
+    padding-top: 15px;
 	border:0;
 	outline:0;
-	overflow:hidden;
 	float:right;
 	zoom:1;
 }
@@ -717,8 +717,9 @@ ul.reports li a
 	white-space:nowrap;
 	display:inline;
 	float:left;
-	padding-left:4px;
-	padding-right:4px;
+	padding-left:5px !important;
+	padding-right:5px !important;
+    line-height: 10px;
 }
 
 .tools li:first-child,.tools li.first

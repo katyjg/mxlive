@@ -1,23 +1,46 @@
- <tr class="{{ row_state }} {{ type|lower }}">
+<tr class="link-row {{ row_state }} {{ type|lower }}{% if object.is_editable %} action modal{% endif %}"  
+    {% if is_individual %}redirect="{{ handler }}{{ object.pk }}/"
+    {% else %}{% if object.is_editable %}href="{{handler}}{{object.pk}}/edit/"
+    rel="#edit-object"
+    title="Edit {{object.pk}}"
+    {% endif %}{% endif %}>
+
     {# should add a check here for maximum size. Don't want something like a long label ruining everything #}
     {% load truncate_filters %}
+
+    {% if is_individual %}
+        <a href="{{handler}}{{object.id}}/">
+    {% else %}
+        <a href="{{ handler }}{{object.pk}}/edit/" rel="#edit-object" class="action modal" title="Edit">
+    {% endif %}
+
     {% for field in fields %}
     	{% if field == object.id %}
-    		<td>{% if is_individual %}<a href="{{handler}}{{object.id}}/">{% endif %}{{ object.identity }}{% if is_individual %}</a>{% endif %}</td>
-    	{% else %}{% if field == object.identity %}<td>{% if is_individual %}<a href='{{ handler }}{{ object.pk }}/'>{% endif %}{{ object.identity }}{% if is_individual %}</a>{% endif %}</td>{% else %}
-    		<td>{{ field|truncate_chars:30 }}</td>
-    	{% endif %}{% endif %}
+    		<td class="link-cell">
+            {{ object.identity }}
+            </td>
+    	{% else %}
+        {% if field == object.identity %}
+            <td class="link-cell">
+            {{ object.identity }}   
+            </td>
+        {% else %}
+    		<td class="link-cell">{{ field|truncate_chars:30 }}</td>
+    	{% endif %}
+        {% endif %}
     {% endfor %}
+
     {% if form %}
         <td><input type="checkbox" name="{{object.get_form_field}}" value="{{object.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
     {% endif %}
-        <td class="action">
-            {% if object.is_editable %}<a href="{{ handler }}{{object.pk}}/edit/" rel="#edit-object" class="action modal edit-tool" title="Edit"></a>{% endif %}
-        </td>
-        <td class="action">
-            {% if object.is_deletable %}<a href="{{ handler }}{{object.pk}}/delete/" rel="#delete-object" class="action modal delete-tool" title="Delete"></a>{% endif %}
-        </td>
- </tr>
+    {% if not is_individual %}
+        {% if object.is_deletable %}
+            <td class="action link-cell">
+                <a href="{{ handler }}{{object.pk}}/delete/" rel="#delete-object" class="action modal delete-tool" title="Delete"></a>
+            </td>
+        {% endif %}
+    {% endif %}
+</tr>
 
 
 
