@@ -744,17 +744,15 @@ tr.even td
 /* RESULTS */
 #result-page
 {
-	margin:0 auto;
 	text-align:left;
-	padding:0;
 }
 
 #result-table
 {
-	font-size:88%;
 	border-collapse:collapse;
 	text-align:left;
 	width:100%;
+
 }
 
 #result-table th
@@ -796,6 +794,7 @@ tr.even td
 	border:1px solid #ccc;
 	float:left;
 	text-align:left;
+	width: 452px;
 }
 
 div.tablenotes
@@ -845,7 +844,7 @@ dl.note-list dd
 	font-size:190%;
 	line-height:1.2em;
 	margin-bottom:.8em;
-	margin-top:1em;
+	margin-top:1.2em;
 	color:#666;
 }
 
@@ -875,7 +874,8 @@ dl.note-list dd
 {
 	font-size:130%;
 	border-bottom:1px dotted #ccc;
-	margin-top:.3em;
+	margin-top: 1.0em;
+	margin-bottom: 0.5em;
 	page-break-after:avoid;
 }
 
