@@ -47,6 +47,7 @@ html
 	font-variant:normal!important;
 	text-align:left;
 	overflow-y:scroll;
+	height: 100%;
 }
 
 body
@@ -58,6 +59,7 @@ body
 	color:#333;
 	margin-bottom:40px;
 	background-color:#fff;
+	height: 100%;
 }
 
 table
@@ -192,10 +194,18 @@ img
 {
 	width:932px;
 }
+#main-wrapper
+{
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0;
+}
 
 #header
 {
-	background:#ccc url(/img/header.gradient.png) top left repeat-x;
+	/*background:#ccc url(/img/header.gradient.png) top left repeat-x;*/
+	background-color: #883a6a;
 	min-width:932px;
 }
 
@@ -227,23 +237,26 @@ img
 {
 	background:url(/img/clslogo-white.png) no-repeat left;
 	min-height:50px;
-	width:400px;
+	width:466px;
 	float:left;
 	padding:5px;
-	color:#000;
+	color:#fff;
+	text-shadow:#000 0 0 2px;
+
 }
 
 #logo h1
 {
-	font-size:15px;
-	margin-left:80px;
+	font-size:17px;
+	font-weight: normal;
+	margin-left:72px;
 	line-height:15px;
 }
 
 #slogan
 {
 	font-size:13px;
-	margin:0 0 0 80px;
+	margin:0 0 0 72px;
 	padding:0;
 }
 
@@ -273,12 +286,11 @@ img
 /* MENU */
 #nav
 {
-	margin:12px 0 0 14px;
-	float:right;
+	margin:12px 0 0;
+	float:left;
 	height:24px;
-	margin-right:14px;
-	min-width:400px;
-	max-width:532px;
+	min-width:300px;
+	max-width:456px;
 	list-style:none;
 }
 
@@ -384,13 +396,18 @@ img
 }
 
 /* footer */
-#footer
-{
-	float:left;
-	clear:both;
-	color:gray;
-	margin:20px 15px;
-	border-top:1px solid #B0D0DC;
+#footer {
+    position: relative;
+    background: none repeat scroll 0 0 #F7F7F7;
+    border-top: 1px solid #DFDFDF;
+    height: 99px;
+    text-align: center;
+    margin-top: -100px;
+}
+
+.push {
+    height: 124px;
+    clear: both;
 }
 
 /* sidebar */

@@ -1,15 +1,16 @@
+{% extends "base.html" %}
 {% load zip %}
-
+{% block headline %}
+    {% ifequal object.kind object.RESULT_TYPES.SCREENING %}
+        <h2 class="screen"> Crystal Screening Report - &ldquo;{{object.name}}&rdquo;</h2>
+    {% else %}
+        <h2 class="process"> Data Processing Report - &ldquo;{{object.name}}&rdquo;</h2>
+    {% endifequal %}
+{% endblock %}
+{% block content %}
 <div id="view-images" class="hidden modal-content"></div>
 
 <div id="result-page">
-    <div id="result-title" class="floatleft size60">
-    {% ifequal object.kind object.RESULT_TYPES.SCREENING %}
-        <h2> Crystal Screening Report</h2>
-    {% else %}
-        <h2> Data Processing Report</h2>
-    {% endifequal %}
-    </div>
 
     <div id="result-links" class="floatright">
         <ul>
@@ -17,27 +18,20 @@
             <li>Experiment: &nbsp;<a href={% url lims-experiment-detail object.experiment.id %}>{{object.experiment.name}}</a></li>
             <li>Dataset: &nbsp;<a href={% url lims-dataset-detail object.data.id %}>{{object.data}}</a></li>
             <li>Print: <a href="{% url lims-result-print object.id %}">Click to print</a></li>
+    {% if object.is_resubmittable %}
+            <li><a class="add-tool" href='/lims/experiment/result/{{object.get_results_link}}'>Resubmit</a></li>
+    {% endif %}
         </ul>
     </div>
 
     <div class="clear"></div>
 
-    {% if object.is_resubmittable %}
-        <a class="add-tool" href='/lims/experiment/result/{{object.get_results_link}}'>Resubmit</a>
-    {% endif %}
-
     <h3>Summary</h3>
-    <div id="result-summary">
+    <div id="result-summary" class="col-7">
         <table id="result-table">
             <colgroup>
-                <col class='result-labels' />
+                <col class="result-labels"/>
             </colgroup>
-            <thead>
-                <tr>
-                    <th scope="col">Dataset</th>
-                    <th scope="col">&ldquo;{{object.name}}&rdquo;</th>
-                </tr>
-            </thead>
             <tbody>
                 <tr><td>Score<sup class="footnote">[1]</sup></td><td>{{object.score|floatformat:"-2"}}</td></tr>
                 <tr><td>Wavelength (A)</td><td>{{object.data.wavelength}}</td></tr>
@@ -62,7 +56,7 @@
         </table>
     </div>
 
-    <div class="tablenotes floatright size30">
+    <div class="col-5">
         <h3>Notes</h3>
             <dl class="note-list">
             <dt>[1] -<dt>
@@ -89,7 +83,7 @@
         </dl>
     </div>
 
-    <div class="clear spacer"></div>
+    </div>
 
     <h3>Compatible bravais lattice types</h3>
     <table class="rtable full">
@@ -242,3 +236,5 @@
     <div class="clear spacer"></div>
 
 </div>
+
+{% endblock %}
