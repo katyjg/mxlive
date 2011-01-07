@@ -11,7 +11,7 @@
 <div id="view-images" class="hidden modal-content"></div>
 
 <div id="result-page">
-
+    {% comment %}
     <div id="result-links" class="floatright">
         <ul>
             <li>Crystal: &nbsp;<a href={% url lims-crystal-detail object.crystal.id %}>{{object.crystal}}</a></li>
@@ -25,7 +25,8 @@
     </div>
 
     <div class="clear"></div>
-
+    {% endcomment %}
+    
     <h3>Summary</h3>
     <div id="result-summary" class="col-7">
         <table id="result-table">

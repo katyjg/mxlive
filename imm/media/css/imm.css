@@ -105,14 +105,6 @@ td.action {
     padding-left: 10px;
 }
 
-#footer {
-  clear: both;
-  text-align: center;
-  margin-top: 1.5em;
-  margin-bottom: 0.2em;
-  height: 53px;
-}
-
 /* Clear Hack */
 div.clearall { clear:both; }
 
