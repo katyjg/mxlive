@@ -158,16 +158,16 @@ div.toolbar {
     font-style: italic;
 }
 .back-tool:hover, .edit-tool:hover, .delete-tool:hover, .trash-tool:hover, .add-tool:hover, .clone-tool:hover, .send-tool:hover, .close-tool:hover, .pdf-tool:hover, .xls-tool:hover { color: #036; }
-.edit-tool, .edit-tool:hover { background: url(/img/edit-icon.png) no-repeat top center; }
-.delete-tool, .delete-tool:hover { background: url(/img/edit-delete.png) no-repeat center top; }/* delete-icon.gif */
-.remove-tool, .remove-tool:hover { background: url(/img/remove-icon.png) no-repeat center top; }
+.edit-tool, .edit-tool:hover { background: url(/img/edit-icon.png) no-repeat top center; } 
+.delete-tool, .delete-tool:hover { background: url(/img/delete-icon.gif) no-repeat center top; }
+.remove-tool, .remove-tool:hover { background: url(/img/remove-icon.png) no-repeat center top; } 
 .add-tool, .add-tool:hover { background: url("/img/button.add.png") no-repeat center top; }
-.clone-tool, .clone-tool:hover{ background: url(/img/clone-icon.png) no-repeat center top; }
+.clone-tool, .clone-tool:hover{ background: url(/img/clone-icon.png) no-repeat center top; } 
 .send-tool, .send-tool:hover{ background: url(/img/matrixcode.png) no-repeat center top; }
 .close-tool, .close-tool:hover{ background: url(/img/close-icon.png) no-repeat center top; }
 .pdf-tool, .pdf-tool:hover{ background: url(/img/pdf-icon.png) no-repeat center top; }
 .xls-tool, .xls-tool:hover{ background: url(/img/xls-icon.png) no-repeat center top; }
-.back-tool, .back-tool:hover { background: url(/img/back_icon.gif) no-repeat center top; }
+.back-tool, .back-tool:hover { background: url(/img/back-icon.png) no-repeat center top; }
 
 ul#contentmap
 {

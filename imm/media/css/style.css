@@ -685,7 +685,7 @@ ul.reports li a
 {
 	margin:0;
 	padding:0;
-    padding-top: 15px;
+    padding-top: 16px;
 	border:0;
 	outline:0;
 	float:right;
@@ -700,8 +700,8 @@ ul.reports li a
 	white-space:nowrap;
 	display:inline;
 	float:left;
-	padding-left:5px !important;
-	padding-right:5px !important;
+	padding-left:10px !important;
+	padding-right:10px !important;
     line-height: 10px;
 }
 
