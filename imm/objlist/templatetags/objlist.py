@@ -22,17 +22,9 @@ def show_one_filter(ol, spec, url):
     """
     return {'title': spec.title(), 'choices' : list(spec.choices(ol)), 'url' : url}
 
-@register.inclusion_tag('objlist/filters.html')
+@register.inclusion_tag('objlist/basic_filters.html')
 def show_all_filters(ol, url):
     """
-    Renders a full filter list a given object list ``ol``. 
-    """
-    return {'ol': ol, 'url': url}
-
-@register.inclusion_tag('objlist/basic_filters.html')
-def show_filters(ol, url):
-    """
-    Added for January 2011 UI changes.  
     Renders a full filter list a given object list ``ol``. 
     """
     return {'ol': ol, 'url': url}
@@ -58,38 +50,6 @@ def truncate(value, arg):
     else:
         return value
         
-@register.inclusion_tag('objlist/list_entry.html', takes_context=True)
-def list_entry(context, obj, handler, loop_count):
-    """Renders an entry for the object ``obj`` in an object list table. If the
-    ``context`` contains a ``link=True`` variable, a link will be added to
-    the object's detailed page.
-    """ 
-    ol = context.get('ol', None)
-    if ol:
-        model_admin = ol.model_admin
-        
-    single = ''
-    if ol.object_type.lower() == 'runlist':
-        single = 'single'
-
-    checked, form = False, context.get('form', None)
-    if form and hasattr(obj, 'get_form_field'):
-        form_data = MultiValueDict(form.data)
-        checked = str(obj.pk) in form_data.getlist(obj.get_form_field())
-        
-    return {'fields': list(object_fields(obj, model_admin=model_admin)),
-             'object': obj,
-             'link': context.get('link', False),
-             'form': form,
-             'checked': checked,
-             'can_prioritize': context.get('can_prioritize', False),
-             'request': context,
-             'handler' : handler,
-             'row_state' : "odd" if loop_count % 2 == 1 else "even",
-             'type' : ol.object_type,
-             'single' : single
-            }
-
 @register.inclusion_tag('objlist/basic_list_entry.html', takes_context=True)
 def basic_list_entry(context, obj, handler, indiv, loop_count):
     """

@@ -35,7 +35,7 @@ urlpatterns = patterns('imm.lims.views',
     (r'^shipping/dewars/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/none/0/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Dewar, 'object':Container, 'reverse':True}, 'lims-dewar-add-container'),
     #########################
     #CONTAINERS##############    
-    (r'^shipping/containers/$', 'object_list', {'model': Container, 'template': 'objlist/generic_list.html', 'can_add': True, 'can_receive': True, 'is_individual': True}, 'lims-container-list'),
+    (r'^shipping/containers/$', 'object_list', {'model': Container, 'template': 'objlist/generic_list.html', 'can_add': True, 'is_individual': True}, 'lims-container-list'),
     (r'^shipping/containers/(?P<id>\d+)/$', 'object_detail', {'model': Container, 'template': 'lims/entries/container.html'}, 'lims-container-detail'),
     (r'^shipping/containers/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Container, 'form': ContainerForm, 'template': 'objforms/form_base.html'}, 'lims-container-edit'),
     (r'^shipping/containers/(?P<id>\d+)/remove/$', 'remove_object', {'model': Container, 'field':'dewar'}, 'lims-container-remove'),

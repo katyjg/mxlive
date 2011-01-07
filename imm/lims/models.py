@@ -787,7 +787,7 @@ class CrystalForm(models.Model):
     class Meta:
         verbose_name = 'Crystal Form'
 
-
+    is_editable = True
         
 class Cocktail(models.Model):
     project = models.ForeignKey(Project)

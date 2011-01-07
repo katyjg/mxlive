@@ -6,10 +6,19 @@
 <h2>{{object.name}} ({{object.identity}})</h2>
 {% endblock %}
 
+{% block object-tools %}
+<div class="object-tools">
+    {% include "lims/tools.html" %}
+    <ul class="tools">
+        <li>
+            <a class="back-tool" href="{% url lims-experiment-list %}">Back to Full List</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
 {% block content %}
 
-{% include "lims/tools.html" %}
-<div class="back-tool"><a href="{% url lims-container-list %}">Back to Full List</a></div>
 {% comment %}
 <table class="entrysummary left" cellpadding="2" cellspacing="0" border="0" width="60%">
     <tr valign="top"><th>Type:</th><td>{{object.get_kind_display}}</td></tr>
