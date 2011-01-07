@@ -1,15 +1,16 @@
 {% extends "base.html" %}
-{% block content %}
 
 {% load humanize %}
-<div id="headline"><h2>{{object.name}}</h2></div>
 
-<div id="edit-object" class="hidden modal-content"></div>
-<div id="delete-object" class="hidden modal-content"></div>
+{% block headline %}
+<h2>{{object.name}} ({{object.identity}})</h2>
+{% endblock %}
+
+{% block content %}
 
 {% include "lims/tools.html" %}
-
-<h3>{{ object.name }} ({{ object.identity }})</h3>
+<div class="back-tool"><a href="{% url lims-experiment-list %}">Back to Full List</a></div>
+<!--h3>{{ object.name }} ({{ object.identity }})</h3-->
 {% if object.comments %}
 	<div>{{object.comments}}</div>
 {% endif %}
@@ -33,9 +34,7 @@
 
 {% crystal_table object.crystals request.user.is_superuser object.pk %}
 
-    <div id="edit-modal" class="hidden modal-content"></div>
-    <div id="add-crystal" class="hidden modal-content"></div>
-
+<div id="add-crystal" class="hidden modal-content"></div>
 
 <div style="clear: both;"></div>
 

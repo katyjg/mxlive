@@ -3,14 +3,6 @@
     note: this file defines tools for both staff and users
 {% endcomment %}
 
-<div id="receive-object" class="hidden modal-content"></div>
-<div id="return-object" class="hidden modal-content"></div>
-<div id="send-object" class="hidden modal-content"></div>
-<div id="close-object" class="hidden modal-content"></div>
-<div id="clone-object" class="hidden modal-content"></div>
-<div id="edit-object" class="hidden modal-content"></div>
-<div id="delete-object" class="hidden modal-content"></div>
-
 <ul class="tools">
     {# STAFF TOOLS #}
     {% if request.user.is_superuser %}
@@ -81,3 +73,4 @@
         {% endif %}
     {% endif %}
 </ul>
+

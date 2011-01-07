@@ -57,7 +57,9 @@
     <div id="headline">
 	    <div class="wrapper">
 	    <div class="col-12">
+        <div id="content-title">
         {% block headline %}{% endblock %}
+        </div>
         {% block object-tools %}{% endblock %}
         </div>
 	    </div>
@@ -273,15 +275,18 @@
                     	end_url = end_url + '/' + source.attr('id') + '/';
                     }
                     
-                    end_url = end_url + getModel(destination);
-                    if (getModel(destination) == 'widget' || getModel(destination) == 'none')
-                    {
-                    	end_url = end_url + '/0/';
+                    if (getModel(dragged_obj) == 'container')
+                    {                                    
+                        end_url = end_url + getModel(destination);
+                        if (getModel(destination) == 'widget' || getModel(destination) == 'none')
+                        {
+                        	end_url = end_url + '/0/';
+                        }
+                        else {
+                        	end_url = end_url + '/' + destination.attr('id') + '/';
+                        }
                     }
-                    else {
-                    	end_url = end_url + '/' + destination.attr('id') + '/';
-                    }
-                    
+
                     end_url = end_url + getModel(dragged_obj);
                     if (getModel(dragged_obj) == 'widget' || getModel(dragged_obj) == 'none')
                     {
@@ -289,6 +294,10 @@
                     }
                     else {
                     	end_url = end_url + '/' + dragged_obj.attr('id') + '/';
+                    }
+                    if (getModel(dragged_obj) == 'crystal' && getModel(destination) == 'container')
+                    {
+                        end_url = end_url + '/loc/' + destination.attr('container_location') + '/';
                     }
                    
                     // call out to Ajax to perform the operation
@@ -330,6 +339,12 @@
         //loadDatalists();
 
     </script>
+
+
 {% endblock %}
 </body>
 </html>
+                            window.location.reload();
+
+
+

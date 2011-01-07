@@ -1,10 +1,19 @@
-
+{% extends "base.html" %}
 
 {% load humanize %}
 
+{% block headline %}
+<h2>{{object.name}} ({{object.identity}})</h2>
+{% endblock %}
+
+{% block content %}
+
+
 {% include "lims/tools.html" %}
 
-<h3>{{ object.name }} ({{ object.identity }})</h3>
+<div class="back-tool"><a href="{% url lims-crystal-list %}">Back to Full List</a></div>
+
+<!--h3>{{ object.name }} ({{ object.identity }})</h3-->
 
 <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="100%">
     <tr valign="top"><th>Comments:</th><td>{{ object.comments|wordwrap:10 }}</td></tr>
@@ -32,6 +41,39 @@
 	{% if object.collect_status != 0 %}
 		<tr valign="top"><th NOWRAP>Collect Status:</th><td>{{ object.get_collect_status_display }}</td></tr>
 	{% endif %}
-	<tr valign="top"><th>Results:</th><td> </td></tr>
+	<tr valign="top"><th>Datasets:</th><td>{% for data in datasets %}
+        <a href="{% url lims-dataset-detail data.pk %}" class="modal" rel="#view-data">{{ data.name }}</a>
+        {% if forloop.last %}{% else %}, {% endif %}
+    {% endfor %} </td></tr>
+	<tr valign="top"><th>Results:</th><td>{% for result in results %}
+        <a href="{% url lims-result-detail result.pk %}" class="modal" rel="#view-result">{{ result.name }} ({{ result.score|floatformat:2 }})</a>
+        {% if forloop.last %}{% else %}, {% endif %}
+    {% endfor %} </td></tr>
 </table>
 
+<div id="add-cocktail" class="hidden modal-content"></div>
+<div id="add-crystalform" class="hidden modal-content"></div>
+<div id="view-result" class="hidden modal-content"></div>
+<div id="view-data" class="hidden modal-content"></div>
+
+{% include "lims/entries/popup.html" %}
+
+{% endblock %}
+
+{% block sidebar %}
+    <div id="cocktails" class="widget droppable droppable-remove parent-stop" accept="cocktail" data="{% url lims-cocktail-basic-list %}">
+        <h3>Cocktails</h3>
+        <ul>
+            <li><a href="#">Content Not Loaded.</a></li>
+        </ul>
+        <a href="{% url lims-cocktail-new %}" rel="#add-cocktail" class="action add modal">add cocktail</a>
+    </div>
+    <div id="crystalforms" class="widget droppable droppable-remove parent-stop" accept="crystal_form" data="{% url lims-crystalform-basic-list %}">
+        <h3>Crystal Forms</h3>
+        <ul>
+            <li><a href="#">Content Not Loaded.</a></li>
+        </ul>
+        <a href="{% url lims-crystalform-new %}" rel="#add-crystalform" class="action add modal">add crystal form</a>
+    </div>
+   {{ block.super }}
+{% endblock %}
