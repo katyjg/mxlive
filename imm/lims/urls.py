@@ -22,7 +22,7 @@ urlpatterns = patterns('imm.lims.views',
     (r'^shipping/shipments/new/$', 'create_object', {'model': Shipment, 'form': ShipmentForm, 'template': 'objforms/form_base.html'}, 'lims-shipment-new'),
     (r'^shipping/shipments/upload/$', 'upload_shipment', {'model': Shipment, 'form': ShipmentUploadForm, 'template': 'objforms/form_base.html'}, 'lims-shipment-upload'),
     (r'^shipping/shipments/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/dewar/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Shipment, 'object':Dewar, 'reverse':True}, 'lims-shipment-add-dewar'),
-    (r'^shipping/shipments/(?P<base_id>\d+)/widget/(?P<src_id>\d+)/dewar/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Shipment, 'object':Container}, 'lims-shipment-add-container'),
+    (r'^shipping/shipments/(?P<id>\d+)/widget/(?P<src_id>\d+)/dewar/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Shipment, 'object':Container}, 'lims-shipment-add-container'),
     #####################
     #DEWARS##############
     (r'^shipping/dewars/$', 'object_list', {'model': Dewar, 'template': 'objlist/generic_list.html', 'can_add': True, 'is_individual': True}, 'lims-dewar-list'),
@@ -35,7 +35,7 @@ urlpatterns = patterns('imm.lims.views',
     (r'^shipping/dewars/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/none/0/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Dewar, 'object':Container, 'reverse':True}, 'lims-dewar-add-container'),
     #########################
     #CONTAINERS##############    
-    (r'^shipping/containers/$', 'object_list', {'model': Container, 'template': 'objlist/generic_list.html', 'can_add': True, 'is_individual': True}, 'lims-container-list'),
+    (r'^shipping/containers/$', 'object_list', {'model': Container, 'template': 'objlist/generic_list.html', 'can_add': True, 'can_receive': True, 'is_individual': True}, 'lims-container-list'),
     (r'^shipping/containers/(?P<id>\d+)/$', 'object_detail', {'model': Container, 'template': 'lims/entries/container.html'}, 'lims-container-detail'),
     (r'^shipping/containers/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Container, 'form': ContainerForm, 'template': 'objforms/form_base.html'}, 'lims-container-edit'),
     (r'^shipping/containers/(?P<id>\d+)/remove/$', 'remove_object', {'model': Container, 'field':'dewar'}, 'lims-container-remove'),
@@ -151,7 +151,7 @@ urlpatterns = patterns('imm.lims.views',
     (r'^samples/crystal/(?P<id>\d+)/down/$', 'change_priority', {'model': Crystal, 'action': 'down', 'field': 'priority'}, 'lims-crystal-up'),
     (r'^samples/crystal/(?P<id>\d+)/priority/$', 'priority', {'model': Crystal, 'field': 'priority'}, 'lims-crystal-priority'),
 
-    (r'^samples/cocktail/$', 'object_list', {'model': Cocktail, 'template': 'objlist/object_list.html', 'can_add': True}, 'lims-cocktail-list'),
+    #(r'^samples/cocktail/$', 'object_list', {'model': Cocktail, 'template': 'objlist/object_list.html', 'can_add': True}, 'lims-cocktail-list'),
     (r'^samples/cocktail/basic/$', 'basic_object_list', {'model': Cocktail, 'template': 'objlist/basic_object_list.html' }, 'lims-cocktail-basic-list'),
     (r'^samples/cocktail/(?P<id>\d+)/$', 'object_detail', {'model': Cocktail, 'template': 'lims/entries/cocktail.html'},  'lims-cocktail-detail'),
     (r'^samples/cocktail/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Cocktail, 'form': CocktailForm, 'template': 'objforms/form_base.html'}, 'lims-cocktail-edit'),
@@ -159,7 +159,7 @@ urlpatterns = patterns('imm.lims.views',
     (r'^samples/cocktail/(?P<id>\d+)/add/$', 'add_existing_object', {'model': Constituent, 'parent_model': Cocktail, 'field':'cocktail'}, 'lims-cocktail-add-constituent'),
     (r'^samples/cocktail/new/$', 'create_object', {'model': Cocktail, 'form': CocktailForm, 'template': 'objforms/form_base.html'}, 'lims-cocktail-new'),
 
-    (r'^samples/crystalform/$', 'object_list', {'model': CrystalForm, 'template': 'objlist/object_list.html', 'can_add': True}, 'lims-crystalform-list'),
+    #(r'^samples/crystalform/$', 'object_list', {'model': CrystalForm, 'template': 'objlist/object_list.html', 'can_add': True}, 'lims-crystalform-list'),
     (r'^samples/crystalform/basic/$', 'basic_object_list', {'model': CrystalForm, 'template': 'objlist/basic_object_list.html'}, 'lims-crystalform-basic-list'),
     (r'^samples/crystalform/(?P<id>\d+)/$', 'object_detail', {'model': CrystalForm, 'template': 'lims/entries/crystalform.html'}, 'lims-crystalform-detail'),
     (r'^samples/crystalform/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': CrystalForm, 'form': CrystalFormForm, 'template': 'objforms/form_base.html'}, 'lims-crystalform-edit'),
@@ -205,8 +205,7 @@ urlpatterns = patterns('imm.lims.views',
     url(r'^experiment/result/(\d+)/framestats.png$', 'plot_frame_stats', name='lims-plot-frames'),
     url(r'^experiment/result/(\d+)/diffstats.png$', 'plot_diff_stats', name='lims-plot-diffs'),
 
-    #(r'^activity/$', 'user_object_list', {'model': ActivityLog, 'template': 'objlist/activity_list.html','link': False}),
-    (r'^activity/$', 'user_object_list', {'model': ActivityLog, 'template': 'objlist/generic_list.html','link': False}),
+    (r'^activity/$', 'object_list', {'model': ActivityLog, 'template': 'objlist/tiny_list.html','link': False}),
     
     #new model handling urls (rest style, src/src_id/dest/dest_id/object/obj_id)
     # samples page

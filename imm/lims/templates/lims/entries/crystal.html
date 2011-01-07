@@ -1,6 +1,13 @@
 {% extends "base.html" %}
-{% block content %}
+
 {% load humanize %}
+
+{% block headline %}
+<h2>{{object.name}} ({{object.identity}})</h2>
+{% endblock %}
+
+{% block content %}
+
 
 {% include "lims/tools.html" %}
 

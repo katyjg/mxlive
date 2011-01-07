@@ -825,7 +825,8 @@ def user_object_list(request, model, template='lims/lists/list_base.html', link=
     """
     manager = getattr(request.user, model.__name__.lower()+'_set')
     ol = ObjectList(request, manager)
-    return render_to_response(template, {'ol': ol,'link': link, 'can_add': can_add },
+    handler = request.path
+    return render_to_response(template, {'ol': ol,'link': link, 'can_add': can_add, 'handler': handler },
         context_instance=RequestContext(request)
     )
     

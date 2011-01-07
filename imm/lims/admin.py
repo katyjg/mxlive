@@ -29,7 +29,7 @@ class DewarAdmin(admin.ModelAdmin):
 admin.site.register(Dewar, DewarAdmin)
     
 class ActivityLogAdmin(admin.ModelAdmin):
-    list_filter = ['action_type','created']
+    list_filter = ['created']
     search_fields = ['description','ip_number']
     list_display = ('content_type','created','action_type','user','ip_number','description')
     ordering = ('-created',)

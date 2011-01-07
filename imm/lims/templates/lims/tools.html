@@ -3,8 +3,6 @@
     note: this file defines tools for both staff and users
 {% endcomment %}
 
-<div id="headline"><h2>{{object.name}} ({{object.identity}})</h2></div>
-
 <ul class="tools">
     {# STAFF TOOLS #}
     {% if request.user.is_superuser %}
