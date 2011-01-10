@@ -1457,7 +1457,7 @@ from matplotlib.figure import Figure
 from matplotlib import rcParams
 from matplotlib.colors import LogNorm, Normalize
 import matplotlib.cm as cm
-from mpl_toolkits.axes_grid import AxesGrid
+#from mpl_toolkits.axes_grid import AxesGrid
 
 # Adjust rc parameters
 rcParams['legend.loc'] = 'best'

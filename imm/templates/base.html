@@ -247,6 +247,7 @@
                 drop: function( event, ui ) {
                 	// when dropping, retreive it's parent element (drag source)
                 	var destination = jQuery(this);
+                    console.log(this);
                 	if (!destination.hasClass('parent-stop')) {
                			destination = jQuery(this).parents('.parent-stop').first();
                		}
@@ -296,9 +297,11 @@
                     else {
                     	end_url = end_url + '/' + dragged_obj.attr('id') + '/';
                     }
-                    if (getModel(dragged_obj) == 'crystal' && getModel(destination) == 'container')
+                    current_url = window.location.href
+                    // cont_loc = destination.getAttribute("parent", 0);
+                    if (getModel(dragged_obj) == 'crystal' && current_url.search("shipping/container") != -1)
                     {
-                        end_url = end_url + '/loc/' + destination.attr('container_location') + '/';
+                        end_url = end_url + 'loc/' + destination.attr("container_location") + '/';
                     }
                    
                     // call out to Ajax to perform the operation
@@ -310,12 +313,13 @@
                 		//data: { items: draggableId, parent: parent, container_location: container_location }, // I think all ignored
                 		dataType: "script",
                 		success: function() {
-                    		loadWidgets();
+                    		//loadWidgets();
                     		// Maybe this is the call that should be removed. Need to just update datalist, not load it. 
                     		// this does "fix" the collapsing views. Investigation what will be broken. 
                     		// looks like it shouldn't be needed. 
                     		 //loadDatalists();
-                    		 refreshDatalist();
+                    		 // refreshDatalist();
+                            window.location.reload();
                		 	},
                		 	error: function() {
                		 		// error, just reload the widget
