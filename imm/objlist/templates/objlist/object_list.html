@@ -1,6 +1,25 @@
 {% load objlist %}
 
-<div class="object-list">    
+<div class="object-list">
+{% comment %}
+    <div class="object-tools">
+        {% if instructions %}<h1>{{instructions}}</h1>{% endif %}
+        <div class="left-element">
+            <form class="search-object-list" style="display: inline;" action="{{ handler }}" method="get">
+                <input class="field search" type="text" size="20" name="q" value="" id="searchbar" />
+            </form>
+        </div>
+        <div class="mid-element{% if ol.has_filters %}{% for spec in ol.filter_specs %}{% ifequal forloop.counter 2 %} raise{% endifequal %}{% endfor %}{% endif %}">
+            {% show_all_filters ol handler %}
+        </div>
+        <div class="right-element">
+            {% if can_receive %}<a class="edit-tool modal" rel="#edit-modal" href='{{ handler }}receive/' >Receive {{ ol.object_type }}</a>{% endif %}
+            {% if can_upload %}<a class="xls-tool modal" rel="#xls-modal" href='{{ handler }}upload/' >Upload {{ ol.object_type }}</a>{% endif %}
+            {% if can_add %}<a class="add-tool modal" rel="#add-modal" href='{{ handler }}new/' >Add {{ ol.object_type }}</a>{% endif %}
+        </div>
+        <div class="clear"></div>
+    </div>
+{% endcomment %} 
     <div class="list-tools">
         {% if ol.is_paginated %}
             {% include "objlist/pagination.html" %}
@@ -8,21 +27,17 @@
         {% if not ol.all_shown %}
             Showing {{ol.result_count}} of {{ol.total_count}} total | <a href="?all=">Show all</a>
         {% endif %}
+        {% if form.errors %}
+            <div class="error">{{form.primary_error_message}}</div>
+        {% endif %}
+        {% if form %}
+            <form method="post">{% csrf_token %}
+        {% endif %}
     </div>
-
-    {% if form.errors %}
-        <div class="error">{{form.primary_error_message}}</div>
-    {% endif %}
-
-    {% if form %}
-        <form method="post">{% csrf_token %}
-    {% endif %}
 
     <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">
         <thead>
             <tr class="header">
-                <th style="border-left: 0pt none; width: 0.1em;"></th>
-
                 {% for header in ol.header_list %}<th{{ header.class_attrib }}>
                     {% if header.sortable %}<a class="header" href="{{ handler }}{{ header.url }}">{% endif %}
                     {{ header.text|capfirst }}
@@ -31,12 +46,17 @@
                 {% if form %}
                     <th{{ header.class_attrib }}>Select</th>
                 {% endif %}
+                {% if not is_individual %}
+                    {% comment %}Put this back in once delete functionality is finished for cocktails and crystal forms.
+                    <th></th>
+                    {% endcomment %}
+                {% endif %}
             </tr>
         </thead>
         <tbody>
             {% if ol.object_list %}
                 {% for object in ol.object_list %}
-                    {% list_entry object handler forloop.counter %}
+                    {% basic_list_entry object handler is_individual forloop.counter %}
                 {% endfor %}
             {% else %}
                 <td colspan="20" align="center" style="padding: 3em; background: #ccc;">No {{ol.object_type}} to show</td>
@@ -51,127 +71,9 @@
     </div>
 </div>
 
-{# these divs get loaded with the associated action pages for this object_list.html #}
-<div id="add-modal" class="hidden modal-content"></div>
-<div id="edit-modal" class="hidden modal-content"></div>
-<div id="xls-modal" class="hidden modal-content"></div>
-
 {% if form %}
     <input style="float: right; margin-top: 5px;" type="submit" value="Refine Runlist >>"></input>
     </form>
 {% endif %}
 
-<script>
-    jQuery(function() {
-        // handles all the '+ add' buttons.
-        jQuery("a.modal").live("click", function() {
-            var $button = jQuery(this);
-            var contentURL = $button.attr("href");
-            var $modal = jQuery($button.attr("rel"));
-            // this attempts to preload the content
-            if(!$modal.find("a.close").length) {
-                $modal.append("<div class='content'></div>");
-                $modal.append('<a href="#" class="close" id="close_x">close</a>');
-            }
-
-            $modal.find('.content').load(contentURL, function(e, status) {
-                if(status === "success") {
-                    $modal.lightbox_me({
-                        centered: true,
-                        destroyOnClose: true,
-                        overlaySpeed: "fast",
-                        overlayDisappearSpeed: "fast",
-                        lightboxSpeed: "fast",
-                        lightboxdisappearSpeed: "fast",
-                        onLoad: function() {
-                            // FIXME: find a better place for this
-                            jQuery(".slideview").slideView();
-                        },
-                        onClose: function() {
-                            // reload the relevant forms that have been updated
-                            loadWidgets();
-                            refreshDatalist();
-                            //loadDatalists();
-                        }
-                    });
-                }
-            });
-            return false;
-        });
-
-        // handle setting up expandable views
-        jQuery(".link-row").live("click", function() {
-            // fetch the contents of the rel attribute
-            var $row = jQuery(this);
-            var contentURL = $row.attr("rel");
-            var $loader = $row.next("tr.expander");
-            
-            // This should only run if the single class is found.
-            if ($row.hasClass("single") || $loader.hasClass("single")) {
-	            // should find all visible expander item, and hide them
-	            // find all expanded items, toggle expanded off. 
-	            if (!($row.hasClass("expanded"))) {
-		            var $expanded_items = $row.parent().children(".expanded");
-		            $expanded_items.toggleClass("expanded");
-		            $expanded_items.next("tr.expander").toggleClass("hidden");
-	            }
-            }
-
-            // don't re-load the content if we've loaded it already
-            // static content exists in the page already and won't be pulled in via ajax, hence the bypass for "static"
-            if($loader.hasClass("loaded") || $loader.hasClass("static")) {
-                $loader.toggleClass("hidden");
-                $row.toggleClass("expanded");
-            } else {
-               // attempt to load the contents here
-                $loader.find("td").load(contentURL, function(e, status) {
-                    if(status === "success") {
-                        $loader.addClass("loaded");
-                        $loader.toggleClass("hidden");
-                        $row.toggleClass("expanded");
-                    }
-                });
-            }
-            return false;
-        });
-
-        // handle filters and column headings
-        jQuery("a.filter, a.header, div.pagination a").click(function() {
-            var $a = jQuery(this);
-            var contentURL = $a.attr("href");
-            $a.parents(".content-list").load(contentURL, function() {});
-            return false;
-        });
-
-        // handle any treeview links, these will come in via ajax so it needs to be a live event
-        jQuery("ul.treeview li a").live("click", function() {
-            var $a = jQuery(this);
-
-            if($a.hasClass("loaded")) {
-                $a.toggleClass("expanded");
-                $a.next("ul.treeview").toggleClass("hidden");
-            } else {
-                var $li = $a.parent();
-                $li.append("<ul class='treeview hidden'></ul>");
-                var $treeview = $a.next("ul.treeview");
-                $treeview.load($a.attr("href"), function(e, status) {
-                    if(status === "success") {
-                        $a.addClass("loaded expanded");
-                        $treeview.toggleClass("hidden");
-                    }
-                });
-            }
-
-            return false;
-        });
-        
-        // handle search
-        jQuery(".search-object-list").submit(function() {
-            var $form = jQuery(this);
-            var $input = $form.children(".search");
-            var contentURL = $form.attr("action") + "?" + $input.attr("name") + "=" + escape($input.attr("value"));
-            $form.parents(".content-list").load(contentURL, function() {});
-            return false;
-        });
-    });
-</script>
+{% include "lims/entries/popup.html" %}
