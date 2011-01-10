@@ -1,8 +1,20 @@
-{% extends "objlist/tiny_list.html" %}
 {% load humanize %}
+{% load objlist %}
 
-{%block tiny-list %}
-<tr><td>
+<h2>Messages</h2>
+
+<div class="tiny-list-tools">
+    {% include "objlist/pagination.html" %}
+        <form class="search-object-list" style="display: inline;" action="" method="get">
+        <input class="search field" type="text" size="15" name="q" value="" id="searchbar" />
+        </form>
+{% if not ol.all_shown %}
+    {{ol.result_count}} of {{ol.total_count}} total | <a href="?all=">All</a>
+{% endif %}
+</div>
+
+<div class="object-list">
+    <table width="100%"><tr><td>
 <ul class='tiny-list'>
 {% if ol.object_list %}
     {% for message in ol.object_list %}
@@ -17,5 +29,6 @@
     <li class="list-empty">No messages</li>
 {% endif %}
 </ul>
-</td></tr>
-{% endblock %}
+</td></tr></table></div>
+{% show_all_filters ol request.path %}
+

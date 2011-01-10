@@ -1,6 +1,4 @@
-{% load boxes %}
 {% load objlist %}
-{% contentbox "Inbox" "box4" %} 
 <div class="tiny-list-tools">
     {% include "objlist/pagination.html" %}
         <form class="search-object-list" style="display: inline;" action="" method="get">
@@ -12,15 +10,12 @@
 </div>
 
 <div class="object-list">
-    <table width="100%">
 {% block tiny-list %}
 {% endblock %}
-    </table>
 </div>
 
 {% show_all_filters ol request.path %}
 
-{% endcontentbox %}
 
 <script>
     // handle filters and column headings
