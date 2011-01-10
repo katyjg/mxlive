@@ -11,7 +11,6 @@
 <!-- maincol -->
 <div id="content" class="col-12">
 
-
 <div id="view-images" class="hidden modal-content"></div>
 
 <div id="result-page">
@@ -149,47 +148,28 @@
         <tr><td colspan=4></td></tr>
         </tfoot>
     </table>
-<div class="tablenotes">
-    <h3>Notes</h3>
-    <p>The above table contains results from POINTLESS (see Evans, Acta Cryst. D62, 72-82, 2005).</p>
-    <p>Indistinguishable space groups will have similar probabilities. If two or more of the top candidates have the same probability, the one with the fewest symmetry assumptions is chosen. This usually corresponds to the point group,  trying out higher symmetry space groups within the top tier does not require re-indexing the data as they are already in the same setting.</p>
-    <p>For more detailed results, please inspect the output file 'pointless.log'.</p>
-    </div>
-    <div class="clear spacer"></div>
-    <div class="image">
-    <h3>Reference Profiles as a function of detector region</h3>
-    <img src="profiles.png" />
-    </div>
-    <div class="clear"></div>
     <div class="tablenotes">
-    <h3>Notes</h3>
-    <p>Profiles are determined at 9 region on the detector surface shown on the left-most column.</p>
-    <p>Nice slices for the corresponding detector region are shown on the right of each region </p>
-    </div>
-    <div class="pagebreak"></div>
-    <div class="image">
+        <h3>Notes</h3>
+        <p>The above table contains results from POINTLESS (see Evans, Acta Cryst. D62, 72-82, 2005).</p>
+        <p>Indistinguishable space groups will have similar probabilities. If two or more of the top candidates have the same probability, the one with the fewest symmetry assumptions is chosen. This usually corresponds to the point group,  trying out higher symmetry space groups within the top tier does not require re-indexing the data as they are already in the same setting.</p>
+        <p>For more detailed results, please inspect the output file 'pointless.log'.</p>
+    </div><div class="clear spacer pagebreak"></div>
+    
     <h3>Standard errors of reflection intensities by resolution</h3>
-    <img src="stderr.png">
-    </div>
-    <div class="clear"></div>
+    <img src="{% if admin %}{% url staff-plot-stderr object.id %}{% else %}{% url lims-plot-stderr object.id %}{% endif %}" />
     <div class="tablenotes">
-    <h3>Notes</h3>
-    <dl class="note-list">
-    <dt>I/Sigma    - </dt><dd>Mean intensity/Sigma of a reflection in shell</dd>
-    <dt>&chi;&sup2;  - </dt><dd>Goodness of fit between sample variances of symmetry-related intensities and their errors (&chi;&sup2; = 1 for perfect agreement).</dd>
-    <dt>R-observed - </dt><dd>&Sigma;|I(h,i)-I(h)| / &Sigma;[I(h,i)]</dd>
-    <dt>R-expected - </dt><dd>Expected R-FACTOR derived from Sigma(I)</dd>
-    </dl>
+        <h3>Notes</h3>
+        <dl class="note-list">
+        <dt>I/Sigma    - </dt><dd>Mean intensity/Sigma of a reflection in shell</dd>
+        <dt>&chi;&sup2;  - </dt><dd>Goodness of fit between sample variances of symmetry-related intensities and their errors (&chi;&sup2; = 1 for perfect agreement).</dd>
+        <dt>R-observed - </dt><dd>&Sigma;|I(h,i)-I(h)| / &Sigma;[I(h,i)]</dd>
+        <dt>R-expected - </dt><dd>Expected R-FACTOR derived from Sigma(I)</dd>
+        </dl>
     </div>
-    <div class="pagebreak"></div>
+    <div class="clear spacer pagebreak"></div>
+    
     <h3>Statistics of final reflections by shell</h3>
-    <div class="image">
-    <image src={% if admin %}
-    	{% url staff-plot-shells object.id %}
-    	{% else %}
-    	{% url lims-plot-shells object.id %} 
-    	{% endif %}/>
-    </div>
+    <img src="{% if admin %}{% url staff-plot-shells object.id %}{% else %}{% url lims-plot-shells object.id %}{% endif %}" />
     <table class="rtable full">
         <thead>
             <tr>
@@ -236,32 +216,38 @@
     </div>
 
     <div class="clear spacer"></div>
-<div class="image">
-<h3>Wilson Plot</h3>
-<img src="wilson.png">
-</div>
-<div class="clear">
-</div>
-<div class="tablenotes">
-<h3>Notes</h3>
-<p>The above clipper-style wilson plot was calculated by CTRUNCATE which is part of the CCP4 Package.</p>
-<p>See S. French and K. Wilson, Acta Cryst. A34, 517-525 (1978).</p>
-</div>
-<div class="image">
-<h3>L Test for twinning</h3>
-<img src="twinning.png">
-</div>
-<div class="clear">
-</div>
-<div class="tablenotes">
-<h3>Notes</h3>
-<p>The above plot was calculated by CTRUNCATE which is part of the CCP4 Package.</p>
-<p>All data regardless of I/sigma(I) has been included in the L test. Anisotropy correction has been applied before calculating L.</p>
-<p>See J. E. Padilla and T. O. Yeates, Acta Cryst. D59, 1124-1130 (2003)</p>
-</div>
+    <h3>Statistics of final reflections by frame number and frame number difference</h3>
+    <img src="{% if admin %}{% url staff-plot-frames object.id %}{% else %}{% url lims-plot-frames object.id %}{% endif %}" />
+    <img src="{% if admin %}{% url staff-plot-diffs object.id %}{% else %}{% url lims-plot-diffs object.id %}{% endif %}" />
+    <div class="tablenotes">
+    <h3>Notes</h3>
+        <p>The above plot was calculated by XDSSTAT. See See Diederichs K. (2006) Acta Cryst D62, 96-101.</p>
+        <dl class="note-list">
+        <dt>Divergence - </dt><dd>Estimated Standard Deviation of Beam divergence</dd>
+        <dt>R<sub>d</sub> - </dt><dd>R-factors as a function of frame difference. An increase in R-d with frame difference is suggestive of radiation damage.</dd>
+        </dl>
+    </div>
+
+
+    <h3>Wilson Plot</h3>
+    <img src="{% if admin %}{% url staff-plot-wilson object.id %}{% else %}{% url lims-plot-wilson object.id %}{% endif %}" />
+    <div class="tablenotes">
+        <h3>Notes</h3>
+        <p>The above clipper-style wilson plot was calculated by CTRUNCATE which is part of the CCP4 Package.</p>
+        <p>See S. French and K. Wilson, Acta Cryst. A34, 517-525 (1978).</p>
+    </div>
+    <div class="clear spacer"></div>
+
+    <h3>L Test for twinning</h3>
+    <img src="{% if admin %}{% url staff-plot-twinning object.id %}{% else %}{% url lims-plot-twinning object.id %}{% endif %}" />
+    <div class="tablenotes">
+        <h3>Notes</h3>
+        <p>The above plot was calculated by CTRUNCATE which is part of the CCP4 Package.</p>
+        <p>All data regardless of I/sigma(I) has been included in the L test. Anisotropy correction has been applied before calculating L.</p>
+        <p>See J. E. Padilla and T. O. Yeates, Acta Cryst. D59, 1124-1130 (2003)</p>
+    </div>
 
 </div>
-
 </div>
 <!-- end maincol -->
 {% endblock %}

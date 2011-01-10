@@ -1,11 +1,10 @@
 from django.conf.urls.defaults import patterns, url
-from django.contrib import databrowse
+from django.conf import settings
 from imm.lims.models import *
 from imm.lims.forms import *
 
 urlpatterns = patterns('imm.lims.views',
     (r'^$', 'show_project', {}, 'project-home'),
-    (r'^browse/(.*)', databrowse.site.root),
     (r'^shipping/$', 'shipping_summary', {'model': ActivityLog}, 'lims-shipping-summary'),
 
     #SHIPMENTS##############
@@ -140,6 +139,10 @@ urlpatterns = patterns('imm.lims.views',
     url(r'^experiment/result/(\d+)/shellstats.png$', 'plot_shell_stats', name='lims-plot-shells'),
     url(r'^experiment/result/(\d+)/framestats.png$', 'plot_frame_stats', name='lims-plot-frames'),
     url(r'^experiment/result/(\d+)/diffstats.png$', 'plot_diff_stats', name='lims-plot-diffs'),
+    url(r'^experiment/result/(\d+)/stderr.png$', 'plot_error_stats', name='lims-plot-stderr'),
+    url(r'^experiment/result/(\d+)/profiles.png$', 'plot_profiles_stats', name='lims-plot-profiles'),
+    url(r'^experiment/result/(\d+)/wilson.png$', 'plot_wilson_stats', name='lims-plot-wilson'),
+    url(r'^experiment/result/(\d+)/twinning.png$', 'plot_twinning_stats', name='lims-plot-twinning'),
 
     (r'^activity/$', 'object_list', {'model': ActivityLog, 'template': 'objlist/tiny_list.html','link': False}),
     
@@ -158,27 +161,32 @@ urlpatterns = patterns('imm.lims.views',
 
 )
 
-from django.contrib import databrowse
-_databrowse_model_list = [
-            Project, 
-            Laboratory, 
-            Constituent, 
-            Carrier,
-            Shipment,
-            Dewar,
-            Container,
-            SpaceGroup,
-            CrystalForm,
-            Cocktail,
-            Crystal,
-            Experiment,
-            Result,
-            Data,
-            ActivityLog,
-            Strategy,
-            ScanResult,
-            ]
-            
-for mod in _databrowse_model_list:
-    databrowse.site.register(mod)
+if settings.DEBUG:
+    from django.contrib import databrowse
+    urlpatterns += patterns('',
+        (r'^browse/(.*)', databrowse.site.root),
+    )
+
+    _databrowse_model_list = [
+                Project, 
+                Laboratory, 
+                Constituent, 
+                Carrier,
+                Shipment,
+                Dewar,
+                Container,
+                SpaceGroup,
+                CrystalForm,
+                Cocktail,
+                Crystal,
+                Experiment,
+                Result,
+                Data,
+                ActivityLog,
+                Strategy,
+                ScanResult,
+                ]
+                
+    for mod in _databrowse_model_list:
+        databrowse.site.register(mod)
 

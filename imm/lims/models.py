@@ -1284,9 +1284,6 @@ class Data(models.Model):
     def total_angle(self):
         return self.delta_angle * self.num_frames()
         
-    class Meta:
-        verbose_name_plural = 'Datasets'
-        
     def thumbUrls(self):
         urls = []
         for i in range(self.num_frames):
@@ -1327,6 +1324,11 @@ class Data(models.Model):
     
     def start_angle_for_frame(self, frame):
         return (frame - self.first_frame) * self.delta_angle + self.start_angle 
+
+        
+    class Meta:
+        verbose_name = 'Dataset'
+        verbose_name_plural = 'Datasets'
 
 
 class Result(models.Model):
@@ -1401,6 +1403,9 @@ class Result(models.Model):
          'plan',          self.experiment.EXP_PLANS.JUST_COLLECT # all resubmitted experiments must use this type
         )
         return link
+
+    class Meta:
+        verbose_name = 'Analysis Report'
 
 class Strategy(models.Model):
     STATES = Enum(
