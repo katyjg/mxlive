@@ -1,0 +1,25 @@
+<div id="{{dewar.id}}" 
+     class="dewar dewar-detail droppable droppable-add" 
+     accept="container" 
+     rel="{% url lims-dewar-detail dewar.id %}">
+    <h3 class="dewar droppable droppable-add" 
+     accept="container" 
+     rel="{% url lims-dewar-detail dewar.id %}">{{ dewar.label }} ({{ dewar.identity }})</h3>
+    <ul class="dewar droppable droppable-add" 
+     accept="container" 
+     rel="{% url lims-dewar-detail dewar.id %}">
+        {% for container in containers %}
+            <li>
+                {{ container.name }}
+            </li>
+        {% endfor %}
+        <li></li>
+    </ul>
+</div>
+{% comment %}
+    <li class="container droppable droppable-add" 
+        accept="crystal" 
+        parent="{{ object.id }}"
+        rel="{% url lims-container-detail object.id %}"
+        container_location="{{ loc }}">{{ loc }}</li>
+{% endcomment %}

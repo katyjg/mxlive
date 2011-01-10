@@ -116,7 +116,7 @@
         }
 
 		// This collapses any expanded items.
-        function loadDatalists() {
+        /*function loadDatalists() {
             jQuery(".datalist").each(function(i, datalist) {
                 var $datalist = jQuery(datalist);
                 $datalist.load($datalist.attr("data"), function() {
@@ -126,10 +126,10 @@
                     }
                 });
             });
-        }
+        }*/
         
         // refresh the datalist table
-        function refreshDatalist() {
+        /*function refreshDatalist() {
         	// store what is expanded
         	var $expanded_items  = new Array();
         	// find items that are expanded, store id
@@ -157,7 +157,7 @@
                 });
             });
         	
-        }
+        }*/
 
         function serialize(table) {
             var rowIds = [];
@@ -247,7 +247,9 @@
                 drop: function( event, ui ) {
                 	// when dropping, retreive it's parent element (drag source)
                 	var destination = jQuery(this);
-                    console.log(this);
+                    current_url = window.location.href
+                    cont_loc = jQuery(this).attr('container_location');
+                    base_url = jQuery(this).attr('rel');
                 	if (!destination.hasClass('parent-stop')) {
                			destination = jQuery(this).parents('.parent-stop').first();
                		}
@@ -255,6 +257,10 @@
                     // Location object is dragged to is jQuery(this)
                     var dragged_obj = ui.draggable;
                  
+                    if (getModel(dragged_obj) != 'container' || current_url.search("shipping/shipment") == -1) {
+                        base_url = 0
+                    }
+                    console.log(base_url);
                     // Object being dragged is ui.draggable
                     var source = ui.draggable.parents('.parent-stop').first();
                     
@@ -267,8 +273,11 @@
                     // call to that URL replaces all of this, add, remove, and replace code...
                     // makes the logic all in the url space, easy to adjsut behaviour of one operation
                     // will give a lot of endpoints to maintain / worry about. 
-                    
+
                     var end_url = getModel(source);
+                    if (base_url) {
+                        end_url = base_url + getModel(source)
+                    }
                     if ((getModel(source) == 'widget') || (getModel(source) == 'none'))
                     {
                     	end_url = end_url + '/0/';
@@ -276,7 +285,7 @@
                     else {
                     	end_url = end_url + '/' + source.attr('id') + '/';
                     }
-                    
+                    /*
                     if (getModel(dragged_obj) == 'container')
                     {                                    
                         end_url = end_url + getModel(destination);
@@ -288,7 +297,7 @@
                         	end_url = end_url + '/' + destination.attr('id') + '/';
                         }
                     }
-
+                    */
                     end_url = end_url + getModel(dragged_obj);
                     if (getModel(dragged_obj) == 'widget' || getModel(dragged_obj) == 'none')
                     {
@@ -297,11 +306,9 @@
                     else {
                     	end_url = end_url + '/' + dragged_obj.attr('id') + '/';
                     }
-                    current_url = window.location.href
-                    // cont_loc = destination.getAttribute("parent", 0);
                     if (getModel(dragged_obj) == 'crystal' && current_url.search("shipping/container") != -1)
                     {
-                        end_url = end_url + 'loc/' + destination.attr("container_location") + '/';
+                        end_url = end_url + 'loc/' + cont_loc + '/';
                     }
                    
                     // call out to Ajax to perform the operation
@@ -340,7 +347,7 @@
         jQuery("#sidebar, #content").live("DOMSubtreeModified", function() { setupDragAndDrop();});
 
         loadWidgets();
-        refreshDatalist();
+        //refreshDatalist();
         //loadDatalists();
 
     </script>

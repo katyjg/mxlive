@@ -432,13 +432,21 @@ img
 	margin:10px 0;
 }
 
-#sidebar .widget
+.dewar-detail 
+{
+    max-width: 200px;
+    min-height: 120px;
+    float: left;
+    margin-right: 20px;
+}
+
+.dewar-detail, #sidebar .widget
 {
 	border:1px solid #999;
 	margin-bottom:10px;
 }
 
-#sidebar .widget h3
+.dewar-detail h3, #sidebar .widget h3
 {
 	margin:0;
 	padding:4px;
@@ -454,7 +462,7 @@ img
 	overflow-x:hidden;
 }
 
-#sidebar .widget li
+.dewar-detail li, #sidebar .widget li
 {
 	margin:0;
 	border-bottom:1px solid #ccc;

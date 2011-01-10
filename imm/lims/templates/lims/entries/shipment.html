@@ -1,6 +1,4 @@
 {% extends "base.html" %}
-
-
 {% load humanize %}
 
 {% block headline %}
@@ -21,9 +19,6 @@
 {% block content %}
 
 {% with object as shipment %}
-
-    <!--h3>{{ shipment.label }} ({{ shipment.identity }})</h3-->
-
     <table class="entrysummary" cellpadding="0" cellspacing="0" border="0" width="100%" style="float:left; clear: left;">
     	<tr valign="top"><th>Comments:</th><td>{{ shipment.comments }}</td></tr>
     	{% if shipment.shipping_errors %}
@@ -36,12 +31,7 @@
     <table class="entrysummary" cellpadding="0" cellspacing="0" border="0" width="60%" style="float:left; clear: left;">
         <tr valign="top"><th>Status:</th><td>{{ shipment.get_status_display }}</td></tr>
         {% ifequal shipment.status shipment.STATES.DRAFT %}
-            <tr valign="top">
-                <th>Shippable:</th>
-                    <td>
-                        {{shipment.shipping_errors|yesno:"No,Yes"}}
-                    </td>
-            </tr>
+            <tr valign="top"><th>Shippable:</th><td>{{shipment.shipping_errors|yesno:"No,Yes"}}</td></tr>
         {% endifequal %}
         {% if shipment.date_shipped %}
         	<tr valign="top"><th>Carrier:</th><td>{{ shipment.carrier }}</td></tr>
@@ -56,7 +46,6 @@
         	<tr valign="top"><th NOWRAP>Return Code:</th><td>{{ shipment.return_code }}</td></tr>
         {% endif %}
         <tr valign="top"><th>Processed:</th><td>{% if shipment.is_processed %}Yes{% else %} No {% endif %}</td></tr>
-        
     </table>
     <div style="clear: both;"></div>
 
@@ -65,13 +54,10 @@
 
     {% with shipment.dewar_set as dewars %}
         {% if dewars.count %}
-            <ul class="treeview">
-                {% for dewar in dewars.all %}
-                <li id="{{dewar.id}}" class="dewar draggable-link-parent droppable parent-stop" accept="container" rel="{% url lims-dewar-detail dewar.id %}">
-                    <a class="dewar"  href="{% url lims-dewar-detail dewar.id %}">{{ dewar.label }} ({{ dewar.identity }})</a>
-                </li>
-                {% endfor %}
-            </ul>
+            {% load dewar_table %}
+            {% for dewar in dewars.all %}
+                {% dewar_table dewar request.user.is_superuser %}
+            {% endfor %}
         {% else %}
             (No dewars assigned to this shipment.)
         {% endif %}

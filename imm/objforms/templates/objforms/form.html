@@ -25,13 +25,13 @@
             var $modal = jQuery(".modal-content").not(":hidden"); // at this point, the modal will be visible
             var error = response.indexOf("error") > -1; // given an error there will be an error string present
             var $close = $modal.find('a.close');
-
+            
             if(error) {
                 $modal.find('.content').html(response); // the response includes the full html of the form as well as errors
             } else {
                 // close the modal, show confirmation, reload affected panes in the sidebar).
                 $close.trigger("click");
-                jQuery.jGrowl(response);
+                window.location.reload();
             }
         });
     });

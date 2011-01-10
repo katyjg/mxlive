@@ -96,31 +96,6 @@ function transform_choicebox(el) {
     el.next('label').addClassName('choice');
 }
 
-function set_lefthalf(el){
-    el.parentNode.parentNode.addClassName('leftHalf');
-    el.removeClassName('leftHalf');
-}
-
-function set_righthalf(el){
-    el.parentNode.parentNode.addClassName('rightHalf');
-    el.removeClassName('rightHalf');
-}
-
-function set_leftthird(el){
-    el.parentNode.parentNode.addClassName('leftThird');
-    el.removeClassName('leftThird');
-}
-
-function set_middlethird(el){
-    el.parentNode.parentNode.addClassName('middleThird');
-    el.removeClassName('middleThird');
-}
-
-function set_rightthird(el){
-    el.parentNode.parentNode.addClassName('rightThird');
-    el.removeClassName('rightThird');
-}
-
 function init_form(frm) {
     var field_str = "##{form}.objform .field".interpolate({'form': frm});
     var sel_str =   "##{form}.objform select[multiple]".interpolate({'form': frm});
@@ -129,12 +104,7 @@ function init_form(frm) {
     $$(field_str).each( add_focus_handlers );
     $(frm).focusFirstElement();
     
-    $$(choice_str).each( transform_choicebox )
-    $$(".field.leftHalf").each( set_lefthalf );
-    $$(".field.rightHalf").each( set_righthalf );
-    $$(".field.leftThird").each( set_leftthird );
-    $$(".field.middleThird").each( set_middlethird );
-    $$(".field.rightThird").each( set_rightthird );
+    //$$(choice_str).each( transform_choicebox )
     $(frm).style.display = 'block';
     
     // Select all options before submitting 

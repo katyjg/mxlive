@@ -12,6 +12,8 @@
 <div id="edit-object" class="hidden modal-content"></div>
 <div id="delete-object" class="hidden modal-content"></div>
 
+{% block script %}
+{{ block.super }}
 <script>
     jQuery(function() {
         // handles all the 'edit' buttons.
@@ -30,22 +32,21 @@
                     if(status === "success") {
                         $modal.lightbox_me({
                             centered: true,
-                            destroyOnClose: true,
+                            destroyOnClose: false,
                             overlaySpeed: "fast",
                             overlayDisappearSpeed: "fast",
                             lightboxSpeed: "fast",
                             lightboxdisappearSpeed: "fast",
-                            onLoad: function() {
+                            /*onLoad: function() {
                                 // FIXME: find a better place for this
                                 jQuery(".slideview").slideView();
-                            },
-                            onClose: function() {
+                            },*/
+                            //onClose: function() {
                                 // reload the relevant forms that have been updated
                                 // loadWidgets();
                                 // refreshDatalist();
                                 // loadDatalists();
-                                window.location.reload();
-                            }
+                            //}
                         });
                     }
                 });
@@ -62,3 +63,4 @@
         });
     });
 </script>
+{% endblock %}

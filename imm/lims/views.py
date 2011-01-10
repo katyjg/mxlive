@@ -370,8 +370,6 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
         obj_id, dest_id = dest_id, obj_id
         object, destination = destination, object
 
-    
-
     model = destination;
     manager = model.objects
     request.project = None
@@ -436,7 +434,9 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
                 request.user.message_set.create(message = message)
                 return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
                 
-        
+        if src_id:
+            setattr(dest, 'container_location', src_id)
+    
         dest.save()
         message = '%s has been successfully added' % display_name
     else:
@@ -546,6 +546,28 @@ def object_detail(request, id, model, template):
         'object': obj,
         'handler' : request.path
         },
+        context_instance=RequestContext(request))
+
+@login_required
+@manager_required
+def dewar_object_detail(request, id, model, template, admin=False):
+    """
+    Experiment needs a unique detail since it needs to pass the relevant information
+    from results and datasets into it's detail.
+    """
+    try:
+        obj = request.manager.get(pk=id)
+    except:
+        raise Http404
+    
+    containers = Container.objects.filter(dewar__exact=obj)
+    
+    return render_to_response(template, {
+        'object': obj,
+        'handler': request.path,
+        'containers': containers,
+        'admin': admin
+        }, 
         context_instance=RequestContext(request))
 
 @login_required
@@ -929,6 +951,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
                     form_info['message']
                     )
             request.user.message_set.create(message = form_info['message'])
+            
             return render_to_response('lims/message.html', context_instance=RequestContext(request))
         else:
             return render_to_response(template, {

@@ -19,32 +19,11 @@
 
 {% block content %}
 
-{% comment %}
-{% if request.user.is_superuser %}
-    <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
-{% endif %}
-{% if not request.user.is_superuser %}
-    <span onclick="linkto('../new/?clone={{object.id}}');" class="clone-tool">Clone</span>
-    {% if object.is_editable %}
-        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
-    {% endif %}
-    {% if object.is_deletable %}
-        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/delete/', '');" class="delete-tool">Delete</span>
-    {% endif %}
-{% endif %}
-{% endcomment %}
+<img src="/img/dewar.png" class="dewar droppable" accept="container" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
 
 {% with object as dewar %}
-    {% comment %}
+
     <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
-        <tr valign="top">
-            <th>Created:</th>
-            <td>{{dewar.created|naturalday}} at {{dewar.created|date:"H:i T"}}</td>
-        </tr>
-        <tr valign="top">
-            <th>Modified:</th>
-            <td>{{dewar.modified|naturalday}} at {{dewar.modified|date:"H:i T"}}</td>
-        </tr>
         <tr valign="top">
             <th>Status:</th>
             <td>{{dewar.get_status_display}}</td>
@@ -56,7 +35,7 @@
             </tr>
         {% endifequal %}
     </table>
-    {% endcomment %}
+
     {% if dewar.container_set.count %}
         {% for container in dewar.container_set.all %}
             <li id="{{ container.id }}" class="container draggable-link-parent parent-stop ui-draggable" 
@@ -69,11 +48,6 @@
     {% endif %}
 
 {% endwith %}
-
-{% comment %}
-{% include "lims/entries/dewar_contents.html" %}
-{% include "lims/entries/dewar_treeview.html" %}
-{% endcomment %}
 
 <div id="add-container" class="hidden modal-content"></div>
 
