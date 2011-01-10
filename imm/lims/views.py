@@ -1457,7 +1457,7 @@ from matplotlib.figure import Figure
 from matplotlib import rcParams
 from matplotlib.colors import LogNorm, Normalize
 import matplotlib.cm as cm
-from mpl_toolkits.axes_grid import AxesGrid
+#from mpl_toolkits.axes_grid import AxesGrid
 
 # Adjust rc parameters
 rcParams['legend.loc'] = 'best'
@@ -1480,7 +1480,7 @@ class ResLocator(Locator):
 
 
 PLOT_WIDTH = 8
-PLOT_HEIGHT = 6
+PLOT_HEIGHT = 7 
 PLOT_DPI = 75
 IMG_WIDTH = int(round(PLOT_WIDTH * PLOT_DPI))
 
@@ -1608,7 +1608,7 @@ def plot_diff_stats(request, id):
         
     # extract statistics to plot
     data = result.details['diff_statistics']
-    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.6), dpi=PLOT_DPI)
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.66), dpi=PLOT_DPI)
     ax1 = fig.add_subplot(111)
     ax1.plot(data['frame_diff'], data['rd'], 'r-', label="all")
     ax1.set_ylabel('R-d')
@@ -1651,8 +1651,8 @@ def plot_wilson_stats(request, id):
     ax1.xaxis.set_major_locator(ResLocator())
     
     # set font parameters for the ouput table
-    wilson_line = results['details']['wilson_line']
-    wilson_scale = results['details']['wilson_scale']
+    wilson_line = result.details['wilson_line']
+    wilson_scale = result.details['wilson_scale']
     fontpar = {}
     fontpar["family"]="monospace"
     fontpar["size"]=9
@@ -1754,7 +1754,7 @@ def plot_twinning_stats(request, id):
     ax1.grid(True)
     
     # set font parameters for the ouput table
-    l_statistic = results['details']['twinning_l_statistic']
+    l_statistic = result.details['twinning_l_statistic']
     fontpar = {}
     fontpar["family"]="monospace"
     fontpar["size"]=9
@@ -1780,7 +1780,7 @@ def plot_profiles_stats(request, id):
     except:
         raise Http404
     # extract statistics to plot
-    data = result.details['integration_profiles']
+    profiles = result.details['integration_profiles']
     fig = Figure(figsize=(PLOT_WIDTH, PLOT_WIDTH), dpi=PLOT_DPI)
     cmap = cm.get_cmap('gray_r')
     norm = Normalize(None, 100, clip=True)
