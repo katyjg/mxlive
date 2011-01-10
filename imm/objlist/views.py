@@ -31,6 +31,7 @@ class ObjectList(ChangeList):
         self.manager = manager
         self.model = self.manager.model
         self.object_type = self.model.__name__
+
         self.opts = self.model._meta
         self.lookup_opts = self.opts
         

@@ -1,20 +1,59 @@
 {% extends "base.html" %}
 
-{% block content %}
-{{ block.super }}
-    <div id="headline"><h2>Welcome, {{ user }}</h2></div>
-    {% include "lims/project_help.html" %}
-    <div class="content-list" id="inbox">
-        {% comment %}
-        The content for this div is loaded via ajax in the script block below.
-        {% endcomment %}
+{% block headline %}
+<h2>Welcome, {{ user }}</h2>
+{% endblock %}
+
+{% block object-tools %}
+    <div class="object-tools">
+        <div class="right-element" style="padding: 3px;">
+            <a class="xls-tool modal" rel="#xls-modal" href='{% url lims-shipment-upload %}' >Feedback</a>
+            <a class="xls-tool modal" rel="#xls-modal" href='{% url lims-shipment-upload %}' >Get Template</a>
+            <a class="xls-tool modal" rel="#xls-modal" href='{% url lims-shipment-upload %}' >Upload Shipment</a>
+            <a class="xls-tool modal" rel="#xls-modal" href='{% url lims-shipment-upload %}' >Profile</a>
+        </div>
+        <div class="clear"></div>
     </div>
 {% endblock %}
 
-{% block sidebar %}
+{% block content-override %}
+    <!-- left region -->
+	<div id="left-content" class="col-4">
+	<p>This CMCF LIMS is a web application for managing sample, shipping and experiment information related to macromolecular crystallography experiments at the synchrotron.</p>
+    <p>The LIMS is divided into the following sections:</p>
+    <dl>
+    <dt>&ldquo;Samples&rdquo;</dt>
+    <dd>Enables you to manage crystals, their contents and associated hazard information.
+    </dd>
+    <dt>&ldquo;Experiments&rdquo;</dt>
+    <dd>Provides tools for creating experiment requests, associating requests with crystals and viewing results of already performed experiments.
+    </dd>
+    <dt>&ldquo;Shipping&rdquo;</dt>
+    <dd>Here you prepare samples to send to the sychrotron by organising them in Containers and Dewars.
+    </dd>
+    </dl>
+    </div>
+	<!-- end left region -->
+    <!-- middle region -->
+	<div id="middle-content" class="col-4">
     {% include "lims/project_summary.html" %}   
-    {{ block.super }} 
-{% endblock %}
+	</div>
+	<!-- end middle region -->
+    <!-- right region -->
+	<div id="right-content" class="col-4">
+        <div class="content-list" id="inbox">
+            {% comment %}
+            The content for this div is loaded via ajax in the script block below.
+            {% endcomment %}
+        </div>
+	</div>
+	<div class="clear"></div>
+    <!-- bottom region -->
+	<div id="bottom-content" class="col-12">
+    {% include "lims/activity_log.html" %}   
+	</div>
+	<!-- end botom region -->
+{% endblock %}	
 
 {% block script %}
 {{ block.super }}
