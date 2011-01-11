@@ -60,9 +60,9 @@ img { border: 0; }
   line-height: 1.5em;
 }
 
-.pagination { float: right; white-space: nowrap;}
+.pagination { float: right; white-space: nowrap; line-height: 1.5em; padding: 0 0.5em; clear: both;}
 .pagination a { margin-left: 0.3em; margin-right: 0.3em;}
-.list-tools { font-size: 90%; min-height: 1.1em; padding: 0.3em 0.5em; clear: both}
+.list-tools { min-height: 1.5em; clear: both; font-size: 90%;}
 .tiny-list-tools { font-size: 90%; clear: both; padding-bottom: 2px; }
 
 .entrysummary { vertical-align: top;}
@@ -503,9 +503,6 @@ li.delete-log {
 }
 ul.filter-choices ul {
     padding-left: 0 !important;
-}
-tr.link-row:hover td.link-cell {
-    background: #c6afde;
 }
 
 

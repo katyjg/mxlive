@@ -557,9 +557,8 @@ div.filters
 
 div.object-list
 {
-	background:#DDD;
+	background:#eee;
 	margin-top:.5em;
-	padding:2px 0;
 }
 
 div.object-list td a
@@ -570,13 +569,27 @@ div.object-list td a
 
 div.object-list th
 {
-	font-weight:400;
+	font-weight: bold;
 	padding:3px .4em;
 	border-bottom:1px solid #ccc;
-	border-left:1px solid #ccc;
+	border-top:1px solid #ccc;
 	background:#EEE;
-	text-align:left;
+	text-align:center;
 	vertical-align:middle;
+}
+
+div.object-list td
+{
+	padding:.3em;
+	padding-left:.5em;	
+    background-color: #fff;
+    border-bottom: 1px solid #dedede;
+    height: 1.5em;
+    overflow: hidden;
+    text-align: center;
+    padding: 3px 0 1px;
+    vertical-align: middle; 
+    white-space: nowrap;
 }
 
 div.object-list th a
@@ -586,9 +599,13 @@ div.object-list th a
 	padding-right:12px;
 }
 
+div.object-list th + th {
+    border-left:1px dotted #ccc;
+}
+
 div.object-list th.sorted
 {
-	background-color:#fff!important;
+	/*background-color:#fff!important;*/
 }
 
 div.object-list th.ascending a
@@ -601,26 +618,27 @@ div.object-list th.descending a
 	background:url(/img/arrow-up.png) right 50% no-repeat;
 }
 
-div.object-list td
+
+
+tr.even td
 {
-	white-space:nowrap;
-	overflow:hidden;
-	vertical-align:top;
-	padding:.3em;
-	padding-left:.5em;
-	border-bottom:1px dotted #ccc;
-	vertical-align:middle;
+	background-color:#f7f7f7;
 }
 
-.link-row
+tr.odd td
+{
+	background-color:#fff;
+}
+
+.link-cell
 {
 	cursor:pointer;
-	color:#333;
+	/*color:#333;*/
 }
 
-.link-row:hover
+.link-row:hover, link-cell:hover
 {
-	background:#c8b9d7;
+	background:#eee;
 }
 
 .link-no-pointer
@@ -633,10 +651,10 @@ div.object-list td
 	cursor:pointer;
 }
 
-td.first
+td.first, th.first
 {
-	background:url(/img/icon.expand.png) no-repeat scroll 5px 6px;
 	width:10px;
+	border-left: none !important;
 }
 
 tr.expanded
@@ -742,16 +760,6 @@ ul.reports li a
 .tools li:last-child,.tools li.last
 {
 	padding-right:0;
-}
-
-tr.odd td
-{
-	background-color:#ccc;
-}
-
-tr.even td
-{
-	background-color:#dcdcdc;
 }
 
 /* RESULTS */
@@ -955,6 +963,22 @@ dl.note-list dd
 	top:5px;
 	width:24px;
 }
+
+
+/* Activity Log */
+#activity-search
+{
+    float: left;
+    margin: 0;
+    text-align: left;
+}
+
+#activity-filters
+{
+    float: left;
+    margin: 0;
+    padding: 3px 0;
+    text-align: left;}
 
 /*--------------------------- FORMS -----------------------------------------*/
 .objform

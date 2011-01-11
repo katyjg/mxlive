@@ -15,6 +15,7 @@ from django.db.models.signals import pre_delete
 from django.db.models.signals import pre_save
 from django.db.models.signals import post_delete
 from django.core.exceptions import ObjectDoesNotExist
+from lims.filterspecs import WeeklyFilterSpec
 
 IDENTITY_FORMAT = '.%y.%m.%d'
 OBJECT_STATES = Enum(
@@ -1501,7 +1502,7 @@ class ActivityLogManager(models.Manager):
     
 class ActivityLog(models.Model):
     TYPE = Enum('Login', 'Logout', 'Task','Create', 'Modify','Delete', 'Archive')
-    created = models.DateTimeField('date/time', auto_now_add=True, editable=False)
+    created = models.DateTimeField('Date/Time', auto_now_add=True, editable=False)
     project = models.ForeignKey(Project)
     user = models.ForeignKey(User)
     ip_number = models.IPAddressField('IP Address')
@@ -1512,7 +1513,8 @@ class ActivityLog(models.Model):
     description = models.TextField(blank=True)
     
     objects = ActivityLogManager()
-
+    created.weekly_filter = True
+    
     class Meta:
         ordering = ('-created',)
     

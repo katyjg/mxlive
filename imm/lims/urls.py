@@ -144,7 +144,7 @@ urlpatterns = patterns('imm.lims.views',
     url(r'^experiment/result/(\d+)/wilson.png$', 'plot_wilson_stats', name='lims-plot-wilson'),
     url(r'^experiment/result/(\d+)/twinning.png$', 'plot_twinning_stats', name='lims-plot-twinning'),
 
-    (r'^activity/$', 'object_list', {'model': ActivityLog, 'template': 'objlist/tiny_list.html','link': False}),
+    (r'^activity/$', 'object_list', {'model': ActivityLog, 'template': 'objlist/generic_list.html','link': False}, 'lims-activity-log'),
     
     #new model handling urls (rest style, src/src_id/dest/dest_id/object/obj_id)
     # samples page

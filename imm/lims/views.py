@@ -46,7 +46,7 @@ except:
 
 
  
-ACTIVITY_LOG_LENGTH  = 5       
+ACTIVITY_LOG_LENGTH  = 6       
 
 def admin_login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME):
     """
@@ -228,7 +228,6 @@ def home(request):
 @project_required
 def show_project(request):
     project = request.project
-    msglist = ObjectList(request, request.user.inbox)
 
     statistics = {
         'shipment': {
@@ -250,8 +249,8 @@ def show_project(request):
     return render_to_response('lims/project.html', {
         'project': project,
         'statistics': statistics,
-        'inbox': msglist,
-        'link':False,
+        'activity_log': ObjectList(request, project.activitylog_set),
+        'handler' : request.path
         },
     context_instance=RequestContext(request))
  
@@ -776,7 +775,7 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
     log_set = [
         ContentType.objects.get_for_model(model).pk, 
     ]
-    ol = ObjectList(request, request.manager, num_show=25)    
+    ol = ObjectList(request, request.manager)    
     return render_to_response(template, {'ol': ol, 
                                          'link': link, 
                                          'can_add': can_add, 

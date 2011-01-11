@@ -19,12 +19,13 @@ SEARCH_VAR = 'q'
 ERROR_FLAG = 'e'
 IS_POPUP_VAR = 'pop'
 TO_FIELD_VAR = 't'
-   
     
 
 class ObjectList(ChangeList):
     """ A Clone of the Admin ChangeList which enables us to use changelist like
     features such as filters, search and pagination in non-admin related applications
+    
+    Only one instance can be created per view as it overwrites
     """
     
     def __init__(self, request, manager, admin_site=None, num_show=None):
