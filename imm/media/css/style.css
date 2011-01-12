@@ -58,12 +58,12 @@ html
 body
 {
 	font-size:12px;
-	background:#fff;
 	font-family:"Segoe UI", Cantarell, serif;
 	line-height:1.5em;
 	color:#333;
 	background-color:#fff;
 	height: 100%;
+    background: #fff;
 }
 
 table
@@ -971,14 +971,16 @@ dl.note-list dd
     float: left;
     margin: 0;
     text-align: left;
+    padding-right 24px;
 }
 
 #activity-filters
 {
     float: left;
     margin: 0;
-    padding: 3px 0;
-    text-align: left;}
+    height: 18px;
+    text-align: left;
+}
 
 /*--------------------------- FORMS -----------------------------------------*/
 .objform
