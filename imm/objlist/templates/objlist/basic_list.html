@@ -1,25 +1,6 @@
 {% load objlist %}
 
 <div class="object-list">
-{% comment %}
-    <div class="object-tools">
-        {% if instructions %}<h1>{{instructions}}</h1>{% endif %}
-        <div class="left-element">
-            <form class="search-object-list" style="display: inline;" action="{{ handler }}" method="get">
-                <input class="field search" type="text" size="20" name="q" value="" id="searchbar" />
-            </form>
-        </div>
-        <div class="mid-element{% if ol.has_filters %}{% for spec in ol.filter_specs %}{% ifequal forloop.counter 2 %} raise{% endifequal %}{% endfor %}{% endif %}">
-            {% show_all_filters ol handler %}
-        </div>
-        <div class="right-element">
-            {% if can_receive %}<a class="edit-tool modal" rel="#edit-modal" href='{{ handler }}receive/' >Receive {{ ol.object_type }}</a>{% endif %}
-            {% if can_upload %}<a class="xls-tool modal" rel="#xls-modal" href='{{ handler }}upload/' >Upload {{ ol.object_type }}</a>{% endif %}
-            {% if can_add %}<a class="add-tool modal" rel="#add-modal" href='{{ handler }}new/' >Add {{ ol.object_type }}</a>{% endif %}
-        </div>
-        <div class="clear"></div>
-    </div>
-{% endcomment %} 
     <div class="list-tools">
         {% if ol.is_paginated %}
             {% include "objlist/pagination.html" %}

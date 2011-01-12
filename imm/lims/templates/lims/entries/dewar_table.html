@@ -1,25 +1,49 @@
+{% load objlist %}
+
 <div id="{{dewar.id}}" 
      class="dewar dewar-detail droppable droppable-add" 
      accept="container" 
      rel="{% url lims-dewar-detail dewar.id %}">
-    <h3 class="dewar droppable droppable-add" 
-     accept="container" 
-     rel="{% url lims-dewar-detail dewar.id %}">{{ dewar.label }} ({{ dewar.identity }})</h3>
+    <div class="title">
+        <img src="/img/dewar.png"/>
+        <p class="dewar droppable droppable-add" 
+            accept="container" 
+            rel="{% url lims-dewar-detail dewar.id %}">{{ dewar.label }} ({{ dewar.identity }})
+        <a class="remove"
+           rel="{{handler}}dewar/{{dewar.pk}}/remove/"
+           href="#"
+           onclick="remove_item(this);">Remove</a></p> 
+    </div>
     <ul class="dewar droppable droppable-add" 
      accept="container" 
      rel="{% url lims-dewar-detail dewar.id %}">
         {% for container in containers %}
-            <li>
-                {{ container.name }}
+            <li class="container draggable-link-parent">
+                <div class="{{ container.json_dict.type }}"></div>
+                <a href="{% url lims-container-detail container.id %}">{{ container.name }}</a>
             </li>
         {% endfor %}
         <li></li>
     </ul>
 </div>
 {% comment %}
-    <li class="container droppable droppable-add" 
-        accept="crystal" 
-        parent="{{ object.id }}"
-        rel="{% url lims-container-detail object.id %}"
-        container_location="{{ loc }}">{{ loc }}</li>
+    <li class="crystal draggable-link-parent">
+        <a href="{% url lims-crystal-detail crystal.id %}">{{ loc }} - {{ crystal.name }} ({{ crystal.identity }})</a>
+    </li>
 {% endcomment %}
+	<script>
+		function remove_item(element) {
+            go_to = window.location.href + element.rel
+            console.log(go_to)
+			jQuery.ajax({
+                type: "POST",
+                url: go_to,
+                data: "",
+                success: function() {
+                    // refreshDatalist();
+                    // loadWidgets();
+                    window.location.reload();
+                }
+            });
+        }
+    </script>

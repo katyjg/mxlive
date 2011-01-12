@@ -10,7 +10,7 @@
     {% include "lims/tools.html" %}
     <ul class="tools">
         <li>
-            <a class="back-tool" href="{% url lims-experiment-list %}">Back to Full List</a>
+            <a class="back-tool" href="{% url lims-shipment-list %}">Back to Full List</a>
         </li>
     </ul>
 </div>
@@ -50,7 +50,7 @@
     <div style="clear: both;"></div>
 
     <h3>Dewars</h3>
-    <img src="/img/dewar.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/>
+    <!--img src="/img/dewar.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/-->
 
     {% with shipment.dewar_set as dewars %}
         {% if dewars.count %}
