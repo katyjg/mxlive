@@ -4,16 +4,11 @@
     rel="#edit-object"
     title="Edit {{object.pk}}"
     {% endif %}{% endif %}>
+    <td class="first"></td>
 
     {# should add a check here for maximum size. Don't want something like a long label ruining everything #}
     {% load truncate_filters %}
-
-    {% if is_individual %}
-        <a href="{{handler}}{{object.id}}/">
-    {% else %}
-        <a href="{{ handler }}{{object.pk}}/edit/" rel="#edit-object" class="action modal" title="Edit">
-    {% endif %}
-
+    
     {% for field in fields %}
     	{% if field == object.id %}
     		<td class="link-cell">

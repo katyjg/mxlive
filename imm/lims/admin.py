@@ -1,8 +1,8 @@
 from django.contrib import admin
 from imm.lims.models import *
 
-ITEMS_PER_PAGE = 15
-
+ITEMS_PER_PAGE = 16
+ACTIVITY_ITEMS_PER_PAGE = 6
 staff_site = admin.AdminSite()
 
 class ConstituentAdmin(admin.ModelAdmin):
@@ -32,10 +32,10 @@ admin.site.register(Dewar, DewarAdmin)
     
 class ActivityLogAdmin(admin.ModelAdmin):
     list_filter = ['created']
-    search_fields = ['description','ip_number']
-    list_display = ('content_type','created','action_type','user','ip_number','description')
+    search_fields = ['description','ip_number', 'content_type__name', 'action_type']
+    list_display = ('created', 'action_type','content_type', 'user','ip_number','description')
     ordering = ('-created',)
-    list_per_page = ITEMS_PER_PAGE    
+    list_per_page = ACTIVITY_ITEMS_PER_PAGE    
 admin.site.register(ActivityLog, ActivityLogAdmin)
         
 class ExperimentAdmin(admin.ModelAdmin):

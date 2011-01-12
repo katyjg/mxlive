@@ -51,7 +51,7 @@ def truncate(value, arg):
         return value
         
 @register.inclusion_tag('objlist/basic_list_entry.html', takes_context=True)
-def basic_list_entry(context, obj, handler, indiv, loop_count):
+def basic_list_entry(context, obj, handler, loop_count):
     """
     Added for January 2011 UI changes.
     Renders an entry for the object ``obj`` in an object list table. If the
@@ -82,7 +82,7 @@ def basic_list_entry(context, obj, handler, indiv, loop_count):
              'row_state' : "odd" if loop_count % 2 == 1 else "even",
              'type' : ol.object_type,
              'single' : single,
-             'is_individual' : indiv
+             'is_individual' : context.get('is_individual', False),
             }
        
 def object_fields(obj, model_admin=None):
