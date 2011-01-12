@@ -58,12 +58,12 @@ html
 body
 {
 	font-size:12px;
-	background:#fff;
 	font-family:"Segoe UI", Cantarell, serif;
 	line-height:1.5em;
 	color:#333;
 	background-color:#fff;
 	height: 100%;
+    background: #fff;
 }
 
 table
@@ -563,13 +563,22 @@ th.Cassette {
 	background-color:#c8b9d7;
 }
 
+#sidebar-activity-log {
+    line-height: 1.2em;
+}
+
+
 /* FILTERS */
+div.filters
+{
+	font-size:10px;
+	line-height: 12px;
+}
+
 ul.filter-choices
 {
-	padding-left:.5em;
+	padding-left:2em;
 	margin:0;
-	line-height:11px;
-	font-size:11px;
 }
 
 ul.filter-choices li
@@ -588,13 +597,11 @@ ul.filter-choices li.filter-title
 ul.filter-choices li a
 {
 	border:none;
-	margin:2px;
-	padding:1px;
 }
 
 ul.filter-choices li.selected a
 {
-	font-weight:700;
+	font-weight:bold;
 	color:#6c9!important;
 }
 
@@ -603,10 +610,10 @@ ul.filter-choices a:hover
 	color:#630;
 }
 
-div.filters
-{
-	font-size:90%;
-	padding:.3em;
+#activity-filters li {
+	display:inline;
+	margin:0;
+	padding:0;  
 }
 
 
@@ -1026,14 +1033,16 @@ dl.note-list dd
     float: left;
     margin: 0;
     text-align: left;
+    padding-right 24px;
 }
 
 #activity-filters
 {
     float: left;
     margin: 0;
-    padding: 3px 0;
-    text-align: left;}
+    height: 18px;
+    text-align: left;
+}
 
 /*--------------------------- FORMS -----------------------------------------*/
 .objform
@@ -1312,6 +1321,7 @@ input.matrixcode
 input.search
 {
 	background:#fff url(/img/searchbox-bg.png) no-repeat scroll right center;
+	max-width: 140px;
 }
 
 div.choice label

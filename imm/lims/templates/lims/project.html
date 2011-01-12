@@ -6,12 +6,12 @@
 
 {% block object-tools %}
     <div class="object-tools">
-        <div class="right-element" style="padding: 3px;">
-            <a class="xls-tool modal" rel="#xls-modal" href='{% url lims-shipment-upload %}' >Feedback</a>
-            <a class="xls-tool modal" rel="#xls-modal" href='{% url lims-shipment-upload %}' >Get Template</a>
-            <a class="xls-tool modal" rel="#xls-modal" href='{% url lims-shipment-upload %}' >Upload Shipment</a>
-            <a class="xls-tool modal" rel="#xls-modal" href='{% url lims-shipment-upload %}' >Profile</a>
-        </div>
+        <ul class="toolbar">
+            <li class="template-tool"><a class="modal" rel="#xls-modal" href="{{handler}}" title="Download spreadsheet template">Get Template</a>
+            <li class="upload-tool"><a class="modal" rel="#xls-modal" href="{% url lims-shipment-upload %}" title="Upload shipment from spreadsheet">Upload</a>
+            <li class="feedback-tool"><a class="modal" rel="#feedback-modal" href="{{ handler }}" title="Send us feedback">Feedback</a></li>
+            <li class="profile-tool"><a class="modal" rel="#xls-modal" href="{{ handler }}" title="Edit your profile">Profile</a>
+        </ul>
         <div class="clear"></div>
     </div>
 {% endblock %}

@@ -1,0 +1,10 @@
+{% if choices %}
+<ul "filter-choices">
+{% for choice in choices %}
+    <li {% if choice.selected %}class="selected"{% endif %}>
+        <a class="filter" href="{{ url }}{{ choice.query_string }}">{{choice.display|escape}}</a>
+    </li>
+{% endfor %}
+</ul>
+{%endif %}
+

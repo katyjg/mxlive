@@ -12,11 +12,9 @@
         <div class="mid-element">
             {% show_all_filters ol handler %}
         </div>
-        <div class="right-element" style="padding: 3px;">
-            {% if can_receive %}<a class="edit-tool modal" rel="#edit-modal" href='{{ handler }}receive/' >Receive {{ ol.object_type }}</a>{% endif %}
-            {% if can_upload %}<a class="xls-tool modal" rel="#xls-modal" href='{{ handler }}upload/' >Upload {{ ol.object_type }}</a>{% endif %}
-            {% if can_add %}<a class="add-tool modal" rel="#add-modal" href='{{ handler }}new/' >Add {{ ol.object_type }}</a>{% endif %}
-        </div>
+        <ul class="toolbar">
+            {% if can_add %}<li class="add-tool"><a class="modal" rel="#add-modal" href='{{ handler }}new/'>Add {{ol.object_type}}</a></li>{% endif %}
+        </ul>
         <div class="clear"></div>
     </div>
 {% endblock %}

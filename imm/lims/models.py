@@ -17,7 +17,7 @@ from django.db.models.signals import post_delete
 from django.core.exceptions import ObjectDoesNotExist
 from lims.filterspecs import WeeklyFilterSpec
 
-IDENTITY_FORMAT = '.%y.%m.%d'
+IDENTITY_FORMAT = '-%y%m'
 OBJECT_STATES = Enum(
     'ACTIVE', 
     'ARCHIVED', 
