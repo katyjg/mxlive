@@ -1,19 +1,19 @@
 {% load humanize %}
-
+<div id="sidebar-activity-log">
 <h2>Recent Activity</h2>
-
 <ul>
     {% if logs %}
         {% for log in logs %}
         <li class="{{log.get_action_type_display|lower}}-log">
-            {{log.content_type|capfirst}}: 	&lsquo;{{ log.object_repr }}&rsquo;
+            <strong>{{log.content_type|capfirst}}:</strong>	&lsquo;{{ log.object_repr }}&rsquo;<br />
             {% if log.user.is_admin or log.user.is_staff %}
             by {{ log.user|capfirst }} 
             {% endif %}
-            {{ log.created|date:"d/m/y" }}
+            <em>{{ log.created|date:"M jS @ P" }}</em>
         </li>
         {% endfor %}
     {% else %}
-        <li class="list-empty">No Activity</li>
+        <li class="list-empty">No history</li>
     {% endif %}
 </ul>
+</div>

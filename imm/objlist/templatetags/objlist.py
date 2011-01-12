@@ -22,6 +22,13 @@ def show_one_filter(ol, spec, url):
     """
     return {'title': spec.title(), 'choices' : list(spec.choices(ol)), 'url' : url}
 
+@register.inclusion_tag('objlist/weekly_filter.html')
+def show_weekly_filter(ol, spec, url):
+    """
+    Renders a single weekly Filter specification ``spec`` for a given object list ``ol``. 
+    """
+    return {'title': spec.title(), 'choices' : list(spec.choices(ol)), 'url' : url}
+
 @register.inclusion_tag('objlist/basic_filters.html')
 def show_all_filters(ol, url):
     """

@@ -64,8 +64,8 @@ function transform_select(src_el) {
     src_div.insert({'after': dest_div});
     src_div.insert({'after': tool_div});
     dest_div.appendChild(dest_el);
-    var add_link = new Element('img', {'class':'selectAddTool link-row','src':'/img/add-icon.png','border':0});
-    var del_link = new Element('img', {'class':'selectDelTool link-row','src':'/img/remove-icon.png','border':0});
+    var add_link = new Element('img', {'class':'selectAddTool link-row','src':'/img/small-add-icon.png','border':0});
+    var del_link = new Element('img', {'class':'selectDelTool link-row','src':'/img/small-remove-icon.png','border':0});
     tool_div.insert(add_link);
     tool_div.insert(del_link);
     add_link.insert({'after': '<br/>'} );

@@ -2,9 +2,7 @@
 
 {% if ol.has_filters %}
     <div class="filters">
-	            <ul class="filter-choices">
-	                {% for spec in ol.filter_specs %}<ul>{% show_one_filter ol spec url %}</ul>{% endfor %}
-	            </ul>
-        <div class="clear"></div>
+       {% for spec in ol.filter_specs %}<ul class="filter-choices">{% show_one_filter ol spec url %}</ul>{% endfor %}
+       <div class="clear"></div>
     </div>
 {% endif %}
