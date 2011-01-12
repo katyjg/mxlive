@@ -19,11 +19,15 @@
 
 {% block content %}
 
-<img src="/img/dewar.png" class="dewar droppable" accept="container" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
-
 {% with object as dewar %}
+    <img src="/img/dewar.png" class="dewar droppable" accept="container" style="float:right; clear: right; margin: 0.5em; padding-right: 2em; "/>
 
     <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
+        {% if request.user.is_superuser %}
+            <tr valign="top"><th>Staff Comments:</th><td>{{ object.staff_comments|wordwrap:10 }}</td></tr>
+        {% else %}
+            <tr valign="top"><th>Comments:</th><td>{{ object.comments|wordwrap:10 }}</td></tr>
+        {% endif %}
         <tr valign="top">
             <th>Status:</th>
             <td>{{dewar.get_status_display}}</td>
@@ -34,19 +38,24 @@
                 <td>{{dewar.storage_location|default:"Unknown"}}</td>
             </tr>
         {% endifequal %}
+        <tr valign="top">
+            <th>Label:</th>
+            <td>{{dewar.label}}</td>
+        </tr>
+        <tr valign="top">
+            <th>Shipment:</th>
+            <td>{{dewar.shipment.name}}</td>
+        </tr>
     </table>
+    
+    <h3>Containers</h3>
 
     {% if dewar.container_set.count %}
-        {% for container in dewar.container_set.all %}
-            <li id="{{ container.id }}" class="container draggable-link-parent parent-stop ui-draggable" 
-                rel="{% url lims-container-detail container.id %}">
-                <a href="{% url lims-container-detail container.id %}">{{ container.label }} ({{ container.identity }})</a>
-            </li>
-        {% endfor %}
+        {% load dewar_table %}
+        {% dewar_table dewar request.user.is_superuser "dewar" %}
     {% else %}
-        (No containers are assigned to this Dewar).
+        (No containers assigned to this dewar.)
     {% endif %}
-
 {% endwith %}
 
 <div id="add-container" class="hidden modal-content"></div>

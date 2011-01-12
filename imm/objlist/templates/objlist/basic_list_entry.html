@@ -1,5 +1,6 @@
 <tr class="link-row action modal {{ row_state }} {{ type|lower }}"  
     {% if is_individual %}redirect="{{ handler }}{{ object.pk }}/"
+    title="Go to {{type}} {{object.pk}}"
     {% else %}{% if object.is_editable %}href="{{handler}}{{object.pk}}/edit/"
     rel="#edit-object"
     title="Edit {{object.pk}}"

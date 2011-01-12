@@ -1,5 +1,6 @@
 {% load objlist %}
 
+{% ifequal page "shipment" %}
 <div id="{{dewar.id}}" 
      class="dewar dewar-detail droppable droppable-add" 
      accept="container" 
@@ -10,7 +11,7 @@
             accept="container" 
             rel="{% url lims-dewar-detail dewar.id %}">{{ dewar.label }} ({{ dewar.identity }})
         <a class="remove"
-           rel="{{handler}}dewar/{{dewar.pk}}/remove/"
+           rel="{% url lims-dewar-remove dewar.shipment.pk dewar.pk %}" 
            href="#"
            onclick="remove_item(this);">Remove</a></p> 
     </div>
@@ -21,29 +22,62 @@
             <li class="container draggable-link-parent">
                 <div class="{{ container.json_dict.type }}"></div>
                 <a href="{% url lims-container-detail container.id %}">{{ container.name }}</a>
+                <a class="remove"
+                   rel="{% url lims-dewar-remove-container dewar.pk container.id %}"
+                   href="#"
+                   onclick="remove_item(this);">Remove</a>
             </li>
         {% endfor %}
         <li></li>
     </ul>
 </div>
-{% comment %}
-    <li class="crystal draggable-link-parent">
-        <a href="{% url lims-crystal-detail crystal.id %}">{{ loc }} - {{ crystal.name }} ({{ crystal.identity }})</a>
-    </li>
-{% endcomment %}
-	<script>
-		function remove_item(element) {
-            go_to = window.location.href + element.rel
-            console.log(go_to)
-			jQuery.ajax({
-                type: "POST",
-                url: go_to,
-                data: "",
-                success: function() {
-                    // refreshDatalist();
-                    // loadWidgets();
-                    window.location.reload();
-                }
-            });
-        }
-    </script>
+{% endifequal %}
+
+{% ifequal page "dewar" %}
+<div class="object-list">
+    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
+        <thead>
+            <tr class="header">
+                <th></th>
+             	<th>Name</th>
+                <th>Barcode</th>
+           		<th>Capacity</th>
+                <th># of Crystals</th>
+                <th></th>
+            </tr>
+        </thead>
+        <body>
+            {% for container in containers %}
+                <tr class="{% cycle 'odd' 'even'%} link-row modal"
+                    redirect="{% url lims-container-detail container.pk %}"
+                    title="Go to Container {{container.pk}}">
+                    <td><div class="{{ container.json_dict.type }}"></div></td>
+                    <td>{{ container.name }}</td>
+                    <td>{% if container.code %}{{ container.code }}{% else %}Undefined{% endif %}</td>
+                    <td>{{ container.capacity }}</td>
+                    <td>{{ container.num_crystals }}</td>
+                    <td><a class="remove"
+                       rel="{% url lims-dewar-remove-container dewar.pk container.id %}"
+                       href="#"
+                       onclick="remove_item(this);">Remove</a></td>
+                </tr>
+            {% endfor %}
+        </body>
+    </table>
+</div>
+{% endifequal %}
+
+<script>
+	function remove_item(element) {
+		jQuery.ajax({
+            type: "POST",
+            url: element.rel,
+            data: "",
+            success: function() {
+                // refreshDatalist();
+                // loadWidgets();
+                window.location.reload();
+            }
+        });
+    }
+</script>

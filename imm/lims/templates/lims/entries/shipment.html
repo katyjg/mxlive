@@ -56,7 +56,7 @@
         {% if dewars.count %}
             {% load dewar_table %}
             {% for dewar in dewars.all %}
-                {% dewar_table dewar request.user.is_superuser %}
+                {% dewar_table dewar request.user.is_superuser "shipment" %}
             {% endfor %}
         {% else %}
             (No dewars assigned to this shipment.)

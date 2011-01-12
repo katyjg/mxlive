@@ -487,7 +487,21 @@ div.crystal.droppable.lims-droppable-hover {
     order-width:1px;
     border-color:#BB88D3;
 }
-
+.lims-droppable-hover.dewar-detail {
+    background-color: #BB88D3;
+}
+ .lims-droppable-hover li {
+	background-color:#c8b9d7 !important;
+}
+.lims-droppable-hover.Cassette, .lims-droppable-active.Cassette {
+    border: none !important;
+}
+td.lims-droppable-hover.Cassette {
+    background: url('/img/circle_purple.png') no-repeat center center;
+}
+td.lims-droppable-hover.Cane {
+    background-color: #c8b9d7;
+}
 li.modify-log {
     background:url("/img/edit-icon.png") no-repeat scroll transparent;
     padding-left: 20px !important;

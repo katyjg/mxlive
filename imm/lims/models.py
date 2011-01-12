@@ -683,7 +683,12 @@ class Container(models.Model):
             
     def valid_locations(self):
         if self.kind == self.TYPE.CASSETTE:
-            all_positions = ["ABCDEFGHIJKL"[x/8]+str(1+x%8) for x in range(self.capacity()) ]
+            all_positions = []
+            for x in range(self.capacity()//12):
+                num = str(1+x%8)
+                position = ["ABCDEFGHIJKL"[y]+str(x+1) for y in range(self.capacity()//8) ]
+                for item in position:
+                    all_positions.append(item)
         else:
             all_positions = [ str(x+1) for x in range(self.capacity()) ]
         return all_positions
@@ -697,9 +702,10 @@ class Container(models.Model):
     
     def location_and_crystal(self):
         retval = []
+        xtalset = self.crystal_set.all()
         for location in self.valid_locations():
             xtl = None
-            for crystal in self.crystal_set.all():
+            for crystal in xtalset:
                 if crystal.container_location == location:
                     xtl = crystal
             retval.append((location, xtl))

@@ -452,6 +452,29 @@ div.Uni-Puck, div.Cassette, div.Cane {
 .Cane {
     background: url('/img/container-cane-sm.png') no-repeat center center;
 }
+td.Cane {
+    background: #f7f7f7;
+    height: 50px;
+    width: 20px;
+    border-bottom: 1px solid #000;
+    padding-left: 10px;
+}
+td.occupied {
+    background: #bee0bb;
+}
+td.Cassette {
+    height: 50px;
+    width: 58px;
+    background: url('/img/circle_grey.png') no-repeat center center;
+    text-align: center;
+}
+td.Cassette.occupied {
+    background: url('/img/circle_green.png') no-repeat center center;
+}
+th.Cassette {
+    text-align: center;
+    background: none;
+}
 
 .dewar-detail 
 {
@@ -476,6 +499,7 @@ div.Uni-Puck, div.Cassette, div.Cane {
 
 .dewar-detail a.remove {
     float: right;
+    margin-right: 5px;
 }
 
 .dewar-detail, #sidebar .widget
@@ -651,8 +675,6 @@ div.object-list th.descending a
 	background:url(/img/arrow-up.png) right 50% no-repeat;
 }
 
-
-
 tr.even td
 {
 	background-color:#f7f7f7;
@@ -669,7 +691,7 @@ tr.odd td
 	/*color:#333;*/
 }
 
-.link-row:hover, link-cell:hover
+.link-row:hover, link-cell:hover, .link-row:hover td
 {
 	background:#eee;
 }
