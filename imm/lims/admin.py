@@ -54,7 +54,7 @@ staff_site.register(Experiment, ExperimentStaffAdmin)
 class CrystalAdmin(admin.ModelAdmin):
     search_fields = ['name', 'code']
     list_filter = ['modified']
-    list_display = ('identity', 'name', 'status', 'cocktail', 'comments')       
+    list_display = ('identity', 'name', 'status', 'cocktail', 'comments', 'container', 'container_location')       
     ordering = ['-created', '-priority']
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Crystal, CrystalAdmin)

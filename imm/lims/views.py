@@ -353,7 +353,7 @@ def container_summary(request, model=ActivityLog):
 
 @login_required
 @transaction.commit_on_success
-def add_existing_object(request, dest_id, obj_id, destination, object, src_id=None, source=None, replace=False, reverse=False):
+def add_existing_object(request, dest_id, obj_id, destination, object, src_id=None, loc_id=None, source=None, replace=False, reverse=False):
     """
     New add method. Meant for AJAX, so only intended to be POST'd to. This will add an object of type 'object'
     and id 'obj_id' to the object of type 'destination' with the id of 'dest_id'.
@@ -433,8 +433,8 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
                 request.user.message_set.create(message = message)
                 return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
                 
-        if src_id:
-            setattr(dest, 'container_location', src_id)
+        if loc_id:
+            setattr(dest, 'container_location', loc_id)
     
         dest.save()
         message = '%s has been successfully added' % display_name

@@ -436,13 +436,46 @@ img
 {
 	margin:10px 0;
 }
+div.Uni-Puck, div.Cassette, div.Cane {
+    height: 40px;
+    width: 30px;
+    margin-left: 5px;
+    float: left;
+    margin-right: 5px;
+}
+.Uni-Puck {
+    background: url('/img/container-uni-puck-sm.png') no-repeat center left;
+}
+.Cassette {
+    background: url('/img/container-cassette-sm.png') no-repeat center center;
+}
+.Cane {
+    background: url('/img/container-cane-sm.png') no-repeat center center;
+}
 
 .dewar-detail 
 {
-    max-width: 200px;
-    min-height: 120px;
+    max-width: 205px;
+    min-height: 150px;
     float: left;
     margin-right: 20px;
+    margin-top: 10px;
+}
+.dewar-detail li
+{
+    line-height: 45px;
+	border-bottom:1px solid #ccc;
+	background:#f7f7f7;
+}
+
+.dewar-detail img {
+    float: left;
+    margin-right: 10px;
+    max-height: 40px;
+}
+
+.dewar-detail a.remove {
+    float: right;
 }
 
 .dewar-detail, #sidebar .widget
@@ -451,7 +484,7 @@ img
 	margin-bottom:10px;
 }
 
-.dewar-detail h3, #sidebar .widget h3
+.dewar-detail div.title, #sidebar .widget h3
 {
 	margin:0;
 	padding:4px;
@@ -467,7 +500,7 @@ img
 	overflow-x:hidden;
 }
 
-.dewar-detail li, #sidebar .widget li
+#sidebar .widget li
 {
 	margin:0;
 	border-bottom:1px solid #ccc;

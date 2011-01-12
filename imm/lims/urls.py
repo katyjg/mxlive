@@ -2,6 +2,7 @@ from django.conf.urls.defaults import patterns, url
 from django.conf import settings
 from imm.lims.models import *
 from imm.lims.forms import *
+from django.views.generic.simple import *
 
 urlpatterns = patterns('imm.lims.views',
     (r'^$', 'show_project', {}, 'project-home'),
@@ -28,11 +29,13 @@ urlpatterns = patterns('imm.lims.views',
     (r'^shipping/dewar/$', 'object_list', {'model': Dewar, 'template': 'objlist/generic_list.html', 'can_add': True, 'is_individual': True}, 'lims-dewar-list'),
     (r'^shipping/dewar/(?P<id>\d+)/$', 'dewar_object_detail', {'model': Dewar, 'template': 'lims/entries/dewar.html'}, 'lims-dewar-detail'),
     (r'^shipping/dewar/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Dewar, 'form': DewarForm, 'template': 'objforms/form_base.html'}, 'lims-dewar-edit'),
-    (r'^shipping/dewar/(?P<id>\d+)/remove/$', 'remove_object', {'model': Dewar, 'field':'shipment'}, 'lims-dewar-remove'),
+    (r'^shipping/dewar/(?P<src_id>\d+)/remove/$', 'remove_object', {'source': Dewar, 'object': Shipment}, 'lims-dewar-remove'),
+    (r'^shipping/shipment/(?P<src_id>\d+)/dewar/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source': Shipment, 'object': Dewar, 'reverse': True}, 'lims-dewar-remove'),
     (r'^shipping/dewar/(?P<id>\d+)/new/$', 'add_new_object', {'model': Container, 'form': ContainerForm, 'field':'dewar'}, 'lims-dewar-new-container'),
     (r'^shipping/dewar/(?P<id>\d+)/add/$', 'add_existing_object', {'model': Container, 'parent_model': Dewar, 'field':'dewar'}, 'lims-dewar-add-container'),
     (r'^shipping/dewar/new/$', 'create_object', {'model': Dewar, 'form': DewarForm, 'template': 'objforms/form_base.html'}, 'lims-dewar-new'),
     (r'^shipping/dewar/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Dewar, 'object':Container, 'reverse':True}, 'lims-dewar-add-container'),
+    (r'^shipping/dewar/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/crystal/(?P<obj_id>\d+)/$', 'remove_object', {'source':Dewar, 'object':Container, 'reverse':True}, 'lims-dewar-remove-container'),
     #########################
     (r'^shipping/container/basic/$', 'basic_object_list', {'model': Container, 'template': 'objlist/basic_object_list.html'}, 'lims-container-basic-list'),
     #CONTAINERS##############    
@@ -44,9 +47,8 @@ urlpatterns = patterns('imm.lims.views',
     (r'^shipping/container/(?P<id>\d+)/new/$', 'add_new_object', {'model': Crystal, 'form': SampleForm, 'field': 'container'}, 'lims-container-new-crystal'),
     (r'^shipping/container/(?P<id>\d+)/add/$', 'add_existing_object', {'model': Crystal, 'form': SampleSelectForm, 'parent_model': Container, 'field': 'container', 'additional_fields': ['container_location']}, 'lims-container-add-crystal'),
     (r'^shipping/container/new/$', 'create_object', {'model': Container, 'form': ContainerForm, 'template': 'objforms/form_base.html'}, 'lims-container-new'),
-    (r'^shipping/container/(?P<dest_id>\d+)/widget/.*/crystal/(?P<obj_id>\d+)/loc/(?P<src_id>\d+)/$', 'add_existing_object', {'destination':Container, 'object':Crystal, 'reverse':True}, 'lims-container-add-crystal'),
+    (r'^shipping/container/(?P<dest_id>\d+)/widget/.*/crystal/(?P<obj_id>\d+)/loc/(?P<loc_id>\d+)/$', 'add_existing_object', {'destination':Container, 'object':Crystal, 'reverse':True}, 'lims-container-add-crystal'),
     #######################
-    (r'^samples/$', 'sample_summary', {'model': ActivityLog}, 'lims-sample-summary'),
     (r'^samples/crystal/basic/$', 'basic_crystal_list', {'model': Crystal, 'template': 'objlist/basic_object_list.html', }, 'lims-crystal-basic-list'),
     #CRYSTALS##############
     (r'^samples/crystal/$', 'object_list', {'model': Crystal, 'template': 'objlist/generic_list.html', 'can_add': True, 'can_prioritize': True, 'is_individual': True}, 'lims-crystal-list'),
@@ -78,7 +80,6 @@ urlpatterns = patterns('imm.lims.views',
     (r'^samples/crystalform/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': CrystalForm, 'form': CrystalFormForm, 'template': 'objforms/form_base.html'}, 'lims-crystalform-edit'),
     (r'^samples/crystalform/new/$', 'create_object', {'model': CrystalForm, 'form': CrystalFormForm, 'template': 'objforms/form_base.html'}, 'lims-crystalform-new'),
     #######################
-    (r'^experiment/$', 'experiment_summary', {'model': ActivityLog}, 'lims-experiment-summary'),
     (r'^experiment/result/(?P<id>\d+)/$', 'object_detail', {'model': Result, 'template': 'lims/entries/result.html'} , 'lims-result-detail'),
     (r'^experiment/result/(?P<id>\d+)/print/$', 'result_print', {}, 'lims-result-print'),
     (r'^experiment/experiment/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/crystal/(?P<obj_id>\d+)/$', 'remove_object', {'source':Experiment, 'object':Crystal, 'reverse':True}, 'lims-experiment-remove-crystal'),
@@ -113,7 +114,7 @@ urlpatterns = patterns('imm.lims.views',
 
 
 
-    (r'^samples/constituent/$', 'object_list', {'model': Constituent, 'template': 'objlist/object_list.html', 'can_add': True}, 'lims-constituent-list'),
+    (r'^samples/constituent/$', 'object_list', {'model': Constituent, 'template': 'objlist/basic_list.html', 'can_add': True}, 'lims-constituent-list'),
     (r'^samples/constituent/basic/$', 'basic_object_list', {'model': Constituent, 'template': 'objlist/basic_object_list.html'}, 'lims-constituent-basic-list'),
     (r'^samples/constituent/(?P<id>\d+)/$', 'object_detail', {'model': Constituent, 'template': 'lims/entries/constituent.html'}, 'lims-constituent-detail'),
     (r'^samples/constituent/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Constituent, 'form': ConstituentForm, 'template': 'objforms/form_base.html'}, 'lims-constituent-edit'),
@@ -128,11 +129,6 @@ urlpatterns = patterns('imm.lims.views',
     (r'^experiment/crystal/(?P<id>\d+)/rescreen/$', 'rescreen', {}, 'lims-crystal-rescreen'),
     (r'^experiment/crystal/(?P<id>\d+)/recollect/$', 'recollect', {}, 'lims-crystal-recollect'),
     (r'^experiment/crystal/(?P<id>\d+)/complete/$', 'complete', {}, 'lims-crystal-complete'),
-
-    (r'^experiment/strategy/$', 'object_list', {'model': Strategy, 'template': 'objlist/object_list.html'}, 'lims-strategy-list'),
-    (r'^experiment/strategy/(?P<id>\d+)/$', 'object_detail', {'model': Strategy, 'template': 'lims/entries/experiment.html'} , 'lims-strategy-detail'),
-    (r'^experiment/strategy/(?P<id>\d+)/reject/$','edit_object_inline', {'model': Strategy, 'form': StrategyRejectForm, 'template': 'objforms/form_base.html', 'action': 'reject'}, 'lims-strategy-edit'),
-    #(r'^experiment/dataset/(?P<id>\d+)/edit/$','edit_object_inline', {'model': Data, 'form': ExperimentForm, 'template': 'objforms/form_base.html'}, 'lims-strategy-edit'),
 
     (r'^experiment/result/resubmit/$','create_object', {'model': Experiment, 'form': ExperimentFromStrategyForm, 'template': 'objforms/form_base.html', 'action': 'resubmit', 'redirect': 'lims-experiment-list'}, 'lims-strategy-experiment-new'),        
 
@@ -159,6 +155,12 @@ urlpatterns = patterns('imm.lims.views',
     (r'^shipping/dewar/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'remove_object', {'source':Dewar, 'object':Container, 'reverse':True}, 'lims-shipment-remove-container'),
     (r'^shipping/shipment/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/dewar/(?P<obj_id>\d+)/$', 'remove_object', {'source':Shipment, 'object':Dewar, 'reverse':True}, 'lims-shipment-remove-dewar'),
 
+)
+
+
+urlpatterns += patterns('django.views.generic.simple',
+    (r'^experiment/$', 'redirect_to', {'url': '/lims/experiment/request/'}),
+    (r'^samples/$', 'redirect_to', {'url': '/lims/samples/crystal/'}),
 )
 
 if settings.DEBUG:
