@@ -141,6 +141,7 @@ div.clearall { clear:both; }
    display: table-cell;
    vertical-align: middle;
    line-height: 12px;
+   padding-left: 2em;
 }
 
 ul.toolbar {

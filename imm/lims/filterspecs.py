@@ -4,30 +4,38 @@ from django.utils.translation import ugettext as _
 from datetime import datetime, date, timedelta
 from django.utils import dateformat
 
-def get_spec_for_week(field_name, dt, prefix=''):
+def get_spec_for_week(field_name, dt, showing=None):
     start = dt + timedelta(days=-dt.weekday())
     end = start + timedelta(days=6)
     this_dt = datetime.now().date()
     this_start = this_dt + timedelta(days=-this_dt.weekday())
+       
     if this_start == start:
-        title = _('%sThis Week' % (prefix))
+        title = _('This Week')
     else:
-        title = _('%sWeek of %s' % (prefix, dateformat.format(dt, 'M jS')))
+        title = _('Week of %s' % (dateformat.format(dt, 'M jS')))
+        
     spec = {'%s__gte' % field_name: str(start), '%s__lte' % field_name: str(end) }
+    if showing is not None:
+        start_showing = showing + timedelta(days=-showing.weekday())
+        if start_showing == start:
+            spec = {}
     return title, spec
 
-def get_spec_for_day(field_name, dt, prefix=''):
+def get_spec_for_day(field_name, dt, showing=None):
     this_dt = datetime.now().date()
     yest_dt = this_dt + timedelta(days=-1)
     nxt_dt = dt + timedelta(days=1)
     if dt == this_dt:
-        title = _('%sToday' % (prefix))
+        title = _('Today')
     elif dt == yest_dt:
-        title = _('%sYesterday' % (prefix))
+        title = _('Yesterday')
     else:
-        title = _('%sWeek of %s' % (prefix, dateformat.format(dt, 'M jS')))
-    title = _('%s%s' % (prefix, dateformat.format(dt, 'M jS')))
+        title = dateformat.format(dt, 'M jS')
     spec = {'%s__gte' % field_name: str(dt), '%s__lt' % field_name: str(nxt_dt) }
+    if showing is not None:
+        if dt == showing:
+            spec = {}
     return title, spec
     
 class WeeklyFilterSpec(DateFieldFilterSpec):
@@ -45,16 +53,18 @@ class WeeklyFilterSpec(DateFieldFilterSpec):
         start_day = request.GET.get(request_param, None)
         if start_day is None:
             dt = datetime.now().date()
+            showing = None
         else:
             dt = datetime.strptime(start_day[:10],'%Y-%m-%d').date()
+            showing = dt
 
         nxt_dt = dt + timedelta(weeks=+1)
         prv_dt = dt + timedelta(weeks=-1)
         
         self.links = (
-              get_spec_for_week(self.field.name, prv_dt, 'Previous: '),
-              get_spec_for_week(self.field.name, dt),
-              get_spec_for_week(self.field.name, nxt_dt, 'Next: '),
+              get_spec_for_week(self.field.name, prv_dt, showing),
+              get_spec_for_week(self.field.name, dt, showing),
+              get_spec_for_week(self.field.name, nxt_dt, showing),
             )
 
     def title(self):
@@ -74,17 +84,19 @@ class DailyFilterSpec(DateFieldFilterSpec):
         request_param = '%s__gte' % self.field.name
         start_day = request.GET.get(request_param, None)
         if start_day is None:
+            showing = None
             dt = datetime.now().date()
         else:
             dt = datetime.strptime(start_day[:10],'%Y-%m-%d').date()
+            showing = dt
 
         nxt_dt = dt + timedelta(days=+1)
         prv_dt = dt + timedelta(days=-1)
         
         self.links = (
-              get_spec_for_day(self.field.name, prv_dt, 'Previous: '),
-              get_spec_for_day(self.field.name, dt),
-              get_spec_for_day(self.field.name, nxt_dt, 'Next: '),
+              get_spec_for_day(self.field.name, prv_dt, showing),
+              get_spec_for_day(self.field.name, dt, showing),
+              get_spec_for_day(self.field.name, nxt_dt, showing),
             )
 
     def title(self):
