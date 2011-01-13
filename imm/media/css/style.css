@@ -773,6 +773,11 @@ td.first, th.first
 	border-left: none !important;
 }
 
+td.prioritize {
+	background: url(/img/grippy.png) no-repeat 4px center;
+}
+
+
 tr.expanded
 {
 	border:1px solid #999;
