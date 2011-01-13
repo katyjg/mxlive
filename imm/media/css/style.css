@@ -76,13 +76,11 @@ table
 a
 {
 	color:#2F637A;
-	background:inherit;
 }
 
 a:hover,a:active,a:focus
 {
 	color:gray;
-	background:inherit;
 }
 
 p
@@ -109,7 +107,6 @@ h2
 h1 a,h2 a
 {
 	color:#000;
-	background:inherit;
 	text-decoration:none;
 }
 
@@ -409,6 +406,12 @@ img
     margin-top: -100px;
 }
 
+#sidebar {
+    width: 212px;
+    float: left;
+    margin: 0 0 14px 0;
+    padding: 7px;
+}
 .push {
     height: 124px;
     clear: both;
@@ -620,18 +623,32 @@ table.cane-detail td {
     line-height: 1.2em;
 }
 
+/* Activity Log */
+#activity-search
+{
+    float: left;
+    margin: 0;
+    text-align: left;
+    padding-right 24px;
+    height: 23px;
+    width: 164px;
+}
+
+#activity-log h2 {
+    text-align: center;
+    display: block;
+    background: #cfc6d7;
+    padding: 2px;
+    margin-bottom: 2px;
+    font-weight: bold;
+    font-size: 14px;
+}
 
 /* FILTERS */
 div.filters
 {
 	font-size:10px;
 	line-height: 12px;
-}
-
-ul.filter-choices
-{
-	padding-left:2em;
-	margin:0;
 }
 
 ul.filter-choices li
@@ -663,12 +680,49 @@ ul.filter-choices a:hover
 	color:#630;
 }
 
-#activity-filters li {
-	display:inline;
-	margin:0;
-	padding:0;  
+#activity-filters
+{
+    float: left;
+    margin: 0;
+    text-align: left;
+    width: 768px;
 }
 
+ul.weekly-filter {
+    display: table;
+    width: 100%;
+}
+
+ul.weekly-filter li {
+	display: table-cell;
+	margin:0;
+    height: 23px;
+    padding: 2px 0;
+	padding:0;
+	width: 30%;
+    border-bottom: 1px solid #ccc;
+}
+
+ul.weekly-filter li {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+ul.weekly-filter li.previous {
+    text-align: left;
+    background:url("/img/arrow.prev.gif") no-repeat left center;
+    padding-left: 20px !important;
+}
+ul.weekly-filter li.current {
+    text-align: center;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+}
+ul.weekly-filter li.next {
+    background:url("/img/arrow.next.gif") no-repeat right center;
+    padding-right: 20px !important;
+    text-align: right;
+}
 
 /*OBJLISTS */
 
@@ -880,7 +934,6 @@ ul.reports li a
 /* RESULTS */
 #result-page
 {
-    font-size: 13px;
 	text-align:left;
 }
 
@@ -892,17 +945,9 @@ ul.reports li a
 
 }
 
-#result-table th
-{
-	color:#039;
-	font-size:1.2em;
-	font-weight:400;
-	padding:8px;
-}
-
 #result-table td
 {
-	border-top:1px solid #eee;
+	border-bottom:1px solid #eee;
 	padding:5px 8px;
 }
 
@@ -931,14 +976,23 @@ ul.reports li a
 	border:1px solid #ccc;
 	float:left;
 	text-align:left;
-	width: 452px;
+	width: 500px;
+}
+
+#summary-notes
+{
+	border-collapse:collapse;
+	border:1px solid #ccc;
+	float:right;
+	text-align:left;
+	width: 300px;
+	margin: 0 20px;
 }
 
 div.tablenotes
 {
-    background: none repeat scroll 0 0 #eee;
+    background: none repeat scroll 0 0 #eef;
     border: 1px solid #ccc;	
-    /*background:#eee none repeat scroll 0 0;*/
 	padding:20px;
 	margin-bottom:10px;
 }
@@ -947,6 +1001,8 @@ div.tablenotes h3
 {
 	padding:0;
 	margin:0;
+	font-size: 130% !important;
+	color:#000 !important;;
 }
 
 dl.note-list
@@ -1010,8 +1066,11 @@ dl.note-list dd
 
 #result-page h3
 {
-	font-size:130%;
+	font-size:170%;
+	line-height: 1.5em;
+	font-weight: normal;
 	border-bottom:1px dotted #ccc;
+	color: #666;
 	margin-top: 1.0em;
 	margin-bottom: 0.5em;
 	page-break-after:avoid;
@@ -1079,23 +1138,6 @@ dl.note-list dd
 	width:24px;
 }
 
-
-/* Activity Log */
-#activity-search
-{
-    float: left;
-    margin: 0;
-    text-align: left;
-    padding-right 24px;
-}
-
-#activity-filters
-{
-    float: left;
-    margin: 0;
-    height: 18px;
-    text-align: left;
-}
 
 /*--------------------------- FORMS -----------------------------------------*/
 .objform
@@ -1374,7 +1416,7 @@ input.matrixcode
 input.search
 {
 	background:#fff url(/img/searchbox-bg.png) no-repeat scroll right center;
-	max-width: 140px;
+	max-width: 150px;
 }
 
 div.choice label

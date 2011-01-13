@@ -23,11 +23,20 @@ def show_one_filter(ol, spec, url):
     return {'title': spec.title(), 'choices' : list(spec.choices(ol)), 'url' : url}
 
 @register.inclusion_tag('objlist/weekly_filter.html')
-def show_weekly_filter(ol, spec, url):
+def show_weekly_filter(ol, url):
     """
     Renders a single weekly Filter specification ``spec`` for a given object list ``ol``. 
+    Only one is supported per object list. If more than one is defined, the previous one is overwritten.
     """
-    return {'title': spec.title(), 'choices' : list(spec.choices(ol)), 'url' : url}
+    choices = []
+    if ol.has_filters:
+        for f in ol.filter_specs:
+            if f.__class__.__name__ == 'WeeklyFilterSpec':
+                choices = list(f.choices(ol))
+    if len(choices) == 3:
+        return {'weekly_filter': True, 'previous' : choices[0], 'current': choices[1], 'next': choices[2], 'url' : url}
+    else:
+        return {'weekly_filter': False, 'url' : url}
 
 @register.inclusion_tag('objlist/basic_filters.html')
 def show_all_filters(ol, url):

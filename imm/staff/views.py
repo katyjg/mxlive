@@ -42,9 +42,10 @@ def staff_home(request):
     if not request.user.is_superuser:
         return HttpResponseRedirect(reverse('project-home'))
     
-    return render_to_response('lims/staff.html', 
-                              {'inbox': ObjectList(request, request.user.inbox)},
-                              context_instance=RequestContext(request))
+    return render_to_response('lims/staff.html', {
+        'activity_log': ObjectList(request, ActivityLog.objects),
+        'handler': request.path,
+        }, context_instance=RequestContext(request))
     
 @admin_login_required
 @manager_required

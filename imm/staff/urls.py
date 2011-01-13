@@ -30,28 +30,33 @@ from imm.staff.forms import RunlistAcceptForm
 urlpatterns = patterns('',
     (r'^$', 'imm.staff.views.staff_home', {}, 'staff-home'),
     
-    (r'^shipping/shipment/$', 'imm.lims.views.object_list', {'model': Shipment, 'template': 'objlist/object_list.html', 'can_receive': True}, 'staff-shipment-list'),
+    (r'^shipping/shipment/$', 'imm.lims.views.object_list', {'model': Shipment, 'template': 'objlist/generic_list.html', 'can_receive': True}, 'staff-shipment-list'),
     (r'^shipping/shipment/receive/$', 'imm.staff.views.receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-shipment-receive-any'),
     (r'^shipping/shipment/(?P<id>\d+)/receive/$', 'imm.lims.views.edit_object_inline', {'model': Shipment, 'form': ShipmentReceiveForm, 'template': 'objforms/form_base.html', 'action' : 'receive'}, 'staff-shipment-receive'),
     (r'^shipping/shipment/(?P<id>\d+)/return/$', 'imm.lims.views.edit_object_inline', {'model': Shipment, 'form': ShipmentReturnForm, 'template': 'objforms/form_base.html', 'action' : 'return'}, 'staff-shipment-return'),
     
+    (r'^shipping/dewar/$', 'imm.lims.views.object_list', {'model': Dewar, 'template': 'objlist/generic_list.html', 'can_add': True, 'is_individual': True}, 'staff-dewar-list'),
+    (r'^shipping/dewar/(?P<id>\d+)/$', 'imm.lims.views.object_detail', {'model': Dewar, 'template': 'lims/entries/dewar.html'}, 'staff-dewar-detail'),
     (r'^shipping/dewar/(?P<id>\d+)/edit/$', 'imm.lims.views.edit_object_inline', {'model': Dewar, 'form': DewarForm, 'template': 'objforms/form_base.html'}, 'staff-dewar-edit'),
+
+    (r'^shipping/container/$', 'imm.lims.views.object_list', {'model': Container, 'template': 'objlist/generic_list.html', 'can_add': True, 'is_individual': True}, 'staff-container-list'),
+    (r'^shipping/container/(?P<id>\d+)/$', 'imm.lims.views.object_detail', {'model': Container, 'template': 'lims/entries/container.html'}, 'staff-container-detail'),
     
-    (r'^samples/crystal/$', 'imm.lims.views.object_list', {'model': Crystal, 'template': 'objlist/object_list.html'}, 'staff-crystal-list'),
+    (r'^samples/crystal/$', 'imm.lims.views.object_list', {'model': Crystal, 'template': 'objlist/generic_list.html'}, 'staff-crystal-list'),
     (r'^samples/crystal/(?P<id>\d+)/up/$', 'imm.lims.views.change_priority', {'model': Crystal, 'action': 'up', 'field': 'staff_priority'}, 'staff-crystal-up'),
     (r'^samples/crystal/(?P<id>\d+)/down/$', 'imm.lims.views.change_priority', {'model': Crystal, 'action': 'down', 'field': 'staff_priority'}, 'staff-crystal-down'),
     
-    (r'^experiment/request/$', 'imm.lims.views.object_list', {'model': Experiment, 'template': 'objlist/object_list.html', 'can_prioritize': False}, 'staff-experiment-list'),
+    (r'^experiment/request/$', 'imm.lims.views.object_list', {'model': Experiment, 'template': 'objlist/generic_list.html', 'can_prioritize': False}, 'staff-experiment-list'),
     (r'^experiment/basic/$', 'imm.lims.views.basic_object_list', {'model': Experiment, 'template': 'objlist/basic_object_list.html'}, 'staff-experiment-basic-list'),
     (r'^experiment/(<?P<id>\d+)/$', 'experiment_object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html' }, 'staff-experiment-basic-detail'),
     
-    url(r'^experiment/result/(\d+)/shellstats.png$', 'plot_shell_stats', name='staff-plot-shells'),
-    url(r'^experiment/result/(\d+)/framestats.png$', 'plot_frame_stats', name='staff-plot-frames'),
-    url(r'^experiment/result/(\d+)/diffstats.png$', 'plot_diff_stats', name='staff-plot-diffs'),
-    url(r'^experiment/result/(\d+)/stderr.png$', 'plot_error_stats', name='staff-plot-stderr'),
-    url(r'^experiment/result/(\d+)/profiles.png$', 'plot_profiles_stats', name='staff-plot-profiles'),
-    url(r'^experiment/result/(\d+)/wilson.png$', 'plot_wilson_stats', name='staff-plot-wilson'),
-    url(r'^experiment/result/(\d+)/twinning.png$', 'plot_twinning_stats', name='staff-plot-twinning'),
+    url(r'^experiment/result/(\d+)/shellstats.png$', 'imm.lims.views.plot_shell_stats', name='staff-plot-shells'),
+    url(r'^experiment/result/(\d+)/framestats.png$', 'imm.lims.views.plot_frame_stats', name='staff-plot-frames'),
+    url(r'^experiment/result/(\d+)/diffstats.png$', 'imm.lims.views.plot_diff_stats', name='staff-plot-diffs'),
+    url(r'^experiment/result/(\d+)/stderr.png$', 'imm.lims.views.plot_error_stats', name='staff-plot-stderr'),
+    url(r'^experiment/result/(\d+)/profiles.png$', 'imm.lims.views.plot_profiles_stats', name='staff-plot-profiles'),
+    url(r'^experiment/result/(\d+)/wilson.png$', 'imm.lims.views.plot_wilson_stats', name='staff-plot-wilson'),
+    url(r'^experiment/result/(\d+)/twinning.png$', 'imm.lims.views.plot_twinning_stats', name='staff-plot-twinning'),
     
     (r'^experiment/crystal/(?P<id>\d+)/rescreen/$', 'imm.lims.views.rescreen', {}, 'staff-crystal-rescreen'),
     (r'^experiment/crystal/(?P<id>\d+)/recollect/$', 'imm.lims.views.recollect', {}, 'staff-crystal-recollect'),
@@ -59,8 +64,7 @@ urlpatterns = patterns('',
     
     (r'^container/basic/(\d+)/$', 'imm.staff.views.container_basic_object_list', {'model':Container, 'template': 'objlist/basic_object_list.html'}, 'staff-container-basic-list'),
     
-    (r'^runlist_summary/$', 'imm.staff.views.runlist_summary', {'model': ActivityLog}, 'lims-runlist-summary'),
-    (r'^runlist/$', 'imm.lims.views.object_list', {'model': Runlist, 'template': 'staff/lists/runlist_list.html', 'can_add': True, 'can_prioritize': True}, 'staff-runlist-list'),
+    (r'^runlist/$', 'imm.lims.views.object_list', {'model': Runlist, 'template': 'objlist/generic_list.html', 'can_add': True, 'can_prioritize': True}, 'staff-runlist-list'),
     #(r'^runlist/new/$', 'imm.staff.views.runlist_object_list', {'model': Experiment, 'form': ExperimentSelectForm, 'template': 'staff/lists/runlist_list.html', 'can_prioritize': True, 'link': False, 'redirect': 'staff-runlist-new-step2', 'instructions': 'Prioritize and select some Experiments.'}, 'staff-runlist-new'),
     #(r'^runlist/new/step2/$', 'imm.staff.views.runlist_object_list', {'model': Container, 'form': ContainerSelectForm, 'parent_model': Experiment, 'link_field': 'crystal', 'template': 'staff/lists/runlist_list.html', 'link': False, 'redirect': 'staff-runlist-new-step3', 'instructions': 'Select some Containers.'}, 'staff-runlist-new-step2'),
     (r'^runlist/new/$', 'imm.staff.views.runlist_create_object', {'model': Runlist, 'form': RunlistForm, 'template': 'objforms/form_base.html' }, 'staff-runlist-new'),
@@ -83,3 +87,9 @@ urlpatterns = patterns('',
     (r'^runlist_summary/runlist/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.lims.views.remove_object', {'source':Runlist, 'object':Experiment }, 'staff-runlist-remove-experiment'),
     (r'^runlist_summary/runlist/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'imm.lims.views.remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),
 )
+
+urlpatterns += patterns('django.views.generic.simple',
+    (r'^experiment/$', 'redirect_to', {'url': '/staff/experiment/request/'}),
+    (r'^samples/$', 'redirect_to', {'url': '/staff/samples/crystal/'}),
+)
+

@@ -2,11 +2,9 @@ from django.conf.urls.defaults import patterns, url
 from django.conf import settings
 from imm.lims.models import *
 from imm.lims.forms import *
-from django.views.generic.simple import *
 
 urlpatterns = patterns('imm.lims.views',
     (r'^$', 'show_project', {}, 'project-home'),
-    (r'^shipping/$', 'shipping_summary', {'model': ActivityLog}, 'lims-shipping-summary'),
 
     #SHIPMENTS##############
     (r'^shipping/shipment/$', 'object_list', {'model': Shipment, 'template': 'objlist/generic_list.html', 'can_add': True, 'can_upload': False, 'is_individual': True }, 'lims-shipment-list'),
@@ -105,9 +103,9 @@ urlpatterns = patterns('imm.lims.views',
     (r'^experiment/scan/$', 'object_list', {'model': ScanResult, 'template': 'objlist/generic_list.html'}, 'lims-scan-list'),
     (r'^experiment/scan/(?P<id>\d+)/$', 'object_detail', {'model': Result, 'template': 'lims/entries/scan.html'} , 'lims-scan-detail'),
     #######################
-    (r'^experiment/dataset/(?P<id>\d+)/$', 'data_viewer', {}, 'lims-dataset-detail'),
     #DATASETS##############
     (r'^experiment/dataset/$', 'object_list', {'model': Data, 'template': 'objlist/generic_list.html'}, 'lims-dataset-list'),
+    (r'^experiment/dataset/(?P<id>\d+)/$', 'data_viewer', {}, 'lims-dataset-detail'),
     ###############
 
 
@@ -115,7 +113,7 @@ urlpatterns = patterns('imm.lims.views',
 
 
 
-    (r'^samples/constituent/$', 'object_list', {'model': Constituent, 'template': 'objlist/basic_list.html', 'can_add': True}, 'lims-constituent-list'),
+    (r'^samples/constituent/$', 'object_list', {'model': Constituent, 'template': 'objlist/object_list.html', 'can_add': True}, 'lims-constituent-list'),
     (r'^samples/constituent/basic/$', 'basic_object_list', {'model': Constituent, 'template': 'objlist/basic_object_list.html'}, 'lims-constituent-basic-list'),
     (r'^samples/constituent/(?P<id>\d+)/$', 'object_detail', {'model': Constituent, 'template': 'lims/entries/constituent.html'}, 'lims-constituent-detail'),
     (r'^samples/constituent/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Constituent, 'form': ConstituentForm, 'template': 'objforms/form_base.html'}, 'lims-constituent-edit'),
@@ -160,6 +158,7 @@ urlpatterns = patterns('imm.lims.views',
 
 
 urlpatterns += patterns('django.views.generic.simple',
+    (r'^shipping/$', 'redirect_to', {'url': '/lims/shipping/shipment/'}),
     (r'^experiment/$', 'redirect_to', {'url': '/lims/experiment/request/'}),
     (r'^samples/$', 'redirect_to', {'url': '/lims/samples/crystal/'}),
 )

@@ -80,6 +80,8 @@ class ObjectList(ChangeList):
             del self.params[TO_FIELD_VAR]
         if ERROR_FLAG in self.params:
             del self.params[ERROR_FLAG]
+        if ALL_VAR in self.params:
+            del self.params[ALL_VAR]
 
         self.order_field, self.order_type = self.get_ordering()
         self.query = request.GET.get(SEARCH_VAR, '')

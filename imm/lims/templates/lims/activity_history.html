@@ -7,10 +7,8 @@
         </form>
     </div>
     <div id="activity-filters">
-    {% if ol.has_filters %}
-       {% show_weekly_filter ol ol.filter_specs.0 handler %}
-    {% endif %}    
+    {% show_weekly_filter ol handler %}
     </div>
     <div class="clear"></div>
-    {% include "objlist/basic_list.html" %}
+    {% include "objlist/object_list.html" %}
 </div>

@@ -141,6 +141,7 @@ div.clearall { clear:both; }
    display: table-cell;
    vertical-align: middle;
    line-height: 12px;
+   padding-left: 2em;
 }
 
 ul.toolbar {
@@ -183,6 +184,8 @@ ul.toolbar li.profile-tool {background-image: url(/img/profile-icon.png);}
 ul.toolbar li.feedback-tool {background-image: url(/img/feedback-icon.png);}
 ul.toolbar li.print-tool {background-image: url(/img/print-icon.png);}
 ul.toolbar li.template-tool {background-image: url(/img/template-icon.png);}
+ul.toolbar li.receive-tool {background-image: url(/img/receive-icon.png);}
+ul.toolbar li.return-tool {background-image: url(/img/return-icon.png);}
 
 /* -- end toolbar -- */
 
@@ -544,4 +547,22 @@ ul.filter-choices ul {
     padding-left: 0 !important;
 }
 
+/* data viewer */
+#meta-data {
+    float: right;
+    clear: right;
+    width: 200px;
+    margin: 7px;
+    padding: 7px;
+    background: #fff;
+}
+
+#data-image {
+    float:left;
+    border: 1px solid #ccc !important;
+}
+
+#image-nav {
+    width: 512px;
+}
 

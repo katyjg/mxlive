@@ -5,7 +5,7 @@
 
 <ul class="toolbar">
     {# STAFF TOOLS #}
-    {% if request.user.is_superuser %}
+    {% if request.user.is_staff %}
         {% if object.is_receivable %}
             <li class="receive-tool">
                 <a href="{{ handler }}receive/?title=Recieve%20Shipment&tracking_code=" rel="#receive-object" class="action modal">

@@ -769,7 +769,7 @@ class SpaceGroup(models.Model):
     lattice_type = models.CharField(max_length=1, choices=LT_CHOICES)
     
     def __unicode__(self):
-        return '%s %c%c ' % (self.name, self.crystal_system, self.lattice_type)
+        return self.name
     
 class CrystalForm(models.Model):
     project = models.ForeignKey(Project)
@@ -1084,7 +1084,7 @@ class Crystal(models.Model):
         )
         
     def __unicode__(self):
-        return '%s / %s' % (self.name, self.identity())
+        return self.name
 
     def is_assigned(self):
         return self.container is not None
@@ -1514,13 +1514,14 @@ class ActivityLog(models.Model):
     ip_number = models.IPAddressField('IP Address')
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
     object_id = models.CharField(max_length=20, blank=True, null=True)
-    object_repr = models.CharField(max_length=200, blank=True, null=True)
+    object_repr = models.CharField('Item', max_length=200, blank=True, null=True)
     action_type = models.IntegerField(max_length=1, choices=TYPE.get_choices() )
     description = models.TextField(blank=True)
     
     objects = ActivityLogManager()
     created.weekly_filter = True
     
+
     class Meta:
         ordering = ('-created',)
     
