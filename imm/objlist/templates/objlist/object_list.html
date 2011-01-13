@@ -45,12 +45,13 @@
             {% endif %}
         </tbody>
     </table>
-
+    {% if ol.object_list|length > 20 %}
     <div class="list-tools">
         {% if ol.is_paginated %}
             {% include "objlist/pagination.html" %}
         {% endif %}
     </div>
+    {% endif %}
 </div>
 
 {% if form %}

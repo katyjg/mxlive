@@ -250,7 +250,7 @@ def show_project(request):
         'project': project,
         'statistics': statistics,
         'activity_log': ObjectList(request, project.activitylog_set),
-        'handler' : request.path
+        'handler' : request.path,
         },
     context_instance=RequestContext(request))
  

@@ -406,6 +406,12 @@ img
     margin-top: -100px;
 }
 
+#sidebar {
+    width: 212px;
+    float: left;
+    margin: 0 0 14px 0;
+    padding: 7px;
+}
 .push {
     height: 124px;
     clear: both;
@@ -575,6 +581,15 @@ th.Cassette {
     width: 164px;
 }
 
+#activity-log h2 {
+    text-align: center;
+    display: block;
+    background: #cfc6d7;
+    padding: 2px;
+    margin-bottom: 2px;
+    font-weight: bold;
+    font-size: 14px;
+}
 
 /* FILTERS */
 div.filters
