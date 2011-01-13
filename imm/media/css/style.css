@@ -881,7 +881,6 @@ ul.reports li a
 /* RESULTS */
 #result-page
 {
-    font-size: 13px;
 	text-align:left;
 }
 
@@ -893,17 +892,9 @@ ul.reports li a
 
 }
 
-#result-table th
-{
-	color:#039;
-	font-size:1.2em;
-	font-weight:400;
-	padding:8px;
-}
-
 #result-table td
 {
-	border-top:1px solid #eee;
+	border-bottom:1px solid #eee;
 	padding:5px 8px;
 }
 
@@ -932,14 +923,23 @@ ul.reports li a
 	border:1px solid #ccc;
 	float:left;
 	text-align:left;
-	width: 452px;
+	width: 500px;
+}
+
+#summary-notes
+{
+	border-collapse:collapse;
+	border:1px solid #ccc;
+	float:right;
+	text-align:left;
+	width: 300px;
+	margin: 0 20px;
 }
 
 div.tablenotes
 {
-    background: none repeat scroll 0 0 #eee;
+    background: none repeat scroll 0 0 #eef;
     border: 1px solid #ccc;	
-    /*background:#eee none repeat scroll 0 0;*/
 	padding:20px;
 	margin-bottom:10px;
 }
@@ -948,6 +948,8 @@ div.tablenotes h3
 {
 	padding:0;
 	margin:0;
+	font-size: 130% !important;
+	color:#000 !important;;
 }
 
 dl.note-list
@@ -1011,8 +1013,11 @@ dl.note-list dd
 
 #result-page h3
 {
-	font-size:130%;
+	font-size:170%;
+	line-height: 1.5em;
+	font-weight: normal;
 	border-bottom:1px dotted #ccc;
+	color: #666;
 	margin-top: 1.0em;
 	margin-bottom: 0.5em;
 	page-break-after:avoid;

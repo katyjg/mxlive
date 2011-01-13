@@ -769,7 +769,7 @@ class SpaceGroup(models.Model):
     lattice_type = models.CharField(max_length=1, choices=LT_CHOICES)
     
     def __unicode__(self):
-        return '%s %c%c ' % (self.name, self.crystal_system, self.lattice_type)
+        return self.name
     
 class CrystalForm(models.Model):
     project = models.ForeignKey(Project)
