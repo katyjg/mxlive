@@ -447,16 +447,15 @@ div.Uni-Puck, div.Cassette, div.Cane {
     background: url('/img/container-uni-puck-sm.png') no-repeat center left;
 }
 .Cassette {
-    background: url('/img/container-cassette-sm.png') no-repeat center center;
+    background: url('/img/container-cassette-sm.png') no-repeat center left;
 }
 .Cane {
-    background: url('/img/container-cane-sm.png') no-repeat center center;
+    background: url('/img/container-cane-sm.png') no-repeat center left;
 }
 td.Cane {
     background: #f7f7f7;
     height: 50px;
-    width: 20px;
-    border-bottom: 1px solid #000;
+    width: 15px;
     padding-left: 10px;
 }
 td.occupied {
@@ -475,10 +474,9 @@ th.Cassette {
     text-align: center;
     background: none;
 }
-
 .dewar-detail 
 {
-    max-width: 205px;
+    width: 205px;
     min-height: 150px;
     float: left;
     margin-right: 20px;
@@ -497,6 +495,56 @@ th.Cassette {
     max-height: 40px;
 }
 
+span.remove {
+    background: url('/img/remove-icon.png') no-repeat center center;
+    padding-right: 10px;
+}
+table#unipuck {
+    background: url('/img/unipuck.png') no-repeat center center;
+    width: 400px;
+    height: 400px;
+    color: green;
+}
+div#unipuck {
+    background: url('/img/unipuck.png') no-repeat center center;
+    width: 300px;
+    height: 300px;
+    float: right;
+}
+div#unipuck p{
+    background: none;   
+    position: relative;
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    opacity: 0.8;
+    line-height: 50px;
+}
+div#unipuck .occupied {
+    background: url('/img/circle_green.png') no-repeat center center;   
+}
+.object-list.uni-puck-detail {
+    float: left;
+    width: 350px;
+}
+.object-list.cassette-detail {
+    width: 690px;
+}
+.object-list.cane-detail {
+    float: left;
+    width: 600px;
+}
+table.cane-detail {
+    float: right;
+    margin-right: 20px;
+    border-collapse: separate;
+    border: 1px solid #ccc;
+}
+table.cane-detail td {
+    border: 1px dotted #bbb;
+}
 .dewar-detail a.remove {
     float: right;
     margin-right: 5px;
@@ -507,7 +555,12 @@ th.Cassette {
 	border:1px solid #999;
 	margin-bottom:10px;
 }
-
+.dewar-detail div.title {
+    height: 40px;
+}
+.dewar-detail div.title p {
+    padding-top: 8px;
+}
 .dewar-detail div.title, #sidebar .widget h3
 {
 	margin:0;

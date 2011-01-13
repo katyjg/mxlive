@@ -518,11 +518,11 @@ div.crystal.droppable.lims-droppable-hover {
  .lims-droppable-hover li {
 	background-color:#c8b9d7 !important;
 }
-.lims-droppable-hover.Cassette, .lims-droppable-active.Cassette {
+.lims-droppable-hover.Cassette, .lims-droppable-active.Cassette, .lims-droppable-active.Uni-Puck, .lims-droppable-hover.Uni-Puck {
     border: none !important;
 }
-td.lims-droppable-hover.Cassette {
-    background: url('/img/circle_purple.png') no-repeat center center;
+td.lims-droppable-hover.Cassette, .lims-droppable-hover.Uni-Puck {
+    background: url('/img/circle_purple.png') no-repeat center center !important;
 }
 td.lims-droppable-hover.Cane {
     background-color: #c8b9d7;

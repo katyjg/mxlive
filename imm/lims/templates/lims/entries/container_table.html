@@ -1,0 +1,41 @@
+<h3>Crystals in {{object.json_dict.type|lower}} {{object.name}}</h3>
+{% ifnotequal object.num_crystals 0 %}
+<div class="object-list {{object.json_dict.type|lower}}-detail">
+    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
+        <thead>
+            <tr class="header">
+             	<th>Location</th>
+                <th>Name</th>
+                <th>Experiment</th>
+                <th>Comments</th>
+                <th></th>
+            </tr>
+        </thead>
+        <body>
+            {% for loc, crystal in object.location_and_crystal %}
+                {% if crystal %}
+                    <tr class="{% cycle 'odd' 'even'%} link-row modal"
+                        title="Go to Crystal {{crystal.name}}">
+                        <td class="modal"
+                            redirect="{% url lims-crystal-detail crystal.pk %}">{{ loc }}</td>
+                        <td class="modal"
+                            redirect="{% url lims-crystal-detail crystal.pk %}">{{ crystal.name }}</td>
+                        <td class="modal"
+                            redirect="{% url lims-crystal-detail crystal.pk %}">{{ crystal.experiment.name }}</td>
+                        <td class="modal"
+                            redirect="{% url lims-crystal-detail crystal.pk %}">{{ crystal.comments }}</td>
+                        <td><a class="remove"
+                           rel="{% url lims-container-remove-crystal object.pk crystal.pk %}"
+                           href="#"
+                           onclick="remove_item(this);"
+                           title="Remove crystal from container"><span class="remove"></span></a></td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </body>
+    </table>
+</div>
+{% else %}
+    (No crystals in this container).
+{% endifnotequal %}
+

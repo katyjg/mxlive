@@ -1,4 +1,4 @@
-<table>
+<table  title="Drag and Drop into this region">
 <thead>
 {% for letter in "ABCDEFGHIJKL" %}
     <th class="{{object.json_dict.type}}">{{letter}}</th>
@@ -17,14 +17,10 @@
             rel="{% url lims-container-detail object.id %}"
             container_location="{{ loc }}">{{ loc }}</td>
     {% endif %}
-    {% ifequal forloop.counter 12 %}</tr><tr>{% endifequal %}
-    {% ifequal forloop.counter 24 %}</tr><tr>{% endifequal %}
-    {% ifequal forloop.counter 36 %}</tr><tr>{% endifequal %}
-    {% ifequal forloop.counter 48 %}</tr><tr>{% endifequal %}
-    {% ifequal forloop.counter 60 %}</tr><tr>{% endifequal %}
-    {% ifequal forloop.counter 72 %}</tr><tr>{% endifequal %}
-    {% ifequal forloop.counter 84 %}</tr><tr>{% endifequal %}
+    {% if forloop.counter|divisibleby:"12" %}</tr><tr>{% endif %}
 {% endfor %}
 </tr>
 </table>
+<br>
 
+{% include 'lims/entries/container_table.html' %}
