@@ -46,6 +46,7 @@ urlpatterns = patterns('imm.lims.views',
     (r'^shipping/container/new/$', 'create_object', {'model': Container, 'form': ContainerForm, 'template': 'objforms/form_base.html'}, 'lims-container-new'),
     (r'^shipping/container/(?P<dest_id>\d+)/widget/.*/crystal/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'add_existing_object', {'destination':Container, 'object':Crystal, 'reverse':True}, 'lims-container-add-crystal'),
     (r'^containers/crystal/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Crystal, 'form': SampleForm, 'template': 'objforms/form_base.html'}, 'lims-container-edit-crystal'),
+    (r'^shipping/container/(?P<src_id>\d+)/crystal/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Container, 'object':Crystal, 'reverse':True}, 'lims-container-remove-crystal'),
     #######################
     (r'^samples/crystal/basic/$', 'basic_crystal_list', {'model': Crystal, 'template': 'objlist/basic_object_list.html', }, 'lims-crystal-basic-list'),
     #CRYSTALS##############

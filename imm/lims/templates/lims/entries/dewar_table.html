@@ -9,11 +9,12 @@
         <img src="/img/dewar.png"/>
         <p class="dewar droppable droppable-add" 
             accept="container" 
-            rel="{% url lims-dewar-detail dewar.id %}">{{ dewar.label }} ({{ dewar.identity }})
+            rel="{% url lims-dewar-detail dewar.id %}"><a href="{% url lims-dewar-detail dewar.id %}">{{ dewar.label }}</a>
         <a class="remove"
            rel="{% url lims-dewar-remove dewar.shipment.pk dewar.pk %}" 
            href="#"
-           onclick="remove_item(this);">Remove</a></p> 
+           onclick="remove_item(this);"
+           title="Remove dewar from shipment"><span class="remove"></span></a></p> 
     </div>
     <ul class="dewar droppable droppable-add" 
      accept="container" 
@@ -25,7 +26,8 @@
                 <a class="remove"
                    rel="{% url lims-dewar-remove-container dewar.pk container.id %}"
                    href="#"
-                   onclick="remove_item(this);">Remove</a>
+                   onclick="remove_item(this);"
+                   title="Remove container from dewar"><span class="remove"></span></a>
             </li>
         {% endfor %}
         <li></li>
@@ -49,17 +51,22 @@
         <body>
             {% for container in containers %}
                 <tr class="{% cycle 'odd' 'even'%} link-row modal"
-                    redirect="{% url lims-container-detail container.pk %}"
                     title="Go to Container {{container.pk}}">
-                    <td><div class="{{ container.json_dict.type }}"></div></td>
-                    <td>{{ container.name }}</td>
-                    <td>{% if container.code %}{{ container.code }}{% else %}Undefined{% endif %}</td>
-                    <td>{{ container.capacity }}</td>
-                    <td>{{ container.num_crystals }}</td>
+                    <td class="modal"
+                        redirect="{% url lims-container-detail container.pk %}"><div class="{{ container.json_dict.type }}"></div></td>
+                    <td class="modal"
+                        redirect="{% url lims-container-detail container.pk %}">{{ container.name }}</td>
+                    <td class="modal"
+                        redirect="{% url lims-container-detail container.pk %}">{% if container.code %}{{ container.code }}{% else %}Undefined{% endif %}</td>
+                    <td class="modal"
+                        redirect="{% url lims-container-detail container.pk %}">{{ container.capacity }}</td>
+                    <td class="modal"
+                        redirect="{% url lims-container-detail container.pk %}">{{ container.num_crystals }}</td>
                     <td><a class="remove"
                        rel="{% url lims-dewar-remove-container dewar.pk container.id %}"
                        href="#"
-                       onclick="remove_item(this);">Remove</a></td>
+                       onclick="remove_item(this);"
+                       title="Remove container from dewar"><span class="remove"></span></a></td>
                 </tr>
             {% endfor %}
         </body>

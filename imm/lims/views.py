@@ -1021,12 +1021,13 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
     if reverse:
         display_name = src.name
     
-    
     if src.is_editable():
         #if replace == True or dest.(object.__name__.lower()) == None
         try:
             getattr(src, object.__name__.lower())
             setattr(src, object.__name__.lower(), None)
+            if object.__name__.lower() == "container":
+                setattr(src, "container_location", None)            
         except AttributeError:
             # attrib didn't exist, append 's' for many field
             try:
@@ -1038,8 +1039,8 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
                 message = '%s has not been removed. No Field (tried %s and %s)' % (display_name, object.__name__.lower(), '%ss' % object.__name__.lower())
                 request.user.message_set.create(message = message)
                 return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
-                
-        
+                       
+
         src.save()
         message = '%s has been successfully removed' % display_name
     

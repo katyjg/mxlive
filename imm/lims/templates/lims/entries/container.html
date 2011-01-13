@@ -46,8 +46,7 @@
 {% endfor %}
 {% endcomment %}
 
-<img src="/img/container-{{object.get_kind_display|lower}}.png" style="clear: right; margin: 0.5em; padding-right: 2em; "/>
-<h3>{{object.json_dict.type}}</h3>
+<!--img src="/img/container-{{object.get_kind_display|lower}}.png" style="clear: right; margin: 0.5em; padding-right: 2em; "/-->
 
 {% ifequal object.json_dict.type "Cane" %}
     {% include "lims/entries/cane.html" %}
@@ -73,4 +72,22 @@
 		</div>
     {% endif %}
     {{ block.super }}
+{% endblock %}
+
+{% block script %}
+{{ block.super }}
+<script>
+		function remove_item(element) {
+			jQuery.ajax({
+                type: "POST",
+                url: element.rel,
+                data: "",
+                success: function() {
+                    // refreshDatalist();
+                    // loadWidgets();
+                    window.location.reload();
+                }
+            });
+        }
+</script>
 {% endblock %}
