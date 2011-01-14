@@ -499,8 +499,8 @@ th.Cassette {
 }
 
 span.remove {
-    background: url('/img/remove-icon.png') no-repeat center center;
-    padding-right: 10px;
+    background: url('/img/small-remove-icon.png') no-repeat center center;
+    padding: 0 10px;
 }
 table#unipuck {
     background: url('/img/unipuck.png') no-repeat center center;

@@ -1,8 +1,0 @@
-{% load nav %}
-<ul class="subnav">
-	<li class='tab {% active request "/shipping/?$" %}'><a href="/{{request.user.is_superuser|yesno:"staff,lims"}}/shipping/" >Summary</a></li>
-	<li class='tab {% active request "/container/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,lims"}}/shipping/container/" >Containers</a></li>
-	<li class='tab {% active request "/dewar/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,lims"}}/shipping/dewar/" >Dewars</a></li>
-	<li class='tab {% active request "/shipment/" %}'><a href="/{{request.user.is_superuser|yesno:"staff,lims"}}/shipping/shipment/" >Shipments</a></li>
-</ul>
-
