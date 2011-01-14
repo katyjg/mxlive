@@ -33,14 +33,16 @@ function linkto(theUrl){
   document.location.href = theUrl;
 }
 
+
 function browserInit(){
+
     var detect = navigator.userAgent.toLowerCase();
-    
-    ['safari', 'firefox'].each( tag_html )
+    ['firefox', 'msie', 'webkit'].each( tag_html )
     function tag_html( itm ){
         if(detect.indexOf(itm) + 1){
+            $$('body')[0].addClassName(itm);
             $$('html')[0].addClassName(itm);
-        }   
+        }
     }
 }
 

@@ -657,8 +657,8 @@ table.cane-detail td {
        -moz-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
             box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25)
     background-color: #fffeda;
-    background-image: -moz-linear-gradient(top, #fefcaf, #fffeda);
-    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #fefcaf), color-stop(1, #fffeda));
+    background-image: -moz-linear-gradient(top, #fefcaf, #fffeee);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #fefcaf), color-stop(1, #fffeee));
     padding: 1.5em;
     }
 
@@ -727,8 +727,9 @@ ul.filter-choices a:hover
 
 #activity-filters
 {
-    float: left;
+    float: right;
     margin: 0;
+    padding: 0;
     text-align: left;
     width: 768px;
 }
@@ -742,7 +743,6 @@ ul.weekly-filter li {
 	display: table-cell;
 	margin:0;
     height: 23px;
-    padding: 2px 0;
 	padding:0;
 	width: 30%;
     border-bottom: 1px solid #ccc;
@@ -1506,7 +1506,7 @@ select.select[class]
 	margin:1px 0;
 }
 
-.safari select.select
+.webkit select.select
 {
 	margin-bottom:1px;
 /*font-size:120% !important;*/
