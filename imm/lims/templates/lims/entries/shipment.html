@@ -74,14 +74,16 @@
 
 {% block sidebar %}
     {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
-        <div id="dewars" class="widget droppable droppable-remove parent-stop" accept="dewar" data="{% url lims-dewar-basic-list %}?shipment__isnull=True">
+        <!--div id="dewars" class="widget droppable droppable-remove parent-stop" accept="dewar" data="{% url lims-dewar-basic-list %}?shipment__isnull=True"-->
+        <div id="dewars" class="widget droppable-remove parent-stop" data="{% url lims-dewar-basic-list %}?shipment__isnull=True">
             <h3>Dewars</h3>
             <ul>
                 <li><a href="#">Content Not Loaded.</a></li>
             </ul>
             <a href="{% url lims-dewar-new %}" class="action add modal" rel="#add-dewar">add dewar</a>
         </div>
-        <div id="containers" class="widget droppable droppable-remove parent-stop" accept="container" data="{% url lims-container-basic-list %}?dewar__isnull=True">
+        <!--div id="containers" class="widget droppable droppable-remove parent-stop" accept="container" data="{% url lims-container-basic-list %}?dewar__isnull=True"-->
+        <div id="containers" class="widget droppable-remove parent-stop" data="{% url lims-container-basic-list %}?dewar__isnull=True">
             <h3>Containers</h3>
             <ul>
                 <li><a href="#">Content Not Loaded.</a></li>

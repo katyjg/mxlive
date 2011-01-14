@@ -807,7 +807,7 @@ def basic_object_list(request, model, template='objlist/basic_object_list.html')
 def basic_crystal_list(request, model, template="objlist/basic_object_list.html"):
     # get all crystals
     # filter result to just this project
-    #filer results to just ones with experiment = none
+    # filter results to just ones with experiment = none
     ol = ObjectList(request, request.manager, num_show=200)
     handler = request.path
     # if path has /basic on it, remove that. 
@@ -822,7 +822,7 @@ def basic_crystal_list(request, model, template="objlist/basic_object_list.html"
 def container_crystal_list(request, model, template="objlist/basic_object_list.html"):
     # get all crystals
     # filter result to just this project
-    #filer results to just ones with experiment = none
+    # filter results to just ones with experiment = none
     ol = ObjectList(request, request.manager, num_show=200)
     handler = request.path
     # if path has /basic on it, remove that. 

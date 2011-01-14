@@ -53,7 +53,8 @@
 
 {% block sidebar %}
 	{% if not user.is_superuser %}
-		<div id="crystals" class="widget droppable droppable-remove parent-stop" accept="crystal" data="{% url lims-crystal-basic-list %}">
+		<!--div id="crystals" class="widget droppable droppable-remove parent-stop" accept="crystal" data="{% url lims-crystal-basic-list %}"-->
+		<div id="crystals" class="widget droppable-remove parent-stop" data="{% url lims-crystal-basic-list %}">
 		    <h3>Crystals</h3>
 		    <ul>
 		        <li><a href="#">Content Not Loaded.</a></li>
