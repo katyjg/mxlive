@@ -160,6 +160,7 @@ ul.toolbar li{
 	border: none;
 	height: 32px;
 	min-width: 60px;
+	text-align: center;
 }
 
 ul.toolbar li a {
