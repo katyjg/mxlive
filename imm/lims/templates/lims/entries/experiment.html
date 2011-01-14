@@ -22,7 +22,8 @@
 {% if object.comments %}
 	<div>{{object.comments}}</div>
 {% endif %}
-<img src="/img/experiment.png" class="experiment droppable droppable-replace" accept="crystal" style="float:right;clear: right; margin: 0.5em;"/>
+<div class="experiment droppable droppable-replace" accept="crystal" title="Drag and drop onto this image"></div>
+<!--img src="/img/experiment.png" class="experiment droppable droppable-replace" accept="crystal" style="float:right;clear: right; margin: 0.5em;"/-->
 <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
     {% comment %}
     <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
@@ -59,13 +60,13 @@
 
 {% block sidebar %}
 	{% if not user.is_superuser %}
-		<!--div id="crystals" class="widget droppable droppable-remove parent-stop" accept="crystal" data="{% url lims-crystal-basic-list %}"-->
 		<div id="crystals" class="widget droppable-remove parent-stop" data="{% url lims-crystal-basic-list %}">
-		    <h3>Crystals</h3>
+		   <div class="widget-title">
+		   <span>Crystals</span><a href="{% url lims-crystal-new %}" class="modal add-action" title="Add New Crystal" rel="#add-crystal"><img src="/img/small-add-icon.png" /></a>
+		   </div>
 		    <ul>
 		        <li><a href="#">Content Not Loaded.</a></li>
 		    </ul>
-		    <a href="{% url lims-crystal-new %}" class="action add modal" rel="#add-crystal">add crystal</a>
 		</div>
     {% endif %}
 {% endblock %}

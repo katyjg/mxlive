@@ -83,7 +83,7 @@
 	            	</td>
 	            	{% if not admin %}
 	            		<td>
-	            			<a rel="{% url lims-experiment-remove-crystal experiment 0 crystal.pk %}" href="#" onclick="remove_item(this);">Remove</a>
+	            			<a class="remove" rel="{% url lims-experiment-remove-crystal experiment 0 crystal.pk %}" href="#" onclick="remove_item(this);" title="Remove crystal from experiment"><span class="remove"></span></a>
 	            		</td>
 	            	{% endif %}
 	            </tr>
