@@ -1,0 +1,29 @@
+#sidebar-activity-log {
+    background-color: #fffedc !important;
+    border-top: 1px solid #eee;
+    border-left: 1px solid #eee;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;    
+}
+
+.object-tools .mid-element .filters {
+    margin: 20px 0;
+    height: 24px;
+    line-height: 12px;
+    padding-left: 2em;
+    vertical-align: middle;
+}
+ul.weekly-filter {
+    display: block !important;
+    float: right;
+    width: 768px;
+    padding: 0;
+}
+
+ul.weekly-filter li {
+    display: block;
+    float: left;
+    width: 240px;
+}
+
+
