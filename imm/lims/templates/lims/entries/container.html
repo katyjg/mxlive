@@ -3,7 +3,7 @@
 {% load humanize %}
 
 {% block headline %}
-<h2>{{object.name}} ({{object.identity}})</h2>
+<h2><span class="identity">{{object.identity}}</span> {{object.name}}</h2>
 {% endblock %}
 
 {% block object-tools %}
@@ -63,16 +63,15 @@
 
 {% block sidebar %}
 	{% if not user.is_superuser %}
-		<!--div id="crystals" class="widget droppable droppable-remove parent-stop" accept="crystal" data="{% url lims-crystal-container-list %}"-->
 		<div id="crystals" class="widget droppable-remove parent-stop" data="{% url lims-crystal-container-list %}">
-		    <h3>Crystals</h3>
+		   <div class="widget-title">
+		   <span>Crystals</span><a href="{% url lims-crystal-new %}" class="modal add-action" title="Add New Crystal" rel="#add-crystal"><img src="/img/small-add-icon.png" /></a>
+		   </div>
 		    <ul>
 		        <li><a href="#">Content Not Loaded.</a></li>
 		    </ul>
-		    <a href="{% url lims-crystal-new %}" class="action add modal" rel="#add-crystal">add crystal</a>
 		</div>
     {% endif %}
-    {{ block.super }}
 {% endblock %}
 
 {% block script %}

@@ -406,10 +406,10 @@ img
 }
 
 #sidebar {
-    width: 212px;
+    width: 219px;
     float: left;
     margin: 0 0 14px 0;
-    padding: 7px;
+    padding: 7px 0;
 }
 .push {
     height: 124px;
@@ -497,9 +497,11 @@ th.Cassette {
     max-height: 40px;
 }
 
-span.remove {
-    background: url('/img/remove-icon.png') no-repeat center center;
-    padding-right: 10px;
+a.remove {
+    background: url('/img/small-remove-icon.png') no-repeat center center;
+    width: 24px;
+    display: block;
+    padding: 5px 0;
 }
 table#unipuck {
     background: url('/img/unipuck.png') no-repeat center center;
@@ -573,9 +575,9 @@ table.cane-detail td {
 
 #sidebar .widget ul
 {
-	min-height:90px;
-	max-height:120px;
-	overflow-y:scroll; 
+	min-height:120px;
+	max-height:180px;
+	overflow-y:scroll;
 	overflow-x:hidden;
 }
 
@@ -608,15 +610,40 @@ table.cane-detail td {
 {
 	color:#333;
 	font-size:12px;
-	padding:8px 27px;
-	height:12px;
+	line-height:24px;
 	display:block;
 }
 
+
 #sidebar .widget a.add
 {
-	background:url(/img/button.add.png) no-repeat scroll 5px center #ccc;
+	background:url(/img/small-add-icon.png) no-repeat scroll 5px center #ccc;
 	border-top:1px solid #999;
+	padding-left: 30px;
+}
+
+#sidebar .widget a.add-action
+{
+	color:#333;
+	display:block;
+	line-height: 20px;
+	float: right;
+	padding: 0 3px;
+}
+
+#sidebar .widget .widget-title {
+	margin:0;
+	height: 20px;
+	padding: 3px;
+	color:#FFF;
+	background:#a6a6a6;
+	clear: both;
+	font-size: 130%;
+}
+
+#sidebar .widget .widget-title span {
+    float: left;
+    line-height: 20px;
 }
 
 #sidebar .widget a.add:hover
@@ -626,7 +653,20 @@ table.cane-detail td {
 
 #sidebar-activity-log {
     line-height: 1.2em;
+    -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
+       -moz-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25)
+    background-color: #fffeda;
+    background-image: -moz-linear-gradient(top, #fefcaf, #fffeda);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #fefcaf), color-stop(1, #fffeda));
+    padding: 1.5em;
+    }
+
+#sidebar-activity-log h2 {
+    line-height: 1.2em;
+    border-bottom: 1px dotted #999;
 }
+
 
 /* Activity Log */
 #activity-search
@@ -830,6 +870,11 @@ td.first, th.first
 	width:10px;
 	border-left: none !important;
 }
+
+td.prioritize {
+	background: url(/img/grippy.png) no-repeat 4px center;
+}
+
 
 tr.expanded
 {

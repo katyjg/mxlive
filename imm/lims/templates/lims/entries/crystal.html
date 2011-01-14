@@ -3,7 +3,7 @@
 {% load humanize %}
 
 {% block headline %}
-<h2>{{object.name}} ({{object.identity}})</h2>
+<h2><span class="identity">{{object.identity}}</span> {{object.name}}</h2>
 {% endblock %}
 
 {% block object-tools %}
@@ -65,22 +65,20 @@
 {% endblock %}
 
 {% block sidebar %}
-    <!--div id="cocktails" class="widget droppable droppable-remove parent-stop" accept="cocktail" data="{% url lims-cocktail-basic-list %}"-->
     <div id="cocktails" class="widget droppable-remove parent-stop" data="{% url lims-cocktail-basic-list %}">
-        <h3>Cocktails</h3>
+	   <div class="widget-title">
+	   <span>Cocktails</span><a href="{% url lims-cocktail-new %}" class="modal add-action" title="Add New Cocktail" rel="#add-cocktail"><img src="/img/small-add-icon.png" /></a>
+	   </div>
         <ul>
             <li><a href="#">Content Not Loaded.</a></li>
         </ul>
-        <a href="{% url lims-cocktail-new %}" rel="#add-cocktail" class="action add modal">add cocktail</a>
     </div>
-    <!--div id="crystalforms" class="widget droppable droppable-remove parent-stop" accept="crystal_form" data="{% url lims-crystalform-basic-list %}"-->
-    <div id="crystalforms" class="widget droppable-remove parent-stop" data="{% url lims-crystalform-basic-list %}">
-        <h3>Crystal Forms</h3>
+    <div id="crystalforms" class="widget droppable droppable-remove parent-stop" accept="crystal_form" data="{% url lims-crystalform-basic-list %}">
+	   <div class="widget-title">
+	   <span>Crystal Forms</span><a href="{% url lims-crystalform-new %}" class="modal add-action" title="Add Crystal Form" rel="#add-crystalform"><img src="/img/small-add-icon.png" /></a>
+	   </div>
         <ul>
             <li><a href="#">Content Not Loaded.</a></li>
         </ul>
-        <a href="{% url lims-crystalform-new %}" rel="#add-crystalform" class="action add modal">add crystal form</a>
     </div>
-
-   {{ block.super }}
 {% endblock %}

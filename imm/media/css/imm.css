@@ -9,6 +9,14 @@ table { border-collapse: collapse;  empty-cells: show;}
     
 }
 
+#content-title h2 span.identity {
+    border-right: 1px solid #ccc;
+    color: #999;
+    padding-right: 0.6em;
+    margin-right: 0.2em;
+}
+
+
 img { border: 0; }
 
 /* Messaging System Popup */
@@ -59,8 +67,7 @@ img { border: 0; }
 .entrysummary { vertical-align: top;}
 .entrysummary th {
     text-align: left;
-    font-style: italic;
-    font-weight: normal;
+    font-weight: bold;
     color: #666;
     padding-right: 0.5em;
 
@@ -68,12 +75,7 @@ img { border: 0; }
 .entrysummary td {
     text-align: left;
     font-weight: normal;
-    font-size: 90%;
     width: 100%;
-}
-
-table.entrysummary {
-    margin: 0.3em;
 }
 
 
@@ -158,6 +160,7 @@ ul.toolbar li{
 	border: none;
 	height: 32px;
 	min-width: 60px;
+	text-align: center;
 }
 
 ul.toolbar li a {

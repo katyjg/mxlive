@@ -3,7 +3,7 @@
 {% load humanize %}
 
 {% block headline %}
-<h2>{{object.name}} ({{object.identity}})</h2>
+<h2><span class="identity">{{object.identity}}</span> {{object.name}}</h2>
 {% endblock %}
 
 {% block object-tools %}
@@ -66,14 +66,13 @@
 
 {% block sidebar %}
     {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
-        <!--div id="containers" class="widget droppable droppable-remove parent-stop" accept="container" data="{% url lims-container-basic-list %}?dewar__isnull=True"-->
         <div id="containers" class="widget droppable-remove parent-stop" data="{% url lims-container-basic-list %}?dewar__isnull=True">
-            <h3>Containers</h3>
+	       <div class="widget-title">
+	       <span>Container</span><a href="{% url lims-container-new %}" class="modal add-action" title="Add New Container" rel="#add-container"><img src="/img/small-add-icon.png" /></a>
+	       </div>
             <ul>
                 <li><a href="#">Content Not Loaded.</a></li>
             </ul>
-            <a href="{% url lims-container-new %}" class="action add modal" rel="#add-container">add container</a>
         </div>
     {% endif %}
-    {{ block.super }}
 {% endblock %}

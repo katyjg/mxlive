@@ -3,7 +3,7 @@
 {% load humanize %}
 
 {% block headline %}
-<h2>{{object.name}} ({{object.identity}})</h2>
+<h2> <span class="identity">{{object.identity}}</span> {{object.name}}</h2>
 {% endblock %}
 
 {% block object-tools %}
@@ -23,16 +23,22 @@
 	<div>{{object.comments}}</div>
 {% endif %}
 <img src="/img/experiment.png" class="experiment droppable droppable-replace" accept="crystal" style="float:right;clear: right; margin: 0.5em;"/>
-
 <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
+    {% comment %}
+    <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
+    <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
+    {% endcomment %}
+    <tr valign="top"><th>Type:</th><td>{{object.get_kind_display}}</td></tr>
+    <tr valign="top"><th>Plan:</th><td>{{object.get_plan_display}}</td></tr>
 	<tr valign="top"><th NOWRAP>Desired Resolution:</th><td>{{object.resolution}}</td></tr>
 	<tr valign="top"><th>Delta Angle:</th><td>{{object.delta_angle}}</td></tr>
 	<tr valign="top"><th>Multiplicity:</th><td>{{object.multiplicity}}</td></tr>
 	<tr valign="top"><th>Angle Range:</th><td>{{object.delta_angle}}</td></tr>
 	<tr valign="top"><th>I/Sigma:</th><td>{{object.i_sigma}}</td></tr>
 	<tr valign="top"><th>Desired R-factor:</th><td>{{object.r_meas}}</td></tr>
-	<tr valign="top"><th>Energy:</th><td>{{object.energy}}</td></tr>
-	<tr valign="top"><th>Absorption Edge:</th><td>{{object.absorption_edge}}</td></tr>
+	{% if object.energy %}<tr valign="top"><th>Energy:</th><td>{{object.energy}}</td></tr>{% endif %}
+	{% if object.absorption_edge %}<tr valign="top"><th>Absorption Edge:</th><td>{{object.absorption_edge}}</td></tr>{% endif %}
+    <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
 	<tr valign="top"><th>Completed:</th><td>{% if object.is_complete %}Yes{% else %} No {% endif %}</td></tr>
 </table>
 <div style="clear: both;"></div>
@@ -62,7 +68,6 @@
 		    <a href="{% url lims-crystal-new %}" class="action add modal" rel="#add-crystal">add crystal</a>
 		</div>
     {% endif %}
-    {{ block.super }}
 {% endblock %}
 
 
