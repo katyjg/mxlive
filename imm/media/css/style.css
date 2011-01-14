@@ -5,7 +5,6 @@ h6,pre,form,fieldset,input,p,blockquote,table,th,td
 	margin:0;
 	padding:0;
 }
-
 fieldset,img,abbr
 {
 	border:0;
@@ -599,6 +598,12 @@ table.cane-detail td {
 #sidebar .widget li:hover
 {
 	background:#c8b9d7;
+}
+
+#sidebar .widget li:hover a:after {
+    content: ' (drag me)';
+    white-space: nowrap;
+    color: green;
 }
 
 #sidebar .widget a.action

@@ -510,6 +510,9 @@ div.crystal.droppable.lims-droppable-hover {
     border-style:solid;
     border-width:1px;
     border-color:#999999;
+    position: relative;
+    background-color: #eee;
+    opacity: 0.8;
 }
 
 .lims-droppable-hover, .lims-droppable-hover td {
@@ -517,6 +520,8 @@ div.crystal.droppable.lims-droppable-hover {
     border-style:solid;
     order-width:1px;
     border-color:#BB88D3;
+    background-color: #ddd;
+    opacity: 0.8;
 }
 .lims-droppable-hover.dewar-detail {
     background-color: #BB88D3;

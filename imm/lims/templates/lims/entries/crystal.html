@@ -65,7 +65,7 @@
 {% endblock %}
 
 {% block sidebar %}
-    <div id="cocktails" class="widget droppable droppable-remove parent-stop" accept="cocktail" data="{% url lims-cocktail-basic-list %}">
+    <div id="cocktails" class="widget droppable-remove parent-stop" data="{% url lims-cocktail-basic-list %}">
 	   <div class="widget-title">
 	   <span>Cocktails</span><a href="{% url lims-cocktail-new %}" class="modal add-action" title="Add New Cocktail" rel="#add-cocktail"><img src="/img/small-add-icon.png" /></a>
 	   </div>

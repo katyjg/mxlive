@@ -2,7 +2,6 @@
 {% load objlist %}
 {% block headline %}<h2 class="{{ol.object_type}}">{{ ol.opts.verbose_name_plural|capfirst }}</h2>{% endblock %}
 {% block object-tools %}
-
     <div class="object-tools">
         <div class="left-element">
             <form class="search-object-list" style="display: inline;" action="{{ handler }}" method="get">

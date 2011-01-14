@@ -127,9 +127,7 @@
 					url: $url,
 					dataType: "script",
 					success: function() {
-						// loadWidgets();
-						// refreshDatalist();
-                        // window.location.reload();
+                        window.location.reload();
 					},
 					error: function() {
 						// error, just reload the widget
@@ -147,8 +145,6 @@
                 url: element.rel,
                 data: "",
                 success: function() {
-                    // refreshDatalist();
-                    // loadWidgets();
                     window.location.reload();
                 }
             });

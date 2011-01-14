@@ -107,7 +107,7 @@
         {% endblock %}
     </div><!-- end footer -->
 {% block script %}
-    <script>
+<script>
 
         // TODO: add generic way to overlay a loading indicator on widgets and datalists.
 
@@ -117,89 +117,7 @@
                 $widget.find("ul").load($widget.attr("data"), function() {});
             });
         }
-
-		// This collapses any expanded items.
-        /*function loadDatalists() {
-            jQuery(".datalist").each(function(i, datalist) {
-                var $datalist = jQuery(datalist);
-                $datalist.load($datalist.attr("data"), function() {
-                    // check to see if drag and drop needs to be setup for this datalist
-                    if($datalist.hasClass("requires-dragdrop")) {
-                        setupTableDragAndDrop("#" + $datalist.attr("id"), $datalist.attr("data"));
-                    }
-                });
-            });
-        }*/
-        
-        // refresh the datalist table
-        /*function refreshDatalist() {
-        	// store what is expanded
-        	var $expanded_items  = new Array();
-        	// find items that are expanded, store id
-        	jQuery(".expanded").each(function(i, expanded) {
-        	var $exp = jQuery(expanded);
-        		$expanded_items.push($exp.attr("id"));
-        	});
-        	// reload all the table data and rows
-        	// replicate code, as I need the re-expanding to happen on success of reload. 
-        	jQuery(".datalist").each(function(i, datalist) {
-                var $datalist = jQuery(datalist);
-                $datalist.load($datalist.attr("data"), function() {
-                    // check to see if drag and drop needs to be setup for this datalist
-                    if($datalist.hasClass("requires-dragdrop")) {
-                        setupTableDragAndDrop("#" + $datalist.attr("id"), $datalist.attr("data"));
-                    }
-                    
-                    // re-expand what was previously expanded
-                	for (x in $expanded_items) {
-                		// find item with that id and class link-row (should only be one)
-                		var $table_item = jQuery("#" + $expanded_items[x]).filter(".link-row").first();
-                		// basically click it
-                		$table_item.click();
-                	}
-                });
-            });
-        	
-        }*/
-
-        function serialize(table) {
-            var rowIds = [];
-            var rows = table.tBodies[0].rows;
-            for (var i = 0; i < rows.length; i++) {
-                var jQuery_row = jQuery(rows[i]);
-                if ( jQuery_row.hasClass("link-row") ) {
-                    rowIds.push("objlist-list-table[]=" + jQuery_row.attr("id"));
-                }
-            }
-            return rowIds.join("&");
-        }
-
-        function setupTableDragAndDrop(selector, url) {
-            var serializedAtStart;
-            jQuery(selector + " table").tableDnD({
-                onDragClass: "lims-droppable-active",
-                onDragStart: function(table, row) {
-                    serializedAtStart = serialize(table);
-                },
-                onDrop: function(table, row) {
-                    var serializedAtDrop = serialize(table);
-                    if (serializedAtStart != serializedAtDrop) {
-                        var jQuery_tr = jQuery(selector + " table tr#" + row.id);
-                        jQuery.ajax({
-                            type: "POST",
-                            url: jQuery_tr.attr("rel") + "priority/",
-                            data: serializedAtDrop,
-                            success: function() {
-                                jQuery_tr.parents(".content-list").load(url, function() {
-                                    setupTableDragAndDrop(selector, url);
-                                });
-                            }
-                        });
-                    }
-                }
-            });
-        }
-        
+      
         function getModel(object) {
         	// widget first, so we know if it's from the sidebar widget area
         	if (object.hasClass("widget-item")) { return 'widget-item'; }
@@ -218,13 +136,13 @@
 
         function setupDragAndDrop() {
             jQuery(".draggable-link-parent").draggable({
+                helper: 'clone',
                 revert: "invalid",
                 start: function(event, ui){
                 	// when starting the drag, store it's parent element (drag source)
                 	if (getModel(jQuery(this)) == 'none') {
                 		var $parent_dom_el = jQuery(this).parents('.parent-stop').first();
                 		jQuery(this).data('parent_dom_el', $parent_dom_el);
-                	
                 	}
                 	else {
                 		var $parent_dom_el = jQuery(this);
@@ -288,19 +206,6 @@
                     else {
                     	end_url = end_url + '/' + source.attr('id') + '/';
                     }
-                    /*
-                    if (getModel(dragged_obj) == 'container')
-                    {                                    
-                        end_url = end_url + getModel(destination);
-                        if (getModel(destination) == 'widget' || getModel(destination) == 'none')
-                        {
-                        	end_url = end_url + '/0/';
-                        }
-                        else {
-                        	end_url = end_url + '/' + destination.attr('id') + '/';
-                        }
-                    }
-                    */
                     end_url = end_url + getModel(dragged_obj);
                     if (getModel(dragged_obj) == 'widget' || getModel(dragged_obj) == 'none')
                     {
@@ -316,19 +221,12 @@
                    
                     // call out to Ajax to perform the operation
                     // if this is a staff page we need to add project
-                    
                     jQuery.ajax({
   		            	type: "POST",
                 		url: end_url,
                 		//data: { items: draggableId, parent: parent, container_location: container_location }, // I think all ignored
                 		dataType: "script",
                 		success: function() {
-                    		//loadWidgets();
-                    		// Maybe this is the call that should be removed. Need to just update datalist, not load it. 
-                    		// this does "fix" the collapsing views. Investigation what will be broken. 
-                    		// looks like it shouldn't be needed. 
-                    		 //loadDatalists();
-                    		 // refreshDatalist();
                             window.location.reload();
                		 	},
                		 	error: function() {
@@ -350,9 +248,6 @@
         jQuery("#sidebar, #content").live("DOMSubtreeModified", function() { setupDragAndDrop();});
 
         loadWidgets();
-        //refreshDatalist();
-        //loadDatalists();
-
     </script>
 {% endblock %}
 </body>
