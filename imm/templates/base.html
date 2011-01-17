@@ -14,7 +14,7 @@
     <script type="text/javascript" src="/js/jquery.slideviewer.1.2.js"></script> 
     <script type="text/javascript" src="/js/jquery.lightbox_me.js"></script>
     <script>
-        $.noConflict(); // puts jquery into noconflict mode as the prototype library utilizes the $ namespace.
+       $.noConflict(); // puts jquery into noconflict mode as the prototype library utilizes the $ namespace.
     </script>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1/prototype.js"></script>
     <script type="text/javascript" src="/js/ajax.js"></script>
@@ -109,7 +109,7 @@
 {% block script %}
 <script>
 
-        // TODO: add generic way to overlay a loading indicator on widgets and datalists.
+        /* TODO: add generic way to overlay a loading indicator on widgets and datalists. */
 
         function loadWidgets() {
             jQuery(".widget").each(function(i, widget) {
@@ -139,7 +139,7 @@
                 helper: 'clone',
                 revert: "invalid",
                 start: function(event, ui){
-                	// when starting the drag, store it's parent element (drag source)
+                	/* when starting the drag, store it's parent element (drag source) */
                 	if (getModel(jQuery(this)) == 'none') {
                 		var $parent_dom_el = jQuery(this).parents('.parent-stop').first();
                 		jQuery(this).data('parent_dom_el', $parent_dom_el);

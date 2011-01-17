@@ -554,11 +554,12 @@ table.cane-detail td {
     margin-right: 5px;
 }
 
-.dewar-detail, #sidebar .widget
+.dewar-detail
 {
 	border:1px solid #999;
 	margin-bottom:10px;
 }
+
 .dewar-detail div.title {
     height: 40px;
 }
@@ -573,6 +574,19 @@ table.cane-detail td {
 	background:#999;
 }
 
+/* Widgets */
+#sidebar .widget
+{
+    -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
+       -moz-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
+    background-color: #eaefff;
+    background-image: -moz-linear-gradient(top, #cceeff, #fff);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #cceeff), color-stop(1, #fff));
+    padding: 2px 2px 1em;
+	margin-bottom:1.5em;
+}
+
 #sidebar .widget ul
 {
 	min-height:120px;
@@ -585,19 +599,19 @@ table.cane-detail td {
 {
 	margin:0;
 	border-bottom:1px solid #ccc;
-	background:#f7f7f7;
+	background:url(/img/grippy.png) no-repeat scroll 3px center;	
 }
 
 #sidebar .widget li a
 {
 	display:block;
-	padding:7px 12px;
+	padding:4px 18px;
 	color:#666;
 }
 
 #sidebar .widget li:hover
 {
-	background:#c8b9d7;
+	/*background:#c8b9d7;*/
 }
 
 #sidebar .widget li:hover a:after {
@@ -610,7 +624,7 @@ table.cane-detail td {
 {
 	color:#333;
 	font-size:12px;
-	line-height:24px;
+	line-height:20px;
 	display:block;
 }
 
@@ -628,15 +642,15 @@ table.cane-detail td {
 	display:block;
 	line-height: 20px;
 	float: right;
-	padding: 0 3px;
+	padding: 2px;
 }
 
 #sidebar .widget .widget-title {
 	margin:0;
 	height: 20px;
-	padding: 3px;
-	color:#FFF;
-	background:#a6a6a6;
+	padding: 5px;
+	color:#F7F3E8;
+	background:#747E80;
 	clear: both;
 	font-size: 130%;
 }
@@ -655,10 +669,17 @@ table.cane-detail td {
     line-height: 1.2em;
     -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
        -moz-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
-            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25)
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
     background-color: #fffeda;
     background-image: -moz-linear-gradient(top, #fefcaf, #fffeee);
     background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #fefcaf), color-stop(1, #fffeee));
+
+/*
+    background-color: #ffeeff;
+    background-image: -moz-linear-gradient(top, #efdaff, #fff);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #efdaff), color-stop(1, #fff));
+*/
+
     padding: 1.5em;
     }
 
