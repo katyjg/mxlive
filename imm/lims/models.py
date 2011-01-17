@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from imm.enum import Enum
 from jsonfield import JSONField
+from django.utils import dateformat
 import logging
 
 from django.db.models.signals import post_save
@@ -420,7 +421,8 @@ class Shipment(models.Model):
             if crystal.num_experiments() == 0:
                 unassociated_crystals.append(crystal)
         if unassociated_crystals:
-            experiment = Experiment(project=self.project, name='Default Experiment')
+            exp_name = '%s auto' % dateformat.format(datetime.datetime.now().date(), 'M jS')
+            experiment = Experiment(project=self.project, name=exp_name)
             experiment.save()
             for unassociated_crystal in unassociated_crystals:
                 unassociated_crystal.experiment = experiment
