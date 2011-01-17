@@ -1286,7 +1286,7 @@ class Data(models.Model):
         return frame_numbers
 
     def __unicode__(self):
-        return '%s, %d images' % (self.name, self.num_frames())
+        return '%s (%d images)' % (self.name, self.num_frames())
     
     def total_angle(self):
         return self.delta_angle * self.num_frames()

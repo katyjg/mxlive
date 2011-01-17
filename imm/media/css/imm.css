@@ -491,7 +491,7 @@ div.help {
     line-height: 140%;
 }
 
-div.crystal.droppable, div.experiment.droppable, div.shipment.droppable, div.dewar.droppable {
+div.crystal.droppable, div.experiment.droppable, div.shipment.droppable, div.dewar-img.droppable {
   float: right;
   margin-top: 0;
   clear: right;
@@ -513,7 +513,7 @@ div.shipment.droppable {
   width: 53px;
   margin-right: 35px;
 }
-div.dewar.droppable {
+div.dewar-img.droppable {
   background: url(/img/dewar.png) top left no-repeat;
   height: 75px;
   width: 33px;
@@ -521,6 +521,9 @@ div.dewar.droppable {
 }
 .ui-draggable-dragging {
     opacity: 0.5;
+}
+.draggable-link-parent a {
+    width: 180px;
 }
 
 .lims-droppable-active, .lims-droppable-active td {
@@ -569,11 +572,11 @@ div.dewar.droppable {
     background: url(/img/shipment-hover.png) no-repeat top left !important;
     border: none;
 }
-.lims-droppable-active.dewar {
+.lims-droppable-active.dewar-img {
     background: url(/img/dewar-active.png) no-repeat top left !important;
     border: none;
 }
-.lims-droppable-hover.dewar {
+.lims-droppable-hover.dewar-img {
     background: url(/img/dewar-hover.png) no-repeat top left !important;
     border: none;
 }
