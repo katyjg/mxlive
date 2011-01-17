@@ -527,7 +527,6 @@ div.dewar-img.droppable {
 }
 
 .lims-droppable-active, .lims-droppable-active td {
-    //background-color: red !important;
     border-style:solid;
     border-width:1px;
     border-color:#999999;
@@ -537,7 +536,6 @@ div.dewar-img.droppable {
 }
 
 .lims-droppable-hover, .lims-droppable-hover td {
-    //background-color: green !important;
     border-style:solid;
     order-width:1px;
     border-color:#BB88D3;

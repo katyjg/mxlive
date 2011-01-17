@@ -177,7 +177,7 @@ class Session(models.Model):
     comments = models.TextField()
     
 
-class Constituent(models.Model):
+class Cocktail(models.Model):
     SOURCES = Enum(
         'Unknown',
         'Synthetic',
@@ -195,6 +195,9 @@ class Constituent(models.Model):
         'Organic molecule',
         'Buffer',
     )
+    HELP = {
+        'name': 'You may want to give a name that references each constituent in the cocktail',
+    }
     project = models.ForeignKey(Project)
     name = models.CharField(max_length=60)
     acronym = models.SlugField(max_length=20) 
@@ -211,6 +214,18 @@ class Constituent(models.Model):
     hazard_details = models.TextField(blank=True)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+
+
+    comments = models.TextField(blank=True, null=True)
+    
+    def __unicode__(self):
+        return self.name
+
+    def identity(self):
+        return 'CT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
+
+    is_editable = True
     
     FIELD_TO_ENUM = {
         'source': SOURCES,
@@ -232,17 +247,6 @@ class Constituent(models.Model):
         hd = [ k for k,v in HD_DICT.items() if v ]
         return ''.join(hd)
         
-    def __unicode__(self):
-        return "%s - %s" % (self.acronym, self.name)
-        
-    def identity(self):
-        return 'CO%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-    
-    def _cocktail(self, cocktail):
-        self.cocktail_set.add(cocktail)
-    
-    cocktail = property(None, _cocktail)
         
 class Carrier(models.Model):
     name = models.CharField(max_length=60)
@@ -795,31 +799,6 @@ class CrystalForm(models.Model):
     
     class Meta:
         verbose_name = 'Crystal Form'
-
-    is_editable = True
-        
-class Cocktail(models.Model):
-    project = models.ForeignKey(Project)
-    constituents = models.ManyToManyField(Constituent)
-    comments = models.TextField(blank=True, null=True)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-    
-    NAME_JOIN_STRING = '/'
-    
-    def name(self):
-        names = sorted([c.acronym for c in self.constituents.all()])
-        return self.NAME_JOIN_STRING.join(names)
-    name.admin_order_field = 'pk'
-    
-    name = property(name)
-        
-    def __unicode__(self):
-        return self.name
-
-    def identity(self):
-        return 'CT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
 
     is_editable = True
 
@@ -1569,7 +1548,6 @@ __all__ = [
     'Project',
     'Session',
     'Beamline',
-    'Constituent',
     'Cocktail',
     'Crystal',
     'CrystalForm',
@@ -1649,7 +1627,7 @@ def ActivityLog_post_save(sender, **kwargs):
                 instance._ActivityLog_message,
                 )
         
-ACTIVITY_LOG_MODELS = [Constituent, Cocktail, Crystal, CrystalForm, Shipment, Container,  Dewar,
+ACTIVITY_LOG_MODELS = [Cocktail, Crystal, CrystalForm, Shipment, Container,  Dewar,
                        Experiment, ScanResult, Result, Data, Strategy]
 
 def connectActivityLog():

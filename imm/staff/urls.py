@@ -9,7 +9,6 @@ from imm.lims.models import Container
 from imm.lims.models import Crystal
 from imm.lims.models import Cocktail
 from imm.lims.models import CrystalForm
-from imm.lims.models import Constituent
 from imm.lims.models import ExcludeManagerWrapper
 from imm.staff.models import Runlist
 from imm.lims.models import ActivityLog

@@ -503,12 +503,6 @@ a.remove {
     display: block;
     padding: 5px 0;
 }
-table#unipuck {
-    background: url('/img/unipuck.png') no-repeat center center;
-    width: 400px;
-    height: 400px;
-    color: green;
-}
 div#unipuck {
     background: url('/img/unipuck.png') no-repeat center center;
     width: 300px;

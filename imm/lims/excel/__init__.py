@@ -11,7 +11,7 @@ from imm.lims.models import Dewar
 from imm.lims.models import Crystal
 from imm.lims.models import Shipment
 from imm.lims.models import Container
-from imm.lims.models import Constituent
+#from imm.lims.models import Constituent
 from imm.lims.models import Cocktail
 from imm.lims.models import ActivityLog
 from imm.lims.models import SpaceGroup

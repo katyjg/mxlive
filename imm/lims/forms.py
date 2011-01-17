@@ -305,19 +305,32 @@ class ExperimentFromStrategyForm(objforms.forms.OrderedForm):
             
 class CocktailForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    constituents = forms.ModelMultipleChoiceField(
-        widget=forms.SelectMultiple(attrs={'class': 'field select large'}),
-        queryset=Constituent.objects.all(),
-        required=False,
-        help_text='Select multiple items and then click submit to add them.') 
+    #constituents = forms.ModelMultipleChoiceField(
+    #    widget=forms.SelectMultiple(attrs={'class': 'field select large'}),
+    #    queryset=Constituent.objects.all(),
+    #    required=False,
+    #    help_text='Select multiple items and then click submit to add them.') 
+    name = objforms.widgets.LargeCharField(required=True, help_text=Cocktail.HELP['name'])
+    acronym = objforms.widgets.LargeCharField(required=True)
+    kind = objforms.widgets.RightHalfChoiceField(required=True,choices=Cocktail.TYPES.get_choices())
+    source = objforms.widgets.LeftHalfChoiceField(required=True, choices=Cocktail.SOURCES.get_choices())
+    is_radioactive = objforms.widgets.LeftCheckBoxField(required=False)
+    is_contaminant = objforms.widgets.RightCheckBoxField(required=False)
+    is_toxic = objforms.widgets.LeftCheckBoxField(required=False)
+    is_oxidising = objforms.widgets.RightCheckBoxField(required=False)
+    is_explosive = objforms.widgets.LeftCheckBoxField(required=False)
+    is_corrosive = objforms.widgets.RightCheckBoxField(required=False)
+    is_inflamable = objforms.widgets.LeftCheckBoxField(required=False)
+    is_biological_hazard = objforms.widgets.RightCheckBoxField(required=False)
+    hazard_details = objforms.widgets.CommentField(required=False)
     comments = forms.CharField(
         widget=objforms.widgets.CommentInput,
         max_length=200, 
         required=False,
         help_text= Crystal.HELP['comments'])
+
     class Meta:
         model = Cocktail
-        fields = ('project','constituents','comments')
 
 class CrystalFormForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
@@ -336,25 +349,6 @@ class CrystalFormForm(objforms.forms.OrderedForm):
         model = CrystalForm 
         fields = ('project','name', 'space_group','cell_a','cell_b','cell_c','cell_alpha','cell_beta','cell_gamma')
     
-class ConstituentForm(objforms.forms.OrderedForm):
-    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    name = objforms.widgets.LargeCharField(required=True)
-    acronym = objforms.widgets.LargeCharField(required=True)
-    kind = objforms.widgets.RightHalfChoiceField(required=True,choices=Constituent.TYPES.get_choices())
-    source = objforms.widgets.LeftHalfChoiceField(required=True, choices=Constituent.SOURCES.get_choices())
-    is_radioactive = objforms.widgets.LeftCheckBoxField(required=False)
-    is_contaminant = objforms.widgets.RightCheckBoxField(required=False)
-    is_toxic = objforms.widgets.LeftCheckBoxField(required=False)
-    is_oxidising = objforms.widgets.RightCheckBoxField(required=False)
-    is_explosive = objforms.widgets.LeftCheckBoxField(required=False)
-    is_corrosive = objforms.widgets.RightCheckBoxField(required=False)
-    is_inflamable = objforms.widgets.LeftCheckBoxField(required=False)
-    is_biological_hazard = objforms.widgets.RightCheckBoxField(required=False)
-    hazard_details = objforms.widgets.CommentField(required=False)
-    class Meta:
-        model = Constituent
-    
-
 class DataForm(forms.ModelForm):
     class Meta:
         model = Data

@@ -69,8 +69,6 @@ urlpatterns = patterns('imm.lims.views',
     ########################
     (r'^samples/cocktail/basic/$', 'basic_object_list', {'model': Cocktail, 'template': 'objlist/basic_object_list.html' }, 'lims-cocktail-basic-list'),
     (r'^samples/cocktail/(?P<id>\d+)/$', 'object_detail', {'model': CrystalForm, 'template': 'lims/entries/cocktail.html'}, 'lims-cocktail-detail'),
-    (r'^samples/cocktail/(?P<id>\d+)/new/$', 'add_new_object', {'model': Constituent, 'form': ConstituentForm, 'field': 'cocktail'}, 'lims-cocktail-new-constituent'),
-    (r'^samples/cocktail/(?P<id>\d+)/add/$', 'add_existing_object', {'model': Constituent, 'parent_model': Cocktail, 'field':'cocktail'}, 'lims-cocktail-add-constituent'),
     #COCKTAILS##############
     (r'^samples/cocktail/$', 'object_list', {'model': Cocktail, 'template': 'objlist/generic_list.html', 'can_add': True}, 'lims-cocktail-list'),
     (r'^samples/cocktail/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Cocktail, 'form': CocktailForm, 'template': 'objforms/form_base.html'}, 'lims-cocktail-edit'),
@@ -116,18 +114,6 @@ urlpatterns = patterns('imm.lims.views',
     (r'^experiment/dataset/$', 'object_list', {'model': Data, 'template': 'objlist/generic_list.html'}, 'lims-dataset-list'),
     (r'^experiment/dataset/(?P<id>\d+)/$', 'data_viewer', {}, 'lims-dataset-detail'),
     ###############
-
-
-
-
-
-
-    (r'^samples/constituent/$', 'object_list', {'model': Constituent, 'template': 'objlist/object_list.html', 'can_add': True}, 'lims-constituent-list'),
-    (r'^samples/constituent/basic/$', 'basic_object_list', {'model': Constituent, 'template': 'objlist/basic_object_list.html'}, 'lims-constituent-basic-list'),
-    (r'^samples/constituent/(?P<id>\d+)/$', 'object_detail', {'model': Constituent, 'template': 'lims/entries/constituent.html'}, 'lims-constituent-detail'),
-    (r'^samples/constituent/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Constituent, 'form': ConstituentForm, 'template': 'objforms/form_base.html'}, 'lims-constituent-edit'),
-    (r'^samples/constituent/new/$', 'create_object', {'model': Constituent, 'form': ConstituentForm, 'template': 'objforms/form_base.html'}, 'lims-constituent-new'),
-
 
 
     #(r'^experiment/dataset/$', 'object_list', {'model': Data, 'template': 'objlist/object_list.html'}, 'lims-dataset-list'),
@@ -181,7 +167,6 @@ if settings.DEBUG:
     _databrowse_model_list = [
                 Project, 
                 Laboratory, 
-                Constituent, 
                 Carrier,
                 Shipment,
                 Dewar,

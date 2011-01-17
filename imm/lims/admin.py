@@ -5,15 +5,6 @@ ITEMS_PER_PAGE = 16
 ACTIVITY_ITEMS_PER_PAGE = 6
 staff_site = admin.AdminSite()
 
-class ConstituentAdmin(admin.ModelAdmin):
-    search_fields = ['acronym', 'name', 'hazard_details']
-    list_filter = ['kind','source','modified']
-    list_display = ('identity','acronym', 'name', 'kind', 'source')
-    list_per_page = ITEMS_PER_PAGE
-    list_editable = ['acronym', 'name', 'kind', 'source']    
-    ordering = ['acronym']
-admin.site.register(Constituent, ConstituentAdmin)
-
 class ShipmentAdmin(admin.ModelAdmin):
     search_fields = ['label', 'comments','status']
     list_filter = ['created','status']
@@ -65,9 +56,9 @@ staff_site.register(Crystal, CrystalAdmin)
 
 class CocktailAdmin(admin.ModelAdmin):
     ordering = ['-created']
-    search_fields = ['comments','constituents__name','pk']
+    search_fields = ['comments','name','pk']
     list_filter = ['modified']
-    filter_horizontal = ['constituents']
+    #filter_horizontal = ['constituents']
     list_display = ('identity', 'name', 'created','modified')    
 admin.site.register(Cocktail, CocktailAdmin)
     
