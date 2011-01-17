@@ -1951,3 +1951,26 @@ div.login-field-error
 {
 	margin-left:9.5em;
 }
+
+/* SCORE COLORING */
+
+span.excellent-score {
+    color: #0c0 !important;
+}
+
+span.good-score {
+    color: #9c0 !important;
+}
+
+span.fair-score {
+    color: #cc0 !important;
+}
+
+span.usabe-score {
+    color: #993 !important;
+}
+span.unusabe-score {
+    color: #933 !important;
+}
+
+

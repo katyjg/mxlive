@@ -5,6 +5,7 @@ import xlutils.save
 import os
 import logging
 
+
 from imm.lims.models import Experiment
 from imm.lims.models import Dewar
 from imm.lims.models import Crystal
@@ -17,6 +18,7 @@ from imm.lims.models import SpaceGroup
 from imm.lims.models import CrystalForm
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import smart_str
+from django.utils import dateformat
 
 COLUMN_MAP = dict([(index, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[index]) for index in range(26)])
 
@@ -112,7 +114,8 @@ class LimsWorkbook(object):
         
         @return: a Shipment instance
         """
-        return Shipment(project=self.project, label='Uploaded Shipment')
+        label = "Uploaded %s " % dateformat.format(datetime.now(), 'M jS at G')
+        return Shipment(project=self.project, label=label)
     
     def _get_dewar(self):
         """ Returns a Dewar
