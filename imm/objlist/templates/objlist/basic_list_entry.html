@@ -1,29 +1,35 @@
 <tr class="link-row action modal {{ row_state }} {{ type|lower }}"  
-    {% if is_individual %}redirect="{{ handler }}{{ object.pk }}/"
-    title="Go to {{type}} {{object.pk}}"
-    {% else %}{% if object.is_editable %}href="{{handler}}{{object.pk}}/edit/"
-    rel="#edit-object"
-    title="Edit {{object.pk}}"
-    {% endif %}{% endif %}>
-    <td class="first"></td>
+    {% if is_individual %}
+        redirect="{{ handler }}{{ object.pk }}/"
+        title="Go to {{type}} {{object.pk}}"
+    {% else %}{% if object.is_editable %}
+        href="{{handler}}{{object.pk}}/edit/"
+        rel="#edit-object"
+        title="Edit {{object.pk}}"
+    {% else %}{% if type == 'Data' %}
+        href="{% url lims-dataset-detail object.pk %}"
+        rel="#view-data"
+        title="View dataset {{object.pk}}"
+    {% endif %}{% endif %}{% endif %}>
+    {% if request.user.is_superuser %} 
+        <td class="first"></td>
+    {% endif %}
 
     {# should add a check here for maximum size. Don't want something like a long label ruining everything #}
     {% load truncate_filters %}
     
     {% for field in fields %}
-    	{% if field == object.id %}
-    		<td class="link-cell">
+ 		<td class="link-cell">
+     	{% if field == object.id %}
             {{ object.identity }}
-            </td>
     	{% else %}
-        {% if field == object.identity %}
-            <td class="link-cell">
-            {{ object.identity }}   
-            </td>
-        {% else %}
-    		<td class="link-cell">{{ field|truncate_chars:30 }}</td>
+        {% if field|make_list == object.score|make_list %}
+            {{ field|floatformat:3 }}
+    	{% else %}
+    		{{ field|truncate_chars:30 }}
     	{% endif %}
-        {% endif %}
+    	{% endif %}
+        </td>
     {% endfor %}
 
     {% if form %}

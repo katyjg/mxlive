@@ -360,7 +360,13 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     Replace means if the field already has an item in it, replace it, else fail
     Reverse means, due to model layout, you are actually adding destination to object
     """
-
+    object_type = destination.__name__
+    form_info = {
+        'title': 'Add Existing %s' % (object_type),
+        'sub_title': 'Select existing %ss to add to %s' % (object_type.lower(), object),
+        'action':  request.path,
+        'target': 'entry-scratchpad',
+    }
     if request.method != 'POST':
         raise Http404
 
@@ -451,7 +457,10 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
         message
         )
     request.user.message_set.create(message = message)
-    return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
+    return render_to_response('lims/refresh.html', {
+        'context': RequestContext(request), 
+        'info': form_info,
+        })
     
 
 @login_required
@@ -994,6 +1003,13 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
         except Project.DoesNotExist:
             raise Http404    
 
+    form_info = {
+        'title': request.GET.get('title', 'Remove %s' % model.__name__),
+        'sub_title': obj_id,
+        'action':  request.path,
+        'target': 'entry-scratchpad'
+    }
+
     model = object;
     obj_manager = model.objects
     request.project = None
@@ -1043,6 +1059,7 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
 
         src.save()
         message = '%s has been successfully removed' % display_name
+        form_info['message'] = '%s has been successfully removed' % display_name
     
     else:
         message = '%s has not been removed, as %s is not editable' % (display_name, src.name)
@@ -1057,7 +1074,10 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
         message
         )
     request.user.message_set.create(message = message)
-    return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
+    return render_to_response('lims/refresh.html', {
+        'context': RequestContext(request), 
+        'info': form_info,
+        })
 
 @login_required
 @project_required
