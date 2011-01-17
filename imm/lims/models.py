@@ -6,6 +6,8 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
+
 from imm.enum import Enum
 from jsonfield import JSONField
 from django.utils import dateformat
@@ -1514,8 +1516,9 @@ class ActivityLog(models.Model):
     project = models.ForeignKey(Project)
     user = models.ForeignKey(User)
     ip_number = models.IPAddressField('IP Address')
+    object_id = models.PositiveIntegerField(blank=True, null=True)
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
-    object_id = models.CharField(max_length=20, blank=True, null=True)
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
     object_repr = models.CharField('Item', max_length=200, blank=True, null=True)
     action_type = models.IntegerField(max_length=1, choices=TYPE.get_choices() )
     description = models.TextField(blank=True)
