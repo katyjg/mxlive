@@ -580,7 +580,9 @@ div.dewar-img.droppable {
     background: url(/img/dewar-hover.png) no-repeat top left !important;
     border: none;
 }
-
+#shiftzoomimg_ttip {
+    z-index: 1003;
+}
  .lims-droppable-hover li {
 	background-color:#c8b9d7 !important;
 }
