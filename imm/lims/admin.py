@@ -24,7 +24,7 @@ admin.site.register(Dewar, DewarAdmin)
 class ActivityLogAdmin(admin.ModelAdmin):
     list_filter = ['created']
     search_fields = ['description','ip_number', 'content_type__name', 'action_type']
-    list_display = ('created', 'action_type','content_type', 'object_repr', 'user','ip_number','description')
+    list_display = ('created', 'action_type', 'object_repr', 'user','ip_number','description')
     ordering = ('-created',)
     list_per_page = ACTIVITY_ITEMS_PER_PAGE    
 admin.site.register(ActivityLog, ActivityLogAdmin)
@@ -116,7 +116,6 @@ admin.site.register(Strategy, StrategyAdmin)
 
 admin.site.register(Project)
 admin.site.register(Carrier)
-admin.site.register(Laboratory)
 admin.site.register(Session)
 admin.site.register(Beamline)
 

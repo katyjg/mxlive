@@ -491,6 +491,13 @@ div.help {
     line-height: 140%;
 }
 
+.crystal-data-table, .crystal-report-table {
+    float: left;
+    width: 49%;
+}
+.crystal-report-table {
+    float: right;
+}
 div.crystal.droppable, div.experiment.droppable, div.shipment.droppable, div.dewar-img.droppable {
   float: right;
   margin-top: 0;

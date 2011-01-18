@@ -39,7 +39,7 @@ class Beamline(models.Model):
     def __unicode__(self):
         return self.name
 
-    
+'''    
 class Laboratory(models.Model):
     name = models.CharField(max_length=600)
     address = models.CharField(max_length=600)
@@ -57,6 +57,7 @@ class Laboratory(models.Model):
     
     class Meta:
         verbose_name_plural = 'Laboratories'
+'''
         
 class ManagerWrapper(models.Manager):
     """ This a models.Manager instance that wraps any models.Manager instance and alters the query_set() of
@@ -149,15 +150,34 @@ class OrderByManagerWrapper(ManagerWrapper):
         query_set = self.manager.get_query_set()
         query_set = query_set.order_by(*self.fields)
         return query_set
+
+class Carrier(models.Model):
+    name = models.CharField(max_length=60)
+    phone_number = models.CharField(max_length=20)
+    fax_number = models.CharField(max_length=20)
+    code_regex = models.CharField(max_length=60)
+    url = models.URLField()
+
+    def __unicode__(self):
+        return self.name
         
 class Project(models.Model):
     user = models.ForeignKey(User, unique=True)
-    permit_no = models.CharField(max_length=20)
     name = models.SlugField()
     title = models.CharField(max_length=200)
     summary = models.TextField()
     beam_time = models.FloatField()
-    lab = models.ForeignKey(Laboratory)
+    carrier = models.ForeignKey(Carrier)
+    account_number = models.CharField(max_length=50)
+    lab = models.CharField(max_length=600)
+    address = models.CharField(max_length=600)
+    city = models.CharField(max_length=180)
+    postal_code = models.CharField(max_length=30)
+    country = models.CharField(max_length=180)
+    contact_phone = models.CharField(max_length=60)
+    contact_fax = models.CharField(max_length=60)
+    organisation = models.CharField(max_length=600, blank=True, null=True)
+
     start_date = models.DateField()
     end_date = models.DateField()
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
@@ -198,13 +218,13 @@ class Cocktail(models.Model):
         'Buffer',
     )
     HELP = {
-        'name': 'You may want to give a name that references each constituent in the cocktail',
+        'constituents': 'Comma separated list of the constituents in this cocktail',
     }
     project = models.ForeignKey(Project)
     name = models.CharField(max_length=60)
-    acronym = models.SlugField(max_length=20) 
-    source = models.IntegerField(max_length=1, choices=SOURCES.get_choices(), default=SOURCES.UNKNOWN)
-    kind = models.IntegerField('type', max_length=1, choices=TYPES.get_choices(), default=TYPES.PROTEIN)
+    constituents = models.CharField(max_length=200) 
+    #source = models.IntegerField(max_length=1, choices=SOURCES.get_choices(), default=SOURCES.UNKNOWN)
+    #kind = models.IntegerField('type', max_length=1, choices=TYPES.get_choices(), default=TYPES.PROTEIN)
     is_radioactive = models.BooleanField()
     is_contaminant = models.BooleanField()
     is_toxic = models.BooleanField()
@@ -213,12 +233,10 @@ class Cocktail(models.Model):
     is_corrosive = models.BooleanField()
     is_inflamable = models.BooleanField()
     is_biological_hazard = models.BooleanField()
-    hazard_details = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
 
-
-    comments = models.TextField(blank=True, null=True)
     
     def __unicode__(self):
         return self.name
@@ -228,11 +246,13 @@ class Cocktail(models.Model):
     identity.admin_order_field = 'pk'
 
     is_editable = True
-    
+
+    '''    
     FIELD_TO_ENUM = {
         'source': SOURCES,
         'kind': TYPES,
     }
+    '''
 
     def get_hazard_designation(self):
         HD_DICT = {
@@ -248,17 +268,13 @@ class Cocktail(models.Model):
 
         hd = [ k for k,v in HD_DICT.items() if v ]
         return ''.join(hd)
-        
-        
-class Carrier(models.Model):
-    name = models.CharField(max_length=60)
-    phone_number = models.CharField(max_length=20)
-    fax_number = models.CharField(max_length=20)
-    code_regex = models.CharField(max_length=60)
-    url = models.URLField()
 
-    def __unicode__(self):
-        return self.name
+    class Meta:
+        verbose_name = "Protein Cocktail"
+        verbose_name_plural = 'Protein Cocktails'
+        
+        
+
     
 def perform_action(instance, action, data=None):
     """ Performs an action (send a message to FSM) on an object. See Shipment for a description
@@ -1547,7 +1563,6 @@ __all__ = [
     'FilterManagerWrapper',
     'OrderByManagerWrapper',
     'DistinctManagerWrapper',
-    'Laboratory',
     'Project',
     'Session',
     'Beamline',

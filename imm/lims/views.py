@@ -77,24 +77,23 @@ def create_and_update_project_and_laboratory(user, fetcher=None):
         if project.name != user.name:
             project.name = user.name
             project.save()
-        if project.lab.organisation != profile_details['primaryContact']['institution']:
-            project.lab.organisation = profile_details['primaryContact']['institution']
-            project.lab.save()
-        if project.lab.name != profile_details['primaryContact']['department']:
-            project.lab.name = profile_details['primaryContact']['department']
-            project.lab.save()
-        if project.lab.contact_phone != profile_details['primaryContact']['phoneNum']:
-            project.lab.contact_phone = profile_details['primaryContact']['phoneNum']
-            project.lab.save()
+        if project.organisation != profile_details['primaryContact']['institution']:
+            project.organisation = profile_details['primaryContact']['institution']
+            project.save()
+        if project.name != profile_details['primaryContact']['department']:
+            project.name = profile_details['primaryContact']['department']
+            project.save()
+        if project.contact_phone != profile_details['primaryContact']['phoneNum']:
+            project.contact_phone = profile_details['primaryContact']['phoneNum']
+            project.save()
         
     except Project.DoesNotExist:
-        laboratory = Laboratory(organisation=profile_details['primaryContact']['institution'],
-                                name=profile_details['primaryContact']['department'],
-                                contact_phone=profile_details['primaryContact']['phoneNum'])
-        laboratory.save()
+        #laboratory = Project(organisation=profile_details['primaryContact']['institution'],
+        #                        name=profile_details['primaryContact']['department'],
+        #                        contact_phone=profile_details['primaryContact']['phoneNum'])
+        #laboratory.save()
         project = Project(user=user, 
-                          lab=laboratory,
-                          permit_no=profile_details['experimentId'],
+                          #lab=laboratory,
                           name=profile_details['title'],
                           beam_time=0,
                           start_date=datetime.datetime.now(),
@@ -246,6 +245,7 @@ def show_project(request):
                 },
                 
     }
+
     return render_to_response('lims/project.html', {
         'project': project,
         'statistics': statistics,

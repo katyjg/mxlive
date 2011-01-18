@@ -310,10 +310,8 @@ class CocktailForm(objforms.forms.OrderedForm):
     #    queryset=Constituent.objects.all(),
     #    required=False,
     #    help_text='Select multiple items and then click submit to add them.') 
-    name = objforms.widgets.LargeCharField(required=True, help_text=Cocktail.HELP['name'])
-    acronym = objforms.widgets.LargeCharField(required=True)
-    kind = objforms.widgets.RightHalfChoiceField(required=True,choices=Cocktail.TYPES.get_choices())
-    source = objforms.widgets.LeftHalfChoiceField(required=True, choices=Cocktail.SOURCES.get_choices())
+    name = objforms.widgets.LargeCharField(required=True)
+    constituents = objforms.widgets.LargeCharField(required=True, help_text=Cocktail.HELP['constituents'])
     is_radioactive = objforms.widgets.LeftCheckBoxField(required=False)
     is_contaminant = objforms.widgets.RightCheckBoxField(required=False)
     is_toxic = objforms.widgets.LeftCheckBoxField(required=False)
@@ -322,8 +320,7 @@ class CocktailForm(objforms.forms.OrderedForm):
     is_corrosive = objforms.widgets.RightCheckBoxField(required=False)
     is_inflamable = objforms.widgets.LeftCheckBoxField(required=False)
     is_biological_hazard = objforms.widgets.RightCheckBoxField(required=False)
-    hazard_details = objforms.widgets.CommentField(required=False)
-    comments = forms.CharField(
+    description = forms.CharField(
         widget=objforms.widgets.CommentInput,
         max_length=200, 
         required=False,

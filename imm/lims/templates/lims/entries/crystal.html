@@ -38,7 +38,7 @@
 		{% if object.cocktail %}
 			rel="{% url lims-cocktail-detail object.cocktail.id %}"
 		{% endif %}><th>Cocktail:</th><td>{{ object.cocktail }}</td></tr>
-	<tr valign="top"><th>Container:</th><td>{{ object.container }}</td></tr>
+	<tr valign="top"><th>Container:</th><td>{{ object.container }} ({{ object.container_location }})</td></tr>
 	<tr valign="top"><th>Experiment:</th><td>{{ object.experiment }}</td></tr>
 	{% if object.screen_status != 0 %}
 		<tr valign="top"><th NOWRAP>Screen Status:</th><td>{{ object.get_screen_status_display }}</td></tr>
@@ -46,19 +46,12 @@
 	{% if object.collect_status != 0 %}
 		<tr valign="top"><th NOWRAP>Collect Status:</th><td>{{ object.get_collect_status_display }}</td></tr>
 	{% endif %}
-	<tr valign="top"><th>Datasets:</th><td>{% for data in datasets %}
-        <a href="{% url lims-dataset-detail data.pk %}" class="modal" rel="#view-data">{{ data.name }}</a>
-        {% if forloop.last %}{% else %}, {% endif %}
-    {% endfor %} </td></tr>
-	<tr valign="top"><th>Results:</th><td>{% for result in results %}
-        <a href="{% url lims-result-detail result.pk %}" class="modal" rel="#view-result">{{ result.name }} ({{ result.score|floatformat:2 }})</a>
-        {% if forloop.last %}{% else %}, {% endif %}
-    {% endfor %} </td></tr>
 </table>
+
+{% include "lims/entries/data_report_table.html" %}
 
 <div id="add-cocktail" class="hidden modal-content"></div>
 <div id="add-crystalform" class="hidden modal-content"></div>
-<div id="view-result" class="hidden modal-content"></div>
 <div id="view-data" class="hidden modal-content"></div>
 
 {% include "lims/entries/popup.html" %}

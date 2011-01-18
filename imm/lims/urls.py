@@ -166,7 +166,6 @@ if settings.DEBUG:
 
     _databrowse_model_list = [
                 Project, 
-                Laboratory, 
                 Carrier,
                 Shipment,
                 Dewar,
