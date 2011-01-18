@@ -121,7 +121,6 @@ class ObjectList(ChangeList):
                     header = force_unicode(self.opts.verbose_name)
                 elif field_name == '__str__':
                     header = smart_str(self.opts.verbose_name)
-                    print field_name
                 else:
                     attr = getattr(self.model, field_name) # Let AttributeErrors propagate.
                     try:
