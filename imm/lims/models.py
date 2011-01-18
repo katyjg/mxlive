@@ -1501,8 +1501,19 @@ class ScanResult(models.Model):
 
     
 class ActivityLogManager(models.Manager):
-    def log_activity(self, project_id, user_id, ip_number, content_type_id, object_id, object_repr, action_type, description=''):
-        e = self.model(None, None, project_id, user_id,  ip_number, content_type_id, str(object_id), object_repr, action_type, description)
+    def log_activity(self, project_id, user_id, ip_number, obj, action_type, description=''):
+        object_id = obj.pk
+        content_type = ContentType.objects.get_for_model(obj)
+        
+        e = self.model()
+        e.project_id = project_id
+        e.user_id = user_id
+        e.ip_number = ip_number
+        e.content_type = content_type
+        e.object_id = object_id
+        e.affected_item = obj
+        e.action_type = action_type
+        e.description = description
         e.save()
     
 class ActivityLog(models.Model):
@@ -1513,8 +1524,7 @@ class ActivityLog(models.Model):
     ip_number = models.IPAddressField('IP Address')
     object_id = models.PositiveIntegerField(blank=True, null=True)
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
-    object_repr = models.CharField('Item', max_length=200, blank=True, null=True)
+    affected_item = generic.GenericForeignKey('content_type', 'object_id')
     action_type = models.IntegerField(max_length=1, choices=TYPE.get_choices() )
     description = models.TextField(blank=True)
     
@@ -1591,58 +1601,63 @@ def ActivityLog_pre_save(sender, **kwargs):
     instance = kwargs['instance']
     instanceVars = vars(instance)
     
-    try:
-        # values in the existing (already in db) instance
-        existingInstance = sender._default_manager.get(pk=instance.pk)
-        existingInstanceVars = vars(existingInstance)
-        
-        # flag to indicate an ActivityLog MODIFY or CREATED entity
-        instance._ActivityLog_type = None
-        changes = {}
-        
-        # iterate of the dictionaries to see if anything notable has changed
-        for key in set(instanceVars.keys() + existingInstanceVars.keys()):
-            if key in ['created', 'modified'] or key.startswith('_') or key.startswith('tmp_'):
-                continue
-            if instanceVars.get(key) != existingInstanceVars.get(key):
-                changes[key] = (existingInstanceVars.get(key), instanceVars.get(key))
-                
-        # if there are changes, construct a message for the ActivityLog entry that shows the changes
-        # to each field in the format "field": "oldValue" -> "newValue"
-        if changes:
-            instance._ActivityLog_type = ActivityLog.TYPE.MODIFY
-            messages = []
-            for key, value in changes.items():
-                value = list(value)
-                for i, v in enumerate(value):
-                    if isinstance(v, basestring):
-                        value[i] = '"%s"' % v
-                    elif hasattr(sender, 'FIELD_TO_ENUM'):
-                        if sender.FIELD_TO_ENUM.has_key(key):
-                            value[i] = '"%s"' % sender.FIELD_TO_ENUM[key][v]
-                messages.append('%s: %s -> %s' % (key, value[0], value[1]))
-            instance._ActivityLog_message = ','.join(messages)
+    _activity_log = getattr(instance, '_activity_log', None)
+    if _activity_log is None:
+        try:
+            # values in the existing (already in db) instance
+            existingInstance = sender._default_manager.get(pk=instance.pk)
+            existingInstanceVars = vars(existingInstance)
             
-    except sender.DoesNotExist:
-        # this is a new entity, create a simple ActivityLog entry
-        instance._ActivityLog_type = ActivityLog.TYPE.CREATE
-        instance._ActivityLog_message = 'Created'
+            # flag to indicate an ActivityLog MODIFY or CREATED entity
+            _ActivityLog_type = None
+            changes = {}
+            
+            # iterate of the dictionaries to see if anything notable has changed
+            for key in set(instanceVars.keys() + existingInstanceVars.keys()):
+                if key in ['created', 'modified'] or key.startswith('_') or key.startswith('tmp_'):
+                    continue
+                if instanceVars.get(key) != existingInstanceVars.get(key):
+                    changes[key] = (existingInstanceVars.get(key), instanceVars.get(key))
+                    
+            # if there are changes, construct a message for the ActivityLog entry that shows the changes
+            # to each field in the format "field": "oldValue" -> "newValue"
+            if changes:
+                _ActivityLog_type = ActivityLog.TYPE.MODIFY
+                messages = []
+                for key, value in changes.items():
+                    value = list(value)
+                    for i, v in enumerate(value):
+                        if isinstance(v, basestring):
+                            value[i] = '"%s"' % v
+                        elif hasattr(sender, 'FIELD_TO_ENUM'):
+                            if sender.FIELD_TO_ENUM.has_key(key):
+                                value[i] = '"%s"' % sender.FIELD_TO_ENUM[key][v]
+                    messages.append('%s: %s -> %s' % (key, value[0], value[1]))
+                _ActivityLog_message = ','.join(messages)
+                
+        except sender.DoesNotExist:
+            # this is a new entity, create a simple ActivityLog entry
+            _ActivityLog_type = ActivityLog.TYPE.CREATE
+            _ActivityLog_message = 'Created'
+        instance._activity_log = {'message': _ActivityLog_message,
+            'ip_number': '0.0.0.0',
+            'action_type': _ActivityLog_type,
+            }
         
 def ActivityLog_post_save(sender, **kwargs):
     """ post_save handler """
     # if the instance was created of changed, then create an ActivityLog entry
     instance = kwargs['instance']
-    if instance._ActivityLog_type is not None:
+    _activity_log = getattr(instance, '_activity_log', None)
+    if _activity_log is not None:
         project = instance.project
         ActivityLog.objects.log_activity(
                 project.pk,
                 project.user.pk,
-                '0.0.0.0', # no access to request object, just use a dummy IP address
-                ContentType.objects.get_for_model(sender).id,
-                instance.pk, 
-                str(instance), 
-                instance._ActivityLog_type,
-                instance._ActivityLog_message,
+                _activity_log['ip_number'], # no access to request object, just use a dummy IP address
+                instance, 
+                _activity_log['action_type'],
+                _activity_log['message'],
                 )
         
 ACTIVITY_LOG_MODELS = [Cocktail, Crystal, CrystalForm, Shipment, Container,  Dewar,

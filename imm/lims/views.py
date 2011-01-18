@@ -442,20 +442,15 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
         if loc_id:
             setattr(dest, 'container_location', loc_id)
     
-        dest.save()
         message = '%s has been successfully added' % display_name
+        dest._activity_log = {
+            'message': message,
+            'ip_number': request.META['REMOTE_ADDR'],
+            'action_type': ActivityLog.TYPE.MODIFY,}
+        dest.save()
     else:
         message = '%s has not been added, as %s is not editable' % (display_name, dest.name)
-    ActivityLog.objects.log_activity(
-        0,
-        request.user.pk, 
-        request.META['REMOTE_ADDR'],
-        obj_id,
-        dest_id, 
-        smart_str(destination), 
-        ActivityLog.TYPE.MODIFY,
-        message
-        )
+
     request.user.message_set.create(message = message)
     return render_to_response('lims/refresh.html', {
         'context': RequestContext(request), 
@@ -515,9 +510,7 @@ def add_existing_object_old(request, src_id, dest_id, obj_id, parent_model, mode
                 project.pk,
                 request.user.pk, 
                 request.META['REMOTE_ADDR'],
-                ContentType.objects.get_for_model(parent_model).id,
-                parent.pk, 
-                smart_str(parent), 
+                parent, 
                 ActivityLog.TYPE.MODIFY,
                 form_info['message']
                 )
@@ -655,9 +648,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
                 project.pk,
                 request.user.pk, 
                 request.META['REMOTE_ADDR'],
-                ContentType.objects.get_for_model(model).id,
-                new_obj.pk, 
-                smart_str(new_obj), 
+                new_obj, 
                 ActivityLog.TYPE.CREATE,
                 info_msg
                 )
@@ -737,9 +728,7 @@ def add_new_object(request, id, model, form, field):
                 project.pk,
                 request.user.pk,
                 request.META['REMOTE_ADDR'],
-                ContentType.objects.get_for_model(model).id,
-                new_obj.pk, 
-                smart_str(new_obj), 
+                new_obj, 
                 ActivityLog.TYPE.CREATE,
                 info_msg
                 )
@@ -942,22 +931,15 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
         if request.project:
             frm.restrict_by('project', request.project.pk)
         if frm.is_valid():
+            form_info['message'] = '%s: "%s|%s" successfully modified' % ( model._meta.verbose_name, obj.identity(), obj.__unicode__())
+            frm.instance._activity_log = {
+                'message': form_info['message'],
+                'ip_number': request.META['REMOTE_ADDR'],
+                'action_type': ActivityLog.TYPE.MODIFY,}
             frm.save()
             # if an action ('send', 'close') is specified, the perform the action
             if action:
                 perform_action(obj, action, data=frm.cleaned_data)
-            form_info['message'] = '%s %s %s successfully modified' % ( model.__name__, obj.__unicode__(), obj.identity())
-            if hasattr(obj, 'project'):
-                ActivityLog.objects.log_activity(
-                    obj.project.pk,
-                    request.user.pk, 
-                    request.META['REMOTE_ADDR'],
-                    ContentType.objects.get_for_model(model).id,
-                    obj.pk, 
-                    smart_str(obj), 
-                    ActivityLog.TYPE.MODIFY,
-                    form_info['message']
-                    )
             request.user.message_set.create(message = form_info['message'])
             
             return render_to_response('lims/message.html', context_instance=RequestContext(request))
@@ -1056,23 +1038,17 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
                 request.user.message_set.create(message = message)
                 return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
                        
-
-        src.save()
         message = '%s has been successfully removed' % display_name
+        src._activity_log = {
+            'message': message,
+            'ip_number': request.META['REMOTE_ADDR'],
+            'action_type': ActivityLog.TYPE.MODIFY,}
+        src.save()
         form_info['message'] = '%s has been successfully removed' % display_name
     
     else:
         message = '%s has not been removed, as %s is not editable' % (display_name, src.name)
-    ActivityLog.objects.log_activity(
-        to_remove.project.pk,
-        request.user.pk, 
-        request.META['REMOTE_ADDR'],
-        obj_id,
-        src_id, 
-        smart_str(destination), 
-        ActivityLog.TYPE.MODIFY,
-        message
-        )
+
     request.user.message_set.create(message = message)
     return render_to_response('lims/refresh.html', {
         'context': RequestContext(request), 
@@ -1125,9 +1101,7 @@ def remove_object_old(request, id, model, field):
                 project.pk,
                 request.user.pk, 
                 request.META['REMOTE_ADDR'],
-                ContentType.objects.get_for_model(model).id,
-                obj.pk, 
-                smart_str(obj), 
+                obj, 
                 ActivityLog.TYPE.MODIFY,
                 form_info['message']
                 )
@@ -1183,9 +1157,7 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
                     request.project.pk,
                     request.user.pk, 
                     request.META['REMOTE_ADDR'],
-                    ContentType.objects.get_for_model(model).id,
-                    obj.pk, 
-                    smart_str(obj), 
+                    obj, 
                     ActivityLog.TYPE.DELETE,
                     form_info['message']
                     )
@@ -1250,9 +1222,7 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
                 project.pk,
                 request.user.pk, 
                 request.META['REMOTE_ADDR'],
-                ContentType.objects.get_for_model(model).id,
-                obj.pk, 
-                obj.__unicode__(), 
+                obj, 
                 ActivityLog.TYPE.ARCHIVE,
                 form_info['message']
                 )
