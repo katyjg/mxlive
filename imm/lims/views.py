@@ -4,7 +4,6 @@ import tempfile
 import os
 import shutil
 import sys
-
 import xlrd
 
 from django.conf import settings
@@ -48,6 +47,21 @@ except:
  
 ACTIVITY_LOG_LENGTH  = 6       
 
+
+def get_ldap_user_info(username):
+    """
+    Get the ldap record for user identified by 'username'.
+    """
+    
+    import ldap
+    l = ldap.initialize(settings.LDAP_SERVER_URI)
+    flt = settings.LDAP_SEARCH_FILTER % username
+    result = l.search_s(settings.LDAP_SEARCHDN,
+                ldap.SCOPE_SUBTREE, flt)
+    if len(result) != 1:
+        raise ValueError("More than one entry found for 'username'")
+    return result[0]
+
 def admin_login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME):
     """
     Decorator for views that checks that the user is logged in, redirecting
@@ -61,46 +75,23 @@ def admin_login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME)
         return actual_decorator(function)
     return actual_decorator
 
-def create_and_update_project_and_laboratory(user, fetcher=None):
-    if not user:
-        raise ValueError('"user" must not be None')
-    
-    #user_api = UserApi(settings.USER_API_HOST, fetcher=fetcher)
-    #profile_details = user_api.get_profile_details(user.username)
-    
+def create_project(user=None, username=None, fetcher=None):
+    if user is None:
+        # find out if we have a user by the same username in LDAP and create a new one.
+        if username is None:
+            raise ValueError('"username" must be provided if "user" is not given.')
+        userinfo = get_ldap_user_info(username)[1]
+        user = User(username=username, password=userinfo['userPassword'][0])
+        user.last_name = userinfo['cn'][0].split()[0]
+        user.first_name  =  userinfo['cn'][0].split()[-1]
+        user.save()
+                   
     try:
         project = user.get_profile()
         
-        #if project.permit_no != profile_details['experimentId']:
-        #    project.permit_no = profile_details['experimentId']
-        #    project.save()
-        # want this to be the login name for th euser. 
-        #if project.name != user.name:
-        #    project.name = user.name
-        #    project.save()
-        #if project.organisation != profile_details['primaryContact']['institution']:
-        #    project.organisation = profile_details['primaryContact']['institution']
-        #    project.save()
-        #if project.name != profile_details['primaryContact']['department']:
-        #    project.name = profile_details['primaryContact']['department']
-        #    project.save()
-        #if project.contact_phone != profile_details['primaryContact']['phoneNum']:
-        #    project.contact_phone = profile_details['primaryContact']['phoneNum']
-        #    project.save()
-        
     except Project.DoesNotExist:
-        #laboratory = Project(organisation=profile_details['primaryContact']['institution'],
-        #                        name=profile_details['primaryContact']['department'],
-        #                        contact_phone=profile_details['primaryContact']['phoneNum'])
-        #laboratory.save()
-        project = Project(user=user, 
-                          #lab=laboratory,
-                          start_date=datetime.datetime.now(),
-                          end_date=datetime.datetime.now())
+        project = Project(user=user, name=user.username)
         project.save()
-#        user.email = contact_phone=profile_details['primaryContact']['email']
-#        user.first_name, user.last_name = contact_phone=profile_details['primaryContact']['name'].split(' ')
-#        user.save()
     
     return project
     
@@ -172,7 +163,7 @@ def project_assurance(function):
         try:
             request.user.get_profile() # test for existence of the project 
         except Project.DoesNotExist:
-            request.project = create_and_update_project_and_laboratory(request.user, fetcher=fetcher)
+            request.project = create_project(request.user, fetcher=fetcher)
         return function(request)
     return project_assurance_wrapper
 
@@ -1389,6 +1380,12 @@ def shipment_xls(request, id):
 @jsonrpc_method('lims.add_data', authenticated=getattr(settings, 'AUTH_REQ', True))
 def add_data(request, data_info):
     info = {}
+    
+    # check if project_id is provided if not check if project_name is provided
+    if data_info.get('project_id') is None, and data_info.get('project_name') is not None:
+        project = create_project(username=data_info['project_name'])
+        data_info['project_id'] = project.pk
+        del data_info['project_name']
     # convert unicode to str
     data_owner = Project.objects.get(pk=data_info['project_id'])
     for k,v in data_info.items():
