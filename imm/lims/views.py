@@ -65,27 +65,28 @@ def create_and_update_project_and_laboratory(user, fetcher=None):
     if not user:
         raise ValueError('"user" must not be None')
     
-    user_api = UserApi(settings.USER_API_HOST, fetcher=fetcher)
-    profile_details = user_api.get_profile_details(user.username)
+    #user_api = UserApi(settings.USER_API_HOST, fetcher=fetcher)
+    #profile_details = user_api.get_profile_details(user.username)
     
     try:
         project = user.get_profile()
-        if project.permit_no != profile_details['experimentId']:
-            project.permit_no = profile_details['experimentId']
-            project.save()
+        
+        #if project.permit_no != profile_details['experimentId']:
+        #    project.permit_no = profile_details['experimentId']
+        #    project.save()
         # want this to be the login name for th euser. 
-        if project.name != user.name:
-            project.name = user.name
-            project.save()
-        if project.organisation != profile_details['primaryContact']['institution']:
-            project.organisation = profile_details['primaryContact']['institution']
-            project.save()
-        if project.name != profile_details['primaryContact']['department']:
-            project.name = profile_details['primaryContact']['department']
-            project.save()
-        if project.contact_phone != profile_details['primaryContact']['phoneNum']:
-            project.contact_phone = profile_details['primaryContact']['phoneNum']
-            project.save()
+        #if project.name != user.name:
+        #    project.name = user.name
+        #    project.save()
+        #if project.organisation != profile_details['primaryContact']['institution']:
+        #    project.organisation = profile_details['primaryContact']['institution']
+        #    project.save()
+        #if project.name != profile_details['primaryContact']['department']:
+        #    project.name = profile_details['primaryContact']['department']
+        #    project.save()
+        #if project.contact_phone != profile_details['primaryContact']['phoneNum']:
+        #    project.contact_phone = profile_details['primaryContact']['phoneNum']
+        #    project.save()
         
     except Project.DoesNotExist:
         #laboratory = Project(organisation=profile_details['primaryContact']['institution'],
@@ -94,8 +95,6 @@ def create_and_update_project_and_laboratory(user, fetcher=None):
         #laboratory.save()
         project = Project(user=user, 
                           #lab=laboratory,
-                          name=profile_details['title'],
-                          beam_time=0,
                           start_date=datetime.datetime.now(),
                           end_date=datetime.datetime.now())
         project.save()
