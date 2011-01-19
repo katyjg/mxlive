@@ -1086,6 +1086,20 @@ class Crystal(models.Model):
     def __unicode__(self):
         return self.name
 
+    def best_screening(self):
+        # need to change to [id, score]
+        results = Result.objects.filter(crystal=self, kind='0').order_by('-score')
+        if results:
+            return results[0]
+        return None
+    
+    def best_collection(self):
+        # need to change to [id, score]
+        results = Result.objects.filter(crystal=self, kind='1').order_by('-score')
+        if results:
+            return results[0]
+        return None
+
     def is_assigned(self):
         return self.container is not None
     

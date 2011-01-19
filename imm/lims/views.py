@@ -17,6 +17,7 @@ from django.template import RequestContext
 from django.views.decorators.cache import cache_page
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models import Max
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db import IntegrityError
@@ -606,12 +607,14 @@ def experiment_object_detail(request, id, model, template, admin=False):
         obj = request.manager.get(pk=id)
     except:
         raise Http404
-    
+
+    crystals = obj.crystal_set.annotate(best_score=Max('result__score')).order_by('-best_score')
     datasets = Data.objects.filter(experiment__exact=obj)
     results = Result.objects.filter(experiment__exact=obj)
     
     return render_to_response(template, {
         'object': obj,
+        'crystals': crystals,
         'handler': request.path,
         'datasets': datasets,
         'results': results,

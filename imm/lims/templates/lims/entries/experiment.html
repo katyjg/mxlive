@@ -47,7 +47,7 @@
 <!-- object.crystals contains all the crystals -->
 {% load crystal_table %}
 
-{% crystal_table object.crystals request.user.is_superuser object.pk %}
+{% crystal_table crystals request.user.is_superuser object.pk %}
 
 <div id="add-crystal" class="hidden modal-content"></div>
 <div id="view-data" class="hidden modal-content"></div>

@@ -2,7 +2,7 @@
 {% load score_colors %}
 
 <h3>Crystals</h3>
-
+<p>* If multiple screening or full collection datasets have been taken for a crystal, only the dataset with the best score is displayed on this table.  To view all datasets collected for a specific crystal, go to the crystal page.</p>
 <div id="view-result" class="hidden modal-content"></div>
 <div id="view-data" class="hidden modal-content"></div>
 
@@ -33,8 +33,10 @@
                 {% else %}
             		<th>Status</th>
             	{% endif %}
-                <th>Datasets</th>
-                <th>Results</th>
+                <th>Screening Score</th>
+                <th>Screening Dataset*</th>
+                <th>Full Collection Score</th>
+                <th>Full Collection Dataset*</th>
                 {% if not admin %}
                 <th></th>
                 {% endif %}
@@ -68,19 +70,24 @@
 	            		<td>{{ crystal.get_status_display }}</td>
 	            	{% endif %}
 	            	<td>
-	            	{% for data in datasets %}
-	            		{% if data.crystal == crystal %}
-	            			<a href="{% url lims-dataset-detail data.pk %}" class="modal" rel="#view-data">{{ data.name }}</a>,
-	            			
-	            		{% endif %}
-	            	{% endfor %}
+                        {% if crystal.best_screening.pk %}
+	            			<a href="{% url lims-result-detail crystal.best_screening.pk %}">{{ crystal.best_screening.score|color_score:2 }}</a>
+                        {% endif %}
 	            	</td>
 	            	<td>
-	            	{% for result in results %}
-	            		{% if result.crystal == crystal %}
-	            			<a href="{% url lims-result-detail result.pk %}" {% comment %}class="modal" rel="#view-result"{% endcomment %}>{{ result.name }} ({{ result.score|color_score:2 }})</a>,
-	            		{% endif %}
-	            	{% endfor %}
+                        {% if crystal.best_screening.data.pk %}
+                  			<a href="{% url lims-dataset-detail crystal.best_screening.data.pk %}" class="modal" rel="#view-data">{{ crystal.best_screening.data }}</a>
+                        {% endif %}
+	            	</td>
+	            	<td>
+                        {% if crystal.best_collection.pk %}
+   	            			<a href="{% url lims-result-detail crystal.best_collection.pk %}">{{ crystal.best_collection.score|color_score:2 }}</a>
+                        {% endif %}
+	            	</td>
+	            	<td>
+                        {% if crystal.best_collection.data.pk %}
+                 			<a href="{% url lims-dataset-detail crystal.best_collection.data.pk %}" class="modal" rel="#view-data">{{ crystal.best_collection.data }}</a>
+                        {% endif %}
 	            	</td>
 	            	{% if not admin %}
 	            		<td>
