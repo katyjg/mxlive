@@ -106,40 +106,6 @@ def create_and_update_project_and_laboratory(user, fetcher=None):
     return project
     
 
-#def get_default_laboratory():
-#    """ Gets a default Canadian Light Source Laboratory object if it exists
-#        and creates it if it doesn't
-#    """
-#    try:
-#        default_lab = Laboratory.objects.get(id=settings.DEFAULT_LABORATORY_ID, name=settings.DEFAULT_LABORATORY_NAME)
-#    except Laboratory.DoesNotExist:
-#        default_lab = Laboratory(id=settings.DEFAULT_LABORATORY_ID, name=settings.DEFAULT_LABORATORY_NAME)
-#        default_lab.save()
-#        
-#    return default_lab
-#     
-#def create_default_project(user):
-#    if not user:
-#        raise ValueError('"user" must not be None')
-#
-#    cls_lab = get_default_laboratory()
-#    
-#    # todo: use remote.user_api
-#    # user_api = UserApi(settings.SOMEHOST)
-#    # user_api.get_profile_details(user.id)
-#    # populate with retrieved data
-#    project_args = {'user': user,
-#                    'name': user.username,
-#                    'title': '%s_project' % user.username,
-#                    'summary': '',
-#                    'beam_time': 0,
-#                    'lab': cls_lab,
-#                    'start_date': datetime.datetime.now(),
-#                    'end_date': datetime.datetime.now()
-#                    }
-#    project = Project(**project_args)
-#    project.save()
-#    return project
 
 def project_required(function):
     """ Decorator that enforces the existence of a imm.lims.models.Project """
@@ -1474,10 +1440,15 @@ import matplotlib.cm as cm
 
 # Adjust rc parameters
 rcParams['legend.loc'] = 'best'
-rcParams['legend.fontsize'] = 10
+rcParams['legend.fontsize'] = 12
 rcParams['legend.isaxes'] = False
 rcParams['figure.facecolor'] = 'white'
 rcParams['figure.edgecolor'] = 'white'
+rcParams['mathtext.fontset'] = 'stix'
+rcParams['mathtext.fallback_to_cm'] = True
+rcParams['font.size'] = 14
+rcParams['font.family'] = 'serif'
+rcParams['font.serif'] = 'Gentium Basic'
 
 class ResFormatter(Formatter):
     def __call__(self, x, pos=None):
@@ -1574,7 +1545,7 @@ def plot_error_stats(request, id):
     ax1.set_ylabel(r'$\chi^{2}$', color='r')
     ax11 = ax1.twinx()
     ax11.plot(shell, data['i_sigma'], 'b-')
-    ax11.set_ylabel('I/Sigma', color='b')
+    ax11.set_ylabel(r'I/Sigma', color='b')
     ax1.grid(True)
     for tl in ax11.get_yticklabels():
         tl.set_color('b')
@@ -1658,7 +1629,7 @@ def plot_wilson_stats(request, id):
     plot_data = numpy.array(plot_data)
     ax1.plot(plot_data[:,0], plot_data[:,1], 'r-+')
     ax1.set_xlabel('Resolution')
-    ax1.set_ylabel(r'$ln({<I>}/{\Sigma(f)^2})$')
+    ax1.set_ylabel(r'$ln\left(\frac{<I>}{\sigma(f)^2}\right)$')
     ax1.grid(True)
     ax1.xaxis.set_major_formatter(ResFormatter())
     ax1.xaxis.set_major_locator(ResLocator())
