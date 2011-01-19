@@ -145,7 +145,10 @@ def manager_required(function):
             try:
                 project = request.user.get_profile()
                 request.project = project
-                manager = FilterManagerWrapper(manager, project__exact=project)
+                if model != Project:
+                    manager = FilterManagerWrapper(manager, project__exact=project)
+                else:
+                    manager = FilterManagerWrapper(manager, pk__exact=project.pk)
             except Project.DoesNotExist:
                 raise Http404
         if MANAGER_FILTERS.has_key((model, request.user.is_superuser)):
@@ -862,64 +865,21 @@ def priority(request, id,  model, field):
     return HttpResponse()
     
 @login_required
-@manager_required
 @transaction.commit_on_success
-def edit_project_inline(request, id, model, form, template='objforms/form_base.html', action=None):
+def edit_profile(request, form, template='objforms/form_base.html', action=None):
     """
-    A generic view which displays a form of type ``form`` using the template 
-    ``template``, for editing an object of type ``model``, identified by primary 
-    key ``id``, which when submitted will update the entry asynchronously through
-    AJAX.
+    View for editing user profiles
     """
     try:
-        obj = Project.objects.get(pk=id)
+        model = Project
+        obj = request.user.get_profile()
+        request.project = obj
+        request.manager = Project.objects
     except:
         raise Http404
+    return edit_object_inline(request, obj.pk, model=model, form=form, template=template)
     
-    save_label = None
-    if action:
-        save_label = action[0].upper() + action[1:]
     
-    form_info = {
-        'title': request.GET.get('title', 'Edit %s' % model._meta.verbose_name),
-        'sub_title': obj.identity(),
-        'action':  request.path,
-        'target': 'entry-scratchpad',
-        'save_label': save_label
-    }
-    if request.method == 'POST':
-        frm = form(request.POST, instance=obj)
-        if request.project:
-            frm.restrict_by('project', request.project.pk)
-        if frm.is_valid():
-            form_info['message'] = '%s: "%s|%s" successfully modified' % ( model._meta.verbose_name, obj.identity(), obj.__unicode__())
-            frm.instance._activity_log = {
-                'message': form_info['message'],
-                'ip_number': request.META['REMOTE_ADDR'],
-                'action_type': ActivityLog.TYPE.MODIFY,}
-            frm.save()
-            setattr(obj, 'updated', 'True')
-            obj.save()
-            # if an action ('send', 'close') is specified, the perform the action
-            if action:
-                perform_action(obj, action, data=frm.cleaned_data)
-            request.user.message_set.create(message = form_info['message'])
-            
-            return render_to_response('lims/message.html', context_instance=RequestContext(request))
-        else:
-            return render_to_response(template, {
-            'info': form_info, 
-            'form' : frm, 
-            })
-    else:
-        frm = form(instance=obj, initial=dict(request.GET.items())) # casting to a dict pulls out first list item in each value list
-        if request.project:
-            frm.restrict_by('project', request.project.pk)
-        return render_to_response(template, {
-        'info': form_info, 
-        'form' : frm, 
-        })
-
 @login_required
 @manager_required
 @transaction.commit_on_success
@@ -974,7 +934,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
             frm.restrict_by('project', request.project.pk)
         return render_to_response(template, {
         'info': form_info, 
-        'form' : frm, 
+        'form' : frm,
         })
        
        
@@ -1133,9 +1093,8 @@ def remove_object_old(request, id, model, field):
         return render_to_response('lims/forms/confirm_action.html', {
             'info': form_info, 
             'id': obj.pk,
-            'confirm_action': 'Remove %s' % object_type, 
-            }, 
-            context_instance=RequestContext(request))
+            'confirm_action': 'Remove %s' % object_type,
+            },)
         
         
 @login_required

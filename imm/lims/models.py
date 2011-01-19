@@ -38,26 +38,6 @@ class Beamline(models.Model):
 
     def __unicode__(self):
         return self.name
-
-'''    
-class Laboratory(models.Model):
-    name = models.CharField(max_length=600)
-    address = models.CharField(max_length=600)
-    city = models.CharField(max_length=180)
-    postal_code = models.CharField(max_length=30)
-    country = models.CharField(max_length=180)
-    contact_phone = models.CharField(max_length=60)
-    contact_fax = models.CharField(max_length=60)
-    organisation = models.CharField(max_length=600, blank=True, null=True)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-
-    def __unicode__(self):
-        return self.name
-    
-    class Meta:
-        verbose_name_plural = 'Laboratories'
-'''
         
 class ManagerWrapper(models.Manager):
     """ This a models.Manager instance that wraps any models.Manager instance and alters the query_set() of
@@ -163,7 +143,7 @@ class Carrier(models.Model):
         
 class Project(models.Model):
     user = models.ForeignKey(User, unique=True)
-    name = models.SlugField()
+    name = models.SlugField('account name')
     contact_person = models.CharField(max_length=200, blank=True, null=True)
     contact_email = models.EmailField(max_length=100, blank=True, null=True)
     carrier = models.ForeignKey(Carrier, blank=True, null=True)
@@ -1100,7 +1080,7 @@ class Crystal(models.Model):
     
     def barcode(self):
         return self.code or None
-    
+            
     def get_children(self):
         return []
     
@@ -1412,6 +1392,7 @@ class Result(models.Model):
         return link
 
     class Meta:
+        ordering = ['-score']
         verbose_name = 'Analysis Report'
 
 class Strategy(models.Model):

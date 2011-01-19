@@ -10,9 +10,8 @@ from django.forms.util import ErrorList
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
             
 class ProjectForm(objforms.forms.OrderedForm):
-    name = objforms.widgets.LargeCharField(required=True)
-    contact_person = objforms.widgets.LargeCharField(required=True)
-    contact_email = forms.EmailField(max_length=100, required=True)
+    contact_person = objforms.widgets.LargeCharField(required=True, help_text="Full name of contact person")
+    contact_email = forms.EmailField(widget=objforms.widgets.LargeInput, max_length=100, required=True)
     carrier = forms.ModelChoiceField(
         widget=objforms.widgets.LeftHalfSelect,
         queryset=Carrier.objects.all(), 
@@ -26,13 +25,20 @@ class ProjectForm(objforms.forms.OrderedForm):
     country = forms.CharField(widget=objforms.widgets.RightThirdInput, required=True)
     contact_phone = forms.CharField(widget=objforms.widgets.LeftHalfInput, required=True)
     contact_fax =forms.CharField(widget=objforms.widgets.RightHalfInput, required=False)
+    updated = forms.CharField(widget=forms.HiddenInput())
 
     class Meta:
         model = Project
-        fields = ('name', 'contact_person','contact_email',
+        fields = ('contact_person','contact_email',
                   'carrier','account_number', 'organisation', 'department','address',
-                  'city', 'postal_code','country','contact_phone','contact_fax',)
-
+                  'city', 'postal_code','country','contact_phone','contact_fax','updated')
+                  
+    def clean_updated(self):
+        """
+        Toggle updated value to True when the profile is saved for the first time.
+        """
+        return True
+        
 class ShipmentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     label = forms.CharField(
