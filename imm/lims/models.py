@@ -164,12 +164,11 @@ class Carrier(models.Model):
 class Project(models.Model):
     user = models.ForeignKey(User, unique=True)
     name = models.SlugField()
-    title = models.CharField(max_length=200)
-    summary = models.TextField()
-    beam_time = models.FloatField()
+    contact_person = models.CharField(max_length=200)
+    contact_email = models.EmailField(max_length=100)
     carrier = models.ForeignKey(Carrier)
     account_number = models.CharField(max_length=50)
-    lab = models.CharField(max_length=600)
+    department = models.CharField(max_length=600)
     address = models.CharField(max_length=600)
     city = models.CharField(max_length=180)
     postal_code = models.CharField(max_length=30)
@@ -178,8 +177,6 @@ class Project(models.Model):
     contact_fax = models.CharField(max_length=60)
     organisation = models.CharField(max_length=600, blank=True, null=True)
 
-    start_date = models.DateField()
-    end_date = models.DateField()
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
     
@@ -189,6 +186,9 @@ class Project(models.Model):
         
     def __unicode__(self):
         return self.name
+
+    class Meta:
+        verbose_name = "Your Profile"
 
 
 class Session(models.Model):

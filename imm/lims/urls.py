@@ -5,6 +5,7 @@ from imm.lims.forms import *
 
 urlpatterns = patterns('imm.lims.views',
     (r'^$', 'show_project', {}, 'project-home'),
+    (r'^user/(?P<id>\d+)/edit/$', 'edit_project_inline', {'model': Project, 'form': ProjectForm, 'template': 'objforms/form_base.html'}, 'lims-project-edit'),
 
     #SHIPMENTS##############
     (r'^shipping/shipment/$', 'object_list', {'model': Shipment, 'template': 'objlist/generic_list.html', 'can_add': True, 'can_upload': False, 'is_individual': True }, 'lims-shipment-list'),
