@@ -1244,8 +1244,8 @@ class Data(models.Model):
         'Collection',
     )
     project = models.ForeignKey(Project)
-    experiment = models.ForeignKey(Experiment)
-    crystal = models.ForeignKey(Crystal)
+    experiment = models.ForeignKey(Experiment, null=True, blank=True)
+    crystal = models.ForeignKey(Crystal, null=True, blank=True)
     name = models.CharField(max_length=20)
     resolution = models.FloatField()
     start_angle = models.FloatField()
@@ -1344,8 +1344,8 @@ class Result(models.Model):
         'Collection',
     )
     project = models.ForeignKey(Project)
-    experiment = models.ForeignKey(Experiment)
-    crystal = models.ForeignKey(Crystal)
+    experiment = models.ForeignKey(Experiment, null=True, blank=True)
+    crystal = models.ForeignKey(Crystal, null=True, blank=True)
     data = models.ForeignKey(Data)
     name = models.CharField(max_length=20)
     score = models.FloatField()
@@ -1481,8 +1481,8 @@ class ScanResult(models.Model):
         'Excitation Scan',
     )
     project = models.ForeignKey(Project)
-    experiment = models.ForeignKey(Experiment)
-    crystal = models.ForeignKey(Crystal)
+    experiment = models.ForeignKey(Experiment, null=True, blank=True)
+    crystal = models.ForeignKey(Crystal, null=True, blank=True)
     edge = models.CharField(max_length=20)
     details = JSONField()
     kind = models.IntegerField('Scan type',max_length=1, choices=SCAN_TYPES.get_choices())
