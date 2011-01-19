@@ -164,21 +164,22 @@ class Carrier(models.Model):
 class Project(models.Model):
     user = models.ForeignKey(User, unique=True)
     name = models.SlugField()
-    contact_person = models.CharField(max_length=200)
-    contact_email = models.EmailField(max_length=100)
-    carrier = models.ForeignKey(Carrier)
-    account_number = models.CharField(max_length=50)
-    department = models.CharField(max_length=600)
-    address = models.CharField(max_length=600)
-    city = models.CharField(max_length=180)
-    postal_code = models.CharField(max_length=30)
-    country = models.CharField(max_length=180)
-    contact_phone = models.CharField(max_length=60)
-    contact_fax = models.CharField(max_length=60)
+    contact_person = models.CharField(max_length=200, blank=True, null=True)
+    contact_email = models.EmailField(max_length=100, blank=True, null=True)
+    carrier = models.ForeignKey(Carrier, blank=True, null=True)
+    account_number = models.CharField(max_length=50, blank=True, null=True)
+    department = models.CharField(max_length=600, blank=True, null=True)
+    address = models.CharField(max_length=600, blank=True, null=True)
+    city = models.CharField(max_length=180, blank=True, null=True)
+    postal_code = models.CharField(max_length=30, blank=True, null=True)
+    country = models.CharField(max_length=180, blank=True, null=True)
+    contact_phone = models.CharField(max_length=60, blank=True, null=True)
+    contact_fax = models.CharField(max_length=60, blank=True, null=True)
     organisation = models.CharField(max_length=600, blank=True, null=True)
 
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+    updated = models.BooleanField(default=False)    
     
     def identity(self):
         return 'PR%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -188,7 +189,7 @@ class Project(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = "Your Profile"
+        verbose_name = "Project Profile"
 
 
 class Session(models.Model):
