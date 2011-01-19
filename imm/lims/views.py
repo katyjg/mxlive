@@ -729,7 +729,12 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
     log_set = [
         ContentType.objects.get_for_model(model).pk, 
     ]
-    ol = ObjectList(request, request.manager)    
+    ol = ObjectList(request, request.manager)
+    if not request.user.is_superuser:
+        project = request.user.get_profile()
+        logs = project.activitylog_set.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]
+    else:
+        logs = ActivityLog.objects.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]
     return render_to_response(template, {'ol': ol, 
                                          'link': link, 
                                          'can_add': can_add, 
@@ -738,7 +743,7 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
                                          'can_prioritize': can_prioritize,
                                          'is_individual': is_individual,
                                          'handler': request.path,
-                                         'logs': ActivityLog.objects.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]},
+                                         'logs': logs},                                         
         context_instance=RequestContext(request)
     )
 
@@ -1384,7 +1389,7 @@ def add_data(request, data_info):
     info = {}
     
     # check if project_id is provided if not check if project_name is provided
-    if data_info.get('project_id') is None, and data_info.get('project_name') is not None:
+    if data_info.get('project_id') is None and data_info.get('project_name') is not None:
         project = create_project(username=data_info['project_name'])
         data_info['project_id'] = project.pk
         del data_info['project_name']
