@@ -4,7 +4,6 @@ import tempfile
 import os
 import shutil
 import sys
-
 import xlrd
 
 from django.conf import settings
@@ -49,6 +48,21 @@ except:
  
 ACTIVITY_LOG_LENGTH  = 6       
 
+
+def get_ldap_user_info(username):
+    """
+    Get the ldap record for user identified by 'username'.
+    """
+    
+    import ldap
+    l = ldap.initialize(settings.LDAP_SERVER_URI)
+    flt = settings.LDAP_SEARCH_FILTER % username
+    result = l.search_s(settings.LDAP_SEARCHDN,
+                ldap.SCOPE_SUBTREE, flt)
+    if len(result) != 1:
+        raise ValueError("More than one entry found for 'username'")
+    return result[0]
+
 def admin_login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME):
     """
     Decorator for views that checks that the user is logged in, redirecting
@@ -62,85 +76,27 @@ def admin_login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME)
         return actual_decorator(function)
     return actual_decorator
 
-def create_and_update_project_and_laboratory(user, fetcher=None):
-    if not user:
-        raise ValueError('"user" must not be None')
-    
-    user_api = UserApi(settings.USER_API_HOST, fetcher=fetcher)
-    profile_details = user_api.get_profile_details(user.username)
-    
+def create_project(user=None, username=None, fetcher=None):
+    if user is None:
+        # find out if we have a user by the same username in LDAP and create a new one.
+        if username is None:
+            raise ValueError('"username" must be provided if "user" is not given.')
+        userinfo = get_ldap_user_info(username)[1]
+        user = User(username=username, password=userinfo['userPassword'][0])
+        user.last_name = userinfo['cn'][0].split()[0]
+        user.first_name  =  userinfo['cn'][0].split()[-1]
+        user.save()
+                   
     try:
         project = user.get_profile()
-        if project.permit_no != profile_details['experimentId']:
-            project.permit_no = profile_details['experimentId']
-            project.save()
-        # want this to be the login name for th euser. 
-        if project.name != user.name:
-            project.name = user.name
-            project.save()
-        if project.organisation != profile_details['primaryContact']['institution']:
-            project.organisation = profile_details['primaryContact']['institution']
-            project.save()
-        if project.name != profile_details['primaryContact']['department']:
-            project.name = profile_details['primaryContact']['department']
-            project.save()
-        if project.contact_phone != profile_details['primaryContact']['phoneNum']:
-            project.contact_phone = profile_details['primaryContact']['phoneNum']
-            project.save()
         
     except Project.DoesNotExist:
-        #laboratory = Project(organisation=profile_details['primaryContact']['institution'],
-        #                        name=profile_details['primaryContact']['department'],
-        #                        contact_phone=profile_details['primaryContact']['phoneNum'])
-        #laboratory.save()
-        project = Project(user=user, 
-                          #lab=laboratory,
-                          name=profile_details['title'],
-                          beam_time=0,
-                          start_date=datetime.datetime.now(),
-                          end_date=datetime.datetime.now())
+        project = Project(user=user, name=user.username)
         project.save()
-#        user.email = contact_phone=profile_details['primaryContact']['email']
-#        user.first_name, user.last_name = contact_phone=profile_details['primaryContact']['name'].split(' ')
-#        user.save()
     
     return project
     
 
-#def get_default_laboratory():
-#    """ Gets a default Canadian Light Source Laboratory object if it exists
-#        and creates it if it doesn't
-#    """
-#    try:
-#        default_lab = Laboratory.objects.get(id=settings.DEFAULT_LABORATORY_ID, name=settings.DEFAULT_LABORATORY_NAME)
-#    except Laboratory.DoesNotExist:
-#        default_lab = Laboratory(id=settings.DEFAULT_LABORATORY_ID, name=settings.DEFAULT_LABORATORY_NAME)
-#        default_lab.save()
-#        
-#    return default_lab
-#     
-#def create_default_project(user):
-#    if not user:
-#        raise ValueError('"user" must not be None')
-#
-#    cls_lab = get_default_laboratory()
-#    
-#    # todo: use remote.user_api
-#    # user_api = UserApi(settings.SOMEHOST)
-#    # user_api.get_profile_details(user.id)
-#    # populate with retrieved data
-#    project_args = {'user': user,
-#                    'name': user.username,
-#                    'title': '%s_project' % user.username,
-#                    'summary': '',
-#                    'beam_time': 0,
-#                    'lab': cls_lab,
-#                    'start_date': datetime.datetime.now(),
-#                    'end_date': datetime.datetime.now()
-#                    }
-#    project = Project(**project_args)
-#    project.save()
-#    return project
 
 def project_required(function):
     """ Decorator that enforces the existence of a imm.lims.models.Project """
@@ -190,7 +146,10 @@ def manager_required(function):
             try:
                 project = request.user.get_profile()
                 request.project = project
-                manager = FilterManagerWrapper(manager, project__exact=project)
+                if model != Project:
+                    manager = FilterManagerWrapper(manager, project__exact=project)
+                else:
+                    manager = FilterManagerWrapper(manager, pk__exact=project.pk)
             except Project.DoesNotExist:
                 raise Http404
         if MANAGER_FILTERS.has_key((model, request.user.is_superuser)):
@@ -208,7 +167,7 @@ def project_assurance(function):
         try:
             request.user.get_profile() # test for existence of the project 
         except Project.DoesNotExist:
-            request.project = create_and_update_project_and_laboratory(request.user, fetcher=fetcher)
+            request.project = create_project(request.user, fetcher=fetcher)
         return function(request)
     return project_assurance_wrapper
 
@@ -776,7 +735,12 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
     log_set = [
         ContentType.objects.get_for_model(model).pk, 
     ]
-    ol = ObjectList(request, request.manager)    
+    ol = ObjectList(request, request.manager)
+    if not request.user.is_superuser:
+        project = request.user.get_profile()
+        logs = project.activitylog_set.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]
+    else:
+        logs = ActivityLog.objects.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]
     return render_to_response(template, {'ol': ol, 
                                          'link': link, 
                                          'can_add': can_add, 
@@ -785,7 +749,7 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
                                          'can_prioritize': can_prioritize,
                                          'is_individual': is_individual,
                                          'handler': request.path,
-                                         'logs': ActivityLog.objects.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]},
+                                         'logs': logs},                                         
         context_instance=RequestContext(request)
     )
 
@@ -904,64 +868,21 @@ def priority(request, id,  model, field):
     return HttpResponse()
     
 @login_required
-@manager_required
 @transaction.commit_on_success
-def edit_project_inline(request, id, model, form, template='objforms/form_base.html', action=None):
+def edit_profile(request, form, template='objforms/form_base.html', action=None):
     """
-    A generic view which displays a form of type ``form`` using the template 
-    ``template``, for editing an object of type ``model``, identified by primary 
-    key ``id``, which when submitted will update the entry asynchronously through
-    AJAX.
+    View for editing user profiles
     """
     try:
-        obj = Project.objects.get(pk=id)
+        model = Project
+        obj = request.user.get_profile()
+        request.project = obj
+        request.manager = Project.objects
     except:
         raise Http404
+    return edit_object_inline(request, obj.pk, model=model, form=form, template=template)
     
-    save_label = None
-    if action:
-        save_label = action[0].upper() + action[1:]
     
-    form_info = {
-        'title': request.GET.get('title', 'Edit %s' % model._meta.verbose_name),
-        'sub_title': obj.identity(),
-        'action':  request.path,
-        'target': 'entry-scratchpad',
-        'save_label': save_label
-    }
-    if request.method == 'POST':
-        frm = form(request.POST, instance=obj)
-        if request.project:
-            frm.restrict_by('project', request.project.pk)
-        if frm.is_valid():
-            form_info['message'] = '%s: "%s|%s" successfully modified' % ( model._meta.verbose_name, obj.identity(), obj.__unicode__())
-            frm.instance._activity_log = {
-                'message': form_info['message'],
-                'ip_number': request.META['REMOTE_ADDR'],
-                'action_type': ActivityLog.TYPE.MODIFY,}
-            frm.save()
-            setattr(obj, 'updated', 'True')
-            obj.save()
-            # if an action ('send', 'close') is specified, the perform the action
-            if action:
-                perform_action(obj, action, data=frm.cleaned_data)
-            request.user.message_set.create(message = form_info['message'])
-            
-            return render_to_response('lims/message.html', context_instance=RequestContext(request))
-        else:
-            return render_to_response(template, {
-            'info': form_info, 
-            'form' : frm, 
-            })
-    else:
-        frm = form(instance=obj, initial=dict(request.GET.items())) # casting to a dict pulls out first list item in each value list
-        if request.project:
-            frm.restrict_by('project', request.project.pk)
-        return render_to_response(template, {
-        'info': form_info, 
-        'form' : frm, 
-        })
-
 @login_required
 @manager_required
 @transaction.commit_on_success
@@ -1016,7 +937,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
             frm.restrict_by('project', request.project.pk)
         return render_to_response(template, {
         'info': form_info, 
-        'form' : frm, 
+        'form' : frm,
         })
        
        
@@ -1175,9 +1096,8 @@ def remove_object_old(request, id, model, field):
         return render_to_response('lims/forms/confirm_action.html', {
             'info': form_info, 
             'id': obj.pk,
-            'confirm_action': 'Remove %s' % object_type, 
-            }, 
-            context_instance=RequestContext(request))
+            'confirm_action': 'Remove %s' % object_type,
+            },)
         
         
 @login_required
@@ -1429,6 +1349,12 @@ def shipment_xls(request, id):
 @jsonrpc_method('lims.add_data', authenticated=getattr(settings, 'AUTH_REQ', True))
 def add_data(request, data_info):
     info = {}
+    
+    # check if project_id is provided if not check if project_name is provided
+    if data_info.get('project_id') is None and data_info.get('project_name') is not None:
+        project = create_project(username=data_info['project_name'])
+        data_info['project_id'] = project.pk
+        del data_info['project_name']
     # convert unicode to str
     data_owner = Project.objects.get(pk=data_info['project_id'])
     for k,v in data_info.items():
@@ -1536,10 +1462,15 @@ import matplotlib.cm as cm
 
 # Adjust rc parameters
 rcParams['legend.loc'] = 'best'
-rcParams['legend.fontsize'] = 10
+rcParams['legend.fontsize'] = 12
 rcParams['legend.isaxes'] = False
 rcParams['figure.facecolor'] = 'white'
 rcParams['figure.edgecolor'] = 'white'
+rcParams['mathtext.fontset'] = 'stix'
+rcParams['mathtext.fallback_to_cm'] = True
+rcParams['font.size'] = 14
+rcParams['font.family'] = 'serif'
+rcParams['font.serif'] = 'Gentium Basic'
 
 class ResFormatter(Formatter):
     def __call__(self, x, pos=None):
@@ -1636,7 +1567,7 @@ def plot_error_stats(request, id):
     ax1.set_ylabel(r'$\chi^{2}$', color='r')
     ax11 = ax1.twinx()
     ax11.plot(shell, data['i_sigma'], 'b-')
-    ax11.set_ylabel('I/Sigma', color='b')
+    ax11.set_ylabel(r'I/Sigma', color='b')
     ax1.grid(True)
     for tl in ax11.get_yticklabels():
         tl.set_color('b')
@@ -1720,7 +1651,7 @@ def plot_wilson_stats(request, id):
     plot_data = numpy.array(plot_data)
     ax1.plot(plot_data[:,0], plot_data[:,1], 'r-+')
     ax1.set_xlabel('Resolution')
-    ax1.set_ylabel(r'$ln({<I>}/{\Sigma(f)^2})$')
+    ax1.set_ylabel(r'$ln\left(\frac{<I>}{\sigma(f)^2}\right)$')
     ax1.grid(True)
     ax1.xaxis.set_major_formatter(ResFormatter())
     ax1.xaxis.set_major_locator(ResLocator())
