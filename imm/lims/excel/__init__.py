@@ -371,9 +371,7 @@ class LimsWorkbook(object):
                         self.project.pk,
                         request.user.pk, 
                         request.META['REMOTE_ADDR'],
-                        ContentType.objects.get_for_model(obj.__class__).id,
-                        obj.pk, 
-                        smart_str(obj), 
+                        obj, 
                         ActivityLog.TYPE.CREATE,
                         'The %(name)s "%(obj)s" was uploaded successfully.' % {'name': smart_str(obj.__class__._meta.verbose_name), 'obj': smart_str(obj)}
                         )
