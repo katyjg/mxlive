@@ -903,6 +903,63 @@ def priority(request, id,  model, field):
 @login_required
 @manager_required
 @transaction.commit_on_success
+def edit_project_inline(request, id, model, form, template='objforms/form_base.html', action=None):
+    """
+    A generic view which displays a form of type ``form`` using the template 
+    ``template``, for editing an object of type ``model``, identified by primary 
+    key ``id``, which when submitted will update the entry asynchronously through
+    AJAX.
+    """
+    try:
+        obj = Project.objects.get(pk=id)
+    except:
+        raise Http404
+    
+    save_label = None
+    if action:
+        save_label = action[0].upper() + action[1:]
+    
+    form_info = {
+        'title': request.GET.get('title', 'Edit %s' % model._meta.verbose_name),
+        'sub_title': obj.identity(),
+        'action':  request.path,
+        'target': 'entry-scratchpad',
+        'save_label': save_label
+    }
+    if request.method == 'POST':
+        frm = form(request.POST, instance=obj)
+        if request.project:
+            frm.restrict_by('project', request.project.pk)
+        if frm.is_valid():
+            form_info['message'] = '%s: "%s|%s" successfully modified' % ( model._meta.verbose_name, obj.identity(), obj.__unicode__())
+            frm.instance._activity_log = {
+                'message': form_info['message'],
+                'ip_number': request.META['REMOTE_ADDR'],
+                'action_type': ActivityLog.TYPE.MODIFY,}
+            frm.save()
+            # if an action ('send', 'close') is specified, the perform the action
+            if action:
+                perform_action(obj, action, data=frm.cleaned_data)
+            request.user.message_set.create(message = form_info['message'])
+            
+            return render_to_response('lims/message.html', context_instance=RequestContext(request))
+        else:
+            return render_to_response(template, {
+            'info': form_info, 
+            'form' : frm, 
+            })
+    else:
+        frm = form(instance=obj, initial=dict(request.GET.items())) # casting to a dict pulls out first list item in each value list
+        if request.project:
+            frm.restrict_by('project', request.project.pk)
+        return render_to_response(template, {
+        'info': form_info, 
+        'form' : frm, 
+        })
+
+@login_required
+@manager_required
+@transaction.commit_on_success
 def edit_object_inline(request, id, model, form, template='objforms/form_base.html', action=None):
     """
     A generic view which displays a form of type ``form`` using the template 
@@ -920,7 +977,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
         save_label = action[0].upper() + action[1:]
     
     form_info = {
-        'title': request.GET.get('title', 'Edit %s' % model.__name__),
+        'title': request.GET.get('title', 'Edit %s' % model._meta.verbose_name),
         'sub_title': obj.identity(),
         'action':  request.path,
         'target': 'entry-scratchpad',

@@ -9,6 +9,30 @@ from imm import objforms
 from django.forms.util import ErrorList
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
             
+class ProjectForm(objforms.forms.OrderedForm):
+    name = objforms.widgets.LargeCharField(required=True)
+    contact_person = objforms.widgets.LargeCharField(required=True)
+    contact_email = forms.EmailField(max_length=100, required=True)
+    carrier = forms.ModelChoiceField(
+        widget=objforms.widgets.LeftHalfSelect,
+        queryset=Carrier.objects.all(), 
+        required=False)
+    account_number = objforms.widgets.RightHalfCharField(required=False)
+    organisation = objforms.widgets.LargeCharField(required=True)
+    department = objforms.widgets.LargeCharField(required=False)
+    address = objforms.widgets.LargeCharField(required=True)
+    city = forms.CharField(widget=objforms.widgets.LeftThirdInput, required=True)
+    postal_code = forms.CharField(widget=objforms.widgets.MiddleThirdInput, required=True)
+    country = forms.CharField(widget=objforms.widgets.RightThirdInput, required=True)
+    contact_phone = forms.CharField(widget=objforms.widgets.LeftHalfInput, required=True)
+    contact_fax =forms.CharField(widget=objforms.widgets.RightHalfInput, required=False)
+
+    class Meta:
+        model = Project
+        fields = ('name', 'contact_person','contact_email',
+                  'carrier','account_number', 'organisation', 'department','address',
+                  'city', 'postal_code','country','contact_phone','contact_fax',)
+
 class ShipmentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     label = forms.CharField(
