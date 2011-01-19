@@ -893,6 +893,8 @@ def edit_project_inline(request, id, model, form, template='objforms/form_base.h
                 'ip_number': request.META['REMOTE_ADDR'],
                 'action_type': ActivityLog.TYPE.MODIFY,}
             frm.save()
+            setattr(obj, 'updated', 'True')
+            obj.save()
             # if an action ('send', 'close') is specified, the perform the action
             if action:
                 perform_action(obj, action, data=frm.cleaned_data)
