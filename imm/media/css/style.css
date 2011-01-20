@@ -438,22 +438,17 @@ img
 {
 	margin:10px 0;
 }
-div.Uni-Puck, div.Cassette, div.Cane {
-    height: 40px;
-    width: 30px;
-    margin-left: 5px;
-    float: left;
-    margin-right: 5px;
+li.Uni-Puck {
+    background: url('/img/container-uni-puck-sm.png') no-repeat 5px center;
 }
-.Uni-Puck {
-    background: url('/img/container-uni-puck-sm.png') no-repeat center left;
+li.Cassette {
+    background: url('/img/container-cassette-sm.png') no-repeat 5px center;
 }
-.Cassette {
-    background: url('/img/container-cassette-sm.png') no-repeat center left;
+li.Cane {
+    background: url('/img/container-cane-sm.png') no-repeat 5px center;
 }
-.Cane {
-    background: url('/img/container-cane-sm.png') no-repeat center left;
-}
+
+
 td.Cane {
     background: #f7f7f7;
     height: 50px;
@@ -484,13 +479,17 @@ th.Cassette {
     margin-right: 20px;
     margin-top: 10px;
 }
-.dewar-detail li
+.dewar-detail ul
 {
-    line-height: 45px;
-	border-bottom:1px solid #ccc;
 	background:#f7f7f7;
 }
 
+.dewar-detail li
+{
+    padding-left: 35px;
+    line-height: 45px;
+	border-bottom:1px solid #ccc;
+}
 .dewar-detail img {
     float: left;
     margin-right: 10px;
