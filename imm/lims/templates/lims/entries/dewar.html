@@ -51,8 +51,6 @@
 {% endif %}
     <div class="clear"></div>
     
-    <h3>Containers</h3>
-
     {% if dewar.container_set.count %}
         {% load dewar_table %}
         {% dewar_table dewar request.user.is_superuser "dewar" %}

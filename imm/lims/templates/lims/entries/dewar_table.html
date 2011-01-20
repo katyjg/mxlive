@@ -14,7 +14,7 @@
            rel="{% url lims-dewar-remove dewar.shipment.pk dewar.pk %}" 
            href="#"
            onclick="remove_item(this);"
-           title="Remove dewar from shipment"><span class="remove"></span></a></p> 
+           title="Remove dewar from shipment"></a></p> 
     </div>
     <ul class="dewar droppable droppable-add" 
      accept="container" 
@@ -27,16 +27,16 @@
                    rel="{% url lims-dewar-remove-container dewar.pk container.id %}"
                    href="#"
                    onclick="remove_item(this);"
-                   title="Remove container from dewar"><span class="remove"></span></a>
+                   title="Remove container from dewar"></a>
             </li>
         {% endfor %}
-        <li></li>
     </ul>
 </div>
 {% endifequal %}
 
 {% ifequal page "dewar" %}
 <div class="object-list">
+    <h3>Containers</h3>
     <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
         <thead>
             <tr class="header">

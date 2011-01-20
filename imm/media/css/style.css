@@ -554,6 +554,15 @@ table.cane-detail td {
 	margin-bottom:10px;
 }
 
+.dewar-detail li a.remove
+{
+    background: url('/img/small-remove-icon.png') no-repeat center center;
+    width: 30px;
+    height: 35px;
+    display: block;
+    float: right;
+}
+    
 .dewar-detail div.title {
     height: 40px;
 }
