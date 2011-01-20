@@ -64,7 +64,29 @@ img { border: 0; }
 .list-tools { min-height: 1.5em; clear: both; font-size: 90%;}
 .tiny-list-tools { font-size: 90%; clear: both; padding-bottom: 2px; }
 
-.entrysummary { vertical-align: top;}
+div.entrycomment {
+    float: left;
+    min-width: 180px;
+    max-width: 220px;
+    border: 1px solid #ccc;
+    min-height: 60px;
+    padding: 1em;
+    background-color: #efddff;
+    /*
+    background-image: -moz-linear-gradient(top, #efdaff, #fff);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #efdaff), color-stop(1, #fff));*/
+}
+
+div.entrycomment h3 {
+    border-bottom: 1px dotted #999;
+}
+
+.entrysummary { 
+    margin-bottom: 0.5em;
+    max-width: 280px;
+    float: left;
+    clear: left;
+}
 .entrysummary th {
     text-align: left;
     font-weight: bold;

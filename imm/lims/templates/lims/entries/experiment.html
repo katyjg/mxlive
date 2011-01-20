@@ -19,12 +19,9 @@
 
 {% block content %}
 
-{% if object.comments %}
-	<div>{{object.comments}}</div>
-{% endif %}
 <div class="experiment droppable droppable-replace" accept="crystal" title="Drag and drop onto this image"></div>
 
-<table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
+<table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
     {% comment %}
     <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
     <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
@@ -42,7 +39,13 @@
     <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
 	<tr valign="top"><th>Completed:</th><td>{% if object.is_complete %}Yes{% else %} No {% endif %}</td></tr>
 </table>
-<div style="clear: both;"></div>
+{% if object.comments %}
+    <div class="entrycomment">
+    <h3>Comments</h3>
+	<p>{{object.comments}}</p>
+    </div>
+{% endif %}
+<div class="clear"></div>
 
 <!-- object.crystals contains all the crystals -->
 {% load crystal_table %}

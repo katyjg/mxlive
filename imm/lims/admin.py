@@ -56,10 +56,9 @@ staff_site.register(Crystal, CrystalAdmin)
 
 class CocktailAdmin(admin.ModelAdmin):
     ordering = ['-created']
-    search_fields = ['comments','name','pk']
+    search_fields = ['description','name','constituents']
     list_filter = ['modified']
-    #filter_horizontal = ['constituents']
-    list_display = ('identity', 'name', 'created','modified')    
+    list_display = ('identity', 'name', 'constituents', 'description', 'modified')    
 admin.site.register(Cocktail, CocktailAdmin)
     
 class CrystalFormAdmin(admin.ModelAdmin):

@@ -23,11 +23,6 @@
     <div class="dewar-img droppable droppable-replace" accept="container" title="Drag and drop onto this image"></div>
 
     <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
-        {% if request.user.is_superuser %}
-            <tr valign="top"><th>Staff Comments:</th><td>{{ object.staff_comments|wordwrap:10 }}</td></tr>
-        {% else %}
-            <tr valign="top"><th>Comments:</th><td>{{ object.comments|wordwrap:10 }}</td></tr>
-        {% endif %}
         <tr valign="top">
             <th>Status:</th>
             <td>{{dewar.get_status_display}}</td>
@@ -47,6 +42,14 @@
             <td>{{dewar.shipment.name}}</td>
         </tr>
     </table>
+{% if object.comments %}
+    <div class="entrycomment">
+    <h3>Comments</h3>
+    <p>{{ object.comments|default:"" }}</p>
+    <p>{{ object.staff_comments|default:""}}</p>
+    </div>
+{% endif %}
+    <div class="clear"></div>
     
     <h3>Containers</h3>
 

@@ -849,6 +849,16 @@ div.object-list th.descending a
 	background:url(/img/arrow-up.png) right 50% no-repeat;
 }
 
+div.object-list h3
+{
+    padding: 6px;
+    font-weight: bold;
+}
+
+div.object-list .table-notes
+{
+    padding: 1em;
+}
 tr.even td
 {
 	background-color:#f7f7f7;
@@ -1981,10 +1991,10 @@ span.fair-score {
     color: #cc0 !important;
 }
 
-span.usabe-score {
-    color: #993 !important;
+span.usable-score {
+    color: #a96 !important;
 }
-span.unusabe-score {
+span.unusable-score {
     color: #933 !important;
 }
 
