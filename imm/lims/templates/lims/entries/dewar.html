@@ -44,6 +44,7 @@
     </table>
 {% if object.comments %}
     <div class="entrycomment">
+    <span class="left-pointer"></span>
     <h3>Comments</h3>
     <p>{{ object.comments|default:"" }}</p>
     <p>{{ object.staff_comments|default:""}}</p>

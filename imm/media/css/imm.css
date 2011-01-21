@@ -68,22 +68,35 @@ div.entrycomment {
     float: left;
     min-width: 180px;
     max-width: 220px;
-    border: 1px solid #ccc;
+    border: 1px solid #a38db6;
     min-height: 60px;
-    padding: 1em;
-    background-color: #efddff;
-    /*
-    background-image: -moz-linear-gradient(top, #efdaff, #fff);
-    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #efdaff), color-stop(1, #fff));*/
+    padding: 14px;
+    background-color: #faf7fc;
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
 }
 
+
 div.entrycomment h3 {
-    border-bottom: 1px dotted #999;
+    color: #a38db6;
+    border-bottom: 1px dotted #a38db6;
+    margin-bottom: 0.5em;
 }
+
+div.entrycomment span.left-pointer {
+    margin-left: -24px;
+    padding-left: 24px;
+    position: absolute;
+    height: 40px;
+    background: url(/img/pointer.png) left top no-repeat;
+
+}
+
 
 .entrysummary { 
     margin-bottom: 0.5em;
-    max-width: 280px;
+    width: 280px;
     float: left;
     clear: left;
 }
