@@ -18,8 +18,7 @@ admin.autodiscover()
 urlpatterns = patterns('',
     (r'^$',  'imm.lims.views.home'),
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
-    #(r'^admin/', include(admin.site.urls)), # Django 1.1.x
-    (r'^admin/(.*)', admin.site.root), # Django 1.0.x
+    (r'^admin/', include(admin.site.urls)),
     (r'^lims/message/', include('imm.messaging.urls')),
     (r'^staff/message/', include('imm.messaging.urls')),
     
@@ -57,10 +56,10 @@ if settings.DEBUG:
         (r'^img/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': os.path.join(os.path.dirname(__file__), 'media/img'), 
             }),
-        (r'^js/(?P<path>.*\.js)$', 'django.views.static.serve', {
+        (r'^js/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': os.path.join(os.path.dirname(__file__), 'media/js'), 
             }),
-        (r'^css/(?P<path>.*\.css)$', 'django.views.static.serve', {
+        (r'^css/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': os.path.join(os.path.dirname(__file__), 'media/css'), 
             }),
     )

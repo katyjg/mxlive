@@ -97,7 +97,6 @@ def create_project(user=None, username=None, fetcher=None):
     return project
     
 
-
 def project_required(function):
     """ Decorator that enforces the existence of a imm.lims.models.Project """
     def project_required_wrapper(request, *args, **kwargs):
@@ -161,6 +160,7 @@ def manager_required(function):
         return function(request, *args, **kwargs)
     return manager_required_wrapper
 
+
 def project_assurance(function):
     """ Decorator that creates a default imm.lims.models.Project if there isn't one """
     def project_assurance_wrapper(request, fetcher=None):
@@ -170,6 +170,7 @@ def project_assurance(function):
             request.project = create_project(request.user, fetcher=fetcher)
         return function(request)
     return project_assurance_wrapper
+
 
 @login_required
 def home(request):
@@ -239,8 +240,10 @@ def upload_shipment(request, model, form, template='lims/forms/new_base.html'):
             # we need to manually rollback the transaction and return a normal rendered form error
             # to the user, rather than a 500 page
             try:
-                frm.save(request)
-                request.user.message_set.create(message = "The data was uploaded correctly.")
+                new_obj = frm.save(request)
+                message = 'Shipment (%s) uploaded' % (new_obj)
+                ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.MODIFY, message)
+                request.user.message_set.create(message = message)
                 return render_to_response("lims/message.html", context_instance=RequestContext(request))
 
             except IntegrityError:
@@ -253,63 +256,6 @@ def upload_shipment(request, model, form, template='lims/forms/new_base.html'):
         frm = form(initial={'project': project.pk})
         return render_to_response(template, {'form': frm, 'info': form_info}, context_instance=RequestContext(request))
 
-@login_required
-@manager_required
-def shipping_summary(request, model=ActivityLog):
-    log_set = [
-        ContentType.objects.get_for_model(Container).pk, 
-        ContentType.objects.get_for_model(Dewar).pk,
-        ContentType.objects.get_for_model(Shipment).pk,
-    ]
-    return render_to_response('lims/shipping.html',{
-        'logs': request.manager.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
-        'project': request.project,
-        'request': request,
-        },
-        context_instance=RequestContext(request))
-
-@login_required
-@manager_required
-def sample_summary(request, model=ActivityLog):
-    log_set = [
-        ContentType.objects.get_for_model(Crystal).pk,
-        ContentType.objects.get_for_model(Constituent).pk,
-        ContentType.objects.get_for_model(Cocktail).pk,
-        ContentType.objects.get_for_model(CrystalForm).pk,
-    ]
-    return render_to_response('lims/samples.html', {
-        'logs': request.manager.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
-        'project': request.project,
-        'request': request,
-        },
-        context_instance=RequestContext(request))
-
-@login_required
-@manager_required
-def experiment_summary(request, model=ActivityLog):
-    log_set = [
-        ContentType.objects.get_for_model(Experiment).pk,
-    ]
-    return render_to_response('lims/experiment.html',{
-        'logs': request.manager.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
-        'project': request.project,
-        'request': request,
-        },
-        context_instance=RequestContext(request))
-    
-@login_required
-@manager_required
-def container_summary(request, model=ActivityLog):
-    log_set = [
-        ContentType.objects.get_for_model(Container).pk,
-        ContentType.objects.get_for_model(Crystal).pk,
-    ]
-    return render_to_response('lims/container.html',{
-        'logs': request.manager.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
-        'project': request.project,
-        'request': request,
-        },
-        context_instance=RequestContext(request))
 
 @login_required
 @transaction.commit_on_success
@@ -401,13 +347,10 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
                 
         if loc_id:
             setattr(dest, 'container_location', loc_id)
-
-        message = '%s has been successfully added' % display_name
-        dest._activity_log = {
-            'message': message,
-            'ip_number': request.META['REMOTE_ADDR'],
-            'action_type': ActivityLog.TYPE.MODIFY,}
+    
         dest.save()
+        message = '%s (%s) added' % (to_add.__class__._meta.verbose_name, display_name)
+        ActivityLog.objects.log_activity(request, dest, ActivityLog.TYPE.MODIFY, message)
     else:
         message = '%s has not been added, as %s is not editable' % (display_name, dest.name)
 
@@ -421,7 +364,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
 @login_required
 @project_required
 @transaction.commit_on_success
-def add_existing_object_old(request, src_id, dest_id, obj_id, parent_model, model, field, additional_fields=None, form=ObjectSelectForm):
+def add_multiple_existing(request, src_id, dest_id, obj_id, parent_model, model, field, additional_fields=None, form=ObjectSelectForm):
     """
     A generic view which displays a form of type ``form`` which when submitted 
     will set the foreign key field `field` of one/more existing objects of 
@@ -463,18 +406,11 @@ def add_existing_object_old(request, src_id, dest_id, obj_id, parent_model, mode
                 
             if changed:
                 parent.save()            
-                form_info['message'] = '%ss has been successfully added' % object_type.lower()
+                message = '%ss added' % object_type.lower()
+                ActivityLog.objects.log_activity(request, parent, ActivityLog.TYPE.MODIFY, message)
             else:
-                form_info['message'] = '%ss has not been added, as the destination is not editable' %  object_type.lower()        
-            ActivityLog.objects.log_activity(
-                project.pk,
-                request.user.pk, 
-                request.META['REMOTE_ADDR'],
-                parent, 
-                ActivityLog.TYPE.MODIFY,
-                form_info['message']
-                )
-            request.user.message_set.create(message = form_info['message'])
+                message = '%ss have not been added, as the destination is not editable' %  object_type.lower()        
+            request.user.message_set.create(message = message)
             return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
         else:
             return render_to_response('objforms/form_base.html', {
@@ -605,17 +541,10 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
             new_obj = frm.save()
             if action:
                 perform_action(new_obj, action, data=frm.cleaned_data)
-            info_msg = 'The %(name)s "%(obj)s" was added successfully.' % {'name': smart_str(model._meta.verbose_name), 'obj': smart_str(new_obj)}
-            ActivityLog.objects.log_activity(
-                project.pk,
-                request.user.pk, 
-                request.META['REMOTE_ADDR'],
-                new_obj, 
-                ActivityLog.TYPE.CREATE,
-                info_msg
-                )
+            info_msg = 'New %(name)s (%(obj)s) added' % {'name': smart_str(model._meta.verbose_name), 'obj': smart_str(new_obj)}
+            ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE,
+                info_msg)
             request.user.message_set.create(message = info_msg)
-
             # messages are simply passed down to the template via the request context
             return render_to_response("lims/message.html", context_instance=RequestContext(request))
         else:
@@ -685,11 +614,9 @@ def add_new_object(request, id, model, form, field):
         frm.restrict_by('project', project.pk)
         if frm.is_valid():
             new_obj = frm.save()
-            info_msg = '%s "%s" added to %s "%s"' % (object_type, smart_str(new_obj), related_type, smart_str(related))
+            info_msg = '%s (%s) added to %s (%s)' % (smart_str(model._meta.verbose_name), smart_str(new_obj), related_type, smart_str(related))
             ActivityLog.objects.log_activity(
-                project.pk,
-                request.user.pk,
-                request.META['REMOTE_ADDR'],
+                request,
                 new_obj, 
                 ActivityLog.TYPE.CREATE,
                 info_msg
@@ -931,17 +858,14 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
         if request.project:
             frm.restrict_by('project', request.project.pk)
         if frm.is_valid():
-            form_info['message'] = '%s: "%s|%s" successfully modified' % ( model._meta.verbose_name, obj.identity(), obj.__unicode__())
-            frm.instance._activity_log = {
-                'message': form_info['message'],
-                'ip_number': request.META['REMOTE_ADDR'],
-                'action_type': ActivityLog.TYPE.MODIFY,}
+            form_info['message'] = '%s (%s) modified' % ( model._meta.verbose_name, obj)
             frm.save()
             # if an action ('send', 'close') is specified, the perform the action
             if action:
                 perform_action(obj, action, data=frm.cleaned_data)
+
             request.user.message_set.create(message = form_info['message'])
-            
+            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, form_info['message'])            
             return render_to_response('lims/message.html', context_instance=RequestContext(request))
         else:
             return render_to_response(template, {
@@ -1038,14 +962,10 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
                 request.user.message_set.create(message = message)
                 return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
                        
-        message = '%s has been successfully removed' % display_name
-        src._activity_log = {
-            'message': message,
-            'ip_number': request.META['REMOTE_ADDR'],
-            'action_type': ActivityLog.TYPE.MODIFY,}
         src.save()
-        form_info['message'] = '%s has been successfully removed' % display_name
-    
+        message = '%s removed from %s' % (to_remove, src)
+        ActivityLog.objects.log_activity(request, src, ActivityLog.TYPE.MODIFY, message)
+           
     else:
         message = '%s has not been removed, as %s is not editable' % (display_name, src.name)
 
@@ -1091,20 +1011,13 @@ def remove_object_old(request, id, model, field):
         if request.POST.has_key('_confirmed'):
             setattr(obj,field,None)
             obj.save()
-            form_info['message'] = '%s "%s" removed from %s  "%s".' % (
+            form_info['message'] = '%s (%s) removed from %s (%s)' % (
                 object_type, 
                 smart_str(obj), 
                 related_type.lower(), 
                 smart_str(related)
                 )
-            ActivityLog.objects.log_activity(
-                project.pk,
-                request.user.pk, 
-                request.META['REMOTE_ADDR'],
-                obj, 
-                ActivityLog.TYPE.MODIFY,
-                form_info['message']
-                )
+            ActivityLog.objects.log_activity(request,  obj,  ActivityLog.TYPE.MODIFY, form_info['message'])
             request.user.message_set.create(message = form_info['message'])            
             return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
         else:
@@ -1149,17 +1062,10 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
         if request.project:
             frm.restrict_by('project', request.project.pk)
         if request.POST.has_key('_save'):
-            delete(model, id, orphan_models)
-            form_info['message'] = '%s %s successfully deleted' % ( model.__name__, obj.__unicode__())
+            form_info['message'] = '%s (%s) deleted' % ( model._meta.verbose_name, obj)
             if hasattr(obj, 'project'):
-                ActivityLog.objects.log_activity(
-                    request.project.pk,
-                    request.user.pk, 
-                    request.META['REMOTE_ADDR'],
-                    obj, 
-                    ActivityLog.TYPE.DELETE,
-                    form_info['message']
-                    )
+                ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.DELETE,  form_info['message'])
+            delete(model, id, orphan_models)
             request.user.message_set.create(message = form_info['message'])
             # messages are simply passed down to the template via the request context
             return render_to_response("lims/message.html", context_instance=RequestContext(request))
@@ -1213,18 +1119,8 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
         if request.POST.has_key('_save'):
             str_obj = smart_str(obj)
             archive(model, id)
-            form_info['message'] = '%s "%s" closed.' % (
-                model.__name__, 
-                obj.__unicode__()
-                )
-            ActivityLog.objects.log_activity(
-                project.pk,
-                request.user.pk, 
-                request.META['REMOTE_ADDR'],
-                obj, 
-                ActivityLog.TYPE.ARCHIVE,
-                form_info['message']
-                )
+            form_info['message'] = '%s (%s) archived' % (model._meta.verbose_name, obj)
+            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.ARCHIVE, form_info['message'])
             request.user.message_set.create(message = form_info['message'])   
             return render_to_response("lims/message.html", context_instance=RequestContext(request))         
             
@@ -1368,12 +1264,19 @@ def add_data(request, data_info):
     info = {}
     
     # check if project_id is provided if not check if project_name is provided
-    if data_info.get('project_id') is None and data_info.get('project_name') is not None:
-        project = create_project(username=data_info['project_name'])
-        data_info['project_id'] = project.pk
+    if data_info.get('project_id') is not None:
+        data_owner = Project.objects.get(pk=data_info['project_id'])   
+    elif data_info.get('project_name') is not None:
+        try:
+            data_owner = Project.objects.get(name=data_info['project_name'])
+        except:
+            data_ownder = create_project(username=data_info['project_name'])
+            data_info['project_id'] = project.pk
         del data_info['project_name']
+    else:
+        return {'error': 'Unknown Project' }    
+     
     # convert unicode to str
-    data_owner = Project.objects.get(pk=data_info['project_id'])
     for k,v in data_info.items():
         if k == 'url':
             v = create_download_key(v, data_owner.pk)
@@ -1388,6 +1291,9 @@ def add_data(request, data_info):
             new_obj.crystal.collect_status = Crystal.EXP_STATES.COMPLETED
             new_obj.crystal.save()
         new_obj.save()
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
+            "New dataset (%s) added" % new_obj)
+        
         return {'data_id': new_obj.pk}
     except Exception, e:
         raise e
@@ -1405,6 +1311,8 @@ def add_result(request, res_info):
     try:
         new_obj = Result(**info)
         new_obj.save()
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
+            "New analysis report (%s) added" % new_obj)
         return {'result_id': new_obj.pk}
     except Exception, e:
         raise e
@@ -1418,6 +1326,8 @@ def add_strategy(request, stg_info):
         info[smart_str(k)] = v
     new_obj = Strategy(**info)
     new_obj.save()
+    ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
+       "New strategy (%s) added" % new_obj)
     return {'strategy_id': new_obj.pk}
 
 @login_required

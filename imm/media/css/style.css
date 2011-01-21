@@ -57,7 +57,7 @@ html
 body
 {
 	font-size:12px;
-	font-family:"Segoe UI", Cantarell, serif;
+	font-family: "Segoe UI", Cantarell, serif;
 	line-height:1.5em;
 	color:#333;
 	background-color:#fff;
@@ -710,6 +710,7 @@ table.cane-detail td {
 
 #sidebar-activity-log {
     line-height: 1.2em;
+    min-height: 200px;
     -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
        -moz-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
             box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
@@ -729,6 +730,11 @@ table.cane-detail td {
 #sidebar-activity-log h2 {
     line-height: 1.2em;
     border-bottom: 1px dotted #999;
+}
+
+#sidebar-activity-log li.list-empty {
+    padding: 5em;
+    color: #ccc;
 }
 
 
@@ -1380,8 +1386,7 @@ form li div.right
 
 .heading h2
 {
-	font-family:Cantarell, sans-serif;
-	font-weight:700;
+	font-weight: bold;
 	font-size:150%;
 	margin:.5em .2em;
 	clear:left;

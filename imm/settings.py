@@ -83,6 +83,7 @@ MIDDLEWARE_CLASSES = (
     #'django.middleware.doc.XViewMiddleware',
     #'django.middleware.locale.LocaleMiddleware',
     'django.middleware.transaction.TransactionMiddleware',
+    'reversion.middleware.RevisionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
 )
 
@@ -118,7 +119,7 @@ INSTALLED_APPS = (
     'imm.remote',
     'imm.download',
     'jsonrpc',
-    #'reversion',
+    'reversion',
 )
 
 
