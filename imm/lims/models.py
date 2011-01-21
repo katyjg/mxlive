@@ -78,7 +78,7 @@ class ExcludeManagerWrapper(ManagerWrapper):
     
 class FilterManagerWrapper(ManagerWrapper):
     """ This a models.Manager instance that wraps any models.Manager instance and .filters()
-    results from the query_set. All it does it proxy all requests to the wrapped manager EXCEPT
+    results from the query_set. All it does is proxy all requests to the wrapped manager EXCEPT
     for calls to get_query_set() which it alters with the appropriate filters
     """
     def __init__(self, manager, **filters):
