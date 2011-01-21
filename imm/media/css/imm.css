@@ -64,7 +64,42 @@ img { border: 0; }
 .list-tools { min-height: 1.5em; clear: both; font-size: 90%;}
 .tiny-list-tools { font-size: 90%; clear: both; padding-bottom: 2px; }
 
-.entrysummary { vertical-align: top;}
+div.entrycomment {
+    float: left;
+    min-width: 180px;
+    max-width: 220px;
+    border: 1px solid #a38db6;
+    min-height: 60px;
+    padding: 14px;
+    background-color: #faf7fc;
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
+}
+
+
+div.entrycomment h3 {
+    color: #a38db6;
+    border-bottom: 1px dotted #a38db6;
+    margin-bottom: 0.5em;
+}
+
+div.entrycomment span.left-pointer {
+    margin-left: -24px;
+    padding-left: 24px;
+    position: absolute;
+    height: 40px;
+    background: url(/img/pointer.png) left top no-repeat;
+
+}
+
+
+.entrysummary { 
+    margin-bottom: 0.5em;
+    width: 280px;
+    float: left;
+    clear: left;
+}
 .entrysummary th {
     text-align: left;
     font-weight: bold;

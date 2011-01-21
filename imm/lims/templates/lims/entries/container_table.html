@@ -1,6 +1,5 @@
-<h3>Crystals in {{object.json_dict.type|lower}} {{object.name}}</h3>
-{% ifnotequal object.num_crystals 0 %}
 <div class="object-list {{object.json_dict.type|lower}}-detail">
+    <h3>Crystals in {{object.json_dict.type|lower}} &ldquo;{{object.name}}&rdquo;</h3>
     <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
         <thead>
             <tr class="header">
@@ -11,7 +10,8 @@
                 {% if not admin %}<th></th>{% endif %}
             </tr>
         </thead>
-        <body>
+        <tbody>
+        {% ifnotequal object.num_crystals 0 %}
             {% for loc, crystal in object.location_and_crystal %}
                 {% if crystal %}
                     <tr class="{% cycle 'odd' 'even'%} link-row modal"
@@ -36,10 +36,10 @@
                     </tr>
                 {% endif %}
             {% endfor %}
-        </body>
+        {% else %}                
+                <tr><td colspan="20" align="center" style="padding: 3em; background: #fff; color: #999;">No crystals in this container</td></tr>
+        {% endifnotequal %}           
+        </tbody>
     </table>
 </div>
-{% else %}
-    (No crystals in this container).
-{% endifnotequal %}
 

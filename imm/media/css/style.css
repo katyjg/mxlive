@@ -438,22 +438,17 @@ img
 {
 	margin:10px 0;
 }
-div.Uni-Puck, div.Cassette, div.Cane {
-    height: 40px;
-    width: 30px;
-    margin-left: 5px;
-    float: left;
-    margin-right: 5px;
+li.Uni-Puck {
+    background: url('/img/container-uni-puck-sm.png') no-repeat 5px center;
 }
-.Uni-Puck {
-    background: url('/img/container-uni-puck-sm.png') no-repeat center left;
+li.Cassette {
+    background: url('/img/container-cassette-sm.png') no-repeat 5px center;
 }
-.Cassette {
-    background: url('/img/container-cassette-sm.png') no-repeat center left;
+li.Cane {
+    background: url('/img/container-cane-sm.png') no-repeat 5px center;
 }
-.Cane {
-    background: url('/img/container-cane-sm.png') no-repeat center left;
-}
+
+
 td.Cane {
     background: #f7f7f7;
     height: 50px;
@@ -484,13 +479,17 @@ th.Cassette {
     margin-right: 20px;
     margin-top: 10px;
 }
-.dewar-detail li
+.dewar-detail ul
 {
-    line-height: 45px;
-	border-bottom:1px solid #ccc;
 	background:#f7f7f7;
 }
 
+.dewar-detail li
+{
+    padding-left: 35px;
+    line-height: 45px;
+	border-bottom:1px solid #ccc;
+}
 .dewar-detail img {
     float: left;
     margin-right: 10px;
@@ -554,6 +553,15 @@ table.cane-detail td {
 	margin-bottom:10px;
 }
 
+.dewar-detail li a.remove
+{
+    background: url('/img/small-remove-icon.png') no-repeat center center;
+    width: 30px;
+    height: 35px;
+    display: block;
+    float: right;
+}
+    
 .dewar-detail div.title {
     height: 40px;
 }
@@ -849,6 +857,16 @@ div.object-list th.descending a
 	background:url(/img/arrow-up.png) right 50% no-repeat;
 }
 
+div.object-list h3
+{
+    padding: 6px;
+    font-weight: bold;
+}
+
+div.object-list .table-notes
+{
+    padding: 1em;
+}
 tr.even td
 {
 	background-color:#f7f7f7;
@@ -1981,10 +1999,10 @@ span.fair-score {
     color: #cc0 !important;
 }
 
-span.usabe-score {
-    color: #993 !important;
+span.usable-score {
+    color: #a96 !important;
 }
-span.unusabe-score {
+span.unusable-score {
     color: #933 !important;
 }
 

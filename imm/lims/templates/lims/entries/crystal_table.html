@@ -1,8 +1,5 @@
 {% load humanize %}
 {% load score_colors %}
-
-<h3>Crystals</h3>
-<p>* If multiple screening or full collection datasets have been taken for a crystal, only the dataset with the best score is displayed on this table.  To view all datasets collected for a specific crystal, go to the crystal page.</p>
 <div id="view-result" class="hidden modal-content"></div>
 <div id="view-data" class="hidden modal-content"></div>
 
@@ -21,6 +18,7 @@
 	{% endif %}
 
 <div class="object-list">
+<h3>Crystals</h3>
    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
         <thead>
             <tr class="header">
@@ -106,6 +104,8 @@
             {% endfor %}
         </tbody>
     </table>
+    <p class="table-notes">* If multiple screening or full collection datasets have been taken for a crystal, only the dataset with the best score is displayed on this table.  To view all datasets collected for a specific crystal, go to the crystal page.</p>
+
 </div>    
 
     {% if admin %}

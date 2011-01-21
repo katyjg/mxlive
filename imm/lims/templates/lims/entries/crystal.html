@@ -18,13 +18,11 @@
 {% endblock %}
 
 {% block content %}
-
-<table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="100%">
-    <tr valign="top"><th>Comments:</th><td>{{ object.comments|wordwrap:10 }}</td></tr>
-</table>
 <div class="crystal droppable droppable-replace" accept="crystalform cocktail" title="Drag and drop onto this image"></div>
 
-<table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
+<!--img src="/img/samples-crystal_test.png" class="crystal droppable droppable-replace" accept="crystalform cocktail" style="float:right;clear: right; margin: 0.5em;"/-->
+
+<table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
 	<tr valign="top"><th>Barcode:</th><td>{{ object.code }}</td></tr>
 	<tr valign="top"><th>Loop-size:</th><td>{{ object.loop_size }}</td></tr>
 	<tr valign="top"><th>Pin-length:</th><td>{{ object.pin_length }}</td></tr>
@@ -39,9 +37,15 @@
 		<tr valign="top"><th NOWRAP>Collect Status:</th><td>{{ object.get_collect_status_display }}</td></tr>
 	{% endif %}
 </table>
-
+{% if object.comments %}
+    <div class="entrycomment">
+    <span class="left-pointer"></span>
+    <h3>Comments</h3>
+    <p>{{ object.comments}}</p>
+    </div>
+{% endif %}
+<div class="clear"></div>
 {% include "lims/entries/data_report_table.html" %}
-
 <div id="add-cocktail" class="hidden modal-content"></div>
 <div id="add-crystalform" class="hidden modal-content"></div>
 <div id="view-data" class="hidden modal-content"></div>

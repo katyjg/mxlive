@@ -18,18 +18,9 @@
 
 {% block content %}
 
-{% with object as shipment %}
-    <table class="entrysummary" cellpadding="0" cellspacing="0" border="0" width="100%" style="float:left; clear: left;">
-    	<tr valign="top"><th>Comments:</th><td>{{ shipment.comments }}</td></tr>
-    	{% if shipment.shipping_errors %}
-    		<tr valign="top"><th>Messages:</th><td style="color: red">{{ shipment.shipping_errors.0 }}</td></tr>
-    	{% endif  %}
-    </table>
-    
+{% with object as shipment %}   
     <div class="shipment droppable droppable-replace" accept="dewar" title="Drag and drop onto this image"></div>
-    <!--img class="droppable droppable-add drop-image" accept="container dewar crystal" src="/img/shipment.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/-->
-
-    <table class="entrysummary" cellpadding="0" cellspacing="0" border="0" width="60%" style="float:left; clear: left;">
+    <table class="entrysummary" cellpadding="0" cellspacing="0" border="0">
         <tr valign="top"><th>Status:</th><td>{{ shipment.get_status_display }}</td></tr>
         {% ifequal shipment.status shipment.STATES.DRAFT %}
             <tr valign="top"><th>Shippable:</th><td>{{shipment.shipping_errors|yesno:"No,Yes"}}</td></tr>
@@ -48,8 +39,21 @@
         {% endif %}
         <tr valign="top"><th>Processed:</th><td>{% if shipment.is_processed %}Yes{% else %} No {% endif %}</td></tr>
     </table>
-    <div style="clear: both;"></div>
 
+{% if shipment.comments %}
+    <div class="entrycomment">
+    <span class="left-pointer"></span>
+    <h3>Comments</h3>
+    <p>{{ shipment.comments}}</p>
+    	{% if shipment.shipping_errors %}
+        <p style="color: red">Warnings: {{shipment.shipping_errors.0}}</p>
+    	{% endif  %}
+    </div>
+{% endif  %}
+
+    <div class="clear"></div>
+    
+    <div class="object-list">
     <h3>Dewars</h3>
     <!--img src="/img/dewar.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/-->
 
@@ -60,9 +64,12 @@
                 {% dewar_table dewar request.user.is_superuser "shipment" %}
             {% endfor %}
         {% else %}
-            (No dewars assigned to this shipment.)
+            <table width="100%">
+            <tr><td colspan="20" align="center" style="padding: 3em; background: #fff; color: #999;">(No dewars assigned to this shipment)</td></tr>
+            </table>
         {% endif %}
     {% endwith %}
+    </div>
 
 {% endwith %}
 

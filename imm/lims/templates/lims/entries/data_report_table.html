@@ -1,10 +1,8 @@
 {% load score_colors %}
 
-<h3 class="crystal-data-table">Datasets</h3>
-<h3 class="crystal-report-table">Reports</h3>
-<div class="object-list">
-{% if datasets %}
-<table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table" class="crystal-data-table">
+<div class="object-list crystal-data-table">
+<h3>Datasets</h3>
+<table cellspacing="0" cellpadding="2" border="0" width="100%">
     <thead>
         <tr class="header">
             <th>Dataset</th>
@@ -24,12 +22,11 @@
        	{% endfor %}
     </tbody>
 </table>
-{% endif %}
-{% if not datasets %}
-    <p class="crystal-data-table">(No datasets collected for this crystal.)</p>
-{% endif %}
-{% if results %}
-<table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table" class="crystal-report-table">
+</div>
+
+<div class="object-list crystal-report-table">
+<h3>Reports</h3>
+<table cellspacing="0" cellpadding="2" border="0" width="100%">
     <thead>
         <tr class="header">
             <th>Report</th>

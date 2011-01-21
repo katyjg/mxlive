@@ -854,7 +854,6 @@ class Experiment(models.Model):
     exp_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.INCOMPLETE)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-#    crystals = models.ManyToManyField(Crystal)
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
     
@@ -1595,13 +1594,15 @@ def ActivityLog_pre_save(sender, **kwargs):
     
     _activity_log = getattr(instance, '_activity_log', None)
     if _activity_log is None:
+        _ActivityLog_message = ""
+        _ActivityLog_type = ActivityLog.TYPE.MODIFY
         try:
             # values in the existing (already in db) instance
             existingInstance = sender._default_manager.get(pk=instance.pk)
             existingInstanceVars = vars(existingInstance)
             
             # flag to indicate an ActivityLog MODIFY or CREATED entity
-            _ActivityLog_type = None
+            _ActivityLog_type = ActivityLog.TYPE.MODIFY
             changes = {}
             
             # iterate of the dictionaries to see if anything notable has changed
@@ -1668,4 +1669,3 @@ def disconnectActivityLog():
         post_save.disconnect(ActivityLog_post_save, sender=modelClass)
         
 connectActivityLog()
-    
