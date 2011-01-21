@@ -12,14 +12,18 @@
         </tr>
     </thead>
     <tbody>
-        {% for data in datasets %}
-        <!-- "odd" if loop_count % 2 == 1 else "even" -->
-            <tr class="{% cycle 'odd' 'even'%}">
-            	<td><a href="{% url lims-dataset-detail data.pk %}" class="modal" rel="#view-data">{{ data.name }}</a></td>
-            	<td>{{ data.num_frames }}</td>
-            	<td>{{ data.delta_angle }}</td>
-            	<td>{{ data.wavelength }}</td>
-       	{% endfor %}
+        {% if datasets %}
+            {% for data in datasets %}
+            <!-- "odd" if loop_count % 2 == 1 else "even" -->
+                <tr class="{% cycle 'odd' 'even'%}">
+                	<td><a href="{% url lims-dataset-detail data.pk %}" class="modal" rel="#view-data">{{ data.name }}</a></td>
+                	<td>{{ data.num_frames }}</td>
+                	<td>{{ data.delta_angle }}</td>
+                	<td>{{ data.wavelength }}</td>
+           	{% endfor %}
+        {% else %}
+            <tr><td colspan="20" align="center" style="padding: 3em; background: #fff; color: #999;">No datasets collected for this crystal</td></tr>
+        {% endif %}
     </tbody>
 </table>
 </div>
@@ -36,18 +40,18 @@
         </tr>
     </thead>
     <tbody>
-        {% for result in results %}
-        <!-- "odd" if loop_count % 2 == 1 else "even" -->
-            <tr class="{% cycle 'odd' 'even'%}">
-            	<td><a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|color_score:2 }})</a></td>
-            	<td>{% if result.kind == 0 %}Screening{% else %}{% if result.kind == 1 %}Collection{% endif %}{% endif %}</td>
-            	<td>{{ result.resolution }}</td>
-            	<td>{{ result.completeness }}</td>
-       	{% endfor %}
+        {% if results %}
+            {% for result in results %}
+            <!-- "odd" if loop_count % 2 == 1 else "even" -->
+                <tr class="{% cycle 'odd' 'even'%}">
+                	<td><a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|color_score:2 }})</a></td>
+                	<td>{% if result.kind == 0 %}Screening{% else %}{% if result.kind == 1 %}Collection{% endif %}{% endif %}</td>
+                	<td>{{ result.resolution }}</td>
+                	<td>{{ result.completeness }}</td>
+           	{% endfor %}
+        {% else %}
+            <tr><td colspan="20" align="center" style="padding: 3em; background: #fff; color: #999;">No reports available for this crystal</td></tr>
+        {% endif %}
     </tbody>
 </table>
-{% endif %}
-{% if not results %}
-    <p class="crystal-report-table">(No reports generated for this crystal.)</p>
-{% endif %}
 </div>

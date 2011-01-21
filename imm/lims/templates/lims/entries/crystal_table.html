@@ -3,7 +3,6 @@
 <div id="view-result" class="hidden modal-content"></div>
 <div id="view-data" class="hidden modal-content"></div>
 
-{% if crystals %}
 	{% if admin %}
 	<form id="action_form" method="post">{% csrf_token %}
 		<button style="float:right;">Perform Action</button>
@@ -41,6 +40,7 @@
             </tr>
         </thead>
         <tbody>
+        {% if crystals %}
             {% for crystal in crystals %}
             <!-- "odd" if loop_count % 2 == 1 else "even" -->
 	            <tr class="{% cycle 'odd' 'even'%} link-row modal"
@@ -102,6 +102,13 @@
 	            	{% endif %}
 	            </tr>
             {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="20" align="center" style="padding: 3em; background: #fff; color: #999;">
+                    No crystals associated with this experiment
+                </td>
+            </tr>
+        {% endif %}
         </tbody>
     </table>
     <p class="table-notes">* If multiple screening or full collection datasets have been taken for a crystal, only the dataset with the best score is displayed on this table.  To view all datasets collected for a specific crystal, go to the crystal page.</p>
@@ -111,10 +118,6 @@
     {% if admin %}
     	</form>
     {% endif %}
-
-{% else %}
-    (No crystals associated).
-{% endif %}
 
 	<script>
 		jQuery('#action_form').submit(function() {
