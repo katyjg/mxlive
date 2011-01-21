@@ -5,7 +5,7 @@
     {% if logs %}
         {% for log in logs %}
         <li class="{{log.get_action_type_display|lower}}-log">
-            {% if log.affected_item %}
+            {% if log.affected_item and not request.user.is_staff %}
             &lsquo;<a href="{{log.affected_item.pk}}/">{{ log.affected_item.identity }}|  {{ log.affected_item }}</a>&rsquo;<br />
             {% else %}
                 {{log.object_repr}} <br />
