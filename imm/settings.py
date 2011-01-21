@@ -118,6 +118,7 @@ INSTALLED_APPS = (
     'imm.remote',
     'imm.download',
     'jsonrpc',
+    #'reversion',
 )
 
 

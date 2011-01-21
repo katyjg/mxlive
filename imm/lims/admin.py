@@ -1,11 +1,12 @@
 from django.contrib import admin
+from reversion.admin import VersionAdmin
 from imm.lims.models import *
 
 ITEMS_PER_PAGE = 16
 ACTIVITY_ITEMS_PER_PAGE = 6
 staff_site = admin.AdminSite()
 
-class ShipmentAdmin(admin.ModelAdmin):
+class ShipmentAdmin(VersionAdmin):
     search_fields = ['label', 'comments','status']
     list_filter = ['created','status']
     list_display = ('identity','label', 'status', 'date_shipped', 'carrier', 'num_dewars')
@@ -13,7 +14,7 @@ class ShipmentAdmin(admin.ModelAdmin):
     ordering = ['-created']
 admin.site.register(Shipment, ShipmentAdmin)
 
-class DewarAdmin(admin.ModelAdmin):
+class DewarAdmin(VersionAdmin):
     search_fields = ['label', 'comments']
     list_filter = ['modified']
     list_display = ('identity', 'label', 'code', 'shipment', 'modified', 'num_containers')
@@ -29,7 +30,7 @@ class ActivityLogAdmin(admin.ModelAdmin):
     list_per_page = ACTIVITY_ITEMS_PER_PAGE    
 admin.site.register(ActivityLog, ActivityLogAdmin)
         
-class ExperimentAdmin(admin.ModelAdmin):
+class ExperimentAdmin(VersionAdmin):
     search_fields = ['comments','name']
     list_filter = ['modified','status']
     list_display = ('identity','name','kind','status','plan','num_crystals')
@@ -42,7 +43,7 @@ class ExperimentStaffAdmin(ExperimentAdmin):
     ordering = ['-staff_priority', '-priority', '-created']
 staff_site.register(Experiment, ExperimentStaffAdmin)
 
-class CrystalAdmin(admin.ModelAdmin):
+class CrystalAdmin(VersionAdmin):
     search_fields = ['name', 'code']
     list_filter = ['modified']
     list_display = ('identity', 'name', 'status', 'cocktail', 'comments', 'container', 'container_location')       
@@ -54,14 +55,14 @@ class CrystalStaffAdmin(CrystalAdmin):
     ordering = ['-staff_priority', '-priority', '-created']
 staff_site.register(Crystal, CrystalAdmin)
 
-class CocktailAdmin(admin.ModelAdmin):
+class CocktailAdmin(VersionAdmin):
     ordering = ['-created']
     search_fields = ['description','name','constituents']
     list_filter = ['modified']
     list_display = ('identity', 'name', 'constituents', 'description', 'modified')    
 admin.site.register(Cocktail, CocktailAdmin)
     
-class CrystalFormAdmin(admin.ModelAdmin):
+class CrystalFormAdmin(VersionAdmin):
     ordering = ['id']
     search_fields = ['name','space_group__name']
     list_filter = ['modified']
@@ -76,7 +77,7 @@ class SpaceGroupAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'crystal_system', 'lattice_type')
 admin.site.register(SpaceGroup, SpaceGroupAdmin)
            
-class ContainerAdmin(admin.ModelAdmin):
+class ContainerAdmin(VersionAdmin):
     ordering = ['-created']
     search_fields = ['label','code']
     list_filter = ['modified','kind']

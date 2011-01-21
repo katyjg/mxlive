@@ -24,7 +24,7 @@ urlpatterns = patterns('imm.lims.views',
     (r'^shipping/shipment/.*/widget/(?P<src_id>\d+)/dewar/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Dewar, 'object':Container}, 'lims-shipment-add-container'),
 
     #####################
-    (r'^shipping/dewar/basic/$', 'basic_object_list', {'model': Dewar, 'template': 'objlist/basic_object_list.html'}, 'lims-dewar-basic-list'),
+    (r'^shipping/dewar/basic/$', 'unassigned_object_list', {'model': Dewar, 'related_field': 'shipment', 'template': 'objlist/basic_object_list.html'}, 'lims-dewar-basic-list'),
     #DEWARS##############
     (r'^shipping/dewar/$', 'object_list', {'model': Dewar, 'template': 'objlist/generic_list.html', 'can_add': True, 'is_individual': True}, 'lims-dewar-list'),
     (r'^shipping/dewar/(?P<id>\d+)/$', 'dewar_object_detail', {'model': Dewar, 'template': 'lims/entries/dewar.html'}, 'lims-dewar-detail'),
@@ -37,7 +37,7 @@ urlpatterns = patterns('imm.lims.views',
     (r'^shipping/dewar/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Dewar, 'object':Container, 'reverse':True}, 'lims-dewar-remove-container'),
 
     #########################
-    (r'^shipping/container/basic/$', 'basic_object_list', {'model': Container, 'template': 'objlist/basic_object_list.html'}, 'lims-container-basic-list'),
+    (r'^shipping/container/basic/$', 'unassigned_object_list', {'model': Container, 'related_field': 'dewar', 'template': 'objlist/basic_object_list.html'}, 'lims-container-basic-list'),
     #CONTAINERS##############    
     (r'^shipping/container/$', 'object_list', {'model': Container, 'template': 'objlist/generic_list.html', 'can_add': True, 'is_individual': True}, 'lims-container-list'),
     (r'^containers/crystal/basic/$', 'container_crystal_list', {'model': Crystal, 'template': 'objlist/basic_object_list.html', }, 'lims-crystal-container-list'),
