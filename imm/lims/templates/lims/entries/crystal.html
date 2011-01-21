@@ -26,14 +26,8 @@
 	<tr valign="top"><th>Barcode:</th><td>{{ object.code }}</td></tr>
 	<tr valign="top"><th>Loop-size:</th><td>{{ object.loop_size }}</td></tr>
 	<tr valign="top"><th>Pin-length:</th><td>{{ object.pin_length }}</td></tr>
-	<tr valign="top" class="crystal draggable-link-parent" accept="crystalform" 
-		{% if object.cocktail %}
-			rel="{% url lims-cocktail-detail object.cocktail.id %}"
-		{% endif %}><th NOWRAP>Crystal Form:</th><td>{{ object.crystal_form }}</td></tr>
-	<tr valign="top" class="crystal draggable-link-parent" accept="cocktail" 
-		{% if object.cocktail %}
-			rel="{% url lims-cocktail-detail object.cocktail.id %}"
-		{% endif %}><th>Cocktail:</th><td>{{ object.cocktail }}</td></tr>
+	<tr valign="top"><th NOWRAP>Crystal Form:</th><td>{{ object.crystal_form }}</td></tr>
+	<tr valign="top"><th>Cocktail:</th><td>{{ object.cocktail }}</td></tr>
 	<tr valign="top"><th>Container:</th><td>{{ object.container }} ({{ object.container_location }})</td></tr>
 	<tr valign="top"><th>Experiment:</th><td>{{ object.experiment }}</td></tr>
 	{% if object.screen_status != 0 %}
@@ -61,20 +55,28 @@
 {% endblock %}
 
 {% block sidebar %}
-    <div id="cocktails" class="widget droppable-remove parent-stop" data="{% url lims-cocktail-basic-list %}">
-	   <div class="widget-title">
-	   <span>Cocktails</span><a href="{% url lims-cocktail-new %}" class="modal add-action" title="Add New Cocktail" rel="#add-cocktail"><img src="/img/small-add-icon.png" /></a>
-	   </div>
-        <ul>
-            <li><a href="#">Content Not Loaded.</a></li>
-        </ul>
-    </div>
-    <div id="crystalforms" class="widget droppable droppable-remove parent-stop" accept="crystal_form" data="{% url lims-crystalform-basic-list %}">
-	   <div class="widget-title">
-	   <span>Crystal Forms</span><a href="{% url lims-crystalform-new %}" class="modal add-action" title="Add Crystal Form" rel="#add-crystalform"><img src="/img/small-add-icon.png" /></a>
-	   </div>
-        <ul>
-            <li><a href="#">Content Not Loaded.</a></li>
-        </ul>
-    </div>
+	{% if not user.is_superuser %}
+        <div id="cocktails" class="widget droppable-remove parent-stop" data="{% url lims-cocktail-basic-list %}">
+	        <div class="widget-title">
+	            <span>Cocktails</span>
+                <a href="{% url lims-cocktail-new %}" class="modal add-action" title="Add New Cocktail" rel="#add-cocktail">
+                    <img src="/img/small-add-icon.png" />
+                </a>
+	        </div>
+            <ul>
+                <li><a href="#">Content Not Loaded.</a></li>
+            </ul>
+        </div>
+        <div id="crystalforms" class="widget droppable droppable-remove parent-stop" accept="crystal_form" data="{% url lims-crystalform-basic-list %}">
+	        <div class="widget-title">
+	            <span>Crystal Forms</span>
+                <a href="{% url lims-crystalform-new %}" class="modal add-action" title="Add Crystal Form" rel="#add-crystalform">
+                    <img src="/img/small-add-icon.png" />
+                </a>
+	        </div>
+            <ul>
+                <li><a href="#">Content Not Loaded.</a></li>
+            </ul>
+        </div>
+    {% endif %}
 {% endblock %}

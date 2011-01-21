@@ -543,6 +543,7 @@ div.crystal.droppable {
   background: url(/img/samples-crystal.png) top left no-repeat;
   height: 130px;
   width: 100px;
+  margin-top: -10px;
 }
 div.experiment.droppable {
   background: url(/img/experiment.png) top left no-repeat;

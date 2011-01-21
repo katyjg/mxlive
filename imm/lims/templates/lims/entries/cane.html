@@ -1,4 +1,5 @@
-{% include 'lims/entries/container_table.html' %}
+{% load container_table %}
+{% container_table object request.user.is_superuser %}
 
 <table class="cane-detail" title="Drag and Drop into this region">
 {% for loc, crystal in object.location_and_crystal %}

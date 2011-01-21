@@ -19,41 +19,12 @@
 
 {% block content %}
 
-{% comment %}
-<table class="entrysummary left" cellpadding="2" cellspacing="0" border="0" width="60%">
-    <tr valign="top"><th>Type:</th><td>{{object.get_kind_display}}</td></tr>
-    <tr valign="top"><th>Capacity:</th><td>{{object.capacity}}</td></tr>
-    <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
-    <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
-    <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
-    <tr valign="top"><th>Completed:</th><td>{% if object.is_completed %}Yes{% else %} No {% endif %}</td></tr>
-</table>
-
-<img src="/img/container-{{object.get_kind_display|lower}}.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em; "/>
-
-{% for loc, crystal in object.location_and_crystal %}
-    {% if crystal %}
-    <li class="crystal draggable-link-parent">
-        <a href="{% url lims-crystal-detail crystal.id %}">{{ loc }} - {{ crystal.name }} ({{ crystal.identity }})</a>
-    </li>
-    {% else %}
-    <li class="container droppable droppable-add" 
-        accept="crystal" 
-        parent="{{ object.id }}"
-        rel="{% url lims-container-detail object.id %}"
-        container_location="{{ loc }}">{{ loc }}</li>
-    {% endif %}
-{% endfor %}
-{% endcomment %}
-
-<!--img src="/img/container-{{object.get_kind_display|lower}}.png" style="clear: right; margin: 0.5em; padding-right: 2em; "/-->
-
 {% ifequal object.json_dict.type "Cane" %}
     {% include "lims/entries/cane.html" %}
 {% endifequal %}{% ifequal object.json_dict.type "Cassette" %}
     {% include "lims/entries/cassette.html" %}
 {% endifequal %}{% ifequal object.json_dict.type "Uni-Puck" %}
-        {% include "lims/entries/unipuck.html" %}
+    {% include "lims/entries/unipuck.html" %}
 {% endifequal %}
 
 <div id="add-crystal" class="hidden modal-content"></div>

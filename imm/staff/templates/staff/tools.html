@@ -3,9 +3,9 @@
 <div id="accept-runlist" class="hidden modal-content"></div>
 <div id="reject-runlist" class="hidden modal-content"></div>
 <div id="edit-runlist" class="hidden modal-content"></div>
-<div id="delete-runlist" class="hidden modal-content"></div>
+<div id="delete-object" class="hidden modal-content"></div>
 
-<ul class="tools">
+<ul class="toolbar">
     {% if object.is_loadable %}
         <li>
             <a href="{{ handler }}load/" rel="#load-runlist" class="action modal edit-tool">
@@ -35,15 +35,15 @@
         </li>
     {% endif %}
     {% if object.is_editable %}
-        <li>
+        <li class="edit-tool">
             <a href="{{ handler }}edit/" rel="#edit-runlist" class="action modal edit-tool">
                 Edit
             </a>
         </li>
     {% endif %}
     {% if object.is_deletable %}
-        <li>
-            <a href="{{ handler }}delete/" rel="#delete-runlist" class="action modal edit-tool">
+        <li class="delete-tool">
+            <a href="{{ handler }}delete/" rel="#delete-object" class="action modal edit-tool">
                 Delete
             </a>
         </li>

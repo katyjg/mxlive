@@ -126,11 +126,19 @@
         	if (object.hasClass('experiment')) { return 'experiment'; }
         	if (object.hasClass('container')) { return 'container'; }
         	if (object.hasClass('cocktail')) { return 'cocktail'; } 
-        	if (object.hasClass('crystalform')) { return 'crystal_form'; }
+        	if (object.hasClass('crystalform')) { return 'crystalform'; }
         	if (object.hasClass('shipment')) { return 'shipment'; }
         	if (object.hasClass('dewar')) { return 'dewar'; }
         	if (object.hasClass('runlist')) { return 'runlist'; }
         	return 'none';
+        }
+
+        function setupRunlist() {
+            jQuery(".runlist-experiment").click(function() {
+                var data = window.location.pathname + "container/basic/"+jQuery(this).attr('id')+"/";
+                jQuery("#containers").attr("data",data);
+                loadWidgets();
+            });
         }
 
         function setupDragAndDrop() {
