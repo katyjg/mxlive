@@ -40,13 +40,17 @@
         <tr valign="top"><th>Processed:</th><td>{% if shipment.is_processed %}Yes{% else %} No {% endif %}</td></tr>
     </table>
 
-{% if shipment.comments %}
+{% if shipment.comments or shipment.shipping_errors %}
     <div class="entrycomment">
     <span class="left-pointer"></span>
     <h3>Comments</h3>
-    <p>{{ shipment.comments}}</p>
+    <p>{{ shipment.comments|default:""}}</p>
     	{% if shipment.shipping_errors %}
-        <p style="color: red">Warnings: {{shipment.shipping_errors.0}}</p>
+    	<ul>
+    	{% for error in shipment.shipping_errors %}
+        <li style="color: red">{{error}}</li>
+        {% endfor %}
+        </ul>
     	{% endif  %}
     </div>
 {% endif  %}
