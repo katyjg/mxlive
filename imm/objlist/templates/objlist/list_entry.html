@@ -16,7 +16,7 @@
     	{% if field == object.id %}
     		<td>{{ object.identity }}</td>
     	{% else %}
-    		<td>{{ field|truncate_chars:30 }}</td>
+            <td>{{ field|truncate_chars:30 }}</td>
     	{% endif %}
     {% endfor %}
     {% if form %}

@@ -385,7 +385,7 @@ class Shipment(models.Model):
         return self.dewar_set.count() == 0
     
     def __unicode__(self):
-        return "%s" % (self.label)
+        return self.label
     
     def _name(self):
         return self.label
@@ -786,7 +786,7 @@ class CrystalForm(models.Model):
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
     
     def __unicode__(self):
-        return "%s" % (self.name)
+        return self.name
 
     def identity(self):
         return 'CF%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -882,7 +882,7 @@ class Experiment(models.Model):
                 crystal.container.save()
     
     def __unicode__(self):
-        return self.identity()
+        return self.name
 
     def identity(self):
         return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))    
@@ -1373,7 +1373,7 @@ class Result(models.Model):
     identity.admin_order_field = 'pk'
 
     def __unicode__(self):
-        return self.identity()
+        return self.name
 
     def is_resubmittable(self):
         for strategy in self.strategy_set.all():
@@ -1446,7 +1446,7 @@ class Strategy(models.Model):
     identity.admin_order_field = 'pk'
 
     def __unicode__(self):
-        return self.identity()
+        return self.name
 
     def is_resubmittable(self):
         return self.status == self.STATES.WAITING and \
@@ -1488,35 +1488,42 @@ class ScanResult(models.Model):
     identity.admin_order_field = 'pk'
     
     def __unicode__(self):
-        return self.identity()
+        return self.name
 
     
 class ActivityLogManager(models.Manager):
-    def log_activity(self, project_id, user_id, ip_number, obj, action_type, description=''):
-        object_id = obj.pk
+    def log_activity(self, request, obj, action_type, description=''):
         content_type = ContentType.objects.get_for_model(obj)
         
         e = self.model()
-        e.project_id = project_id
-        e.user_id = user_id
-        e.ip_number = ip_number
-        e.content_type = content_type
-        e.object_id = object_id
+        if getattr(obj, 'project', None) is not None:
+            e.project_id = obj.project.pk
+        elif getattr(request, 'project', None) is not None:
+            e.project_id = request.project.pk
+        elif isinstance(Project, obj):
+            e.project_id = obj.pk
+        e.user_id = request.user.pk
+        e.ip_number = request.META['REMOTE_ADDR']
+        e.content_type = ContentType.objects.get_for_model(obj)
+        e.object_id = obj.pk
         e.affected_item = obj
         e.action_type = action_type
         e.description = description
+        e.object_repr = repr(obj)
         e.save()
+
     
 class ActivityLog(models.Model):
-    TYPE = Enum('Login', 'Logout', 'Task','Create', 'Modify','Delete', 'Archive')
+    TYPE = Enum('Login', 'Logout', 'Task', 'Create', 'Modify','Delete', 'Archive')
     created = models.DateTimeField('Date/Time', auto_now_add=True, editable=False)
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project, blank=True, null=True)
     user = models.ForeignKey(User)
     ip_number = models.IPAddressField('IP Address')
     object_id = models.PositiveIntegerField(blank=True, null=True)
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
     affected_item = generic.GenericForeignKey('content_type', 'object_id')
     action_type = models.IntegerField(max_length=1, choices=TYPE.get_choices() )
+    object_repr = models.CharField('Item', max_length=200, blank=True, null=True)
     description = models.TextField(blank=True)
     
     objects = ActivityLogManager()
@@ -1586,86 +1593,3 @@ __all__ = [
     'perform_action',
     ]   
 
-def ActivityLog_pre_save(sender, **kwargs):
-    """ pre_save handler """
-    # values in the current (to be saved) instance
-    instance = kwargs['instance']
-    instanceVars = vars(instance)
-    
-    _activity_log = getattr(instance, '_activity_log', None)
-    if _activity_log is None:
-        _ActivityLog_message = ""
-        _ActivityLog_type = ActivityLog.TYPE.MODIFY
-        try:
-            # values in the existing (already in db) instance
-            existingInstance = sender._default_manager.get(pk=instance.pk)
-            existingInstanceVars = vars(existingInstance)
-            
-            # flag to indicate an ActivityLog MODIFY or CREATED entity
-            _ActivityLog_type = ActivityLog.TYPE.MODIFY
-            changes = {}
-            
-            # iterate of the dictionaries to see if anything notable has changed
-            for key in set(instanceVars.keys() + existingInstanceVars.keys()):
-                if key in ['created', 'modified'] or key.startswith('_') or key.startswith('tmp_'):
-                    continue
-                if instanceVars.get(key) != existingInstanceVars.get(key):
-                    changes[key] = (existingInstanceVars.get(key), instanceVars.get(key))
-                    
-            # if there are changes, construct a message for the ActivityLog entry that shows the changes
-            # to each field in the format "field": "oldValue" -> "newValue"
-            if changes:
-                _ActivityLog_type = ActivityLog.TYPE.MODIFY
-                messages = []
-                for key, value in changes.items():
-                    value = list(value)
-                    for i, v in enumerate(value):
-                        if isinstance(v, basestring):
-                            value[i] = '"%s"' % v
-                        elif hasattr(sender, 'FIELD_TO_ENUM'):
-                            if sender.FIELD_TO_ENUM.has_key(key):
-                                value[i] = '"%s"' % sender.FIELD_TO_ENUM[key][v]
-                    messages.append('%s: %s -> %s' % (key, value[0], value[1]))
-                _ActivityLog_message = ','.join(messages)
-                
-        except sender.DoesNotExist:
-            # this is a new entity, create a simple ActivityLog entry
-            _ActivityLog_type = ActivityLog.TYPE.CREATE
-            _ActivityLog_message = 'Created'
-        instance._activity_log = {'message': _ActivityLog_message,
-            'ip_number': '0.0.0.0',
-            'action_type': _ActivityLog_type,
-            }
-        
-def ActivityLog_post_save(sender, **kwargs):
-    """ post_save handler """
-    # if the instance was created of changed, then create an ActivityLog entry
-    instance = kwargs['instance']
-    _activity_log = getattr(instance, '_activity_log', None)
-    if _activity_log is not None:
-        project = instance.project
-        ActivityLog.objects.log_activity(
-                project.pk,
-                project.user.pk,
-                _activity_log['ip_number'], # no access to request object, just use a dummy IP address
-                instance, 
-                _activity_log['action_type'],
-                _activity_log['message'],
-                )
-        
-ACTIVITY_LOG_MODELS = [Cocktail, Crystal, CrystalForm, Shipment, Container,  Dewar,
-                       Experiment, ScanResult, Result, Data, Strategy]
-
-def connectActivityLog():
-    """ Hooks ActivityLog_post_save to all relevant models """
-    for modelClass in ACTIVITY_LOG_MODELS:
-        pre_save.connect(ActivityLog_pre_save, sender=modelClass)
-        post_save.connect(ActivityLog_post_save, sender=modelClass)
-        
-def disconnectActivityLog():
-    """ Unhooks ActivityLog_post_save from all relevant models """
-    for modelClass in ACTIVITY_LOG_MODELS:
-        pre_save.disconnect(ActivityLog_pre_save, sender=modelClass)
-        post_save.disconnect(ActivityLog_post_save, sender=modelClass)
-        
-connectActivityLog()

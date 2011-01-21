@@ -5,7 +5,11 @@
     {% if logs %}
         {% for log in logs %}
         <li class="{{log.get_action_type_display|lower}}-log">
+            {% if log.affected_item %}
             &lsquo;<a href="{{log.affected_item.pk}}/">{{ log.affected_item.identity }}|  {{ log.affected_item }}</a>&rsquo;<br />
+            {% else %}
+                {{log.object_repr}} <br />
+            {% endif %}
             {% if log.user.is_admin or log.user.is_staff %}
             by {{ log.user|capfirst }} 
             {% endif %}
@@ -13,7 +17,7 @@
         </li>
         {% endfor %}
     {% else %}
-        <li class="list-empty">No history</li>
+        <li class="list-empty">no activity to show</li>
     {% endif %}
 </ul>
 </div>
