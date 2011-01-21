@@ -526,7 +526,25 @@ table.cane-detail td {
 {
     background: #ccc;
 }
-
+.runlist-detail div.runlist-column1 li
+{
+    border-right: 1px solid #999;
+}
+.runlist-detail li.empty
+{
+    background: #fff;
+}    
+.runlist-detail li.lims-droppable-active {
+    border-top: none;
+}
+.runlist-detail li.lims-droppable-hover {
+    border-style:solid;
+    order-width:1px;
+    border-color:#BB88D3;
+    background-color: #bb88d3;
+    opacity: 0.8;
+    border-top: none;
+}
 .dewar-detail li
 {
     padding-left: 35px;
@@ -581,7 +599,7 @@ table.cane-detail td {
     display: block;
     float: right;
 }
-    
+
 .dewar-detail div.title{
     height: 40px;
 }

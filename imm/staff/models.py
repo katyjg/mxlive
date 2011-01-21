@@ -72,6 +72,101 @@ class AutomounterLayout(models.Model):
     middle = PickledObjectField(null=True)
     right = PickledObjectField(null=True)
     
+    def container_to_location(self, container, location):
+        #check container type
+        #print location[0]
+        #print container.pk
+        if container.kind == Container.TYPE.CASSETTE:
+            if location[0] == "L":
+                if self.left == None:
+                    self.left = container.pk
+                    self.save()
+                    return True
+                return False
+            if location[0] == "M":
+                if self.middle == None:
+                    self.middle = container.pk
+                    self.save()
+                    return True
+                return False
+            if location[0] == "R":
+                if self.right == None:
+                    self.right = container.pk
+                    self.save()
+                    return True
+                return False
+        elif container.kind == Container.TYPE.UNI_PUCK:
+            if location[0] == "L":
+                if self.left != None:
+                    if isinstance(self.left, int):
+                        return False
+                else:
+                    self.left = ['','','','']
+                if location[1] == "A":
+                    self.left[0] = container.pk
+                    self.save()
+                    return True
+                if location[1] == "B":
+                    self.left[1] = container.pk
+                    self.save()
+                    return True
+                if location[1] == "C":
+                    self.left[2] = container.pk
+                    self.save()
+                    return True
+                if location[1] == "D":
+                    self.left[3] = container.pk
+                    self.save()
+                    return True
+                return False
+            if location[0] == "M":
+                if self.middle != None:
+                    if isinstance(self.middle, int):
+                        return False
+                else:
+                    self.middle = ['','','','']
+                if location[1] == "A":
+                    self.middle[0] = container.pk
+                    self.save()
+                    return True
+                if location[1] == "B":
+                    self.middle[1] = container.pk
+                    self.save()
+                    return True
+                if location[1] == "C":
+                    self.middle[2] = container.pk
+                    self.save()
+                    return True
+                if location[1] == "D":
+                    self.middle[3] = container.pk
+                    self.save()
+                    return True
+                return False
+            if location[0] == "R":
+                if self.right != None:
+                    if isinstance(self.right, int):
+                        return False
+                else:
+                    self.right = ['','','','']
+                if location[1] == "A":
+                    self.right[0] = container.pk
+                    self.save()
+                    return True
+                if location[1] == "B":
+                    self.right[1] = container.pk
+                    self.save()
+                    return True
+                if location[1] == "C":
+                    self.right[2] = container.pk
+                    self.save()
+                    return True
+                if location[1] == "D":
+                    self.right[3] = container.pk
+                    self.save()
+                    return True
+                return False
+        return True
+
     def add_container(self, container):
         # check container type
         if container.kind == Container.TYPE.CASSETTE:
@@ -372,13 +467,14 @@ class Runlist(models.Model):
                 'containers': containers, 
                 'crystals': crystals, 
                 'experiments': experiments}
-        
+       
+    ''' 
     def save(self, *args, **kwargs):
         super(Runlist, self).save(*args, **kwargs)
         self.automounter.reset()
         for container in self.containers.all():
             self.automounter.add_container(container)
-        
+    '''    
             
 #        if self.pk is not None:
 #            orig = Runlist.objects.get(pk=self.pk)

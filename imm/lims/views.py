@@ -401,7 +401,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
                 
         if loc_id:
             setattr(dest, 'container_location', loc_id)
-    
+
         message = '%s has been successfully added' % display_name
         dest._activity_log = {
             'message': message,

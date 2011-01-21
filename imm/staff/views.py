@@ -203,6 +203,107 @@ def runlist_create_object(request, model, form, template='lims/forms/new_base.ht
         }, 
         context_instance=RequestContext(request))
     
+@login_required
+@transaction.commit_on_success
+def add_existing_object(request, dest_id, obj_id, destination, object, src_id=None, loc_id=None, source=None, replace=False, reverse=False):
+    """
+    New add method. Meant for AJAX, so only intended to be POST'd to. This will add an object of type 'object'
+    and id 'obj_id' to the object of type 'destination' with the id of 'dest_id'.
+    Replace means if the field already has an item in it, replace it, else fail
+    Reverse means, due to model layout, you are actually adding destination to object
+    """
+    object_type = destination.__name__
+    form_info = {
+        'title': 'Add Existing %s' % (object_type),
+        'sub_title': 'Select existing %ss to add to %s' % (object_type.lower(), object),
+        'action':  request.path,
+        'target': 'entry-scratchpad',
+    }
+    if request.method != 'POST':
+        raise Http404
+
+    model = destination;
+    manager = model.objects
+    request.project = None
+    if not request.user.is_superuser:
+        try:
+            project = request.user.get_profile()
+            request.project = project
+            manager = FilterManagerWrapper(manager, project__exact=project)
+        except Project.DoesNotExist:
+            raise Http404    
+
+    model = object;
+    obj_manager = model.objects
+    request.project = None
+    if not request.user.is_superuser:
+        try:
+            project = request.user.get_profile()
+            request.project = project
+            obj_manager = FilterManagerWrapper(obj_manager, project__exact=project)
+        except Project.DoesNotExist:
+            raise Http404    
+
+#    #project = request.project
+#    try:
+#        # get all items of the type we want to add to
+#        manager = getattr(project, destination.__name__.lower()+'_set')
+#        obj_manager = getattr(project, object.__name__.lower()+'_set')
+#        
+#    except: 
+#        raise Http404
+#    
+    #get just the items we want
+    try:
+        dest = manager.get(pk=dest_id)
+        to_add = obj_manager.get(pk=obj_id)
+    except:
+        raise Http404
+
+    # get the display name
+    display_name = to_add.name
+    if reverse:
+        display_name = dest.name
+        
+    lookup_name = object.__name__.lower()
+    
+    if dest.is_editable():
+        if loc_id:
+            dest.automounter.container_to_location(to_add, loc_id)
+            if dest.automounter.container_to_location(to_add, loc_id):
+                try:
+                    current = getattr(dest, '%ss' % lookup_name)
+                    # want destination.objects.add(to_add)
+                    current.add(to_add)
+                    #setattr(dest, '%ss' % object.__name__.lower(), current_values)
+                except AttributeError:
+                    message = '%s has not been added. No Field (tried %s and %s)' % (display_name, lookup_name, '%ss' % lookup_name)
+                    request.user.message_set.create(message = message)
+                    return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
+            else:
+                message = '%s has not been added. Location %s is unavailable.' % (display_name, loc_id)
+                request.user.message_set.create(message = message)
+                return render_to_response('lims/refresh.html', {
+                    'context': RequestContext(request), 
+                    'info': form_info,
+                    })
+                
+
+
+        message = '%s has been successfully added' % display_name
+        dest._activity_log = {
+            'message': message,
+            'ip_number': request.META['REMOTE_ADDR'],
+            'action_type': ActivityLog.TYPE.MODIFY,}
+        dest.save()
+    else:
+        message = '%s has not been added, as %s is not editable' % (display_name, dest.name)
+
+    request.user.message_set.create(message = message)
+    return render_to_response('lims/refresh.html', {
+        'context': RequestContext(request), 
+        'info': form_info,
+        })
 
 
 @login_required

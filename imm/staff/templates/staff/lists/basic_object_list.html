@@ -1,0 +1,10 @@
+<div id="edit-object" class="hidden modal-content"></div>
+
+{% for object in ol.object_list %}
+    {# object.name or object.label will be displayed, as no models have both a name and a label #}   
+    {# had a href in the below code. This directed to the style-less page, so it was removed. #}
+    {# should likely point to an ajax style popup #} 
+    	<li id="{{object.id}}" class="draggable-link-parent {{ type }} runlist-experiment" exp="{{object.project}} - {{ object.name }}" rel="{{ handler }}{{object.pk}}" ondragstart="setupDragAndDrop()" onclick="setupRunlist()">
+    		<a class="{{ type }}">{{ object.name }}</a>
+    	</li>
+{% endfor %}

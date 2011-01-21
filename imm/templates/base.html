@@ -178,6 +178,7 @@
                 	var destination = jQuery(this);
                     current_url = window.location.href
                     cont_loc = jQuery(this).attr('container_location');
+                    auto_loc = jQuery(this).attr('automounter_location');
                     base_url = jQuery(this).attr('rel');
                 	if (!destination.hasClass('parent-stop')) {
                			destination = jQuery(this).parents('.parent-stop').first();
@@ -225,6 +226,10 @@
                     if (getModel(dragged_obj) == 'crystal' && current_url.search("shipping/container") != -1)
                     {
                         end_url = end_url + 'loc/' + cont_loc + '/';
+                    }
+                    if (getModel(dragged_obj) == 'container' && current_url.search("staff/runlist") != -1)
+                    {
+                        end_url = end_url + 'loc/' + auto_loc + '/';
                     }
                    
                     // call out to Ajax to perform the operation

@@ -25,7 +25,7 @@
     	<tr valign=top"><th>Comments:</th><td>{{object.comments}}</td></tr>
     </table>
     
-    <img src="/img/runlist.png" class="droppable droppable-add" accept="container experiment" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/>
+    <img src="/img/runlist.png" class="droppable droppable-add" accept="experiment" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/>
     
     <!-- width set to 70% to give the image space to sit side by side -->
     <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="70%">
@@ -46,6 +46,8 @@
     </table>
     <div style="clear: both;"></div>
     
+{{ object.container_list }} {{ object.automounter.left }}
+
 <h3>Automounter Configuration</h3>
 
 {% load get_automounter %}

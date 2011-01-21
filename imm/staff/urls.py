@@ -82,7 +82,7 @@ urlpatterns = patterns('',
     # Runlist page
     #(r'^runlist_summary/widget/(?P<src_id>\d+)/runlist/(?P<dest_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.lims.views.add_existing_object', {'destination':Runlist, 'object':Experiment }, 'staff-runlist-add-experiment'),
     (r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.lims.views.add_existing_object', {'destination':Runlist, 'object':Experiment }, 'staff-runlist-add-experiment'),
-    (r'^runlist_summary/widget/(?P<src_id>\d+)/runlist/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'imm.lims.views.add_existing_object', {'destination':Runlist, 'object':Container }, 'staff-runlist-add-container'),
+    (r'^runlist/(?P<dest_id>\d+)/widget/.*/container/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'imm.staff.views.add_existing_object', {'destination':Runlist, 'object':Container }, 'staff-runlist-add-container'),
     (r'^runlist_summary/runlist/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.lims.views.remove_object', {'source':Runlist, 'object':Experiment }, 'staff-runlist-remove-experiment'),
     (r'^runlist_summary/runlist/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'imm.lims.views.remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),
 )
