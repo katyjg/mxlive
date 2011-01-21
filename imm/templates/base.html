@@ -137,6 +137,7 @@
             jQuery(".runlist-experiment").click(function() {
                 var data = window.location.pathname + "container/basic/"+jQuery(this).attr('id')+"/";
                 jQuery("#containers").attr("data",data);
+                jQuery(".container-widget-title").html(jQuery(this).attr('exp'));
                 loadWidgets();
             });
         }

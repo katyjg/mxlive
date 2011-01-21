@@ -471,31 +471,6 @@ th.Cassette {
     text-align: center;
     background: none;
 }
-.dewar-detail 
-{
-    width: 205px;
-    min-height: 150px;
-    float: left;
-    margin-right: 20px;
-    margin-top: 10px;
-}
-.dewar-detail ul
-{
-	background:#f7f7f7;
-}
-
-.dewar-detail li
-{
-    padding-left: 35px;
-    line-height: 45px;
-	border-bottom:1px solid #ccc;
-}
-.dewar-detail img {
-    float: left;
-    margin-right: 10px;
-    max-height: 40px;
-}
-
 a.remove {
     background: url('/img/small-remove-icon.png') no-repeat center center;
     width: 24px;
@@ -542,18 +517,63 @@ table.cane-detail {
 table.cane-detail td {
     border: 1px dotted #bbb;
 }
-.dewar-detail a.remove {
+
+.dewar-detail ul, .runlist-detail ul
+{
+	background:#f7f7f7;
+}
+.runlist-detail div.runlist-column1 ul 
+{
+    background: #ccc;
+}
+
+.dewar-detail li
+{
+    padding-left: 35px;
+    line-height: 45px;
+	border-bottom:1px solid #ccc;
+}
+.runlist-detail li
+{
+    padding-left: 10px;
+    line-height: 35px;
+    border-bottom: 1px solid #bbb;
+    min-height: 35px;
+}
+.runlist-column1
+{
+    width: 30px; 
+    min-height: 120px; 
+    float: left;
+}
+.dewar-detail img {
+    float: left;
+    margin-right: 10px;
+    max-height: 40px;
+}
+.runlist-column2
+{
+    width: 175px;
+    min-height: 120px;
+    float: left;
+}
+
+.dewar-detail a.remove, .runlist-detail a.remove {
     float: right;
     margin-right: 5px;
 }
-
-.dewar-detail
+.dewar-detail, .runlist-detail
 {
 	border:1px solid #999;
 	margin-bottom:10px;
+    width: 205px;
+    min-height: 150px;
+    float: left;
+    margin-right: 20px;
+    margin-top: 10px;
 }
 
-.dewar-detail li a.remove
+.dewar-detail li a.remove, .runlist-detail li a.remove
 {
     background: url('/img/small-remove-icon.png') no-repeat center center;
     width: 30px;
@@ -562,13 +582,16 @@ table.cane-detail td {
     float: right;
 }
     
-.dewar-detail div.title {
+.dewar-detail div.title{
     height: 40px;
+}
+.runlist-detail div.title {
+    height: 20px;
 }
 .dewar-detail div.title p {
     padding-top: 8px;
 }
-.dewar-detail div.title, #sidebar .widget h3
+.dewar-detail div.title, #sidebar .widget h3, .runlist-detail div.title
 {
 	margin:0;
 	padding:4px;

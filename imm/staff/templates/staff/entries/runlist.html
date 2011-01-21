@@ -48,39 +48,8 @@
     
 <h3>Automounter Configuration</h3>
 
-
-{{ runlist.num_containers }}
-{{ runlist.container_list }} {{runlist.automounter.left }} {{runlist.automounter.left.1 }} {{runlist.automounter.left.2 }} {{runlist.automounter.left.3 }} {{runlist.automounter.middle }} {{runlist.automounter.right }}
-<table id="dewar-detail">
-    <thead><tr><th colspan="2">Left</th></tr></thead>
-    <tbody>
-        <tr><td>A</td><td>container?</td></tr>
-        <tr><td>B</td><td>container?</td></tr>
-        <tr><td>C</td><td>container?</td></tr>
-        <tr><td>D</td><td>container?</td></tr>
-    </tbody>
-</table>
-
-<div id="left" 
-     class="dewar dewar-detail droppable droppable-add" 
-     accept="container">
-    <div class="title">
-        <p class="runlist">Left</p>
-    </div>
-    <ul class="dewar droppable droppable-add" 
-     accept="container" 
-     rel="{% url lims-container-detail runlist.id %}">
-        <li class="container draggable-link-parent">
-            A
-                <a class="remove"
-                   rel="{% url lims-dewar-remove-container 4 1 %}"
-                   href="#"
-                   onclick="remove_item(this);"
-                   title="Remove container from dewar"><span class="remove"></span></a>
-        </li>
-        <li></li>
-    </ul>
-</div>
+{% load get_automounter %}
+{% left_location object %}
 
 {% comment %}
 {% load get_location %}
@@ -98,9 +67,7 @@
 
 {% endwith %}
 
-{% load get_automounter %}
-{{ object.automounter.left }} hi{{ object.container_list }}
-{% left_location object.automounter.left object.container_list %}
+
 
 
 {% include "lims/entries/popup.html" %}
@@ -115,9 +82,9 @@
             </ul>
         </div>
         <div id="containers" class="widget droppable-remove parent-stop">
-	       <div class="widget-title"><span>Container</span></div>
+	       <div class="widget-title"><span class="container-widget-title">Select an Experiment</span></div>
             <ul>
-                Select an Experiment (above) to load the associated containers.
+                No containers to display
             </ul>
         </div>
 {% endblock %}
