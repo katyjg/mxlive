@@ -1,6 +1,6 @@
 {% load math_filters %}
-
-{% include 'lims/entries/container_table.html' %}
+{% load container_table %}
+{% container_table object request.user.is_superuser %}
 
 <div id="unipuck"  title="Drag and Drop into this region">
 {% for loc, crystal in object.location_and_crystal %}

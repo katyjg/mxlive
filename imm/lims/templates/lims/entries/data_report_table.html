@@ -3,6 +3,7 @@
 <h3 class="crystal-data-table">Datasets</h3>
 <h3 class="crystal-report-table">Reports</h3>
 <div class="object-list">
+{% if datasets %}
 <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table" class="crystal-data-table">
     <thead>
         <tr class="header">
@@ -23,6 +24,11 @@
        	{% endfor %}
     </tbody>
 </table>
+{% endif %}
+{% if not datasets %}
+    <p class="crystal-data-table">(No datasets collected for this crystal.)</p>
+{% endif %}
+{% if results %}
 <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table" class="crystal-report-table">
     <thead>
         <tr class="header">
@@ -43,4 +49,8 @@
        	{% endfor %}
     </tbody>
 </table>
+{% endif %}
+{% if not results %}
+    <p class="crystal-report-table">(No reports generated for this crystal.)</p>
+{% endif %}
 </div>

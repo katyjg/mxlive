@@ -587,8 +587,6 @@ class Container(models.Model):
         'Cassette', 
         'Uni-Puck', 
         'Cane', 
-        'Basket', 
-        'Carousel',
     )
     HELP = {
         'label': "This should be an externally visible label on the container",
@@ -664,8 +662,6 @@ class Container(models.Model):
             self.TYPE.CASSETTE : 96,
             self.TYPE.UNI_PUCK : 16,
             self.TYPE.CANE : 6,
-            self.TYPE.BASKET: 8,
-            self.TYPE.CAROUSEL: 8,
         }
         return _cap[self.kind]
         
@@ -1569,6 +1565,7 @@ __all__ = [
     'FilterManagerWrapper',
     'OrderByManagerWrapper',
     'DistinctManagerWrapper',
+    'Carrier',
     'Project',
     'Session',
     'Beamline',
@@ -1585,7 +1582,6 @@ __all__ = [
     'Strategy',
     'SpaceGroup',
     'ActivityLog',
-    'Carrier',
     'delete',
     'archive',
     'perform_action',

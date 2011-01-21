@@ -38,7 +38,10 @@ class ProjectForm(objforms.forms.OrderedForm):
         Toggle updated value to True when the profile is saved for the first time.
         """
         return True
-        
+
+    def restrict_by(self, field_name, id): 
+        pass
+       
 class ShipmentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     label = forms.CharField(

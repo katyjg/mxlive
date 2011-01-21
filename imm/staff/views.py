@@ -30,6 +30,7 @@ from imm.lims.models import Container
 from imm.staff.models import Runlist
 from imm.staff.models import AutomounterLayout
 from imm.objlist.views import ObjectList
+from imm.lims.models import Container, Experiment
 
 from jsonrpc import jsonrpc_method
 from jsonrpc.exceptions import InvalidRequestError
@@ -206,7 +207,7 @@ def runlist_create_object(request, model, form, template='lims/forms/new_base.ht
 
 @login_required
 @manager_required
-def container_basic_object_list(request, runlist_id, model, template='objlist/basic_object_list.html'):
+def container_basic_object_list(request, runlist_id, exp_id, model, template='objlist/basic_object_list.html'):
     """
     Slightly more complex than above. Should display name and id for entity, but filter
     to only display containers with a crystal in the specified experiments.
@@ -215,41 +216,35 @@ def container_basic_object_list(request, runlist_id, model, template='objlist/ba
     experiment_list = None
     
     ol = ObjectList(request, request.manager)
-    try:
+    try: 
         runlist = Runlist.objects.get(pk=runlist_id)
-
     except:
         runlist = None
+
+    try:
+        experiment = Experiment.objects.get(pk=exp_id)
+    except:
+        experiment = None
         ol.object_list = None
-    
+
     if runlist != None:
-        experiment_list = runlist.get_experiments()
+        container_list = []
+        for container in Container.objects.all():
+            exp_list = container.get_experiment_list()
+            for exp in exp_list:
+                if experiment == exp:
+                    container_list.append(container)
         # currently selected containers
         active_containers = runlist.containers
     
     """ only want containers that pass experiment check. """
-    #    experiment_list = [1,2]
-    if experiment_list != None:
-        if active_containers == None:
-            ol.object_list = Container.objects.filter(crystal__experiment__in=experiment_list).distinct()
-        elif active_containers.count != 0:
-            ol.object_list = Container.objects.filter(crystal__experiment__in=experiment_list).distinct().exclude(id__in=active_containers.all()) #.remove(active_containers)
+    if container_list != None:
+        if active_containers.count != 0:
+            #ol.object_list = Container.objects.filter(crystal__experiment=experiment).distinct().exclude(id__in=active_containers.all())#.remove(active_containers) 
+            ol.object_list = container_list
         else:
-            ol.object_list = Container.objects.filter(crystal__experiment__in=experiment_list).distinct()
-#    
-#if experiment_list != None:
-#        return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
-#        ol.object_list = ol.object_list.filter(crystal_set__experiment__in=experiment_list)
-    
-#    orig_list = ol.object_list
-#    ol.object_list.clear()
-#    for container in orig_list:
-#        keep = false;
-#        for experiment in experiment_list:
-#            if container.contains_experiment(experiment):
-#                keep = true
-#        if keep == true:
-#            ol.object_list.add(container)
+            ol.object_list = Container.objects.filter(crystal__experiment=experiment).distinct()
+            ol.object_list = container_list
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
 @jsonrpc_method('lims.detailed_runlist', authenticated=getattr(settings, 'AUTH_REQ', True))

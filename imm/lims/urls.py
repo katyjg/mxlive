@@ -65,11 +65,11 @@ urlpatterns = patterns('imm.lims.views',
     (r'^samples/crystal/(?P<id>\d+)/remove/$', 'remove_object', {'model': Crystal, 'field':'container'}, 'lims-crystal-remove'),
     (r'^samples/crystal/(?P<id>\d+)/delete/$', 'delete_object', {'model': Crystal, 'form': ShipmentDeleteForm,'orphan_models' : []}, 'lims-crystal-delete'),
     (r'^samples/crystal/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/cocktail/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Crystal, 'object':Cocktail, 'replace': True}, 'lims-crystal-add-cocktail'),
-    (r'^samples/crystal/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/crystal_form/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Crystal, 'object': CrystalForm, 'replace':True}, 'lims-crystal-add-crystalform'),
+    (r'^samples/crystal/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/crystalform/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Crystal, 'object': CrystalForm, 'replace':True}, 'lims-crystal-add-crystalform'),
 
     ########################
     (r'^samples/cocktail/basic/$', 'basic_object_list', {'model': Cocktail, 'template': 'objlist/basic_object_list.html' }, 'lims-cocktail-basic-list'),
-    (r'^samples/cocktail/(?P<id>\d+)/$', 'object_detail', {'model': CrystalForm, 'template': 'lims/entries/cocktail.html'}, 'lims-cocktail-detail'),
+    #(r'^samples/cocktail/(?P<id>\d+)/$', 'object_detail', {'model': Cocktail, 'template': 'lims/entries/cocktail.html'}, 'lims-cocktail-detail'),
     #COCKTAILS##############
     (r'^samples/cocktail/$', 'object_list', {'model': Cocktail, 'template': 'objlist/generic_list.html', 'can_add': True}, 'lims-cocktail-list'),
     (r'^samples/cocktail/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Cocktail, 'form': CocktailForm, 'template': 'objforms/form_base.html'}, 'lims-cocktail-edit'),
@@ -77,7 +77,7 @@ urlpatterns = patterns('imm.lims.views',
 
     ############################
     (r'^samples/crystalform/basic/$', 'basic_object_list', {'model': CrystalForm, 'template': 'objlist/basic_object_list.html'}, 'lims-crystalform-basic-list'),
-    (r'^samples/crystalform/(?P<id>\d+)/$', 'object_detail', {'model': CrystalForm, 'template': 'lims/entries/crystalform.html'}, 'lims-crystalform-detail'),
+    #(r'^samples/crystalform/(?P<id>\d+)/$', 'object_detail', {'model': CrystalForm, 'template': 'lims/entries/crystalform.html'}, 'lims-crystalform-detail'),
     #CRYSTAL FORMS##############
     (r'^samples/crystalform/$', 'object_list', {'model': CrystalForm, 'template': 'objlist/generic_list.html', 'can_add': True}, 'lims-crystalform-list'),
     (r'^samples/crystalform/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': CrystalForm, 'form': CrystalFormForm, 'template': 'objforms/form_base.html'}, 'lims-crystalform-edit'),
@@ -140,7 +140,7 @@ urlpatterns = patterns('imm.lims.views',
     #new model handling urls (rest style, src/src_id/dest/dest_id/object/obj_id)
     # samples page
     (r'^samples/crystal/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/cocktail/(?P<obj_id>\d+)/$', 'remove_object', {'source':Crystal, 'object':Cocktail}, 'lims-crystal-remove-cocktail'),
-    (r'^samples/crystal/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/crystal_form/(?P<obj_id>\d+)/$', 'remove_object', {'source':Crystal, 'object':CrystalForm}, 'lims-crystal-remove-crystalform'),
+    (r'^samples/crystal/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/crystalform/(?P<obj_id>\d+)/$', 'remove_object', {'source':Crystal, 'object':CrystalForm}, 'lims-crystal-remove-crystalform'),
 
     # experiments page
     # due to these models working differently (experiment main page, but it's a property on crystal) handled abnormal

@@ -1,10 +1,26 @@
+{% extends "base.html" %}
+
 {% load humanize %}
 
-{% include "staff/tools.html" %}
+{% block headline %}
+<h2><span class="identity">{{object.identity}}</span> {{object.name}}</h2>
+{% endblock %}
+
+{% block object-tools %}
+<div class="object-tools">
+    {% include "staff/tools.html" %}
+    <ul class="toolbar">
+        <li class="back-tool">
+            <a href="{% url staff-runlist-list %}">Full List</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
 
 {% with object as runlist %}
 
-    <h3>{{ runlist.name }}</h3>
     <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="100%">
     	<tr valign=top"><th>Comments:</th><td>{{object.comments}}</td></tr>
     </table>
@@ -29,9 +45,45 @@
         
     </table>
     <div style="clear: both;"></div>
+    
+<h3>Automounter Configuration</h3>
 
+
+{{ runlist.num_containers }}
+{{ runlist.container_list }} {{runlist.automounter.left }} {{runlist.automounter.left.1 }} {{runlist.automounter.left.2 }} {{runlist.automounter.left.3 }} {{runlist.automounter.middle }} {{runlist.automounter.right }}
+<table id="dewar-detail">
+    <thead><tr><th colspan="2">Left</th></tr></thead>
+    <tbody>
+        <tr><td>A</td><td>container?</td></tr>
+        <tr><td>B</td><td>container?</td></tr>
+        <tr><td>C</td><td>container?</td></tr>
+        <tr><td>D</td><td>container?</td></tr>
+    </tbody>
+</table>
+
+<div id="left" 
+     class="dewar dewar-detail droppable droppable-add" 
+     accept="container">
+    <div class="title">
+        <p class="runlist">Left</p>
+    </div>
+    <ul class="dewar droppable droppable-add" 
+     accept="container" 
+     rel="{% url lims-container-detail runlist.id %}">
+        <li class="container draggable-link-parent">
+            A
+                <a class="remove"
+                   rel="{% url lims-dewar-remove-container 4 1 %}"
+                   href="#"
+                   onclick="remove_item(this);"
+                   title="Remove container from dewar"><span class="remove"></span></a>
+        </li>
+        <li></li>
+    </ul>
+</div>
+
+{% comment %}
 {% load get_location %}
-
     <h3>Containers</h3>
     	<ul class="treeview">
     		{% for container in object.containers.all %}
@@ -42,6 +94,31 @@
     			</li>
     		{% endfor %}
     	</ul>
+{% endcomment %}
 
 {% endwith %}
+
+{% load get_automounter %}
+{{ object.automounter.left }} hi{{ object.container_list }}
+{% left_location object.automounter.left object.container_list %}
+
+
+{% include "lims/entries/popup.html" %}
+{% endblock %}
+
+{% block sidebar %}
+        <div id="experiments" class="widget droppable-remove parent-stop" data="{% url staff-experiment-basic-list %}">
+	       <div class="widget-title">
+	       <span>Experiment</span></div>
+            <ul>
+                <li><a href="#">Content Not Loaded.</a></li>
+            </ul>
+        </div>
+        <div id="containers" class="widget droppable-remove parent-stop">
+	       <div class="widget-title"><span>Container</span></div>
+            <ul>
+                Select an Experiment (above) to load the associated containers.
+            </ul>
+        </div>
+{% endblock %}
 

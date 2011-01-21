@@ -1,5 +1,4 @@
 {% load objlist %}
-
 {% ifequal page "shipment" %}
 <div id="{{dewar.id}}" 
      class="dewar dewar-detail droppable droppable-add" 
@@ -7,14 +6,16 @@
      rel="{% url lims-dewar-detail dewar.id %}">
     <div class="title">
         <img src="/img/dewar.png"/>
-        <p class="dewar droppable droppable-add" 
-            accept="container" 
-            rel="{% url lims-dewar-detail dewar.id %}"><a href="{% url lims-dewar-detail dewar.id %}">{{ dewar.label }}</a>
-        <a class="remove"
-           rel="{% url lims-dewar-remove dewar.shipment.pk dewar.pk %}" 
-           href="#"
-           onclick="remove_item(this);"
-           title="Remove dewar from shipment"><span class="remove"></span></a></p> 
+        <p class="dewar">
+            <a href="{% url lims-dewar-detail dewar.id %}">{{ dewar.label }}</a>
+            {% if not admin %}
+                <a class="remove"
+                   rel="{% url lims-dewar-remove dewar.shipment.pk dewar.pk %}" 
+                   href="#"
+                   onclick="remove_item(this);"
+                   title="Remove dewar from shipment"><span class="remove"></span></a>
+            {% endif %}
+        </p> 
     </div>
     <ul class="dewar droppable droppable-add" 
      accept="container" 
@@ -23,11 +24,13 @@
             <li class="container draggable-link-parent">
                 <div class="{{ container.json_dict.type }}"></div>
                 <a href="{% url lims-container-detail container.id %}">{{ container.name }}</a>
-                <a class="remove"
-                   rel="{% url lims-dewar-remove-container dewar.pk container.id %}"
-                   href="#"
-                   onclick="remove_item(this);"
-                   title="Remove container from dewar"><span class="remove"></span></a>
+                {% if not admin %}
+                    <a class="remove"
+                       rel="{% url lims-dewar-remove-container dewar.pk container.id %}"
+                       href="#"
+                       onclick="remove_item(this);"
+                       title="Remove container from dewar"><span class="remove"></span></a>
+                {% endif %}
             </li>
         {% endfor %}
         <li></li>
@@ -57,16 +60,22 @@
                     <td class="modal"
                         redirect="{% url lims-container-detail container.pk %}">{{ container.name }}</td>
                     <td class="modal"
-                        redirect="{% url lims-container-detail container.pk %}">{% if container.code %}{{ container.code }}{% else %}Undefined{% endif %}</td>
+                        redirect="{% url lims-container-detail container.pk %}">
+                        {% if container.code %}{{ container.code }}{% else %}Undefined{% endif %}
+                    </td>
                     <td class="modal"
                         redirect="{% url lims-container-detail container.pk %}">{{ container.capacity }}</td>
                     <td class="modal"
                         redirect="{% url lims-container-detail container.pk %}">{{ container.num_crystals }}</td>
-                    <td><a class="remove"
-                       rel="{% url lims-dewar-remove-container dewar.pk container.id %}"
-                       href="#"
-                       onclick="remove_item(this);"
-                       title="Remove container from dewar"><span class="remove"></span></a></td>
+                    <td>
+                        {% if not admin %}
+                            <a class="remove"
+                               rel="{% url lims-dewar-remove-container dewar.pk container.id %}"
+                               href="#"
+                               onclick="remove_item(this);"
+                               title="Remove container from dewar"><span class="remove"></span></a>
+                        {% endif %}
+                    </td>
                 </tr>
             {% endfor %}
         </body>

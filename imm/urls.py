@@ -21,6 +21,7 @@ urlpatterns = patterns('',
     #(r'^admin/', include(admin.site.urls)), # Django 1.1.x
     (r'^admin/(.*)', admin.site.root), # Django 1.0.x
     (r'^lims/message/', include('imm.messaging.urls')),
+    (r'^staff/message/', include('imm.messaging.urls')),
     
     # this will find the staff only urls
     (r'^staff/', include('imm.staff.urls')),
