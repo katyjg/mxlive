@@ -56,10 +56,10 @@ if settings.DEBUG:
         (r'^img/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': os.path.join(os.path.dirname(__file__), 'media/img'), 
             }),
-        (r'^js/(?P<path>.*\.js)$', 'django.views.static.serve', {
+        (r'^js/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': os.path.join(os.path.dirname(__file__), 'media/js'), 
             }),
-        (r'^css/(?P<path>.*\.css)$', 'django.views.static.serve', {
+        (r'^css/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': os.path.join(os.path.dirname(__file__), 'media/css'), 
             }),
     )

@@ -57,7 +57,7 @@ html
 body
 {
 	font-size:12px;
-	font-family:"Segoe UI", Cantarell, serif;
+	font-family: "Segoe UI", Cantarell, serif;
 	line-height:1.5em;
 	color:#333;
 	background-color:#fff;
@@ -1345,8 +1345,7 @@ form li div.right
 
 .heading h2
 {
-	font-family:Cantarell, sans-serif;
-	font-weight:700;
+	font-weight: bold;
 	font-size:150%;
 	margin:.5em .2em;
 	clear:left;
