@@ -16,7 +16,7 @@
             {% for data in datasets %}
             <!-- "odd" if loop_count % 2 == 1 else "even" -->
                 <tr class="{% cycle 'odd' 'even'%}">
-                	<td><a href="{% url lims-dataset-detail data.pk %}" class="modal" rel="#view-data">{{ data.name }}</a></td>
+                	<td><a href="{% url lims-dataset-detail data.pk %}" class="modal" rel="#modal-popup">{{ data.name }}</a></td>
                 	<td>{{ data.num_frames }}</td>
                 	<td>{{ data.delta_angle }}</td>
                 	<td>{{ data.wavelength }}</td>

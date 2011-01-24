@@ -1493,7 +1493,6 @@ class ScanResult(models.Model):
     
 class ActivityLogManager(models.Manager):
     def log_activity(self, request, obj, action_type, description=''):
-        content_type = ContentType.objects.get_for_model(obj)
         
         e = self.model()
         if getattr(obj, 'project', None) is not None:

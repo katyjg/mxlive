@@ -31,7 +31,7 @@
             } else {
                 // close the modal, show confirmation, reload affected panes in the sidebar).
                 $close.trigger("click");
-                if(jQuery("div#delete-object").is(":visible")) { history.go(-1); }
+                if(jQuery("input.default").attr('value') == 'Delete') { history.go(-1); }
                 else { window.location.reload(); }
             }
         });
