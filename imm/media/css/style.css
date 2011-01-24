@@ -534,7 +534,8 @@ table.cane-detail td {
 .runlist-detail li.empty
 {
     background: #fff;
-}    
+}
+
 .runlist-detail li.lims-droppable-active {
     border-top: none;
 }
@@ -643,6 +644,14 @@ table.cane-detail td {
 	margin:0;
 	color:#FFF;
 	background:#999;
+}
+
+.dewar-detail p.list-empty 
+{
+    color: #aaa;
+    line-height: 8em;
+    text-align: center;
+    width: 100%;
 }
 
 /* Widgets */
@@ -764,6 +773,7 @@ table.cane-detail td {
     padding: 5em;
     color: #ccc;
 }
+
 
 
 /* Activity Log */

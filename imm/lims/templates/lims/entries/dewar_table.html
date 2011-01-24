@@ -16,6 +16,7 @@
                title="Remove dewar from shipment">&nbsp;</a>
         </p>        
     </div>
+    {% if containers %}
     <ul class="dewar droppable droppable-add" 
      accept="container" 
      rel="{% url lims-dewar-detail dewar.id %}">
@@ -30,6 +31,9 @@
             </li>
         {% endfor %}
     </ul>
+    {% else %}
+        <p class="list-empty">( empty )</p>
+    {% endif %}
 </div>
 {% endifequal %}
 

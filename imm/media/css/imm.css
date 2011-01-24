@@ -571,7 +571,7 @@ div.dewar-img.droppable {
 
 .lims-droppable-active, .lims-droppable-active td {
     border-style:solid;
-    border-width:1px;
+    border-width: 0px;
     border-color:#999999;
     position: relative;
     background-color: #eee;
