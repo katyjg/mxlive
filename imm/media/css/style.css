@@ -473,9 +473,10 @@ th.Cassette {
 }
 a.remove {
     background: url('/img/small-remove-icon.png') no-repeat center center;
-    width: 24px;
-    display: block;
-    padding: 5px 0;
+    width: 8px;
+    display: inline;
+    padding: 8px;
+    float: right;
 }
 div#unipuck {
     background: url('/img/unipuck.png') no-repeat center center;
@@ -576,12 +577,11 @@ table.cane-detail td {
     float: left;
 }
 
-.dewar-detail a.remove, .runlist-detail a.remove {
-    float: right;
-    margin-right: 5px;
-}
 .dewar-detail, .runlist-detail
 {
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
 	border:1px solid #999;
 	margin-bottom:10px;
     width: 205px;
@@ -591,28 +591,56 @@ table.cane-detail td {
     margin-top: 10px;
 }
 
-.dewar-detail li a.remove, .runlist-detail li a.remove
+.dewar-detail li a, .runlist-detail li a
 {
-    background: url('/img/small-remove-icon.png') no-repeat center center;
-    width: 30px;
-    height: 35px;
-    display: block;
-    float: right;
+    display: inline;
+    line-height: 45px;
+    height: 45px;
+    width: 60%;
 }
 
-.dewar-detail div.title{
-    height: 40px;
+.dewar-detail li a.remove, .runlist-detail li a.remove
+{
+    display: inline;
+    float: right;
+    width: 24px;
+    padding: 0;
 }
+
 .runlist-detail div.title {
     height: 20px;
 }
 .dewar-detail div.title p {
-    padding-top: 8px;
+    background:url(/img/dewar-sm.png) no-repeat scroll 3px center;
+    font-weight: bold;
+    line-height: 32px; 
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    padding-left: 36px;
+    text-align: center;
 }
+
+.dewar-detail div.title a.dewar-title {
+    float: left;
+    height: 32px;
+    line-height: 32px;
+    width: 80%;
+    color: #fff;
+}
+
+.dewar-detail div.title a.remove {
+    float: right;
+    height: 32px;
+    line-height: 32px;
+    padding: 0;
+    width: 15%;
+    color: #fff;
+}
+
 .dewar-detail div.title, #sidebar .widget h3, .runlist-detail div.title
 {
 	margin:0;
-	padding:4px;
 	color:#FFF;
 	background:#999;
 }

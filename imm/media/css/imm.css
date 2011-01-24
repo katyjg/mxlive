@@ -557,10 +557,11 @@ div.shipment.droppable {
 }
 div.dewar-img.droppable {
   background: url(/img/dewar.png) top left no-repeat;
-  height: 75px;
-  width: 33px;
-  margin-right: 35px;
+  height: 121px;
+  width: 85px;
 }
+
+
 .ui-draggable-dragging {
     opacity: 0.5;
 }
