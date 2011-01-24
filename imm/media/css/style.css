@@ -547,6 +547,10 @@ table.cane-detail td {
     opacity: 0.8;
     border-top: none;
 }
+.dewar-detail ul {
+    margin-bottom: 5px;
+}
+
 .dewar-detail li
 {
     padding-left: 35px;
@@ -1308,10 +1312,11 @@ dl.note-list dd
 
 
 /*--------------------------- FORMS -----------------------------------------*/
-.objform
+form.objform
 {
 	font-size:13px;
 	display:block;
+
 }
 
 .objform ul.form-body
@@ -1330,6 +1335,7 @@ form ul
 	margin:0;
 	padding:0;
 	list-style-type:none;
+	display: block;
 	width:100%;
 }
 
@@ -1337,7 +1343,7 @@ form li
 {
 	margin:0;
 	padding:0 4px 6px 6px;
-	position:relative;
+	position:relative; 
 	clear:both;
 }
 
@@ -1355,10 +1361,10 @@ form li,.buttons
 	display:inline-block;
 }
 
-* html form li,* html .buttons
-{
-	height:1%;
-}
+* html form li{height: 1%;margin-bottom:-3px;}
+*+html form li{height: 1%;margin-bottom:-3px;}
+* html form li div{display:inline-block;}
+*+html form ul, *+html form li div{display:inline-block;}
 
 form li,.buttons
 {
@@ -1551,7 +1557,7 @@ input.text,input.file,textarea.textarea,select.select,input.barcode,input.matrix
 	color:#333;
 }
 
-input.field,textarea.field,.firefox select.field
+input.text, input.search, textarea.field
 {
 /*border-color: #7C7C7C #CECECE #C3C3C3 #7C7C7C;*/
 	border-color:#abc;
@@ -1565,9 +1571,8 @@ input.text,input.file,input.barcode,textarea.textarea,input.matrixcode,input.sea
 	padding-bottom:2px;
 }
 
-input.text,textarea.textarea,.firefox select.select
+.firefox select.select
 {
-/*background:#fff url(/img/fieldbg.gif) repeat-x top 0;*/
 }
 
 input.barcode
@@ -1609,13 +1614,12 @@ input.checkbox,input.radio
 select.select
 {
 	margin:1px 0;
-	padding:1px 0 0;
+	padding: 1px 0 0;
 }
 
 select.select[class]
 {
 	margin:0;
-	padding:1px 0;
 }
 
 :first-child+html select.select[class]
@@ -1625,8 +1629,7 @@ select.select[class]
 
 .webkit select.select
 {
-	margin-bottom:1px;
-/*font-size:120% !important;*/
+	margin: 0 0 1px;
 }
 
 select.select[multiple]
@@ -1670,11 +1673,6 @@ input.btTxt
 	margin-right:5px;
 }
 
-/* ----- TEXT DIRECTION ----- */
-.rtl .info h2,.rtl .info p,.rtl label.desc,.rtl label.choice,.rtl div label,.rtl span label,.rtl input.text,.rtl textarea.textarea,.rtl select.select,.rtl p.instruct,.rtl .section h3,.rtl .section p,.rtl input.btTxt
-{
-	direction:rtl;
-}
 
 /* ----- ERRORS ----- */
 #errorLi
