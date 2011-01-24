@@ -77,9 +77,6 @@
 
 {% endwith %}
 
-    <div id="add-dewar" class="hidden modal-content"></div>
-    <div id="add-container" class="hidden modal-content"></div>
-
 {% include "lims/entries/popup.html" %}
 
 {% endblock %}
@@ -88,7 +85,7 @@
     {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
         <div id="dewars" class="widget droppable-remove parent-stop" data="{% url lims-dewar-basic-list %}">
 	       <div class="widget-title">
-	       <span>Dewars</span><a href="{% url lims-dewar-new %}" class="modal add-action" title="Add New Dewar" rel="#add-dewar"><img src="/img/small-add-icon.png" /></a>
+	       <span>Dewars</span><a href="{% url lims-dewar-new %}" class="modal add-action" title="Add New Dewar" rel="#modal-popup"><img src="/img/small-add-icon.png" /></a>
 	       </div>
             <ul>
                 <li><a href="#">Content Not Loaded.</a></li>
@@ -97,7 +94,7 @@
 
         <div id="containers" class="widget droppable-remove parent-stop" data="{% url lims-container-basic-list %}">
 	       <div class="widget-title">
-	       <span>Container</span><a href="{% url lims-container-new %}" class="modal add-action" title="Add New Container" rel="#add-container"><img src="/img/small-add-icon.png" /></a>
+	       <span>Container</span><a href="{% url lims-container-new %}" class="modal add-action" title="Add New Container" rel="#modal-popup"><img src="/img/small-add-icon.png" /></a>
 	       </div>
             <ul>
                 <li><a href="#">Content Not Loaded.</a></li>

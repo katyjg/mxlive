@@ -66,8 +66,8 @@ def truncate(value, arg):
     else:
         return value
         
-@register.inclusion_tag('objlist/basic_list_entry.html', takes_context=True)
-def basic_list_entry(context, obj, handler, loop_count):
+@register.inclusion_tag('objlist/list_entry.html', takes_context=True)
+def list_entry(context, obj, handler, loop_count):
     """
     Added for January 2011 UI changes.
     Renders an entry for the object ``obj`` in an object list table. If the

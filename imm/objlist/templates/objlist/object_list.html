@@ -40,7 +40,7 @@
         <tbody>
             {% if ol.object_list %}
                 {% for object in ol.object_list %}
-                    {% basic_list_entry object handler forloop.counter %}
+                    {% list_entry object handler forloop.counter %}
                 {% endfor %}
             {% else %}
                 <tr><td colspan="20" align="center" style="padding: 3em; background: #fff; color: #999;">No {{ol.object_type}} to show</td></tr>

@@ -1,32 +1,46 @@
- <tr {% if link %}
-        class="link-row {{ row_state }} droppable droppable-add parent-stop {{ type|lower }} {{ single }}"
-         {% if object.is_strategy_type %}
-            rel="../result/{{ object.pk }}/"
-         {% else %}
-            rel="{{ handler }}{{ object.pk }}/"
-         {% endif %}
-     {% endif %} 
-     accept="{{object.accept}}"
-     title="{{ object.comments|escape }}"
-     id="{{object.id}}">
-    <td class="first {%if can_prioritize %}prioritize{% endif %}"></td>
+<tr class="link-row action modal {{ row_state }} {{ type|lower }}"  
+    {% if is_individual %}
+        redirect="{{ handler }}{{ object.pk }}/"
+        title="Go to {{type}} {{object.pk}}"
+    {% else %}{% if object.is_editable %}
+        href="{{handler}}{{object.pk}}/edit/"
+        rel="#modal-popup"
+        title="Edit {{object.pk}}"
+    {% else %}{% if type == 'Data' %}
+        href="{% url lims-dataset-detail object.pk %}"
+        rel="#modal-popup"
+        title="View dataset {{object.pk}}"
+    {% endif %}{% endif %}{% endif %}>
+    {% if request.user.is_superuser %} 
+        <td class="first"></td>
+    {% endif %}
+
     {# should add a check here for maximum size. Don't want something like a long label ruining everything #}
     {% load truncate_filters %}
+    
     {% for field in fields %}
-    	{% if field == object.id %}
-    		<td>{{ object.identity }}</td>
+ 		<td class="link-cell">
+     	{% if field == object.id %}
+            {{ object.identity }}
     	{% else %}
-            <td>{{ field|truncate_chars:30 }}</td>
+        {% if field|make_list == object.score|make_list %}
+            {{ field|floatformat:3 }}
+    	{% else %}
+    		{{ field|truncate_chars:30 }}
     	{% endif %}
+    	{% endif %}
+        </td>
     {% endfor %}
+
     {% if form %}
         <td><input type="checkbox" name="{{object.get_form_field}}" value="{{object.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
     {% endif %}
- </tr>
-<tr id="{{object.id}}" accept="{{object.accept}}" class='expander hidden parent-stop {{ type|lower }} nodrag' rel="{{ handler }}{{ object.pk }}/">
-    {# We add 2 because the priority field isn't included in fields|length, and there is a spacer at the beginning #}
-    <td colspan="{{ fields|length|add:"2" }}">
-        This should be replaced by an AJAX query when the tr.link-row is clicked
-    </td>
+    {% if not is_individual %}
+        {% if object.is_deletable %}
+            <td class="action link-cell">
+                <a href="{{ handler }}{{object.pk}}/delete/" rel="#modal-popup" class="action modal delete-tool" title="Delete"></a>
+            </td>
+        {% endif %}
+    {% endif %}
 </tr>
 

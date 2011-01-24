@@ -1,7 +1,5 @@
 {% load humanize %}
 {% load score_colors %}
-<div id="view-result" class="hidden modal-content"></div>
-<div id="view-data" class="hidden modal-content"></div>
 
 	{% if admin %}
 	<form id="action_form" method="post">{% csrf_token %}
@@ -80,7 +78,7 @@
 	            	<td class="modal"
                         redirect="{% url lims-crystal-detail crystal.pk %}">
                         {% if crystal.best_screening.data.pk %}
-                  			<a href="{% url lims-dataset-detail crystal.best_screening.data.pk %}" class="modal" rel="#view-data" title="View dataset images">{{ crystal.best_screening.data }}</a>
+                  			<a href="{% url lims-dataset-detail crystal.best_screening.data.pk %}" class="modal" rel="#modal-popup" title="View dataset images">{{ crystal.best_screening.data }}</a>
                         {% endif %}
 	            	</td>
 	            	<td class="modal"
@@ -92,7 +90,7 @@
 	            	<td class="modal"
                         redirect="{% url lims-crystal-detail crystal.pk %}">
                         {% if crystal.best_collection.data.pk %}
-                 			<a href="{% url lims-dataset-detail crystal.best_collection.data.pk %}" class="modal" rel="#view-data" title="View dataset images">{{ crystal.best_collection.data }}</a>
+                 			<a href="{% url lims-dataset-detail crystal.best_collection.data.pk %}" class="modal" rel="#modal-popup" title="View dataset images">{{ crystal.best_collection.data }}</a>
                         {% endif %}
 	            	</td>
 	            	{% if not admin %}

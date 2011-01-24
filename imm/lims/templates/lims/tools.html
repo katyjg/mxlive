@@ -8,14 +8,14 @@
     {% if request.user.is_staff %}
         {% if object.is_receivable %}
             <li class="receive-tool">
-                <a href="{{ handler }}receive/?title=Recieve%20Shipment&tracking_code=" rel="#receive-object" class="action modal">
+                <a href="{{ handler }}receive/?title=Recieve%20Shipment&tracking_code=" rel="#modal-popup" class="action modal">
                     Receive
                 </a>
             </li>
         {% endif %}
         {% if object.is_returnable %}
             <li class="return-tool">
-                <a href="{{handler}}return/?title=Return%20Shipment" rel="#return-object" class="action modal">
+                <a href="{{handler}}return/?title=Return%20Shipment" rel="#modal-popup" class="action modal">
                     Return
                 </a>
             </li>
@@ -24,7 +24,7 @@
     {% else %}
         {% if object.is_sendable %}
             <li class="send-tool">
-                <a href="{{handler}}send/?title=Send%20Shipment" rel="#send-object" class="action modal">
+                <a href="{{handler}}send/?title=Send%20Shipment" rel="#modal-popup" class="action modal">
                     Send
                 </a>
             </li>
@@ -59,14 +59,14 @@
         {% endcomment %}
         {% if object.is_editable %}
             <li class="edit-tool">
-                <a href="{{ handler }}edit/" rel="#edit-object" class="action modal">
+                <a href="{{ handler }}edit/" rel="#modal-popup" class="action modal">
                     Edit
                 </a>
             </li>
         {% endif %}
         {% if object.is_deletable %}
             <li class="delete-tool">
-                <a href="{{ handler }}delete/" rel="#delete-object" class="action modal">
+                <a href="{{ handler }}delete/" rel="#modal-popup" class="action modal">
                     Delete
                 </a>
             </li>
