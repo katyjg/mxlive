@@ -18,6 +18,7 @@ from imm.lims.models import CrystalForm
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import smart_str
 from django.utils import dateformat
+from datetime import datetime
 
 COLUMN_MAP = dict([(index, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[index]) for index in range(26)])
 
@@ -112,7 +113,7 @@ class LimsWorkbook(object):
         
         @return: a Shipment instance
         """
-        label = "Uploaded "#%s " % dateformat.format(datetime.now(), 'M jS at G')
+        label = "Uploaded %s " % dateformat.format(datetime.now(), 'M jS, P')
         return Shipment(project=self.project, label=label)
     
     def _get_dewar(self):
@@ -368,12 +369,10 @@ class LimsWorkbook(object):
         """
         if obj and request:
             ActivityLog.objects.log_activity(
-                        self.project.pk,
-                        request.user.pk, 
-                        request.META['REMOTE_ADDR'],
+                        request,
                         obj, 
                         ActivityLog.TYPE.CREATE,
-                        'The %(name)s "%(obj)s" was uploaded successfully.' % {'name': smart_str(obj.__class__._meta.verbose_name), 'obj': smart_str(obj)}
+                        '%(name)s (%(obj)s) uploaded' % {'name': smart_str(obj.__class__._meta.verbose_name), 'obj': smart_str(obj)}
                         )
     
     def save(self, request=None):

@@ -240,9 +240,8 @@ def upload_shipment(request, model, form, template='lims/forms/new_base.html'):
             # we need to manually rollback the transaction and return a normal rendered form error
             # to the user, rather than a 500 page
             try:
-                new_obj = frm.save(request)
-                message = 'Shipment (%s) uploaded' % (new_obj)
-                ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.MODIFY, message)
+                frm.save(request) #FIXME ShipmentUpload form.save does not return the model being saved!
+                message = 'Shipment uploaded successfully'
                 request.user.message_set.create(message = message)
                 return render_to_response("lims/message.html", context_instance=RequestContext(request))
 
