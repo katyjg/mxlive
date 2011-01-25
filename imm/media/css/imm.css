@@ -557,10 +557,11 @@ div.shipment.droppable {
 }
 div.dewar-img.droppable {
   background: url(/img/dewar.png) top left no-repeat;
-  height: 75px;
-  width: 33px;
-  margin-right: 35px;
+  height: 121px;
+  width: 85px;
 }
+
+
 .ui-draggable-dragging {
     opacity: 0.5;
 }
@@ -570,7 +571,7 @@ div.dewar-img.droppable {
 
 .lims-droppable-active, .lims-droppable-active td {
     border-style:solid;
-    border-width:1px;
+    border-width: 0px;
     border-color:#999999;
     position: relative;
     background-color: #eee;

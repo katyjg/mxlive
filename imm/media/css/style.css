@@ -473,9 +473,10 @@ th.Cassette {
 }
 a.remove {
     background: url('/img/small-remove-icon.png') no-repeat center center;
-    width: 24px;
-    display: block;
-    padding: 5px 0;
+    width: 8px;
+    display: inline;
+    padding: 8px;
+    float: right;
 }
 div#unipuck {
     background: url('/img/unipuck.png') no-repeat center center;
@@ -533,7 +534,8 @@ table.cane-detail td {
 .runlist-detail li.empty
 {
     background: #fff;
-}    
+}
+
 .runlist-detail li.lims-droppable-active {
     border-top: none;
 }
@@ -545,6 +547,10 @@ table.cane-detail td {
     opacity: 0.8;
     border-top: none;
 }
+.dewar-detail ul {
+    margin-bottom: 5px;
+}
+
 .dewar-detail li
 {
     padding-left: 35px;
@@ -579,13 +585,11 @@ table.cane-detail td {
     padding-left: 35px;
 }
 
-.dewar-detail a.remove, .runlist-detail a.remove {
-    float: right;
-    margin-right: 5px;
-    padding: 0;
-}
 .dewar-detail, .runlist-detail
 {
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
 	border:1px solid #999;
 	margin-bottom:10px;
     width: 205px;
@@ -601,35 +605,73 @@ table.cane-detail td {
     margin-right: 0px;
 }
 
-.dewar-detail li a.remove, .runlist-detail li a.remove, .runlist-cassette li a.remove
+.dewar-detail li a, .runlist-detail li a, .runlist-cassette li a
 {
-    background: url('/img/small-remove-icon.png') no-repeat center center;
-    width: 30px;
-    height: 35px;
-    display: block;
-    float: right;
+    display: inline;
+    line-height: 45px;
+    height: 45px;
+    width: 60%;
 }
+
+.dewar-detail li a.remove, .runlist-detail li a.remove
+{
+    display: inline;
+    float: right;
+    width: 24px;
+    padding: 0;
+}
+
 .runlist-cassette ul, .runlist-cassette li a.remove {
     height: 144px;
 }
 .runlist-cassette ul li {
     line-height: 144px;
 }
-.dewar-detail div.title{
-    height: 40px;
-}
+
 .runlist-detail div.title {
     height: 20px;
 }
 .dewar-detail div.title p {
-    padding-top: 8px;
+    background:url(/img/dewar-sm.png) no-repeat scroll 3px center;
+    font-weight: bold;
+    line-height: 32px; 
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    padding-left: 36px;
+    text-align: center;
 }
+
+.dewar-detail div.title a.dewar-title {
+    float: left;
+    height: 32px;
+    line-height: 32px;
+    width: 80%;
+    color: #fff;
+}
+
+.dewar-detail div.title a.remove {
+    float: right;
+    height: 32px;
+    line-height: 32px;
+    padding: 0;
+    width: 15%;
+    color: #fff;
+}
+
 .dewar-detail div.title, #sidebar .widget h3, .runlist-detail div.title
 {
 	margin:0;
-	padding:4px;
 	color:#FFF;
 	background:#999;
+}
+
+.dewar-detail p.list-empty 
+{
+    color: #aaa;
+    line-height: 8em;
+    text-align: center;
+    width: 100%;
 }
 
 /* Widgets */
@@ -751,6 +793,7 @@ table.cane-detail td {
     padding: 5em;
     color: #ccc;
 }
+
 
 
 /* Activity Log */
@@ -1285,10 +1328,11 @@ dl.note-list dd
 
 
 /*--------------------------- FORMS -----------------------------------------*/
-.objform
+form.objform
 {
 	font-size:13px;
 	display:block;
+
 }
 
 .objform ul.form-body
@@ -1300,6 +1344,7 @@ dl.note-list dd
 .objform li.field
 {
 	width:64%;
+	display: block;
 }
 
 form ul
@@ -1307,6 +1352,7 @@ form ul
 	margin:0;
 	padding:0;
 	list-style-type:none;
+	display: block;
 	width:100%;
 }
 
@@ -1314,7 +1360,7 @@ form li
 {
 	margin:0;
 	padding:0 4px 6px 6px;
-	position:relative;
+	position:relative; 
 	clear:both;
 }
 
@@ -1332,10 +1378,10 @@ form li,.buttons
 	display:inline-block;
 }
 
-* html form li,* html .buttons
-{
-	height:1%;
-}
+* html form li{height: 1%;margin-bottom:-3px;}
+*+html form li{height: 1%;margin-bottom:-3px;}
+* html form li div{display:inline-block;}
+*+html form ul, *+html form li div{display:inline-block;}
 
 form li,.buttons
 {
@@ -1387,6 +1433,7 @@ form li div.right
 .heading
 {
 	display:inline-block;
+	width: 100%;
 	clear:both;
 	border-bottom:1px dotted #ccc;
 	margin:0;
@@ -1528,7 +1575,7 @@ input.text,input.file,textarea.textarea,select.select,input.barcode,input.matrix
 	color:#333;
 }
 
-input.field,textarea.field,.firefox select.field
+input.text, input.search, textarea.field, input.barcode, input.matrixcode
 {
 /*border-color: #7C7C7C #CECECE #C3C3C3 #7C7C7C;*/
 	border-color:#abc;
@@ -1542,9 +1589,8 @@ input.text,input.file,input.barcode,textarea.textarea,input.matrixcode,input.sea
 	padding-bottom:2px;
 }
 
-input.text,textarea.textarea,.firefox select.select
+.firefox select.select
 {
-/*background:#fff url(/img/fieldbg.gif) repeat-x top 0;*/
 }
 
 input.barcode
@@ -1586,13 +1632,12 @@ input.checkbox,input.radio
 select.select
 {
 	margin:1px 0;
-	padding:1px 0 0;
+	padding: 1px 0 0;
 }
 
 select.select[class]
 {
 	margin:0;
-	padding:1px 0;
 }
 
 :first-child+html select.select[class]
@@ -1602,8 +1647,8 @@ select.select[class]
 
 .webkit select.select
 {
-	margin-bottom:1px;
-/*font-size:120% !important;*/
+	margin: 0 0 1px;
+	padding: 2px;
 }
 
 select.select[multiple]
@@ -1647,11 +1692,6 @@ input.btTxt
 	margin-right:5px;
 }
 
-/* ----- TEXT DIRECTION ----- */
-.rtl .info h2,.rtl .info p,.rtl label.desc,.rtl label.choice,.rtl div label,.rtl span label,.rtl input.text,.rtl textarea.textarea,.rtl select.select,.rtl p.instruct,.rtl .section h3,.rtl .section p,.rtl input.btTxt
-{
-	direction:rtl;
-}
 
 /* ----- ERRORS ----- */
 #errorLi
@@ -1940,19 +1980,25 @@ form li.leftThird,form li.middleThird,form li.rightThird
 	width:20%!important;
 }
 
-li.leftHalf,li.leftThird
+li.leftHalf, li.leftThird
 {
 	clear:left;
 	float:left;
 }
 
-li.rightHalf,li.middleThird,li.rightThird
+li.middleThird
 {
 	clear:none;
 	float:left;
 }
 
-li.leftHalf .field,li.rightHalf .field,li.leftThird .field,li.middleThird .field,li.rightThird .field
+li.rightHalf,li.rightThird
+{
+	clear:none;
+	float:left;
+}
+
+li.leftHalf .field,li.rightHalf .field, li.leftThird .field, li.middleThird .field, li.rightThird .field
 {
 	width:100%;
 }
