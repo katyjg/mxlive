@@ -1328,6 +1328,7 @@ form.objform
 .objform li.field
 {
 	width:64%;
+	display: block;
 }
 
 form ul
@@ -1416,6 +1417,7 @@ form li div.right
 .heading
 {
 	display:inline-block;
+	width: 100%;
 	clear:both;
 	border-bottom:1px dotted #ccc;
 	margin:0;
@@ -1557,7 +1559,7 @@ input.text,input.file,textarea.textarea,select.select,input.barcode,input.matrix
 	color:#333;
 }
 
-input.text, input.search, textarea.field
+input.text, input.search, textarea.field, input.barcode, input.matrixcode
 {
 /*border-color: #7C7C7C #CECECE #C3C3C3 #7C7C7C;*/
 	border-color:#abc;
@@ -1630,6 +1632,7 @@ select.select[class]
 .webkit select.select
 {
 	margin: 0 0 1px;
+	padding: 2px;
 }
 
 select.select[multiple]
@@ -1961,19 +1964,25 @@ form li.leftThird,form li.middleThird,form li.rightThird
 	width:20%!important;
 }
 
-li.leftHalf,li.leftThird
+li.leftHalf, li.leftThird
 {
 	clear:left;
 	float:left;
 }
 
-li.rightHalf,li.middleThird,li.rightThird
+li.middleThird
 {
 	clear:none;
 	float:left;
 }
 
-li.leftHalf .field,li.rightHalf .field,li.leftThird .field,li.middleThird .field,li.rightThird .field
+li.rightHalf,li.rightThird
+{
+	clear:none;
+	float:left;
+}
+
+li.leftHalf .field,li.rightHalf .field, li.leftThird .field, li.middleThird .field, li.rightThird .field
 {
 	width:100%;
 }
