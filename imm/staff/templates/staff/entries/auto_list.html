@@ -1,0 +1,52 @@
+<div id="{{ side }}" 
+     class="runlist-detail" 
+     accept="container">
+
+    <div class="title">
+        <h3 class="runlist">{{ side|capfirst }}</h3>
+    </div>
+
+    {% if cassette %}
+        <div class="runlist-column1" >
+            <ul>
+                {% for letter in "ABCD" %}
+                    <li>{{ letter }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="runlist-column2 runlist-cassette">
+            <ul>
+
+                <li class="occupied Cassette"   
+                    rel="{% url staff-automounter-detail object.automounter.pk %}"      
+                    href="{% url lims-container-detail cassette.pk %}"   
+                    automounter_location="{{ side }}"
+                    style="height:100%">
+                    {{ cassette.label }}
+                    <a class="remove"
+                       rel="{% url staff-runlist-remove-container object.pk cassette.pk %}"
+                       href="#"
+                       onclick="remove_item(this);"
+                       title="Remove container from automounter"></a>
+                </li>
+            </ul>
+        </div>
+    {% else %}
+        {% load runlist_extras %}
+        <div class="runlist-column1" >
+            <ul>
+                {% for letter in "ABCD" %}
+                    <li>{{ letter }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="runlist-column2">
+            <ul>
+                    {% for letter in "ABCD" %}
+                        {% automounter_position object side forloop.counter0 letter %}
+                    {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+</div>
+

@@ -572,13 +572,17 @@ table.cane-detail td {
 .runlist-column2
 {
     width: 175px;
-    min-height: 120px;
+    height: 120px;
     float: left;
+}
+.runlist-column2 ul li, .runlist-cassette ul li {
+    padding-left: 35px;
 }
 
 .dewar-detail a.remove, .runlist-detail a.remove {
     float: right;
     margin-right: 5px;
+    padding: 0;
 }
 .dewar-detail, .runlist-detail
 {
@@ -590,8 +594,14 @@ table.cane-detail td {
     margin-right: 20px;
     margin-top: 10px;
 }
+.runlist-detail {
+    margin-right: 35px;
+}
+#right.runlist-detail {
+    margin-right: 0px;
+}
 
-.dewar-detail li a.remove, .runlist-detail li a.remove
+.dewar-detail li a.remove, .runlist-detail li a.remove, .runlist-cassette li a.remove
 {
     background: url('/img/small-remove-icon.png') no-repeat center center;
     width: 30px;
@@ -599,7 +609,12 @@ table.cane-detail td {
     display: block;
     float: right;
 }
-
+.runlist-cassette ul, .runlist-cassette li a.remove {
+    height: 144px;
+}
+.runlist-cassette ul li {
+    line-height: 144px;
+}
 .dewar-detail div.title{
     height: 40px;
 }

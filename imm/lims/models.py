@@ -1493,13 +1493,12 @@ class ScanResult(models.Model):
     
 class ActivityLogManager(models.Manager):
     def log_activity(self, request, obj, action_type, description=''):
-        
         e = self.model()
         if getattr(obj, 'project', None) is not None:
             e.project_id = obj.project.pk
         elif getattr(request, 'project', None) is not None:
             e.project_id = request.project.pk
-        elif isinstance(Project, obj):
+        elif isinstance(Project, obj.__class__):
             e.project_id = obj.pk
         e.user_id = request.user.pk
         e.ip_number = request.META['REMOTE_ADDR']

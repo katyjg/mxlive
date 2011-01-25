@@ -46,7 +46,8 @@ urlpatterns = patterns('',
     (r'^samples/crystal/(?P<id>\d+)/down/$', 'imm.lims.views.change_priority', {'model': Crystal, 'action': 'down', 'field': 'staff_priority'}, 'staff-crystal-down'),
     
     (r'^experiment/request/$', 'imm.lims.views.object_list', {'model': Experiment, 'template': 'objlist/generic_list.html', 'can_prioritize': False, 'is_individual': True}, 'staff-experiment-list'),
-    (r'^experiment/basic/$', 'imm.lims.views.basic_object_list', {'model': Experiment, 'template': 'staff/lists/basic_object_list.html'}, 'staff-experiment-basic-list'),
+    #(r'^experiment/basic/$', 'imm.staff.views.experiment_basic_object_list', {'model': Experiment, 'template': 'staff/lists/basic_object_list.html'}, 'staff-experiment-basic-list'),
+    (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'imm.staff.views.experiment_basic_object_list', {'model':Experiment, 'template': 'staff/lists/basic_object_list.html'}, 'staff-experiment-basic-list'),
     (r'^experiment/(<?P<id>\d+)/$', 'experiment_object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html' }, 'staff-experiment-basic-detail'),
     
     url(r'^experiment/result/(\d+)/shellstats.png$', 'imm.lims.views.plot_shell_stats', name='staff-plot-shells'),
@@ -81,10 +82,10 @@ urlpatterns = patterns('',
     # new drag and drop model methods
     # Runlist page
     #(r'^runlist_summary/widget/(?P<src_id>\d+)/runlist/(?P<dest_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.lims.views.add_existing_object', {'destination':Runlist, 'object':Experiment }, 'staff-runlist-add-experiment'),
-    (r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.lims.views.add_existing_object', {'destination':Runlist, 'object':Experiment }, 'staff-runlist-add-experiment'),
+    (r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.staff.views.add_existing_object', {'destination':Runlist, 'object':Experiment }, 'staff-runlist-add-experiment'),
     (r'^runlist/(?P<dest_id>\d+)/widget/.*/container/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'imm.staff.views.add_existing_object', {'destination':Runlist, 'object':Container }, 'staff-runlist-add-container'),
     (r'^runlist_summary/runlist/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.lims.views.remove_object', {'source':Runlist, 'object':Experiment }, 'staff-runlist-remove-experiment'),
-    (r'^runlist_summary/runlist/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'imm.lims.views.remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),
+    (r'^runlist_summary/runlist/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'imm.lims.views.remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),
 )
 
 urlpatterns += patterns('django.views.generic.simple',
