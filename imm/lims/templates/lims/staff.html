@@ -22,10 +22,34 @@
 	<!-- end left region -->
     <!-- middle region -->
 	<div id="middle-content" class="col-4">
-    <p>Staff statistics or other content can go here</p>
-        {% for message in feedback %}
-            {{ message.message}}
-        {% endfor %}
+        <div class="object-list feedback-table">
+        <h3>User Feedback <a class="back-tool" style="float:right;" href="{% url staff-feedback-list %}">Full List</a></h3>
+        <table cellspacing="0" cellpadding="2" border="0" width="100%">
+            <thead>
+                <tr class="header">
+                    <th>Project</th>
+              		<th>Name</th>
+                    <th>Category</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if feedback %}
+                    {% for item in feedback %}
+                    <tr class="{% cycle 'odd' 'even'%} modal link-row" 
+                        rel="#modal-popup" 
+                        href="{% url staff-feedback-item item.pk %}">
+                    	<td>{{ item.project }}</td>
+                    	<td>{{ item.contact_name }}</td>
+                    	<td>{{ item.category.display }}</td>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="20" align="center" style="padding: 3em; background: #fff; color: #999;">
+                        No feedback to display
+                    </td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+        </div>
 	</div>
 	<!-- end middle region -->
     <!-- right region -->

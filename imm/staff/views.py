@@ -46,9 +46,13 @@ def staff_home(request):
     
     return render_to_response('lims/staff.html', {
         'activity_log': ObjectList(request, ActivityLog.objects),
-        'feedback': Feedback.objects.all(),
+        'feedback': Feedback.objects.all()[:5],
         'handler': request.path,
         }, context_instance=RequestContext(request))
+
+@admin_login_required
+def feedback_item(request, id, template='lims/feedback_item.html'):
+    return render_to_response(template, { 'item': Feedback.objects.get(pk=id), })
     
 @admin_login_required
 @manager_required

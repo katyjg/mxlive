@@ -1502,6 +1502,9 @@ class Feedback(models.Model):
     contact_name = models.CharField(max_length=100, blank=True, null=True)
     contact = models.EmailField(max_length=100, blank=True, null=True)
     message = models.TextField(blank=False)
+    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
+
+    is_editable = True
 
     
 class ActivityLogManager(models.Manager):

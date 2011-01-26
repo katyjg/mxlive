@@ -9,6 +9,7 @@ from imm.lims.models import Container
 from imm.lims.models import Crystal
 from imm.lims.models import Cocktail
 from imm.lims.models import CrystalForm
+from imm.lims.models import Feedback
 from imm.lims.models import ExcludeManagerWrapper
 from imm.staff.models import Runlist
 from imm.lims.models import ActivityLog
@@ -28,6 +29,8 @@ from imm.staff.forms import RunlistAcceptForm
 
 urlpatterns = patterns('',
     (r'^$', 'imm.staff.views.staff_home', {}, 'staff-home'),
+    (r'^feedback/(?P<id>\d+)/edit/$', 'imm.staff.views.feedback_item', {'template': 'lims/feedback_item.html'}, 'staff-feedback-item'),
+    (r'^feedback/$', 'imm.lims.views.object_list', {'model': Feedback, 'template': 'objlist/generic_list.html'}, 'staff-feedback-list'),
     
     (r'^shipping/shipment/$', 'imm.lims.views.object_list', {'model': Shipment, 'template': 'objlist/generic_list.html', 'can_receive': True, 'is_individual': True}, 'staff-shipment-list'),
     (r'^shipping/shipment/receive/$', 'imm.staff.views.receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-shipment-receive-any'),
