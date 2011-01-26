@@ -63,7 +63,6 @@ function initForms(){
         var $field = jQuery(el);
         $field.bind('focus', function(){$field.parent().parent().addClass('focused');});
         $field.bind('blur', function(){$field.parent().parent().removeClass('focused');});
-        console.log($field);
     });
     
     // make sure we do not initialize a form twice
