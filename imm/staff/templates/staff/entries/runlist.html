@@ -32,7 +32,7 @@
         <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Status:</th><td>{{ object.get_status_display }}</td></tr>
-        <tr valign="top"><th>Projects:</th><td>
+{% comment %}        <tr valign="top"><th>Projects:</th><td>
         	{% for experiment in object.experiments.all %}
         		{{ experiment.project }}  
         	{% endfor %}
@@ -41,42 +41,30 @@
         	{% for experiment in object.experiments.all %}
         		{{ experiment.name }} 
         	{% endfor %}
-        </td></tr>
+        </td></tr>{% endcomment %}
         
     </table>
     <div style="clear: both;"></div>
     
-{{ object.container_list }} {{ object.automounter.left }}
-
+<div class="object-list">
 <h3>Automounter Configuration</h3>
+</div>
 
-{% load get_automounter %}
-{% left_location object %}
-
-{% comment %}
-{% load get_location %}
-    <h3>Containers</h3>
-    	<ul class="treeview">
-    		{% for container in object.containers.all %}
-    			<li id="{{ container.id }}" class="container draggable-link-parent" rel="{% url lims-container-detail container.id %}/">
-    				<a class="container" href="{% url lims-container-detail container.id %}">
-    					{% get_location runlist.automounter container %} - {{container.label }} {{ container.identity }} 
-    				</a>
-    			</li>
-    		{% endfor %}
-    	</ul>
-{% endcomment %}
+{% load runlist_extras %}
+{% auto_location object "left" %}
+{% auto_location object "middle" %}
+{% auto_location object "right" %}
 
 {% endwith %}
-
-
+    <div style="clear: both;"></div>
+{% experiment_table object request.user.is_superuser %}
 
 
 {% include "lims/entries/popup.html" %}
 {% endblock %}
 
 {% block sidebar %}
-        <div id="experiments" class="widget droppable-remove parent-stop" data="{% url staff-experiment-basic-list %}">
+        <div id="experiments" class="widget droppable-remove parent-stop" data="{% url staff-experiment-basic-list object.pk %}">
 	       <div class="widget-title">
 	       <span>Experiment</span></div>
             <ul>
@@ -91,3 +79,18 @@
         </div>
 {% endblock %}
 
+{% block script %}
+{{ block.super }}
+    <script>
+		function remove_item(element) {
+			jQuery.ajax({
+                type: "POST",
+                url: element.rel,
+                data: "",
+                success: function() {
+                    window.location.reload();
+                }
+            });
+        }
+    </script>
+{% endblock %}

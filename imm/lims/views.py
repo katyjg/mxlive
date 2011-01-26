@@ -941,20 +941,22 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
     display_name = to_remove.name
     if reverse:
         display_name = src.name
-    
+
     if src.is_editable():
         #if replace == True or dest.(object.__name__.lower()) == None
         try:
             getattr(src, object.__name__.lower())
             setattr(src, object.__name__.lower(), None)
             if object.__name__.lower() == "container":
-                setattr(src, "container_location", None)            
+                setattr(src, "container_location", None)
         except AttributeError:
             # attrib didn't exist, append 's' for many field
             try:
                 current = getattr(src, '%ss' % object.__name__.lower())
                 # want destination.objects.add(to_add)
                 current.remove(to_remove)
+                if src.__class__.__name__.lower() == "runlist":
+                    src.automounter.remove_container(to_remove)
                 #setattr(dest, '%ss' % object.__name__.lower(), current_values)
             except AttributeError:
                 message = '%s has not been removed. No Field (tried %s and %s)' % (display_name, object.__name__.lower(), '%ss' % object.__name__.lower())

@@ -269,8 +269,9 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     
     if dest.is_editable():
         if loc_id:
+            added = dest.automounter.container_to_location(to_add, loc_id)
             dest.automounter.container_to_location(to_add, loc_id)
-            if dest.automounter.container_to_location(to_add, loc_id):
+            if added:
                 try:
                     current = getattr(dest, '%ss' % lookup_name)
                     # want destination.objects.add(to_add)
@@ -305,17 +306,51 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
         'info': form_info,
         })
 
+@login_required
+@manager_required
+def experiment_basic_object_list(request, runlist_id, model, template='objlist/basic_object_list.html'):
+    """
+    Slightly more complex than above. Should display name and id for entity, but filter
+    to only display experiments with containers with unprocessed crystals available to add to a runlist.
+    """
+    basic_list = list()
+    ol = ObjectList(request, request.manager)
+    try: 
+        runlist = Runlist.objects.get(pk=runlist_id)
+    except:
+        runlist = None
+
+    try:
+        experiment = Experiment.objects.get(pk=exp_id)
+    except:
+        experiment = None
+        ol.object_list = None
+
+    if runlist != None:
+        active_experiments = Experiment.objects.all().filter(status=1)
+        processing_experiments = Experiment.objects.all().filter(status=2)
+        paused_experiments = Experiment.objects.all().filter(status=3)
+
+        if runlist.containers:
+            container_list = runlist.containers.all()
+        for experiment in active_experiments:
+            exp_container_list = Container.objects.filter(crystal__experiment=experiment).distinct().exclude(id__in=container_list)
+            if len(exp_container_list) != 0:
+                basic_list.append(experiment)
+    
+    ol.object_list = basic_list
+
+    return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
+
 
 @login_required
 @manager_required
 def container_basic_object_list(request, runlist_id, exp_id, model, template='objlist/basic_object_list.html'):
     """
     Slightly more complex than above. Should display name and id for entity, but filter
-    to only display containers with a crystal in the specified experiments.
+    to only display containers with a crystal in the specified experiment.
     """
     active_containers = None
-    experiment_list = None
-    
     ol = ObjectList(request, request.manager)
     try: 
         runlist = Runlist.objects.get(pk=runlist_id)
@@ -336,16 +371,14 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
                 if experiment == exp:
                     container_list.append(container)
         # currently selected containers
-        active_containers = runlist.containers
+        active_containers = runlist.containers.all()
     
     """ only want containers that pass experiment check. """
     if container_list != None:
-        if active_containers.count != 0:
-            #ol.object_list = Container.objects.filter(crystal__experiment=experiment).distinct().exclude(id__in=active_containers.all())#.remove(active_containers) 
-            ol.object_list = container_list
+        if len(active_containers) != 0:
+            ol.object_list = Container.objects.filter(crystal__experiment=experiment).distinct().exclude(id__in=active_containers)
         else:
             ol.object_list = Container.objects.filter(crystal__experiment=experiment).distinct()
-            ol.object_list = container_list
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
 @jsonrpc_method('lims.detailed_runlist', authenticated=getattr(settings, 'AUTH_REQ', True))

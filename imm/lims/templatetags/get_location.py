@@ -11,3 +11,4 @@ import logging
 def get_location(automounter, container):
     ret_val = automounter.get_position(container)
     return ret_val
+

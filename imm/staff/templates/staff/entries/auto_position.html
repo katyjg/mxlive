@@ -1,0 +1,15 @@
+<li class="{% if container %}occupied {{ container.json_dict.type }}{% else %}empty automounter droppable droppable-add{% endif %}"   
+    {% if container %}rel="{% url staff-automounter-detail container.pk %}"      
+    href="{% url lims-container-detail container.pk %}"   
+    {% else %}accept="container" 
+    parent="{{ object.id }}"{% endif %}
+    automounter_location="{{ letter }}">
+    {{ container.label }}
+    {% if container %}
+        <a class="remove"
+           rel="{% url staff-runlist-remove-container object.pk container.pk %}"
+           href="#"
+           onclick="remove_item(this);"
+           title="Remove container from automounter"></a>
+    {% endif %}
+</li>

@@ -73,9 +73,6 @@ class AutomounterLayout(models.Model):
     right = PickledObjectField(null=True)
     
     def container_to_location(self, container, location):
-        #check container type
-        #print location[0]
-        #print container.pk
         if container.kind == Container.TYPE.CASSETTE:
             if location[0] == "L":
                 if self.left == None:

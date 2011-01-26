@@ -578,8 +578,11 @@ table.cane-detail td {
 .runlist-column2
 {
     width: 175px;
-    min-height: 120px;
+    height: 120px;
     float: left;
+}
+.runlist-column2 ul li, .runlist-cassette ul li {
+    padding-left: 35px;
 }
 
 .dewar-detail, .runlist-detail
@@ -595,8 +598,14 @@ table.cane-detail td {
     margin-right: 20px;
     margin-top: 10px;
 }
+.runlist-detail {
+    margin-right: 35px;
+}
+#right.runlist-detail {
+    margin-right: 0px;
+}
 
-.dewar-detail li a, .runlist-detail li a
+.dewar-detail li a, .runlist-detail li a, .runlist-cassette li a
 {
     display: inline;
     line-height: 45px;
@@ -610,6 +619,13 @@ table.cane-detail td {
     float: right;
     width: 24px;
     padding: 0;
+}
+
+.runlist-cassette ul, .runlist-cassette li a.remove {
+    height: 144px;
+}
+.runlist-cassette ul li {
+    line-height: 144px;
 }
 
 .runlist-detail div.title {
