@@ -9,7 +9,8 @@
             
     <div id="content">
         <div style="height: 2.5em;"></div>
-        <form action="{{ app_path }}" method="post" id="login-form" class="wofoo">{% csrf_token %}
+        <form action="{{ app_path }}" method="post" id="login-form" class="objform">
+            {% csrf_token %}
             <div class="form-row">
                 <div class="login-error login-field-error">{{ form.username.errors.0 }}</div>
                 <label for="id_username">Username:</label> <input type="text" name="username" id="id_username" class="large text field" />
@@ -25,6 +26,5 @@
             </div>
         </form>
 
-        <img src="/img/blank.png" width=0 height=0 onload="init_form('login-form');" />
     </div>
 {% endblock %}

@@ -658,6 +658,13 @@ table.cane-detail td {
     width: 100%;
 }
 
+td.list-empty {
+    color: #aaa;
+    padding: 3em !important;
+    text-align: center;
+
+}
+
 /* Widgets */
 #sidebar .widget
 {

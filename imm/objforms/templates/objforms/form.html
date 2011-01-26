@@ -1,7 +1,7 @@
 <form 
         method="post"
         id="lims-form" 
-        class="objform ajax"
+        class="objform_raw ajax"
         action='{{action}}' {% if enctype %}enctype='{{enctype}}' {% endif %}>
 {% csrf_token %}
 <ul class="form-body">
@@ -19,7 +19,7 @@
 </form>
 
 <script>
-    init_form('lims-form'); //initialize form and transform any select boxes into multi-select widgets
+    initForms(); //initialize form and transform any select boxes into multi-select widgets
     jQuery(function() { // form plugin bindings
         jQuery("form.ajax").ajaxForm(function(response) {
             var $modal = jQuery(".modal-content").not(":hidden"); // at this point, the modal will be visible

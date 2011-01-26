@@ -42,22 +42,18 @@
             <td>{{dewar.shipment.name}}</td>
         </tr>
     </table>
-{% if object.comments %}
+    {% if object.comments %}
     <div class="entrycomment">
     <span class="left-pointer"></span>
     <h3>Comments</h3>
     <p>{{ object.comments|default:"" }}</p>
     <p>{{ object.staff_comments|default:""}}</p>
     </div>
-{% endif %}
+    {% endif %}
     <div class="clear"></div>
     
-    {% if dewar.container_set.count %}
-        {% load dewar_table %}
-        {% dewar_table dewar request.user.is_superuser "dewar" %}
-    {% else %}
-        (No containers assigned to this dewar.)
-    {% endif %}
+    {% load dewar_table %}
+    {% dewar_table dewar request.user.is_superuser "dewar" %}
 {% endwith %}
 
 {% include "lims/entries/popup.html" %}

@@ -31,14 +31,14 @@
         {% endif %}
         {% if object.is_pdfable %}
             <li class="pdf-tool">
-                <a href="{{handler}}pdf/');" class="">
+                <a href="{{handler}}pdf/" class="">
                     PDF
                 </a>
             </li>
         {% endif %}
         {% if object.is_xlsable %}
             <li class="template-tool">
-                <a onclick="window.open('{{handler}}xls/');" class="">
+                <a href="{{handler}}xls/" class="">
                     XLS
                 </a>
             </li>
@@ -52,7 +52,7 @@
         {% endif %}
         {% comment %}
         <li class="clone-tool">
-            <a onclick="linkto('{{ handler }}new/?clone={{object.id}}');" class="action modal">
+            <a href="{{ handler }}new/?clone={{object.id}}" class="action modal">
                 Clone
             </a>
         </li>
