@@ -1,9 +1,7 @@
 from django.conf.urls.defaults import patterns, include, url
 from django.contrib import admin
 from django.conf import settings
-from views import logout_view
-from views import help_view
-from views import privacy_policy_view
+from views import logout_view, show_page
 from remote.views import mock_user_api
 
 from jsonrpc.site import jsonrpc_site
@@ -33,8 +31,7 @@ urlpatterns = patterns('',
     (r'^download/', include('imm.download.urls')),
     
     (r'^home/',  'imm.lims.views.home'),
-    (r'^help/',  help_view),
-    (r'^privacy/',  privacy_policy_view),
+    (r'^help/',  show_page, {'template_name': 'lims/project_help.html'}),
     (r'^login/$',  'django.contrib.auth.views.login', {'template_name': 'login.html'}),
     (r'^logout/$', logout_view),
     
