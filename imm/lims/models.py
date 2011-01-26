@@ -1490,6 +1490,19 @@ class ScanResult(models.Model):
     def __unicode__(self):
         return self.name
 
+
+class Feedback(models.Model):
+    TYPE = Enum(
+        'Remote Control',
+        'LIMS Website',
+        'Other',
+    )
+    project = models.ForeignKey(Project)
+    category = models.IntegerField('Category',max_length=1, choices=TYPE.get_choices())
+    contact_name = models.CharField(max_length=100, blank=True, null=True)
+    contact = models.EmailField(max_length=100, blank=True, null=True)
+    message = models.TextField(blank=False)
+
     
 class ActivityLogManager(models.Manager):
     def log_activity(self, request, obj, action_type, description=''):
@@ -1585,6 +1598,7 @@ __all__ = [
     'Data',
     'Strategy',
     'SpaceGroup',
+    'Feedback',
     'ActivityLog',
     'delete',
     'archive',

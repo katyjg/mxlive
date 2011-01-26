@@ -6,6 +6,7 @@ from imm.lims.forms import *
 urlpatterns = patterns('imm.lims.views',
     (r'^$', 'show_project', {}, 'project-home'),
     (r'^profile/edit/$', 'edit_profile', {'form': ProjectForm, 'template': 'objforms/form_base.html'}, 'lims-profile-edit'),
+    (r'^send/feedback/$', 'create_object', {'model': Feedback, 'form': FeedbackForm, 'template': 'objforms/form_base.html'}, 'lims-feedback'),
 
     #SHIPMENTS##############
     (r'^shipping/shipment/$', 'object_list', {'model': Shipment, 'template': 'objlist/generic_list.html', 'can_add': True, 'can_upload': False, 'is_individual': True }, 'lims-shipment-list'),
@@ -181,6 +182,7 @@ if settings.DEBUG:
                 ActivityLog,
                 Strategy,
                 ScanResult,
+                Feedback,
                 ]
                 
     for mod in _databrowse_model_list:

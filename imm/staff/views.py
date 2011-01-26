@@ -27,6 +27,7 @@ from imm.lims.models import perform_action
 from imm.lims.models import ActivityLog
 from imm.lims.models import Crystal
 from imm.lims.models import Container
+from imm.lims.models import Feedback
 from imm.staff.models import Runlist
 from imm.staff.models import AutomounterLayout
 from imm.objlist.views import ObjectList
@@ -45,6 +46,7 @@ def staff_home(request):
     
     return render_to_response('lims/staff.html', {
         'activity_log': ObjectList(request, ActivityLog.objects),
+        'feedback': Feedback.objects.all(),
         'handler': request.path,
         }, context_instance=RequestContext(request))
     
