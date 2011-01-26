@@ -45,13 +45,7 @@ urlpatterns = patterns('',
 )
 
 if settings.DEBUG:
-    
-    from imm.lims.models import Data
-    urlpatterns += patterns('',
-        (r'^backup/.*/images/(?P<path>.*)$', 'django.views.static.serve', {'document_root': os.path.join(os.path.dirname(__file__), 'media/img')}),
-        (r'^backup/.*/(?P<id>\d+)/$', 'imm.lims.views.object_detail', {'model': Data, 'template': 'lims/entries/images.html'} , 'lims-dataset-images'),
-    )
-    
+        
     urlpatterns += patterns('',
         (r'^img/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': os.path.join(os.path.dirname(__file__), 'media/img'), 

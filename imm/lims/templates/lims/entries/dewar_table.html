@@ -51,7 +51,8 @@
                 <th></th>
             </tr>
         </thead>
-        <body>
+        <tbody>
+            {% if containers %}
             {% for container in containers %}
                 <tr class="{% cycle 'odd' 'even'%} link-row modal"
                     title="Go to Container {{container.pk}}">
@@ -78,7 +79,10 @@
                     </td>
                 </tr>
             {% endfor %}
-        </body>
+            {% else %}
+                <tr><td colspan="20" align="center" class="list-empty">( No containers in this dewar )</td></tr>
+            {% endif %}
+        </tbody>
     </table>
 </div>
 {% endifequal %}
