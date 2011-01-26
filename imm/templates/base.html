@@ -105,7 +105,9 @@
     </div><!-- end footer -->
 {% block script %}
 <script>
-
+        // initialize browser and add classes to body tag
+        initBrowser();
+        
         /* TODO: add generic way to overlay a loading indicator on widgets and datalists. */
 
         function loadWidgets() {

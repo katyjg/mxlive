@@ -1,4 +1,4 @@
-function browserInit(){
+function initBrowser(){
     // Add classes to identify browser types
     var detect = navigator.userAgent.toLowerCase();
     jQuery.each(['firefox', 'msie', 'webkit'], function(index, value){
