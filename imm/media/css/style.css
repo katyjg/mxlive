@@ -1002,17 +1002,13 @@ tr.odd td
 	/*color:#333;*/
 }
 
-.link-row:hover, link-cell:hover, .link-row:hover td
+.link-row:hover, .link-row:hover td
 {
 	background:#eee;
 }
 
-.link-no-pointer
-{
-	cursor:default;
-}
 
-.link-pointer, .redirect
+.link-row, .redirect
 {
 	cursor:pointer;
 }

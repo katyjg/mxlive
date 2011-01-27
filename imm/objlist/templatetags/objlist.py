@@ -78,10 +78,6 @@ def list_entry(context, obj, handler, loop_count):
     if ol:
         model_admin = ol.model_admin
         
-    single = ''
-    if ol.object_type.lower() == 'runlist':
-        single = 'single'
-
     checked, form = False, context.get('form', None)
     if form and hasattr(obj, 'get_form_field'):
         form_data = MultiValueDict(form.data)
@@ -90,15 +86,15 @@ def list_entry(context, obj, handler, loop_count):
     return {'fields': list(object_fields(obj, model_admin=model_admin)),
              'object': obj,
              'link': context.get('link', False),
+             'modal_link': context.get('modal_link', False),
+             'modal_edit': context.get('modal_edit', False),
+             'delete_inline': context.get('delete_inline', False),
              'form': form,
              'checked': checked,
-             'can_prioritize': context.get('can_prioritize', False),
              'request': context,
              'handler' : handler,
              'row_state' : "odd" if loop_count % 2 == 1 else "even",
              'type' : ol.object_type,
-             'single' : single,
-             'is_individual' : context.get('is_individual', False),
             }
        
 def object_fields(obj, model_admin=None):

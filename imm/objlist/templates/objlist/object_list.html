@@ -30,10 +30,8 @@
                 {% if form %}
                     <th{{ header.class_attrib }}>Select</th>
                 {% endif %}
-                {% if not is_individual %}
-                    {% comment %}Put this back in once delete functionality is finished for cocktails and crystal forms.
+                {% if delete_inline %}
                     <th></th>
-                    {% endcomment %}
                 {% endif %}
             </tr>
         </thead>
@@ -43,7 +41,7 @@
                     {% list_entry object handler forloop.counter %}
                 {% endfor %}
             {% else %}
-                <tr><td colspan="20" align="center" style="padding: 3em; background: #fff; color: #999;">No {{ol.object_type}} to show</td></tr>
+                <tr><td colspan="20" class="list-empty">No {{ol.object_type}} to show</td></tr>
             {% endif %}
         </tbody>
     </table>
@@ -60,18 +58,3 @@
     <input style="float: right; margin-top: 5px;" type="submit" value="Refine Runlist >>"></input>
     </form>
 {% endif %}
-
-
-<script>
-
-    jQuery(".redirect").live("click", function() {    
-        // handles redirecting to individual object pages
-        if(jQuery(this).attr("href")) {
-            // fetch the contents of the href and rel attributes
-            var $row = jQuery(this);
-            var contentURL = $row.attr("href");
-            window.location.href = contentURL;
-        }
-    });
-
-</script>

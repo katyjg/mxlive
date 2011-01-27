@@ -1,15 +1,17 @@
-<tr {% if is_individual %}
-        class="link-row action redirect {{ row_state }} {{ type|lower }}"
+<tr {% if link %}
+        class="link-row redirect {{ row_state }} {{ type|lower }}"
         href="{{ handler }}{{ object.pk }}/"
         title="Go to {{type}} {{object.pk}}"
-    {% else %}{% if object.is_editable %}
-        class="link-row action modal-form {{ row_state }} {{ type|lower }}"        
+    {% else %}{% if modal_link %}
+        class="link-row modal {{ row_state }} {{ type|lower }}"        
+        href="{{handler}}{{object.pk}}/"
+        title="Show {{type}} {{object.pk}}"
+    {% else %}{% if modal_edit %}
+        class="link-row modal-form {{ row_state }} {{ type|lower }}"        
         href="{{handler}}{{object.pk}}/edit/"
         title="Edit {{object.pk}}"
-    {% else %}{% if type == 'Data' %}
-        class="link-row action modal {{ row_state }} {{ type|lower }}"
-        href="{% url lims-dataset-detail object.pk %}"
-        title="View dataset {{object.pk}}"
+    {% else %}
+        class="{{ row_state }} {{ type|lower }}"
     {% endif %}{% endif %}{% endif %}>
     {% if request.user.is_superuser %} 
         <td class="first"></td>
@@ -19,7 +21,7 @@
     {% load truncate_filters %}
     
     {% for field in fields %}
- 		<td class="link-cell">
+ 		<td>
      	{% if field == object.id %}
             {{ object.identity }}
     	{% else %}
@@ -35,12 +37,16 @@
     {% if form %}
         <td><input type="checkbox" name="{{object.get_form_field}}" value="{{object.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
     {% endif %}
-    {% if not is_individual %}
+    {% if delete_inline %}
         {% if object.is_deletable %}
-            <td class="action link-cell">
+            <td class="action">
                 <a href="{{ handler }}{{object.pk}}/delete/" class="action modal-form delete-tool" title="Delete"></a>
             </td>
+        {% else %}
+            <td class="action">
+            </td>       
         {% endif %}
+        
     {% endif %}
 </tr>
 
