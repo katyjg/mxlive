@@ -5,23 +5,24 @@
 \usepackage{pst-barcode}
 }
 \usepackage{geometry}
+\usepackage{graphicx}
 \geometry{letterpaper}
 \begin{document}
+    \includegraphics[height = 200px]{/Code/test-imm/imm/media/img/clslogo_print}
 
 	\section*{Project Details}
 	
 	\begin{tabular}{ll}
 		Username: & {{ project.user.username|texsafe|default:"" }} \\
 		Name: & {{ project.name|texsafe|default:"" }} \\
-		Project Title: & {{ project.title|texsafe|default:"" }} \\
-		Lab Organization: & {{ shipment.laboratory.organization|texsafe|default:"" }} \\
-		Lab Name: & {{ shipment.laboratory.name|texsafe|default:"" }} \\
-		Lab Address: & {{ shipment.laboratory.address|texsafe|default:"" }} \\
-		Lab City: & {{ shipment.laboratory.city|texsafe|default:"" }} \\
-		Lab Postal Code: & {{ shipment.laboratory.postal_code|texsafe|default:"" }} \\
-		Lab Country: & {{ shipment.laboratory.country|texsafe|default:"" }} \\
-		Lab Phone: & {{ shipment.laboratory.contact_phone|texsafe|default:"" }} \\
-		Lab Fax: & {{ shipment.laboratory.contact_fax|texsafe|default:"" }} \\
+		Department: & {{ project.department|texsafe|default:"" }} \\
+		Organization: & {{ project.organisation|texsafe|default:"" }} \\
+		Address: & {{ project.address|texsafe|default:"" }} \\
+		City: & {{ project.city|texsafe|default:"" }} \\
+		Postal Code: & {{ project.postal_code|texsafe|default:"" }} \\
+		Country: & {{ project.country|texsafe|default:"" }} \\
+		Phone: & {{ project.contact_phone|texsafe|default:"" }} \\
+		Fax: & {{ project.contact_fax|texsafe|default:"" }} \\
 	\end{tabular}
 
 	\section*{Shipment Details}
@@ -32,7 +33,7 @@
 		Comments: & {{ shipment.comments|texsafe|default:"" }} \\
 		Carrier: & {{ shipment.carrier|texsafe|default:"" }} \\
 		Date Shipped: & {{ shipment.date_shipped|texsafe|default:"" }} \\
-		Date Created: & {{ shipment.created|texsafe|default:"" }} \\
+		%Date Created: & {{ shipment.created|texsafe|default:"" }} \\
 	\end{tabular}
 	
 	{% for dewar in shipment.dewar_set.all %}

@@ -29,16 +29,18 @@
                     }
                 });
             }
-
-            // handles redirecting to individual object pages
-            if(jQuery(this).attr("redirect")) {
-                // fetch the contents of the href and rel attributes
-                var $row = jQuery(this);
-                var contentURL = $row.attr("redirect");
-                window.location.href = contentURL;
-            }
             return false;
         });
     });
+        jQuery(".redirect").live("click", function() {    
+            // handles redirecting to individual object pages
+            if(jQuery(this).attr("href")) {
+                // fetch the contents of the href and rel attributes
+                var $row = jQuery(this);
+                var contentURL = $row.attr("href");
+                window.location.href = contentURL;
+            }
+        });
+
 </script>
 {% endblock %}

@@ -1,14 +1,14 @@
-<tr class="link-row action modal {{ row_state }} {{ type|lower }}"  
-    {% if is_individual %}
-        redirect="{{ handler }}{{ object.pk }}/"
+<tr {% if is_individual %}
+        class="link-row action redirect {{ row_state }} {{ type|lower }}"
+        href="{{ handler }}{{ object.pk }}/"
         title="Go to {{type}} {{object.pk}}"
     {% else %}{% if object.is_editable %}
+        class="link-row action modal-form {{ row_state }} {{ type|lower }}"        
         href="{{handler}}{{object.pk}}/edit/"
-        rel="#modal-popup"
         title="Edit {{object.pk}}"
     {% else %}{% if type == 'Data' %}
+        class="link-row action modal {{ row_state }} {{ type|lower }}"
         href="{% url lims-dataset-detail object.pk %}"
-        rel="#modal-popup"
         title="View dataset {{object.pk}}"
     {% endif %}{% endif %}{% endif %}>
     {% if request.user.is_superuser %} 
