@@ -72,7 +72,7 @@ function initForms(){
 
 function initModals(){
     // Prepare all modal popub including links for modal forms
-	jQuery("a.modal").fancybox({
+	jQuery(".modal").fancybox({
 		'titlePosition'		: 'inside',
 		'transitionIn'		: 'none',
 		'transitionOut'		: 'none',
@@ -80,7 +80,7 @@ function initModals(){
 		'titleShow'         : false
 	});
 	
-	jQuery("a.modal-ajax").fancybox({
+	jQuery(".modal-ajax").fancybox({
 		'titlePosition'		: 'inside',
 		'transitionIn'		: 'none',
 		'transitionOut'		: 'none',
@@ -89,7 +89,7 @@ function initModals(){
 		'type'              : 'ajax'
 	});
 	
-	jQuery("a.modal-inline").fancybox({
+	jQuery(".modal-inline").fancybox({
 		'titlePosition'		: 'inside',
 		'transitionIn'		: 'none',
 		'transitionOut'		: 'none',
@@ -97,7 +97,7 @@ function initModals(){
 		'type'              : 'inline'
 	});
 
-	jQuery("a.modal-iframe").fancybox({
+	jQuery(".modal-iframe").fancybox({
 		'width'				: '75%',
 		'height'			: '75%',
 		'autoScale'			: false,
@@ -107,7 +107,7 @@ function initModals(){
 		'type'				: 'iframe'
 	});
 	
-	jQuery("a.modal-image").fancybox({
+	jQuery(".modal-image").fancybox({
 		'overlayShow'	: false,
 		'transitionIn'	: 'elastic',
 		'transitionOut'	: 'elastic',
@@ -115,7 +115,7 @@ function initModals(){
 		'titlePosition'	: 'inside'
 	});
 	
-	jQuery("a.modal-flash").fancybox({
+	jQuery(".modal-flash").fancybox({
 		'titleShow'         : false,
 		'type'          : 'swf'
 	});
