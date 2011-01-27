@@ -1139,7 +1139,7 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
         
 @login_required
 @project_required
-def shipment_pdf(request, id):
+def shipment_pdf(request, id, format):
     """ """
     project = request.project
     try:
@@ -1160,7 +1160,10 @@ def shipment_pdf(request, id):
         # create a temporary file into which the LaTeX will be written
         temp_file = tempfile.mkstemp(dir=temp_dir, suffix='.tex')[1]
         # render and output the LaTeX into temap_file
-        tex = loader.render_to_string('lims/tex/shipment.tex', {'project': project, 'shipment' : shipment})
+        if format == 'pdf':
+            tex = loader.render_to_string('lims/tex/shipment.tex', {'project': project, 'shipment' : shipment})
+        elif format == 'label':
+            tex = loader.render_to_string('lims/tex/small_label.tex', {'project': project, 'shipment' : shipment})
         tex_file = open(temp_file, 'w')
         tex_file.write(tex)
         tex_file.close()

@@ -36,6 +36,13 @@
                 </a>
             </li>
         {% endif %}
+        {% if object.is_sendable %}
+            <li class="pdf-tool">
+                <a href="{{handler}}label/" class="">
+                    Labels
+                </a>
+            </li>
+        {% endif %}
         {% if object.is_xlsable %}
             <li class="template-tool">
                 <a href="{{handler}}xls/" class="">
