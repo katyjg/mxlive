@@ -41,17 +41,15 @@
         {% if crystals %}
             {% for crystal in crystals %}
             <!-- "odd" if loop_count % 2 == 1 else "even" -->
-	            <tr class="{% cycle 'odd' 'even'%} link-row modal"
+	            <tr class="{% cycle 'odd' 'even'%} link-row"
                     title="Go to Crystal {{crystal.pk}}">
 	            	<!-- checkbox for actions, only admin -->
 	            	{% if admin %}
             			<td><input type="checkbox" class="checkbox" name="crystal_chk" value="{{crystal.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
             		{% endif %}
-	            	<td class="modal"
-                        redirect="{% url lims-crystal-detail crystal.pk %}">{{ crystal.name }}</td>
+	            	<td><a href="{% url lims-crystal-detail crystal.pk %}">{{ crystal.name }}</a></td>
 	            	{% if admin %}
-	            		<td class="modal"
-                        redirect="{% url lims-crystal-detail crystal.pk %}">
+	            		<td>
 	            			{% if crystal.collect_status != Crystal.EXP_STATES.IGNORE %}
 	            				{{ crystal.get_collect_status_display }}
 	            			{% endif %}
@@ -66,31 +64,27 @@
 	            			
 	            		</td>
 	            	{% else %}
-	            		<td class="modal"
-                        redirect="{% url lims-crystal-detail crystal.pk %}">{{ crystal.get_status_display }}</td>
+	            		<td class="redirect"
+                        href="{% url lims-crystal-detail crystal.pk %}">{{ crystal.get_status_display }}</td>
 	            	{% endif %}
-	            	<td class="modal"
-                        redirect="{% url lims-crystal-detail crystal.pk %}">
+	            	<td>
                         {% if crystal.best_screening.pk %}
 	            			<a href="{% url lims-result-detail crystal.best_screening.pk %}" title="Go to Crystal Screening Report">{{ crystal.best_screening.score|color_score:2 }}</a>
                         {% endif %}
 	            	</td>
-	            	<td class="modal"
-                        redirect="{% url lims-crystal-detail crystal.pk %}">
+	            	<td>
                         {% if crystal.best_screening.data.pk %}
-                  			<a href="{% url lims-dataset-detail crystal.best_screening.data.pk %}" class="modal" rel="#modal-popup" title="View dataset images">{{ crystal.best_screening.data }}</a>
+                  			<a href="{% url lims-dataset-detail crystal.best_screening.data.pk %}" class="modal" title="View dataset images">{{ crystal.best_screening.data }}</a>
                         {% endif %}
 	            	</td>
-	            	<td class="modal"
-                        redirect="{% url lims-crystal-detail crystal.pk %}">
+	            	<td>
                         {% if crystal.best_collection.pk %}
    	            			<a href="{% url lims-result-detail crystal.best_collection.pk %}" title="Go to Data Processing Report">{{ crystal.best_collection.score|color_score:2 }}</a>
                         {% endif %}
 	            	</td>
-	            	<td class="modal"
-                        redirect="{% url lims-crystal-detail crystal.pk %}">
+	            	<td>
                         {% if crystal.best_collection.data.pk %}
-                 			<a href="{% url lims-dataset-detail crystal.best_collection.data.pk %}" class="modal" rel="#modal-popup" title="View dataset images">{{ crystal.best_collection.data }}</a>
+                 			<a href="{% url lims-dataset-detail crystal.best_collection.data.pk %}" class="modal" title="View dataset images">{{ crystal.best_collection.data }}</a>
                         {% endif %}
 	            	</td>
 	            	{% if not admin %}
@@ -102,8 +96,8 @@
             {% endfor %}
         {% else %}
             <tr>
-                <td colspan="20" align="center" style="padding: 3em; background: #fff; color: #999;">
-                    No crystals associated with this experiment
+                <td colspan="20" class="list-empty">
+                    ( No crystals associated with this experiment )
                 </td>
             </tr>
         {% endif %}

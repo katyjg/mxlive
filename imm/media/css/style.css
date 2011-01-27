@@ -1012,7 +1012,7 @@ tr.odd td
 	cursor:default;
 }
 
-.link-pointer
+.link-pointer, .redirect
 {
 	cursor:pointer;
 }

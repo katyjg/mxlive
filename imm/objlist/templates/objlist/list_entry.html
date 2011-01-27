@@ -38,7 +38,7 @@
     {% if not is_individual %}
         {% if object.is_deletable %}
             <td class="action link-cell">
-                <a href="{{ handler }}{{object.pk}}/delete/" rel="#modal-popup" class="action modal delete-tool" title="Delete"></a>
+                <a href="{{ handler }}{{object.pk}}/delete/" class="action modal-form delete-tool" title="Delete"></a>
             </td>
         {% endif %}
     {% endif %}

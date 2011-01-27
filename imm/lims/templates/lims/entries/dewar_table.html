@@ -54,27 +54,27 @@
         <tbody>
             {% if containers %}
             {% for container in containers %}
-                <tr class="{% cycle 'odd' 'even'%} link-row modal"
+                <tr class="{% cycle 'odd' 'even'%} link-row"
                     title="Go to Container {{container.pk}}">
-                    <td class="modal"
-                        redirect="{% url lims-container-detail container.pk %}"><div class="{{ container.json_dict.type }}"></div></td>
-                    <td class="modal"
-                        redirect="{% url lims-container-detail container.pk %}">{{ container.name }}</td>
-                    <td class="modal"
-                        redirect="{% url lims-container-detail container.pk %}">
+                    <td class="redirect"
+                        href="{% url lims-container-detail container.pk %}"><div class="{{ container.json_dict.type }}"></div></td>
+                    <td class="redirect"
+                        href="{% url lims-container-detail container.pk %}">{{ container.name }}</td>
+                    <td class="redirect"
+                        href="{% url lims-container-detail container.pk %}">
                         {% if container.code %}{{ container.code }}{% else %}Undefined{% endif %}
                     </td>
-                    <td class="modal"
-                        redirect="{% url lims-container-detail container.pk %}">{{ container.capacity }}</td>
-                    <td class="modal"
-                        redirect="{% url lims-container-detail container.pk %}">{{ container.num_crystals }}</td>
+                    <td class="redirect"
+                        href="{% url lims-container-detail container.pk %}">{{ container.capacity }}</td>
+                    <td class="redirect"
+                        href="{% url lims-container-detail container.pk %}">{{ container.num_crystals }}</td>
                     <td>
                         {% if not admin %}
                             <a class="remove"
                                rel="{% url lims-dewar-remove-container dewar.pk container.id %}"
                                href="#"
                                onclick="remove_item(this);"
-                               title="Remove container from dewar"><span class="remove"></span></a>
+                               title="Remove container from dewar"></a>
                         {% endif %}
                     </td>
                 </tr>
@@ -87,15 +87,3 @@
 </div>
 {% endifequal %}
 
-<script>
-	function remove_item(element) {
-		jQuery.ajax({
-            type: "POST",
-            url: element.rel,
-            data: "",
-            success: function() {
-                window.location.reload();
-            }
-        });
-    }
-</script>

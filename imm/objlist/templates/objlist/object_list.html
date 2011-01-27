@@ -61,4 +61,17 @@
     </form>
 {% endif %}
 
-{% include "lims/entries/popup.html" %}
+
+<script>
+
+    jQuery(".redirect").live("click", function() {    
+        // handles redirecting to individual object pages
+        if(jQuery(this).attr("href")) {
+            // fetch the contents of the href and rel attributes
+            var $row = jQuery(this);
+            var contentURL = $row.attr("href");
+            window.location.href = contentURL;
+        }
+    });
+
+</script>

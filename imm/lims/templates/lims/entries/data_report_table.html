@@ -16,13 +16,13 @@
             {% for data in datasets %}
             <!-- "odd" if loop_count % 2 == 1 else "even" -->
                 <tr class="{% cycle 'odd' 'even'%}">
-                	<td><a href="{% url lims-dataset-detail data.pk %}" class="modal" rel="#modal-popup">{{ data.name }}</a></td>
+                	<td><a href="{% url lims-dataset-detail data.pk %}" class="modal" >{{ data.name }}</a></td>
                 	<td>{{ data.num_frames }}</td>
                 	<td>{{ data.delta_angle }}</td>
                 	<td>{{ data.wavelength }}</td>
            	{% endfor %}
         {% else %}
-            <tr><td colspan="20" align="center" style="padding: 3em; background: #fff; color: #999;">No datasets collected for this crystal</td></tr>
+            <tr><td colspan="20" align="center" class="list-empty">(No datasets collected for this crystal)</td></tr>
         {% endif %}
     </tbody>
 </table>
@@ -50,7 +50,7 @@
                 	<td>{{ result.completeness }}</td>
            	{% endfor %}
         {% else %}
-            <tr><td colspan="20" align="center" style="padding: 3em; background: #fff; color: #999;">No reports available for this crystal</td></tr>
+            <tr><td colspan="20" align="center" class="list-empty">(No reports available for this crystal)</td></tr>
         {% endif %}
     </tbody>
 </table>
