@@ -8,14 +8,14 @@
     {% if request.user.is_staff %}
         {% if object.is_receivable %}
             <li class="receive-tool">
-                <a href="{{ handler }}receive/?title=Recieve%20Shipment&tracking_code=" rel="#modal-popup" class="action modal">
+                <a href="{{ handler }}receive/?title=Recieve%20Shipment&tracking_code="  class="action modal-form">
                     Receive
                 </a>
             </li>
         {% endif %}
         {% if object.is_returnable %}
             <li class="return-tool">
-                <a href="{{handler}}return/?title=Return%20Shipment" rel="#modal-popup" class="action modal">
+                <a href="{{handler}}return/?title=Return%20Shipment"  class="action modal-form">
                     Return
                 </a>
             </li>
@@ -24,14 +24,14 @@
     {% else %}
         {% if object.is_sendable %}
             <li class="send-tool">
-                <a href="{{handler}}send/?title=Send%20Shipment" rel="#modal-popup" class="action modal">
+                <a href="{{handler}}send/?title=Send%20Shipment"  class="action modal-form">
                     Send
                 </a>
             </li>
         {% endif %}
         {% if object.is_pdfable %}
             <li class="pdf-tool">
-                <a href="{{handler}}pdf/" class="">
+                <a href="{{handler}}pdf/">
                     PDF
                 </a>
             </li>
@@ -45,35 +45,35 @@
         {% endif %}
         {% if object.is_xlsable %}
             <li class="template-tool">
-                <a href="{{handler}}xls/" class="">
+                <a href="{{handler}}xls/">
                     XLS
                 </a>
             </li>
         {% endif %}
         {% if object.is_closable %}
             <li class="close-tool">
-                <a href="{{handler}}close/" rel="#close-object" class="action modal">
+                <a href="{{handler}}close/" class="action modal-form">
                     Close
                 </a>
             </li>
         {% endif %}
         {% comment %}
         <li class="clone-tool">
-            <a href="{{ handler }}new/?clone={{object.id}}" class="action modal">
+            <a href="{{ handler }}new/?clone={{object.id}}" class="action modal-form">
                 Clone
             </a>
         </li>
         {% endcomment %}
         {% if object.is_editable %}
             <li class="edit-tool">
-                <a href="{{ handler }}edit/" rel="#modal-popup" class="action modal">
+                <a href="{{ handler }}edit/"  class="action modal-form">
                     Edit
                 </a>
             </li>
         {% endif %}
         {% if object.is_deletable %}
             <li class="delete-tool">
-                <a href="{{ handler }}delete/" rel="#modal-popup" class="action modal">
+                <a href="{{ handler }}delete/"  class="action modal-form">
                     Delete
                 </a>
             </li>

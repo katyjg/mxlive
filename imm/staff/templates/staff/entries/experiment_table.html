@@ -16,9 +16,9 @@
         <tbody>
         {% if experiments %}
             {% for experiment in experiments %}
-                <tr class="{% cycle 'odd' 'even'%} link-row modal"
+                <tr class="{% cycle 'odd' 'even'%} link-row redirect"
                     title="Go to Experiment {{experiment.name}}"
-                    redirect="{% url lims-experiment-detail experiment.pk %}">
+                    href="{% url lims-experiment-detail experiment.pk %}">
                     <td>{{ experiment.json_dict.project_name }}</td>
                     <td>{{ experiment.name }}</td>
                     <td>{{ experiment.json_dict.type }}</td>
@@ -28,7 +28,7 @@
                 </tr>
             {% endfor %}
         {% else %}                
-                <tr><td colspan="20" align="center" style="padding: 3em; background: #fff; color: #999;">No experiments associated with this runlist</td></tr>
+                <tr><td colspan="20" align="center" class="list-empty">(No experiments associated with this runlist)</td></tr>
         {% endif %}           
         </tbody>
     </table>

@@ -355,9 +355,8 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
 
     request.user.message_set.create(message = message)
     return render_to_response('lims/refresh.html', {
-        'context': RequestContext(request), 
         'info': form_info,
-        })
+        }, context_instance=RequestContext(request))
     
 
 @login_required
@@ -425,7 +424,7 @@ def add_multiple_existing(request, src_id, dest_id, obj_id, parent_model, model,
         return render_to_response('objforms/form_base.html', {
             'info': form_info, 
             'form': frm, 
-            })
+            }, context_instance=RequestContext(request))
         
 @login_required
 @manager_required
@@ -441,8 +440,7 @@ def object_detail(request, id, model, template):
     return render_to_response(template, {
         'object': obj,
         'handler' : request.path
-        },
-        context_instance=RequestContext(request))
+        }, context_instance=RequestContext(request))
 
 @login_required
 @manager_required
@@ -463,8 +461,7 @@ def dewar_object_detail(request, id, model, template, admin=False):
         'handler': request.path,
         'containers': containers,
         'admin': admin
-        }, 
-        context_instance=RequestContext(request))
+        }, context_instance=RequestContext(request))
 
 @login_required
 @manager_required
@@ -487,8 +484,7 @@ def crystal_object_detail(request, id, model, template, admin=False):
         'datasets': datasets,
         'results': results,
         'admin': admin
-        }, 
-        context_instance=RequestContext(request))
+        }, context_instance=RequestContext(request))
     
 @login_required
 @manager_required
@@ -513,8 +509,7 @@ def experiment_object_detail(request, id, model, template, admin=False):
         'datasets': datasets,
         'results': results,
         'admin': admin
-        }, 
-        context_instance=RequestContext(request))
+        }, context_instance=RequestContext(request))
 
 @login_required
 @project_required
@@ -550,8 +545,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
             return render_to_response(template, {
                 'info': form_info,
                 'form': frm, 
-                }, 
-                context_instance=RequestContext(request))
+                }, context_instance=RequestContext(request))
     else:
         initial = {'project': project.pk}
         initial.update(dict(request.GET.items()))      
@@ -578,8 +572,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
         return render_to_response(template, {
             'info': form_info, 
             'form': frm, 
-            }, 
-            context_instance=RequestContext(request))
+            }, context_instance=RequestContext(request))
 
 
 @login_required
@@ -647,7 +640,7 @@ def add_new_object(request, id, model, form, field):
 
 @login_required
 @manager_required
-def object_list(request, model, template='objlist/object_list.html', link=True, can_add=False, can_upload=False, can_receive=False, can_prioritize=False, is_individual=False):
+def object_list(request, model, template='objlist/object_list.html', link=False, modal_link=False, modal_edit=False, delete_inline=False, can_add=False, can_prioritize=False):
     """
     A generic view which displays a list of objects of type ``model`` owned by
     the current users project. The list is displayed using the template
@@ -668,12 +661,12 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
     else:
         logs = ActivityLog.objects.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]
     return render_to_response(template, {'ol': ol, 
-                                         'link': link, 
+                                         'link': link,
+                                         'modal_link': modal_link,
+                                         'modal_edit': modal_edit,
+                                         'delete_inline': delete_inline,
                                          'can_add': can_add, 
-                                         'can_upload': can_upload, 
-                                         'can_receive': can_receive, 
                                          'can_prioritize': can_prioritize,
-                                         'is_individual': is_individual,
                                          'handler': request.path,
                                          'logs': logs},                                         
         context_instance=RequestContext(request)
@@ -870,7 +863,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
             return render_to_response(template, {
             'info': form_info, 
             'form' : frm, 
-            })
+            }, context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=dict(request.GET.items())) # casting to a dict pulls out first list item in each value list
         if request.project:
@@ -878,7 +871,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm,
-        })
+        }, context_instance=RequestContext(request))
        
        
 @login_required
@@ -972,9 +965,8 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
 
     request.user.message_set.create(message = message)
     return render_to_response('lims/refresh.html', {
-        'context': RequestContext(request), 
         'info': form_info,
-        })
+        }, context_instance=RequestContext(request))
 
 @login_required
 @project_required
@@ -1028,7 +1020,7 @@ def remove_object_old(request, id, model, field):
             'info': form_info, 
             'id': obj.pk,
             'confirm_action': 'Remove %s' % object_type,
-            },)
+            },  context_instance=RequestContext(request))
         
         
 @login_required
@@ -1074,7 +1066,7 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
             return render_to_response(template, {
             'info': form_info, 
             'form' : frm, 
-            })
+            }, context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=None) 
         if request.project:
@@ -1083,7 +1075,7 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
         'info': form_info, 
         'form' : frm, 
         'save_label': 'Delete',
-        })
+        }, context_instance=RequestContext(request))
 
 @login_required
 @project_required
@@ -1135,7 +1127,7 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
         'info': form_info, 
         'form' : frm, 
         'save_label': 'Delete',
-        })
+        }, context_instance=RequestContext(request))
         
 @login_required
 @project_required

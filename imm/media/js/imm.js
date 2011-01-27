@@ -8,6 +8,19 @@ function initBrowser(){
     });
 }
 
+function initRedirects(){
+    jQuery(".redirect").live("click", function() {    
+        // any element with ".redirect" class will act as a link when clicked,
+        // and go to the link specified in the href attribute
+        if(jQuery(this).attr("href")) {
+            // fetch the contents of the href
+            var $row = jQuery(this);
+            var contentURL = $row.attr("href");
+            window.location.href = contentURL;
+        }
+    });
+}
+
 function initForms(){
     
     // Transform all multiple select fields
@@ -154,4 +167,14 @@ function initModals(){
     });    
 }
     
+function remove_item(element) {
+	jQuery.ajax({
+        type: "POST",
+        url: element.rel,
+        data: "",
+        success: function() {
+            window.location.reload();
+        }
+    });
+}
 

@@ -35,7 +35,7 @@
 		<li>Pixel Size: {{ data.pixel_size }}</li>
 		<li>Two Theta: {{ data.two_theta }}</li>
 		{% for result in results %}
-			<li>Result: <a href="{% url lims-result-detail result.pk %}" class="modal" rel="#view-result">{{ result.name }} ({{ result.score|floatformat:2 }})</a></li>
+			<li>Result: <a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|floatformat:2 }})</a></li>
 		{% endfor %}
 	</ul>
 	<ul>

@@ -26,15 +26,13 @@
 {% endifequal %}{% ifequal object.json_dict.type "Uni-Puck" %}
     {% include "lims/entries/unipuck.html" %}
 {% endifequal %}
-
-{% include "lims/entries/popup.html" %}
 {% endblock %}
 
 {% block sidebar %}
 	{% if not user.is_superuser %}
 		<div id="crystals" class="widget droppable-remove parent-stop" data="{% url lims-crystal-container-list %}">
 		   <div class="widget-title">
-		   <span>Crystals</span><a href="{% url lims-crystal-new %}" class="modal add-action" title="Add New Crystal" rel="#modal-popup"><img src="/img/small-add-icon.png" /></a>
+		   <span>Crystals</span><a href="{% url lims-crystal-new %}" class="modal-form add-action" title="Add New Crystal" ><img src="/img/small-add-icon.png" /></a>
 		   </div>
 		    <ul>
 		        <li><a href="#">Content Not Loaded.</a></li>

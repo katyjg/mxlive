@@ -1,42 +1,42 @@
 <ul class="toolbar">
     {% if object.is_loadable %}
         <li>
-            <a href="{{ handler }}load/" rel="#modal-popup" class="action modal edit-tool">
+            <a href="{{ handler }}load/" class="action modal-form edit-tool">
                 Load
             </a>
         </li>
     {% endif %}
     {% if object.is_unloadable %}
         <li>
-            <a href="{{ handler }}unload/" rel="#modal-popup" class="action modal edit-tool">
+            <a href="{{ handler }}unload/"  class="action modal-form edit-tool">
                 Unload
             </a>
         </li>
     {% endif %}
     {% if object.is_acceptable %}
         <li>
-            <a href="{{ handler }}accept/" rel="#modal-popup" class="action modal edit-tool">
+            <a href="{{ handler }}accept/"  class="action modal-form edit-tool">
                 Accept
             </a>
         </li>
     {% endif %}
     {% if object.is_rejectable %}
         <li>
-            <a href="{{ handler }}reject/" rel="#modal-popup" class="action modal edit-tool">
+            <a href="{{ handler }}reject/"  class="action modal-form edit-tool">
                 Reject
             </a>
         </li>
     {% endif %}
     {% if object.is_editable %}
         <li class="edit-tool">
-            <a href="{{ handler }}edit/" rel="#modal-popup" class="action modal edit-tool">
+            <a href="{{ handler }}edit/"  class="action modal-form edit-tool">
                 Edit
             </a>
         </li>
     {% endif %}
     {% if object.is_deletable %}
         <li class="delete-tool">
-            <a href="{{ handler }}delete/" rel="#modal-popup" class="action modal edit-tool">
+            <a href="{{ handler }}delete/"  class="action modal-form edit-tool">
                 Delete
             </a>
         </li>

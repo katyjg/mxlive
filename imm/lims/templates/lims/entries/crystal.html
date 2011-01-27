@@ -46,9 +46,6 @@
 {% endif %}
 <div class="clear"></div>
 {% include "lims/entries/data_report_table.html" %}
-
-{% include "lims/entries/popup.html" %}
-
 {% endblock %}
 
 {% block sidebar %}
@@ -56,7 +53,7 @@
         <div id="cocktails" class="widget droppable-remove parent-stop" data="{% url lims-cocktail-basic-list %}">
 	        <div class="widget-title">
 	            <span>Cocktails</span>
-                <a href="{% url lims-cocktail-new %}" class="modal add-action" title="Add New Cocktail" rel="#modal-popup">
+                <a href="{% url lims-cocktail-new %}" class="modal-form add-action" title="Add New Cocktail">
                     <img src="/img/small-add-icon.png" />
                 </a>
 	        </div>
@@ -67,7 +64,7 @@
         <div id="crystalforms" class="widget droppable droppable-remove parent-stop" accept="crystal_form" data="{% url lims-crystalform-basic-list %}">
 	        <div class="widget-title">
 	            <span>Crystal Forms</span>
-                <a href="{% url lims-crystalform-new %}" class="modal add-action" title="Add Crystal Form" rel="#modal-popup">
+                <a href="{% url lims-crystalform-new %}" class="modal-form add-action" title="Add Crystal Form" >
                     <img src="/img/small-add-icon.png" />
                 </a>
 	        </div>

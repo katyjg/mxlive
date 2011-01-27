@@ -3,6 +3,6 @@
     {# had a href in the below code. This directed to the style-less page, so it was removed. #}
     {# should likely point to an ajax style popup #} 
     	<li id="{{object.id}}" class="draggable-link-parent {{ type }}" rel="{{ handler }}{{object.pk}}" ondragstart="setupDragAndDrop()">
-    		<a href="{{ handler }}{{object.pk}}/edit/" rel="#modal-popup" class="{{ type }} action modal">{{ object.name }}</a>
+    		<a href="{{ handler }}{{object.pk}}/edit/" class="{{ type }} action modal-form">{{ object.name }}</a>
     	</li>
 {% endfor %}
