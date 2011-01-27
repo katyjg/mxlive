@@ -391,4 +391,16 @@ class StrategyRejectForm(objforms.forms.OrderedForm):
         
     def get_message(self):
         return "Are you sure you want to reject this Strategy?"
+
+class FeedbackForm(forms.ModelForm):
+    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
+    contact_name = objforms.widgets.LargeCharField(label='Name (optional)', required=False)
+    contact = forms.EmailField(widget=objforms.widgets.LargeInput, label="Email Address (optional)", required=False)
+    category = forms.ChoiceField(choices=Feedback.TYPE.get_choices(), widget=objforms.widgets.LargeSelect)
+    message = objforms.widgets.LargeTextField(required=True)
+    class Meta:
+        model = Feedback
+        fields = ('project','contact_name','contact','category','message')
+    def restrict_by(self, field_name, id): 
+        pass
     

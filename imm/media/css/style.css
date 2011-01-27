@@ -455,7 +455,7 @@ td.Cane {
     width: 15px;
     padding-left: 10px;
 }
-td.occupied {
+.occupied {
     background: #bee0bb;
 }
 td.Cassette {
@@ -604,15 +604,22 @@ table.cane-detail td {
 #right.runlist-detail {
     margin-right: 0px;
 }
-
-.dewar-detail li a, .runlist-detail li a, .runlist-cassette li a
+.runlist-detail ul li.Uni-Puck:hover {
+    background: url('/img/container-uni-puck-sm.png') no-repeat 5px center;
+}
+.dewar-detail li a
 {
     display: inline;
     line-height: 45px;
     height: 45px;
     width: 60%;
 }
-
+.runlist-cassette li a, .runlist-detail li a
+{
+    display: inline;
+    line-height: 35px;
+    height: 35px;
+}
 .dewar-detail li a.remove, .runlist-detail li a.remove
 {
     display: inline;

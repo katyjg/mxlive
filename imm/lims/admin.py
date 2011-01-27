@@ -114,6 +114,14 @@ class StrategyAdmin(admin.ModelAdmin):
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Strategy, StrategyAdmin)
 
+class FeedbackAdmin(admin.ModelAdmin):
+    ordering = ['-created']
+    search_fields = ['project','message', 'contact_name']
+    list_filter = ['created', 'category']
+    list_display = ('project', 'contact_name', 'contact', 'category', 'message')
+    list_per_page = ITEMS_PER_PAGE
+admin.site.register(Feedback, FeedbackAdmin)
+
 admin.site.register(Project)
 admin.site.register(Carrier)
 admin.site.register(Session)

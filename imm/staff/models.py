@@ -79,90 +79,62 @@ class AutomounterLayout(models.Model):
                     self.left = container.pk
                     self.save()
                     return True
+                elif self.left == ['','','','']:
+                    self.left = container.pk
+                    self.save()
+                    return True
                 return False
             if location[0] == "M":
-                if self.middle == None:
+                if self.middle == None or self.middle == ['','','','']:
                     self.middle = container.pk
                     self.save()
                     return True
                 return False
             if location[0] == "R":
-                if self.right == None:
+                if self.right == None or self.right == ['','','','']:
                     self.right = container.pk
                     self.save()
                     return True
                 return False
         elif container.kind == Container.TYPE.UNI_PUCK:
+            #define which port to load into
             if location[0] == "L":
-                if self.left != None:
-                    if isinstance(self.left, int):
-                        return False
-                else:
-                    self.left = ['','','','']
-                if location[1] == "A":
-                    self.left[0] = container.pk
-                    self.save()
-                    return True
-                if location[1] == "B":
-                    self.left[1] = container.pk
-                    self.save()
-                    return True
-                if location[1] == "C":
-                    self.left[2] = container.pk
-                    self.save()
-                    return True
-                if location[1] == "D":
-                    self.left[3] = container.pk
-                    self.save()
-                    return True
-                return False
-            if location[0] == "M":
-                if self.middle != None:
-                    if isinstance(self.middle, int):
-                        return False
-                else:
-                    self.middle = ['','','','']
-                if location[1] == "A":
-                    self.middle[0] = container.pk
-                    self.save()
-                    return True
-                if location[1] == "B":
-                    self.middle[1] = container.pk
-                    self.save()
-                    return True
-                if location[1] == "C":
-                    self.middle[2] = container.pk
-                    self.save()
-                    return True
-                if location[1] == "D":
-                    self.middle[3] = container.pk
-                    self.save()
-                    return True
-                return False
-            if location[0] == "R":
-                if self.right != None:
-                    if isinstance(self.right, int):
-                        return False
-                else:
-                    self.right = ['','','','']
-                if location[1] == "A":
-                    self.right[0] = container.pk
-                    self.save()
-                    return True
-                if location[1] == "B":
-                    self.right[1] = container.pk
-                    self.save()
-                    return True
-                if location[1] == "C":
-                    self.right[2] = container.pk
-                    self.save()
-                    return True
-                if location[1] == "D":
-                    self.right[3] = container.pk
-                    self.save()
-                    return True
-                return False
-        return True
+                port = self.left
+            elif location[0] == "M":
+                port = self.middle
+            elif location[0] == "R":
+                port = self.right
+
+            #define the position in the port
+            if location[1] == "A":
+                position = 0
+            elif location[1] == "B":
+                position = 1
+            elif location[1] == "C":
+                position = 2
+            elif location[1] == "D":
+                position = 3
+
+            #check if it's empty
+            if port != None:
+                if isinstance(port, int):
+                    return False
+            elif port == None:
+                port = ['','','','']
+            
+            #make the change
+            port[position] = container.pk
+            if location[0] == "L":
+                self.left = port
+            elif location[0] == "M":
+                self.middle = port
+            elif location[0] == "R":
+                self.right = port            
+
+            self.save()
+            return True
+        return False
+
 
     def add_container(self, container):
         # check container type
@@ -233,10 +205,10 @@ class AutomounterLayout(models.Model):
             if type(check_list) == type(list()):
                 # iterate through the list.
                 if container.pk in check_list:
-                    check_list.remove(container.pk)
-                    self.left = check_list
-                    self.save()
-                    return True
+                    for i in (i for i,x in enumerate(check_list) if x == container.pk):
+                        self.left[i] = ''
+                        self.save()
+                        return True
             elif check_list == container.pk:
                 check_list = None
                 self.left = check_list
@@ -249,10 +221,10 @@ class AutomounterLayout(models.Model):
             if type(check_list) == type(list()):
                 # iterate through the list.
                 if container.pk in check_list:
-                    check_list.remove(container.pk)
-                    self.middle = check_list
-                    self.save()
-                    return True
+                    for i in (i for i,x in enumerate(check_list) if x == container.pk):
+                        self.middle[i] = ''
+                        self.save()
+                        return True
             elif check_list == container.pk:
                 check_list = None
                 self.middle = check_list
@@ -264,10 +236,10 @@ class AutomounterLayout(models.Model):
             if type(check_list) == type(list()):
                 # iterate through the list.
                 if container.pk in check_list:
-                    check_list.remove(container.pk)
-                    self.right = check_list
-                    self.save()
-                    return True
+                    for i in (i for i,x in enumerate(check_list) if x == container.pk):
+                        self.right[i] = ''
+                        self.save()
+                        return True
             elif check_list == container.pk:
                 check_list = None
                 self.right = check_list

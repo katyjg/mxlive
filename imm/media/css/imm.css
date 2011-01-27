@@ -38,6 +38,17 @@ img { border: 0; }
     width: 900px !important;
 }
 
+div.feedback {
+    width: 250px;
+    min-height: 100px;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+}
+
+h3.feedback {
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 5px;
+}
 
 .message-content {
   border: 1px solid #999;
