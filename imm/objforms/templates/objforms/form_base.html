@@ -1,4 +1,5 @@
 {% load objforms %}
+<div class="objform-container">
 <div class="heading">
     <h2>{{info.title}}</h2>
 </div>
@@ -16,4 +17,8 @@
     {% show_form form info %}
 {% endblock %}
 {% endif %}
+</div>
+<script>
+    initForms(); //initialize form and transform any select boxes into multi-select widgets    
+</script>
 

@@ -67,8 +67,91 @@ function initForms(){
     
     // make sure we do not initialize a form twice
     jQuery('form.objform_raw').addClass('objform').removeClass('objform_raw');
-    
-    
+       
 }
 
+function initModals(){
+    // Prepare all modal popub including links for modal forms
+	jQuery("a.modal").fancybox({
+		'titlePosition'		: 'inside',
+		'transitionIn'		: 'none',
+		'transitionOut'		: 'none',
+		'scrolling'         : 'no',
+		'titleShow'         : false
+	});
+	
+	jQuery("a.modal-ajax").fancybox({
+		'titlePosition'		: 'inside',
+		'transitionIn'		: 'none',
+		'transitionOut'		: 'none',
+		'scrolling'         : 'no',
+		'titleShow'         : false,
+		'type'              : 'ajax'
+	});
+	
+	jQuery("a.modal-inline").fancybox({
+		'titlePosition'		: 'inside',
+		'transitionIn'		: 'none',
+		'transitionOut'		: 'none',
+		'titleShow'         : false,
+		'type'              : 'inline'
+	});
+
+	jQuery("a.modal-iframe").fancybox({
+		'width'				: '75%',
+		'height'			: '75%',
+		'autoScale'			: false,
+		'transitionIn'		: 'none',
+		'transitionOut'		: 'none',
+		'titleShow'         : false,
+		'type'				: 'iframe'
+	});
+	
+	jQuery("a.modal-image").fancybox({
+		'overlayShow'	: false,
+		'transitionIn'	: 'elastic',
+		'transitionOut'	: 'elastic',
+		'type'          : 'image',
+		'titlePosition'	: 'inside'
+	});
+	
+	jQuery("a.modal-flash").fancybox({
+		'titleShow'         : false,
+		'type'          : 'swf'
+	});
+
+    jQuery(".modal-form").fancybox({
+	    'scrolling'         : 'no',		
+	    'titleShow'         : false,
+         onComplete:function (){
+            //grab this function so that we can pass it back to
+            //`onComplete` of the new fancybox we're going to create
+            var func = arguments.callee;
+
+            //bind the submit of our new form
+            jQuery('.objform-container form').submit(function(){
+                //this is strictly cosmetic
+                jQuery.fancybox.showActivity();
+
+                var data = $(this).serialize();
+                var url = $(this).attr('action')
+
+                //post to the server and when we get a response,
+                //draw a new fancybox, and run this function on completion
+                //so that we can bind the form and create a new fancybox on submit
+                jQuery.post(url, data, function(msg){
+                    var error = msg.indexOf("error") > -1; // given an error there will be an error string present
+                    if(error) {
+                        jQuery.fancybox({content:msg,onComplete:func,scrolling:'no',titleShow:false});
+                    } else {
+                        if(jQuery("input.default").attr('value') == 'Delete') { history.go(-1); }
+                        else { window.location.reload(); }
+                    }
+                });
+                return false;
+            });
+        }
+    });    
+}
+    
 
