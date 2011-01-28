@@ -1,12 +1,20 @@
 import logging
+import subprocess
+import tempfile
+import os
+import shutil
+import sys
+import xlrd
+from shutil import copyfile
 
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 
 from django.conf import settings
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.template import loader
 from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
@@ -31,7 +39,7 @@ from imm.lims.models import Feedback
 from imm.staff.models import Runlist
 from imm.staff.models import AutomounterLayout
 from imm.objlist.views import ObjectList
-from imm.lims.models import Container, Experiment
+from imm.lims.models import Container, Experiment, Shipment
 
 from jsonrpc import jsonrpc_method
 from jsonrpc.exceptions import InvalidRequestError
@@ -115,7 +123,76 @@ def receive_shipment(request, model, form, template='objforms/form_base.html', a
         'info': form_info, 
         'form' : frm, 
         }, context_instance=RequestContext(request))
+       
+
+@login_required
+def shipment_pdf(request, id, format):
+    """ """
+    try:
+        shipment = Shipment.objects.get(id=id)
+    except:
+        raise Http404
+
+    if request.user.is_superuser:
+        project = shipment.project
+    else:
+        raise Http404
+
+    # create a temporary directory
+    temp_dir = tempfile.mkdtemp()
+
+    try:
+    
+        # configure an HttpResponse so that it has the mimetype and attachment name set correctly
+        response = HttpResponse(mimetype='application/pdf')
+        filename = ('%s-%s.pdf' % (project.name, shipment.label)).replace(' ', '_')
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
         
+        if os.path.exists('media/img/clslogo_print.eps'):
+            copyfile('media/img/clslogo_print.eps', '%s/clslogo_print.eps' % temp_dir)
+            copyfile('media/img/clslogo_print.pdf', '%s/clslogo_print.pdf' % temp_dir)
+            copyfile('media/img/clslogo_print.pdf', '%s/clslogo_print.png' % temp_dir)
+            copyfile('media/img/fragile_up.pdf', '%s/fragile_up.pdf' % temp_dir)
+        # create a temporary file into which the LaTeX will be written
+        temp_file = tempfile.mkstemp(dir=temp_dir, suffix='.tex')[1]
+        # render and output the LaTeX into temap_file
+        tex = loader.render_to_string('lims/tex/return_labels.tex', {'project': project, 'shipment' : shipment})
+        tex_file = open(temp_file, 'w')
+        tex_file.write(tex)
+        tex_file.close()
+        
+        # the arg for generate.sh is simply the .tex filename minus the .tex
+        arg = os.path.basename(temp_file).replace('.tex', '')
+        devnull = file('/dev/null', 'rw')
+        stdout = sys.stdout
+        stderr = sys.stderr
+        if not settings.DEBUG:
+            stdout = devnull
+            stderr = devnull
+        subprocess.call(['/bin/bash', settings.TEX_TOOLS_DIR + '/ps4pdf.sh', arg], 
+                        env={'TEXINPUTS' : '.:' + settings.TEX_TOOLS_DIR + ':',
+                             'PATH' : settings.TEX_BIN_PATH},
+                        cwd=temp_dir,
+                        #stdout=stdout.fileno(),
+                        #stderr=stderr.fileno(),
+                        #stdin=devnull
+                        )
+        
+        # open the resulting .pdf and write it out to the response/browser
+        pdf_file = open(temp_file.replace('.tex', '.pdf'), 'r')
+        pdf = pdf_file.read()
+        pdf_file.close()
+        response.write(pdf)
+        
+        # return the response
+        return response
+        
+    finally:
+        
+        if not settings.DEBUG:
+            # remove the tempfiles
+            shutil.rmtree(temp_dir)
+ 
 @login_required
 @manager_required
 def runlist_object_list(request, model, form, parent_model=None, link_field=None, template='objlist/object_list.html', 

@@ -20,9 +20,10 @@ class ProjectForm(objforms.forms.OrderedForm):
     organisation = objforms.widgets.LargeCharField(required=True)
     department = objforms.widgets.LargeCharField(required=False)
     address = objforms.widgets.LargeCharField(required=True)
-    city = forms.CharField(widget=objforms.widgets.LeftThirdInput, required=True)
-    postal_code = forms.CharField(widget=objforms.widgets.MiddleThirdInput, required=True)
-    country = forms.CharField(widget=objforms.widgets.RightThirdInput, required=True)
+    city = forms.CharField(widget=objforms.widgets.LeftHalfInput, required=True)
+    province = forms.CharField(widget=objforms.widgets.RightHalfInput, required=True)
+    postal_code = forms.CharField(widget=objforms.widgets.LeftHalfInput, required=True)
+    country = forms.CharField(widget=objforms.widgets.RightHalfInput, required=True)
     contact_phone = forms.CharField(widget=objforms.widgets.LeftHalfInput, required=True)
     contact_fax =forms.CharField(widget=objforms.widgets.RightHalfInput, required=False)
     updated = forms.CharField(widget=forms.HiddenInput())
@@ -31,7 +32,7 @@ class ProjectForm(objforms.forms.OrderedForm):
         model = Project
         fields = ('contact_person','contact_email',
                   'carrier','account_number', 'organisation', 'department','address',
-                  'city', 'postal_code','country','contact_phone','contact_fax','updated')
+                  'city', 'province','postal_code','country','contact_phone','contact_fax','updated')
                   
     def clean_updated(self):
         """

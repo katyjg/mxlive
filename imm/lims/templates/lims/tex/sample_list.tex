@@ -1,0 +1,103 @@
+{% load tex %}
+\documentclass[6pt]{report}
+\usepackage{ps4pdf}
+\PSforPDF{
+\usepackage{pst-barcode}
+}
+\usepackage{graphicx}
+\usepackage{xcolor,colortbl}
+\oddsidemargin -0.25in 
+\marginparwidth 0pt \marginparsep 0pt
+\topmargin -0.5in \headsep 0pt
+\headheight 0pt
+\textheight 297mm
+\textwidth  6.8in
+\addtolength{\fboxsep}{0.2cm}
+\renewcommand{\arraystretch}{1.5}
+\begin{document}
+
+\hspace{-0.25in}
+\includegraphics[height=0.5in,width=\textwidth,page=1]{clslogo_print.pdf}
+
+\small
+\hspace{-0.25in}
+\begin{tabular}{p{0.04\textwidth}|p{0.07\textwidth}|p{0.05\textwidth}|p{0.1\textwidth}|p{0.05\textwidth}|p{0.05\textwidth}|p{0.05\textwidth}|p{0.05\textwidth}|p{0.04\textwidth}|p{0.28\textwidth}}
+
+\rowcolor[gray]{.9} \multicolumn{4}{c|}{\cellcolor[gray]{.9}Experiment Parameters} & \multicolumn{5}{c|}{\cellcolor[gray]{.9}Desired Values} & \\ 
+
+\rowcolor[gray]{.8} Priority & Group & Type & Plan & Edge & Energy & Total Angle & Delta & Res. & Comments \\ \hline 
+
+{% for exp in experiments %}
+\hline
+{{ exp.priority|texsafe|default:"" }}&
+{{ exp.name|texsafe|default:"" }}&
+{{ exp.get_kind_display|texsafe|default:"" }}&
+{{ exp.get_plan_display|texsafe|default:"" }}&
+{{ exp.absorption_edge|texsafe|default:"" }}&
+{{ exp.energy|texsafe|default:"" }}&
+{{ exp.total_angle|texsafe|default:"" }}&
+{{ exp.delta_angle|texsafe|default:"" }}&
+{{ exp.resolution|texsafe|default:"" }}&
+{{ exp.comments }} \\ \hline
+
+ & \multicolumn{9}{l}{
+\begin{tabular}{p{0.7in}p{0.7in}p{0.7in}p{0.7in}p{0.7in}p{1.8in}}
+\rowcolor[gray]{.9}Crystal & Priority & Container & Unit Cell & Spacegroup & Comments \\
+{% for xtal in crystals %}{% ifequal xtal.experiment exp %}{{ xtal.name|texsafe|default:"" }}&
+{{ xtal.priority|texsafe|default:"" }}&
+{{ xtal.container|texsafe|default:"" }} ({{ xtal.container_location|texsafe|default:"" }}{% ifequal xtal.container 'Cane' %} from bottom{% endifequal %})&
+{% if xtal.crystal_form %}{{ xtal.crystal_form.cell_a|texsafe|default:"" }}, {{ xtal.crystal_form.cell_b|texsafe|default:"" }}, {{ xtal.crystal_form.cell_c|texsafe|default:"" }}{% endif %}&
+{{ xtal.crystal_form.space_group|texsafe|default:"" }}&
+{{ xtal.comments|texsafe|default:"" }} \\{% endifequal %}{% endfor %}
+\end{tabular}
+}\\
+{% endfor %}
+
+
+\end{tabular}
+
+	\section*{Project Details}
+	
+	\begin{tabular}{ll}
+		Username: & {{ project.user.username|texsafe|default:"" }} \\
+		Name: & {{ project.name|texsafe|default:"" }} \\
+		Department: & {{ project.department|texsafe|default:"" }} \\
+		Organization: & {{ project.organisation|texsafe|default:"" }} \\
+		Address: & {{ project.address|texsafe|default:"" }} \\
+		City: & {{ project.city|texsafe|default:"" }} \\
+		Postal Code: & {{ project.postal_code|texsafe|default:"" }} \\
+		Country: & {{ project.country|texsafe|default:"" }} \\
+		Phone: & {{ project.contact_phone|texsafe|default:"" }} \\
+		Fax: & {{ project.contact_fax|texsafe|default:"" }} \\
+	\end{tabular}
+
+	\section*{Shipment Details}
+
+	\begin{tabular}{ll}
+		Shipment Label: & {{ shipment.label|texsafe|default:"" }} \\
+		Tracking Code: & {{ shipment.tracking_code|texsafe|default:"" }} \\
+		Comments: & {{ shipment.comments|texsafe|default:"" }} \\
+		Carrier: & {{ shipment.carrier|texsafe|default:"" }} \\
+		Date Shipped: & {{ shipment.date_shipped|texsafe|default:"" }} \\
+		%Date Created: & {{ shipment.created|texsafe|default:"" }} \\
+	\end{tabular}
+	
+	{% for dewar in shipment.dewar_set.all %}
+	\section*{Dewar "{{dewar.label|texsafe|default:""}}"}
+		\PSforPDF{
+			\begin{pspicture}(10cm,2cm)
+				\psbarcode[transy=1em]{^104{{dewar.barcode}}}{includetext}{code128}
+			\end{pspicture}
+		}
+		\subsection*{Contents}
+		\begin{tabular}{ll}
+			{% for container in dewar.container_set.all %}
+				Container: {{ container.label|texsafe|default:"" }} & \\
+				{% for crystal in container.crystal_set.all %}
+					\hspace{2em} Crystal: {{ crystal.name|texsafe|default:"" }} & \\
+				{% endfor %}
+			{% endfor %}
+		\end{tabular}
+	{% endfor %}
+	
+\end{document}
