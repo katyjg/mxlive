@@ -2,29 +2,28 @@
 
 <ul class="stats">
     <li>
-        <span class="category">Samples</span>
+        <span class="category">Crystals</span>
         <span class="details">
-            {{ project.crystal_set.count }} Crystals have been defined in this project,
-            of which {{ project.crystal_set.count }} are active.
+            {{ project.crystal_set.count }} Crystals have been defined.
         </span>
     </li>
     <li>
         <span class="category">Experiments</span>
         <span class="details">
-            A total of <em><a href="/lims/experiment/">{{project.experiment_set.count}} Experiments</a></em> have been requested in this project,
-            of which there are <em><a href="/lims/experiment/?status__exact=0">{{statistics.experiment.draft.count}} draft experiments</a></em> still to be activated,
+            <em><a href="/lims/experiment/">{{project.experiment_set.count}} Experiments</a></em> have been requested in this project,
+            <em><a href="/lims/experiment/?status__exact=0">{{statistics.experiment.draft.count}} draft experiments</a></em> still to be activated,
             <em><a href="/lims/experiment/?status__exact=1">{{statistics.experiment.active.count}} active experiments</a></em>,
-            <em><a href="/lims/experiment/?status__exact=2">{{statistics.experiment.processing.count}} experiments in progress</a></em> at the synchrotron, and 
-            <em><a href="/lims/experiment/?status__exact=3">{{statistics.experiment.paused.count}} experiments waiting for your input</a></em>.
+            <em><a href="/lims/experiment/?status__exact=2">{{statistics.experiment.processing.count}} experiments in progress</a></em> at the synchrotron
         </span>
     </li>
     <li>
         <span class="category">Shipping</span>
         <span class="details">
-            A total of <em><a href="/lims/shipping/">{{project.shipment_set.count}} Shipments</a></em> have been created in this project,
-            of which there are <em><a href="/lims/shipping/?status__exact=0">{{statistics.shipment.draft.count}} draft shipments</a></em> still to be finalized,
-            <em><a href="/lims/shipping/?status__exact=1">{{statistics.shipment.outgoing.count}} outgoing shipments</a></em>, and 
-            <em><a href="/lims/shipping/?status__exact=3">{{statistics.shipment.incoming.count}} incoming</a></em>.
+            <em><a href="/lims/shipping/">{{project.shipment_set.count}} Shipments</a></em> have been defined,
+            <em><a href="/lims/shipping/?status__exact=0">{{statistics.shipment.draft.count}} draft shipments</a></em> still to be finalized,
+            <em><a href="/lims/shipping/?status__exact=1">{{statistics.shipment.outgoing.count}} outgoing shipments</a></em>,
+            <em><a href="/lims/shipping/?status__exact=3">{{statistics.shipment.incoming.count}} incoming shipments</a></em>.
         </span>
     </li>
 </ul>
+
