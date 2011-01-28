@@ -54,11 +54,9 @@ class ShipmentForm(objforms.forms.OrderedForm):
         model = Shipment
         fields = ('project','label','comments',)
         
-class ShipmentDeleteForm(objforms.forms.OrderedForm):
+class ConfirmDeleteForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    #label = forms.CharField(widget=objforms.widgets.LargeInput, help_text='Delete'  )
     class Meta:
-        model = Shipment
         fields = ('project',)
     
         

@@ -521,12 +521,12 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
     ``template`` and when submitted will create a new object of type ``model``.
     """
     project = request.project
-    object_type = model.__name__
+    object_type = model._meta.verbose_name
 
     form_info = {
         'title': 'New %s' % object_type,
         'action':  request.path,
-        'add_another': True,
+        'add_another': False, # does not work right now
     }
         
     if request.method == 'POST':
@@ -545,7 +545,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
         else:
             return render_to_response(template, {
                 'info': form_info,
-                'form': frm, 
+                'form': frm,
                 }, context_instance=RequestContext(request))
     else:
         initial = {'project': project.pk}
@@ -585,7 +585,7 @@ def add_new_object(request, id, model, form, field):
     `field` to the related object identified by the primary key `id`.
     """
     project = request.project
-    object_type = model.__name__
+    object_type = model._meta.verbose_name
     try:
         manager = getattr(project, field+'_set')
         related = manager.get(pk=id)
@@ -597,7 +597,7 @@ def add_new_object(request, id, model, form, field):
         'sub_title': 'Adding a new %s to %s "%s"' % (object_type, related_type, smart_str(related)),
         'action':  request.path,
         'target': 'entry-scratchpad',
-        'add_another': True,
+        'add_another': False,
     }
     if request.method == 'POST':
         q = request.POST.copy()
@@ -1040,10 +1040,9 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
         raise Http404
     
     orphan_models = orphan_models or []
-    
     form_info = {
         'title': 'Delete %s?' % obj.__unicode__(),
-        'sub_title': 'The %s %s will be deleted' % ( model.__name__, obj.__unicode__()),
+        'sub_title': 'The %s (%s) will be deleted' % ( model._meta.verbose_name, obj.__unicode__()),
         'action':  request.path,
         'target': 'entry-scratchpad',
         'message': 'Are you sure you want to delete %s "%s"?' % (
@@ -1059,7 +1058,7 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
             form_info['message'] = '%s (%s) deleted' % ( model._meta.verbose_name, obj)
             if hasattr(obj, 'project'):
                 ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.DELETE,  form_info['message'])
-            delete(model, id, orphan_models)
+            delete(request, model, id, orphan_models)
             request.user.message_set.create(message = form_info['message'])
             # messages are simply passed down to the template via the request context
             return render_to_response("lims/message.html", context_instance=RequestContext(request))

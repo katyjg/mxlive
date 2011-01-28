@@ -4,9 +4,13 @@
 <ul>
     {% if logs %}
         {% for log in logs %}
-        <li class="{{log.get_action_type_display|lower}}-log">
-            {% if log.affected_item and not request.user.is_staff %}
+        <li class="{{log.get_action_type_display|lower}}-log" title="{{log.description}}">
+            {% if log.affected_item and not request.user.is_staff%}
+                {% if modal_edit %}
+            &lsquo;<a class="modal-form" href="{{log.affected_item.pk}}/edit/">{{ log.affected_item.identity }}|  {{ log.affected_item }}</a>&rsquo;<br />    
+                {% else %}
             &lsquo;<a href="{{log.affected_item.pk}}/">{{ log.affected_item.identity }}|  {{ log.affected_item }}</a>&rsquo;<br />
+                {% endif %}
             {% else %}
                 {{log.object_repr}} <br />
             {% endif %}

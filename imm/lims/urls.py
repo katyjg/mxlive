@@ -15,8 +15,8 @@ urlpatterns = patterns('imm.lims.views',
     (r'^shipping/shipment/(?P<id>\d+)/send/$', 'edit_object_inline', {'model': Shipment, 'form': ShipmentSendForm, 'template': 'objforms/form_base.html', 'action' : 'send'}, 'lims-shipment-send'),
     (r'^shipping/shipment/(?P<id>\d+)/new/$', 'add_new_object', {'model': Dewar, 'form': DewarForm, 'field':'shipment'}, 'lims-shipment-new-dewar'),
     (r'^shipping/shipment/(?P<id>\d+)/add/$', 'add_existing_object', {'model': Dewar, 'parent_model': Shipment, 'field':'shipment'}, 'lims-shipment-add-dewar'), 
-    (r'^shipping/shipment/(?P<id>\d+)/delete/$', 'delete_object', {'model': Shipment, 'form': ShipmentDeleteForm, 'template': 'objforms/form_base.html'}, 'lims-shipment-delete'),
-    (r'^shipping/shipment/(?P<id>\d+)/close/$', 'close_object', {'model' : Shipment, 'form': ShipmentDeleteForm, 'template': 'objforms/form_base.html'}, 'lims-shipment-close'),
+    (r'^shipping/shipment/(?P<id>\d+)/delete/$', 'delete_object', {'model': Shipment, 'form': ConfirmDeleteForm, 'template': 'objforms/form_base.html'}, 'lims-shipment-delete'),
+    (r'^shipping/shipment/(?P<id>\d+)/close/$', 'close_object', {'model' : Shipment, 'form': ConfirmDeleteForm, 'template': 'objforms/form_base.html'}, 'lims-shipment-close'),
     (r'^shipping/shipment/(?P<id>\d+)/pdf/$', 'shipment_pdf', {'format' : 'pdf' }, 'lims-shipment-pdf'),
     (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'format' : 'label' }, 'lims-shipment-label'),
     (r'^shipping/shipment/(?P<id>\d+)/xls/$', 'shipment_xls', {}, 'lims-shipment-xls'),
@@ -65,16 +65,16 @@ urlpatterns = patterns('imm.lims.views',
     (r'^samples/crystal/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Crystal, 'form': SampleForm, 'template': 'objforms/form_base.html'}, 'lims-crystal-edit'),
     # this url removes a crystal from a container. 
     (r'^samples/crystal/(?P<id>\d+)/remove/$', 'remove_object', {'model': Crystal, 'field':'container'}, 'lims-crystal-remove'),
-    (r'^samples/crystal/(?P<id>\d+)/delete/$', 'delete_object', {'model': Crystal, 'form': ShipmentDeleteForm,'orphan_models' : []}, 'lims-crystal-delete'),
+    (r'^samples/crystal/(?P<id>\d+)/delete/$', 'delete_object', {'model': Crystal, 'form': ConfirmDeleteForm,'orphan_models' : []}, 'lims-crystal-delete'),
     (r'^samples/crystal/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/cocktail/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Crystal, 'object':Cocktail, 'replace': True}, 'lims-crystal-add-cocktail'),
     (r'^samples/crystal/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/crystalform/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Crystal, 'object': CrystalForm, 'replace':True}, 'lims-crystal-add-crystalform'),
 
     ########################
     (r'^samples/cocktail/basic/$', 'basic_object_list', {'model': Cocktail, 'template': 'objlist/basic_object_list.html' }, 'lims-cocktail-basic-list'),
-    #(r'^samples/cocktail/(?P<id>\d+)/$', 'object_detail', {'model': Cocktail, 'template': 'lims/entries/cocktail.html'}, 'lims-cocktail-detail'),
     #COCKTAILS##############
     (r'^samples/cocktail/$', 'object_list', {'model': Cocktail, 'template': 'objlist/generic_list.html', 'can_add': True, 'modal_edit': True, 'delete_inline': True}, 'lims-cocktail-list'),
     (r'^samples/cocktail/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Cocktail, 'form': CocktailForm, 'template': 'objforms/form_base.html'}, 'lims-cocktail-edit'),
+    (r'^samples/cocktail/(?P<id>\d+)/delete/$', 'delete_object', {'model': Cocktail, 'form': ConfirmDeleteForm,'orphan_models' : [(Crystal, 'cocktail')]}, 'lims-cocktail-delete'),
     (r'^samples/cocktail/new/$', 'create_object', {'model': Cocktail, 'form': CocktailForm, 'template': 'objforms/form_base.html'}, 'lims-cocktail-new'),
 
     ############################
@@ -83,6 +83,7 @@ urlpatterns = patterns('imm.lims.views',
     #CRYSTAL FORMS##############
     (r'^samples/crystalform/$', 'object_list', {'model': CrystalForm, 'template': 'objlist/generic_list.html', 'can_add': True, 'modal_edit': True, 'delete_inline': True}, 'lims-crystalform-list'),
     (r'^samples/crystalform/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': CrystalForm, 'form': CrystalFormForm, 'template': 'objforms/form_base.html'}, 'lims-crystalform-edit'),
+    (r'^samples/crystalform/(?P<id>\d+)/delete/$', 'delete_object', {'model': CrystalForm, 'form': ConfirmDeleteForm,'orphan_models' : [(Crystal, 'crystal_form')]}, 'lims-crystalform-delete'),
     (r'^samples/crystalform/new/$', 'create_object', {'model': CrystalForm, 'form': CrystalFormForm, 'template': 'objforms/form_base.html'}, 'lims-crystalform-new'),
 
     #######################
@@ -92,7 +93,7 @@ urlpatterns = patterns('imm.lims.views',
     (r'^experiment/request/$', 'object_list', {'model': Experiment, 'template': 'objlist/generic_list.html', 'can_add': True, 'link': True}, 'lims-experiment-list'),
     (r'^experiment/request/(?P<id>\d+)/$', 'experiment_object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html'} , 'lims-experiment-detail'),
     (r'^experiment/request/(?P<id>\d+)/edit/$','edit_object_inline', {'model': Experiment, 'form': ExperimentForm, 'template': 'objforms/form_base.html'}, 'lims-experiment-edit'),
-    (r'^experiment/request/(?P<id>\d+)/delete/$', 'delete_object', {'model': Experiment, 'form': ShipmentDeleteForm, 'orphan_models': []}, 'lims-experiment-delete'),
+    (r'^experiment/request/(?P<id>\d+)/delete/$', 'delete_object', {'model': Experiment, 'form': ConfirmDeleteForm, 'orphan_models': []}, 'lims-experiment-delete'),
     (r'^experiment/request/new/$', 'create_object', {'model': Experiment, 'form': ExperimentForm, 'template': 'objforms/form_base.html'}, 'lims-experiment-new'),
     (r'^experiment/request/(?P<id>\d+)/up/$', 'change_priority', {'model': Experiment, 'action': 'up', 'field': 'priority'}, 'lims-experiment-up'),
     (r'^experiment/request/(?P<id>\d+)/down/$', 'change_priority', {'model': Experiment, 'action': 'down', 'field': 'priority'}, 'lims-experiment-up'),

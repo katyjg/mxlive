@@ -302,6 +302,7 @@ var cvi_szclback, cvi_sztimer, cvi_szactive, cvi_szimage=null, shiftzoom = { _sh
 						obj.src=tmp.src; obj.style.msInterpolationMode=img.bicubic; if(!z) {shiftzoom.G(img.tumbid).src=obj.src; if(img.highres!=obj.src) {img.highres=obj.src;} if(img.trident) {tmp.onload=''; tmp=null;} delete tmp;} if(img.buttons&&!img.tod) {shiftzoom.G(img.ctrlid).style.visibility="visible";}
 						if(img.overview&&(img.parentNode.width>img.minwidth||img.parentNode.height>img.minheight)) {shiftzoom.G(img.overid).style.visibility="visible";} if(img.showcoords&&!img.tod) {shiftzoom.G(img.xycoid).style.visibility="visible";}
 					}
+					jQuery.fancybox.hideActivity()
 				}; tmp.src=src;
 			}
 		}return false;

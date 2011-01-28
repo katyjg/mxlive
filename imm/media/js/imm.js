@@ -142,25 +142,15 @@ function initModals(){
             var func = arguments.callee;
 
             //bind the submit of our new form
-            jQuery('.objform-container form').submit(function(){
-                //this is strictly cosmetic
+            jQuery('.objform-container form').ajaxForm(function(msg){
                 jQuery.fancybox.showActivity();
-
-                var data = $(this).serialize();
-                var url = $(this).attr('action')
-
-                //post to the server and when we get a response,
-                //draw a new fancybox, and run this function on completion
-                //so that we can bind the form and create a new fancybox on submit
-                jQuery.post(url, data, function(msg){
-                    var error = msg.indexOf("error") > -1; // given an error there will be an error string present
-                    if(error) {
-                        jQuery.fancybox({content:msg,onComplete:func,scrolling:'no',titleShow:false});
-                    } else {
-                        if(jQuery("input.default").attr('value') == 'Delete') { history.go(-1); }
-                        else { window.location.reload(); }
-                    }
-                });
+                var error = msg.indexOf("error") > -1; // given an error there will be an error string present
+                if(error) {
+                    jQuery.fancybox({content:msg,onComplete:func,scrolling:'no',titleShow:false});
+                } else {
+                    if(jQuery("input.default").attr('value') == 'Delete') { history.go(-1); }
+                    else { window.location.reload(); }
+                }
                 return false;
             });
         }
