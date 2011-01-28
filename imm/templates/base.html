@@ -120,7 +120,10 @@
         function loadWidgets() {
             jQuery(".widget").each(function(i, widget) {
                 var $widget = jQuery(widget);
-                $widget.find("ul").load($widget.attr("data"), function() {});
+                $widget.find("ul").load($widget.attr("data"), function() {
+                    initModals();
+                    initRedirects();
+                });
             });
         }
       

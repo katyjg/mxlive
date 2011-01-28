@@ -1,72 +1,69 @@
 {% load zip %}
+{% load image_url %}
 
 <script type="text/javascript" src="/js/shiftzoom/shiftzoom.js"></script>
 
-<div>
-<div class="floatleft">
+<div id="data-viewer">
+<div class="heading">
 	<h2 id="maintitle">
 	{% if data.kind == Data.DATA_TYPES.SCREENING %}
-		Screening
+		Screening Dataset
 	{% else %}
 		Full Dataset
-	{% endif %} - {{ data.name }} :
+	{% endif %} - {{ data.name }}
 	</h2>
 </div>
-<div class="clear"></div>
-
-{% load image_url %}
 
 <!-- image viewer aspect -->
-<div id="data-image">
+<div class="data-image">
 	<!-- making assumption that data.url will be filled, with the key, and it's data name -->
 	<img id="shiftzoomimg" src="{% image_url data 1 'nm' %}" onLoad="shiftzoom.add(this);" class="shiftzoom" width="512" height="512">
+    <!-- image navigation -->
+    <div class="image-nav">
+	    <div style="float: left;">
+		    <button onclick="changeBrightness('dk');">Dark</button>
+		    <button onclick="changeBrightness('nm');">Normal</button>
+		    <button onclick="changeBrightness('lt');">Light</button>
+	    </div>
+	    <div style="float: right;">
+		    <button onclick="prevClicked();">Prev</button>
+		    <button onclick="nextClicked();">Next</button>
+	    </div>
+    </div> 
 </div>
 
 <!-- Display of metaData -->
-<div id="meta-data">
+<div class="meta-data">
 	<ul>
-		<li>Experiment: {{ data.experiment.name }}</li>
-		<li>Crystal: {{ data.crystal.name }}</li>
-		<li>Resolution Limit: {{ data.resolution }}</li>
-		<li>Frame Set: {{ data.frame_sets }}</li>
-		<li>Wavelength: {{ data.wavelength }}</li>
+	    {% if data.experiment %}<li>Experiment: {{ data.experiment.name }}</li>{% endif %}		
+		{% if data.crystal %}<li>Crystal: {{ data.crystal.name }}</li>{% endif %}		
+		<li>Resolution Limit: {{ data.resolution|floatformat:2 }} A</li>
+		<li>Frame set: {{ data.frame_sets }}</li>
+		<li>Wavelength: {{ data.wavelength }} A</li>
 		<li>Beam X:	{{ data.beam_x }}</li>
 		<li>Beam Y: {{ data.beam_y }}</li>
-		<li>Pixel Size: {{ data.pixel_size }}</li>
-		<li>Two Theta: {{ data.two_theta }}</li>
+		<li>Pixel Size: {{ data.pixel_size }} mm</li>
+		<li>Two Theta: {{ data.two_theta }} deg</li>
 		{% for result in results %}
 			<li>Result: <a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|floatformat:2 }})</a></li>
 		{% endfor %}
 	</ul>
+</div>
+<div class="meta-data">
 	<ul>
-		<li id="framename">frame: </li>
-		<li id="oscstart">Osc.Start: </li>
-		<li id="oscend">Osc.End: </li> 
+		<li id="framename">Current: </li>
+		<li id="oscstart">Osc. Start: </li>
+		<li id="oscend">Osc. End: </li> 
 	</ul>
-
 </div>
 
-<div id="meta-data">
+<div class="meta-data">
 	<ul style="height: 200px; overflow:auto; overflow-x:hidden;">
 	{% for frame_id in expanded_frame_set %}
 		<li onclick="toFrame({{frame_id}});"><a>{{data.name}}_{{ frame_id|stringformat:"03d" }}</a></li>
 	{% endfor %}
 	</ul>
 </div>
-<div class="clear"></div>
-
-<!-- image navigation -->
-<div id="image-nav">
-	<div style="float: left;">
-		<button onclick="changeBrightness('dk');">Dark</button>
-		<button onclick="changeBrightness('nm');">Normal</button>
-		<button onclick="changeBrightness('lt');">Light</button>
-	</div>
-	<div style="float: right;">
-		<button onclick="prevClicked();">Prev</button>
-		<button onclick="nextClicked();">Next</button>
-	</div>
-</div> 
 <div>
 <script type="text/javascript">
 	var $current_frame_to_display = 1;
@@ -114,7 +111,7 @@
 	function updateFrameDetails() {
 		// use jQuery to find and update the frame specific elements. 
 		element = jQuery('#framename');
-		element.text("Frame: " + generateFrameName($current_frame_to_display));
+		element.text("Current: " + generateFrameName($current_frame_to_display));
 		
 		osc = ($current_frame_to_display - {{data.first_frame}}) * {{data.delta_angle}} + {{data.start_angle}};
 		jQuery('#oscstart').text("Osc. Start: " + osc);
@@ -122,7 +119,7 @@
 		osc = osc + {{data.delta_angle}};
 		jQuery('#oscend').text("Osc. End: " + osc);
 		
-		jQuery('#maintitle').text("{% if data.kind == Data.DATA_TYPES.SCREENING %}Screening{% else %}Full Dataset{% endif %} - {{ data.name }} : " 
+		jQuery('#maintitle').text("{% if data.kind == Data.DATA_TYPES.SCREENING %}Screening Dataset{% else %}Full Dataset{% endif %} - {{ data.name }} : " 
 			+ generateFrameName($current_frame_to_display)	);
 	}	
 	

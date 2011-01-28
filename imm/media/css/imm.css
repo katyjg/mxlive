@@ -665,21 +665,28 @@ ul.filter-choices ul {
 }
 
 /* data viewer */
-#meta-data {
+#data-viewer {
+    width: 750px;
+}
+
+#data-viewer .meta-data {
     float: right;
     clear: right;
-    width: 200px;
-    margin: 7px;
+    width: 210px;
+    margin: 0 0 7px 7px;
     padding: 7px;
     background: #fff;
 }
 
-#data-image {
+#data-viewer .data-image {
     float:left;
-    border: 1px solid #ccc !important;
 }
 
-#image-nav {
+#data-viewer img {
+    border: 1px solid #999 !important;
+}
+
+#data-viewer .image-nav {
     width: 512px;
 }
 
