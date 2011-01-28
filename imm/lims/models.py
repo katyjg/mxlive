@@ -227,7 +227,8 @@ class Cocktail(models.Model):
     identity.admin_order_field = 'pk'
 
     is_editable = True
-
+    is_deletable = True
+    
     '''    
     FIELD_TO_ENUM = {
         'source': SOURCES,
@@ -796,6 +797,7 @@ class CrystalForm(models.Model):
         verbose_name = 'Crystal Form'
 
     is_editable = True
+    is_deletable = True
 
 class Experiment(models.Model):
     EXP_TYPES = Enum(
@@ -1505,6 +1507,8 @@ class Feedback(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
 
     is_editable = True
+    class Meta:
+        verbose_name_plural = 'Feedback Comment'
 
     
 class ActivityLogManager(models.Manager):
@@ -1550,7 +1554,7 @@ class ActivityLog(models.Model):
     def __unicode__(self):
         return str(self.created)
     
-def delete(model, id, orphan_models):
+def delete(request, model, id, orphan_models):
     """ Deletes an instance of ``model`` with primary key ``id`` and orphans the 
     Models types given in ``orphan_models``. If ``orphan_models`` is empty, then a "cascading
     delete" occurs.
@@ -1567,6 +1571,8 @@ def delete(model, id, orphan_models):
         for orphan in manager.all():
             setattr(orphan, orphan_field, None)
             orphan.save()
+            message = 'Related field (%s) set to NULL, since it was deleted.' % ( orphan_field)
+            ActivityLog.objects.log_activity(request, orphan, ActivityLog.TYPE.MODIFY,  message)
     obj.delete()
 
 def archive(model, id):

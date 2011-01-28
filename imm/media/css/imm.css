@@ -78,7 +78,7 @@ h3.feedback {
 div.entrycomment {
     float: left;
     min-width: 180px;
-    max-width: 220px;
+    max-width: 210px;
     border: 1px solid #a38db6;
     min-height: 60px;
     padding: 14px;
@@ -107,7 +107,7 @@ div.entrycomment span.left-pointer {
 
 .entrysummary { 
     margin-bottom: 0.5em;
-    width: 280px;
+    width: 300px;
     float: left;
     clear: left;
 }
@@ -672,21 +672,62 @@ ul.filter-choices ul {
 #data-viewer .meta-data {
     float: right;
     clear: right;
-    width: 210px;
+    width: 224px;
     margin: 0 0 7px 7px;
-    padding: 7px;
     background: #fff;
 }
 
-#data-viewer .data-image {
+#data-viewer .frame-list {
+    float: right;
+    clear: right;
+    width: 224px;
+    margin: 0 0 0 7px;
+}
+#data-viewer .frame-list p,  #data-viewer .meta-data p{
+    background: none repeat scroll 0 0 #747E80;
+    display: block;
+    clear: both;
+    color: #F7F3E8;
+    font-weight: bold;
+    height: 20px;
+    margin: 0;
+    padding: 3px;
+}
+
+.data-image {
     float:left;
 }
 
-#data-viewer img {
-    border: 1px solid #999 !important;
+#data-viewer .image-wrapper {
+    border: 1px solid #ccc !important;
+    margin-bottom: 5px;
 }
 
 #data-viewer .image-nav {
     width: 512px;
 }
 
+#data-viewer .frame-list ul {
+    background: #fff;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    height: 210px;
+    padding: 5px;
+    border: 1px solid #ccc;
+}
+#data-viewer .meta-data ul {
+    background: #fff;
+    padding: 5px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 11px;
+}
+#data-viewer .meta-data li.separator {
+    border-top: 1px dotted #ccc;
+    margin-top: 2px;
+}
+
+#data-viewer .frame-list li {
+    line-height: 24px;
+    border-bottom: 1px dotted #ccc;
+    cursor: pointer;
+}

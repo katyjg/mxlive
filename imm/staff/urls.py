@@ -15,7 +15,7 @@ from imm.staff.models import Runlist
 from imm.lims.models import ActivityLog
 
 from imm.lims.forms import ExperimentForm
-from imm.lims.forms import ShipmentDeleteForm
+from imm.lims.forms import ConfirmDeleteForm
 
 from imm.staff.forms import ShipmentReceiveForm
 from imm.staff.forms import ShipmentReturnForm
@@ -75,7 +75,7 @@ urlpatterns = patterns('',
     (r'^runlist/(?P<id>\d+)/up/$', 'imm.lims.views.change_priority', {'model': Runlist, 'action': 'up', 'field': 'priority'}, 'staff-runlist-up'),
     (r'^runlist/(?P<id>\d+)/down/$', 'imm.lims.views.change_priority', {'model': Runlist, 'action': 'down', 'field': 'priority'}, 'staff-runlist-down'),
     (r'^runlist/(?P<id>\d+)/$', 'imm.lims.views.object_detail', {'model': Runlist, 'template': 'staff/entries/runlist.html'}, 'staff-automounter-detail'),
-    (r'^runlist/(?P<id>\d+)/delete/$', 'imm.lims.views.delete_object', {'model': Runlist, 'form': ShipmentDeleteForm}, 'staff-runlist-delete'),
+    (r'^runlist/(?P<id>\d+)/delete/$', 'imm.lims.views.delete_object', {'model': Runlist, 'form': ConfirmDeleteForm}, 'staff-runlist-delete'),
     (r'^runlist/(?P<id>\d+)/edit/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistForm, 'template': 'objforms/form_base.html'}, 'staff-runlist-edit'),
     (r'^runlist/(?P<id>\d+)/load/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'load'}, 'staff-runlist-load'),
     (r'^runlist/(?P<id>\d+)/unload/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'unload'}, 'staff-runlist-complete'),

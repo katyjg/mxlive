@@ -36,13 +36,11 @@
             </tr>
         </thead>
         <tbody>
-            {% if ol.object_list %}
-                {% for object in ol.object_list %}
-                    {% list_entry object handler forloop.counter %}
-                {% endfor %}
-            {% else %}
-                <tr><td colspan="20" class="list-empty">No {{ol.object_type}} to show</td></tr>
-            {% endif %}
+        {% for object in ol.object_list %}
+            {% list_entry object handler forloop.counter %}
+        {% empty %}               
+            <tr><td colspan="20" class="list-empty">No {{ol.object_type}} to show</td></tr>
+        {% endfor %}
         </tbody>
     </table>
     {% if ol.object_list|length > 20 %}

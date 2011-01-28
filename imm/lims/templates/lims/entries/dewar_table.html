@@ -52,7 +52,6 @@
             </tr>
         </thead>
         <tbody>
-            {% if containers %}
             {% for container in containers %}
                 <tr class="{% cycle 'odd' 'even'%} link-row"
                     title="Go to Container {{container.pk}}">
@@ -78,10 +77,9 @@
                         {% endif %}
                     </td>
                 </tr>
-            {% endfor %}
-            {% else %}
+            {% empty %}
                 <tr><td colspan="20" align="center" class="list-empty">( No containers in this dewar )</td></tr>
-            {% endif %}
+            {% endfor %}
         </tbody>
     </table>
 </div>

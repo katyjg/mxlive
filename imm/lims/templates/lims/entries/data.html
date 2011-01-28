@@ -16,8 +16,10 @@
 
 <!-- image viewer aspect -->
 <div class="data-image">
+    <div class="image-wrapper">
 	<!-- making assumption that data.url will be filled, with the key, and it's data name -->
 	<img id="shiftzoomimg" src="{% image_url data 1 'nm' %}" onLoad="shiftzoom.add(this);" class="shiftzoom" width="512" height="512">
+	</div>
     <!-- image navigation -->
     <div class="image-nav">
 	    <div style="float: left;">
@@ -34,31 +36,35 @@
 
 <!-- Display of metaData -->
 <div class="meta-data">
+    <p>Parameters</p>
 	<ul>
-	    {% if data.experiment %}<li>Experiment: {{ data.experiment.name }}</li>{% endif %}		
-		{% if data.crystal %}<li>Crystal: {{ data.crystal.name }}</li>{% endif %}		
-		<li>Resolution Limit: {{ data.resolution|floatformat:2 }} A</li>
-		<li>Frame set: {{ data.frame_sets }}</li>
-		<li>Wavelength: {{ data.wavelength }} A</li>
-		<li>Beam X:	{{ data.beam_x }}</li>
-		<li>Beam Y: {{ data.beam_y }}</li>
-		<li>Pixel Size: {{ data.pixel_size }} mm</li>
-		<li>Two Theta: {{ data.two_theta }} deg</li>
+	    {% if data.experiment %}
+	    <li><strong>Experiment:</strong> {{ data.experiment.name }}</li>
+	    {% endif %}		
+		{% if data.crystal %}
+		<li><strong>Crystal:</strong> {{ data.crystal.name }}</li>
+		{% endif %}		
+		<li><strong>Resolution Limit:</strong> {{ data.resolution|floatformat:2 }} &#8491;</li>
+		<li><strong>Frame set:</strong> {{ data.frame_sets }}</li>
+		<li><strong>Wavelength:</strong> {{ data.wavelength }} &#8491;</li>
+		<li><strong>Beam X:</strong>	{{ data.beam_x }}</li>
+		<li><strong>Beam Y:</strong> {{ data.beam_y }}</li>
+		<li><strong>Pixel Size:</strong> {{ data.pixel_size }} mm</li>
+		<li><strong>Two Theta:</strong> {{ data.two_theta }} deg</li>
+		<li><strong>Exposure time:</strong> {{ data.exposure_time }} sec</li>
+		<li><strong>Detector type:</strong> {{ data.detector }}</li>
 		{% for result in results %}
-			<li>Result: <a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|floatformat:2 }})</a></li>
+			<li><strong>Result:</strong> <a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|floatformat:2 }})</a></li>
 		{% endfor %}
-	</ul>
-</div>
-<div class="meta-data">
-	<ul>
-		<li id="framename">Current: </li>
+		<li id="framename" class="separator">Current: </li>
 		<li id="oscstart">Osc. Start: </li>
 		<li id="oscend">Osc. End: </li> 
 	</ul>
 </div>
 
-<div class="meta-data">
-	<ul style="height: 200px; overflow:auto; overflow-x:hidden;">
+<div class="frame-list">
+    <p>Frames</p>
+	<ul>
 	{% for frame_id in expanded_frame_set %}
 		<li onclick="toFrame({{frame_id}});"><a>{{data.name}}_{{ frame_id|stringformat:"03d" }}</a></li>
 	{% endfor %}
@@ -114,10 +120,10 @@
 		element.text("Current: " + generateFrameName($current_frame_to_display));
 		
 		osc = ($current_frame_to_display - {{data.first_frame}}) * {{data.delta_angle}} + {{data.start_angle}};
-		jQuery('#oscstart').text("Osc. Start: " + osc);
+		jQuery('#oscstart').text("Osc. Start: " + osc + " deg");
 		
 		osc = osc + {{data.delta_angle}};
-		jQuery('#oscend').text("Osc. End: " + osc);
+		jQuery('#oscend').text("Osc. End: " + osc + " deg");
 		
 		jQuery('#maintitle').text("{% if data.kind == Data.DATA_TYPES.SCREENING %}Screening Dataset{% else %}Full Dataset{% endif %} - {{ data.name }} : " 
 			+ generateFrameName($current_frame_to_display)	);

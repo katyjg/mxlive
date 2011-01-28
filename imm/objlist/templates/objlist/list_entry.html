@@ -7,11 +7,10 @@
         href="{{handler}}{{object.pk}}/"
         title="Show {{type}} {{object.pk}}"
     {% else %}{% if modal_edit %}
-        class="link-row modal-form {{ row_state }} {{ type|lower }}"        
-        href="{{handler}}{{object.pk}}/edit/"
-        title="Edit {{object.pk}}"
+        class="link-row {{ row_state }} {{ type|lower }}"
     {% else %}
         class="{{ row_state }} {{ type|lower }}"
+        {% if object.description %}title="{{object.description}}"{% endif %}
     {% endif %}{% endif %}{% endif %}>
     {% if request.user.is_superuser %} 
         <td class="first"></td>
@@ -21,7 +20,11 @@
     {% load truncate_filters %}
     
     {% for field in fields %}
- 		<td>
+ 		<td {% if modal_edit %}
+        class="modal-form"        
+        href="{{handler}}{{object.pk}}/edit/"
+        title="Edit {{object.pk}}"
+    {% endif %}>
      	{% if field == object.id %}
             {{ object.identity }}
     	{% else %}
@@ -40,7 +43,7 @@
     {% if delete_inline %}
         {% if object.is_deletable %}
             <td class="action">
-                <a href="{{ handler }}{{object.pk}}/delete/" class="action modal-form delete-tool" title="Delete"></a>
+                <a href="{{ handler }}{{object.pk}}/delete/" class="delete modal-form delete-tool" title="Delete"></a>
             </td>
         {% else %}
             <td class="action">
