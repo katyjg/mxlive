@@ -56,9 +56,9 @@ html
 
 body
 {
-	font-size:12px;
-	font-family: "Segoe UI", Cantarell, serif;
-	line-height:1.5em;
+	font-size: 13px;
+	font-family: "Segoe UI", Cantarell, sans-serif;
+	line-height: 1.4em;
 	color:#333;
 	background-color:#fff;
 	height: 100%;
