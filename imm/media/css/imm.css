@@ -220,6 +220,7 @@ ul.toolbar li a {
 }
 
 ul.toolbar li.edit-tool {background-image: url(/img/edit-icon.png);}
+ul.toolbar li.load-tool {background-image: url(/img/load-icon.png);}
 ul.toolbar li.delete-tool {background-image: url(/img/delete-icon.png);}
 ul.toolbar li.remove-tool {background-image: url(/img/remove-icon.png);}
 ul.toolbar li.add-tool {background-image: url(/img/add-icon.png);}
