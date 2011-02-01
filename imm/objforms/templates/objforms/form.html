@@ -10,8 +10,8 @@
 <ul class="form-buttons">
 <li class="submit-row">
 {% if add_another %}
-<input id='btn1' type="submit" value="{{ save_label|default:"Save" }} and add another" name="_addanother" onclick="$('btn2').disable();" />
-<input id='btn2' type="submit" value="{{ save_label|default:"Save" }}" class="default" name="_save" onclick="$('btn1').disable();" /></li>
+<input id='btn1' type="submit" value="{{ save_label|default:"Save" }} and add another" name="_addanother" onclick="jQuery('#btn2').attr('disabled',true);" />
+<input id='btn2' type="submit" value="{{ save_label|default:"Save" }}" class="default" name="_save" onclick="jQuery('#btn1').attr('disabled',true);" /></li>
 {% else %}
 <input type="submit" value="{{ save_label|default:"Save" }}" name="_save" class="default" /></li>
 {%endif%}
