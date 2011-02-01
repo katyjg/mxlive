@@ -1,10 +1,13 @@
 {% load humanize %}
 {% load score_colors %}
 
+
+<div class="object-list">
+<h3 style="width: 50%; float: left;">Crystals</h3>
 	{% if admin %}
 	<form id="action_form" method="post">{% csrf_token %}
-		<button style="float:right;">Perform Action</button>
-		<select id="selector" style="float:right; font-size:100%; border-width: 2px;" name="action">
+		<button  style="float:right; margin: 0;" title="Apply action to selected crystals">Apply</button>
+		<select id="selector" class="select" style="float:right;" name="action">
 			<option value="default" selected="selected">Select Action</option>
 			<option value="rescreen">Re-Screen</option>
 			<option value="recollect">Re-Collect</option>
@@ -13,9 +16,6 @@
 		
 		<br/>
 	{% endif %}
-
-<div class="object-list">
-<h3>Crystals</h3>
    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
         <thead>
             <tr class="header">
@@ -105,11 +105,11 @@
     </table>
     <p class="table-notes">* If multiple screening or full collection datasets have been taken for a crystal, only the dataset with the best score is displayed on this table.  To view all datasets collected for a specific crystal, go to the crystal page.</p>
 
-</div>    
-
     {% if admin %}
     	</form>
     {% endif %}
+</div>    
+
 
 	<script>
 		jQuery('#action_form').submit(function() {
