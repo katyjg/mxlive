@@ -733,4 +733,25 @@ ul.filter-choices ul {
     cursor: pointer;
 }
 
+#data-image-loading {
+    cursor: pointer;
+    display: none;
+    height: 40px;
+    left: 256px;
+    margin-left: -20px;
+    margin-top: -20px;
+    overflow: hidden;
+    position: absolute;
+    top: 50%;
+    width: 40px;
+    z-index: 1104;
+}
 
+#data-image-loading div {
+    background-image: url("/img/fancybox/fancybox.png");
+    height: 480px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 40px;
+}
