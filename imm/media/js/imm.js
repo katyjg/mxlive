@@ -172,6 +172,10 @@ var dataViewer = function(){
 
     var  loadingTimer, loadingFrame= 1;
     var  loading = jQuery('#data-image-loading');
+    var  wavelength = 1.0;
+    var  ref_resol = 2.0;
+    var  theta_m = Math.asin(0.5*wavelength)/ref_resol;
+    
 	function  _animate_loading() {
 	    if (!loading.is(':visible')){
 		    clearInterval(loadingTimer);
@@ -182,6 +186,14 @@ var dataViewer = function(){
     }
     
     return {
+        setPars: function(w, r) {
+            wavelength = w;
+            ref_resol = r;
+            theta_m = Math.asin(0.5*wavelength)/ref_resol;
+        },
+        calcRes: function(f) {
+            return (0.5*wavelength)/Math.sin(f * theta_m)
+        },
         showActivity: function() {
 	        loading = jQuery('#data-image-loading');
             clearInterval(loadingTimer);
