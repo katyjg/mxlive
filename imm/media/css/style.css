@@ -71,15 +71,19 @@ table
 	empty-cells:show;
 }
 
+
+
+.webkit *:focus{outline:none;}/* remove blue safari / yellow chrome input field border */
+
 /* -------------------------------------------- */
 a
 {
-	color:#2F637A;
+	color: #2F637A;
 }
 
 a:hover,a:active,a:focus
 {
-	color:gray;
+	color:#06c;
 }
 
 p
@@ -518,6 +522,12 @@ div#unipuck .occupied {
     float: left;
     width: 600px;
 }
+
+.object-list input.checkbox, .object-list input.radio {
+    display: inline;
+    margin: 3px 4px;
+}
+
 table.cane-detail {
     float: right;
     margin-right: 20px;
@@ -1667,6 +1677,7 @@ select.select[class]
 .webkit select.select
 {
 	margin: 0 0 1px;
+	font-size: 110%;
 	padding: 2px;
 }
 
