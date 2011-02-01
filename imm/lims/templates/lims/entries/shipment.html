@@ -74,8 +74,11 @@
         {% endif %}
     {% endwith %}
     </div>
-
+    <div class="clear"></div>
 {% endwith %}
+
+{% load experiment_table %}
+{% experiment_table object request.user.is_superuser %}
 
 {% endblock %}
 

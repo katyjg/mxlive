@@ -1,0 +1,31 @@
+<div class="object-list" title="Drag and Drop in this Region to Prioritize Experiments in this Shipment">
+    <h3>Experiments in Shipment &ldquo;{{object.name}}&rdquo;</h3>
+    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
+        <thead>
+            <tr class="header">
+             	<th>Project</th>
+             	<th>Experiment</th>
+                <th>Type</th>
+                <th>Plan</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% if experiments %}
+            {% for experiment in experiments %}{% if experiment.pk %}
+                <tr id="{{ experiment.pk }}" class="{% cycle 'odd' 'even'%} link-row redirect draggable-link-parent"
+                    title="Go to Experiment {{experiment.name}}"
+                    href="{% url lims-experiment-detail experiment.pk %}">
+                    <td class="prioritize">{{ experiment.json_dict.project_name }}</td>
+                    <td>{{ experiment.name }}</td>
+                    <td>{{ experiment.json_dict.type }}</td>
+                    <td>{{ experiment.json_dict.plan }}</td>
+                    <td>{{ experiment.get_exp_status_display }}</td>
+                </tr>
+            {% endif %}{% endfor %}
+        {% else %}                
+                <tr><td colspan="20" align="center" class="list-empty">(No experiments associated with this runlist)</td></tr>
+        {% endif %}           
+        </tbody>
+    </table>
+</div>
