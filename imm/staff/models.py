@@ -154,44 +154,38 @@ class AutomounterLayout(models.Model):
                 return True
             return False
         elif container.kind == Container.TYPE.UNI_PUCK:
-            check_list = self.left
+            check_list = self.left  
             if check_list == None:
-                check_list = list([container.pk])
-                self.left = check_list
-                self.save()
-                return True
+                check_list = ['','','','']
             if type(check_list) == type(list()):
-                if len(check_list) < 4:
-                    check_list.append(container.pk)
-                    self.left = check_list
-                    self.save()
-                    return True
+                for i in range(4):
+                    if check_list[i] == '':
+                        check_list[i] = container.pk
+                        self.left = check_list
+                        self.save()
+                        return True
             
             check_list = self.middle
             if check_list == None:
-                check_list = list([container.pk])
-                self.middle = check_list
-                self.save()
-                return True
+                check_list = ['','','','']
             if type(check_list) == type(list()):
-                if len(check_list) < 4:
-                    check_list.append(container.pk)
-                    self.middle = check_list
-                    self.save()
-                    return True
+                for i in range(4):
+                    if check_list[i] == '':
+                        check_list[i] = container.pk
+                        self.middle = check_list
+                        self.save()
+                        return True
                 
             check_list = self.right
             if check_list == None:
-                check_list = list([container.pk])
-                self.right = check_list
-                self.save()
-                return True
+                check_list = ['','','','']
             if type(check_list) == type(list()):
-                if len(check_list) < 4:
-                    check_list.append(container.pk)
-                    self.right = check_list
-                    self.save()
-                    return True
+                for i in range(4):
+                    if check_list[i] == '':
+                        check_list[i] = container.pk
+                        self.right = check_list
+                        self.save()
+                        return True
             
             return False
         else:

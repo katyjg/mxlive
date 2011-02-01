@@ -1145,19 +1145,21 @@ def shipment_pdf(request, id, format):
 
     if format == 'pdf':
         exp_list = list()
+        con_list = list()
         dewars = Dewar.objects.filter(shipment=shipment)
-        print "dewars", dewars
         for dewar in dewars:
             containers = Container.objects.filter(dewar=dewar)
             for container in containers:
                 cont_exp_list = container.get_experiment_list()
+                if container not in con_list:
+                    con_list.append(container)
                 for exp in cont_exp_list:
                     if exp not in exp_list:
                         exp_list.append(exp)
            
         xtal_list = list()
         for exp in exp_list:
-            exp_xtal_list = Crystal.objects.filter(experiment=exp)
+            exp_xtal_list = Crystal.objects.filter(experiment=exp).order_by('priority', 'container', 'container_location')
             for xtal in exp_xtal_list:
                 if xtal not in xtal_list:
                     xtal_list.append(xtal)
@@ -1175,7 +1177,7 @@ def shipment_pdf(request, id, format):
         temp_file = tempfile.mkstemp(dir=temp_dir, suffix='.tex')[1]
         # render and output the LaTeX into temap_file
         if format == 'pdf':
-            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'shipment' : shipment, 'experiments': exp_list, 'crystals': xtal_list })
+            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'shipment' : shipment, 'experiments': exp_list, 'crystals': xtal_list, 'containers': con_list })
         elif format == 'label':
             tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': project, 'shipment' : shipment})
         elif format == 'return':

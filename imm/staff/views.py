@@ -327,15 +327,6 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
         except Project.DoesNotExist:
             raise Http404    
 
-#    #project = request.project
-#    try:
-#        # get all items of the type we want to add to
-#        manager = getattr(project, destination.__name__.lower()+'_set')
-#        obj_manager = getattr(project, object.__name__.lower()+'_set')
-#        
-#    except: 
-#        raise Http404
-#    
     #get just the items we want
     try:
         dest = manager.get(pk=dest_id)
@@ -351,6 +342,26 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     lookup_name = object.__name__.lower()
     
     if dest.is_editable():
+        if destination.__name__ == 'Runlist':
+            if object.__name__ == 'Experiment':
+                container_list = list()
+                runlist_containers = dest.containers.all()
+                for container in Container.objects.all():
+                    exp_list = container.get_experiment_list()
+                    for exp in exp_list:
+                        if exp == Experiment.objects.get(pk=obj_id):
+                            if container not in runlist_containers:
+                                container_list.append(container)
+                for container in container_list:
+                    dest.automounter.add_container(container)
+                    try:
+                        current = getattr(dest, 'containers')
+                        current.add(container)
+                    except AttributeError:
+                        message = '%s has not been added. No Field (tried %s and %s)' % (display_name, lookup_name, '%ss' % lookup_name)
+                        request.user.message_set.create(message = message)
+                        return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
+                
         if loc_id:
             added = dest.automounter.container_to_location(to_add, loc_id)
             dest.automounter.container_to_location(to_add, loc_id)

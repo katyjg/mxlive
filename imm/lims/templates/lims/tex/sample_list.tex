@@ -5,12 +5,13 @@
 \usepackage{pst-barcode}
 }
 \usepackage{graphicx}
+\usepackage{longtable}
 \usepackage{xcolor,colortbl}
 \oddsidemargin -0.25in 
 \marginparwidth 0pt \marginparsep 0pt
 \topmargin -0.5in \headsep 0pt
 \headheight 0pt
-\textheight 297mm
+\textheight 237mm
 \textwidth  6.8in
 \addtolength{\fboxsep}{0.2cm}
 \renewcommand{\arraystretch}{1.5}
@@ -19,17 +20,48 @@
 \hspace{-0.25in}
 \includegraphics[height=0.5in,width=\textwidth,page=1]{clslogo_print.pdf}
 
+\vspace{-0.25in}
+
 \small
 \hspace{-0.25in}
-\begin{tabular}{p{0.04\textwidth}|p{0.07\textwidth}|p{0.05\textwidth}|p{0.1\textwidth}|p{0.05\textwidth}|p{0.05\textwidth}|p{0.05\textwidth}|p{0.05\textwidth}|p{0.04\textwidth}|p{0.28\textwidth}}
 
-\rowcolor[gray]{.9} \multicolumn{4}{c|}{\cellcolor[gray]{.9}Experiment Parameters} & \multicolumn{5}{c|}{\cellcolor[gray]{.9}Desired Values} & \\ 
+\section*{Project: {{ project.user.username|texsafe|default:"" }} }
+\begin{center}
 
-\rowcolor[gray]{.8} Priority & Group & Type & Plan & Edge & Energy & Total Angle & Delta & Res. & Comments \\ \hline 
+{\bf Investigator: }{{ project.name|texsafe|default:"" }} \hfill  {{ project.department|texsafe|default:"" }} \\
+{\bf FedEx Account: }{{ project.account_number|texsafe|default:"" }} \hfill {{ project.organisation|texsafe|default:"" }} \\
+{\bf Phone: }{{ project.contact_phone|texsafe|default:"" }} \hfill {{ project.address|texsafe|default:"" }} \\
+{\bf Fax: }{{ project.contact_fax|texsafe|default:"" }} \hfill {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}   {{ project.postal_code|texsafe|default:"" }} \\
+\hfill {{ project.country|texsafe|default:"" }} \\ 
+\end{center}
+
+\section*{Sample List By Experiment}
+
+\begin{longtable}{|p{0.3cm}|p{1.5cm}|p{0.75cm}|p{2.4cm}|p{0.85cm}|p{.8cm}|p{.8cm}|p{0.5cm}|p{0.5cm}|p{4cm}|}
+
+\hline
+\rowcolor[gray]{.8} \multicolumn{4}{|c|}{\cellcolor[gray]{.8}Experiment Parameters} & 
+\multicolumn{5}{c|}{\cellcolor[gray]{.8}Desired Values} & \\ 
+
+\multicolumn{1}{|c|}{\cellcolor[gray]{.9}Pr.} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Group} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Type} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Plan} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Edge} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Energy} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Tot.Angle} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Delta} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Res.} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Comments} \\ \hline
+\endfirsthead
+
+\multicolumn{10}{|r|}{Continued on next page...} \\ \hline
+\endfoot
+
+\endlastfoot
 
 {% for exp in experiments %}
-\hline
-{{ exp.priority|texsafe|default:"" }}&
+{{ exp.priority|texsafe|default:"" }}& 
 {{ exp.name|texsafe|default:"" }}&
 {{ exp.get_kind_display|texsafe|default:"" }}&
 {{ exp.get_plan_display|texsafe|default:"" }}&
@@ -38,66 +70,74 @@
 {{ exp.total_angle|texsafe|default:"" }}&
 {{ exp.delta_angle|texsafe|default:"" }}&
 {{ exp.resolution|texsafe|default:"" }}&
-{{ exp.comments }} \\ \hline
+{{ exp.comments }} \\ \cline{2-10}
 
- & \multicolumn{9}{l}{
-\begin{tabular}{p{0.7in}p{0.7in}p{0.7in}p{0.7in}p{0.7in}p{1.8in}}
-\rowcolor[gray]{.9}Crystal & Priority & Container & Unit Cell & Spacegroup & Comments \\
-{% for xtal in crystals %}{% ifequal xtal.experiment exp %}{{ xtal.name|texsafe|default:"" }}&
-{{ xtal.priority|texsafe|default:"" }}&
-{{ xtal.container|texsafe|default:"" }} ({{ xtal.container_location|texsafe|default:"" }}{% ifequal xtal.container 'Cane' %} from bottom{% endifequal %})&
-{% if xtal.crystal_form %}{{ xtal.crystal_form.cell_a|texsafe|default:"" }}, {{ xtal.crystal_form.cell_b|texsafe|default:"" }}, {{ xtal.crystal_form.cell_c|texsafe|default:"" }}{% endif %}&
-{{ xtal.crystal_form.space_group|texsafe|default:"" }}&
-{{ xtal.comments|texsafe|default:"" }} \\{% endifequal %}{% endfor %}
-\end{tabular}
-}\\
+ & \multicolumn{1}{c}{\cellcolor[gray]{.92}Crystal} & 
+\multicolumn{1}{c}{\cellcolor[gray]{.92}Pr.} & 
+\multicolumn{1}{c}{\cellcolor[gray]{.92}Container} &  
+\multicolumn{3}{l}{\cellcolor[gray]{.92} Unit Cell} & 
+\multicolumn{2}{c}{\cellcolor[gray]{.92}Spacegroup} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.92}Comments} \\ \cline{2-10}
+
+{% for xtal in crystals %}{% ifequal xtal.experiment exp %} \multicolumn{1}{|c|}{}& 
+\cellcolor[gray]{0.98} {{ xtal.name|texsafe|default:"" }}&
+\cellcolor[gray]{0.98} {{ xtal.priority|texsafe|default:"" }}&
+\cellcolor[gray]{0.98} {{ xtal.container|texsafe|default:"" }} ({{ xtal.container_location|texsafe|default:"" }}{% ifequal xtal.container 'Cane' %} from bottom{% endifequal %})&
+\multicolumn{3}{l|}{\cellcolor[gray]{0.98} {% if xtal.crystal_form %}{{ xtal.crystal_form.cell_a|texsafe|default:"" }},{{ xtal.crystal_form.cell_b|texsafe|default:"" }}, {{ xtal.crystal_form.cell_c|texsafe|default:"" }} } & {% else %} } & {% endif %}  
+\multicolumn{2}{c|}{\cellcolor[gray]{0.98}{{ xtal.crystal_form.space_group|texsafe|default:"" }} }&
+\cellcolor[gray]{0.98} {{ xtal.comments|texsafe|default:"" }} \\ {% endifequal %}{% endfor %} \hline
+
+{% if forloop.last %}{% else %}
+\multicolumn{10}{c}{} \\
+\multicolumn{1}{|c|}{\cellcolor[gray]{.9}Pr.} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Group} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Type} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Plan} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Edge} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Energy} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Tot.Angle} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Delta} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Res.} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Comments} \\  \hline 
+{% endif %}
+
 {% endfor %}
+\end{longtable}
+
+\newpage
+
+\section*{Sample List By Cane}
+
+\begin{longtable}{|p{0.3cm}|p{1cm}|p{1cm}|p{1.2cm}|p{1.2cm}|p{0.6cm}|p{1cm}|p{2.2cm}|p{1.8cm}|p{3.5cm}|}
+
+\hline
+\rowcolor[gray]{.85} Pr. & Cane & Position (from top) & Crystal & Group & Req. Res. & Exp Type & Unit Cell & Spacegroup & Special Instructions \\ \hline
+\endfirsthead
+
+\rowcolor[gray]{.85} Pr. & Cane & Position (from bottom) & Crystal & Group & Req. Res. & Exp Type & Unit Cell & Spacegroup & Special Instructions \\ \hline
+\endhead
+
+\hline
+
+{% for con in containers %}{% if con.json_dict.type == 'Cane' %}
+{% for xtal in crystals %}{% ifequal xtal.container con %} {{ xtal.priority|texsafe|default:"" }} & 
+{{ xtal.container|texsafe|default:"" }} &
+{{ xtal.container_location|texsafe|default:"" }} &
+{{ xtal.name|texsafe|default:"" }} &
+{{ xtal.experiment|texsafe|default:"" }} &
+{% if xtal.experiment.resolution %}{{ xtal.experiment.resolution|texsafe|default:"" }}{% endif %} &
+{{ xtal.experiment.get_type_display|texsafe|default:"" }} &
+{% if xtal.crystal_form %}{{ xtal.crystal_form.cell_a|texsafe|default:"" }}, {{ xtal.crystal_form.cell_b|texsafe|default:"" }}, {{ xtal.crystal_form.cell_c|texsafe|default:"" }} & {% else %} & {% endif %}  
+{{ xtal.crystal_form.space_group|texsafe|default:"" }} & 
+{{ xtal.comments|texsafe|default:"" }} \\
+{% endifequal %}{% endfor %}
+{% if forloop.last %}{% else %} & & & & & & & & & \\{% endif %}
+
+{% endif %}{% endfor %}
+\hline
+
+\end{longtable}
 
 
-\end{tabular}
-
-	\section*{Project Details}
-	
-	\begin{tabular}{ll}
-		Username: & {{ project.user.username|texsafe|default:"" }} \\
-		Name: & {{ project.name|texsafe|default:"" }} \\
-		Department: & {{ project.department|texsafe|default:"" }} \\
-		Organization: & {{ project.organisation|texsafe|default:"" }} \\
-		Address: & {{ project.address|texsafe|default:"" }} \\
-		City: & {{ project.city|texsafe|default:"" }} \\
-		Postal Code: & {{ project.postal_code|texsafe|default:"" }} \\
-		Country: & {{ project.country|texsafe|default:"" }} \\
-		Phone: & {{ project.contact_phone|texsafe|default:"" }} \\
-		Fax: & {{ project.contact_fax|texsafe|default:"" }} \\
-	\end{tabular}
-
-	\section*{Shipment Details}
-
-	\begin{tabular}{ll}
-		Shipment Label: & {{ shipment.label|texsafe|default:"" }} \\
-		Tracking Code: & {{ shipment.tracking_code|texsafe|default:"" }} \\
-		Comments: & {{ shipment.comments|texsafe|default:"" }} \\
-		Carrier: & {{ shipment.carrier|texsafe|default:"" }} \\
-		Date Shipped: & {{ shipment.date_shipped|texsafe|default:"" }} \\
-		%Date Created: & {{ shipment.created|texsafe|default:"" }} \\
-	\end{tabular}
-	
-	{% for dewar in shipment.dewar_set.all %}
-	\section*{Dewar "{{dewar.label|texsafe|default:""}}"}
-		\PSforPDF{
-			\begin{pspicture}(10cm,2cm)
-				\psbarcode[transy=1em]{^104{{dewar.barcode}}}{includetext}{code128}
-			\end{pspicture}
-		}
-		\subsection*{Contents}
-		\begin{tabular}{ll}
-			{% for container in dewar.container_set.all %}
-				Container: {{ container.label|texsafe|default:"" }} & \\
-				{% for crystal in container.crystal_set.all %}
-					\hspace{2em} Crystal: {{ crystal.name|texsafe|default:"" }} & \\
-				{% endfor %}
-			{% endfor %}
-		\end{tabular}
-	{% endfor %}
 	
 \end{document}
