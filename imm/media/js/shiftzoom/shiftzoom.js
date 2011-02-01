@@ -293,7 +293,9 @@ var cvi_szclback, cvi_sztimer, cvi_szactive, cvi_szimage=null, shiftzoom = { _sh
 	source : function(img,src,v,z) {
 		if(img&&typeof(img.ctrlid)==="string") {
 			if(typeof(src)==="string"&&typeof(v)==="boolean") {
-				var tmp=new Image(); shiftzoom.G(img.xrefid)
+				var tmp=new Image(); 
+				dataViewer.showActivity();
+				shiftzoom.G(img.xrefid)
 				tmp.onload=function() {
 					shiftzoom.G(img.ctrlid).style.visibility="hidden"; shiftzoom.G(img.overid).style.visibility="hidden"; shiftzoom.G(img.xycoid).style.visibility="hidden"; 
 					if(v==true) {
@@ -302,7 +304,7 @@ var cvi_szclback, cvi_sztimer, cvi_szactive, cvi_szimage=null, shiftzoom = { _sh
 						obj.src=tmp.src; obj.style.msInterpolationMode=img.bicubic; if(!z) {shiftzoom.G(img.tumbid).src=obj.src; if(img.highres!=obj.src) {img.highres=obj.src;} if(img.trident) {tmp.onload=''; tmp=null;} delete tmp;} if(img.buttons&&!img.tod) {shiftzoom.G(img.ctrlid).style.visibility="visible";}
 						if(img.overview&&(img.parentNode.width>img.minwidth||img.parentNode.height>img.minheight)) {shiftzoom.G(img.overid).style.visibility="visible";} if(img.showcoords&&!img.tod) {shiftzoom.G(img.xycoid).style.visibility="visible";}
 					}
-					jQuery.fancybox.hideActivity()
+				    dataViewer.hideActivity();
 				}; tmp.src=src;
 			}
 		}return false;

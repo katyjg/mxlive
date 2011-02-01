@@ -168,3 +168,29 @@ function remove_item(element) {
     });
 }
 
+var dataViewer = function(){
+
+    var  loadingTimer, loadingFrame= 1;
+    var  loading = jQuery('#data-image-loading');
+	function  _animate_loading() {
+	    if (!loading.is(':visible')){
+		    clearInterval(loadingTimer);
+		    return;
+	    }
+	    jQuery('div', loading).css('top', (loadingFrame * -40) + 'px');
+        loadingFrame = (loadingFrame + 1) % 12;
+    }
+    
+    return {
+        showActivity: function() {
+	        loading = jQuery('#data-image-loading');
+            clearInterval(loadingTimer);
+            loading.show();
+            loadingTimer = setInterval(_animate_loading, 66);
+	    },
+	    hideActivity: function() {
+	        loading.hide();
+	    }
+    }
+}();
+
