@@ -62,7 +62,7 @@ class ConfirmDeleteForm(objforms.forms.OrderedForm):
         
 class ShipmentUploadForm(forms.Form):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    excel = forms.Field(widget=forms.FileInput)
+    excel = forms.Field(widget=objforms.widgets.LargeFileInput)
     
     NUM_ERRORS = 3
     

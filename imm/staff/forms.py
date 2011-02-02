@@ -181,7 +181,7 @@ class RunlistForm(objforms.forms.OrderedForm):
     # want this container list to only contain containers that are in the selected experiments. 
     # maybe info on which containers are with what experiment?
    # containers = forms.ModelMultipleChoiceField(queryset=Container.objects.all())
-    name = forms.CharField()
+    name = objforms.widgets.LargeCharField(required=True)
     comments = objforms.widgets.CommentField(required=False)
     
     class Meta:

@@ -692,7 +692,7 @@ table.cane-detail td {
 	background:#999;
 }
 
-.dewar-detail p.list-empty 
+p.list-empty 
 {
     color: #aaa;
     line-height: 8em;
@@ -1382,7 +1382,7 @@ form ul
 	padding:0;
 	list-style-type:none;
 	display: block;
-	width:100%;
+	width:550px;
 }
 
 form li
@@ -2080,13 +2080,15 @@ img.topshadow,img.bottomshadow
 /* SUBMIT ROW */
 .submit-row
 {
-	padding:5px 7px;
-	text-align:right;
+	padding:5px 0;
 	margin:5px 0;
 }
 
 .submit-row input
 {
+    display: block;
+    float: left;
+    max-width: 150px;
 	margin:0 0 0 5px;
 }
 
@@ -2110,6 +2112,12 @@ input.default[type=submit],.submit-row input.default
 {
 	font-weight:700;
 }
+
+input[type=submit]
+{
+	float: right;
+}
+
 
 /* LOGIN FORM */
 div.login-error
