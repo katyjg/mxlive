@@ -65,15 +65,15 @@
 {% block sidebar %}
         <div id="experiments" class="widget droppable-remove parent-stop" data="{% url staff-experiment-basic-list object.pk %}">
 	       <div class="widget-title">
-	       <span>Experiment</span></div>
+	       <span>Experiments</span></div>
             <ul>
                 <li><a href="#">Content Not Loaded.</a></li>
             </ul>
         </div>
         <div id="containers" class="widget droppable-remove parent-stop">
-	       <div class="widget-title"><span class="container-widget-title">Select an Experiment</span></div>
+	       <div class="widget-title"><span class="container-widget-title">Containers</span></div>
             <ul>
-                No containers to display
+                <p class="list-empty">( No containers )</p>
             </ul>
         </div>
 {% endblock %}
