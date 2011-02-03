@@ -785,7 +785,8 @@ def priority(request, id,  model, field):
                     setattr(instance, field, i)
                     instance.save()
                     i += 1
-                return HttpResponse()
+                request.user.message_set.create(message = "%s priority updated" % model.__name__)
+                return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
 
         pks.reverse()
         op = model.objects.get(pk=id).priority
@@ -796,7 +797,7 @@ def priority(request, id,  model, field):
         elif start > end:
             pk_list = pks[end:start+1]
         else:
-            return HttpResponse()
+            return 
         if pk_list[0] != id:
             i = op-len(pk_list)+1
         elif pk_list[0] == id:
@@ -809,7 +810,8 @@ def priority(request, id,  model, field):
             instance.save()
             i += 1
 
-    return HttpResponse()
+    request.user.message_set.create(message = "%s priority updated" % model.__name__)
+    return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
     
 @login_required
 @transaction.commit_on_success
@@ -972,6 +974,7 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
         message = '%s has not been removed, as %s is not editable' % (display_name, src.name)
 
     request.user.message_set.create(message = message)
+
     return render_to_response('lims/refresh.html', {
         'info': form_info,
         }, context_instance=RequestContext(request))
