@@ -140,6 +140,7 @@ function initModals(){
             //grab this function so that we can pass it back to
             //`onComplete` of the new fancybox we're going to create
             var func = arguments.callee;
+            current_url = window.location.href
 
             //bind the submit of our new form
             jQuery('.objform-container form').ajaxForm(function(msg){
@@ -148,8 +149,11 @@ function initModals(){
                 if(error) {
                     jQuery.fancybox({content:msg,onComplete:func,scrolling:'no',titleShow:false});
                 } else {
-                    if(jQuery("input.default").attr('value') == 'Delete') { history.go(-1); }
-                    else { window.location.reload(); }
+                    if(jQuery("input.default").attr('value') == 'Delete') { 
+                        if(current_url.search("cocktail") != -1 || current_url.search("crystalform") != -1) {
+                            window.location.reload(); 
+                        } else { history.go(-1); }
+                    } else { window.location.reload(); }
                 }
                 return false;
             });
