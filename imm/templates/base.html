@@ -119,6 +119,7 @@
 
         function loadWidgets() {
             jQuery(".widget").each(function(i, widget) {
+                //console.log("reloading widgets");
                 var $widget = jQuery(widget);
                 $widget.find("ul").load($widget.attr("data"), function() {
                     initModals();
@@ -142,44 +143,6 @@
         	return 'none';
         }
 
-        function serialize(table) {
-            var rowIds = [];
-            var rows = table.tBodies[0].rows;
-            for (var i = 0; i < rows.length; i++) {
-                var jQuery_row = jQuery(rows[i]);
-                if ( jQuery_row.hasClass("link-row") ) {
-                    rowIds.push("objlist-list-table[]=" + jQuery_row.attr("id"));
-                }
-            }
-            return rowIds.join("&");
-        }
-        
-        function setupTableDragAndDrop(selector, url) {
-            var serializedAtStart;
-            jQuery(selector + " table").tableDnD({
-                onDragClass: "lims-droppable-active",
-                onDragStart: function(table, row) {
-                    serializedAtStart = serialize(table);
-                },
-                onDrop: function(table, row) {
-                    var serializedAtDrop = serialize(table);
-                    if (serializedAtStart != serializedAtDrop) {
-                        var jQuery_tr = jQuery(selector + " table tr#" + row.id);
-                        jQuery.ajax({
-                            type: "POST",
-                            url: jQuery_tr.attr("rel") + "priority/",
-                            data: serializedAtDrop,
-                            success: function() {
-                                jQuery_tr.parents(".content-list").load(url, function() {
-                                    setupTableDragAndDrop(selector, url);
-                                });
-                            }
-                        });
-                    }
-                }
-            });
-        } 
-
         function setupRunlist() {
             jQuery(".runlist-experiment").click(function() {
                 var data = window.location.pathname + "container/basic/"+jQuery(this).attr('id')+"/";
@@ -191,7 +154,11 @@
 
         function setupDragAndDrop() {
             jQuery(".draggable-link-parent").draggable({
-                helper: 'clone',
+                //helper: 'clone',
+                helper: function( event ) {
+				            return $( "<div class='drag-helper'>"+jQuery(this).html()+"</div>" );
+			            },
+                cursorAt: { cursor: "crosshair", bottom: 5, right: 5 },
                 revert: "invalid",
                 start: function(event, ui){
                 	/* when starting the drag, store it's parent element (drag source) */

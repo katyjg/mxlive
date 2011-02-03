@@ -20,7 +20,7 @@
 {% block content %}
 
 {% with object as dewar %}
-    <div class="dewar-img droppable droppable-replace" accept="container" title="Drag and drop onto this image"></div>
+    <div class="dewar-img droppable droppable-replace" {% if dewar.is_editable %}accept="container" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>
 
     <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
         <tr valign="top">

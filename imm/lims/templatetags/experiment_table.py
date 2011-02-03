@@ -19,6 +19,7 @@ register = Library()
 @register.inclusion_tag('lims/entries/experiment_table.html', takes_context=True)
 def experiment_table(context, object, admin):
     experiment_list = list()
+    experiments = list()
     dewar_list = object.dewar_set.all()
     conts = list()
     for dewar in dewar_list:
@@ -34,7 +35,12 @@ def experiment_table(context, object, admin):
                 if experiment not in experiment_list:
                     experiment_list.append(experiment)
     
-    return { 'experiments': experiment_list,
+    for exp in Experiment.objects.all().order_by('priority').reverse():
+        if exp in experiment_list:
+            experiments.append(exp)
+
+    
+    return { 'experiments': experiments,
               'admin': admin,
               'object': object
             }

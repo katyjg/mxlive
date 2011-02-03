@@ -32,17 +32,13 @@
                 <th>Screening Dataset*</th>
                 <th>Full Collection Score</th>
                 <th>Full Collection Dataset*</th>
-                {% if not admin %}
-                <th></th>
-                {% endif %}
             </tr>
         </thead>
         <tbody>
         {% if crystals %}
             {% for crystal in crystals %}
             <!-- "odd" if loop_count % 2 == 1 else "even" -->
-	            <tr class="{% cycle 'odd' 'even'%} link-row"
-                    title="Go to Crystal {{crystal.pk}}">
+	            <tr class="{% cycle 'odd' 'even'%}">
 	            	<!-- checkbox for actions, only admin -->
 	            	{% if admin %}
             			<td><input type="checkbox" class="checkbox" name="crystal_chk" value="{{crystal.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
@@ -87,11 +83,6 @@
                  			<a href="{% url lims-dataset-detail crystal.best_collection.data.pk %}" class="modal" title="View dataset images">{{ crystal.best_collection.data }}</a>
                         {% endif %}
 	            	</td>
-	            	{% if not admin %}
-	            		<td>
-	            			<a class="remove" rel="{% url lims-experiment-remove-crystal experiment 0 crystal.pk %}" href="#" onclick="remove_item(this);" title="Remove crystal from experiment"><span class="remove"></span></a>
-	            		</td>
-	            	{% endif %}
 	            </tr>
             {% endfor %}
         {% else %}
@@ -109,7 +100,6 @@
     {% if admin %}
     	</form>
     {% endif %}
-
 
 	<script>
 		jQuery('#action_form').submit(function() {
