@@ -29,6 +29,11 @@ class LargeInput(forms.TextInput):
         kwargs.setdefault('attrs',{'class': 'field text large'})
         super(LargeInput, self).__init__(*args, **kwargs)
 
+class LargeFileInput(forms.FileInput):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('attrs',{'class': 'field file large'})
+        super(LargeFileInput, self).__init__(*args, **kwargs)
+
 class LeftHalfInput(forms.TextInput):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('attrs',{'class': 'field text leftHalf'})

@@ -25,7 +25,7 @@ admin.site.register(Dewar, DewarAdmin)
 class ActivityLogAdmin(admin.ModelAdmin):
     list_filter = ['created']
     search_fields = ['description','ip_number', 'content_type__name', 'action_type']
-    list_display = ('created', 'action_type','object_repr', 'user','ip_number','description')
+    list_display = ('created', 'action_type','user','ip_number','description')
     ordering = ('-created',)
     list_per_page = ACTIVITY_ITEMS_PER_PAGE    
 admin.site.register(ActivityLog, ActivityLogAdmin)
@@ -45,7 +45,7 @@ staff_site.register(Experiment, ExperimentStaffAdmin)
 
 class CrystalAdmin(VersionAdmin):
     search_fields = ['name', 'code']
-    list_filter = ['modified']
+    list_filter = ['modified','status']
     list_display = ('identity', 'name', 'status', 'cocktail', 'comments', 'container', 'container_location')       
     ordering = ['-created', '-priority']
     list_per_page = ITEMS_PER_PAGE

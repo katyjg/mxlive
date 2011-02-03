@@ -31,7 +31,7 @@
         {% if field|make_list == object.score|make_list %}
             {{ field|floatformat:3 }}
     	{% else %}
-    		{{ field|truncate_chars:30 }}
+    		{{ field|truncate_chars:40 }}
     	{% endif %}
     	{% endif %}
         </td>

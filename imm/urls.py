@@ -1,7 +1,7 @@
 from django.conf.urls.defaults import patterns, include, url
 from django.contrib import admin
 from django.conf import settings
-from views import logout_view, show_page
+from views import logout_view, login_view, show_page
 from remote.views import mock_user_api
 
 from jsonrpc.site import jsonrpc_site
@@ -32,7 +32,7 @@ urlpatterns = patterns('',
     
     (r'^home/',  'imm.lims.views.home'),
     (r'^help/',  show_page, {'template_name': 'lims/project_help.html'}),
-    (r'^login/$',  'django.contrib.auth.views.login', {'template_name': 'login.html'}),
+    (r'^login/$',  login_view, {'template_name': 'login.html'}),
     (r'^logout/$', logout_view),
     
     url(r'^json/browse/$', 'jsonrpc.views.browse', name="jsonrpc_browser"),

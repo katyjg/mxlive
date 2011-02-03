@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 import subprocess
 import tempfile
 import os
@@ -189,25 +189,43 @@ def home(request):
 @project_required
 def show_project(request):
     project = request.project
+    
+    # if user has logged in past week, show recent items in past week otherwise
+    # show recent items since last login.
+    
+    recent_start = datetime.now() - timedelta(days=7)
+    last_login = ActivityLog.objects.last_login(request)
+    if last_login is not None:
+        if last_login.created < recent_start:
+            recent_start = last_login.created       
 
     statistics = {
-        'shipment': {
-                'draft': project.shipment_set.filter(status__exact=Shipment.STATES.DRAFT), 
-                'outgoing': project.shipment_set.filter(status__exact=Shipment.STATES.SENT),
-                'incoming': project.shipment_set.filter(status__exact=Shipment.STATES.RETURNED),
-                'received': project.shipment_set.filter(status__exact=Shipment.STATES.ON_SITE),
-                'closed': project.shipment_set.filter(status__exact=Shipment.STATES.ARCHIVED),   
+        'shipments': {
+                'outgoing': project.shipment_set.filter(status__exact=Shipment.STATES.SENT).count(),
+                'incoming': project.shipment_set.filter(status__exact=Shipment.STATES.RETURNED).count(),
+                'on_site': project.shipment_set.filter(status__exact=Shipment.STATES.ON_SITE).count(),
                 },
-        'experiment': {
-                'draft': project.experiment_set.filter(status__exact=Experiment.STATES.DRAFT),
-                'active': project.experiment_set.filter(status__exact=Experiment.STATES.ACTIVE),
-                'processing': project.experiment_set.filter(status__exact=Experiment.STATES.PROCESSING),
-                'paused': project.experiment_set.filter(status__exact=Experiment.STATES.PAUSED),
-                'closed': project.experiment_set.filter(status__exact=Experiment.STATES.CLOSED),            
+        'experiments': {
+                'active': project.experiment_set.filter(status__exact=Experiment.STATES.ACTIVE).count(),
+                'processing': project.experiment_set.filter(status__exact=Experiment.STATES.PROCESSING).count(),
                 },
-                
+        'crystals': {
+                'on_site': project.crystal_set.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).count(),
+                'outgoing': project.crystal_set.filter(status__exact=Crystal.STATES.SENT).count(),
+                'incoming': project.crystal_set.filter(status__exact=Crystal.STATES.RETURNED).count(),
+                },
+        'reports':{
+                'total': project.result_set.all().count(),
+                'new': project.result_set.filter(modified__gte=recent_start).count(),
+                'start_date': recent_start,                
+                },
+        'datasets':{
+                'total': project.data_set.all().count(),
+                'new': project.data_set.filter(modified__gte=recent_start).count(),
+                'start_date': recent_start,
+        },                
     }
-
+    
     return render_to_response('lims/project.html', {
         'project': project,
         'statistics': statistics,

@@ -19,20 +19,14 @@
 {% block content-override %}
     <!-- left region -->
 	<div id="left-content" class="col-4">
-	<p>This LIMS is a web application for managing sample, shipping and experiment information related to macromolecular crystallography experiments at the synchrotron.</p>
-    <dl>
-    <dt>&ldquo;Samples&rdquo;</dt>
-    <dd>Manage crystals, and their contents in this section.
-    </dd>
-    <dt>&ldquo;Experiments&rdquo;</dt>
-    <dd>Manage experiment requests, and viewing results in this section.
-    </dd>
-    <dt>&ldquo;Shipping&rdquo;</dt>
-    <dd>Organize crystals to send to the sychrotron in Containers and Dewars.
-    </dd>
-    </dl>
+	<p>This LIMS is a web application for managing sample, shipping and experiment information 
+	related to macromolecular crystallography experiments at the synchrotron.</p>
+    <p>The lims is organized into sections accessible through the tabbed navigation above. 
+    The <em>Samples</em> section enables you to manage crystals, and their contents.
+    You can organize crystals to send to the sychrotron in Containers and Dewars in the <em>Shipping</em> section. In the
+    <em>Experiments</em> section, you can enter experiment requests, and view datasets and results from already performed experiments.</p>
     </div>
-	<!-- end left region -->
+    <!--left region -->
     <!-- middle region -->
 	<div id="middle-content" class="col-4">
     {% include "lims/project_summary.html" %}   
