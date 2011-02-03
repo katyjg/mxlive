@@ -19,7 +19,7 @@
 
 {% block content %}
 
-<div class="experiment droppable droppable-replace" accept="crystal" title="Drag and drop onto this image"></div>
+<div class="experiment droppable droppable-replace" {% if object.is_editable %}accept="crystal" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>
 
 <table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
     {% comment %}
@@ -51,7 +51,11 @@
 <!-- object.crystals contains all the crystals -->
 {% load crystal_table %}
 
+{% if object.get_status_display == 'Draft' %}
+{% crystal_priority_table crystals request.user.is_superuser object.pk %}
+{% else %}
 {% crystal_table crystals request.user.is_superuser object.pk %}
+{% endif %}
 
 <div style="clear: both;"></div>
 

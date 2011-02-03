@@ -365,6 +365,10 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
                 
         if loc_id:
             setattr(dest, 'container_location', loc_id)
+        if ((destination.__name__ == 'Experiment' and object.__name__ == 'Crystal') or (destination.__name__ == 'Container' and object.__name__ == 'Dewar')):
+            for exp in dest.get_experiment_list():
+                exp.priority = 0
+                exp.save()    
     
         dest.save()
         message = '%s (%s) added' % (to_add.__class__._meta.verbose_name, display_name)
@@ -784,52 +788,45 @@ def user_object_list(request, model, template='lims/lists/list_base.html', link=
     )
     
 @login_required
-@manager_required
-@transaction.commit_on_success
-def change_priority(request, id,  model, action, field):
-    """
-    """
-    try:
-        obj = request.manager.get(pk=id)
-    except:
-        raise Http404
-    
-    if request.method == 'POST':
-        
-        try:
-            filter, order = '__gt', '' # return results with priority > obj.priority
-            if action == 'down': 
-                filter, order = '__lt', '-' # return results with priority < obj.priority
-                
-            # order by priority, DESC (ie. 9,8,7,6,...)
-            results = model.objects.order_by(order + field).filter(**{field + filter: getattr(obj, field)})
-            next_obj = results[0]
-                
-        except IndexError:
-            next_obj = None
-            
-        delta = int(action == 'up') or -1
-        setattr(obj, field, getattr(next_obj or obj, field) + delta)
-        obj.save()
-    
-    return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
-
-@login_required
 @transaction.commit_on_success
 def priority(request, id,  model, field):
     
     if request.method == 'POST':
-        pks = request.POST.getlist('objlist-list-table[]')
+        pks = request.POST.getlist('id_list[]')
         pks.reverse()
-        i = 0
         for pk in pks:
-            if pk: # not all rows have ids (hidden ones)
-                pk = int(pk)
-                instance = model.objects.get(pk=pk)
-                setattr(instance, field, i)
-                instance.save()
-                i += 1
-            
+            pk_pr = model.objects.get(pk=pk).priority
+            if pk_pr is 0:
+                i = 1
+                for item in pks:
+                    instance = model.objects.get(pk=item)
+                    setattr(instance, field, i)
+                    instance.save()
+                    i += 1
+                return HttpResponse()
+
+        pks.reverse()
+        op = model.objects.get(pk=id).priority
+        start = len(pks)-op
+        end = pks.index(id)  
+        if start < end:
+            pk_list = pks[start:end+1]
+        elif start > end:
+            pk_list = pks[end:start+1]
+        else:
+            return HttpResponse()
+        if pk_list[0] != id:
+            i = op-len(pk_list)+1
+        elif pk_list[0] == id:
+            i = op
+
+        pk_list.reverse()
+        for pk in pk_list:
+            instance = model.objects.get(pk=pk)
+            setattr(instance, field, i)
+            instance.save()
+            i += 1
+
     return HttpResponse()
     
 @login_required

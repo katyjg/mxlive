@@ -18,9 +18,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="crystal droppable droppable-replace" accept="crystalform cocktail" title="Drag and drop onto this image"></div>
-
-<!--img src="/img/samples-crystal_test.png" class="crystal droppable droppable-replace" accept="crystalform cocktail" style="float:right;clear: right; margin: 0.5em;"/-->
+<div class="crystal droppable droppable-replace" {% if object.is_editable %}accept="crystalform cocktail" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>
 
 <table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
 	<tr valign="top"><th>Barcode:</th><td>{{ object.code }}</td></tr>

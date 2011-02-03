@@ -13,6 +13,7 @@ from django.utils.datastructures import MultiValueDict
 
 from imm.lims.models import Data
 from imm.lims.models import Result
+from imm.lims.models import Crystal
 
 register = Library()
 
@@ -28,6 +29,19 @@ def crystal_table(context, crystals, admin, experiment):
     return { 'crystals': crystals,
             'datasets': datasets,
             'results': results,
+            'admin': admin,
+            'experiment': experiment
+            }
+
+@register.inclusion_tag('lims/entries/crystal_priority_table.html', takes_context=True)
+def crystal_priority_table(context, crystals, admin, experiment):
+    # want crystals sorted by priority to be the whole crystal set.
+    crystal_list = list()
+    for xtal in Crystal.objects.all().order_by('priority').reverse():
+        if xtal in crystals:
+            crystal_list.append(xtal)
+
+    return { 'crystals': crystal_list,
             'admin': admin,
             'experiment': experiment
             }

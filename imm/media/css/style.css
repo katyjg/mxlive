@@ -459,8 +459,8 @@ td.Cane {
     width: 15px;
     padding-left: 10px;
 }
-.occupied {
-    background: #bee0bb;
+table.cane-detail td.occupied {
+    background: #bee0bb !important;
 }
 td.Cassette {
     height: 50px;
@@ -938,12 +938,6 @@ div.object-list
 	margin-top:.5em;
 }
 
-div.object-list td a
-{
-	color:#00c;
-	text-decoration:none;
-}
-
 div.object-list th
 {
 	font-weight: bold;
@@ -1023,9 +1017,8 @@ tr.odd td
 
 .link-row:hover, .link-row:hover td
 {
-	background:#eee;
+    color: #0066cc;
 }
-
 
 .link-row, .redirect
 {
@@ -1040,8 +1033,18 @@ td.first, th.first
 
 td.prioritize {
 	background: url(/img/grippy.png) no-repeat 4px center;
+    cursor: move;
 }
 
+.drag-helper {
+    background: #9cf;
+    border: 1px solid #06c;
+    padding: 4px 8px 4px 8px;
+    cursor: move;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+}
 
 tr.expanded
 {
