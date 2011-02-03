@@ -530,7 +530,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
     form_info = {
         'title': 'New %s' % object_type,
         'action':  request.path,
-        'add_another': False, # does not work right now
+        'add_another': True, # does not work right now
     }
         
     if request.method == 'POST':
@@ -544,8 +544,18 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
             ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE,
                 info_msg)
             request.user.message_set.create(message = info_msg)
-            # messages are simply passed down to the template via the request context
-            return render_to_response("lims/message.html", context_instance=RequestContext(request))
+            if request.POST.has_key('_addanother'):
+                initial = {'project': project.pk}
+                initial.update(dict(request.GET.items()))      
+                frm = form(initial=initial)
+                frm.restrict_by('project', project.pk)
+                return render_to_response(template, {
+                    'info': form_info, 
+                    'form': frm, 
+                    }, context_instance=RequestContext(request))
+            else:
+                # messages are simply passed down to the template via the request context
+                return render_to_response("lims/message.html", context_instance=RequestContext(request))
         else:
             return render_to_response(template, {
                 'info': form_info,

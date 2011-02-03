@@ -144,7 +144,7 @@ function initModals(){
             //bind the submit of our new form
             jQuery('.objform-container form').ajaxForm(function(msg){
                 jQuery.fancybox.showActivity();
-                var error = msg.indexOf("error") > -1; // given an error there will be an error string present
+                var error = msg.indexOf("form") > -1; // given an error there will be a form element string present
                 if(error) {
                     jQuery.fancybox({content:msg,onComplete:func,scrolling:'no',titleShow:false});
                 } else {
