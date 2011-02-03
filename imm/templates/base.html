@@ -80,7 +80,7 @@
     {% if messages %}
         <script>
             {% for msg in messages %}
-                jQuery.jGrowl("{{msg|escape}}");
+                jQuery.jGrowl("{{msg|escape}}", { life: 5000 });
             {% endfor %}
         </script>
     {% endif %}

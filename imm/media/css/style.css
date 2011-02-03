@@ -2151,4 +2151,73 @@ span.unusable-score {
     color: #933 !important;
 }
 
+/* HOME PAGE */
+dl.intro {
+    margin: 0;
+	padding: 0;
+}
+
+.intro dt {
+	margin: 0;
+	padding: 0;
+	font-weight: bold;
+
+}
+.intro dd {
+	margin: 0 0 1em 0;
+	padding: 0;
+}
+
+table.stats {
+	margin: 0;
+	padding: 0;
+}
+
+table.stats th {
+    padding: 0.4em;
+    font-size: 120%;
+    /*color: #fff;
+    background-color: #555;*/
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+}
+
+.stats td {
+	padding: 0.4em;
+    border-bottom: 1px solid #ccc;
+}
+
+table.stats span.number {
+    font-size: 85%;
+    font-weight: bold;
+    text-align: center;
+}
+
+
+td.incoming, td.outgoing, td.on-site, td.new {
+    font-size: 10px;
+    line-height: 14px;
+    padding-top: 24px;
+    text-align: center;
+    border-right: 1px solid #ddd;
+    color: #999;
+}
+
+.stats td.links {    
+	text-align: center;
+	line-height: 0.9em;
+	padding: 0
+}
+
+td.incoming {
+    background:url("/img/incoming.png") no-repeat center 3px;
+}
+
+td.outgoing {
+    background:url("/img/outgoing.png") no-repeat center 3px;
+}
+td.on-site {
+    background:url("/img/onsite.png") no-repeat center 3px;
+}
+
 

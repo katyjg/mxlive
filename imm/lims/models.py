@@ -1515,21 +1515,39 @@ class Feedback(models.Model):
 class ActivityLogManager(models.Manager):
     def log_activity(self, request, obj, action_type, description=''):
         e = self.model()
-        if getattr(obj, 'project', None) is not None:
-            e.project_id = obj.project.pk
-        elif getattr(request, 'project', None) is not None:
-            e.project_id = request.project.pk
-        elif isinstance(Project, obj.__class__):
-            e.project_id = obj.pk
+        if obj is None:
+            try:
+                project = request.user.get_profile()
+                e.project_id = project.pk
+            except DoesNotExist:
+                project = None
+                
+        else:
+            if getattr(obj, 'project', None) is not None:
+                e.project_id = obj.project.pk
+            elif getattr(request, 'project', None) is not None:
+                e.project_id = request.project.pk
+            elif isinstance(Project, obj):
+                e.project_id = obj.pk
+
+            e.object_id = obj.pk
+            e.affected_item = obj
+            e.content_type = ContentType.objects.get_for_model(obj)
+                     
         e.user_id = request.user.pk
         e.ip_number = request.META['REMOTE_ADDR']
-        e.content_type = ContentType.objects.get_for_model(obj)
-        e.object_id = obj.pk
-        e.affected_item = obj
         e.action_type = action_type
         e.description = description
         e.object_repr = repr(obj)
         e.save()
+
+    def last_login(self, request):
+        logs = self.filter(user__exact=request.user, action_type__exact=ActivityLog.TYPE.LOGIN)
+        if logs.count() > 1:
+            return logs[1]
+        else:
+            return None
+        
 
     
 class ActivityLog(models.Model):
