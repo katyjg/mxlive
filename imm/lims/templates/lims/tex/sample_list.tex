@@ -14,7 +14,7 @@
 \textheight 237mm
 \textwidth  6.8in
 \addtolength{\fboxsep}{0.2cm}
-\renewcommand{\arraystretch}{1.5}
+\renewcommand{\arraystretch}{1.2}
 \begin{document}
 
 \hspace{-0.25in}
@@ -30,9 +30,9 @@
 
 {\bf Investigator: }{{ project.name|texsafe|default:"" }} \hfill  {{ project.department|texsafe|default:"" }} \\
 {\bf FedEx Account: }{{ project.account_number|texsafe|default:"" }} \hfill {{ project.organisation|texsafe|default:"" }} \\
-{\bf Phone: }{{ project.contact_phone|texsafe|default:"" }} \hfill {{ project.address|texsafe|default:"" }} \\
-{\bf Fax: }{{ project.contact_fax|texsafe|default:"" }} \hfill {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}   {{ project.postal_code|texsafe|default:"" }} \\
-\hfill {{ project.country|texsafe|default:"" }} \\ 
+\hfill {{ project.address|texsafe|default:"" }} \\
+{\bf Phone: }{{ project.contact_phone|texsafe|default:"" }} \hfill {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}   {{ project.postal_code|texsafe|default:"" }} \\
+{\bf Fax: }{{ project.contact_fax|texsafe|default:"" }} \hfill {{ project.country|texsafe|default:"" }} \\ 
 \end{center}
 
 \section*{Sample List By Experiment}
@@ -58,6 +58,7 @@
 \multicolumn{10}{|r|}{Continued on next page...} \\ \hline
 \endfoot
 
+\multicolumn{10}{|c|}{} \\ \hline
 \endlastfoot
 
 {% for exp in experiments %}
@@ -70,14 +71,14 @@
 {{ exp.total_angle|texsafe|default:"" }}&
 {{ exp.delta_angle|texsafe|default:"" }}&
 {{ exp.resolution|texsafe|default:"" }}&
-{{ exp.comments }} \\ \cline{2-10}
+{{ exp.comments }} \\ \cline{2-10} \nopagebreak
 
  & \multicolumn{1}{c}{\cellcolor[gray]{.92}Crystal} & 
 \multicolumn{1}{c}{\cellcolor[gray]{.92}Pr.} & 
 \multicolumn{1}{c}{\cellcolor[gray]{.92}Container} &  
 \multicolumn{3}{l}{\cellcolor[gray]{.92} Unit Cell} & 
 \multicolumn{2}{c}{\cellcolor[gray]{.92}Spacegroup} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.92}Comments} \\ \cline{2-10}
+\multicolumn{1}{c|}{\cellcolor[gray]{.92}Comments} \\ \cline{2-10} \nopagebreak
 
 {% for xtal in crystals %}{% ifequal xtal.experiment exp %} \multicolumn{1}{|c|}{}& 
 \cellcolor[gray]{0.98} {{ xtal.name|texsafe|default:"" }}&
@@ -85,9 +86,9 @@
 \cellcolor[gray]{0.98} {{ xtal.container|texsafe|default:"" }} ({{ xtal.container_location|texsafe|default:"" }}{% ifequal xtal.container 'Cane' %} from bottom{% endifequal %})&
 \multicolumn{3}{l|}{\cellcolor[gray]{0.98} {% if xtal.crystal_form %}{{ xtal.crystal_form.cell_a|texsafe|default:"" }},{{ xtal.crystal_form.cell_b|texsafe|default:"" }}, {{ xtal.crystal_form.cell_c|texsafe|default:"" }} } & {% else %} } & {% endif %}  
 \multicolumn{2}{c|}{\cellcolor[gray]{0.98}{{ xtal.crystal_form.space_group|texsafe|default:"" }} }&
-\cellcolor[gray]{0.98} {{ xtal.comments|texsafe|default:"" }} \\ {% endifequal %}{% endfor %} \hline
+\cellcolor[gray]{0.98} {{ xtal.comments|texsafe|default:"" }} \\ \nopagebreak[3] {% endifequal %}{% endfor %} \cline{2-10}
 
-{% if forloop.last %}{% else %}
+{% if forloop.last %}{% else %}{% comment %}
 \multicolumn{10}{c}{} \\
 \multicolumn{1}{|c|}{\cellcolor[gray]{.9}Pr.} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Group} & 
@@ -98,7 +99,8 @@
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Tot.Angle} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Delta} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Res.} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Comments} \\  \hline 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Comments} \\  \hline {% endcomment %}
+\multicolumn{10}{|c|}{} \\ \hline
 {% endif %}
 
 {% endfor %}
@@ -106,21 +108,27 @@
 
 \newpage
 
-\section*{Sample List By Cane}
+\section*{Sample List By Container}
 
-\begin{longtable}{|p{0.3cm}|p{1cm}|p{1cm}|p{1.2cm}|p{1.2cm}|p{0.6cm}|p{1cm}|p{2.2cm}|p{1.8cm}|p{3.5cm}|}
+\begin{longtable}{|p{0.5cm}|p{1.2cm}|p{1.cm}|p{1.2cm}|p{1.2cm}|p{0.45cm}|p{1cm}|p{2.2cm}|p{1.8cm}|p{3.5cm}|}
 
 \hline
-\rowcolor[gray]{.85} Pr. & Cane & Position (from top) & Crystal & Group & Req. Res. & Exp Type & Unit Cell & Spacegroup & Special Instructions \\ \hline
+\rowcolor[gray]{.85} Exp Pr. & Container & Position & Crystal & Group & Req. Res. & Exp Type & Unit Cell & Spacegroup & Special Instructions \\ \hline
 \endfirsthead
 
-\rowcolor[gray]{.85} Pr. & Cane & Position (from bottom) & Crystal & Group & Req. Res. & Exp Type & Unit Cell & Spacegroup & Special Instructions \\ \hline
+\rowcolor[gray]{.85} Exp Pr. & Container & Position & Crystal & Group & Req. Res. & Exp Type & Unit Cell & Spacegroup & Special Instructions \\ \hline
 \endhead
+
+\multicolumn{10}{|r|}{Continued on next page...} \\ \hline
+\endfoot
+
+\endlastfoot
 
 \hline
 
-{% for con in containers %}{% if con.json_dict.type == 'Cane' %}
-{% for xtal in crystals %}{% ifequal xtal.container con %} {{ xtal.priority|texsafe|default:"" }} & 
+{% for con in containers %}
+{% for exp in experiments %}
+{% for xtal in crystals %}{% ifequal xtal.container con %}{% ifequal xtal.experiment exp %} {{ xtal.experiment.priority|texsafe|default:"" }} & 
 {{ xtal.container|texsafe|default:"" }} &
 {{ xtal.container_location|texsafe|default:"" }} &
 {{ xtal.name|texsafe|default:"" }} &
@@ -129,11 +137,11 @@
 {{ xtal.experiment.get_type_display|texsafe|default:"" }} &
 {% if xtal.crystal_form %}{{ xtal.crystal_form.cell_a|texsafe|default:"" }}, {{ xtal.crystal_form.cell_b|texsafe|default:"" }}, {{ xtal.crystal_form.cell_c|texsafe|default:"" }} & {% else %} & {% endif %}  
 {{ xtal.crystal_form.space_group|texsafe|default:"" }} & 
-{{ xtal.comments|texsafe|default:"" }} \\
-{% endifequal %}{% endfor %}
+{{ xtal.comments|texsafe|default:"" }} \\ \nopagebreak
+{% endifequal %}{% endifequal %}{% endfor %}{% endfor %}
 {% if forloop.last %}{% else %} & & & & & & & & & \\{% endif %}
 
-{% endif %}{% endfor %}
+{% endfor %}
 \hline
 
 \end{longtable}
