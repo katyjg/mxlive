@@ -1461,6 +1461,10 @@ form li div.right
 	clear:both!important;
 }
 
+.spacer
+{
+    padding: 5px;
+}
 /* ----- HEADING ----- */
 .heading
 {
@@ -2190,10 +2194,8 @@ table.stats th {
     border-bottom: 1px solid #ccc;
 }
 
-table.stats span.number {
-    font-size: 85%;
-    font-weight: bold;
-    text-align: center;
+table.stats p.nothing {
+    color: #aaa;
 }
 
 
@@ -2203,13 +2205,17 @@ td.incoming, td.outgoing, td.on-site, td.new {
     padding-top: 24px;
     text-align: center;
     border-right: 1px solid #ddd;
-    color: #999;
+    color: #666;
 }
 
 .stats td.links {    
 	text-align: center;
 	line-height: 0.9em;
 	padding: 0
+}
+
+.stats td.links a {
+    font-weight: bold;
 }
 
 td.incoming {
@@ -2222,5 +2228,47 @@ td.outgoing {
 td.on-site {
     background:url("/img/onsite.png") no-repeat center 3px;
 }
+
+td.new {
+    background:url("/img/new-recent.png") no-repeat center 3px;
+}
+
+#news li, #help li {
+    padding: 0.2em 0;
+    line-height: 100%;
+}
+
+
+#feedback-list li {
+    padding: 0.5em 0;
+    line-height: 100%;
+}
+
+#feedback-list li +  li {
+    border-top: 1px solid #cfc6d7;
+}
+#feedback-list li.title +  li {
+    border-top: none;
+}
+
+#feedback-list li.list-empty {
+    padding: 5em;
+    color: #ccc;
+}
+
+#feedback-list li.title, #news li.title, #help li.title {
+    font-size: 120%;
+    border-bottom: 1px dotted #ccc;
+}
+
+#feedback-list span.highlight {
+    color: #777;
+}
+
+#news {
+    margin-bottom: 1em;
+}
+
+
 
 

@@ -1,0 +1,61 @@
+<table class="stats" cellspacing="0" cellpadding="0" border="0" width="100%">
+    <tr><th colspan="10">Status Overview</th></tr>
+    <tr><td class="outgoing" title="In-coming items">Incoming</td>
+    <td class="links">
+        {% if statistics.shipments.outgoing %}
+        <p>({{statistics.shipments.outgoing}})<br/><a href="{% url staff-shipment-list %}?status__exact=3">Shipments</a></p>
+        {% else %}<p class="nothing">No<br/>Shipments</p>{% endif %}
+    </td>
+    <td class="links">
+        {% if statistics.crystals.outgoing %}
+        <p>({{statistics.crystals.outgoing}})<br>Crystals</p>
+        {% else %}<p class="nothing">No<br/>Crystals</p>{% endif %}
+    </td>
+    <td>&nbsp;</td>
+    </tr>
+
+    <tr><td class="incoming" title="Out-going items">Outgoing</td>
+    <td class="links">
+        {% if statistics.shipments.incoming %}
+        <p>({{statistics.shipments.incoming}})<br/><a href="{% url staff-shipment-list %}?status__exact=1">Shipments</a></p>
+        {% else %}<p class="nothing">No<br/>Shipments</p>{% endif %}
+    </td> 
+    <td class="links">
+        {% if statistics.crystals.incoming %}
+        <p>({{statistics.crystals.incoming}})<br/>Crystals</p>
+        {% else %}<p class="nothing">No<br/>Crystals</p>{% endif %}
+    </td>
+    <td>&nbsp;</td>
+    </tr>
+
+    <tr><td class="on-site" title="On-site items">On-site</td>
+    <td class="links">
+        {% if statistics.shipments.on_site %}
+        <p>({{statistics.shipments.on_site}})<br/><a href="{% url staff-shipment-list %}?status__exact=2">Shipments</a></p>
+        {% else %}<p class="nothing">No<br/>Shipments</p>{% endif %}
+    </td> 
+    <td class="links">
+        {% if statistics.crystals.on_site %}
+        <p>({{statistics.crystals.on_site}})<br/>Crystals</p>
+        {% else %}<p class="nothing">No<br/>Crystals</p>{% endif %}
+    </td>
+    <td class="links" title="Active Experiment Requests">
+        {% if statistics.experiments.active %}
+        <p>({{statistics.experiments.active}})<br/><a href="{% url staff-experiment-list %}?status__in=1,2,3">Requests</a></p>
+        {% else %}<p class="nothing">No<br/>Requests</p>{% endif %}
+    </td>
+    </tr>
+    <tr><td class="new" title="Run lists loaded and those completed since the last login or in the past week">Run lists</td>
+    <td class="links">
+        {% if statistics.runlists.loaded %}
+        <p>({{statistics.runlists.loaded}})<br/><a href="{% url staff-runlist-list %}?status__exact=1">Loaded</a></p>
+        {% else %}<p class="nothing">None<br/>Loaded</p>{% endif %}
+    </td> 
+    <td class="links">
+        {% if statistics.reports.new %}
+        <p>({{statistics.reports.new}})<br/><a href="{% url staff-runlist-list %}?status__exact=2&modified__gte={{statistics.runlists.start_date|date:'Y-m-d'}}">Completed</a></p>
+        {% else %}<p class="nothing">None<br/>Completed</p>{% endif %}
+    </td>
+    <td>&nbsp;</td>
+    </tr>
+</table>

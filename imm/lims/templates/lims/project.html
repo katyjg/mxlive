@@ -29,23 +29,25 @@
     <!--left region -->
     <!-- middle region -->
 	<div id="middle-content" class="col-4">
-    {% include "lims/project_summary.html" %}   
+    {% include "lims/status_overview.html" %}   
 	</div>
 	<!-- end middle region -->
     <!-- right region -->
 	<div id="right-content" class="col-4">
-        <div class="content-list" id="inbox">
-            <h2>News and Instructions</h2>
-<p>Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.</p>
-<ul>
-	<li><a href="#nowhere" title="Lorum ipsum dolor sit amet">Lorem dolor sit amet</a></li>
-	<li><a href="#nowhere" title="Aliquam tincidunt mauris eu risus">Aliquam tincidunt mauris</a></li>
-	<li><a href="#nowhere" title="Morbi in sem quis dui placerat ornare">Morbi in sem quis duii</a></li>
-	<li><a href="#nowhere" title="Praesent dapibus, neque id cursus faucibus">Praesent dapibus, neque id</a></li>
-	<li><a href="#nowhere" title="Pellentesque fermentum dolor">Pellentesque fermentum dolor</a></li>
-</ul>	               </div>
+        <ul id="news">
+        <li class="title">News...</li>
+        <li><a href='#'>Sample news item 1...</a></li>
+        <li><a href='#'>Sample news item 2...</a></li>
+        <li><a href='#'>Sample news item 3...</a></li>
+        </ul>
+        <ul id="help">
+        <li class="title">How to ...</li>
+        <li><a href='#'>Sample help item 1...</a></li>
+        <li><a href='#'>Sample help item 2...</a></li>
+        <li><a href='#'>Sample help item 3...</a></li>
+        </ul>
 	</div>
-	<div class="clear"></div>
+	<div class="clear spacer"></div>
     <!-- bottom region -->
 	<div id="bottom-content" class="col-12">
 	{% with activity_log as ol %}
