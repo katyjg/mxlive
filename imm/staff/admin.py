@@ -7,7 +7,7 @@ runlist_site = admin.AdminSite()
 
 class RunlistAdmin(admin.ModelAdmin):
     list_filter = ['status','created']
-    list_display = ('id','name', 'status', 'container_list', 'num_containers')
+    list_display = ('id','name', 'beamline', 'status', 'container_list', 'num_containers')
     list_per_page = 10
     ordering = ['-priority', '-created']
 admin.site.register(Runlist, RunlistAdmin)

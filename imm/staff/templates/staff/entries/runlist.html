@@ -25,13 +25,14 @@
     	<tr valign=top"><th>Comments:</th><td>{{object.comments}}</td></tr>
     </table>
     
-    <img src="/img/runlist.png" class="droppable droppable-add" accept="experiment" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/>
-    
+    <div class="runlist droppable droppable-add" accept="experiment" title="Drag and drop onto this image"></div>    
+
     <!-- width set to 70% to give the image space to sit side by side -->
     <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="70%">
         <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Status:</th><td>{{ object.get_status_display }}</td></tr>
+        <tr valign="top"><th>Beamline:</th><td>{{ object.beamline }}</td></tr>
 {% comment %}        <tr valign="top"><th>Projects:</th><td>
         	{% for experiment in object.experiments.all %}
         		{{ experiment.project }}  

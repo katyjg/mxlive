@@ -535,7 +535,7 @@ class Dewar(models.Model):
     identity.admin_order_field = 'pk'
     
     def barcode(self):
-        return self.code or self.label
+        return str(self.shipment.id) + '-' + str(self.label) + '-' + str(self.id)
     
     def get_children(self):
         return self.container_set.all()
@@ -1254,6 +1254,7 @@ class Data(models.Model):
     pixel_size = models.FloatField()
     beam_x = models.FloatField()
     beam_y = models.FloatField()
+    beamline = models.ForeignKey(Beamline)
     url = models.CharField(max_length=200)
     kind = models.IntegerField('Data type',max_length=1, choices=DATA_TYPES.get_choices(), default=DATA_TYPES.SCREENING)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
@@ -1519,15 +1520,16 @@ class ActivityLogManager(models.Manager):
             try:
                 project = request.user.get_profile()
                 e.project_id = project.pk
-            except DoesNotExist:
+            except Project.DoesNotExist:
                 project = None
                 
         else:
+            print "obj", obj
             if getattr(obj, 'project', None) is not None:
                 e.project_id = obj.project.pk
             elif getattr(request, 'project', None) is not None:
                 e.project_id = request.project.pk
-            elif isinstance(Project, obj):
+            elif isinstance(obj, Project):
                 e.project_id = obj.pk
 
             e.object_id = obj.pk

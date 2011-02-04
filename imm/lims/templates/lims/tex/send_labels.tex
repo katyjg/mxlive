@@ -74,7 +74,7 @@
 
     {% for dewar in shipment.dewar_set.all %}
     \newpage
-    {\color{blue} {\bf Address Label {{ forloop.counter }}: Affix this to the outside of a dewar transport container \\ to be shipped to the CLS. }}
+    {\color{blue} {\bf Address Label {{ forloop.counter }}: Affix this to the outside of the dewar transport container \\ for dewar "{{ dewar.label|texsafe|default:"" }}" to be shipped to the CLS. }}
     \begin{center}
         \begin{boxedminipage}{\textwidth}
         \begin{minipage}{4in}
@@ -82,7 +82,7 @@
             \begin{boxedminipage}{10cm}
             	\PSforPDF{
                     \begin{pspicture}(10cm,2cm)
-                        \psbarcode[transy=1em]{^104{{shipment.barcode}}}{includetext}{code128}
+                        \psbarcode[transy=1em]{^104{{dewar.barcode}}}{includetext}{code128}
                     \end{pspicture}
                 }
             \end{boxedminipage}

@@ -8,6 +8,7 @@ except ImportError:
 
 from imm.lims.models import Container
 from imm.lims.models import Experiment
+from imm.lims.models import Beamline
 from imm.lims.models import Crystal
 from imm.lims.models import Result
 from imm.lims.models import perform_action
@@ -79,19 +80,19 @@ class AutomounterLayout(models.Model):
                     self.left = container.pk
                     self.save()
                     return True
-                elif self.left == ['','','','']:
+                elif self.left == ['']*4:
                     self.left = container.pk
                     self.save()
                     return True
                 return False
             if location[0] == "M":
-                if self.middle == None or self.middle == ['','','','']:
+                if self.middle == None or self.middle == ['']*4:
                     self.middle = container.pk
                     self.save()
                     return True
                 return False
             if location[0] == "R":
-                if self.right == None or self.right == ['','','','']:
+                if self.right == None or self.right == ['']*4:
                     self.right = container.pk
                     self.save()
                     return True
@@ -120,7 +121,7 @@ class AutomounterLayout(models.Model):
                 if isinstance(port, int):
                     return False
             elif port == None:
-                port = ['','','','']
+                port = ['']*4
             
             #make the change
             port[position] = container.pk
@@ -156,7 +157,7 @@ class AutomounterLayout(models.Model):
         elif container.kind == Container.TYPE.UNI_PUCK:
             check_list = self.left  
             if check_list == None:
-                check_list = ['','','','']
+                check_list = ['']*4
             if type(check_list) == type(list()):
                 for i in range(4):
                     if check_list[i] == '':
@@ -167,7 +168,7 @@ class AutomounterLayout(models.Model):
             
             check_list = self.middle
             if check_list == None:
-                check_list = ['','','','']
+                check_list = ['']*4
             if type(check_list) == type(list()):
                 for i in range(4):
                     if check_list[i] == '':
@@ -178,7 +179,7 @@ class AutomounterLayout(models.Model):
                 
             check_list = self.right
             if check_list == None:
-                check_list = ['','','','']
+                check_list = ['']*4
             if type(check_list) == type(list()):
                 for i in range(4):
                     if check_list[i] == '':
@@ -320,6 +321,7 @@ class Runlist(models.Model):
     comments = models.TextField(blank=True, null=True)
     experiments = models.ManyToManyField(Experiment)
     automounter = models.ForeignKey(AutomounterLayout)
+    beamline = models.ForeignKey(Beamline, null=True, blank=True)
     
 #    def __init__(self, *args, **kwargs):
 #        mounter = AutomounterLayout()

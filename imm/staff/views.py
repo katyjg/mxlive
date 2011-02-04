@@ -98,12 +98,8 @@ def receive_shipment(request, model, form, template='objforms/form_base.html', a
                 perform_action(obj, action)
             form_info['message'] = '%s %s successfully received' % ( model.__name__, obj.identity())
             ActivityLog.objects.log_activity(
-                obj.project.pk,
-                request.user.pk, 
-                request.META['REMOTE_ADDR'],
-                ContentType.objects.get_for_model(model).id,
-                obj.pk, 
-                smart_str(obj), 
+                request,
+                obj,
                 ActivityLog.TYPE.MODIFY,
                 form_info['message']
                 )
