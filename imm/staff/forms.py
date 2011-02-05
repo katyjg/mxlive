@@ -6,6 +6,7 @@ from imm.lims.models import Carrier
 from imm.lims.models import Container
 from imm.lims.models import Experiment
 from imm.lims.models import Dewar
+from imm.lims.models import Beamline
 
 from imm.staff.models import Runlist
 from imm.staff.models import AutomounterLayout
@@ -182,11 +183,16 @@ class RunlistForm(objforms.forms.OrderedForm):
     # maybe info on which containers are with what experiment?
    # containers = forms.ModelMultipleChoiceField(queryset=Container.objects.all())
     name = objforms.widgets.LargeCharField(required=True)
+    beamline = forms.ModelChoiceField(
+        queryset=Beamline.objects.all(),
+        widget=objforms.widgets.LargeSelect,
+        required=True
+        )
     comments = objforms.widgets.CommentField(required=False)
     
     class Meta:
         model = Runlist
-        fields = ('name', 'comments') #, 'experiments', 'containers')
+        fields = ('name', 'beamline', 'comments') #, 'experiments', 'containers')
         
     def _update(self):
         cleaned_data = self.cleaned_data

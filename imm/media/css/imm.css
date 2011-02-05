@@ -548,7 +548,7 @@ div.help {
 .crystal-report-table {
     float: right;
 }
-div.crystal.droppable, div.experiment.droppable, div.shipment.droppable, div.dewar-img.droppable {
+div.crystal.droppable, div.experiment.droppable, div.shipment.droppable, div.dewar-img.droppable, div.runlist.droppable {
   float: right;
   margin-top: 0;
   clear: right;
@@ -575,6 +575,11 @@ div.dewar-img.droppable {
   background: url(/img/dewar.png) top left no-repeat;
   height: 121px;
   width: 85px;
+}
+div.runlist.droppable {
+    background: url(/img/runlist.png) top left no-repeat;
+    height: 92px;
+    width: 80px;
 }
 
 
@@ -628,6 +633,14 @@ div.dewar-img.droppable {
 }
 .lims-droppable-hover.shipment {
     background: url(/img/shipment-hover.png) no-repeat top left !important;
+    border: none;
+}
+.lims-droppable-active.runlist {
+    background: url(/img/runlist_active.png) no-repeat top left !important;
+    border: none;
+}
+.lims-droppable-hover.runlist {
+    background: url(/img/runlist_hover.png) no-repeat top left !important;
     border: none;
 }
 .lims-droppable-active.dewar-img {

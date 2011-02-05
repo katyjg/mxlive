@@ -29,7 +29,7 @@ from imm.staff.forms import RunlistAcceptForm
 
 urlpatterns = patterns('',
     (r'^$', 'imm.staff.views.staff_home', {}, 'staff-home'),
-    (r'^feedback/(?P<id>\d+)/edit/$', 'imm.staff.views.feedback_item', {'template': 'lims/feedback_item.html'}, 'staff-feedback-item'),
+    (r'^feedback/(?P<id>\d+)/$', 'imm.staff.views.feedback_item', {'template': 'lims/feedback_item.html'}, 'staff-feedback-item'),
     (r'^feedback/$', 'imm.lims.views.object_list', {'model': Feedback, 'template': 'objlist/generic_list.html', 'modal_link': True}, 'staff-feedback-list'),
     
     (r'^shipping/shipment/$', 'imm.lims.views.object_list', {'model': Shipment, 'template': 'objlist/generic_list.html', 'can_add': False, 'link':True}, 'staff-shipment-list'),

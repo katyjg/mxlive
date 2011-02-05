@@ -1,5 +1,25 @@
 [
     {
+        "pk": 1,
+        "model": "lims.beamline",
+        "fields": {
+            "name": "08ID-1",
+            "energy_lo": 4.0,
+            "energy_hi": 18.5,
+            "contact_phone": "306-657-3610"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "lims.beamline",
+        "fields": {
+            "name": "08B1-1",
+            "energy_lo": 4.0,
+            "energy_hi": 18.5,
+            "contact_phone": "306-657-3619"
+        }
+    },
+    {
         "pk": 1, 
         "model": "lims.carrier", 
         "fields": {
