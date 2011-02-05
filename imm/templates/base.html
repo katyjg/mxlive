@@ -45,11 +45,9 @@
 	    </div>
         {% if user.is_authenticated %}
         <div id="user-tools">
-            Welcome, {{user}} |
+            Logged-in as <strong>{{user}}</strong> |
             {% if user.is_superuser %}<a href="/admin/">Site Admin</a> | {% endif %}
-                <a class="modal" rel="#help-modal" href="/help/">Help</a> |
-                <div id="help-modal" class="hidden modal-content"></div>
-            <a href="/logout/">Sign out</a>
+            <a href="/logout/">Log out</a>
         </div>
         <!-- start navigation -->
         {% block nav-main %}
