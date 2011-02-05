@@ -2,7 +2,7 @@
 {% load humanize %}
 
 {% block headline %}
-<h2><span class="identity">{{object.identity}}</span> {{object.name}}</h2>
+<h2><span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
 {% endblock %}
 
 {% block object-tools %}

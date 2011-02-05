@@ -16,6 +16,10 @@ table { border-collapse: collapse;  empty-cells: show;}
     margin-right: 0.2em;
 }
 
+#content-title h2 span.locked {
+    background: url(/img/locked.png) no-repeat left center;
+    padding-left: 32px;
+}
 
 img { border: 0; }
 
