@@ -1,0 +1,61 @@
+<table class="stats" cellspacing="0" cellpadding="0" border="0" width="100%">
+    <tr><th colspan="10">Status Overview</th></tr>
+    <tr><td class="outgoing" title="Out-going items">Outgoing</td>
+    <td class="links">
+        {% if statistics.shipments.outgoing %}
+        <p>({{statistics.shipments.outgoing}})<br/><a href="{% url lims-shipment-list %}?status__exact=1">Shipments</a></p>
+        {% else %}<p class="nothing">No<br/>Shipments</p>{% endif %}
+    </td>
+    <td class="links">
+        {% if statistics.crystals.outgoing %}
+        <p>({{statistics.crystals.outgoing}})<br><a href="{% url lims-crystal-list %}?status__exact=1">Crystals</a></p>
+        {% else %}<p class="nothing">No<br/>Crystals</p>{% endif %}
+    </td>
+    <td>&nbsp;</td>
+    </tr>
+
+    <tr><td class="incoming" title="In-coming items">Incoming</td>
+    <td class="links">
+        {% if statistics.shipments.incoming %}
+        <p>({{statistics.shipments.incoming}})<br/><a href="{% url lims-shipment-list %}?status__exact=3">Shipments</a></p>
+        {% else %}<p class="nothing">No<br/>Shipments</p>{% endif %}
+    </td> 
+    <td class="links">
+        {% if statistics.crystals.incoming %}
+        <p>({{statistics.crystals.incoming}})<br/><a href="{% url lims-crystal-list %}?status__exact=4">Crystals</a></p>
+        {% else %}<p class="nothing">No<br/>Crystals</p>{% endif %}
+    </td>
+    <td>&nbsp;</td>
+    </tr>
+
+    <tr><td class="on-site" title="On-site items">On-site</td>
+    <td class="links">
+        {% if statistics.shipments.on_site %}
+        <p>({{statistics.shipments.on_site}})<br/><a href="{% url lims-shipment-list %}?status__exact=2">Shipments</a></p>
+        {% else %}<p class="nothing">No<br/>Shipments</p>{% endif %}
+    </td> 
+    <td class="links">
+        {% if statistics.crystals.on_site %}
+        <p>({{statistics.crystals.on_site}})<br/><a href="{% url lims-crystal-list %}?status__in=2,3">Crystals</a></p>
+        {% else %}<p class="nothing">No<br/>Crystals</p>{% endif %}
+    </td>
+    <td class="links" title="Active Experiment Requests">
+        {% if statistics.experiments.active %}
+        <p>({{statistics.experiments.active}})<br/><a href="{% url lims-experiment-list %}?status__in=1,2,3">Requests</a></p>
+        {% else %}<p class="nothing">No<br/>Requests</p>{% endif %}
+    </td>
+    </tr>
+    <tr><td class="new" title="Datasets and Reports added since last login or in the past week">New!</td>
+    <td class="links">
+        {% if statistics.datasets.new %}
+        <p>({{statistics.datasets.new}})<br/><a href="{% url lims-dataset-list %}?modified__gte={{statistics.datasets.start_date|date:'Y-m-d'}}">Datasets</a></p>
+        {% else %}<p class="nothing">No<br/>Datasets</p>{% endif %}
+    </td> 
+    <td class="links">
+        {% if statistics.reports.new %}
+        <p>({{statistics.reports.new}})<br/><a href="{% url lims-result-list %}?modified__gte={{statistics.reports.start_date|date:'Y-m-d'}}">Reports</a></p>
+        {% else %}<p class="nothing">No<br/>Reports</p>{% endif %}
+    </td>
+    <td>&nbsp;</td>
+    </tr>
+</table>

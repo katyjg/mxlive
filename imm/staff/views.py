@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import logging
 import subprocess
 import tempfile
@@ -29,13 +30,7 @@ from imm.lims.views import object_list
 
 from imm.staff.admin import runlist_site
 
-from imm.lims.models import FilterManagerWrapper
-from imm.lims.models import DistinctManagerWrapper
-from imm.lims.models import perform_action
-from imm.lims.models import ActivityLog
-from imm.lims.models import Crystal
-from imm.lims.models import Container
-from imm.lims.models import Feedback
+from imm.lims.models import *
 from imm.staff.models import Runlist
 from imm.staff.models import AutomounterLayout
 from imm.objlist.views import ObjectList
@@ -52,9 +47,39 @@ def staff_home(request):
     if not request.user.is_superuser:
         return HttpResponseRedirect(reverse('project-home'))
     
+    recent_start = datetime.now() - timedelta(days=7)
+    last_login = ActivityLog.objects.last_login(request)
+    if last_login is not None:
+        if last_login.created < recent_start:
+            recent_start = last_login.created       
+
+    statistics = {
+        'shipments': {
+                'outgoing': Shipment.objects.filter(status__exact=Shipment.STATES.SENT).count(),
+                'incoming': Shipment.objects.filter(status__exact=Shipment.STATES.RETURNED).count(),
+                'on_site': Shipment.objects.filter(status__exact=Shipment.STATES.ON_SITE).count(),
+                },
+        'experiments': {
+                'active': Experiment.objects.filter(status__exact=Experiment.STATES.ACTIVE).count(),
+                'processing': Experiment.objects.filter(status__exact=Experiment.STATES.PROCESSING).count(),
+                },
+        'crystals': {
+                'on_site': Crystal.objects.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).count(),
+                'outgoing': Crystal.objects.filter(status__exact=Crystal.STATES.SENT).count(),
+                'incoming': Crystal.objects.filter(status__exact=Crystal.STATES.RETURNED).count(),
+                },
+        'runlists':{
+                'loaded': Runlist.objects.filter(status__exact=Runlist.STATES.LOADED).count(),
+                'completed': Runlist.objects.filter(status__exact=Runlist.STATES.COMPLETED, modified__gte=recent_start).count(),
+                'start_date': recent_start,
+        },                
+    }
+    
+
     return render_to_response('lims/staff.html', {
         'activity_log': ObjectList(request, ActivityLog.objects),
         'feedback': Feedback.objects.all()[:5],
+        'statistics': statistics,
         'handler': request.path,
         }, context_instance=RequestContext(request))
 

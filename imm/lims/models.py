@@ -1509,8 +1509,15 @@ class Feedback(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
 
     is_editable = True
+
+    def __unicode__(self):
+        if len(self.message) > 23:
+            return "%s:'%s'..." % (self.get_category_display(), self.message[:20])
+        else:
+            return "%s:'%s'" % (self.get_category_display(), self.message)
+  
     class Meta:
-        verbose_name_plural = 'Feedback Comment'
+        verbose_name = 'Feedback comment'
 
     
 class ActivityLogManager(models.Manager):
