@@ -1400,17 +1400,6 @@ def data_viewer(request, id):
     
     return render_to_response('lims/entries/data.html', {'data':data, 'results':results, 'expanded_frame_set': expanded_frame_set})
 
-@login_required
-def result_print(request, id):
-    manager = Result.objects
-    
-    try:
-        result = manager.get(pk=id)
-    except:
-        raise Http404
-    
-    admin = request.user.is_superuser
-    return render_to_response('lims/entries/result_print.html', {'object':result, 'admin':admin})
 
 @login_required
 def rescreen(request, id):

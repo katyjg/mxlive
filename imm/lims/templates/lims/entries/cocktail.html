@@ -1,9 +1,0 @@
-{% with object as cocktail %}
-    {% for constituent in cocktail.constituents.all %}
-        <li class="constituent draggable-link-parent">
-            <a class="constituent" href="{% url lims-constituent-detail constituent.pk %}">
-                {{ constituent.name }} ({{ constituent.identity }})
-            </a>
-        </li>
-    {% endfor %}
-{% endwith %}

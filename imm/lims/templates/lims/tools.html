@@ -62,12 +62,13 @@
                 </a>
             </li>
         {% endif %}
+        {% comment %}
         <li class="clone-tool">
             <a href="{{ handler }}../new/?clone={{object.id}}" class="action modal-form">
                 Clone
             </a>
         </li>
-
+        {% endcomment %}
         {% if object.is_editable %}
             <li class="edit-tool">
                 <a href="{{ handler }}edit/"  class="action modal-form">

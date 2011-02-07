@@ -873,6 +873,9 @@ class Experiment(models.Model):
         return Crystal.objects.filter(experiment=self)
     
     crystals = property(get_crystals)
+
+    class Meta:
+        verbose_name = 'experiment request'
     
     def accept(self):
         return "crystal"
