@@ -11,7 +11,7 @@ from imm.lims.models import Experiment
 from imm.lims.models import Beamline
 from imm.lims.models import Crystal
 from imm.lims.models import Result
-from imm.lims.models import perform_action
+from imm.lims.models import perform_action, IDENTITY_FORMAT
 from imm.enum import Enum
 from imm.messaging.models import Message
 
@@ -330,7 +330,8 @@ class Runlist(models.Model):
 #        self.automounter = mounter      
     
     def identity(self):
-        return self.name
+        return 'RL%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
     
     def num_containers(self):
         return self.containers.count()
