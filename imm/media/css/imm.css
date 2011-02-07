@@ -1,6 +1,6 @@
 table { border-collapse: collapse;  empty-cells: show;}
 #content-title h2 {
-    font-size: 20px;
+    font-size: 1.6em;
     font-weight: bold;
     padding-right: 48px;
     line-height: 60px;
@@ -217,8 +217,8 @@ ul.toolbar li a {
 	display: block;
 	padding: 32px 2px 0 0;
 	overflow: hidden;
-    font-size: 10px;
-    line-height: 10px;
+    font-size: 85%;
+    line-height: 1em;
     text-align: center;
     /*font-family: 'TelegramaRen', sans-serif;*/
 }
@@ -537,7 +537,6 @@ div.help {
 
 #help-modal {
     width: 600px;
-    font-size: 14px;
     line-height: 140%;
 }
 
@@ -738,7 +737,7 @@ ul.filter-choices ul {
     background: #fff;
     padding: 5px;
     font-family: Consolas, Monaco, monospace;
-    font-size: 11px;
+    font-size: 85%;
 }
 #data-viewer .meta-data li.separator {
     border-top: 1px dotted #ccc;

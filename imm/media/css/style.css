@@ -56,9 +56,9 @@ html
 
 body
 {
-	font-size: 12px;
+	font-size: 9pt;
 	font-family: "Segoe UI", Cantarell, sans-serif;
-	line-height: 1.4em;
+	line-height: 1.3em;
 	color:#333;
 	background-color:#fff;
 	height: 100%;
@@ -251,22 +251,19 @@ img
 
 #logo h1
 {
-	font-size:17px;
-	font-weight: normal;
+	font-size:140%;
 	margin-left:72px;
-	line-height:15px;
+	line-height: 0.9em;
 }
 
 #slogan
 {
-	font-size:13px;
 	margin:0 0 0 72px;
 	padding:0;
 }
 
 #user-tools
 {
-	font-size:12px;
 	line-height:24px;
 	float:right;
 	margin:0;
@@ -306,7 +303,8 @@ img
 
 #nav li a
 {
-	font-size:14px;
+    font-weight: bold;
+	font-size:110%;
 	line-height:24px;
 	text-decoration:none;
 	display:block;
@@ -756,7 +754,6 @@ td.list-empty {
 #sidebar .widget a.action
 {
 	color:#333;
-	font-size:12px;
 	line-height:20px;
 	display:block;
 }
@@ -823,7 +820,7 @@ td.list-empty {
 }
 
 #sidebar-activity-log li.list-empty {
-    padding: 5em;
+    padding: 5em 0;
     color: #ccc;
 }
 
@@ -846,15 +843,14 @@ td.list-empty {
     background: #cfc6d7;
     padding: 2px;
     margin-bottom: 2px;
-    font-weight: bold;
-    font-size: 14px;
+    font-size: 130%;
 }
 
 /* FILTERS */
 div.filters
 {
-	font-size: 11px;
-	line-height: 12px;
+	font-size: 90%;
+	line-height: 1em;
 }
 
 ul.filter-choices li
@@ -910,7 +906,6 @@ ul.weekly-filter li {
 }
 
 ul.weekly-filter li {
-    font-size: 12px;
     font-weight: bold;
 }
 
@@ -1173,7 +1168,6 @@ ul.reports li a
 
 #strategy-table
 {
-	font-size:88%;
 	border-collapse:collapse;
 	text-align:left;
 	width:45%;
@@ -1362,7 +1356,6 @@ dl.note-list dd
 /*--------------------------- FORMS -----------------------------------------*/
 form.objform
 {
-	font-size:13px;
 	display:block;
 
 }
@@ -2200,8 +2193,7 @@ table.stats p.nothing {
 
 
 td.incoming, td.outgoing, td.on-site, td.new {
-    font-size: 10px;
-    line-height: 14px;
+    font-size: 85%;
     padding-top: 24px;
     text-align: center;
     border-right: 1px solid #ddd;
