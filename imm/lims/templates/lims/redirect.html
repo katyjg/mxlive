@@ -1,2 +1,3 @@
-<img src='/img/blank.png' width=1 height=1 onload='window.location="{{redirect}}";' />
-
+{% if redirect_to %}
+<div id="redirect" href="{{redirect_to}}" style="display: none"></div>
+{% endif %}
