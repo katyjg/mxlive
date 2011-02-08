@@ -30,7 +30,7 @@ import logging
 
 from imm.objlist.views import ObjectList
 from imm.lims.models import *
-from imm.staff.models import Runlist
+from imm.staff.models import Runlist, Link
 from imm.lims.forms import ObjectSelectForm, DataForm
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
 from imm.download.views import create_download_key 
@@ -108,6 +108,19 @@ def project_required(function):
         except Project.DoesNotExist:
             raise Http404
     return project_required_wrapper
+
+def project_optional(function):
+    """ Decorator that enforces the existence of a imm.lims.models.Project """
+    def project_optional_wrapper(request, *args, **kwargs):
+        try:
+            project = request.user.get_profile()
+            request.project = project
+            return function(request, *args, **kwargs)
+        except Project.DoesNotExist:
+            project=None
+            request.project = project
+            return function(request, *args, **kwargs)
+    return project_optional_wrapper
 
 MANAGER_FILTERS = {
     (Shipment, True) : {'status__in': [Shipment.STATES.SENT, Shipment.STATES.ON_SITE, Shipment.STATES.RETURNED]},
@@ -229,6 +242,7 @@ def show_project(request):
     return render_to_response('lims/project.html', {
         'project': project,
         'statistics': statistics,
+        'links': Link.objects.all(),
         'activity_log': ObjectList(request, project.activitylog_set),
         'handler' : request.path,
         },
@@ -535,14 +549,17 @@ def experiment_object_detail(request, id, model, template, admin=False):
         }, context_instance=RequestContext(request))
 
 @login_required
-@project_required
+@project_optional
 @transaction.commit_on_success
 def create_object(request, model, form, template='lims/forms/new_base.html', action=None, redirect=None):
     """
     A generic view which displays a Form of type ``form`` using the Template
     ``template`` and when submitted will create a new object of type ``model``.
     """
-    project = request.project
+    if request.project:
+        project = request.project
+    else:
+        project = None
     object_type = model._meta.verbose_name
 
     form_info = {
@@ -550,10 +567,14 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
         'action':  request.path,
         'add_another': True, # does not work right now
     }
-        
+
     if request.method == 'POST':
-        frm = form(request.POST)
-        frm.restrict_by('project', project.pk)
+        if request.FILES:
+            print "there are files!"
+            frm = UploadFileForm(request.POST, request.FILES)
+        else:
+            frm = form(request.POST)
+        frm.restrict_by('project', project)
         if frm.is_valid():
             new_obj = frm.save()
             if action:
@@ -566,13 +587,14 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
                 initial = {'project': project.pk}
                 initial.update(dict(request.GET.items()))      
                 frm = form(initial=initial)
-                frm.restrict_by('project', project.pk)
+                frm.restrict_by('project', project)
                 return render_to_response(template, {
                     'info': form_info, 
                     'form': frm, 
                     }, context_instance=RequestContext(request))
             else:
                 # messages are simply passed down to the template via the request context
+                print "returning", request.POST, request.FILES
                 return render_to_response("lims/message.html", context_instance=RequestContext(request))
         else:
             return render_to_response(template, {
@@ -580,11 +602,14 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
                 'form': frm,
                 }, context_instance=RequestContext(request))
     else:
-        initial = {'project': project.pk}
-        initial.update(dict(request.GET.items()))      
-        frm = form(initial=initial)
+        if project:
+            initial = {'project': project.pk}
+            initial.update(dict(request.GET.items()))      
+            frm = form(initial=initial)
+        else:
+            frm = form(initial=None)
 
-        frm.restrict_by('project', project.pk)
+        frm.restrict_by('project', project)
         if request.GET.has_key('clone'):
             clone_id = request.GET['clone']
             try:
@@ -636,7 +661,7 @@ def add_new_object(request, id, model, form, field):
         q.update({field: related.pk})
         frm = form(q)
         frm[field].field.widget.attrs['disabled'] = 'disabled'
-        frm.restrict_by('project', project.pk)
+        frm.restrict_by('project', project)
         if frm.is_valid():
             new_obj = frm.save()
             info_msg = '%s (%s) added to %s (%s)' % (smart_str(model._meta.verbose_name), smart_str(new_obj), related_type, smart_str(related))
@@ -649,7 +674,7 @@ def add_new_object(request, id, model, form, field):
             request.user.message_set.create(message = info_msg)
             if request.POST.has_key('_addanother'):
                 frm = form(initial={'project': project.pk, field: related.pk})
-                frm.restrict_by('project', project.pk)
+                frm.restrict_by('project', project)
                 frm[field].field.widget.attrs['disabled'] = 'disabled'
                 return render_to_response('objforms/form_base.html', {
                     'info': form_info, 
@@ -664,7 +689,7 @@ def add_new_object(request, id, model, form, field):
                 }, context_instance=RequestContext(request))
     else:
         frm = form(initial={'project': project.pk, field: related.pk})
-        frm.restrict_by('project', project.pk)
+        frm.restrict_by('project', project)
         frm[field].field.widget.attrs['disabled'] = 'disabled'
         return render_to_response('objforms/form_base.html', {
             'info': form_info, 
@@ -876,7 +901,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
         if request.project:
-            frm.restrict_by('project', request.project.pk)
+            frm.restrict_by('project', request.project)
         if frm.is_valid():
             form_info['message'] = '%s (%s) modified' % ( model._meta.verbose_name, obj)
             frm.save()
@@ -895,7 +920,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
     else:
         frm = form(instance=obj, initial=dict(request.GET.items())) # casting to a dict pulls out first list item in each value list
         if request.project:
-            frm.restrict_by('project', request.project.pk)
+            frm.restrict_by('project', request.project)
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm,
@@ -977,7 +1002,7 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
                 # want destination.objects.add(to_add)
                 current.remove(to_remove)
                 if src.__class__.__name__.lower() == "runlist":
-                    src.automounter.remove_container(to_remove)
+                    src.remove_container(to_remove)
                 #setattr(dest, '%ss' % object.__name__.lower(), current_values)
             except AttributeError:
                 message = '%s has not been removed. No Field (tried %s and %s)' % (display_name, object.__name__.lower(), '%ss' % object.__name__.lower())
@@ -1081,7 +1106,7 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
         if request.project:
-            frm.restrict_by('project', request.project.pk)
+            frm.restrict_by('project', request.project)
         if request.POST.has_key('_save'):
             form_info['message'] = '%s (%s) deleted' % ( model._meta.verbose_name, obj)
             if hasattr(obj, 'project'):
@@ -1098,7 +1123,7 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
     else:
         frm = form(instance=obj, initial=None) 
         if request.project:
-            frm.restrict_by('project', request.project.pk)
+            frm.restrict_by('project', request.project)
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm, 
@@ -1150,7 +1175,7 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
     else:
         frm = form(instance=obj, initial=None) 
         if request.project:
-            frm.restrict_by('project', request.project.pk)
+            frm.restrict_by('project', request.project)
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm, 

@@ -1,10 +1,8 @@
 # define models here
 from django.db import models
-
-try: 
-    import cPickle as pickle
-except ImportError:
-    import pickle
+from lims.jsonfield import JSONField
+from django.utils.translation import ugettext_lazy as _
+import os
 
 from imm.lims.models import Container
 from imm.lims.models import Experiment
@@ -20,59 +18,130 @@ from django.utils.encoding import smart_str
 
 from django.conf import settings
 
-class PickledObject(str):
-    """A subclass of string so it can be told whether a string is
-       a pickled object or not (if the object is an instance of this class
-       then it must [well, should] be a pickled one)."""
-    pass
+def get_storage_path(instance, filename):
+    return os.path.join('uploads/', 'links', filename)
 
-class PickledObjectField(models.Field):
-    __metaclass__ = models.SubfieldBase
-    
-    def to_python(self, value):
-        if isinstance(value, PickledObject):
-            # If the value is a definite pickle; and an error is raised in de-pickling
-            # it should be allowed to propogate.
-            return pickle.loads(smart_str(value))
-        else:
-            try:
-                return pickle.loads(smart_str(value))
-            except:
-                # If an error was raised, just return the plain value
-                return value
-    
-    def get_db_prep_save(self, value):
-        if value is not None and not isinstance(value, PickledObject):
-            value = PickledObject(pickle.dumps(value))
-        return value
-    
-    def get_internal_type(self): 
-        return 'TextField'
-    
-    def get_db_prep_lookup(self, lookup_type, value):
-        if lookup_type == 'exact':
-            value = self.get_db_prep_save(value)
-            return super(PickledObjectField, self).get_db_prep_lookup(lookup_type, value)
-        elif lookup_type == 'in':
-            value = [self.get_db_prep_save(v) for v in value]
-            return super(PickledObjectField, self).get_db_prep_lookup(lookup_type, value)
-        else:
-            raise TypeError('Lookup type %s is not supported.' % lookup_type)
+def handle_uploaded_file(f):
+    destination = open(get_storage_path(f))
+    for chunk in f.chunks():
+        destination.write(chunk)
+    destination.close()
 
+class Link(models.Model):
+    TYPE = Enum(
+        'iframe',
+        'flash',
+        'image',
+        'inline',
+    )
+    CATEGORY = Enum(
+        'News',
+        'How To',
+    )
+    description = models.TextField(blank=False)
+    category = models.IntegerField(max_length=1, choices=CATEGORY.get_choices(), blank=True, null=True)    
+    frame_type = models.IntegerField(max_length=1, choices=TYPE.get_choices(), blank=True, null=True)
+    url = models.URLField(verify_exists=True, max_length=200, blank=True)
+    document = models.FileField(_('document'), blank=True, upload_to=get_storage_path)
 
+    def save(self, *args, **kwargs):
+        super(Link, self).save(*args, **kwargs)
+
+class Runlist(models.Model):
+    STATES = Enum(
+        'Pending', 
+        'Loaded', 
+        'Completed',
+        'Closed',
+    )
+    TRANSITIONS = {
+        STATES.PENDING: [STATES.LOADED],
+        STATES.LOADED: [STATES.COMPLETED],
+        STATES.COMPLETED: [STATES.PENDING, STATES.CLOSED],
+    }
+    ACTIONS = {
+        'load': { 'status': STATES.LOADED, 'methods': ['check_for_other_loaded_runlists'] },
+        'unload': { 'status': STATES.COMPLETED },
+        'accept': { 'status': STATES.CLOSED, 'methods': ['send_accept_message'] },
+        'reject': { 'status': STATES.PENDING },
+    }
+    status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.PENDING)
+    name = models.CharField(max_length=600)
+    containers = models.ManyToManyField(Container)
+    priority = models.IntegerField(default=0)
+    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
+    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+    comments = models.TextField(blank=True, null=True)
+    experiments = models.ManyToManyField(Experiment)
+    beamline = models.ForeignKey(Beamline, blank=False)
+
+    left = JSONField(null=True)
+    middle = JSONField(null=True)
+    right = JSONField(null=True)
+    
+    def identity(self):
+        return self.name
+    
+    def num_containers(self):
+        return self.containers.count()
+    
+    def get_experiments(self):
+        """ Returns the list of Experiments associated with this Runlist """
+        return self.experiments.all()
+    
+    def container_list(self):
+        containers = [c.label for c in self.containers.all()]
+        if len(containers) > 5:
+            containers = containers[:5] + ['...']
+        return ', '.join(containers)
+
+    def __unicode__(self):
+        return self.name
+    
+    def is_deletable(self):
+        return True
+    
+    def is_editable(self):
+        return self.status == self.STATES.PENDING
+    
+    def is_loadable(self):
+        return self.status == self.STATES.PENDING
+    
+    def is_unloadable(self):
+        return self.status == self.STATES.LOADED
+    
+    def is_acceptable(self):
+        return self.status == self.STATES.COMPLETED
+    
+    def is_rejectable(self):
+        return self.status == self.STATES.COMPLETED
+    
+    def get_children(self):
+        return self.containers.all()
+    
+    def check_for_other_loaded_runlists(self, data=None):
+        """ Checks for other Runlists in the 'loaded' state """
+        already_loaded = Runlist.objects.exclude(pk=self.pk).filter(status=Runlist.STATES.LOADED).count()
+        if already_loaded:
+            raise ValueError('Another Runlist is already loaded.')
         
-class AutomounterLayout(models.Model):
-    # contains just the locational information of an automounter
-    
-    # Discussion with KO
-    # Each side has a field, if the field contains just an id, it's a cane that fills the whole side.
-    # if the side is a list, it's a list of pucks, max size 4.
-    # if the field is none, that whole side is empty
-    
-    left = PickledObjectField(null=True)
-    middle = PickledObjectField(null=True)
-    right = PickledObjectField(null=True)
-    
+    def send_accept_message(self, data=None):
+        """ Create a imm.messaging.models.Message instance when the Runlist is 'accepted' """
+        admin = User.objects.get(username=settings.ADMIN_MESSAGE_USERNAME)
+        
+        # ensure we only send the message once to each user by keeping track of the 
+        # users while iterating over the containers
+        users = []
+        for container in self.containers.all():
+            user = container.project.user
+            if user not in users:
+                users.append(user)
+                
+        # not create a message for the user indicating the Runlist has been accepted
+        for user in users:
+            message = Message(sender=admin, recipient=user, subject="Admin Message", body=data.get('message', ''))
+            message.save()
+            
     def container_to_location(self, container, location):
         if container.kind == Container.TYPE.CASSETTE:
             if location[0] == "L":
@@ -209,8 +278,6 @@ class AutomounterLayout(models.Model):
                 self.left = check_list
                 self.save()
                 return True
-            
-            
         if self.middle != None:
             check_list = self.middle
             if type(check_list) == type(list()):
@@ -284,123 +351,9 @@ class AutomounterLayout(models.Model):
         self.middle = None
         self.Right = None
         self.save()
-    
-    def json_dict(self):
-        # gives a json dictionary of the automounter config
-        # TODO: Currently not real full json, just for debugging purposes.
-        
-        return {'left': self.left or 'None',
-                'middle': self.middle or 'None',
-                'right': self.right or 'None'}
-    
-                  
-class Runlist(models.Model):
-    STATES = Enum(
-        'Pending', 
-        'Loaded', 
-        'Completed',
-        'Closed',
-    )
-    TRANSITIONS = {
-        STATES.PENDING: [STATES.LOADED],
-        STATES.LOADED: [STATES.COMPLETED],
-        STATES.COMPLETED: [STATES.PENDING, STATES.CLOSED],
-    }
-    ACTIONS = {
-        'load': { 'status': STATES.LOADED, 'methods': ['check_for_other_loaded_runlists'] },
-        'unload': { 'status': STATES.COMPLETED },
-        'accept': { 'status': STATES.CLOSED, 'methods': ['send_accept_message'] },
-        'reject': { 'status': STATES.PENDING },
-    }
-    status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.PENDING)
-    name = models.CharField(max_length=600)
-    containers = models.ManyToManyField(Container)
-    priority = models.IntegerField(default=0)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-    comments = models.TextField(blank=True, null=True)
-    experiments = models.ManyToManyField(Experiment)
-    automounter = models.ForeignKey(AutomounterLayout)
-    beamline = models.ForeignKey(Beamline, null=True, blank=True)
-    
-#    def __init__(self, *args, **kwargs):
-#        mounter = AutomounterLayout()
-#        mounter.save()
-#        super(Runlist, self).__init__(*args, **kwargs)
-#        self.automounter = mounter      
-    
-    def identity(self):
-        return self.name
-    
-    def num_containers(self):
-        return self.containers.count()
-    
-    def get_experiments(self):
-        """ Returns the list of Experiments associated with this Runlist """
-        # this is stupid. Why not use the experiments field
-#        return_value = []
-#        for container in self.containers.all():
-#            for crystal in container.crystal_set.all():
-#                if crystal.experiment not in return_value:
-#                    return_value.append(crystal.experiment)
-#        return return_value
-        return self.experiments.all()
-    
-   # experiments = property(get_experiments)
-    
-    def container_list(self):
-        containers = [c.label for c in self.containers.all()]
-        if len(containers) > 5:
-            containers = containers[:5] + ['...']
-        return ', '.join(containers)
 
-    def __unicode__(self):
-        return self.name
-    
-    def is_deletable(self):
-        return True
-    
-    def is_editable(self):
-        return self.status == self.STATES.PENDING
-    
-    def is_loadable(self):
-        return self.status == self.STATES.PENDING
-    
-    def is_unloadable(self):
-        return self.status == self.STATES.LOADED
-    
-    def is_acceptable(self):
-        return self.status == self.STATES.COMPLETED
-    
-    def is_rejectable(self):
-        return self.status == self.STATES.COMPLETED
-    
-    def get_children(self):
-        return self.containers.all()
-    
-    def check_for_other_loaded_runlists(self, data=None):
-        """ Checks for other Runlists in the 'loaded' state """
-        already_loaded = Runlist.objects.exclude(pk=self.pk).filter(status=Runlist.STATES.LOADED).count()
-        if already_loaded:
-            raise ValueError('Another Runlist is already loaded.')
-        
-    def send_accept_message(self, data=None):
-        """ Create a imm.messaging.models.Message instance when the Runlist is 'accepted' """
-        admin = User.objects.get(username=settings.ADMIN_MESSAGE_USERNAME)
-        
-        # ensure we only send the message once to each user by keeping track of the 
-        # users while iterating over the containers
-        users = []
-        for container in self.containers.all():
-            user = container.project.user
-            if user not in users:
-                users.append(user)
-                
-        # not create a message for the user indicating the Runlist has been accepted
-        for user in users:
-            message = Message(sender=admin, recipient=user, subject="Admin Message", body=data.get('message', ''))
-            message.save()
-            
+
+
     def json_dict(self):
         """ Returns a json dictionary of the Runlist """
         # meta data first
@@ -485,7 +438,6 @@ def update_automounter(signal, sender, instance, **kwargs):
         if container not in instance.containers.all():
             instance.automounter.remove_container(container)
         
-
 from django.db.models.signals import pre_save
 
 #pre_save.connect(update_automounter, sender=Runlist)

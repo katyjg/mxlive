@@ -2,6 +2,7 @@ from django.conf.urls.defaults import patterns, url
 from django.conf import settings
 from imm.lims.models import *
 from imm.lims.forms import *
+import os
 
 urlpatterns = patterns('imm.lims.views',
     (r'^$', 'show_project', {}, 'project-home'),
@@ -156,6 +157,10 @@ urlpatterns += patterns('django.views.generic.simple',
     (r'^shipping/$', 'redirect_to', {'url': '/lims/shipping/shipment/'}),
     (r'^experiment/$', 'redirect_to', {'url': '/lims/experiment/request/'}),
     (r'^samples/$', 'redirect_to', {'url': '/lims/samples/crystal/'}),
+)
+
+urlpatterns += patterns('',
+    (r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': os.path.join('media/')}),
 )
 
 if settings.DEBUG:

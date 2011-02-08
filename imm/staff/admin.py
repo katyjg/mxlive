@@ -1,5 +1,5 @@
 from django.contrib import admin
-from imm.staff.models import Runlist
+from imm.staff.models import Runlist, Link
 from imm.lims.models import Experiment
 from imm.lims.models import Container
 
@@ -11,6 +11,10 @@ class RunlistAdmin(admin.ModelAdmin):
     list_per_page = 10
     ordering = ['-priority', '-created']
 admin.site.register(Runlist, RunlistAdmin)
+
+class LinkAdmin(admin.ModelAdmin):
+    list_display = ('description','document','url')
+admin.site.register(Link, LinkAdmin)
 
 class ExperimentRunlistAdmin(admin.ModelAdmin):
     search_fields = ['comments','name']

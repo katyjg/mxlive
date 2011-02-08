@@ -13,6 +13,7 @@ from imm.lims.models import Feedback
 from imm.lims.models import ExcludeManagerWrapper
 from imm.staff.models import Runlist
 from imm.lims.models import ActivityLog
+from imm.staff.models import Link
 
 from imm.lims.forms import ExperimentForm
 from imm.lims.forms import ConfirmDeleteForm
@@ -26,11 +27,13 @@ from imm.staff.forms import ContainerSelectForm
 from imm.staff.forms import RunlistForm
 from imm.staff.forms import RunlistEmptyForm
 from imm.staff.forms import RunlistAcceptForm
+from imm.staff.forms import LinkForm
 
 urlpatterns = patterns('',
     (r'^$', 'imm.staff.views.staff_home', {}, 'staff-home'),
     (r'^feedback/(?P<id>\d+)/$', 'imm.staff.views.feedback_item', {'template': 'lims/feedback_item.html'}, 'staff-feedback-item'),
     (r'^feedback/$', 'imm.lims.views.object_list', {'model': Feedback, 'template': 'objlist/generic_list.html', 'modal_link': True}, 'staff-feedback-list'),
+    (r'^link/add/$', 'imm.lims.views.create_object', {'model': Link, 'form': LinkForm, 'template': 'objforms/form_base.html'}, 'staff-help-link'),    
     
     (r'^shipping/shipment/$', 'imm.lims.views.object_list', {'model': Shipment, 'template': 'objlist/generic_list.html', 'can_add': False, 'link':True}, 'staff-shipment-list'),
     (r'^shipping/shipment/receive/$', 'imm.staff.views.receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-shipment-receive-any'),
@@ -46,11 +49,8 @@ urlpatterns = patterns('',
     (r'^shipping/container/(?P<id>\d+)/$', 'imm.lims.views.object_detail', {'model': Container, 'template': 'lims/entries/container.html'}, 'staff-container-detail'),
     
     (r'^samples/crystal/$', 'imm.lims.views.object_list', {'model': Crystal, 'template': 'objlist/generic_list.html', 'can_add': False, 'link': True}, 'staff-crystal-list'),
-    #(r'^samples/crystal/(?P<id>\d+)/up/$', 'imm.lims.views.change_priority', {'model': Crystal, 'action': 'up', 'field': 'staff_priority'}, 'staff-crystal-up'),
-    #(r'^samples/crystal/(?P<id>\d+)/down/$', 'imm.lims.views.change_priority', {'model': Crystal, 'action': 'down', 'field': 'staff_priority'}, 'staff-crystal-down'),
     
     (r'^experiment/request/$', 'imm.lims.views.object_list', {'model': Experiment, 'template': 'objlist/generic_list.html', 'can_add':False, 'link': True}, 'staff-experiment-list'),
-    #(r'^experiment/basic/$', 'imm.staff.views.experiment_basic_object_list', {'model': Experiment, 'template': 'staff/lists/basic_object_list.html'}, 'staff-experiment-basic-list'),
     (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'imm.staff.views.experiment_basic_object_list', {'model':Experiment, 'template': 'staff/lists/basic_object_list.html'}, 'staff-experiment-basic-list'),
     (r'^experiment/(<?P<id>\d+)/$', 'experiment_object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html' }, 'staff-experiment-basic-detail'),
     
@@ -69,12 +69,10 @@ urlpatterns = patterns('',
     (r'^runlist/(?P<runlist_id>\d+)/container/basic/(?P<exp_id>\d+)/$', 'imm.staff.views.container_basic_object_list', {'model':Container, 'template': 'objlist/basic_object_list.html'}, 'staff-container-basic-list'),
     
     (r'^runlist/$', 'imm.lims.views.object_list', {'model': Runlist, 'template': 'objlist/generic_list.html', 'can_add': True, 'can_prioritize': True, 'link': True}, 'staff-runlist-list'),
-    (r'^runlist/new/$', 'imm.staff.views.runlist_create_object', {'model': Runlist, 'form': RunlistForm, 'template': 'objforms/form_base.html' }, 'staff-runlist-new'),
+    (r'^runlist/new/$', 'imm.lims.views.create_object', {'model': Runlist, 'form': RunlistForm, 'template': 'objforms/form_base.html' }, 'staff-runlist-new'),
     #(r'^runlist/new/(?P<id>\d+)/up/$', 'imm.lims.views.change_priority', {'model': Experiment, 'action': 'up', 'field': 'staff_priority'}, 'staff-experiment-up'),
     #(r'^runlist/new/(?P<id>\d+)/down/$', 'imm.lims.views.change_priority', {'model': Experiment, 'action': 'down', 'field': 'staff_priority'}, 'staff-experiment-down'),
     (r'^runlist/(?P<id>\d+)/$', 'imm.lims.views.object_detail', {'model': Runlist, 'template': 'staff/entries/runlist.html'}, 'staff-runlist-detail'),
-    #(r'^runlist/(?P<id>\d+)/up/$', 'imm.lims.views.change_priority', {'model': Runlist, 'action': 'up', 'field': 'priority'}, 'staff-runlist-up'),
-    #(r'^runlist/(?P<id>\d+)/down/$', 'imm.lims.views.change_priority', {'model': Runlist, 'action': 'down', 'field': 'priority'}, 'staff-runlist-down'),
     (r'^runlist/(?P<id>\d+)/$', 'imm.lims.views.object_detail', {'model': Runlist, 'template': 'staff/entries/runlist.html'}, 'staff-automounter-detail'),
     (r'^runlist/(?P<id>\d+)/delete/$', 'imm.lims.views.delete_object', {'model': Runlist, 'form': ConfirmDeleteForm}, 'staff-runlist-delete'),
     (r'^runlist/(?P<id>\d+)/edit/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistForm, 'template': 'objforms/form_base.html'}, 'staff-runlist-edit'),
@@ -85,7 +83,6 @@ urlpatterns = patterns('',
     
     # new drag and drop model methods
     # Runlist page
-    #(r'^runlist_summary/widget/(?P<src_id>\d+)/runlist/(?P<dest_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.lims.views.add_existing_object', {'destination':Runlist, 'object':Experiment }, 'staff-runlist-add-experiment'),
     (r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.staff.views.add_existing_object', {'destination':Runlist, 'object':Experiment }, 'staff-runlist-add-experiment'),
     (r'^runlist/(?P<dest_id>\d+)/widget/.*/container/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'imm.staff.views.add_existing_object', {'destination':Runlist, 'object':Container }, 'staff-runlist-add-container'),
     (r'^runlist_summary/runlist/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.lims.views.remove_object', {'source':Runlist, 'object':Experiment }, 'staff-runlist-remove-experiment'),

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load truncate_filters %}
 
 {% block headline %}
 <h2>Welcome, {{ user }}</h2>
@@ -36,15 +37,19 @@
 	<div id="right-content" class="col-4">
         <ul id="news">
         <li class="title">News...</li>
-        <li><a href='#'>Sample news item 1...</a></li>
-        <li><a href='#'>Sample news item 2...</a></li>
-        <li><a href='#'>Sample news item 3...</a></li>
+        {% for link in links %}
+            {% if link.category == 0 %}
+                <li><a rel='#news-modal' class="modal-{{ link.get_frame_type_display }}" href='{% if link.url %}{{ link.url }}{% else %}media/{{ link.document }}{% endif %}'>{{ link.description|truncate_chars:60 }}</a></li>
+            {% endif %}
+        {% endfor %}
         </ul>
         <ul id="help">
         <li class="title">How to ...</li>
-        <li><a href='#'>Sample help item 1...</a></li>
-        <li><a href='#'>Sample help item 2...</a></li>
-        <li><a href='#'>Sample help item 3...</a></li>
+        {% for link in links %}
+            {% if link.category == 1 %}
+                <li><a rel='#howto-modal' class="modal-{{ link.get_frame_type_display }} swf" href='{% if link.url %}{{ link.url }}{% else %}media/{{ link.document }}{% endif %}'>{{ link.description|truncate_chars:60 }}</a></li>
+            {% endif %}
+        {% endfor %}
         </ul>
 	</div>
 	<div class="clear spacer"></div>

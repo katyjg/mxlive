@@ -11,12 +11,12 @@ import logging
 
 @register.inclusion_tag('staff/entries/auto_list.html', takes_context=True)
 def auto_location(context, object, side):
-    if side == 'left' and type(object.automounter.left).__name__=='int':
-        cassette = Container.objects.get(pk=object.automounter.left)
-    elif side == 'middle' and type(object.automounter.middle).__name__=='int':
-        cassette = Container.objects.get(pk=object.automounter.middle)
-    elif side == 'right' and type(object.automounter.right).__name__=='int':
-        cassette = Container.objects.get(pk=object.automounter.right)
+    if side == 'left' and type(object.left).__name__=='int':
+        cassette = Container.objects.get(pk=object.left)
+    elif side == 'middle' and type(object.middle).__name__=='int':
+        cassette = Container.objects.get(pk=object.middle)
+    elif side == 'right' and type(object.right).__name__=='int':
+        cassette = Container.objects.get(pk=object.right)
     else:
         cassette = None
     return { 'object': object,
@@ -28,21 +28,21 @@ def auto_location(context, object, side):
 def automounter_position(context, object, side, spot, letter):
     if side == "left":
         try: 
-            cont = Container.objects.get(pk=object.automounter.left[spot])
+            cont = Container.objects.get(pk=object.left[spot])
         except:
             cont = None
         position = "L" + letter
 
     if side == "middle":
         try: 
-            cont = Container.objects.get(pk=object.automounter.middle[spot])
+            cont = Container.objects.get(pk=object.middle[spot])
         except:
             cont = None
         position = "M" + letter
 
     if side == "right":
         try: 
-            cont = Container.objects.get(pk=object.automounter.right[spot])
+            cont = Container.objects.get(pk=object.right[spot])
         except:
             cont = None
         position = "R" + letter

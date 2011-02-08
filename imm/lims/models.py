@@ -1519,7 +1519,6 @@ class Feedback(models.Model):
     class Meta:
         verbose_name = 'Feedback comment'
 
-    
 class ActivityLogManager(models.Manager):
     def log_activity(self, request, obj, action_type, description=''):
         e = self.model()
@@ -1531,7 +1530,6 @@ class ActivityLogManager(models.Manager):
                 project = None
                 
         else:
-            print "obj", obj
             if getattr(obj, 'project', None) is not None:
                 e.project_id = obj.project.pk
             elif getattr(request, 'project', None) is not None:
