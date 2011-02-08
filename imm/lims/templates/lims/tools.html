@@ -37,11 +37,11 @@
         {% if object.is_pdfable %}
             <li class="pdf-tool">
                 <a href="{{handler}}pdf/">
-                    PDF
+                    Protocol
                 </a>
             </li>
         {% endif %}
-        {% if object.is_sendable %}
+        {% if object.has_labels %}
             <li class="pdf-tool">
                 <a href="{{handler}}label/" class="">
                     Labels
@@ -51,7 +51,7 @@
         {% if object.is_xlsable %}
             <li class="template-tool">
                 <a href="{{handler}}xls/">
-                    XLS
+                    Spreadsheet
                 </a>
             </li>
         {% endif %}
@@ -64,7 +64,7 @@
         {% endif %}
         {% comment %}
         <li class="clone-tool">
-            <a href="{{ handler }}new/?clone={{object.id}}" class="action modal-form">
+            <a href="{{ handler }}../new/?clone={{object.id}}" class="action modal-form">
                 Clone
             </a>
         </li>

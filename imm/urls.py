@@ -17,8 +17,6 @@ urlpatterns = patterns('',
     (r'^$',  'imm.lims.views.home'),
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^admin/', include(admin.site.urls)),
-    (r'^lims/message/', include('imm.messaging.urls')),
-    (r'^staff/message/', include('imm.messaging.urls')),
     
     # this will find the staff only urls
     (r'^staff/', include('imm.staff.urls')),

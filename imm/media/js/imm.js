@@ -146,15 +146,24 @@ function initModals(){
             //bind the submit of our new form
             jQuery('.objform-container form').ajaxForm(function(msg){
                 jQuery.fancybox.showActivity();
-                var error = msg.indexOf("form") > -1; // given an error there will be a form element string present
+                if (typeof(msg) == 'string') {
+                    var error = msg.indexOf("form") > -1; // given an error there will be a form element string present
+                } else {
+                    var error = false;
+                }
                 if(error) {
                     jQuery.fancybox({content:msg,onComplete:func,scrolling:'no',titleShow:false});
                 } else {
-                    if(jQuery("input.default").attr('value') == 'Delete') { 
-                        if(current_url.search("cocktail") != -1 || current_url.search("crystalform") != -1) {
-                            window.location.reload(); 
-                        } else { history.go(-1); }
-                    } else { window.location.reload(); }
+                    // A json object with a url field will be returned in some cases. just redirect to it.
+                    if (typeof(msg) == 'object') {
+                        window.location.href = msg.url;                        
+                    } else {
+                        if(jQuery("input.default").attr('value') == 'Delete') { 
+                            if(current_url.search("cocktail") != -1 || current_url.search("crystalform") != -1) {
+                                window.location.reload(); 
+                            } else { history.go(-1); }
+                        } else { window.location.reload(); }
+                    }
                 }
                 return false;
             });

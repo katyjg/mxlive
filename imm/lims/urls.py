@@ -86,8 +86,6 @@ urlpatterns = patterns('imm.lims.views',
     (r'^samples/crystalform/new/$', 'create_object', {'model': CrystalForm, 'form': CrystalFormForm, 'template': 'objforms/form_base.html'}, 'lims-crystalform-new'),
 
     #######################
-    (r'^experiment/result/(?P<id>\d+)/$', 'object_detail', {'model': Result, 'template': 'lims/entries/result.html'} , 'lims-result-detail'),
-    (r'^experiment/result/(?P<id>\d+)/print/$', 'result_print', {}, 'lims-result-print'),
     #REQUESTS##############
     (r'^experiment/request/$', 'object_list', {'model': Experiment, 'template': 'objlist/generic_list.html', 'can_add': True, 'link': True}, 'lims-experiment-list'),
     (r'^experiment/request/(?P<id>\d+)/$', 'experiment_object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html'} , 'lims-experiment-detail'),
@@ -103,7 +101,6 @@ urlpatterns = patterns('imm.lims.views',
     #REPORTS##############
     (r'^experiment/report/$', 'object_list', {'model': Result, 'template': 'objlist/generic_list.html', 'link': True}, 'lims-result-list'),
     (r'^experiment/report/(?P<id>\d+)/$', 'object_detail', {'model': Result, 'template': 'lims/entries/result.html'} , 'lims-result-detail'),
-    (r'^experiment/report/(?P<id>\d+)/print/$', 'result_print', {}, 'lims-result-print'),
 
     ####################
     #SCANS##############

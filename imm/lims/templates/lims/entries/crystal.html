@@ -26,8 +26,16 @@
 	<tr valign="top"><th>Pin-length:</th><td>{{ object.pin_length }}</td></tr>
 	<tr valign="top"><th NOWRAP>Crystal Form:</th><td>{{ object.crystal_form }}</td></tr>
 	<tr valign="top"><th>Cocktail:</th><td>{{ object.cocktail }}</td></tr>
-	<tr valign="top"><th>Container:</th><td>{{ object.container }} ({{ object.container_location }})</td></tr>
-	<tr valign="top"><th>Experiment:</th><td>{{ object.experiment }}</td></tr>
+	{% if object.container %}
+	<tr valign="top"><th>Container:</th><td><a href="{% url lims-container-detail object.container.pk %}">{{ object.container }} ({{ object.container_location }})</a></td></tr>
+	{% else %}
+	<tr valign="top"><th>Container:</th><td>None</a></td></tr>
+	{% endif %}
+	{% if object.experiment %}
+	<tr valign="top"><th>Experiment:</th><td><a href="{% url lims-experiment-detail object.experiment.pk %}">{{object.experiment}}</a></td></tr>
+	{% else %}
+	<tr valign="top"><th>Experiment:</th><td>None</td></tr>
+	{% endif %}
 	{% if object.screen_status != 0 %}
 		<tr valign="top"><th NOWRAP>Screen Status:</th><td>{{ object.get_screen_status_display }}</td></tr>
 	{% endif %}

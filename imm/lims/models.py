@@ -459,6 +459,9 @@ class Shipment(models.Model):
     
     def is_pdfable(self):
         return self.is_sendable() or self.status >= self.STATES.SENT
+
+    def has_labels(self):
+        return self.status >= self.STATES.SENT
     
     def is_xlsable(self):
         # removed is_sendable check. orphan crystals don't get the default created experiment until sent. 
@@ -870,6 +873,9 @@ class Experiment(models.Model):
         return Crystal.objects.filter(experiment=self)
     
     crystals = property(get_crystals)
+
+    class Meta:
+        verbose_name = 'experiment request'
     
     def accept(self):
         return "crystal"

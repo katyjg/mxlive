@@ -278,8 +278,10 @@ class ContainerSelectForm(forms.Form):
 class ExperimentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     name = objforms.widgets.LargeCharField(required=True)
-    kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES.get_choices(), required=True)
-    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS.get_choices(), required=True)
+    kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES.get_choices(), required=True,
+        help_text="If you select SAD or MAD make sure you provide the absorption edge below, otherwise Se-K will be assumed.")
+    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS.get_choices(), required=True,
+          help_text="Select the plan which describes your instructions for all crystals in this experiment group.")
     resolution = forms.FloatField(label='Desired Resolution', widget=objforms.widgets.LeftHalfInput, required=False )
     delta_angle = forms.FloatField(widget=objforms.widgets.RightHalfInput, required=False,
           help_text='If left blank, an appropriate value will be calculated during screening.')

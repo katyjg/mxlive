@@ -20,15 +20,11 @@
 {% block content %}
 
 {% with object as runlist %}
-
-    <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="100%">
-    	<tr valign=top"><th>Comments:</th><td>{{object.comments}}</td></tr>
-    </table>
     
     <div class="runlist droppable droppable-add" accept="experiment" title="Drag and drop onto this image"></div>    
 
     <!-- width set to 70% to give the image space to sit side by side -->
-    <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="70%">
+    <table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
         <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Status:</th><td>{{ object.get_status_display }}</td></tr>
@@ -45,7 +41,14 @@
         </td></tr>{% endcomment %}
         
     </table>
-    <div style="clear: both;"></div>
+{% if object.comments %}
+    <div class="entrycomment">
+    <span class="left-pointer"></span>
+    <h3>Comments</h3>
+    <p>{{ object.comments}}</p>
+    </div>
+{% endif %}
+<div class="clear"></div>
     
 <div class="object-list">
 <h3>Automounter Configuration</h3>

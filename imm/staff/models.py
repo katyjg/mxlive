@@ -9,9 +9,8 @@ from imm.lims.models import Experiment
 from imm.lims.models import Beamline
 from imm.lims.models import Crystal
 from imm.lims.models import Result
-from imm.lims.models import perform_action
+from imm.lims.models import perform_action, IDENTITY_FORMAT
 from imm.enum import Enum
-from imm.messaging.models import Message
 
 from django.contrib.auth.models import User
 from django.utils.encoding import smart_str
@@ -126,21 +125,8 @@ class Runlist(models.Model):
             raise ValueError('Another Runlist is already loaded.')
         
     def send_accept_message(self, data=None):
-        """ Create a imm.messaging.models.Message instance when the Runlist is 'accepted' """
-        admin = User.objects.get(username=settings.ADMIN_MESSAGE_USERNAME)
-        
-        # ensure we only send the message once to each user by keeping track of the 
-        # users while iterating over the containers
-        users = []
-        for container in self.containers.all():
-            user = container.project.user
-            if user not in users:
-                users.append(user)
-                
-        # not create a message for the user indicating the Runlist has been accepted
-        for user in users:
-            message = Message(sender=admin, recipient=user, subject="Admin Message", body=data.get('message', ''))
-            message.save()
+        """ Create a message when the Runlist is 'accepted' """
+        pass
             
     def container_to_location(self, container, location):
         if container.kind == Container.TYPE.CASSETTE:
@@ -351,9 +337,7 @@ class Runlist(models.Model):
         self.middle = None
         self.Right = None
         self.save()
-
-
-
+    
     def json_dict(self):
         """ Returns a json dictionary of the Runlist """
         # meta data first
@@ -366,7 +350,7 @@ class Runlist(models.Model):
         for container in self.containers.all():
             container_json = container.json_dict()
             # if container is in automounter, override it's location
-            auto_pos = self.automounter.get_position(container)
+            auto_pos = self.get_position(container)
             if auto_pos != None:
                 
                 container_json['load_position'] = auto_pos

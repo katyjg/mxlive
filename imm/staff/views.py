@@ -130,7 +130,7 @@ def receive_shipment(request, model, form, template='objforms/form_base.html', a
             request.user.message_set.create(message = form_info['message'])
             
             
-            return render_to_response("lims/message.html", context_instance=RequestContext(request)) 
+            return render_to_response("lims/redirect.html", context_instance=RequestContext(request)) 
             #return HttpResponseRedirect(reverse('staff-shipment-list'))
         else:
             return render_to_response(template, {

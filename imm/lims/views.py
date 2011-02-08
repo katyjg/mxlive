@@ -25,7 +25,6 @@ from django.template import loader
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import smart_str
-
 import logging
 
 from imm.objlist.views import ObjectList
@@ -276,7 +275,7 @@ def upload_shipment(request, model, form, template='lims/forms/new_base.html'):
                 frm.save(request) #FIXME ShipmentUpload form.save does not return the model being saved!
                 message = 'Shipment uploaded successfully'
                 request.user.message_set.create(message = message)
-                return render_to_response("lims/message.html", context_instance=RequestContext(request))
+                return render_to_response("lims/redirect.html", context_instance=RequestContext(request))
 
             except IntegrityError:
                 transaction.rollback()
@@ -594,8 +593,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
                     }, context_instance=RequestContext(request))
             else:
                 # messages are simply passed down to the template via the request context
-                print "returning", request.POST, request.FILES
-                return render_to_response("lims/message.html", context_instance=RequestContext(request))
+                return render_to_response("lims/redirect.html", context_instance=RequestContext(request))
         else:
             return render_to_response(template, {
                 'info': form_info,
@@ -911,7 +909,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
 
             request.user.message_set.create(message = form_info['message'])
             ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, form_info['message'])            
-            return render_to_response('lims/message.html', context_instance=RequestContext(request))
+            return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
         else:
             return render_to_response(template, {
             'info': form_info, 
@@ -1092,12 +1090,12 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
     except:
         raise Http404
     
+
     orphan_models = orphan_models or []
     form_info = {
         'title': 'Delete %s?' % obj.__unicode__(),
         'sub_title': 'The %s (%s) will be deleted' % ( model._meta.verbose_name, obj.__unicode__()),
         'action':  request.path,
-        'target': 'entry-scratchpad',
         'message': 'Are you sure you want to delete %s "%s"?' % (
             model.__name__, obj.__unicode__()
             ),
@@ -1113,8 +1111,21 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
                 ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.DELETE,  form_info['message'])
             delete(request, model, id, orphan_models)
             request.user.message_set.create(message = form_info['message'])
-            # messages are simply passed down to the template via the request context
-            return render_to_response("lims/message.html", context_instance=RequestContext(request))
+            
+            # prepare url to redirect after delete. Always return to list
+            # Since this view is called from Ajax, the client has to interpret the
+            # redirect message and act accordingly
+            # example: JSON {"url" : "/path/to/redirect/to"}
+            
+            if request.user.is_staff:
+                url_prefix = 'staff'
+            else:
+                url_prefix = 'lims'
+            url_name = "%s-%s-list" % (url_prefix, model.__name__.lower())
+            print url_name, reverse(url_name)
+            return render_to_response("lims/redirect.json", {
+            'redirect_to': reverse(url_name),
+            }, context_instance=RequestContext(request), mimetype="application/json")
         else:
             return render_to_response(template, {
             'info': form_info, 
@@ -1168,7 +1179,7 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
             form_info['message'] = '%s (%s) archived' % (model._meta.verbose_name, obj)
             ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.ARCHIVE, form_info['message'])
             request.user.message_set.create(message = form_info['message'])   
-            return render_to_response("lims/message.html", context_instance=RequestContext(request))         
+            return render_to_response("lims/redirect.html", context_instance=RequestContext(request))         
             
         else:
             return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
@@ -1425,17 +1436,6 @@ def data_viewer(request, id):
     
     return render_to_response('lims/entries/data.html', {'data':data, 'results':results, 'expanded_frame_set': expanded_frame_set})
 
-@login_required
-def result_print(request, id):
-    manager = Result.objects
-    
-    try:
-        result = manager.get(pk=id)
-    except:
-        raise Http404
-    
-    admin = request.user.is_superuser
-    return render_to_response('lims/entries/result_print.html', {'object':result, 'admin':admin})
 
 @login_required
 def rescreen(request, id):
