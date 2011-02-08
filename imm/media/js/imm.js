@@ -121,7 +121,6 @@ function initModals(){
 	});
 	
 	jQuery(".modal-image").fancybox({
-		'overlayShow'	: false,
 		'transitionIn'	: 'elastic',
 		'transitionOut'	: 'elastic',
 		'type'          : 'image',
@@ -129,7 +128,9 @@ function initModals(){
 	});
 	
 	jQuery(".modal-flash").fancybox({
-		'titleShow'         : false,
+        'width'         : '100%',
+        'height'        : '100%',
+		'titleShow'     : false,
 		'type'          : 'swf'
 	});
 
