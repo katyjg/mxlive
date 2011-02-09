@@ -13,6 +13,13 @@
             </a>
         </li>
     {% endif %}
+    {% if object.is_pdfable %}
+        <li class="pdf-tool">
+            <a href="{{handler}}pdf/">
+                Protocol
+            </a>
+        </li>
+    {% endif %}
     {% comment %}
     {% if object.is_acceptable %}
         <li class="accept-tool">

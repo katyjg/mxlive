@@ -114,7 +114,10 @@ class Runlist(models.Model):
     
     def is_rejectable(self):
         return self.status == self.STATES.COMPLETED
-    
+
+    def is_pdfable(self):
+        return self.num_containers() > 0
+
     def get_children(self):
         return self.containers.all()
     

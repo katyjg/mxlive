@@ -461,7 +461,7 @@ class Shipment(models.Model):
         return self.is_sendable() or self.status >= self.STATES.SENT
 
     def has_labels(self):
-        return self.status >= self.STATES.SENT
+        return self.status <= self.STATES.SENT and self.num_dewars()
     
     def is_xlsable(self):
         # removed is_sendable check. orphan crystals don't get the default created experiment until sent. 

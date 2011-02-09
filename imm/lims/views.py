@@ -569,8 +569,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
 
     if request.method == 'POST':
         if request.FILES:
-            print "there are files!"
-            frm = UploadFileForm(request.POST, request.FILES)
+            frm = form(request.POST, request.FILES)
         else:
             frm = form(request.POST)
         frm.restrict_by('project', project)
@@ -1194,14 +1193,24 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
         }, context_instance=RequestContext(request))
         
 @login_required
-@project_required
+@project_optional
 def shipment_pdf(request, id, format):
     """ """
-    project = request.project
     try:
-        shipment = Shipment.objects.get(id=id)
+         object = Shipment.objects.get(id=id)
     except:
-        raise Http404
+        try: 
+            object = Runlist.objects.get(id=id)
+        except:
+            raise Http404
+
+    if request.project:
+        project = request.project
+    else:
+        try:
+            project = object.project
+        except:
+            project = None
 
     # create a temporary directory
     temp_dir = tempfile.mkdtemp()
@@ -1210,7 +1219,8 @@ def shipment_pdf(request, id, format):
         exp_list = list()
         con_list = list()
         xtal_list = list()
-        dewars = Dewar.objects.filter(shipment=shipment)
+        projects = None
+        dewars = Dewar.objects.filter(shipment=object)
         for dewar in dewars:
             containers = Container.objects.filter(dewar=dewar)
             for container in containers:
@@ -1232,24 +1242,53 @@ def shipment_pdf(request, id, format):
                 if xtal not in xtal_list:
                     xtal_list.append(xtal)
 
+    if format == 'runlist':
+        exp_list = list()
+        con_list = object.containers.all()
+        xtal_list = list()
+        projects = list()
+        for container in con_list:
+            cont_exp_list = container.get_experiment_list()
+            for exp in cont_exp_list:
+                if exp not in exp_list:
+                    exp_list.append(exp)
+
+        experiments = list()
+        all_exps = Experiment.objects.all().order_by('priority').reverse()
+        for experiment in all_exps:
+            if experiment in exp_list:
+                experiments.append(experiment)
+
+        for exp in exp_list:
+            exp_xtal_list = Crystal.objects.filter(experiment=exp).order_by('priority', 'container', 'container_location').reverse()
+            for xtal in exp_xtal_list:
+                if xtal not in xtal_list:
+                    xtal_list.append(xtal)
+        for exp in exp_list:
+            if exp.project not in projects:
+                projects.append(exp.project)
+
     try:
         # configure an HttpResponse so that it has the mimetype and attachment name set correctly
         response = HttpResponse(mimetype='application/pdf')
-        filename = ('%s-%s.pdf' % (project.name, shipment.label)).replace(' ', '_')
+        if project:
+            filename = ('%s-%s.pdf' % (project.name, object.label)).replace(' ', '_')
+        else:
+            filename = ('%s-%s.pdf' % ('auto', object.name)).replace(' ', '_')
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         
-        if os.path.exists('media/img/clslogo_print.eps'):
+        if os.path.exists('media/img/clslogo_print.pdf'):
             copyfile('media/img/clslogo_print.pdf', '%s/clslogo_print.pdf' % temp_dir)
             copyfile('media/img/fragile_up.pdf', '%s/fragile_up.pdf' % temp_dir)
         # create a temporary file into which the LaTeX will be written
         temp_file = tempfile.mkstemp(dir=temp_dir, suffix='.tex')[1]
         # render and output the LaTeX into temap_file
-        if format == 'pdf':
-            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'shipment' : shipment, 'experiments': experiments, 'crystals': xtal_list, 'containers': con_list })
+        if format == 'pdf' or format == 'runlist':
+            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'projects': projects, 'shipment' : object, 'experiments': experiments, 'crystals': xtal_list, 'containers': con_list })
         elif format == 'label':
-            tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': project, 'shipment' : shipment})
+            tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': project, 'shipment' : object})
         elif format == 'return':
-            tex = loader.render_to_string('lims/tex/return_labels.tex', {'project': project, 'shipment' : shipment})
+            tex = loader.render_to_string('lims/tex/return_labels.tex', {'project': project, 'shipment' : object})
         tex_file = open(temp_file, 'w')
         tex_file.write(tex)
         tex_file.close()

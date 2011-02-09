@@ -25,19 +25,19 @@
                 </a>
             </li>
         {% endif %}
+        {% if object.is_pdfable %}
+            <li class="pdf-tool">
+                <a href="{{handler}}pdf/">
+                    Protocol
+                </a>
+            </li>
+        {% endif %}
     {# USER TOOLS #}
     {% else %}
         {% if object.is_sendable %}
             <li class="send-tool">
                 <a href="{{handler}}send/?title=Send%20Shipment"  class="action modal-form">
                     Send
-                </a>
-            </li>
-        {% endif %}
-        {% if object.is_pdfable %}
-            <li class="pdf-tool">
-                <a href="{{handler}}pdf/">
-                    Protocol
                 </a>
             </li>
         {% endif %}
