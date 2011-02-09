@@ -77,3 +77,9 @@ def in_runlist(crystals, containers):
         
     return len(crystal_set)
 
+@register.filter("runlist_position")
+def runlist_position(runlist, container):
+    return runlist.get_position(container)
+    
+    
+

@@ -1,4 +1,6 @@
 {% load tex %}
+{% load runlist_extras %}
+
 \documentclass[6pt]{report}
 \usepackage{ps4pdf}
 \PSforPDF{
@@ -7,12 +9,12 @@
 \usepackage{graphicx}
 \usepackage{longtable}
 \usepackage{xcolor,colortbl}
-\oddsidemargin -0.25in 
+\oddsidemargin -0.5in 
 \marginparwidth 0pt \marginparsep 0pt
 \topmargin -0.5in \headsep 0pt
 \headheight 0pt
 \textheight 237mm
-\textwidth  6.8in
+\textwidth  7.45in
 \addtolength{\fboxsep}{0.2cm}
 \renewcommand{\arraystretch}{1.2}
 \begin{document}
@@ -25,6 +27,7 @@
 \small
 \hspace{-0.25in}
 
+{% if project %}
 \section*{Project: {{ project.user.username|texsafe|default:"" }} }
 \begin{center}
 
@@ -34,10 +37,21 @@
 {\bf Phone: }{{ project.contact_phone|texsafe|default:"" }} \hfill {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}   {{ project.postal_code|texsafe|default:"" }} \\
 {\bf Fax: }{{ project.contact_fax|texsafe|default:"" }} \hfill {{ project.country|texsafe|default:"" }} \\ 
 \end{center}
+{% endif %}
+
+{% if projects %}
+\section*{Projects Represented}
+\begin{center}
+{% for pro in projects %}
+{\bf Investigator: }{{ pro.name|texsafe|default:"" }} \hfill  {{ pro.organisation|texsafe|default:"" }} \\
+{\bf Phone: }{{ pro.contact_phone|texsafe|default:"" }} \hfill {{ pro.department|texsafe|default:"" }} \\ 
+{% endfor %}
+\end{center}
+{% endif %}
 
 \section*{Sample List By Experiment}
 
-\begin{longtable}{|p{0.3cm}|p{1.5cm}|p{0.75cm}|p{2.4cm}|p{0.85cm}|p{.8cm}|p{.8cm}|p{0.5cm}|p{0.5cm}|p{4cm}|}
+\begin{longtable}{|p{0.3cm}|p{2.5cm}|p{0.75cm}|p{2.4cm}|p{0.85cm}|p{.8cm}|p{.8cm}|p{0.5cm}|p{0.5cm}|p{4cm}|}
 
 \hline
 \rowcolor[gray]{.8} \multicolumn{4}{|c|}{\cellcolor[gray]{.8}Experiment Parameters} & 
@@ -75,7 +89,8 @@
 
  & \multicolumn{1}{c}{\cellcolor[gray]{.92}Crystal} & 
 \multicolumn{1}{c}{\cellcolor[gray]{.92}Pr.} & 
-\multicolumn{1}{c}{\cellcolor[gray]{.92}Container} &  
+{% if not project %}\multicolumn{1}{c}{\cellcolor[gray]{.92}Location} &
+{% else %}\multicolumn{1}{c}{\cellcolor[gray]{.92}Container} &  {% endif %}
 \multicolumn{3}{l}{\cellcolor[gray]{.92} Unit Cell} & 
 \multicolumn{2}{c}{\cellcolor[gray]{.92}Spacegroup} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.92}Comments} \\ \cline{2-10} \nopagebreak
@@ -83,7 +98,8 @@
 {% for xtal in crystals %}{% ifequal xtal.experiment exp %} \multicolumn{1}{|c|}{}& 
 \cellcolor[gray]{0.98} {{ xtal.name|texsafe|default:"" }}&
 \cellcolor[gray]{0.98} {{ xtal.priority|texsafe|default:"" }}&
-\cellcolor[gray]{0.98} {{ xtal.container|texsafe|default:"" }} ({{ xtal.container_location|texsafe|default:"" }}{% ifequal xtal.container 'Cane' %} from bottom{% endifequal %})&
+{% if not project %}\cellcolor[gray]{0.98} {{ shipment|runlist_position:xtal.container }}{{ xtal.container_location|texsafe|default:"" }}&
+{% else %}\cellcolor[gray]{0.98} {{ xtal.container|texsafe|default:"" }} ({{ xtal.container_location|texsafe|default:"" }}{% ifequal xtal.container 'Cane' %} from bottom{% endifequal %})&{% endif %}
 \multicolumn{3}{l|}{\cellcolor[gray]{0.98} {% if xtal.crystal_form %}{{ xtal.crystal_form.cell_a|texsafe|default:"" }},{{ xtal.crystal_form.cell_b|texsafe|default:"" }}, {{ xtal.crystal_form.cell_c|texsafe|default:"" }} } & {% else %} } & {% endif %}  
 \multicolumn{2}{c|}{\cellcolor[gray]{0.98}{{ xtal.crystal_form.space_group|texsafe|default:"" }} }&
 \cellcolor[gray]{0.98} {{ xtal.comments|texsafe|default:"" }} \\ \nopagebreak[3] {% endifequal %}{% endfor %} \cline{2-10}
@@ -106,6 +122,8 @@
 {% endfor %}
 \end{longtable}
 
+
+{% if project %}
 \newpage
 
 \section*{Sample List By Container}
@@ -145,7 +163,7 @@
 \hline
 
 \end{longtable}
-
+{% endif %}
 
 	
 \end{document}

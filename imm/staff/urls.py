@@ -39,7 +39,8 @@ urlpatterns = patterns('',
     (r'^shipping/shipment/receive/$', 'imm.staff.views.receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-shipment-receive-any'),
     (r'^shipping/shipment/(?P<id>\d+)/receive/$', 'imm.lims.views.edit_object_inline', {'model': Shipment, 'form': ShipmentReceiveForm, 'template': 'objforms/form_base.html', 'action' : 'receive'}, 'staff-shipment-receive'),
     (r'^shipping/shipment/(?P<id>\d+)/return/$', 'imm.lims.views.edit_object_inline', {'model': Shipment, 'form': ShipmentReturnForm, 'template': 'objforms/form_base.html', 'action' : 'return'}, 'staff-shipment-return'),
-    (r'^shipping/shipment/(?P<id>\d+)/label/$', 'imm.staff.views.shipment_pdf', {'format' : 'return' }, 'staff-shipment-label'),    
+    (r'^shipping/shipment/(?P<id>\d+)/label/$', 'imm.lims.views.shipment_pdf', {'format' : 'return' }, 'staff-shipment-label'),    
+    (r'^shipping/shipment/(?P<id>\d+)/pdf/$', 'imm.lims.views.shipment_pdf', {'format' : 'pdf' }, 'staff-shipment-pdf'),    
 
     (r'^shipping/dewar/$', 'imm.lims.views.object_list', {'model': Dewar, 'template': 'objlist/generic_list.html', 'can_add': False, 'link': True}, 'staff-dewar-list'),
     (r'^shipping/dewar/(?P<id>\d+)/$', 'imm.lims.views.object_detail', {'model': Dewar, 'template': 'lims/entries/dewar.html'}, 'staff-dewar-detail'),
@@ -80,6 +81,7 @@ urlpatterns = patterns('',
     (r'^runlist/(?P<id>\d+)/unload/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'unload'}, 'staff-runlist-complete'),
     (r'^runlist/(?P<id>\d+)/accept/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistAcceptForm, 'template': 'objforms/form_base.html', 'action' : 'accept'}, 'staff-runlist-accept'),
     (r'^runlist/(?P<id>\d+)/reject/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'reject'}, 'staff-runlist-reject'),
+    (r'^runlist/(?P<id>\d+)/pdf/$', 'imm.lims.views.shipment_pdf', {'format' : 'runlist' }, 'staff-runlist-pdf'),    
     
     # new drag and drop model methods
     # Runlist page
