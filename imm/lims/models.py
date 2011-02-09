@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import datetime
 
 from django.conf import settings
@@ -237,21 +236,6 @@ class Cocktail(models.Model):
     }
     '''
 
-    def get_hazard_designation(self):
-        HD_DICT = {
-            '☢': self.is_radioactive ,
-            '⚠': self.is_contaminant,
-            '☠': self.is_toxic,
-            'O': self.is_oxidising,
-            '☄': self.is_explosive,
-            'C': self.is_corrosive,
-            'F': self.is_inflamable,
-            '☣': self.is_biological_hazard,
-        }
-
-        hd = [ k for k,v in HD_DICT.items() if v ]
-        return ''.join(hd)
-
     class Meta:
         verbose_name = "Protein Cocktail"
         verbose_name_plural = 'Protein Cocktails'
@@ -287,10 +271,11 @@ def perform_action(instance, action, data=None):
         else:
             setattr(instance, field, value)
     instance.save()
-    
+
     # perform the action on the children
     if hasattr(instance, 'get_children'):
         for child in instance.get_children():
+            print "performing child actions..."
             if child.ACTIONS.has_key(action):
                 perform_action(child, action, data=data)
         
@@ -426,7 +411,7 @@ class Shipment(models.Model):
             if crystal.num_experiments() == 0:
                 unassociated_crystals.append(crystal)
         if unassociated_crystals:
-            exp_name = '%s auto' % dateformat.format(datetime.datetime.now().date(), 'M jS')
+            exp_name = '%s auto' % dateformat.format(datetime.datetime.now(), 'M jS P')
             experiment = Experiment(project=self.project, name=exp_name)
             experiment.save()
             for unassociated_crystal in unassociated_crystals:
@@ -543,6 +528,7 @@ class Dewar(models.Model):
     def get_children(self):
         return self.container_set.all()
     
+        
     def receive_parent_shipment(self, data=None):
         """ Updates the status of the parent Shipment to 'On-Site' if all the Dewars are 'On-Site'
         """
@@ -646,7 +632,7 @@ class Container(models.Model):
         return false
     
     def update_priority(self):
-        """ Updates the Container's priority/staff_priority to max(Experiment priorities) 
+        """ Updates the Container's priority/staff_priority to max(Experiment priorities)
         """
         for field in ['priority', 'staff_priority']:
             priority = None
@@ -662,6 +648,7 @@ class Container(models.Model):
     def num_crystals(self):
         return self.crystal_set.count()
     
+
     def capacity(self):
         _cap = {
             self.TYPE.CASSETTE : 96,
@@ -869,11 +856,6 @@ class Experiment(models.Model):
         'plan': EXP_PLANS,
     }
     
-    def get_crystals(self):
-        return Crystal.objects.filter(experiment=self)
-    
-    crystals = property(get_crystals)
-
     class Meta:
         verbose_name = 'experiment request'
     
@@ -881,15 +863,8 @@ class Experiment(models.Model):
         return "crystal"
     
     def num_crystals(self):
-        return self.crystals.count()
-    
-    def update_priority(self):
-        """ Updates the priority/staff_priority of all associated Containers """
-        for crystal in self.crystals:
-            if crystal.container:
-                crystal.container.update_priority()
-                crystal.container.save()
-    
+        return self.crystal_set.count()
+        
     def __unicode__(self):
         return self.name
 
@@ -908,7 +883,7 @@ class Experiment(models.Model):
 
     def get_children(self):
         return []
-
+        
     def set_strategy_status_resubmitted(self, data=None):
         strategy = data['strategy']
         perform_action(strategy, 'resubmit')
@@ -1082,10 +1057,7 @@ class Crystal(models.Model):
         results = Result.objects.filter(crystal=self, kind='1').order_by('-score')
         if results:
             return results[0]
-        return None
-
-    def is_assigned(self):
-        return self.container is not None
+        return None                
     
     def num_experiments(self):
         if self.experiment:
@@ -1128,14 +1100,6 @@ class Crystal(models.Model):
             self.collect_status = Crystal.EXP_STATES.PENDING
         self.save()
             
-#        
-#        for experiment in self.experiment_set.all():
-#            all_crystals_received = True
-#            for crystal in experiment.crystals.all():
-#                all_crystals_received = all_crystals_received and crystal.status == Crystal.STATES.ON_SITE
-#            if all_crystals_received:
-#                experiment.status = Experiment.STATES.ACTIVE
-#                experiment.save()
 
     def is_completed(self):
         # checks type of it's experiment, and gives results as needed.
@@ -1200,41 +1164,13 @@ class Crystal(models.Model):
             'comments': self.comments
         }
         
-#    def _experiment(self, experiment):
-#        self.experiment_set.add(experiment)
-#    
-#    experiment = property(None, _experiment)
-
-        
-# The following set of pre/post save/delete methods are responsible for updating the priority of
-# a Runlist Container to the maximum priority of the associated Experiments. Container.priority/staff_priority 
-# are currently calculated values, so it might have made sense to use a SQL view for lims_container
-# rather than adding the fields directly. It is pretty easy to anticipate a scenario where this is not
-# always the case, so we added the field to Container, and keep the entities up-to-date whenever Experiment
-# instances are saved.
-        
-def Experiment_post_save(sender, **kwargs):
-    experiment = kwargs['instance']
-    experiment.update_priority() # does the actual work
-    
+                    
 def Experiment_pre_delete(sender, **kwargs):
-    experiment = kwargs['instance']
-    # After deletion, the instance has all reference fields nulled, so
+    # After deletion, the instance have all reference fields nulled, so
     # we need to store the original crystals for use in Experiment_post_delete
-    experiment.saved_crystals = [crystal for crystal in experiment.crystals.all()]
-    
-def Experiment_post_delete(sender, **kwargs):
     experiment = kwargs['instance']
-    for crystal in experiment.saved_crystals:
-        try:
-            crystal.container.update_priority() # does the actual work 
-            crystal.container.save()
-        except ObjectDoesNotExist:
-            pass # ie. Project.delete() called resulting in cascading delete of everything
-        
-post_save.connect(Experiment_post_save, sender=Experiment)
+    experiment.saved_crystals = [crystal for crystal in experiment.crystal_set.all()]    
 pre_delete.connect(Experiment_pre_delete, sender=Experiment)
-post_delete.connect(Experiment_post_delete, sender=Experiment)
     
 class Data(models.Model):
     DATA_TYPES = Enum(
@@ -1290,17 +1226,6 @@ class Data(models.Model):
     def total_angle(self):
         return self.delta_angle * self.num_frames()
         
-    def thumbUrls(self):
-        urls = []
-        for i in range(self.num_frames):
-            urls.append("%s/%s/images/frame_thumb.png" % (self.url, self.pk))
-        return urls
-    
-    def mediumUrls(self):
-        urls = []
-        for i in range(self.num_frames):
-            urls.append("%s/%s/images/frame_medium.png" % (self.url, self.pk))
-        return urls
     
     def generate_image_url(self, frame, brightness=None):
         # brightness is assumed to be "nm" "dk" or "lt" 
@@ -1334,7 +1259,6 @@ class Data(models.Model):
         
     class Meta:
         verbose_name = 'Dataset'
-        verbose_name_plural = 'Datasets'
 
 
 class Result(models.Model):
@@ -1384,31 +1308,6 @@ class Result(models.Model):
 
     def __unicode__(self):
         return self.name
-
-    def is_resubmittable(self):
-        for strategy in self.strategy_set.all():
-            if strategy.is_resubmittable():
-                return True
-        return False
-
-    def get_results_link(self):
-        strategy = self.strategy_set.all()[0]
-        experimentName = RESUMBITTED_LABEL + strategy.name + '_' + strategy.result.crystal.name
-        link = "resubmit/?%s=%d&%s=%d&%s=%s&%s=%f&%s=%f&%s=%f&%s=%f&%s=%f&%s=%f&%s=%f&%s=%s&%s=%d" % \
-        ('project',       strategy.project.pk,
-         'strategy',      strategy.pk,
-         'name',          experimentName,
-         'delta_angle',   strategy.delta_angle,
-         'total_angle',   strategy.total_angle,
-         'energy',        strategy.energy,
-         'resolution',    strategy.exp_resolution,
-         'multiplicity',  strategy.exp_multiplicity,
-         'i_sigma',       strategy.exp_i_sigma,
-         'r_meas',        strategy.exp_r_factor,
-         'crystals',      strategy.result.crystal.pk,
-         'plan',          self.experiment.EXP_PLANS.JUST_COLLECT # all resubmitted experiments must use this type
-        )
-        return link
 
     class Meta:
         ordering = ['-score']
@@ -1537,7 +1436,6 @@ class ActivityLogManager(models.Manager):
                 project = None
                 
         else:
-            print "obj", obj
             if getattr(obj, 'project', None) is not None:
                 e.project_id = obj.project.pk
             elif getattr(request, 'project', None) is not None:

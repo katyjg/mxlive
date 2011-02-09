@@ -28,6 +28,12 @@
 	<tr valign="top"><th>Cocktail:</th><td>{{ object.cocktail }}</td></tr>
 	{% if object.container %}
 	<tr valign="top"><th>Container:</th><td><a href="{% url lims-container-detail object.container.pk %}">{{ object.container }} ({{ object.container_location }})</a></td></tr>
+	    {% if object.container.dewar %}
+	<tr valign="top"><th>Dewar:</th><td><a href="{% url lims-dewar-detail object.container.dewar.pk %}">{{ object.container.dewar }}</a></td></tr>
+	        {% if object.container.dewar.shipment %}
+	<tr valign="top"><th>Shipment:</th><td><a href="{% url lims-shipment-detail object.container.dewar.shipment.pk %}">{{object.container.dewar.shipment}}</a></td></tr>    
+            {% endif %}
+        {% endif %}    
 	{% else %}
 	<tr valign="top"><th>Container:</th><td>None</a></td></tr>
 	{% endif %}

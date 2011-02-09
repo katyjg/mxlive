@@ -236,7 +236,7 @@ def show_project(request):
 @login_required
 @project_required
 @transaction.commit_on_success
-def upload_shipment(request, model, form, template='lims/forms/new_base.html'):
+def upload_shipment(request, model, form, template='lims/forms/form_base.html'):
     """A generic view which displays a Form of type ``form`` using the Template
     ``template`` and when submitted will create new data using the LimsWorkbook
     class
@@ -253,7 +253,6 @@ def upload_shipment(request, model, form, template='lims/forms/new_base.html'):
     if request.method == 'POST':
         frm = form(request.POST, request.FILES)
         if frm.is_valid():
-            
             # saving valid data to the database can fail if duplicates are found. in this case
             # we need to manually rollback the transaction and return a normal rendered form error
             # to the user, rather than a 500 page
@@ -261,7 +260,7 @@ def upload_shipment(request, model, form, template='lims/forms/new_base.html'):
                 frm.save(request) #FIXME ShipmentUpload form.save does not return the model being saved!
                 message = 'Shipment uploaded successfully'
                 request.user.message_set.create(message = message)
-                return render_to_response("lims/redirect.html", context_instance=RequestContext(request))
+                return render_to_response("lims/iframe_refresh.html", context_instance=RequestContext(request))
 
             except IntegrityError:
                 transaction.rollback()
@@ -789,45 +788,18 @@ def user_object_list(request, model, template='lims/lists/list_base.html', link=
 @login_required
 @transaction.commit_on_success
 def priority(request, id,  model, field):
-    
     if request.method == 'POST':
-        pks = request.POST.getlist('id_list[]')
+        pks = map(int, request.POST.getlist('id_list[]'))
         pks.reverse()
-        for pk in pks:
-            pk_pr = model.objects.get(pk=pk).priority
-            if pk_pr is 0:
-                i = 1
-                for item in pks:
-                    instance = model.objects.get(pk=item)
-                    setattr(instance, field, i)
-                    instance.save()
-                    i += 1
-                request.user.message_set.create(message = "%s priority updated" % model.__name__)
-                return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
-
-        pks.reverse()
-        op = model.objects.get(pk=id).priority
-        start = len(pks)-op
-        end = pks.index(id)  
-        if start < end:
-            pk_list = pks[start:end+1]
-        elif start > end:
-            pk_list = pks[end:start+1]
-        else:
-            return 
-        if pk_list[0] != id:
-            i = op-len(pk_list)+1
-        elif pk_list[0] == id:
-            i = op
-
-        pk_list.reverse()
-        for pk in pk_list:
-            instance = model.objects.get(pk=pk)
-            setattr(instance, field, i)
-            instance.save()
-            i += 1
-
-    request.user.message_set.create(message = "%s priority updated" % model.__name__)
+        _priorities_changed = False
+        for obj in model.objects.filter(pk__in=pks).all():
+            new_priority = pks.index(obj.pk) + 1
+            if obj.priority != new_priority:
+                obj.priority = new_priority
+                obj.save()
+                _priorities_changed = True
+    if _priorities_changed:
+        request.user.message_set.create(message = "%s priority updated" % model.__name__)
     return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
     
 @login_required

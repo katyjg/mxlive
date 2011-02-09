@@ -55,6 +55,7 @@
                         rowIds.push("id_list[]=" + jQuery_row.attr("id"));
                     }
                     var parms = rowIds.join("&");
+                    jQuery.fancybox.showActivity();
                     jQuery.ajax({
                         type: "POST",
                         url: dropped_url + "priority/",

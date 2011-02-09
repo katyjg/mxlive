@@ -24,23 +24,7 @@
 <!-- maincol -->
 <div id="content" class="col-12">
 
-<div id="result-page">
-    {% comment %}
-    <div id="result-links" class="floatright">
-        <ul>
-            <li>Crystal: &nbsp;<a href={% url lims-crystal-detail object.crystal.id %}>{{object.crystal}}</a></li>
-            <li>Experiment: &nbsp;<a href={% url lims-experiment-detail object.experiment.id %}>{{object.experiment.name}}</a></li>
-            <li>Dataset: &nbsp;<a href={% url lims-dataset-detail object.data.id %}>{{object.data}}</a></li>
-            <li>Print: <a href="{% url lims-result-print object.id %}">Click to print</a></li>
-    {% if object.is_resubmittable %}
-            <li><a class="add-tool" href='/lims/experiment/result/{{object.get_results_link}}'>Resubmit</a></li>
-    {% endif %}
-        </ul>
-    </div>
-
-    <div class="clear"></div>
-    {% endcomment %}
-    
+<div id="result-page">   
     <h3>Summary</h3>
     <div id="result-summary">
         <table id="result-table">
@@ -72,6 +56,15 @@
     </div>
 
     <div id="summary-notes" class="tablenotes">
+        <div id="result-links">
+            <ul>
+                <li>Crystal: &nbsp;<a href={% url lims-crystal-detail object.crystal.id %}>{{object.crystal}}</a></li>
+                <li>Experiment: &nbsp;<a href={% url lims-experiment-detail object.experiment.id %}>{{object.experiment.name}}</a></li>
+                <li>Dataset: &nbsp;<a class="modal" href={% url lims-dataset-detail object.data.id %}>{{object.data}}</a></li>
+            </ul>
+        </div>
+
+    <div class="clear"></div>
         <h3>Notes</h3>
             <dl class="note-list">
             <dt>[1] -<dt>
