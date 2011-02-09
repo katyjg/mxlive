@@ -32,3 +32,10 @@ ul.weekly-filter li {
     border-bottom: 1px solid #ccc;    
 }
 
+input.text, input.search, textarea.field, input.barcode, input.matrixcode
+{
+    border-color: #abc;
+	border-style:solid;
+	border-width:1px;
+}
+

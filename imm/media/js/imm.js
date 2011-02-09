@@ -156,7 +156,7 @@ function initModals(){
                         jQuery.fancybox({content:msg,onComplete:func,scrolling:'no',titleShow:false});
                     } else {
                         // A json object with a url field will be returned in some cases. just redirect to it.
-                        jQuery.fancybox.hide();
+                        jQuery.fancybox.close();
                         if (typeof(msg) == 'object') {
                             window.location.href = msg.url;                        
                         } else {
@@ -176,7 +176,7 @@ function initModals(){
     jQuery(".modal-upload-form").fancybox({
 	    'scrolling'         : 'no',		
 	    'titleShow'         : false,
-	    'type'              : 'iframe',
+	    'type'              : 'iframe'
     });
        
 }
