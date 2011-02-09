@@ -46,7 +46,7 @@ except:
 
 
  
-ACTIVITY_LOG_LENGTH  = 6       
+ACTIVITY_LOG_LENGTH  = 10       
 
 
 def get_ldap_user_info(username):

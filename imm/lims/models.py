@@ -482,13 +482,12 @@ class Dewar(models.Model):
         'archive': { 'status': STATES.ARCHIVED},
     }
     HELP = {
-        'label': "This should be an externally visible label on the dewar",
-        'code': "If there is a barcode on the dewar, please scan the value here",
+        'label': "An externally visible label on the dewar. If there is a barcode on the dewar, please scan it here",
         'comments': "Use this field to jot notes related to this shipment for your own use",
     }
     project = models.ForeignKey(Project)
     label = models.CharField(max_length=60, help_text=HELP['label'])
-    code = models.CharField(max_length=128, blank=True, help_text=HELP['code'])
+    #code = models.CharField(max_length=128, blank=True, help_text=HELP['code'])
     comments = models.TextField(blank=True, null=True, help_text=HELP['comments'])
     staff_comments = models.TextField(blank=True, null=True)
     storage_location = models.CharField(max_length=60, null=True, blank=True)

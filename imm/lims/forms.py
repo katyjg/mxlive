@@ -131,15 +131,13 @@ class DewarForm(objforms.forms.OrderedForm):
         widget=objforms.widgets.LargeSelect,
         required=False
         )
-    label = forms.CharField(
-        widget=objforms.widgets.LargeInput,
+    label =  objforms.widgets.BarCodeField(
         help_text=Dewar.HELP['label']
         )
-    code = objforms.widgets.BarCodeField(required=False, help_text=Dewar.HELP['code'])
     comments = objforms.widgets.CommentField(required=False)
     class Meta:
         model = Dewar
-        fields = ('project','label','code','shipment','comments',)
+        fields = ('project','label','shipment','comments',)
 
 class ContainerForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
