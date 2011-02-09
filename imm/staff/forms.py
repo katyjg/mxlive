@@ -7,9 +7,9 @@ from imm.lims.models import Container
 from imm.lims.models import Experiment
 from imm.lims.models import Dewar
 from imm.lims.models import Beamline
+from imm.staff.models import Link
 
 from imm.staff.models import Runlist
-from imm.staff.models import AutomounterLayout
 
 from django.forms.util import ErrorList
 
@@ -178,10 +178,6 @@ class ContainerSelectForm(objforms.forms.OrderedForm):
     
 class RunlistForm(objforms.forms.OrderedForm):
     """ Form used to create a Runlist """
-    #experiments = forms.ModelMultipleChoiceField(queryset=Experiment.objects.all())
-    # want this container list to only contain containers that are in the selected experiments. 
-    # maybe info on which containers are with what experiment?
-   # containers = forms.ModelMultipleChoiceField(queryset=Container.objects.all())
     name = objforms.widgets.LargeCharField(required=True)
     beamline = forms.ModelChoiceField(
         queryset=Beamline.objects.all(),
@@ -189,7 +185,7 @@ class RunlistForm(objforms.forms.OrderedForm):
         required=True
         )
     comments = objforms.widgets.CommentField(required=False)
-    
+
     class Meta:
         model = Runlist
         fields = ('name', 'beamline', 'comments') #, 'experiments', 'containers')
@@ -221,3 +217,123 @@ class RunlistAcceptForm(objforms.forms.OrderedForm):
         model = Runlist
         fields = ('message',)
         
+
+class LinkForm(objforms.forms.OrderedForm):
+    description = objforms.widgets.SmallTextField(required=True)
+    category = forms.ChoiceField(choices=Link.CATEGORY.get_choices(), widget=objforms.widgets.LeftHalfSelect, required=False)
+    frame_type = forms.ChoiceField(choices=Link.TYPE.get_choices(), widget=objforms.widgets.RightHalfSelect, required=False)
+    url = forms.URLField(widget=objforms.widgets.LargeInput, label='External Web site', required=False)
+    document = forms.Field(widget=objforms.widgets.LargeFileInput, required=False)
+
+    class Meta:
+        model = Link
+        fields = ('description','category','frame_type','url','document')
+
+    def _update(self):
+        cleaned_data = self.cleaned_data
+
+'''
+    def save(self):
+        print "saving"
+        link = Link(description=self.cleaned_data['description'],category=self.cleaned_data['category'],frame_type=self.cleaned_data['frame_type'],url=self.cleaned_data['url'])
+        link.save()
+        return link
+
+
+frm.cleaned_data['name']
+        uploaded_file = self.cleaned_data['document']
+        import re
+        stored_name = re.sub(r'[^a-zA-Z0-9._]+', '-', uploaded_file.name)
+        self.bound_object.document.save(stored_name, uploaded_file)
+        self.bound_object.mimetype = uploaded_file.content_type
+        
+
+ 
+    def save(self, *args, **kwargs):
+        super(GalleryUpload, self).save(*args, **kwargs)
+        gallery = self.process_zipfile()
+        super(GalleryUpload, self).delete()
+        return gallery
+
+    def process_zipfile(self):
+        if os.path.isfile(self.zip_file.path):
+            # TODO: implement try-except here
+            zip = zipfile.ZipFile(self.zip_file.path)
+            bad_file = zip.testzip()
+            if bad_file:
+                raise Exception('"%s" in the .zip archive is corrupt.' % bad_file)
+            count = 1
+            if self.gallery:
+                gallery = self.gallery
+            else:
+                gallery = Gallery.objects.create(title=self.title,
+                                                 title_slug=slugify(self.title),
+                                                 description=self.description,
+                                                 is_public=self.is_public,
+                                                 tags=self.tags)
+            from cStringIO import StringIO
+            for filename in zip.namelist():
+                if filename.startswith('__'): # do not process meta files
+                    continue
+                data = zip.read(filename)
+                if len(data):
+                    try:
+                        # the following is taken from django.newforms.fields.ImageField:
+                        #  load() is the only method that can spot a truncated JPEG,
+                        #  but it cannot be called sanely after verify()
+                        trial_image = Image.open(StringIO(data))
+                        trial_image.load()
+                        # verify() is the only method that can spot a corrupt PNG,
+                        #  but it must be called immediately after the constructor
+                        trial_image = Image.open(StringIO(data))
+                        trial_image.verify()
+                    except Exception:
+                        # if a "bad" file is found we just skip it.
+                        continue
+                    while 1:
+                        title = ' '.join([self.title, str(count)])
+                        slug = slugify(title)
+                        try:
+                            p = Photo.objects.get(title_slug=slug)
+                        except Photo.DoesNotExist:
+                            photo = Photo(title=title,
+                                          title_slug=slug,
+                                          caption=self.caption,
+                                          is_public=self.is_public,
+                                          tags=self.tags)
+                            photo.image.save(filename, ContentFile(data))
+                            gallery.photos.add(photo)
+                            count = count + 1
+                            break
+                        count = count + 1
+            zip.close()
+            return gallery
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''

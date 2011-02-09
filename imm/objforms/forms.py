@@ -11,13 +11,17 @@ class OrderedForm(forms.ModelForm):
         if self._meta.fields:
             self.fields.keyOrder = self._meta.fields
 
-    def restrict_by(self, field_name, id):
+    def restrict_by(self, field_name, obj):
         """
         Restrict the form such that only items related to the object identified by
         the primary key `id` through a field specified by `field_name`,
         are displayed within select boxes.
         
         """
+        if obj is not None:
+            id = obj.pk
+        else:
+            return
         for name, formfield in self.fields.items():
             if name != field_name and hasattr(formfield, 'queryset'):
                 queryset = formfield.queryset

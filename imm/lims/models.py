@@ -1424,7 +1424,6 @@ class Feedback(models.Model):
     class Meta:
         verbose_name = 'Feedback comment'
 
-    
 class ActivityLogManager(models.Manager):
     def log_activity(self, request, obj, action_type, description=''):
         e = self.model()

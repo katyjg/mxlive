@@ -32,7 +32,6 @@ from imm.staff.admin import runlist_site
 
 from imm.lims.models import *
 from imm.staff.models import Runlist
-from imm.staff.models import AutomounterLayout
 from imm.objlist.views import ObjectList
 from imm.lims.models import Container, Experiment, Shipment
 
@@ -270,44 +269,6 @@ def runlist_object_list(request, model, form, parent_model=None, link_field=None
     )
     
 @login_required
-def runlist_create_object(request, model, form, template='lims/forms/new_base.html'):
-    """
-    A generic view which displays a Form of type ``form`` using the Template
-    ``template`` and when submitted will create a new object of type ``model``.
-    """
-    object_type = model.__name__
-    form_info = {
-        'title': 'New %s' % object_type,
-        'action':  request.path,
-        'add_another': True,
-    }
-    
-    if request.method == 'POST':
-        frm = form(request.POST)
-        if frm.is_valid():
-            auto = AutomounterLayout()
-            auto.save()
-            runlist = Runlist(automounter=auto, name=frm.cleaned_data['name'], comments=frm.cleaned_data['comments'])
-            runlist.save()
-            request.user.message_set.create(message = 'New Runlist created.')
-            return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
-            #return HttpResponseRedirect(request.path+'../../%s/' % new_obj.pk)
-        
-    else:
-        # pull args like foo=1&foo=2  (singular) and insert them into the form filed 'foos' (plural)
-        data = MultiValueDict()
-        for field in form().fields:
-            if field.endswith('s') and field[:-1] in request.GET:
-                data.setlist(field, request.GET.getlist(field[:-1]))
-        frm = form(initial=data)
-        
-    return render_to_response(template, {
-        'info': form_info, 
-        'form': frm, 
-        }, 
-        context_instance=RequestContext(request))
-    
-@login_required
 @transaction.commit_on_success
 def add_existing_object(request, dest_id, obj_id, destination, object, src_id=None, loc_id=None, source=None, replace=False, reverse=False):
     """
@@ -374,7 +335,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
                             if container not in runlist_containers:
                                 container_list.append(container)
                 for container in container_list:
-                    dest.automounter.add_container(container)
+                    dest.add_container(container)
                     try:
                         current = getattr(dest, 'containers')
                         current.add(container)
@@ -384,8 +345,8 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
                         return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
                 
         if loc_id:
-            added = dest.automounter.container_to_location(to_add, loc_id)
-            dest.automounter.container_to_location(to_add, loc_id)
+            added = dest.container_to_location(to_add, loc_id)
+            dest.container_to_location(to_add, loc_id)
             if added:
                 try:
                     current = getattr(dest, '%ss' % lookup_name)
