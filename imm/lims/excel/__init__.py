@@ -398,7 +398,6 @@ class LimsWorkbook(object):
                     crystal_form.save()
                     if self.space_groups.has_key(experiment.name):
                         space_group = self.space_groups[experiment.name]
-                        space_group.save()
                         crystal_form.space_group = space_group
                         crystal_form.save()
                         

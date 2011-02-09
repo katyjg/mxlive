@@ -77,10 +77,10 @@ function initForms(){
         $field.bind('focus', function(){$field.parent().parent().addClass('focused');});
         $field.bind('blur', function(){$field.parent().parent().removeClass('focused');});
     });
-    
+        
     // make sure we do not initialize a form twice
     jQuery('form.objform_raw').addClass('objform').removeClass('objform_raw');
-       
+     
 }
 
 function initModals(){
@@ -141,34 +141,44 @@ function initModals(){
             //grab this function so that we can pass it back to
             //`onComplete` of the new fancybox we're going to create
             var func = arguments.callee;
-            current_url = window.location.href
+            current_url = window.location.href;
 
             //bind the submit of our new form
-            jQuery('.objform-container form').ajaxForm(function(msg){
-                jQuery.fancybox.showActivity();
-                if (typeof(msg) == 'string') {
-                    var error = msg.indexOf("form") > -1; // given an error there will be a form element string present
-                } else {
-                    var error = false;
-                }
-                if(error) {
-                    jQuery.fancybox({content:msg,onComplete:func,scrolling:'no',titleShow:false});
-                } else {
-                    // A json object with a url field will be returned in some cases. just redirect to it.
-                    if (typeof(msg) == 'object') {
-                        window.location.href = msg.url;                        
+            jQuery('#objform-container form').ajaxForm({
+                success:  function(msg){
+                    jQuery.fancybox.showActivity();
+                    if (typeof(msg) == 'string') {
+                        var error = msg.indexOf("error") > -1; // given an error there will be an error string string present
                     } else {
-                        if(jQuery("input.default").attr('value') == 'Delete') { 
-                            if(current_url.search("cocktail") != -1 || current_url.search("crystalform") != -1) {
-                                window.location.reload(); 
-                            } else { history.go(-1); }
-                        } else { window.location.reload(); }
+                        var error = false;
                     }
+                    if(error) {
+                        jQuery.fancybox({content:msg,onComplete:func,scrolling:'no',titleShow:false});
+                    } else {
+                        // A json object with a url field will be returned in some cases. just redirect to it.
+                        jQuery.fancybox.hide();
+                        if (typeof(msg) == 'object') {
+                            window.location.href = msg.url;                        
+                        } else {
+                            if(jQuery("input.default").attr('value') == 'Delete') { 
+                                if(current_url.search("cocktail") != -1 || current_url.search("crystalform") != -1) {
+                                    window.location.reload(); 
+                                } else { history.go(-1); }
+                            } else { window.location.reload(); }
+                        }
+                    }
+                    return false;
                 }
-                return false;
             });
         }
-    });    
+    });
+
+    jQuery(".modal-upload-form").fancybox({
+	    'scrolling'         : 'no',		
+	    'titleShow'         : false,
+	    'type'              : 'iframe',
+    });
+       
 }
     
 function remove_item(element) {

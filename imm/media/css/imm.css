@@ -451,7 +451,7 @@ li.list-empty {
 }
 
 body.login { background:#eee; font-size: 80%; }
-.login #container { background:white; padding: 20px; border:1px solid #ccc; width:28em; height: 15em; min-width:300px; margin-left:auto; margin-right:auto; margin-top:100px; }
+.login #container { background:white; padding: 20px; border:1px solid #ccc; width:30em; height: 17em; min-width:320px; margin-left:auto; margin-right:auto; margin-top:80px; }
 .login #content-main { width:100%; }
 .login form { margin-top:1em; }
 .login .form-row { padding:4px 0; float:left; width:100%; }

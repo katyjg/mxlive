@@ -22,7 +22,7 @@ urlpatterns = patterns('imm.lims.views',
     (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'format' : 'label' }, 'lims-shipment-label'),
     (r'^shipping/shipment/(?P<id>\d+)/xls/$', 'shipment_xls', {}, 'lims-shipment-xls'),
     (r'^shipping/shipment/new/$', 'create_object', {'model': Shipment, 'form': ShipmentForm, 'template': 'objforms/form_base.html'}, 'lims-shipment-new'),
-    (r'^shipping/shipment/upload/$', 'upload_shipment', {'model': Shipment, 'form': ShipmentUploadForm, 'template': 'objforms/form_base.html'}, 'lims-shipment-upload'),
+    (r'^shipping/shipment/upload/$', 'upload_shipment', {'model': Shipment, 'form': ShipmentUploadForm, 'template': 'objforms/form_full.html'}, 'lims-shipment-upload'),
     (r'^shipping/shipment/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/dewar/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Shipment, 'object':Dewar, 'reverse':True}, 'lims-shipment-add-dewar'),
     (r'^shipping/shipment/.*/widget/(?P<src_id>\d+)/dewar/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Dewar, 'object':Container}, 'lims-shipment-add-container'),
 

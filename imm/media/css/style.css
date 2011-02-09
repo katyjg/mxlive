@@ -1010,7 +1010,7 @@ tr.odd td
 	/*color:#333;*/
 }
 
-.link-row:hover, .link-row:hover td
+.link-row:hover, .link-row:hover td, .redirect:hover
 {
     color: #0066cc;
 }
@@ -1199,8 +1199,15 @@ ul.reports li a
 	border:1px solid #ccc;
 	float:right;
 	text-align:left;
-	width: 300px;
-	margin: 0 20px;
+	width: 320px;
+	margin: 0;
+	margin-left: 14px;
+}
+
+#result-links {
+    font-weight: bold;
+    border-bottom: 0.5em solid #ccc;
+    padding-bottom: 1em;
 }
 
 div.tablenotes
@@ -2261,6 +2268,19 @@ td.new {
     margin-bottom: 1em;
 }
 
+#no-javascript {
+    display: block;
+    margin: 14px;
+    padding: 1.5em;
+    border: 1px solid  #e99;
+    background-color: #fee;
+}
 
+body.login #no-javascript {
+    font-size: 11px;
+    line-height: 13px;
+    padding: 4px;
+    margin: 0;
+}
 
 

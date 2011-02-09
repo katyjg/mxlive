@@ -28,9 +28,3 @@ class OrderedForm(forms.ModelForm):
                 if field_name in queryset.model._meta.get_all_field_names(): # some models will not have the field
                     formfield.queryset = queryset.filter(**{'%s__exact' % (field_name): id})
 
-    class Media:
-        css = {
-            'all': ('/css/forms.css',)
-        }
-        js = ('/js/objforms.js')
-

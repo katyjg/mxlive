@@ -39,7 +39,11 @@
         </tr>
         <tr valign="top">
             <th>Shipment:</th>
-            <td>{{dewar.shipment.name}}</td>
+            {% if dewar.shipment %}
+            <td><a href="{% url lims-shipment-detail dewar.shipment.pk %}">{{dewar.shipment.name}}</a></td>
+            {% else %}
+            <td>None</td>
+            {% endif %}
         </tr>
     </table>
     {% if object.comments %}

@@ -40,11 +40,14 @@
     <p>Parameters</p>
 	<ul>
 	    {% if data.experiment %}
-	    <li><strong>Experiment:</strong> {{ data.experiment.name }}</li>
+	    <li><strong>Experiment:</strong><a href="{% url lims-experiment-detail data.experiment.pk %}">{{ data.experiment.name }}</a></li>
 	    {% endif %}		
 		{% if data.crystal %}
-		<li><strong>Crystal:</strong> {{ data.crystal.name }}</li>
+		<li><strong>Crystal:</strong><a href="{% url lims-crystal-detail data.crystal.pk %}"> {{ data.crystal.name }}</a></li>
 		{% endif %}		
+		{% for result in results %}
+			<li><strong>Result:</strong> <a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|floatformat:2 }})</a></li>
+		{% endfor %}
 		<li><strong>Resolution Limit:</strong> {{ data.resolution|floatformat:2 }} &#8491;</li>
 		<li><strong>Frame set:</strong> {{ data.frame_sets }}</li>
 		<li><strong>Wavelength:</strong> {{ data.wavelength }} &#8491;</li>
@@ -54,9 +57,6 @@
 		<li><strong>Two Theta:</strong> {{ data.two_theta }} deg</li>
 		<li><strong>Exposure time:</strong> {{ data.exposure_time }} sec</li>
 		<li><strong>Detector type:</strong> {{ data.detector }}</li>
-		{% for result in results %}
-			<li><strong>Result:</strong> <a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|floatformat:2 }})</a></li>
-		{% endfor %}
 		<li id="framename" class="separator">Current: </li>
 		<li id="oscstart">Osc. Start: </li>
 		<li id="oscend">Osc. End: </li> 
