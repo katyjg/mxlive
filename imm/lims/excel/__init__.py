@@ -500,7 +500,7 @@ class LimsWorkbookExport(object):
             if experiment.resolution:
                 row.write(EXPERIMENT_RESOLUTION, experiment.resolution)
                 
-            crystal_forms = [crystal.crystal_form for crystal in experiment.crystals.all()]
+            crystal_forms = [crystal.crystal_form for crystal in experiment.crystal_set.all()]
             if len(set(crystal_forms)) == 1 and None not in crystal_forms:
                 crystal_form = crystal_forms[0]
                 
