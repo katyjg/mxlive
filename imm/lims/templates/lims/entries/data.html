@@ -1,6 +1,7 @@
 {% load zip %}
 {% load image_url %}
 
+{% with object as data %}
 <script type="text/javascript" src="/js/shiftzoom/shiftzoom.js"></script>
 
 <div id="data-viewer">
@@ -45,7 +46,7 @@
 		{% if data.crystal %}
 		<li><strong>Crystal:</strong><a href="{% url lims-crystal-detail data.crystal.pk %}"> {{ data.crystal.name }}</a></li>
 		{% endif %}		
-		{% for result in results %}
+		{% for result in data.result_set.all %}
 			<li><strong>Result:</strong> <a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|floatformat:2 }})</a></li>
 		{% endfor %}
 		<li><strong>Resolution Limit:</strong> {{ data.resolution|floatformat:2 }} &#8491;</li>
@@ -66,7 +67,7 @@
 <div class="frame-list">
     <p>Frames</p>
 	<ul>
-	{% for frame_id in expanded_frame_set %}
+	{% for frame_id in data.get_frame_list %}
 		<li onclick="toFrame({{frame_id}});"><a>{{data.name}}_{{ frame_id|stringformat:"03d" }}</a></li>
 	{% endfor %}
 	</ul>
@@ -173,3 +174,5 @@
 	}
 	
 </script>
+
+{% endwith %}

@@ -116,6 +116,8 @@ def project_optional(function):
             request.project = project
             return function(request, *args, **kwargs)
         except Project.DoesNotExist:
+            if not request.user.is_staff:
+                raise
             project=None
             request.project = project
             return function(request, *args, **kwargs)
@@ -476,76 +478,7 @@ def object_detail(request, id, model, template):
         'object': obj,
         'handler' : request.path
         }, context_instance=RequestContext(request))
-
-@login_required
-@manager_required
-def dewar_object_detail(request, id, model, template, admin=False):
-    """
-    Experiment needs a unique detail since it needs to pass the relevant information
-    from results and datasets into it's detail.
-    """
-    try:
-        obj = request.manager.get(pk=id)
-    except:
-        raise Http404
     
-    containers = Container.objects.filter(dewar__exact=obj)
-    
-    return render_to_response(template, {
-        'object': obj,
-        'handler': request.path,
-        'containers': containers,
-        'admin': admin
-        }, context_instance=RequestContext(request))
-
-@login_required
-@manager_required
-def crystal_object_detail(request, id, model, template, admin=False):
-    """
-    Experiment needs a unique detail since it needs to pass the relevant information
-    from results and datasets into it's detail.
-    """
-    try:
-        obj = request.manager.get(pk=id)
-    except:
-        raise Http404
-    
-    datasets = Data.objects.filter(crystal__exact=obj)
-    results = Result.objects.filter(crystal__exact=obj)
-    
-    return render_to_response(template, {
-        'object': obj,
-        'handler': request.path,
-        'datasets': datasets,
-        'results': results,
-        'admin': admin
-        }, context_instance=RequestContext(request))
-    
-@login_required
-@manager_required
-def experiment_object_detail(request, id, model, template, admin=False):
-    """
-    Experiment needs a unique detail since it needs to pass the relevant information
-    from results and datasets into it's detail.
-    """
-    try:
-        obj = request.manager.get(pk=id)
-    except:
-        raise Http404
-
-    crystals = obj.crystal_set.annotate(best_score=Max('result__score')).order_by('-best_score')
-    datasets = Data.objects.filter(experiment__exact=obj)
-    results = Result.objects.filter(experiment__exact=obj)
-    
-    return render_to_response(template, {
-        'object': obj,
-        'crystals': crystals,
-        'handler': request.path,
-        'datasets': datasets,
-        'results': results,
-        'admin': admin
-        }, context_instance=RequestContext(request))
-
 @login_required
 @project_optional
 @transaction.commit_on_success
@@ -754,37 +687,6 @@ def unassigned_object_list(request, model, related_field, template='objlist/basi
     # if path has /basic on it, remove that. 
     if 'basic' in handler:
         handler = handler[0:-6]
-    return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
-
-    
-@login_required
-@manager_required
-def basic_crystal_list(request, model, template="objlist/basic_object_list.html"):
-    # get all crystals
-    # filter result to just this project
-    # filter results to just ones with experiment = none
-    ol = ObjectList(request, request.manager, num_show=200)
-    handler = request.path
-    # if path has /basic on it, remove that. 
-    if 'basic' in handler:
-        handler = handler[0:-6]
-    ol.object_list = Crystal.objects.filter(experiment=None).filter(project=request.project)
-    # filter ol.object_list to just crystals with no experiment
-    return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
-
-@login_required
-@manager_required
-def container_crystal_list(request, model, template="objlist/basic_object_list.html"):
-    # get all crystals
-    # filter result to just this project
-    # filter results to just ones with experiment = none
-    ol = ObjectList(request, request.manager, num_show=200)
-    handler = request.path
-    # if path has /basic on it, remove that. 
-    if 'basic' in handler:
-        handler = handler[0:-6]
-    ol.object_list = Crystal.objects.filter(container=None).filter(project=request.project)
-    # filter ol.object_list to just crystals with no experiment
     return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
 
 @login_required
@@ -1430,22 +1332,6 @@ def add_strategy(request, stg_info):
     ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
        "New strategy (%s) added" % new_obj)
     return {'strategy_id': new_obj.pk}
-
-@login_required
-def data_viewer(request, id):
-    # use the data_viewer template
-    # load data for displaying
-    manager = Data.objects
-    
-    try:
-        data = manager.get(pk=id)
-    except:
-        raise Http404
-    
-    results = Result.objects.filter(data__id=id)
-    expanded_frame_set = data.get_frame_list();
-    
-    return render_to_response('lims/entries/data.html', {'data':data, 'results':results, 'expanded_frame_set': expanded_frame_set})
 
 
 @login_required

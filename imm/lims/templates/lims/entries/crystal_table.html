@@ -70,7 +70,7 @@
 	            	</td>
 	            	<td>
                         {% if crystal.best_screening.data.pk %}
-                  			<a href="{% url lims-dataset-detail crystal.best_screening.data.pk %}" class="modal" title="View dataset images">{{ crystal.best_screening.data }}</a>
+                  			<a href="{% url lims-data-detail crystal.best_screening.data.pk %}" class="modal" title="View dataset images">{{ crystal.best_screening.data }}</a>
                         {% endif %}
 	            	</td>
 	            	<td>
@@ -80,7 +80,7 @@
 	            	</td>
 	            	<td>
                         {% if crystal.best_collection.data.pk %}
-                 			<a href="{% url lims-dataset-detail crystal.best_collection.data.pk %}" class="modal" title="View dataset images">{{ crystal.best_collection.data }}</a>
+                 			<a href="{% url lims-data-detail crystal.best_collection.data.pk %}" class="modal" title="View dataset images">{{ crystal.best_collection.data }}</a>
                         {% endif %}
 	            	</td>
 	            </tr>

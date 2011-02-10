@@ -145,8 +145,10 @@ function initModals(){
 
             //bind the submit of our new form
             jQuery('#objform-container form').ajaxForm({
-                success:  function(msg){
+                beforeSubmit: function(){
                     jQuery.fancybox.showActivity();
+                },
+                success:  function(msg){
                     if (typeof(msg) == 'string') {
                         var error = msg.indexOf("error") > -1; // given an error there will be an error string string present
                     } else {
@@ -167,8 +169,10 @@ function initModals(){
                             } else { window.location.reload(); }
                         }
                     }
+                    jQuery.fancybox.hideActivity();
                     return false;
                 }
+                
             });
         }
     });

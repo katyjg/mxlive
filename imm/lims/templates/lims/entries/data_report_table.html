@@ -14,7 +14,7 @@
     <tbody>
     {% for data in datasets %}
         <tr class="{% cycle 'odd' 'even'%}">
-        	<td><a href="{% url lims-dataset-detail data.pk %}" class="modal" >{{ data.name }}</a></td>
+        	<td><a href="{% url lims-data-detail data.pk %}" class="modal" >{{ data.name }}</a></td>
         	<td>{{ data.num_frames }}</td>
         	<td>{{ data.delta_angle }}</td>
         	<td>{{ data.wavelength }}</td>

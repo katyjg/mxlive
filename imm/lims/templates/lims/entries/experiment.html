@@ -48,13 +48,13 @@
 {% endif %}
 <div class="clear"></div>
 
-<!-- object.crystals contains all the crystals -->
+<!-- object.crystal_set.all contains all the crystals -->
 {% load crystal_table %}
 
 {% if object.get_status_display == 'Draft' %}
-{% crystal_priority_table crystals request.user.is_superuser object.pk %}
+{% crystal_priority_table object.crystal_set.all request.user.is_superuser object.pk %}
 {% else %}
-{% crystal_table crystals request.user.is_superuser object.pk %}
+{% crystal_table object.crystal_set.all request.user.is_superuser object.pk %}
 {% endif %}
 
 <div style="clear: both;"></div>
@@ -63,7 +63,7 @@
 
 {% block sidebar %}
 	{% if not user.is_superuser %}
-		<div id="crystals" class="widget droppable-remove parent-stop" data="{% url lims-crystal-basic-list %}">
+		<div id="crystals" class="widget droppable-remove parent-stop" data="{% url lims-experiment-orpha-crystals %}">
 		   <div class="widget-title">
 		   <span>Crystals</span><a href="{% url lims-crystal-new %}" class="modal-form add-action" title="Add New Crystal"><img src="/img/small-add-icon.png" /></a>
 		   </div>
