@@ -48,7 +48,7 @@
     <tr><td class="new" title="Datasets and Reports added since last login or in the past week">New!</td>
     <td class="links">
         {% if statistics.datasets.new %}
-        <p>({{statistics.datasets.new}})<br/><a href="{% url lims-dataset-list %}?modified__gte={{statistics.datasets.start_date|date:'Y-m-d'}}">Datasets</a></p>
+        <p>({{statistics.datasets.new}})<br/><a href="{% url lims-data-list %}?modified__gte={{statistics.datasets.start_date|date:'Y-m-d'}}">Datasets</a></p>
         {% else %}<p class="nothing">No<br/>Datasets</p>{% endif %}
     </td> 
     <td class="links">

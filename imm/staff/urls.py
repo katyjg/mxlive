@@ -52,7 +52,6 @@ urlpatterns = patterns('',
     (r'^samples/crystal/$', 'imm.lims.views.object_list', {'model': Crystal, 'template': 'objlist/generic_list.html', 'can_add': False, 'link': True}, 'staff-crystal-list'),
     
     (r'^experiment/request/$', 'imm.lims.views.object_list', {'model': Experiment, 'template': 'objlist/generic_list.html', 'can_add':False, 'link': True}, 'staff-experiment-list'),
-    (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'imm.staff.views.experiment_basic_object_list', {'model':Experiment, 'template': 'staff/lists/basic_object_list.html'}, 'staff-experiment-basic-list'),
     (r'^experiment/(<?P<id>\d+)/$', 'experiment_object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html' }, 'staff-experiment-basic-detail'),
     
     url(r'^experiment/result/(\d+)/shellstats.png$', 'imm.lims.views.plot_shell_stats', name='staff-plot-shells'),
@@ -68,7 +67,7 @@ urlpatterns = patterns('',
     (r'^experiment/crystal/(?P<id>\d+)/complete/$', 'imm.lims.views.complete', {}, 'staff-crystal-complete'),
     
     (r'^runlist/(?P<runlist_id>\d+)/container/basic/(?P<exp_id>\d+)/$', 'imm.staff.views.container_basic_object_list', {'model':Container, 'template': 'objlist/basic_object_list.html'}, 'staff-container-basic-list'),
-    
+    (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'imm.staff.views.experiment_basic_object_list', {'model':Experiment, 'template': 'staff/lists/basic_object_list.html'}, 'staff-experiment-basic-list'),    
     (r'^runlist/$', 'imm.lims.views.object_list', {'model': Runlist, 'template': 'objlist/generic_list.html', 'can_add': True, 'can_prioritize': True, 'link': True}, 'staff-runlist-list'),
     (r'^runlist/new/$', 'imm.lims.views.create_object', {'model': Runlist, 'form': RunlistForm, 'template': 'objforms/form_base.html' }, 'staff-runlist-new'),
     #(r'^runlist/new/(?P<id>\d+)/up/$', 'imm.lims.views.change_priority', {'model': Experiment, 'action': 'up', 'field': 'staff_priority'}, 'staff-experiment-up'),
