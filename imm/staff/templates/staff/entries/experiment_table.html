@@ -19,11 +19,11 @@
                 <tr class="{% cycle 'odd' 'even'%} link-row redirect"
                     title="Go to Experiment {{experiment.name}}"
                     href="{% url lims-experiment-detail experiment.pk %}">
-                    <td>{{ experiment.json_dict.project_name }}</td>
+                    <td>{{ experiment.project.name }}</td>
                     <td>{{ experiment.name }}</td>
-                    <td>{{ experiment.json_dict.type }}</td>
-                    <td>{{ experiment.json_dict.plan }}</td>
-                    <td>{{ experiment.get_crystals|in_runlist:object.containers }}/{{ experiment.num_crystals }}</td>
+                    <td>{{ experiment.get_kind_display }}</td>
+                    <td>{{ experiment.get_plan_display }}</td>
+                    <td>{{ experiment.crystal_set|in_runlist:object.containers }}/{{ experiment.num_crystals }}</td>
                     <td>{{ experiment.get_exp_status_display }}</td>
                 </tr>
             {% endfor %}

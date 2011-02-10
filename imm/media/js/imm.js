@@ -176,7 +176,7 @@ function initModals(){
     jQuery(".modal-upload-form").fancybox({
 	    'scrolling'         : 'no',		
 	    'titleShow'         : false,
-	    'type'              : 'iframe',
+	    'type'              : 'iframe'
     });
        
 }

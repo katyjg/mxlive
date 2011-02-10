@@ -654,6 +654,7 @@ class Container(models.Model):
             self.TYPE.CASSETTE : 96,
             self.TYPE.UNI_PUCK : 16,
             self.TYPE.CANE : 6,
+            None : 0,
         }
         return _cap[self.kind]
         

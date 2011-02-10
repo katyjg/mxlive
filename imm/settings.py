@@ -17,7 +17,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    ('Michel Fodje', 'michel.fodje@lightsource.ca'),
+    ('Kathryn Janzen', 'kathryn.janzen@lightsource.ca'),
 )
 ADMIN_MESSAGE_USERNAME = None
 

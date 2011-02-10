@@ -76,13 +76,41 @@ class ShipmentUploadForm(forms.Form):
             self.workbook = LimsWorkbook(temp.name, cleaned_data['project'])
             if not self.workbook.is_valid():
                 self._errors['excel'] = self._errors.get('excel', ErrorList())
-                errors = self.workbook.errors[:self.NUM_ERRORS]
-                if len(self.workbook.errors) > len(errors):
-                    errors.append("and %d more errors..." % (len(self.workbook.errors)-len(errors)))
-                self._errors['excel'].extend(errors)
+                errors = 'Please check the format of your spreadsheet and try to upload again.'
                 del cleaned_data['excel']
         return cleaned_data
     
+    def error_message(self):
+        if not self.workbook.is_valid():
+                self._errors['excel'] = self._errors.get('excel', ErrorList())
+                errors = self.workbook.errors
+                #errors = self.workbook.errors[:self.NUM_ERRORS]
+                #if len(self.workbook.errors) > len(errors):
+                #    errors.append("and %d more errors..." % (len(self.workbook.errors)-len(errors)))
+                self._errors['excel'].extend(errors)          
+
+
+        error_list = list()
+        short_errors = list()
+        for error in errors:
+            if ' '.join(error.split(' ')[0:3]) not in short_errors:
+                error_list.append(' '.join(error.split(' ')[0:3]) + ' in cell(s) ')
+                short_errors.append(' '.join(error.split(' ')[0:3]))
+            for i in range(len(error_list)):
+                if ' '.join(error.split(' ')[0:3]) == ' '.join(error_list[i].split(' ')[0:3]):
+                    if len(error_list[i]) < 90:
+                        error_list[i] += error.split(' ')[6].split('!')[1][:-1] + ', '
+                    elif error_list[i][-3:] != '...':
+                        error_list[i] += 'and others ...'                        
+                        
+        error_text = list()
+        error_text.append('The following problems with the spreadsheet have been identified:')
+        for error in error_list:
+            error_text.append('- ' + error)
+                      
+        return error_text
+
+
     def save(self, request=None):
         """ Saves the form which writes the Shipment spreadsheet data to the database """
         assert self.is_valid()

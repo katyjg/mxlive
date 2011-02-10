@@ -358,7 +358,10 @@ class LimsWorkbook(object):
         
         @return: True if the spreadsheet has no validation errors, and False otherwise
         """
-        self._read_xls()
+        try:
+            self._read_xls()
+        except xlrd.XLRDError:
+            self.errors.append('Spreadsheet invalid')
         return not bool(self.errors)
     
     def log_activity(self, obj, request):

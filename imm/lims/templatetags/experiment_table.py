@@ -41,6 +41,18 @@ def experiment_table(context, object, admin):
 
     
     return { 'experiments': experiments,
+              'containers': conts,
               'admin': admin,
               'object': object
             }
+
+@register.filter("in_shipment")  
+def in_shipment(crystals, containers):  
+    crystal_set = list()    
+    if containers:
+        for container in containers:
+            for crystal in crystals.all():
+                if crystal.container == container:
+                    crystal_set.append(crystal)
+        
+    return len(crystal_set)

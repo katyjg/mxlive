@@ -33,7 +33,7 @@ urlpatterns = patterns('',
     (r'^$', 'imm.staff.views.staff_home', {}, 'staff-home'),
     (r'^feedback/(?P<id>\d+)/$', 'imm.staff.views.feedback_item', {'template': 'lims/feedback_item.html'}, 'staff-feedback-item'),
     (r'^feedback/$', 'imm.lims.views.object_list', {'model': Feedback, 'template': 'objlist/generic_list.html', 'modal_link': True}, 'staff-feedback-list'),
-    (r'^link/add/$', 'imm.lims.views.create_object', {'model': Link, 'form': LinkForm, 'template': 'objforms/form_base.html'}, 'staff-help-link'),    
+    (r'^link/add/$', 'imm.lims.views.create_object', {'model': Link, 'form': LinkForm, 'template': 'objforms/form_full.html'}, 'staff-help-link'),    
     
     (r'^shipping/shipment/$', 'imm.lims.views.object_list', {'model': Shipment, 'template': 'objlist/generic_list.html', 'can_add': False, 'link':True}, 'staff-shipment-list'),
     (r'^shipping/shipment/receive/$', 'imm.staff.views.receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-shipment-receive-any'),

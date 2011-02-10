@@ -1366,7 +1366,9 @@ form.objform
 	display:block;
 
 }
-
+body.multi-form {
+    background-color: #eee;
+}
 .objform ul.form-body
 {
 	width:550px;
@@ -1774,7 +1776,7 @@ form .warning
 	border:1px solid #e6c3c3;
 	background:#f5d2d2;
 	line-height:130%;
-	color:red;
+	color:#800000;
 }
 
 form li.error label
@@ -1858,10 +1860,16 @@ form .error
 	z-index:900;
 	border:1px solid #e6c3c3;
 	background:#f5d2d2;
-	color:red;
+	color:#800000;
 	visibility:visible;
 }
-
+form .warning-error
+{
+    top: 12px;
+    color:#000080;
+    background:#d2d2f5;
+    border:1px solid #eee;
+}
 li.leftHalf .instruct,li.middleThird .instruct
 {
 	left:200%;

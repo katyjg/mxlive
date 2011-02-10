@@ -108,7 +108,7 @@ def receive_shipment(request, model, form, template='objforms/form_base.html', a
         save_label = action[0].upper() + action[1:]
         
     form_info = {
-        'title': 'Receive Shipment/Dewar',
+        'title': 'Receive Dewar',
         'action':  request.path,
         'save_label': save_label,
     }

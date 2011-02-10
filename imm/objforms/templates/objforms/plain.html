@@ -1,9 +1,14 @@
-{% if form.warning_message %}
-<li><p class="warning">{{form.warning_message}}</p></li>
+{% if form.error_message %}
+<li><p class="warning">{% for error in form.error_message %}{{ error }}<br>{% endfor %}</p></li>
 {% endif %}
-{% if form.errors %}
+{% if form.warning_message %}{% if form.errors %}
+<li><p class="warning-error warning">{{form.warning_message}}</p></li>
+{% else %}
+<li class="field"><p class="warning-error error">{{form.warning_message}}</p></li>
+{% endif %}{% endif %}
+{% if form.errors %}{% if not form.error_message %}
 <li class="field"><p class="error">Submitted data is invalid. Please Correct the highlighted errors!</p></li>
-{% endif %}
+{% endif %}{% endif %}
 {% for field in form %}
     {% if field.is_hidden %}{{field}}{% else %}
     <li class="{{field.field.widget.attrs.class}}">
@@ -23,7 +28,7 @@
         {% if  field.help_text %}
         <p class="instruct"><small>{{field.help_text}}</small></p>
         {% endif %}
-        {% if field.errors %}<small>{{field.errors}}</small>{% endif %}
+        {% if field.errors %}{% if not form.error_message %}<small>{{field.errors}}</small>{% endif %}{% endif %}
     </li>
     {% endif %}
 {% endfor %}

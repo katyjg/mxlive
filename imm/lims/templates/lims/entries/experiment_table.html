@@ -1,3 +1,5 @@
+{% load experiment_table %}
+
 <div class="object-list">
     <h3>Experiments</h3>
     <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">
@@ -21,11 +23,11 @@
                     <td class="redirect"
                     href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.name }}</td>
                     <td class="redirect"
-                    href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.json_dict.type }}</td>
+                    href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.get_kind_display }}</td>
                     <td class="redirect"
-                    href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.json_dict.plan }}</td>
+                    href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.get_plan_display }}</td>
                     <td class="redirect"
-                    href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.num_crystals }}</td>
+                    href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.crystal_set|in_shipment:containers }}/{{ experiment.num_crystals }}</td>
                     <td class="redirect"
                     href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.get_exp_status_display }}</td>
                 </tr>
