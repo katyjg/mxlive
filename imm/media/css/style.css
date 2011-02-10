@@ -804,15 +804,12 @@ td.list-empty {
     background-color: #fffeda;
     background-image: -moz-linear-gradient(top, #fefcaf, #fffeee);
     background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #fefcaf), color-stop(1, #fffeee));
-
-/*
-    background-color: #ffeeff;
-    background-image: -moz-linear-gradient(top, #efdaff, #fff);
-    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #efdaff), color-stop(1, #fff));
-*/
-
     padding: 1.5em;
-    }
+}
+
+#sidebar-activity-log li {
+    font-size: 90%;
+}
 
 #sidebar-activity-log h2 {
     line-height: 1.2em;
@@ -1615,16 +1612,22 @@ input.text,input.file,textarea.textarea,select.select,input.barcode,input.matrix
 
 input.text, input.search, textarea.field, input.barcode, input.matrixcode
 {
-/*border-color: #7C7C7C #CECECE #C3C3C3 #7C7C7C;*/
+/*border-color: #7C7C7C #CECECE #C3C3C3 #7C7C7C;
 	border-color:#abc;
 	border-style:solid;
-	border-width:1px;
+	border-width:1px;*/
+    background: white; 
+    border: 0; 
+    -moz-box-shadow: inset 0px 1px 2px rgba(0,0,0,0.5); 
+    -webkit-box-shadow: inset 0px 1px 2px rgba(0,0,0,0.5); 
+    box-shadow: inset 0px 1px 2px rgba(0,0,0,0.5);
+    font-size: 13px;
+    line-height: 15px;
 }
 
 input.text,input.file,input.barcode,textarea.textarea,input.matrixcode,input.search
 {
-	padding-top:2px;
-	padding-bottom:2px;
+	padding:3px;
 }
 
 .firefox select.select

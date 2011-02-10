@@ -17,7 +17,7 @@ admin.site.register(Shipment, ShipmentAdmin)
 class DewarAdmin(VersionAdmin):
     search_fields = ['label', 'comments']
     list_filter = ['modified']
-    list_display = ('identity', 'label', 'code', 'shipment', 'modified', 'num_containers')
+    list_display = ('identity', 'label', 'shipment', 'modified', 'num_containers')
     ordering = ['-created']    
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Dewar, DewarAdmin)
