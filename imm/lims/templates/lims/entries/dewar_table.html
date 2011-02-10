@@ -9,6 +9,10 @@
             {% if dewar.is_editable %}accept="container"{% else %}accept=""{% endif %}  
             rel="{% url lims-dewar-detail dewar.id %}">
             <a class="dewar-title" href="{% url lims-dewar-detail dewar.id %}">{{ dewar.label }}</a>
+            {% if dewar.is_receivable %}
+            <a class="receive modal-form"
+               href="{% url staff-dewar-receive dewar.pk %}"
+               title="Receive this dewar">&nbsp;</a>{% endif %}
             {% if dewar.shipment.is_editable %}
             <a class="remove"
                rel="{% url lims-dewar-remove dewar.shipment.pk dewar.pk %}" 

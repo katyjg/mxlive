@@ -89,7 +89,6 @@ class ShipmentUploadForm(forms.Form):
                 #    errors.append("and %d more errors..." % (len(self.workbook.errors)-len(errors)))
                 self._errors['excel'].extend(errors)          
 
-
         error_list = list()
         short_errors = list()
         for error in errors:

@@ -1,5 +1,5 @@
-<li class="{% if container %}occupied {{ container.json_dict.type }} link-row modal{% else %}empty automounter droppable droppable-add{% endif %}"   
-    {% if container %}rel="{% url staff-automounter-detail container.pk %}"    
+<li class="{% if container %}occupied {{ container.get_kind_display }} link-row modal{% else %}empty automounter droppable droppable-add{% endif %}"   
+    {% if container %}rel="{% url staff-runlist-detail object.pk %}"    
     title="Go to Container {{container.name }}"
     {% comment %}href="{% url lims-container-detail container.pk %}"{% endcomment %}  
     {% else %}accept="container" 
