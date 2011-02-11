@@ -8,7 +8,7 @@
     {% if request.user.is_staff %}
         {% if object.is_receivable %}
             <li class="receive-tool">
-                <a href="{% url staff-dewar-receive object.pk %}?init_id={{object.pk}}"  class="action modal-form">
+                <a href="{% url staff-dewar-receive %}?label={{object.label}}"  class="action modal-form">
                     Receive
                 </a>
             </li>

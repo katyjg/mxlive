@@ -372,7 +372,7 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
 
     if runlist != None:
         container_list = []
-        for container in Container.objects.all():
+        for container in Container.objects.filter(status=Container.STATES.ON_SITE):
             exp_list = container.get_experiment_list()
             for exp in exp_list:
                 if experiment == exp:
@@ -383,9 +383,9 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
     """ only want containers that pass experiment check. """
     if container_list != None:
         if len(active_containers) != 0:
-            ol.object_list = Container.objects.filter(crystal__experiment=experiment).distinct().exclude(id__in=active_containers)
+            ol.object_list = Container.objects.filter(crystal__experiment=experiment).filter(status=Container.STATES.ON_SITE).distinct().exclude(id__in=active_containers)
         else:
-            ol.object_list = Container.objects.filter(crystal__experiment=experiment).distinct()
+            ol.object_list = Container.objects.filter(crystal__experiment=experiment).filter(status=Container.STATES.ON_SITE).distinct()
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
 @jsonrpc_method('lims.detailed_runlist', authenticated=getattr(settings, 'AUTH_REQ', True))
