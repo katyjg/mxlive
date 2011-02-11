@@ -6,9 +6,11 @@
 {% else %}
 <li class="field"><p class="warning-error error">{{form.warning_message}}</p></li>
 {% endif %}{% endif %}
-{% if form.errors %}{% if not form.error_message %}
-<li class="field"><p class="error">Submitted data is invalid. Please Correct the highlighted errors!</p></li>
+{% if form.errors %}{% if not form.error_message %}{% if not for.warning_message %}
+<li class="field"><p class="error">
+{% else %}<li><p class="error">{% endif %}Submitted data is invalid. Please Correct the highlighted errors!</p></li>
 {% endif %}{% endif %}
+
 {% for field in form %}
     {% if field.is_hidden %}{{field}}{% else %}
     <li class="{{field.field.widget.attrs.class}}">

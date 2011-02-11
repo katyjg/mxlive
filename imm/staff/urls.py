@@ -1,6 +1,9 @@
 from django.conf.urls.defaults import patterns, url
 from django.contrib.auth.models import User
 from django import forms
+from django.conf import settings
+
+import os
 
 from imm.lims.models import Shipment
 from imm.lims.models import Dewar
@@ -33,7 +36,12 @@ urlpatterns = patterns('',
     (r'^$', 'imm.staff.views.staff_home', {}, 'staff-home'),
     (r'^feedback/(?P<id>\d+)/$', 'imm.staff.views.feedback_item', {'template': 'lims/feedback_item.html'}, 'staff-feedback-item'),
     (r'^feedback/$', 'imm.lims.views.object_list', {'model': Feedback, 'template': 'objlist/generic_list.html', 'modal_link': True}, 'staff-feedback-list'),
-    (r'^link/add/$', 'imm.lims.views.create_object', {'model': Link, 'form': LinkForm, 'template': 'objforms/form_full.html'}, 'staff-help-link'),    
+
+    (r'^link/$', 'imm.lims.views.object_list', {'model': Link, 'template': 'objlist/generic_list.html', 'can_add': True, 'modal_upload': True, 'modal_edit': True, 'delete_inline': True}, 'staff-link-list'),
+    (r'^link/$', 'imm.lims.views.object_list', {'model': Link, 'template': 'objlist/generic_list.html', 'can_add': True, 'modal_upload': True, 'modal_edit': True, 'delete_inline': True}, 'staff-link-view'),
+    (r'^link/new/$', 'imm.lims.views.create_object', {'model': Link, 'form': LinkForm, 'template': 'objforms/form_full.html', 'modal_upload': True}, 'staff-link-add'),    
+    (r'^link/(?P<id>\d+)/edit/$', 'imm.lims.views.edit_object_inline', {'model': Link, 'form': LinkForm, 'template': 'objforms/form_full.html', 'modal_upload': True}, 'staff-link-edit'),
+    (r'^link/(?P<id>\d+)/delete/$', 'imm.lims.views.delete_object', {'model': Link, 'form': ConfirmDeleteForm}, 'staff-link-delete'),
     
     (r'^shipping/shipment/$', 'imm.lims.views.object_list', {'model': Shipment, 'template': 'objlist/generic_list.html', 'can_add': False, 'link':True}, 'staff-shipment-list'),
     (r'^shipping/shipment/receive/$', 'imm.staff.views.receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-shipment-receive-any'),
@@ -49,6 +57,9 @@ urlpatterns = patterns('',
     (r'^shipping/container/$', 'imm.lims.views.object_list', {'model': Container, 'template': 'objlist/generic_list.html', 'can_add': False, 'link': True}, 'staff-container-list'),
     (r'^shipping/container/(?P<id>\d+)/$', 'imm.lims.views.object_detail', {'model': Container, 'template': 'lims/entries/container.html'}, 'staff-container-detail'),
     
+    (r'^shipping/shipment/receive/$', 'imm.staff.views.receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-dewar-receive-any'),
+    (r'^shipping/dewar/receive/(?P<id>\d+)/$', 'imm.lims.views.edit_object_inline', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-dewar-receive'),
+
     (r'^samples/crystal/$', 'imm.lims.views.object_list', {'model': Crystal, 'template': 'objlist/generic_list.html', 'can_add': False, 'link': True}, 'staff-crystal-list'),
     
     (r'^experiment/request/$', 'imm.lims.views.object_list', {'model': Experiment, 'template': 'objlist/generic_list.html', 'can_add':False, 'link': True}, 'staff-experiment-list'),
@@ -67,7 +78,7 @@ urlpatterns = patterns('',
     (r'^experiment/crystal/(?P<id>\d+)/complete/$', 'imm.lims.views.complete', {}, 'staff-crystal-complete'),
     
     (r'^runlist/(?P<runlist_id>\d+)/container/basic/(?P<exp_id>\d+)/$', 'imm.staff.views.container_basic_object_list', {'model':Container, 'template': 'objlist/basic_object_list.html'}, 'staff-container-basic-list'),
-    (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'imm.staff.views.experiment_basic_object_list', {'model':Experiment, 'template': 'staff/lists/basic_object_list.html'}, 'staff-experiment-basic-list'),    
+    (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'imm.staff.views.experiment_basic_object_list', {'model':Experiment, 'template': 'staff/lists/basic_experiment_list.html'}, 'staff-experiment-basic-list'),    
     (r'^runlist/$', 'imm.lims.views.object_list', {'model': Runlist, 'template': 'objlist/generic_list.html', 'can_add': True, 'can_prioritize': True, 'link': True}, 'staff-runlist-list'),
     (r'^runlist/new/$', 'imm.lims.views.create_object', {'model': Runlist, 'form': RunlistForm, 'template': 'objforms/form_base.html' }, 'staff-runlist-new'),
     #(r'^runlist/new/(?P<id>\d+)/up/$', 'imm.lims.views.change_priority', {'model': Experiment, 'action': 'up', 'field': 'staff_priority'}, 'staff-experiment-up'),
@@ -95,3 +106,6 @@ urlpatterns += patterns('django.views.generic.simple',
     (r'^samples/$', 'redirect_to', {'url': '/staff/samples/crystal/'}),
 )
 
+urlpatterns += patterns('',
+    (r'^link/media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': os.path.join('media/')}),
+)

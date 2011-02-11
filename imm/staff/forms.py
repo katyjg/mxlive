@@ -43,26 +43,38 @@ class DewarForm(objforms.forms.OrderedForm):
     
 class DewarReceiveForm(objforms.forms.OrderedForm):
     """ Form used to receive a Dewar, based on the Dewar upc code """
-    code = objforms.widgets.BarCodeField(required=True)
+    label = forms.ModelChoiceField(
+        queryset=Dewar.objects.filter(status=Dewar.STATES.SENT),
+        widget=objforms.widgets.LargeSelect,
+        help_text='Please select the Dewar to receive.',
+        required=True
+        )
+    barcode = objforms.widgets.BarCodeField(required=True)
     staff_comments = objforms.widgets.CommentField(required=False)
     storage_location = objforms.widgets.CommentField(required=False)
     
     class Meta:
         model = Dewar
-        fields = ('code', 'staff_comments', 'storage_location')
+        fields = ('label', 'barcode', 'staff_comments', 'storage_location')
         
-    def clean_code(self):
-        cleaned_data = self.cleaned_data['code']
-        if cleaned_data:
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        barcode = cleaned_data.get("barcode")
+        label = cleaned_data.get("label")
+        if label:
             try:
-                instance = self.Meta.model.objects.get(code__exact=cleaned_data)
+                instance = self.Meta.model.objects.get(label__exact=label)
                 if instance.status != Dewar.STATES.SENT:
                     raise forms.ValidationError('Dewar already received.')
+                if instance.barcode() != barcode:
+                    self._errors['barcode'] = self._errors.get('barcode', ErrorList())
+                    self._errors['barcode'].append('Incorrect barcode.')
+                    raise forms.ValidationError('Incorrect barcode.')
                 self.instance = instance
             except Dewar.DoesNotExist:
                 raise forms.ValidationError('No Dewar found with matching tracking code. Did you scan the correct Shipment?')
         return cleaned_data
-        
+      
 class ShipmentReturnForm(objforms.forms.OrderedForm):
     """ Form used to return a Shipment """
     carrier = forms.ModelChoiceField(

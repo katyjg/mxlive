@@ -473,14 +473,17 @@ th.Cassette {
     text-align: center;
     background: none;
 }
-a.remove {
+a.remove, a.receive {
     background: url('/img/small-remove-icon.png') no-repeat center center;
     width: 8px;
     display: inline;
     padding: 8px;
     float: right;
 }
-
+a.receive {
+    background: url('/img/receive-icon.png') no-repeat center center;
+    padding: 0 10px 0 10px;
+}
 a.delete {
     background: url('/img/trash-icon.gif') no-repeat center center;
     width: 8px;

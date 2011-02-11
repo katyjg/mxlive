@@ -455,9 +455,6 @@ class Shipment(models.Model):
     def is_closable(self):
         return self.status == self.STATES.RETURNED 
     
-    def is_receivable(self):
-        return self.status == self.STATES.SENT 
-    
     def is_returnable(self):
         return self.status == self.STATES.ON_SITE 
         
@@ -540,6 +537,12 @@ class Dewar(models.Model):
             
     def is_editable(self):
         return self.status == self.STATES.DRAFT
+
+    def is_deletable(self):
+        return self.status == self.STATES.DRAFT 
+
+    def is_receivable(self):
+        return self.status == self.STATES.SENT 
     
     def is_completed(self):
         # dewar is complete if all containers in it are complete.
@@ -718,6 +721,9 @@ class Container(models.Model):
         return self.crystal_set.all()
     
     def is_editable(self):
+        return self.status == self.STATES.DRAFT 
+
+    def is_deletable(self):
         return self.status == self.STATES.DRAFT 
     
     def get_form_field(self):

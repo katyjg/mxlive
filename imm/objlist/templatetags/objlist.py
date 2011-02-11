@@ -88,6 +88,7 @@ def list_entry(context, obj, handler, loop_count):
              'link': context.get('link', False),
              'modal_link': context.get('modal_link', False),
              'modal_edit': context.get('modal_edit', False),
+             'modal_upload': context.get('modal_upload', False),
              'delete_inline': context.get('delete_inline', False),
              'form': form,
              'checked': checked,

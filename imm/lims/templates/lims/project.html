@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load truncate_filters %}
 
 {% block headline %}
 <h2>Welcome, {{ user }}</h2>
@@ -10,7 +9,7 @@
         <ul class="toolbar">
             <li class="template-tool"><a href="http://cmcf.lightsource.ca/media/uploads/medialibrary/spreadsheet_blank.xls" title="Download spreadsheet template">Get Template</a>
             <li class="upload-tool"><a class="modal-upload-form"  href="{% url lims-shipment-upload %}" title="Upload shipment from spreadsheet">Upload</a>
-            <li class="feedback-tool"><a class="modal-form"  href="{% url lims-feedback %}" title="Send us feedback">Feedback</a></li>
+            <li class="feedback-tool"><a class="modal-form"  href="{% url lims-feedback-new %}" title="Send us feedback">Feedback</a></li>
             <li class="profile-tool"><a class="modal-form"  href="{% url lims-profile-edit %}" title="Edit your profile">Profile</a>
         </ul>
         <div class="clear"></div>
@@ -35,22 +34,8 @@
 	<!-- end middle region -->
     <!-- right region -->
 	<div id="right-content" class="col-4">
-        <ul id="news">
-        <li class="title">News...</li>
-        {% for link in links %}
-            {% if link.category == 0 %}
-                <li><a rel='#news-modal' class="modal-{{ link.get_frame_type_display }}" href='{% if link.url %}{{ link.url }}{% else %}media/{{ link.document }}{% endif %}'>{{ link.description|truncate_chars:60 }}</a></li>
-            {% endif %}
-        {% endfor %}
-        </ul>
-        <ul id="help">
-        <li class="title">How to ...</li>
-        {% for link in links %}
-            {% if link.category == 1 %}
-                <li><a rel='#howto-modal' class="modal-{{ link.get_frame_type_display }} swf" href='{% if link.url %}{{ link.url }}{% else %}media/{{ link.document }}{% endif %}'>{{ link.description|truncate_chars:60 }}</a></li>
-            {% endif %}
-        {% endfor %}
-        </ul>
+    {% load link_list %}
+    {% link_list %}
 	</div>
 	<div class="clear spacer"></div>
     <!-- bottom region -->

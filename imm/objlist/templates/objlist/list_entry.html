@@ -21,7 +21,7 @@
     
     {% for field in fields %}
  		<td {% if modal_edit %}
-        class="modal-form"        
+        class="modal-{% if modal_upload %}upload-{% endif %}form"        
         href="{{handler}}{{object.pk}}/edit/"
         title="Edit {{object.pk}}"
     {% endif %}>

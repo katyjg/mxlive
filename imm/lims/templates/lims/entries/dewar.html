@@ -38,6 +38,10 @@
             <td>{{dewar.label}}</td>
         </tr>
         <tr valign="top">
+            <th>Barcode:</th>
+            <td>{{dewar.barcode}}</td>
+        </tr>
+        <tr valign="top">
             <th>Shipment:</th>
             {% if dewar.shipment %}
             <td><a href="{% url lims-shipment-detail dewar.shipment.pk %}">{{dewar.shipment.name}}</a></td>
