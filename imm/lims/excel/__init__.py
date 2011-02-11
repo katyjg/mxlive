@@ -389,8 +389,6 @@ class LimsWorkbook(object):
             self.log_activity(self.shipment, request)
             self.dewar.shipment = self.shipment
             self.dewar.save()
-            self.dewar.code = '%s-%s-%s' % (self.project.user.username, self.shipment.pk, self.dewar.pk)
-            self.dewar.save()
             self.log_activity(self.dewar, request)
             for experiment in self.experiments.values():
                 experiment.save()

@@ -18,12 +18,12 @@ _URL_META = {
     },
     'samples': {
         'crystal':  {'model': Crystal, 'form': SampleForm},
-        'cocktail': {'model': Cocktail, 'form': CocktailForm, 'list_modal_edit': True, 'list_delete_inline': True}, 
-        'crystalform': {'model': CrystalForm, 'form': CrystalFormForm, 'list_modal_edit': True, 'list_delete_inline': True},  
+        'cocktail': {'model': Cocktail, 'form': CocktailForm, 'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True}, 
+        'crystalform': {'model': CrystalForm, 'form': CrystalFormForm,'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True},  
     },
     'experiment': {
         'request':  {'model': Experiment, 'form': ExperimentForm},       
-        'dataset':  {'model': Data, 'add': False, 'list_add': False, 'list_modal': True},       
+        'dataset':  {'model': Data, 'add': False, 'list_link': False, 'list_add': False, 'list_modal': True},       
         'report':   {'model': Result, 'add': False, 'list_add': False},         
     },
 }
