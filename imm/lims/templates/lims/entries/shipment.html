@@ -84,7 +84,7 @@
 
 {% block sidebar %}
     {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
-        <div id="dewars" class="widget droppable-remove parent-stop" data="{% url lims-dewar-basic-list %}">
+        <div id="dewars" class="widget droppable-remove parent-stop" data="{% url lims-dewar-basic-list %}?orphan_field=shipment">
 	       <div class="widget-title">
 	       <span>Dewars</span><a href="{% url lims-dewar-new %}" class="modal-form add-action" title="Add New Dewar"><img src="/img/small-add-icon.png" /></a>
 	       </div>
@@ -93,7 +93,7 @@
             </ul>
         </div>
 
-        <div id="containers" class="widget droppable-remove parent-stop" data="{% url lims-container-basic-list %}">
+        <div id="containers" class="widget droppable-remove parent-stop" data="{% url lims-container-basic-list %}?orphan_field=dewar">
 	       <div class="widget-title">
 	       <span>Container</span><a href="{% url lims-container-new %}" class="modal-form add-action" title="Add New Container"><img src="/img/small-add-icon.png" /></a>
 	       </div>

@@ -667,31 +667,21 @@ def object_list(request, model, template='objlist/object_list.html', link=False,
 @manager_required    
 def basic_object_list(request, model, template='objlist/basic_object_list.html'):
     """
-    A very basic object list that will only display .name and .id for the entity
+    Request a basic list of objects for which the orphan field specified as a GET parameter is null.
     The template this uses will be rendered in the sidebar controls.
     """
-    ol = ObjectList(request, request.manager, num_show=200)
+    ol = {}
+    if request.GET.get('orphan_field', None) is not None:
+        params = {'%s__isnull' %  request.GET['orphan_field']: True}
+        objects = request.manager.filter(**params)
+    else:
+        objects = request.manager.all()
+    ol['object_list'] = objects
     handler = request.path
     # if path has /basic on it, remove that. 
     if 'basic' in handler:
         handler = handler[0:-6]
-    return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
-
-@login_required
-@manager_required    
-def unassigned_object_list(request, model, related_field, template='objlist/basic_object_list.html'):
-    """
-    Request a basic list of objects for which the related field is null.
-    The template this uses will be rendered in the sidebar controls.
-    """
-    params = {'%s__isnull' % related_field : True}
-    manager = FilterManagerWrapper(request.manager, **params)
-    ol = ObjectList(request, manager, num_show=200)
-    handler = request.path
-    # if path has /basic on it, remove that. 
-    if 'basic' in handler:
-        handler = handler[0:-6]
-    return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
+    return render_to_response(template, {'ol' : ol, 'type' : model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
 
 @login_required
 def user_object_list(request, model, template='lims/lists/list_base.html', link=True, can_add=True):

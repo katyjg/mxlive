@@ -8,7 +8,6 @@ import os
 # the url patterns will be dynamically generated from this dictionary
 # supported parameters and their defaults:
 #'list': True, 'detail': True, 'edit': True, 'delete': True, 'add': True, 'close': True, 'list_modal_edit': False, 'basic_list': True, 
-# 'orphan_list': True, 'orphan_list_field', 
 #'list_delete_inline': False, 'list_add': True, 'list_link': True,'model', 'form', 'list_add': True, 'list_link': True, 'list_modal': False
 #'list_template': 'objlist/generic_list.html','form_template': 'objforms/form_base.html'
 _URL_META = {
@@ -46,6 +45,16 @@ for section, subsection in _URL_META.items():
                                  },
                  'lims-%s-list' % params.get('model').__name__.lower()))
         
+
+        # Object Basic Lists
+        if params.get('basic_list', True):
+            _dynamic_patterns.append(
+                (r'^%s/%s/basic/$' % (section, key),
+                 'basic_object_list', {'model': params.get('model'), 
+                                 'template': params.get('list_template', 'objlist/basic_object_list.html'),
+                                 },
+                 'lims-%s-basic-list' % params.get('model').__name__.lower()))
+
         # Object add
         if params.get('add', True):
             _dynamic_patterns.append(
@@ -117,14 +126,11 @@ urlpatterns += patterns('imm.lims.views',
     (r'^shipping/shipment/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/dewar/(?P<obj_id>\d+)/$', 'remove_object', {'source':Shipment, 'object':Dewar, 'reverse':True}, 'lims-shipment-remove-dewar'),
     
     # Dewars
-    (r'^shipping/dewar/basic/$', 'unassigned_object_list', {'model': Dewar, 'related_field': 'shipment', 'template': 'objlist/basic_object_list.html'}, 'lims-dewar-basic-list'),
     (r'^shipping/dewar/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Dewar, 'object':Container, 'reverse':True}, 'lims-dewar-add-container'),
     (r'^shipping/dewar/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Dewar, 'object':Container, 'reverse':True}, 'lims-dewar-remove-container'),
     (r'^shipping/dewar/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'remove_object', {'source':Dewar, 'object':Container, 'reverse':True}, 'lims-shipment-remove-container'),
 
     # Containers
-    (r'^shipping/container/basic/$', 'unassigned_object_list', {'model': Container, 'related_field': 'dewar', 'template': 'objlist/basic_object_list.html'}, 'lims-container-basic-list'),
-    (r'^shipping/container/crystal/basic/$', 'unassigned_object_list', {'model': Crystal, 'related_field': 'container', 'template': 'objlist/basic_object_list.html', }, 'lims-container-orphan-crystals'),
     (r'^shipping/container/(?P<dest_id>\d+)/widget/.*/crystal/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'add_existing_object', {'destination':Container, 'object':Crystal, 'reverse':True}, 'lims-container-add-crystal'),
     (r'^shipping/container/(?P<src_id>\d+)/crystal/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Container, 'object':Crystal, 'reverse':True}, 'lims-container-remove-crystal'),
     
@@ -135,14 +141,7 @@ urlpatterns += patterns('imm.lims.views',
     (r'^samples/crystal/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/cocktail/(?P<obj_id>\d+)/$', 'remove_object', {'source':Crystal, 'object':Cocktail}, 'lims-crystal-remove-cocktail'),
     (r'^samples/crystal/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/cocktail/(?P<obj_id>\d+)/$', 'remove_object', {'source':Crystal, 'object':Cocktail}, 'lims-crystal-remove-cocktail'),
 
-    # Cocktails
-    (r'^samples/cocktail/basic/$', 'basic_object_list', {'model': Cocktail, 'template': 'objlist/basic_object_list.html' }, 'lims-cocktail-basic-list'),
-    
-    # Crystalforms
-    (r'^samples/crystalform/basic/$', 'basic_object_list', {'model': CrystalForm, 'template': 'objlist/basic_object_list.html'}, 'lims-crystalform-basic-list'),
-
     # Requests
-    (r'^experiment/request/crystal/basic/$', 'unassigned_object_list', {'model': Crystal,  'related_field': 'experiment','template': 'objlist/basic_object_list.html', }, 'lims-experiment-orphan-crystals'),
     (r'^experiment/request/(?P<id>\d+)/priority/$', 'priority', {'model': Experiment, 'field': 'priority'}, 'lims-experiment-priority'),
     (r'^experiment/request/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/crystal/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Experiment, 'object':Crystal, 'reverse':True}, 'lims-experiment-add-crystal'),
     (r'^experiment/experiment/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/crystal/(?P<obj_id>\d+)/$', 'remove_object', {'source':Experiment, 'object':Crystal, 'reverse':True}, 'lims-experiment-remove-crystal'),
@@ -155,10 +154,7 @@ urlpatterns += patterns('imm.lims.views',
     (r'^experiment/result/(\d+)/profiles.png$', 'plot_profiles_stats', {}, 'lims-plot-profiles'),
     (r'^experiment/result/(\d+)/wilson.png$', 'plot_wilson_stats', {}, 'lims-plot-wilson'),
     (r'^experiment/result/(\d+)/twinning.png$', 'plot_twinning_stats', {}, 'lims-plot-twinning'),
-    
-    #Activity Log
-    (r'^activity/$', 'object_list', {'model': ActivityLog, 'template': 'objlist/generic_list.html'}, 'lims-activity-log'),
-        
+            
 )
 
 # redirect the top level pages
