@@ -42,6 +42,20 @@ class Link(models.Model):
     frame_type = models.IntegerField(max_length=1, choices=TYPE.get_choices(), blank=True, null=True)
     url = models.URLField(verify_exists=True, max_length=200, blank=True)
     document = models.FileField(_('document'), blank=True, upload_to=get_storage_path)
+    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
+    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+
+    def __unicode__(self):
+        return self.description
+
+    def is_editable(self):
+        return True
+
+    def is_deletable(self):
+        return True
+
+    def identity(self):
+        return self.description
 
     def save(self, *args, **kwargs):
         super(Link, self).save(*args, **kwargs)

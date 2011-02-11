@@ -243,7 +243,6 @@ def show_project(request):
     return render_to_response('lims/project.html', {
         'project': project,
         'statistics': statistics,
-        'links': Link.objects.all(),
         'activity_log': ObjectList(request, project.activitylog_set),
         'handler' : request.path,
         },
@@ -482,7 +481,7 @@ def object_detail(request, id, model, template):
 @login_required
 @project_optional
 @transaction.commit_on_success
-def create_object(request, model, form, template='lims/forms/new_base.html', action=None, redirect=None):
+def create_object(request, model, form, template='lims/forms/new_base.html', action=None, redirect=None, modal_upload=False):
     """
     A generic view which displays a Form of type ``form`` using the Template
     ``template`` and when submitted will create a new object of type ``model``.
@@ -498,6 +497,8 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
         'action':  request.path,
         'add_another': True, # does not work right now
     }
+    if modal_upload:
+        form_info['enctype'] = 'multipart/form-data'
 
     if request.method == 'POST':
         if request.FILES:
@@ -523,6 +524,8 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
                     'form': frm, 
                     }, context_instance=RequestContext(request))
             else:
+                if modal_upload:
+                    return render_to_response("lims/iframe_refresh.html", context_instance=RequestContext(request))
                 # messages are simply passed down to the template via the request context
                 return render_to_response("lims/redirect.html", context_instance=RequestContext(request))
         else:
@@ -627,7 +630,7 @@ def add_new_object(request, id, model, form, field):
 
 @login_required
 @manager_required
-def object_list(request, model, template='objlist/object_list.html', link=False, modal_link=False, modal_edit=False, delete_inline=False, can_add=False, can_prioritize=False):
+def object_list(request, model, template='objlist/object_list.html', link=False, modal_link=False, modal_edit=False, modal_upload=False, delete_inline=False, can_add=False, can_prioritize=False):
     """
     A generic view which displays a list of objects of type ``model`` owned by
     the current users project. The list is displayed using the template
@@ -651,6 +654,7 @@ def object_list(request, model, template='objlist/object_list.html', link=False,
                                          'link': link,
                                          'modal_link': modal_link,
                                          'modal_edit': modal_edit,
+                                         'modal_upload': modal_upload,
                                          'delete_inline': delete_inline,
                                          'can_add': can_add, 
                                          'can_prioritize': can_prioritize,
@@ -746,7 +750,7 @@ def edit_profile(request, form, template='objforms/form_base.html', action=None)
 @login_required
 @manager_required
 @transaction.commit_on_success
-def edit_object_inline(request, id, model, form, template='objforms/form_base.html', action=None):
+def edit_object_inline(request, id, model, form, template='objforms/form_base.html', action=None, modal_upload=False):
     """
     A generic view which displays a form of type ``form`` using the template 
     ``template``, for editing an object of type ``model``, identified by primary 
@@ -769,6 +773,10 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
         'target': 'entry-scratchpad',
         'save_label': save_label
     }
+
+    if modal_upload:
+        form_info['enctype'] = 'multipart/form-data'
+
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
         if request.project:
@@ -782,6 +790,8 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
 
             request.user.message_set.create(message = form_info['message'])
             ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, form_info['message'])            
+            if modal_upload:
+                return render_to_response("lims/iframe_refresh.html", context_instance=RequestContext(request))
             return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
         else:
             return render_to_response(template, {

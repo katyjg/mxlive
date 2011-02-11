@@ -63,7 +63,7 @@
 
 {% block sidebar %}
 	{% if not user.is_superuser %}
-		<div id="crystals" class="widget droppable-remove parent-stop" data="{% url lims-experiment-orpha-crystals %}">
+		<div id="crystals" class="widget droppable-remove parent-stop" data="{% url lims-experiment-orphan-crystals %}">
 		   <div class="widget-title">
 		   <span>Crystals</span><a href="{% url lims-crystal-new %}" class="modal-form add-action" title="Add New Crystal"><img src="/img/small-add-icon.png" /></a>
 		   </div>
