@@ -13,7 +13,8 @@ class RunlistAdmin(admin.ModelAdmin):
 admin.site.register(Runlist, RunlistAdmin)
 
 class LinkAdmin(admin.ModelAdmin):
-    list_display = ('category','description','document','url', 'created')
+    list_display = ('category','description','document','url', 'modified')
+    list_filter = ['category','modified']
 admin.site.register(Link, LinkAdmin)
 
 class ExperimentRunlistAdmin(admin.ModelAdmin):

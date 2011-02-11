@@ -11,7 +11,7 @@
             <a class="dewar-title" href="{% url lims-dewar-detail dewar.id %}">{{ dewar.label }}</a>
             {% if admin %}{% if dewar.is_receivable %}
             <a class="receive modal-form"
-               href="{% url staff-dewar-receive dewar.pk %}"
+               href="{% url staff-dewar-receive %}?label={{dewar.label}}"
                title="Receive this dewar">&nbsp;</a>{% endif %}{% endif %}
             {% if dewar.shipment.is_editable %}
             <a class="remove"

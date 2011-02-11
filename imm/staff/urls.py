@@ -37,15 +37,12 @@ urlpatterns = patterns('',
     (r'^feedback/(?P<id>\d+)/$', 'imm.staff.views.feedback_item', {'template': 'lims/feedback_item.html'}, 'staff-feedback-item'),
     (r'^feedback/$', 'imm.lims.views.object_list', {'model': Feedback, 'template': 'objlist/generic_list.html', 'modal_link': True}, 'staff-feedback-list'),
 
-    (r'^link/$', 'imm.lims.views.object_list', {'model': Link, 'template': 'objlist/generic_list.html', 'can_add': True, 'modal_upload': True, 'modal_edit': True, 'delete_inline': True}, 'staff-link-list'),
-    (r'^link/$', 'imm.lims.views.object_list', {'model': Link, 'template': 'objlist/generic_list.html', 'can_add': True, 'modal_upload': True, 'modal_edit': True, 'delete_inline': True}, 'staff-link-view'),
+    (r'^link/$', 'imm.lims.views.object_list', {'model': Link, 'template': 'staff/lists/link_object_list.html', 'can_add': True, 'modal_upload': True, 'modal_edit': True, 'delete_inline': True}, 'staff-link-list'),
     (r'^link/new/$', 'imm.lims.views.create_object', {'model': Link, 'form': LinkForm, 'template': 'objforms/form_full.html', 'modal_upload': True}, 'staff-link-add'),    
     (r'^link/(?P<id>\d+)/edit/$', 'imm.lims.views.edit_object_inline', {'model': Link, 'form': LinkForm, 'template': 'objforms/form_full.html', 'modal_upload': True}, 'staff-link-edit'),
     (r'^link/(?P<id>\d+)/delete/$', 'imm.lims.views.delete_object', {'model': Link, 'form': ConfirmDeleteForm}, 'staff-link-delete'),
     
     (r'^shipping/shipment/$', 'imm.lims.views.object_list', {'model': Shipment, 'template': 'objlist/generic_list.html', 'can_add': False, 'link':True}, 'staff-shipment-list'),
-    (r'^shipping/shipment/receive/$', 'imm.staff.views.receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-shipment-receive-any'),
-    (r'^shipping/shipment/(?P<id>\d+)/receive/$', 'imm.lims.views.edit_object_inline', {'model': Shipment, 'form': ShipmentReceiveForm, 'template': 'objforms/form_base.html', 'action' : 'receive'}, 'staff-shipment-receive'),
     (r'^shipping/shipment/(?P<id>\d+)/return/$', 'imm.lims.views.edit_object_inline', {'model': Shipment, 'form': ShipmentReturnForm, 'template': 'objforms/form_base.html', 'action' : 'return'}, 'staff-shipment-return'),
     (r'^shipping/shipment/(?P<id>\d+)/label/$', 'imm.lims.views.shipment_pdf', {'format' : 'return' }, 'staff-shipment-label'),    
     (r'^shipping/shipment/(?P<id>\d+)/pdf/$', 'imm.lims.views.shipment_pdf', {'format' : 'pdf' }, 'staff-shipment-pdf'),    
@@ -57,8 +54,7 @@ urlpatterns = patterns('',
     (r'^shipping/container/$', 'imm.lims.views.object_list', {'model': Container, 'template': 'objlist/generic_list.html', 'can_add': False, 'link': True}, 'staff-container-list'),
     (r'^shipping/container/(?P<id>\d+)/$', 'imm.lims.views.object_detail', {'model': Container, 'template': 'lims/entries/container.html'}, 'staff-container-detail'),
     
-    (r'^shipping/shipment/receive/$', 'imm.staff.views.receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-dewar-receive-any'),
-    (r'^shipping/dewar/receive/(?P<id>\d+)/$', 'imm.lims.views.edit_object_inline', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-dewar-receive'),
+    (r'^shipping/shipment/receive/$', 'imm.staff.views.receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-dewar-receive'),
 
     (r'^samples/crystal/$', 'imm.lims.views.object_list', {'model': Crystal, 'template': 'objlist/generic_list.html', 'can_add': False, 'link': True}, 'staff-crystal-list'),
     

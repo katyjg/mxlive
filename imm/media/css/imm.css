@@ -241,6 +241,7 @@ ul.toolbar li.print-tool {background-image: url(/img/print-icon.png);}
 ul.toolbar li.template-tool {background-image: url(/img/template-icon.png);}
 ul.toolbar li.receive-tool {background-image: url(/img/receive-icon.png);}
 ul.toolbar li.return-tool {background-image: url(/img/return-icon.png);}
+ul.toolbar li.help-tool {background-image: url(/img/help-icon.png);}
 
 /* -- end toolbar -- */
 
@@ -582,8 +583,9 @@ div.runlist.droppable {
     width: 80px;
 }
 a.swf {
-    background: url(/img/video_icon.png) center left no-repeat;
-    padding-left: 18px;
+    background: url(/img/video-icon.png) center left no-repeat;
+    padding-left: 16px;
+    line-height: 16px;
 }   
 
 .ui-draggable-dragging {

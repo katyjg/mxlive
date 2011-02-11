@@ -125,8 +125,8 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
     carrier = forms.ModelChoiceField(
         queryset=Carrier.objects.all(),
         widget=objforms.widgets.LargeSelect,
-        help_text='Please select the carrier company.',
-        required=True
+        help_text='Please select the carrier company. To change shipping companies, edit your profile on the Project Home page.',
+        required=True, initial=''
         )
     tracking_code = objforms.widgets.LargeCharField(required=True)
     comments = objforms.widgets.CommentField(required=False)
@@ -135,6 +135,15 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
         model = Shipment
         fields = ('project','carrier', 'tracking_code','comments')
         
+    def __init__(self, *args, **kwargs):
+        super(ShipmentSendForm, self).__init__(*args, **kwargs)
+        for pro in Project.objects.all():
+            car = pro.carrier
+        try:
+            self.fields['carrier'].queryset = Carrier.objects.filter(pk=car.pk) 
+        except:
+            self.fields['carrier'].queryset = Carrier.objects.all()
+
     def warning_message(self):
         shipment = self.instance
         if shipment:
@@ -150,6 +159,9 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
         if self.instance.status != Shipment.STATES.DRAFT:
             raise forms.ValidationError('Shipment already sent.')
         return cleaned_data
+
+    def restrict_by(self, field_name, id): 
+        pass
 
 class DewarForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)

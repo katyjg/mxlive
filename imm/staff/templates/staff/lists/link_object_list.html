@@ -12,7 +12,7 @@
             {% show_all_filters ol handler %}
         </div>
         <ul class="toolbar">
-            {% if can_add %}<li class="add-tool"><a class="modal-form"  href='{{ handler }}new/'>Add {{ol.object_type}}</a></li>{% endif %}
+            {% if can_add %}<li class="add-tool"><a class="modal-upload-form"  href='{{ handler }}new/'>Add {{ol.object_type}}</a></li>{% endif %}
         </ul>
         <div class="clear"></div>
     </div>
@@ -21,4 +21,9 @@
     {% include "objlist/object_list.html" %}
 {% endblock %}
 
+{% block sidebar %}
+    <h2>As the Users see it...</h2>
+        {% load link_list %}
+        {% link_list %}
+{% endblock %}
 

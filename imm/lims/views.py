@@ -672,7 +672,7 @@ def basic_object_list(request, model, template='objlist/basic_object_list.html')
     """
     ol = {}
     if request.GET.get('orphan_field', None) is not None:
-        params = {'%s__isnull' %  request.GET['orphan_field']: True}
+        params = {'%s__isnull' %  str(request.GET['orphan_field']): True}
         objects = request.manager.filter(**params)
     else:
         objects = request.manager.all()
@@ -747,6 +747,12 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
     key ``id``, which when submitted will update the entry asynchronously through
     AJAX.
     """
+    #if request.GET.get('orphan_field', None) is not None:
+    #    params = {'%s__isnull' %  str(request.GET['orphan_field']): True}
+    #   objects = request.manager.filter(**params)
+    #else:
+    #    objects = request.manager.all()
+
     try:
         obj = request.manager.get(pk=id)
     except:
@@ -790,6 +796,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
             }, context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=dict(request.GET.items())) # casting to a dict pulls out first list item in each value list
+        print frm
         if request.project:
             frm.restrict_by('project', request.project)
         return render_to_response(template, {

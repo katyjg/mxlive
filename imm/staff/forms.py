@@ -47,7 +47,7 @@ class DewarReceiveForm(objforms.forms.OrderedForm):
         queryset=Dewar.objects.filter(status=Dewar.STATES.SENT),
         widget=objforms.widgets.LargeSelect,
         help_text='Please select the Dewar to receive.',
-        required=True
+        required=True, initial=''
         )
     barcode = objforms.widgets.BarCodeField(required=True)
     staff_comments = objforms.widgets.CommentField(required=False)
@@ -57,6 +57,10 @@ class DewarReceiveForm(objforms.forms.OrderedForm):
         model = Dewar
         fields = ('label', 'barcode', 'staff_comments', 'storage_location')
         
+    def __init__(self, *args, **kwargs):
+        super(DewarReceiveForm, self).__init__(*args, **kwargs)
+        self.fields['label'].queryset = Dewar.objects.filter(label=self.initial.get('label', None)) or Dewar.objects.filter(status=Dewar.STATES.SENT)
+
     def clean(self):
         cleaned_data = self.cleaned_data
         barcode = cleaned_data.get("barcode")
