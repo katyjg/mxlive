@@ -841,9 +841,9 @@ td.list-empty {
     text-align: center;
     display: block;
     background: #cfc6d7;
-    padding: 2px;
+    padding: 0.2em;
     margin-bottom: 2px;
-    font-size: 130%;
+    font-size: 120%;
 }
 
 /* FILTERS */
@@ -2195,7 +2195,7 @@ table.stats {
 }
 
 table.stats th {
-    padding: 0.4em;
+    padding: 0.2em;
     font-size: 120%;
     /*color: #fff;
     background-color: #555;*/
