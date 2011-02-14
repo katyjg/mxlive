@@ -275,7 +275,6 @@ def perform_action(instance, action, data=None):
     # perform the action on the children
     if hasattr(instance, 'get_children'):
         for child in instance.get_children():
-            print "performing child actions..."
             if child.ACTIONS.has_key(action):
                 perform_action(child, action, data=data)
         
