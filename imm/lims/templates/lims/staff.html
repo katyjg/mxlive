@@ -38,7 +38,7 @@
 	    <li class="title redirect link-row" href="{% url staff-feedback-list %}" title="Show all feedback comments">User Feedback Comments ...</li>
         {% for item in feedback %}
         <li class="modal link-row" 
-            href="{% url staff-feedback-item item.pk %}">
+            href="{% url staff-feedback-detail item.pk %}">
             <strong>{{ item.get_category_display }}:</strong> "{{ item.message|truncate_chars:50 }}" <span class="highlight">|
         	{{ item.created|date:"M jS, Y"}}<em> by {{ item.project }}</em></span>
         </li>

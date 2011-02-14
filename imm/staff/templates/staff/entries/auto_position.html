@@ -1,11 +1,9 @@
-<li class="{% if container %}occupied {{ container.get_kind_display }} link-row modal{% else %}empty automounter droppable droppable-add{% endif %}"   
-    {% if container %}rel="{% url staff-runlist-detail object.pk %}"    
-    title="Go to Container {{container.name }}"
-    {% comment %}href="{% url lims-container-detail container.pk %}"{% endcomment %}  
+<li class="{% if container %}occupied {{ container.get_kind_display }}{% else %}empty automounter droppable droppable-add{% endif %}"   
+    {% if container %}
     {% else %}accept="container" 
     parent="{{ object.id }}"{% endif %}
     automounter_location="{{ letter }}">
-    {{ container.label }}
+    <a {% if container %}href="{% url staff-container-detail container.pk %}" title="Go to Container {{container.name }}"{% endif %}>{{ container.label }}</a>
     {% if container %}
         <a class="remove"
            rel="{% url staff-runlist-remove-container object.pk container.pk %}"

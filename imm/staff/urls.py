@@ -5,96 +5,146 @@ from django.conf import settings
 
 import os
 
-from imm.lims.models import Shipment
-from imm.lims.models import Dewar
-from imm.lims.models import Experiment
-from imm.lims.models import Container
-from imm.lims.models import Crystal
-from imm.lims.models import Cocktail
-from imm.lims.models import CrystalForm
-from imm.lims.models import Feedback
-from imm.lims.models import ExcludeManagerWrapper
-from imm.staff.models import Runlist
-from imm.lims.models import ActivityLog
-from imm.staff.models import Link
+from imm.lims.models import *
+from imm.staff.models import Runlist, Link
+from imm.lims.forms import ExperimentForm, ConfirmDeleteForm
+from imm.staff.forms import *
 
-from imm.lims.forms import ExperimentForm
-from imm.lims.forms import ConfirmDeleteForm
+# Define url meta data for object lists detail pages
+# the url patterns will be dynamically generated from this dictionary
+# supported parameters and their defaults:
+#'list': True, 'detail': True, 'edit': False, 'delete': False, 'add': False, 'close': True, 'list_modal_edit': False, 'modal_upload': False,
+#'list_delete_inline': False, 'list_add': False, 'list_link': True,'model', 'form', 'list_add': True, 'list_link': True, 'list_modal': False
+#'list_template': 'objlist/generic_list.html','form_template': 'objforms/form_base.html'
+_URL_META = {
+    'shipping': {
+        'shipment': {'model': Shipment},        
+        'dewar':    {'model': Dewar},        
+        'container':{'model': Container},        
+    },
+    'samples': {
+        'crystal':  {'model': Crystal, 'list': False},
+    },
+    'experiment': {
+        'request':  {'model': Experiment},       
+        'dataset':  {'model': Data},       
+        'report':   {'model': Result},         
+    },
+    '': {
+        'feedback': {'model': Feedback, 'template': 'lims/feedback_item.html', 'list_link': False, 'list_modal': True},
+        'runlist': {'model': Runlist, 'form': RunlistForm, 'template': 'staff/entries/runlist.html', 
+                    'list_add': True, 'add': True, 'edit': True, 'delete': True},
+        'link': {'model': Link, 'form': LinkForm, 'list_template': 'staff/lists/link_object_list.html', 
+                 'detail': False, 'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True,
+                 'list_add': True, 'add': True, 'edit': True, 'delete': True, 'form_template': 'objforms/form_full.html', 'modal_upload': True},
+    },
+}
 
-from imm.staff.forms import ShipmentReceiveForm
-from imm.staff.forms import ShipmentReturnForm
-from imm.staff.forms import DewarReceiveForm
-from imm.staff.forms import DewarForm
-from imm.staff.forms import ExperimentSelectForm
-from imm.staff.forms import ContainerSelectForm
-from imm.staff.forms import RunlistForm
-from imm.staff.forms import RunlistEmptyForm
-from imm.staff.forms import RunlistAcceptForm
-from imm.staff.forms import LinkForm
+_dynamic_patterns = []
+for section, subsection in _URL_META.items():
+    for key, params in subsection.items():
+        if section:
+            base_url = '^%s/%s' % ( section, key)
+        else:
+            base_url = '^%s' % (key)
 
-urlpatterns = patterns('',
-    (r'^$', 'imm.staff.views.staff_home', {}, 'staff-home'),
-    (r'^feedback/(?P<id>\d+)/$', 'imm.staff.views.feedback_item', {'template': 'lims/feedback_item.html'}, 'staff-feedback-item'),
-    (r'^feedback/$', 'imm.lims.views.object_list', {'model': Feedback, 'template': 'objlist/generic_list.html', 'modal_link': True}, 'staff-feedback-list'),
+        # Object Lists
+        if params.get('list', True):
+            _dynamic_patterns.append(
+                (r'%s/$' % base_url,
+                 'object_list', {'model': params.get('model'), 
+                                 'template': params.get('list_template', 'objlist/generic_list.html'),
+                                 'can_add': params.get('list_add', False), 
+                                 'link': params.get('list_link', True),
+                                 'modal_link': params.get('list_modal', False),
+                                 'modal_edit': params.get('list_modal_edit', False),
+                                 'delete_inline': params.get('list_delete_inline', False),
+                                 'modal_upload': params.get('modal_upload', False),
+                                 },
+                 'staff-%s-list' % params.get('model').__name__.lower()))
 
-    (r'^link/$', 'imm.lims.views.object_list', {'model': Link, 'template': 'staff/lists/link_object_list.html', 'can_add': True, 'modal_upload': True, 'modal_edit': True, 'delete_inline': True}, 'staff-link-list'),
-    (r'^link/new/$', 'imm.lims.views.create_object', {'model': Link, 'form': LinkForm, 'template': 'objforms/form_full.html', 'modal_upload': True}, 'staff-link-add'),    
-    (r'^link/(?P<id>\d+)/edit/$', 'imm.lims.views.edit_object_inline', {'model': Link, 'form': LinkForm, 'template': 'objforms/form_full.html', 'modal_upload': True}, 'staff-link-edit'),
-    (r'^link/(?P<id>\d+)/delete/$', 'imm.lims.views.delete_object', {'model': Link, 'form': ConfirmDeleteForm}, 'staff-link-delete'),
-    
-    (r'^shipping/shipment/$', 'imm.lims.views.object_list', {'model': Shipment, 'template': 'objlist/generic_list.html', 'can_add': False, 'link':True}, 'staff-shipment-list'),
-    (r'^shipping/shipment/(?P<id>\d+)/return/$', 'imm.lims.views.edit_object_inline', {'model': Shipment, 'form': ShipmentReturnForm, 'template': 'objforms/form_base.html', 'action' : 'return'}, 'staff-shipment-return'),
-    (r'^shipping/shipment/(?P<id>\d+)/label/$', 'imm.lims.views.shipment_pdf', {'format' : 'return' }, 'staff-shipment-label'),    
-    (r'^shipping/shipment/(?P<id>\d+)/pdf/$', 'imm.lims.views.shipment_pdf', {'format' : 'pdf' }, 'staff-shipment-pdf'),    
+        # Object detail
+        if params.get('detail', True):
+            _dynamic_patterns.append(
+                (r'%s/(?P<id>\d+)/$' % (base_url),
+                 'object_detail', {'model': params.get('model'), 
+                                   'template': params.get('template','lims/entries/%s.html' % params.get('model').__name__.lower())},
+                 'staff-%s-detail' % params.get('model').__name__.lower()))
 
-    (r'^shipping/dewar/$', 'imm.lims.views.object_list', {'model': Dewar, 'template': 'objlist/generic_list.html', 'can_add': False, 'link': True}, 'staff-dewar-list'),
-    (r'^shipping/dewar/(?P<id>\d+)/$', 'imm.lims.views.object_detail', {'model': Dewar, 'template': 'lims/entries/dewar.html'}, 'staff-dewar-detail'),
-    (r'^shipping/dewar/(?P<id>\d+)/edit/$', 'imm.lims.views.edit_object_inline', {'model': Dewar, 'form': DewarForm, 'template': 'objforms/form_base.html'}, 'staff-dewar-edit'),
+        # Object add
+        if params.get('add', False):
+            _dynamic_patterns.append(
+                (r'%s/new/$' % (base_url),
+                 'create_object', {'model': params.get('model'),
+                                   'form': params.get('form'),
+                                   'template': params.get('form_template', 'objforms/form_base.html'),
+                                   'modal_upload': params.get('modal_upload', False)
+                                   },
+                 'staff-%s-new' % params.get('model').__name__.lower()))
 
-    (r'^shipping/container/$', 'imm.lims.views.object_list', {'model': Container, 'template': 'objlist/generic_list.html', 'can_add': False, 'link': True}, 'staff-container-list'),
-    (r'^shipping/container/(?P<id>\d+)/$', 'imm.lims.views.object_detail', {'model': Container, 'template': 'lims/entries/container.html'}, 'staff-container-detail'),
-    
-    (r'^shipping/shipment/receive/$', 'imm.staff.views.receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-dewar-receive'),
+        # Object edit
+        if params.get('edit', False):
+            _dynamic_patterns.append(
+                (r'%s/(?P<id>\d+)/edit/$' % (base_url),
+                 'edit_object_inline', {'model': params.get('model'),
+                                        'form': params.get('form'),
+                                        'template': params.get('form_template', 'objforms/form_base.html'),
+                                        'modal_upload': params.get('modal_upload', False)
+                                        },
+                 'staff-%s-edit' % params.get('model').__name__.lower()))
 
-    (r'^samples/crystal/$', 'imm.lims.views.object_list', {'model': Crystal, 'template': 'objlist/generic_list.html', 'can_add': False, 'link': True}, 'staff-crystal-list'),
-    
-    (r'^experiment/request/$', 'imm.lims.views.object_list', {'model': Experiment, 'template': 'objlist/generic_list.html', 'can_add':False, 'link': True}, 'staff-experiment-list'),
-    (r'^experiment/(<?P<id>\d+)/$', 'experiment_object_detail', {'model': Experiment, 'template': 'lims/entries/experiment.html' }, 'staff-experiment-basic-detail'),
-    
-    url(r'^experiment/result/(\d+)/shellstats.png$', 'imm.lims.views.plot_shell_stats', name='staff-plot-shells'),
-    url(r'^experiment/result/(\d+)/framestats.png$', 'imm.lims.views.plot_frame_stats', name='staff-plot-frames'),
-    url(r'^experiment/result/(\d+)/diffstats.png$', 'imm.lims.views.plot_diff_stats', name='staff-plot-diffs'),
-    url(r'^experiment/result/(\d+)/stderr.png$', 'imm.lims.views.plot_error_stats', name='staff-plot-stderr'),
-    url(r'^experiment/result/(\d+)/profiles.png$', 'imm.lims.views.plot_profiles_stats', name='staff-plot-profiles'),
-    url(r'^experiment/result/(\d+)/wilson.png$', 'imm.lims.views.plot_wilson_stats', name='staff-plot-wilson'),
-    url(r'^experiment/result/(\d+)/twinning.png$', 'imm.lims.views.plot_twinning_stats', name='staff-plot-twinning'),
-    
-    (r'^experiment/crystal/(?P<id>\d+)/rescreen/$', 'imm.lims.views.rescreen', {}, 'staff-crystal-rescreen'),
-    (r'^experiment/crystal/(?P<id>\d+)/recollect/$', 'imm.lims.views.recollect', {}, 'staff-crystal-recollect'),
-    (r'^experiment/crystal/(?P<id>\d+)/complete/$', 'imm.lims.views.complete', {}, 'staff-crystal-complete'),
-    
-    (r'^runlist/(?P<runlist_id>\d+)/container/basic/(?P<exp_id>\d+)/$', 'imm.staff.views.container_basic_object_list', {'model':Container, 'template': 'objlist/basic_object_list.html'}, 'staff-container-basic-list'),
-    (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'imm.staff.views.experiment_basic_object_list', {'model':Experiment, 'template': 'staff/lists/basic_experiment_list.html'}, 'staff-experiment-basic-list'),    
-    (r'^runlist/$', 'imm.lims.views.object_list', {'model': Runlist, 'template': 'objlist/generic_list.html', 'can_add': True, 'can_prioritize': True, 'link': True}, 'staff-runlist-list'),
-    (r'^runlist/new/$', 'imm.lims.views.create_object', {'model': Runlist, 'form': RunlistForm, 'template': 'objforms/form_base.html' }, 'staff-runlist-new'),
-    #(r'^runlist/new/(?P<id>\d+)/up/$', 'imm.lims.views.change_priority', {'model': Experiment, 'action': 'up', 'field': 'staff_priority'}, 'staff-experiment-up'),
-    #(r'^runlist/new/(?P<id>\d+)/down/$', 'imm.lims.views.change_priority', {'model': Experiment, 'action': 'down', 'field': 'staff_priority'}, 'staff-experiment-down'),
-    (r'^runlist/(?P<id>\d+)/$', 'imm.lims.views.object_detail', {'model': Runlist, 'template': 'staff/entries/runlist.html'}, 'staff-runlist-detail'),
-    (r'^runlist/(?P<id>\d+)/$', 'imm.lims.views.object_detail', {'model': Runlist, 'template': 'staff/entries/runlist.html'}, 'staff-automounter-detail'),
-    (r'^runlist/(?P<id>\d+)/delete/$', 'imm.lims.views.delete_object', {'model': Runlist, 'form': ConfirmDeleteForm}, 'staff-runlist-delete'),
-    (r'^runlist/(?P<id>\d+)/edit/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistForm, 'template': 'objforms/form_base.html'}, 'staff-runlist-edit'),
-    (r'^runlist/(?P<id>\d+)/load/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'load'}, 'staff-runlist-load'),
-    (r'^runlist/(?P<id>\d+)/unload/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'unload'}, 'staff-runlist-complete'),
-    (r'^runlist/(?P<id>\d+)/accept/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistAcceptForm, 'template': 'objforms/form_base.html', 'action' : 'accept'}, 'staff-runlist-accept'),
-    (r'^runlist/(?P<id>\d+)/reject/$', 'imm.lims.views.edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'reject'}, 'staff-runlist-reject'),
-    (r'^runlist/(?P<id>\d+)/pdf/$', 'imm.lims.views.shipment_pdf', {'format' : 'runlist' }, 'staff-runlist-pdf'),    
-    
-    # new drag and drop model methods
-    # Runlist page
-    (r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.staff.views.add_existing_object', {'destination':Runlist, 'object':Experiment }, 'staff-runlist-add-experiment'),
-    (r'^runlist/(?P<dest_id>\d+)/widget/.*/container/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'imm.staff.views.add_existing_object', {'destination':Runlist, 'object':Container }, 'staff-runlist-add-container'),
-    (r'^runlist_summary/runlist/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'imm.lims.views.remove_object', {'source':Runlist, 'object':Experiment }, 'staff-runlist-remove-experiment'),
-    (r'^runlist_summary/runlist/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'imm.lims.views.remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),
+
+        # Object delete
+        if params.get('delete', False):
+            _dynamic_patterns.append(
+                (r'%s/(?P<id>\d+)/delete/$' % (base_url),
+                 'delete_object', {'model': params.get('model'),
+                                   'form': ConfirmDeleteForm,
+                                   'template': 'objforms/form_base.html',
+                                   },
+                 'staff-%s-delete' % params.get('model').__name__.lower()))
+
+for pattern in _dynamic_patterns:
+    print pattern
+
+#Special Staff Cases
+urlpatterns = patterns('imm.staff.views',
+    (r'^$', 'staff_home', {}, 'staff-home'),
+
+    # Dewars 
+    (r'^shipping/dewar/receive/$', 'receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-dewar-receive'),
+
+    # Runlists
+    (r'^runlist/(?P<runlist_id>\d+)/container/basic/(?P<exp_id>\d+)/$', 'container_basic_object_list', {'model':Container, 'template': 'objlist/basic_object_list.html'}, 'staff-container-basic-list'),
+    (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'experiment_basic_object_list', {'model':Experiment, 'template': 'staff/lists/basic_experiment_list.html'}, 'staff-experiment-basic-list'),   
+    (r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Runlist, 'object':Experiment }, 'staff-runlist-add-experiment'),
+    (r'^runlist/(?P<dest_id>\d+)/widget/.*/container/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'add_existing_object', {'destination':Runlist, 'object':Container }, 'staff-runlist-add-container')
+)
+
+# Dynamic patterns here
+urlpatterns += patterns('imm.lims.views', *_dynamic_patterns )
+
+#Special LIMS Cases
+urlpatterns += patterns('imm.lims.views',
+
+    # Shipments
+    (r'^shipping/shipment/(?P<id>\d+)/return/$', 'edit_object_inline', {'model': Shipment, 'form': ShipmentReturnForm, 'template': 'objforms/form_base.html', 'action' : 'return'}, 'staff-shipment-return'),
+    (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'format' : 'return' }, 'staff-shipment-label'),    
+    (r'^shipping/shipment/(?P<id>\d+)/pdf/$', 'shipment_pdf', {'format' : 'pdf' }, 'staff-shipment-pdf'),    
+
+    # Experiments
+    (r'^experiment/crystal/(?P<id>\d+)/rescreen/$', 'rescreen', {}, 'staff-crystal-rescreen'),
+    (r'^experiment/crystal/(?P<id>\d+)/recollect/$', 'recollect', {}, 'staff-crystal-recollect'),
+    (r'^experiment/crystal/(?P<id>\d+)/complete/$', 'complete', {}, 'staff-crystal-complete'),
+
+    # Runlists
+    (r'^runlist/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),
+    (r'^runlist/(?P<id>\d+)/pdf/$', 'shipment_pdf', {'format' : 'runlist' }, 'staff-runlist-pdf'),    
+    (r'^runlist/(?P<id>\d+)/load/$', 'edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'load'}, 'staff-runlist-load'),
+    (r'^runlist/(?P<id>\d+)/unload/$', 'edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'unload'}, 'staff-runlist-complete'),
+    #(r'^runlist/(?P<id>\d+)/accept/$', 'edit_object_inline', {'model': Runlist, 'form': RunlistAcceptForm, 'template': 'objforms/form_base.html', 'action' : 'accept'}, 'staff-runlist-accept'),
+    #(r'^runlist/(?P<id>\d+)/reject/$', 'edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'reject'}, 'staff-runlist-reject'),
+
 )
 
 urlpatterns += patterns('django.views.generic.simple',
