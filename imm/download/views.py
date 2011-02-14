@@ -66,11 +66,17 @@ def send_raw_file(request, full_path, attatchment=False):
         
     return response
 
+@login_required
 def send_file(request, key, path):
 
     obj = get_object_or_404(SecurePath, key=key)
-    document_root = obj.path
     
+    # make sure only owner and staff can get their files
+    if not request.user.is_staff:
+        if request.user.get_profile() != obj.owner:
+            raise Http404
+    
+    document_root = obj.path
     # Clean up given path to only allow serving files below document_root.
     path = posixpath.normpath(urllib.unquote(path))
     path = path.lstrip('/')
@@ -91,12 +97,18 @@ def send_file(request, key, path):
     return send_raw_file(request, full_path)
 
 
-    
+@login_required   
 def send_png(request, key, path, brightness):
     if brightness not in BRIGHTNESS_VALUES:
         raise Http404
     
     obj = get_object_or_404(SecurePath, key=key)
+    # make sure only owner and staff can get their files
+    if not request.user.is_staff:
+        if request.user.get_profile() != obj.owner:
+            raise Http404
+
+
     img_file = os.path.join(obj.path, '%s.img' % path)
     png_file = os.path.join(CACHE_DIR, obj.key, '%s-%s.png' % (path, brightness))
 
@@ -107,9 +119,15 @@ def send_png(request, key, path, brightness):
             raise Http404        
     return send_raw_file(request, png_file, attatchment=False)
 
+@login_required
 def send_archive(request, key, path):
 
     obj = get_object_or_404(SecurePath, key=key)
+    # make sure only owner and staff can get their files
+    if not request.user.is_staff:
+        if request.user.get_profile() != obj.owner:
+            raise Http404
+            
     dir_name = os.path.join(obj.path, path)
     tar_file = os.path.join(CACHE_DIR, obj.key, '%s.tar.gz' % (path,))
     if not os.path.exists(tar_file):
