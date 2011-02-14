@@ -20,10 +20,7 @@ urlpatterns = patterns('',
     
     # this will find the staff only urls
     (r'^staff/', include('imm.staff.urls')),
-    
-    # the order of the following two matters - putting '^lims/' include last ensures url/reverse maps
-    # the named urls "lims-*" to the correct absolute urls (the include process overwrites the duplicates)
-    #(r'^staff/', include('imm.lims.urls')),
+    # lims urls
     (r'^lims/',  include('imm.lims.urls')),
     
     (r'^download/', include('imm.download.urls')),

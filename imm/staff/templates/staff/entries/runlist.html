@@ -82,18 +82,4 @@
         </div>
 {% endblock %}
 
-{% block script %}
-{{ block.super }}
-    <script>
-		function remove_item(element) {
-			jQuery.ajax({
-                type: "POST",
-                url: element.rel,
-                data: "",
-                success: function() {
-                    window.location.reload();
-                }
-            });
-        }
-    </script>
-{% endblock %}
+

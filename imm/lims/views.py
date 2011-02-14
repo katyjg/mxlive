@@ -796,7 +796,6 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
             }, context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=dict(request.GET.items())) # casting to a dict pulls out first list item in each value list
-        print frm
         if request.project:
             frm.restrict_by('project', request.project)
         return render_to_response(template, {
@@ -1002,7 +1001,6 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
             else:
                 url_prefix = 'lims'
             url_name = "%s-%s-list" % (url_prefix, model.__name__.lower())
-            print url_name, reverse(url_name)
             return render_to_response("lims/redirect.json", {
             'redirect_to': reverse(url_name),
             }, context_instance=RequestContext(request), mimetype="application/json")

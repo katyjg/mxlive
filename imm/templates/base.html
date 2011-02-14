@@ -193,6 +193,7 @@
                     return false;
                 },
                 drop: function( event, ui ) {
+                    jQuery.fancybox.showActivity();
                 	// when dropping, retreive it's parent element (drag source)
                 	var destination = jQuery(this);
                     current_url = window.location.href

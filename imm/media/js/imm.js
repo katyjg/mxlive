@@ -186,6 +186,7 @@ function initModals(){
 }
     
 function remove_item(element) {
+    jQuery.fancybox.showActivity();
 	jQuery.ajax({
         type: "POST",
         url: element.rel,
