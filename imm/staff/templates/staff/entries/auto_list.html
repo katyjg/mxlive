@@ -18,10 +18,9 @@
             <ul>
 
                 <li class="occupied Cassette"   
-                    {% comment %}href="{% url lims-container-detail cassette.pk %}"   {% endcomment %} 
                     automounter_location="{{ side }}"
                     style="height:100%">
-                    {{ cassette.label }}
+                    <a href="{% url staff-container-detail cassette.pk %}" title="Go to Container {{cassette.name }}">{{ cassette.label }}</a>
                     <a class="remove"
                        rel="{% url staff-runlist-remove-container object.pk cassette.pk %}"
                        href="#"

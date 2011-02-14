@@ -81,22 +81,6 @@ def staff_home(request):
         'statistics': statistics,
         'handler': request.path,
         }, context_instance=RequestContext(request))
-
-@admin_login_required
-def feedback_item(request, id, template='lims/feedback_item.html'):
-    return render_to_response(template, { 'item': Feedback.objects.get(pk=id), })
-    
-@admin_login_required
-@manager_required
-def runlist_summary(request, model=ActivityLog):
-    log_set = [
-        ContentType.objects.get_for_model(Runlist).pk, 
-    ]
-    return render_to_response('staff/runlist.html',{
-        'logs': request.manager.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
-        'request': request,
-        },
-        context_instance=RequestContext(request))
     
 @admin_login_required
 @transaction.commit_on_success
