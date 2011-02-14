@@ -6,7 +6,8 @@ table { border-collapse: collapse;  empty-cells: show;}
     line-height: 60px;
     display: block;
     float: left;
-    
+    color: #555;
+    text-shadow:#FFFFFF 0 1px 1px;    
 }
 
 #content-title h2 span.identity {
@@ -601,7 +602,7 @@ a.swf {
     border-width: 0px;
     border-color:#999999;
     position: relative;
-    background-color: #eee;
+    background-color: #831e31;
     opacity: 0.8;
 }
 

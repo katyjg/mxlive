@@ -407,6 +407,19 @@ img
     margin-top: -100px;
 }
 
+#footer p {
+    color: #687061;
+    padding-top: 1em;
+    text-shadow:#FFFFFF 0 1px 1px;
+    }
+
+#footer p a {
+    margin: 0;
+    padding: 0 7px;
+    color: #687061 !important;
+    line-height: 35px;
+}
+
 #sidebar {
     width: 219px;
     float: left;
@@ -557,8 +570,9 @@ table.cane-detail td {
 }
 
 .runlist-detail li.lims-droppable-active {
-    border-top: none;
+    border-top: none;    
 }
+
 .runlist-detail li.lims-droppable-hover {
     border-style:solid;
     order-width:1px;
@@ -567,6 +581,7 @@ table.cane-detail td {
     opacity: 0.8;
     border-top: none;
 }
+
 .dewar-detail ul {
     margin-bottom: 5px;
 }

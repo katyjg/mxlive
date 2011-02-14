@@ -104,9 +104,6 @@ for section, subsection in _URL_META.items():
                                    },
                  'staff-%s-delete' % params.get('model').__name__.lower()))
 
-for pattern in _dynamic_patterns:
-    print pattern
-
 #Special Staff Cases
 urlpatterns = patterns('imm.staff.views',
     (r'^$', 'staff_home', {}, 'staff-home'),
