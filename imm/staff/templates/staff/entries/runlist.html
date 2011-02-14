@@ -1,22 +1,35 @@
+{% extends "base.html" %}
+
 {% load humanize %}
 
-{% include "staff/tools.html" %}
+{% block headline %}
+<h2><span class="identity">{{object.identity}}</span> {{object.name}}</h2>
+{% endblock %}
+
+{% block object-tools %}
+<div class="object-tools">
+    {% include "staff/tools.html" %}
+    <ul class="toolbar">
+        <li class="back-tool">
+            <a href="{% url staff-runlist-list %}">Full List</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
 
 {% with object as runlist %}
+    
+    <div class="runlist droppable droppable-add" accept="experiment" title="Drag and drop onto this image"></div>    
 
-    <h3>{{ runlist.name }}</h3>
-    <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="100%">
-    	<tr valign=top"><th>Comments:</th><td>{{object.comments}}</td></tr>
-    </table>
-    
-    <img src="/img/runlist.png" class="droppable droppable-add" accept="container experiment" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/>
-    
     <!-- width set to 70% to give the image space to sit side by side -->
-    <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="70%">
+    <table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
         <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Status:</th><td>{{ object.get_status_display }}</td></tr>
-        <tr valign="top"><th>Projects:</th><td>
+        <tr valign="top"><th>Beamline:</th><td>{{ object.beamline }}</td></tr>
+{% comment %}        <tr valign="top"><th>Projects:</th><td>
         	{% for experiment in object.experiments.all %}
         		{{ experiment.project }}  
         	{% endfor %}
@@ -25,23 +38,48 @@
         	{% for experiment in object.experiments.all %}
         		{{ experiment.name }} 
         	{% endfor %}
-        </td></tr>
+        </td></tr>{% endcomment %}
         
     </table>
-    <div style="clear: both;"></div>
+{% if object.comments %}
+    <div class="entrycomment">
+    <span class="left-pointer"></span>
+    <h3>Comments</h3>
+    <p>{{ object.comments}}</p>
+    </div>
+{% endif %}
+<div class="clear"></div>
+    
+<div class="object-list">
+<h3>Automounter Configuration</h3>
+</div>
 
-{% load get_location %}
-
-    <h3>Containers</h3>
-    	<ul class="treeview">
-    		{% for container in object.containers.all %}
-    			<li id="{{ container.id }}" class="container draggable-link-parent" rel="{% url lims-container-detail container.id %}/">
-    				<a class="container" href="{% url lims-container-detail container.id %}">
-    					{% get_location runlist.automounter container %} - {{container.label }} {{ container.identity }} 
-    				</a>
-    			</li>
-    		{% endfor %}
-    	</ul>
+{% load runlist_extras %}
+{% auto_location object "left" %}
+{% auto_location object "middle" %}
+{% auto_location object "right" %}
 
 {% endwith %}
+    <div style="clear: both;"></div>
+{% experiment_table object request.user.is_superuser %}
+
+
+{% endblock %}
+
+{% block sidebar %}
+        <div id="experiments" class="widget droppable-remove parent-stop" data="{% url staff-experiment-basic-list object.pk %}">
+	       <div class="widget-title">
+	       <span>Experiments</span></div>
+            <ul>
+                <p class="list-empty">( Not loaded )</p>
+            </ul>
+        </div>
+        <div id="containers" class="widget droppable-remove parent-stop">
+	       <div class="widget-title"><span class="container-widget-title">Containers</span></div>
+            <ul>
+                <p class="list-empty">( No containers )</p>
+            </ul>
+        </div>
+{% endblock %}
+
 

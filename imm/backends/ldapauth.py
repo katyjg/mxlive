@@ -124,7 +124,7 @@ class LDAPBackend(object):
             # the end for other ldap.search_s call to work authenticated.
             l.bind_s(bind_string, password)
         except (self.ldap.INVALID_CREDENTIALS, 
-                self.ldap.UNWILLING_TO_PERFORM), exc:
+                self.ldap.UNWILLING_TO_PERFORM, self.ldap.SERVER_DOWN), exc:
             # Failed user/pass (or missing password)
             if self.settings['LDAP_DEBUG']:
                 logging.info('LDAPBackend.authenticate failed: %s' % exc)

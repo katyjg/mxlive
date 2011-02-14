@@ -22,7 +22,23 @@ def show_one_filter(ol, spec, url):
     """
     return {'title': spec.title(), 'choices' : list(spec.choices(ol)), 'url' : url}
 
-@register.inclusion_tag('objlist/filters.html')
+@register.inclusion_tag('objlist/weekly_filter.html')
+def show_weekly_filter(ol, url):
+    """
+    Renders a single weekly Filter specification ``spec`` for a given object list ``ol``. 
+    Only one is supported per object list. If more than one is defined, the previous one is overwritten.
+    """
+    choices = []
+    if ol.has_filters:
+        for f in ol.filter_specs:
+            if f.__class__.__name__ == 'WeeklyFilterSpec':
+                choices = list(f.choices(ol))
+    if len(choices) == 3:
+        return {'weekly_filter': True, 'previous' : choices[0], 'current': choices[1], 'next': choices[2], 'url' : url}
+    else:
+        return {'weekly_filter': False, 'url' : url}
+
+@register.inclusion_tag('objlist/basic_filters.html')
 def show_all_filters(ol, url):
     """
     Renders a full filter list a given object list ``ol``. 
@@ -52,7 +68,9 @@ def truncate(value, arg):
         
 @register.inclusion_tag('objlist/list_entry.html', takes_context=True)
 def list_entry(context, obj, handler, loop_count):
-    """Renders an entry for the object ``obj`` in an object list table. If the
+    """
+    Added for January 2011 UI changes.
+    Renders an entry for the object ``obj`` in an object list table. If the
     ``context`` contains a ``link=True`` variable, a link will be added to
     the object's detailed page.
     """ 
@@ -60,10 +78,6 @@ def list_entry(context, obj, handler, loop_count):
     if ol:
         model_admin = ol.model_admin
         
-    single = ''
-    if ol.object_type.lower() == 'runlist':
-        single = 'single'
-
     checked, form = False, context.get('form', None)
     if form and hasattr(obj, 'get_form_field'):
         form_data = MultiValueDict(form.data)
@@ -72,14 +86,16 @@ def list_entry(context, obj, handler, loop_count):
     return {'fields': list(object_fields(obj, model_admin=model_admin)),
              'object': obj,
              'link': context.get('link', False),
+             'modal_link': context.get('modal_link', False),
+             'modal_edit': context.get('modal_edit', False),
+             'modal_upload': context.get('modal_upload', False),
+             'delete_inline': context.get('delete_inline', False),
              'form': form,
              'checked': checked,
-             'can_prioritize': context.get('can_prioritize', False),
              'request': context,
              'handler' : handler,
              'row_state' : "odd" if loop_count % 2 == 1 else "even",
              'type' : ol.object_type,
-             'single' : single
             }
        
 def object_fields(obj, model_admin=None):

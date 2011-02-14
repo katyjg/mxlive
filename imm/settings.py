@@ -17,7 +17,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    ('Michel Fodje', 'michel.fodje@lightsource.ca'),
+    ('Kathryn Janzen', 'kathryn.janzen@lightsource.ca'),
 )
 ADMIN_MESSAGE_USERNAME = None
 
@@ -83,6 +83,7 @@ MIDDLEWARE_CLASSES = (
     #'django.middleware.doc.XViewMiddleware',
     #'django.middleware.locale.LocaleMiddleware',
     'django.middleware.transaction.TransactionMiddleware',
+    'reversion.middleware.RevisionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
 )
 
@@ -114,9 +115,10 @@ INSTALLED_APPS = (
     'imm.staff',
     'imm.objlist',
     'imm.objforms',
-    'imm.messaging',
     'imm.remote',
-    'jsonrpc'
+    'imm.download',
+    'jsonrpc',
+    'reversion',
 )
 
 

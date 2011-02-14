@@ -1,28 +1,29 @@
+{% extends "base.html" %}
 {% load humanize %}
 
-{% include "lims/tools.html" %}
+{% block headline %}
+<h2><span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
+{% endblock %}
 
-{% with object as shipment %}
+{% block object-tools %}
+<div class="object-tools">
+    {% include "lims/tools.html" %}
+    <ul class="toolbar">
+        <li class="back-tool" >
+            <a href="{% url lims-shipment-list %}">Full List</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
 
-    <h3>{{ shipment.label }} ({{ shipment.identity }})</h3>
-    <table class="entrysummary" cellpadding="0" cellspacing="0" border="0" width="100%" style="float:left; clear: left;">
-    	<tr valign="top"><th>Comments:</th><td>{{ shipment.comments }}</td></tr>
-    	{% if shipment.shipping_errors %}
-    		<tr valign="top"><th>Messages:</th><td style="color: red">{{ shipment.shipping_errors.0 }}</td></tr>
-    	{% endif  %}
-    </table>
-    
-    <img class="droppable droppable-add drop-image" accept="container dewar crystal" src="/img/shipment.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/>
+{% block content %}
 
-    <table class="entrysummary" cellpadding="0" cellspacing="0" border="0" width="60%" style="float:left; clear: left;">
+{% with object as shipment %}   
+    <div class="shipment droppable droppable-replace" {% if shipment.is_editable %}accept="dewar" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>
+    <table class="entrysummary" cellpadding="0" cellspacing="0" border="0">
         <tr valign="top"><th>Status:</th><td>{{ shipment.get_status_display }}</td></tr>
         {% ifequal shipment.status shipment.STATES.DRAFT %}
-            <tr valign="top">
-                <th>Shippable:</th>
-                    <td>
-                        {{shipment.shipping_errors|yesno:"No,Yes"}}
-                    </td>
-            </tr>
+            <tr valign="top"><th>Shippable:</th><td>{{shipment.shipping_errors|yesno:"No,Yes"}}</td></tr>
         {% endifequal %}
         {% if shipment.date_shipped %}
         	<tr valign="top"><th>Carrier:</th><td>{{ shipment.carrier }}</td></tr>
@@ -37,25 +38,68 @@
         	<tr valign="top"><th NOWRAP>Return Code:</th><td>{{ shipment.return_code }}</td></tr>
         {% endif %}
         <tr valign="top"><th>Processed:</th><td>{% if shipment.is_processed %}Yes{% else %} No {% endif %}</td></tr>
-        
     </table>
-    <div style="clear: both;"></div>
 
+{% if shipment.comments or shipment.shipping_errors %}
+    <div class="entrycomment">
+    <span class="left-pointer"></span>
+    <h3>Comments</h3>
+    <p>{{ shipment.comments|default:""}}</p>
+    	{% if shipment.shipping_errors %}
+    	<ul>
+    	{% for error in shipment.shipping_errors %}
+        <li style="color: red">{{error}}</li>
+        {% endfor %}
+        </ul>
+    	{% endif  %}
+    </div>
+{% endif  %}
+
+    <div class="clear"></div>
+    
+    <div class="object-list">
     <h3>Dewars</h3>
-    <img src="/img/dewar.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/>
+    <!--img src="/img/dewar.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/-->
 
     {% with shipment.dewar_set as dewars %}
         {% if dewars.count %}
-            <ul class="treeview">
-                {% for dewar in dewars.all %}
-                <li id="{{dewar.id}}" class="dewar draggable-link-parent droppable parent-stop" accept="container" rel="{% url lims-dewar-detail dewar.id %}">
-                    <a class="dewar"  href="{% url lims-dewar-detail dewar.id %}">{{ dewar.label }} ({{ dewar.identity }})</a>
-                </li>
-                {% endfor %}
-            </ul>
+            {% load dewar_table %}
+            {% for dewar in dewars.all %}
+                {% dewar_table dewar request.user.is_superuser "shipment" %}
+            {% endfor %}
         {% else %}
-            (No dewars assigned to this shipment.)
+            <table width="100%">
+            <tr><td colspan="20" align="center" class="list-empty">(No dewars assigned to this shipment)</td></tr>
+            </table>
         {% endif %}
     {% endwith %}
-
+    </div>
+    <div class="clear"></div>
 {% endwith %}
+
+{% load experiment_table %}
+{% experiment_table object request.user.is_superuser %}
+
+{% endblock %}
+
+{% block sidebar %}
+    {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
+        <div id="dewars" class="widget droppable-remove parent-stop" data="{% url lims-dewar-basic-list %}?orphan_field=shipment">
+	       <div class="widget-title">
+	       <span>Dewars</span><a href="{% url lims-dewar-new %}" class="modal-form add-action" title="Add New Dewar"><img src="/img/small-add-icon.png" /></a>
+	       </div>
+            <ul>
+                <p class="list-empty">( Not loaded )</p>
+            </ul>
+        </div>
+
+        <div id="containers" class="widget droppable-remove parent-stop" data="{% url lims-container-basic-list %}?orphan_field=dewar">
+	       <div class="widget-title">
+	       <span>Container</span><a href="{% url lims-container-new %}" class="modal-form add-action" title="Add New Container"><img src="/img/small-add-icon.png" /></a>
+	       </div>
+            <ul>
+                <p class="list-empty">( Not loaded )</p>
+            </ul>
+        </div>
+    {% endif %}
+{% endblock %}

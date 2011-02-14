@@ -1,65 +1,51 @@
 {% extends "base.html" %}
 
-{% block content %}
-{{ block.super }}
-    <h2>Welcome, {{ user }}</h2>
-    {% include "lims/project_help.html" %}
-    <div class="content-list" id="inbox">
-        {% comment %}
-        The content for this div is loaded via ajax in the script block below.
-        {% endcomment %}
+{% block headline %}
+<h2>Welcome, {{ user }}</h2>
+{% endblock %}
+
+{% block object-tools %}
+    <div class="object-tools">
+        <ul class="toolbar">
+            <li class="template-tool"><a href="http://cmcf.lightsource.ca/media/uploads/medialibrary/spreadsheet_blank.xls" title="Download spreadsheet template">Get Template</a>
+            <li class="upload-tool"><a class="modal-upload-form"  href="{% url lims-shipment-upload %}" title="Upload shipment from spreadsheet">Upload</a>
+            <li class="feedback-tool"><a class="modal-form"  href="{% url lims-feedback-new %}" title="Send us feedback">Feedback</a></li>
+            <li class="profile-tool"><a class="modal-form"  href="{% url lims-profile-edit %}" title="Edit your profile">Profile</a>
+        </ul>
+        <div class="clear"></div>
     </div>
 {% endblock %}
 
-{% block sidebar %}
-    {% include "lims/project_summary.html" %}   
-    {{ block.super }} 
-{% endblock %}
+{% block content-override %}
+    <!-- left region -->
+	<div id="left-content" class="col-4">
+	<p>This LIMS is a web application for managing sample, shipping and experiment information 
+	related to macromolecular crystallography experiments at the synchrotron.</p>
+    <p>The lims is organized into sections accessible through the tabbed navigation above. 
+    The <em>Samples</em> section enables you to manage crystals, and their contents.
+    You can organize crystals to send to the sychrotron in Containers and Dewars in the <em>Shipping</em> section. In the
+    <em>Experiments</em> section, you can enter experiment requests, and view datasets and results from already performed experiments.</p>
+    </div>
+    <!--left region -->
+    <!-- middle region -->
+	<div id="middle-content" class="col-4">
+    {% include "lims/status_overview.html" %}   
+	</div>
+	<!-- end middle region -->
+    <!-- right region -->
+	<div id="right-content" class="col-4">
+    {% load link_list %}
+    {% link_list %}
+	</div>
+	<div class="clear spacer"></div>
+    <!-- bottom region -->
+	<div id="bottom-content" class="col-12">
+	{% with activity_log as ol %}
+    {% include "lims/activity_history.html" %}
+    {% endwith %}
+	</div>
+	<!-- end bottom region -->
 
-{% block script %}
-{{ block.super }}
-<script>
-jQuery(function() {
-    jQuery("#inbox").load("{% url lims-inbox %}", function() {});
-    
-    jQuery(function() {
-        // handles all the '+ add' buttons.
-        jQuery("a.modal").live("click", function() {
-            var $button = jQuery(this);
-            var contentURL = $button.attr("href");
-            var $modal = jQuery($button.attr("rel"));
-            // this attempts to preload the content
-            if(!$modal.find("a.close").length) {
-                $modal.append("<div class='content'></div>");
-                $modal.append('<a href="#" class="close" id="close_x">close</a>');
-            }
+{% endblock %}	
 
-            $modal.find('.content').load(contentURL, function(e, status) {
-                if(status === "success") {
-                    $modal.lightbox_me({
-                        centered: true,
-                        destroyOnClose: true,
-                        overlaySpeed: "fast",
-                        overlayDisappearSpeed: "fast",
-                        lightboxSpeed: "fast",
-                        lightboxdisappearSpeed: "fast",
-                        onLoad: function() {
-                            // FIXME: find a better place for this
-                            jQuery(".slideview").slideView();
-                        },
-                        onClose: function() {
-                            // reload the relevant forms that have been updated
-                            loadWidgets();
-                            refreshDatalist();
-                            // loadDatalists();
-                        }
-                    });
-                }
-            });
-            return false;
-        });
-	});
-});
-</script>
-{% endblock %}
 

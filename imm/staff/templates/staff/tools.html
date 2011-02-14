@@ -1,49 +1,51 @@
-<div id="load-runlist" class="hidden modal-content"></div>
-<div id="unload-runlist" class="hidden modal-content"></div>
-<div id="accept-runlist" class="hidden modal-content"></div>
-<div id="reject-runlist" class="hidden modal-content"></div>
-<div id="edit-runlist" class="hidden modal-content"></div>
-<div id="delete-runlist" class="hidden modal-content"></div>
-
-<ul class="tools">
+<ul class="toolbar">
     {% if object.is_loadable %}
-        <li>
-            <a href="{{ handler }}load/" rel="#load-runlist" class="action modal edit-tool">
+        <li class="load-tool">
+            <a href="{{ handler }}load/" class="action modal-form">
                 Load
             </a>
         </li>
     {% endif %}
     {% if object.is_unloadable %}
-        <li>
-            <a href="{{ handler }}unload/" rel="#unload-runlist" class="action modal edit-tool">
+        <li class="unload-tool">
+            <a href="{{ handler }}unload/"  class="action modal-form">
                 Unload
             </a>
         </li>
     {% endif %}
+    {% if object.is_pdfable %}
+        <li class="pdf-tool">
+            <a href="{{handler}}pdf/">
+                Protocol
+            </a>
+        </li>
+    {% endif %}
+    {% comment %}
     {% if object.is_acceptable %}
-        <li>
-            <a href="{{ handler }}accept/" rel="#accept-runlist" class="action modal edit-tool">
+        <li class="accept-tool">
+            <a href="{{ handler }}accept/"  class="action modal-form">
                 Accept
             </a>
         </li>
     {% endif %}
     {% if object.is_rejectable %}
-        <li>
-            <a href="{{ handler }}reject/" rel="#reject-runlist" class="action modal edit-tool">
+        <li class="reject-tool">
+            <a href="{{ handler }}reject/"  class="action modal-form">
                 Reject
             </a>
         </li>
     {% endif %}
+    {% endcomment %}
     {% if object.is_editable %}
-        <li>
-            <a href="{{ handler }}edit/" rel="#edit-runlist" class="action modal edit-tool">
+        <li class="edit-tool">
+            <a href="{{ handler }}edit/"  class="action modal-form">
                 Edit
             </a>
         </li>
     {% endif %}
     {% if object.is_deletable %}
-        <li>
-            <a href="{{ handler }}delete/" rel="#delete-runlist" class="action modal edit-tool">
+        <li class="delete-tool">
+            <a href="{{ handler }}delete/"  class="action modal-form">
                 Delete
             </a>
         </li>

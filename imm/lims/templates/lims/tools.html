@@ -3,81 +3,86 @@
     note: this file defines tools for both staff and users
 {% endcomment %}
 
-<div id="receive-object" class="hidden modal-content"></div>
-<div id="return-object" class="hidden modal-content"></div>
-<div id="send-object" class="hidden modal-content"></div>
-<div id="close-object" class="hidden modal-content"></div>
-<div id="clone-object" class="hidden modal-content"></div>
-<div id="edit-object" class="hidden modal-content"></div>
-<div id="delete-object" class="hidden modal-content"></div>
-
-<ul class="tools">
+<ul class="toolbar">
     {# STAFF TOOLS #}
-    {% if request.user.is_superuser %}
+    {% if request.user.is_staff %}
         {% if object.is_receivable %}
-            <li>
-                <a href="{{ handler }}receive/?title=Recieve%20Shipment&tracking_code=" rel="#receive-object" class="action modal edit-tool">
+            <li class="receive-tool">
+                <a href="{% url staff-dewar-receive %}?label={{object.label}}"  class="action modal-form">
                     Receive
                 </a>
             </li>
         {% endif %}
         {% if object.is_returnable %}
-            <li>
-                <a href="{{handler}}return/?title=Return%20Shipment" rel="#return-object" class="action modal edit-tool">
+            <li class="return-tool">
+                <a href="{{handler}}return/?title=Return%20Shipment"  class="action modal-form">
                     Return
+                </a>
+            </li>
+            <li class="pdf-tool">
+                <a href="{{handler}}label/" class="">
+                    Labels
+                </a>
+            </li>
+        {% endif %}
+        {% if object.is_pdfable %}
+            <li class="pdf-tool">
+                <a href="{{handler}}pdf/">
+                    Protocol
                 </a>
             </li>
         {% endif %}
     {# USER TOOLS #}
     {% else %}
         {% if object.is_sendable %}
-            <li>
-                <a href="{{handler}}send/?title=Send%20Shipment" rel="#send-object" class="action modal send-tool">
+            <li class="send-tool">
+                <a href="{{handler}}send/?title=Send%20Shipment"  class="action modal-form">
                     Send
                 </a>
             </li>
         {% endif %}
-        {% if object.is_pdfable %}
-            <li>
-                <a onclick="window.open('{{handler}}pdf/');" class="pdf-tool">
-                    PDF
+        {% if object.has_labels %}
+            <li class="pdf-tool">
+                <a href="{{handler}}label/" class="">
+                    Labels
                 </a>
             </li>
         {% endif %}
         {% if object.is_xlsable %}
-            <li>
-                <a onclick="window.open('{{handler}}xls/');" class="xls-tool">
-                    XLS
+            <li class="template-tool">
+                <a href="{{handler}}xls/">
+                    Spreadsheet
                 </a>
             </li>
         {% endif %}
         {% if object.is_closable %}
-            <li>
-                <a href="{{handler}}close/" rel="#close-object" class="action modal close-tool">
+            <li class="close-tool">
+                <a href="{{handler}}close/" class="action modal-form">
                     Close
                 </a>
             </li>
         {% endif %}
         {% comment %}
-        <li>
-            <a onclick="linkto('{{ handler }}new/?clone={{object.id}}');" class="clone-tool">
+        <li class="clone-tool">
+            <a href="{{ handler }}../new/?clone={{object.id}}" class="action modal-form">
                 Clone
             </a>
         </li>
         {% endcomment %}
         {% if object.is_editable %}
-            <li>
-                <a href="{{ handler }}edit/" rel="#edit-object" class="action modal edit-tool">
+            <li class="edit-tool">
+                <a href="{{ handler }}edit/"  class="action modal-form">
                     Edit
                 </a>
             </li>
         {% endif %}
         {% if object.is_deletable %}
-            <li>
-                <a href="{{ handler }}delete/" rel="#delete-object" class="action modal delete-tool">
+            <li class="delete-tool">
+                <a href="{{ handler }}delete/"  class="action modal-form">
                     Delete
                 </a>
             </li>
         {% endif %}
     {% endif %}
 </ul>
+

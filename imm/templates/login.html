@@ -1,15 +1,16 @@
 {% extends "base.html" %}
 
 {% block bodyclass %}login{% endblock %}
-
 {% block content-override %}
     <div class="login-error">{{ form.non_field_errors.0 }}</div>
     {% if error_message %}
         <p class="errornote">{{ error_message }}</p>
     {% endif %}
             
-    <div id="content-main">
-        <form action="{{ app_path }}" method="post" id="login-form" class="wofoo">{% csrf_token %}
+    <div id="content">
+        <div style="height: 2.5em;"></div>
+        <form action="{{ app_path }}" method="post" id="login-form" class="objform">
+            {% csrf_token %}
             <div class="form-row">
                 <div class="login-error login-field-error">{{ form.username.errors.0 }}</div>
                 <label for="id_username">Username:</label> <input type="text" name="username" id="id_username" class="large text field" />
@@ -25,8 +26,5 @@
             </div>
         </form>
 
-        <img src="/img/blank.png" width=0 height=0 onload="init_form('login-form');" />
-        
-        Firefox is recommended.
     </div>
 {% endblock %}

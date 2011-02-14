@@ -5,18 +5,20 @@ import xlutils.save
 import os
 import logging
 
+
 from imm.lims.models import Experiment
 from imm.lims.models import Dewar
 from imm.lims.models import Crystal
 from imm.lims.models import Shipment
 from imm.lims.models import Container
-from imm.lims.models import Constituent
 from imm.lims.models import Cocktail
 from imm.lims.models import ActivityLog
 from imm.lims.models import SpaceGroup
 from imm.lims.models import CrystalForm
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import smart_str
+from django.utils import dateformat
+from datetime import datetime
 
 COLUMN_MAP = dict([(index, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[index]) for index in range(26)])
 
@@ -101,7 +103,6 @@ class LimsWorkbook(object):
         self.dewar = self._get_dewar()
         self.experiments = self._get_experiments()
         self.containers = self._get_containers()
-        self.constituents = self._get_constituents()
         self.cocktails = self._get_cocktails()
         self.crystals = self._get_crystals()
         self.space_groups = self._get_space_groups()
@@ -112,7 +113,8 @@ class LimsWorkbook(object):
         
         @return: a Shipment instance
         """
-        return Shipment(project=self.project, label='Uploaded Shipment')
+        label = "Uploaded %s " % dateformat.format(datetime.now(), 'M jS, P')
+        return Shipment(project=self.project, label=label)
     
     def _get_dewar(self):
         """ Returns a Dewar
@@ -159,25 +161,6 @@ class LimsWorkbook(object):
                     
         return containers
     
-    def _get_constituents(self):
-        """ Returns a dict of {'name' : Constituent} from the Excel file 
-        
-        @return: dict of {'name' : Constituent}
-        """
-        constituents = {}
-        for row_num in range(1, self.crystals_sheet.nrows):
-            row_values = self.crystals_sheet.row_values(row_num)
-            if row_values[CRYSTAL_COCKTAIL]:
-                names = row_values[CRYSTAL_COCKTAIL].split(Cocktail.NAME_JOIN_STRING)
-                normalized_names = [name.strip() for name in names]
-                for name in normalized_names:
-                    constituent = Constituent()
-                    constituent.project = self.project
-                    constituent.name = name
-                    constituent.acronym = name
-                    constituents[name] = constituent
-        return constituents
-    
     def _get_cocktails(self):
         """ Returns a dict of {'name' : Cocktail} from the Excel file 
         
@@ -187,15 +170,13 @@ class LimsWorkbook(object):
         for row_num in range(1, self.crystals_sheet.nrows):
             row_values = self.crystals_sheet.row_values(row_num)
             if row_values[CRYSTAL_COCKTAIL]:
-                cocktail = Cocktail()
-                cocktail.project = self.project
-                names = row_values[CRYSTAL_COCKTAIL].split(Cocktail.NAME_JOIN_STRING)
-                normalized_names = sorted([name.strip() for name in names])
-                cocktail.tmp_constituents = []
-                for name in normalized_names:
-                    constituent = self.constituents[name]
-                    cocktail.tmp_constituents.append(constituent)
-                cocktails[Cocktail.NAME_JOIN_STRING.join(normalized_names)] = cocktail
+                if row_values[CRYSTAL_COCKTAIL] not in cocktails:
+                    cocktail = Cocktail()
+                    cocktail.project = self.project
+                    if row_values[CRYSTAL_COCKTAIL]:
+                        cocktail.name = row_values[CRYSTAL_COCKTAIL]
+                    cocktails[cocktail.name] = cocktail
+                    
         return cocktails
     
     def _get_space_groups(self):
@@ -360,11 +341,11 @@ class LimsWorkbook(object):
                 if not crystal.container.location_is_valid(crystal.container_location):
                     self.errors.append(CRYSTAL_CONTAINER_LOCATION_ERROR % (row_values[CRYSTAL_CONTAINER_LOCATION], row_num))
                 
-            if row_values[CRYSTAL_COCKTAIL]:
-                names = row_values[CRYSTAL_COCKTAIL].split(Cocktail.NAME_JOIN_STRING)
-                normalized_names = sorted([name.strip() for name in names])
-                cocktail = self.cocktails[Cocktail.NAME_JOIN_STRING.join(normalized_names)]
-                crystal.cocktail = cocktail
+            NAME_JOIN_STRING = '/'
+            if row_values[CRYSTAL_COCKTAIL] and row_values[CRYSTAL_COCKTAIL] in self.cocktails:
+                crystal.cocktail = self.cocktails[row_values[CRYSTAL_COCKTAIL]]
+            else:
+                self.errors.append(CRYSTAL_COCKTAIL_ERROR % (row_values[CRYSTAL_CONTAINER], row_num))
                 
             if row_values[CRYSTAL_COMMENTS]:
                 crystal.comments = row_values[CRYSTAL_COMMENTS]
@@ -377,7 +358,10 @@ class LimsWorkbook(object):
         
         @return: True if the spreadsheet has no validation errors, and False otherwise
         """
-        self._read_xls()
+        try:
+            self._read_xls()
+        except xlrd.XLRDError:
+            self.errors.append('Spreadsheet invalid')
         return not bool(self.errors)
     
     def log_activity(self, obj, request):
@@ -388,14 +372,10 @@ class LimsWorkbook(object):
         """
         if obj and request:
             ActivityLog.objects.log_activity(
-                        self.project.pk,
-                        request.user.pk, 
-                        request.META['REMOTE_ADDR'],
-                        ContentType.objects.get_for_model(obj.__class__).id,
-                        obj.pk, 
-                        smart_str(obj), 
+                        request,
+                        obj, 
                         ActivityLog.TYPE.CREATE,
-                        'The %(name)s "%(obj)s" was uploaded successfully.' % {'name': smart_str(obj.__class__._meta.verbose_name), 'obj': smart_str(obj)}
+                        '%(name)s (%(obj)s) uploaded' % {'name': smart_str(obj.__class__._meta.verbose_name), 'obj': smart_str(obj)}
                         )
     
     def save(self, request=None):
@@ -409,8 +389,6 @@ class LimsWorkbook(object):
             self.log_activity(self.shipment, request)
             self.dewar.shipment = self.shipment
             self.dewar.save()
-            self.dewar.code = '%s-%s-%s' % (self.project.user.username, self.shipment.pk, self.dewar.pk)
-            self.dewar.save()
             self.log_activity(self.dewar, request)
             for experiment in self.experiments.values():
                 experiment.save()
@@ -421,7 +399,6 @@ class LimsWorkbook(object):
                     crystal_form.save()
                     if self.space_groups.has_key(experiment.name):
                         space_group = self.space_groups[experiment.name]
-                        space_group.save()
                         crystal_form.space_group = space_group
                         crystal_form.save()
                         
@@ -430,15 +407,9 @@ class LimsWorkbook(object):
                 container.dewar = self.dewar
                 container.save()
                 self.log_activity(container, request)
-            for constituent in self.constituents.values():
-                constituent.save()
-                self.log_activity(constituent, request)
             for cocktail in self.cocktails.values():
                 cocktail.save()
                 self.log_activity(cocktail, request)
-                for constituent in cocktail.tmp_constituents:
-                    cocktail.constituents.add(constituent)
-                    cocktail.save()
             for crystal in self.crystals.values():
                 crystal.container = crystal.container # force the fk reln
                 crystal.cocktail = crystal.cocktail # force the fk reln
@@ -530,7 +501,7 @@ class LimsWorkbookExport(object):
             if experiment.resolution:
                 row.write(EXPERIMENT_RESOLUTION, experiment.resolution)
                 
-            crystal_forms = [crystal.crystal_form for crystal in experiment.crystals.all()]
+            crystal_forms = [crystal.crystal_form for crystal in experiment.crystal_set.all()]
             if len(set(crystal_forms)) == 1 and None not in crystal_forms:
                 crystal_form = crystal_forms[0]
                 

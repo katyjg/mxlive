@@ -15,7 +15,6 @@ from django.utils.datastructures import MultiValueDict
 
 # DO NOT REMOVE
 import imm.lims.admin
-import imm.messaging.admin
 # DO NOT REMOVE
 
 from imm.lims.models import Beamline

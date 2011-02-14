@@ -28,8 +28,6 @@ from imm.lims.models import Crystal
 from imm.lims.models import Experiment
 from imm.lims.models import perform_action
 
-from imm.messaging.models import Message
-
 from imm.staff.models import Runlist
 
 from imm.staff.forms import ShipmentReceiveForm

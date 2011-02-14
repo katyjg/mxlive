@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import datetime
 
 from django.conf import settings
@@ -6,8 +5,11 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
+
 from imm.enum import Enum
 from jsonfield import JSONField
+from django.utils import dateformat
 import logging
 
 from django.db.models.signals import post_save
@@ -15,8 +17,9 @@ from django.db.models.signals import pre_delete
 from django.db.models.signals import pre_save
 from django.db.models.signals import post_delete
 from django.core.exceptions import ObjectDoesNotExist
+from lims.filterspecs import WeeklyFilterSpec
 
-IDENTITY_FORMAT = '.%y.%m.%d'
+IDENTITY_FORMAT = '-%y%m'
 OBJECT_STATES = Enum(
     'ACTIVE', 
     'ARCHIVED', 
@@ -34,25 +37,6 @@ class Beamline(models.Model):
 
     def __unicode__(self):
         return self.name
-
-    
-class Laboratory(models.Model):
-    name = models.CharField(max_length=600)
-    address = models.CharField(max_length=600)
-    city = models.CharField(max_length=180)
-    postal_code = models.CharField(max_length=30)
-    country = models.CharField(max_length=180)
-    contact_phone = models.CharField(max_length=60)
-    contact_fax = models.CharField(max_length=60)
-    organisation = models.CharField(max_length=600, blank=True, null=True)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-
-    def __unicode__(self):
-        return self.name
-    
-    class Meta:
-        verbose_name_plural = 'Laboratories'
         
 class ManagerWrapper(models.Manager):
     """ This a models.Manager instance that wraps any models.Manager instance and alters the query_set() of
@@ -93,7 +77,7 @@ class ExcludeManagerWrapper(ManagerWrapper):
     
 class FilterManagerWrapper(ManagerWrapper):
     """ This a models.Manager instance that wraps any models.Manager instance and .filters()
-    results from the query_set. All it does it proxy all requests to the wrapped manager EXCEPT
+    results from the query_set. All it does is proxy all requests to the wrapped manager EXCEPT
     for calls to get_query_set() which it alters with the appropriate filters
     """
     def __init__(self, manager, **filters):
@@ -145,19 +129,37 @@ class OrderByManagerWrapper(ManagerWrapper):
         query_set = self.manager.get_query_set()
         query_set = query_set.order_by(*self.fields)
         return query_set
+
+class Carrier(models.Model):
+    name = models.CharField(max_length=60)
+    phone_number = models.CharField(max_length=20)
+    fax_number = models.CharField(max_length=20)
+    code_regex = models.CharField(max_length=60)
+    url = models.URLField()
+
+    def __unicode__(self):
+        return self.name
         
 class Project(models.Model):
     user = models.ForeignKey(User, unique=True)
-    permit_no = models.CharField(max_length=20)
-    name = models.SlugField()
-    title = models.CharField(max_length=200)
-    summary = models.TextField()
-    beam_time = models.FloatField()
-    lab = models.ForeignKey(Laboratory)
-    start_date = models.DateField()
-    end_date = models.DateField()
+    name = models.SlugField('account name')
+    contact_person = models.CharField(max_length=200, blank=True, null=True)
+    contact_email = models.EmailField(max_length=100, blank=True, null=True)
+    carrier = models.ForeignKey(Carrier, blank=True, null=True)
+    account_number = models.CharField(max_length=50, blank=True, null=True)
+    department = models.CharField(max_length=600, blank=True, null=True)
+    address = models.CharField(max_length=600, blank=True, null=True)
+    city = models.CharField(max_length=180, blank=True, null=True)
+    province = models.CharField(max_length=180, blank=True, null=True)
+    postal_code = models.CharField(max_length=30, blank=True, null=True)
+    country = models.CharField(max_length=180, blank=True, null=True)
+    contact_phone = models.CharField(max_length=60, blank=True, null=True)
+    contact_fax = models.CharField(max_length=60, blank=True, null=True)
+    organisation = models.CharField(max_length=600, blank=True, null=True)
+
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+    updated = models.BooleanField(default=False)    
     
     def identity(self):
         return 'PR%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -165,6 +167,9 @@ class Project(models.Model):
         
     def __unicode__(self):
         return self.name
+
+    class Meta:
+        verbose_name = "Project Profile"
 
 
 class Session(models.Model):
@@ -175,7 +180,7 @@ class Session(models.Model):
     comments = models.TextField()
     
 
-class Constituent(models.Model):
+class Cocktail(models.Model):
     SOURCES = Enum(
         'Unknown',
         'Synthetic',
@@ -193,11 +198,14 @@ class Constituent(models.Model):
         'Organic molecule',
         'Buffer',
     )
+    HELP = {
+        'constituents': 'Comma separated list of the constituents in this cocktail',
+    }
     project = models.ForeignKey(Project)
     name = models.CharField(max_length=60)
-    acronym = models.SlugField(max_length=20) 
-    source = models.IntegerField(max_length=1, choices=SOURCES.get_choices(), default=SOURCES.UNKNOWN)
-    kind = models.IntegerField('type', max_length=1, choices=TYPES.get_choices(), default=TYPES.PROTEIN)
+    constituents = models.CharField(max_length=200) 
+    #source = models.IntegerField(max_length=1, choices=SOURCES.get_choices(), default=SOURCES.UNKNOWN)
+    #kind = models.IntegerField('type', max_length=1, choices=TYPES.get_choices(), default=TYPES.PROTEIN)
     is_radioactive = models.BooleanField()
     is_contaminant = models.BooleanField()
     is_toxic = models.BooleanField()
@@ -206,51 +214,34 @@ class Constituent(models.Model):
     is_corrosive = models.BooleanField()
     is_inflamable = models.BooleanField()
     is_biological_hazard = models.BooleanField()
-    hazard_details = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+
     
+    def __unicode__(self):
+        return self.name
+
+    def identity(self):
+        return 'CT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
+
+    is_editable = True
+    is_deletable = True
+    
+    '''    
     FIELD_TO_ENUM = {
         'source': SOURCES,
         'kind': TYPES,
     }
+    '''
 
-    def get_hazard_designation(self):
-        HD_DICT = {
-            '☢': self.is_radioactive ,
-            '⚠': self.is_contaminant,
-            '☠': self.is_toxic,
-            'O': self.is_oxidising,
-            '☄': self.is_explosive,
-            'C': self.is_corrosive,
-            'F': self.is_inflamable,
-            '☣': self.is_biological_hazard,
-        }
+    class Meta:
+        verbose_name = "Protein Cocktail"
+        verbose_name_plural = 'Protein Cocktails'
+        
+        
 
-        hd = [ k for k,v in HD_DICT.items() if v ]
-        return ''.join(hd)
-        
-    def __unicode__(self):
-        return "%s - %s" % (self.acronym, self.name)
-        
-    def identity(self):
-        return 'CO%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-    
-    def _cocktail(self, cocktail):
-        self.cocktail_set.add(cocktail)
-    
-    cocktail = property(None, _cocktail)
-        
-class Carrier(models.Model):
-    name = models.CharField(max_length=60)
-    phone_number = models.CharField(max_length=20)
-    fax_number = models.CharField(max_length=20)
-    code_regex = models.CharField(max_length=60)
-    url = models.URLField()
-
-    def __unicode__(self):
-        return self.name
     
 def perform_action(instance, action, data=None):
     """ Performs an action (send a message to FSM) on an object. See Shipment for a description
@@ -280,10 +271,11 @@ def perform_action(instance, action, data=None):
         else:
             setattr(instance, field, value)
     instance.save()
-    
+
     # perform the action on the children
     if hasattr(instance, 'get_children'):
         for child in instance.get_children():
+            print "performing child actions..."
             if child.ACTIONS.has_key(action):
                 perform_action(child, action, data=data)
         
@@ -380,7 +372,7 @@ class Shipment(models.Model):
         return self.dewar_set.count() == 0
     
     def __unicode__(self):
-        return "%s" % (self.label)
+        return self.label
     
     def _name(self):
         return self.label
@@ -419,7 +411,8 @@ class Shipment(models.Model):
             if crystal.num_experiments() == 0:
                 unassociated_crystals.append(crystal)
         if unassociated_crystals:
-            experiment = Experiment(project=self.project, name='Default Experiment')
+            exp_name = '%s auto' % dateformat.format(datetime.datetime.now(), 'M jS P')
+            experiment = Experiment(project=self.project, name=exp_name)
             experiment.save()
             for unassociated_crystal in unassociated_crystals:
                 unassociated_crystal.experiment = experiment
@@ -451,6 +444,9 @@ class Shipment(models.Model):
     
     def is_pdfable(self):
         return self.is_sendable() or self.status >= self.STATES.SENT
+
+    def has_labels(self):
+        return self.status <= self.STATES.SENT and self.num_dewars()
     
     def is_xlsable(self):
         # removed is_sendable check. orphan crystals don't get the default created experiment until sent. 
@@ -458,9 +454,6 @@ class Shipment(models.Model):
     
     def is_closable(self):
         return self.status == self.STATES.RETURNED 
-    
-    def is_receivable(self):
-        return self.status == self.STATES.SENT 
     
     def is_returnable(self):
         return self.status == self.STATES.ON_SITE 
@@ -486,13 +479,12 @@ class Dewar(models.Model):
         'archive': { 'status': STATES.ARCHIVED},
     }
     HELP = {
-        'label': "This should be an externally visible label on the dewar",
-        'code': "If there is a barcode on the dewar, please scan the value here",
+        'label': "An externally visible label on the dewar. If there is a barcode on the dewar, please scan it here",
         'comments': "Use this field to jot notes related to this shipment for your own use",
     }
     project = models.ForeignKey(Project)
     label = models.CharField(max_length=60, help_text=HELP['label'])
-    code = models.CharField(max_length=128, blank=True, help_text=HELP['code'])
+    #code = models.CharField(max_length=128, blank=True, help_text=HELP['code'])
     comments = models.TextField(blank=True, null=True, help_text=HELP['comments'])
     staff_comments = models.TextField(blank=True, null=True)
     storage_location = models.CharField(max_length=60, null=True, blank=True)
@@ -527,11 +519,12 @@ class Dewar(models.Model):
     identity.admin_order_field = 'pk'
     
     def barcode(self):
-        return self.code or self.label
+        return str(self.shipment.id) + '-' + str(self.label) + '-' + str(self.id)
     
     def get_children(self):
         return self.container_set.all()
     
+        
     def receive_parent_shipment(self, data=None):
         """ Updates the status of the parent Shipment to 'On-Site' if all the Dewars are 'On-Site'
         """
@@ -544,6 +537,12 @@ class Dewar(models.Model):
             
     def is_editable(self):
         return self.status == self.STATES.DRAFT
+
+    def is_deletable(self):
+        return self.status == self.STATES.DRAFT 
+
+    def is_receivable(self):
+        return self.status == self.STATES.SENT 
     
     def is_completed(self):
         # dewar is complete if all containers in it are complete.
@@ -581,8 +580,6 @@ class Container(models.Model):
         'Cassette', 
         'Uni-Puck', 
         'Cane', 
-        'Basket', 
-        'Carousel',
     )
     HELP = {
         'label': "This should be an externally visible label on the container",
@@ -637,7 +634,7 @@ class Container(models.Model):
         return false
     
     def update_priority(self):
-        """ Updates the Container's priority/staff_priority to max(Experiment priorities) 
+        """ Updates the Container's priority/staff_priority to max(Experiment priorities)
         """
         for field in ['priority', 'staff_priority']:
             priority = None
@@ -653,13 +650,13 @@ class Container(models.Model):
     def num_crystals(self):
         return self.crystal_set.count()
     
+
     def capacity(self):
         _cap = {
             self.TYPE.CASSETTE : 96,
             self.TYPE.UNI_PUCK : 16,
             self.TYPE.CANE : 6,
-            self.TYPE.BASKET: 8,
-            self.TYPE.CAROUSEL: 8,
+            None : 0,
         }
         return _cap[self.kind]
         
@@ -682,7 +679,12 @@ class Container(models.Model):
             
     def valid_locations(self):
         if self.kind == self.TYPE.CASSETTE:
-            all_positions = ["ABCDEFGHIJKL"[x/8]+str(1+x%8) for x in range(self.capacity()) ]
+            all_positions = []
+            for x in range(self.capacity()//12):
+                num = str(1+x%8)
+                position = ["ABCDEFGHIJKL"[y]+str(x+1) for y in range(self.capacity()//8) ]
+                for item in position:
+                    all_positions.append(item)
         else:
             all_positions = [ str(x+1) for x in range(self.capacity()) ]
         return all_positions
@@ -696,9 +698,10 @@ class Container(models.Model):
     
     def location_and_crystal(self):
         retval = []
+        xtalset = self.crystal_set.all()
         for location in self.valid_locations():
             xtl = None
-            for crystal in self.crystal_set.all():
+            for crystal in xtalset:
                 if crystal.container_location == location:
                     xtl = crystal
             retval.append((location, xtl))
@@ -718,6 +721,9 @@ class Container(models.Model):
         return self.crystal_set.all()
     
     def is_editable(self):
+        return self.status == self.STATES.DRAFT 
+
+    def is_deletable(self):
         return self.status == self.STATES.DRAFT 
     
     def get_form_field(self):
@@ -762,7 +768,7 @@ class SpaceGroup(models.Model):
     lattice_type = models.CharField(max_length=1, choices=LT_CHOICES)
     
     def __unicode__(self):
-        return '%s %c%c ' % (self.name, self.crystal_system, self.lattice_type)
+        return self.name
     
 class CrystalForm(models.Model):
     project = models.ForeignKey(Project)
@@ -778,7 +784,7 @@ class CrystalForm(models.Model):
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
     
     def __unicode__(self):
-        return "%s" % (self.name)
+        return self.name
 
     def identity(self):
         return 'CF%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -787,31 +793,8 @@ class CrystalForm(models.Model):
     class Meta:
         verbose_name = 'Crystal Form'
 
-
-        
-class Cocktail(models.Model):
-    project = models.ForeignKey(Project)
-    constituents = models.ManyToManyField(Constituent)
-    comments = models.TextField(blank=True, null=True)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-    
-    NAME_JOIN_STRING = '/'
-    
-    def name(self):
-        names = sorted([c.acronym for c in self.constituents.all()])
-        return self.NAME_JOIN_STRING.join(names)
-    name.admin_order_field = 'pk'
-    
-    name = property(name)
-        
-    def __unicode__(self):
-        return self.name
-
-    def identity(self):
-        return 'CT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-
+    is_editable = True
+    is_deletable = True
 
 class Experiment(models.Model):
     EXP_TYPES = Enum(
@@ -870,7 +853,6 @@ class Experiment(models.Model):
     exp_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.INCOMPLETE)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-#    crystals = models.ManyToManyField(Crystal)
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
     
@@ -880,26 +862,17 @@ class Experiment(models.Model):
         'plan': EXP_PLANS,
     }
     
-    def get_crystals(self):
-        return Crystal.objects.filter(experiment=self)
-    
-    crystals = property(get_crystals)
+    class Meta:
+        verbose_name = 'experiment request'
     
     def accept(self):
         return "crystal"
     
     def num_crystals(self):
-        return self.crystals.count()
-    
-    def update_priority(self):
-        """ Updates the priority/staff_priority of all associated Containers """
-        for crystal in self.crystals:
-            if crystal.container:
-                crystal.container.update_priority()
-                crystal.container.save()
-    
+        return self.crystal_set.count()
+        
     def __unicode__(self):
-        return self.identity()
+        return self.name
 
     def identity(self):
         return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))    
@@ -916,7 +889,7 @@ class Experiment(models.Model):
 
     def get_children(self):
         return []
-
+        
     def set_strategy_status_resubmitted(self, data=None):
         strategy = data['strategy']
         perform_action(strategy, 'resubmit')
@@ -1076,10 +1049,21 @@ class Crystal(models.Model):
         )
         
     def __unicode__(self):
-        return '%s / %s' % (self.name, self.identity())
+        return self.name
 
-    def is_assigned(self):
-        return self.container is not None
+    def best_screening(self):
+        # need to change to [id, score]
+        results = Result.objects.filter(crystal=self, kind='0').order_by('-score')
+        if results:
+            return results[0]
+        return None
+    
+    def best_collection(self):
+        # need to change to [id, score]
+        results = Result.objects.filter(crystal=self, kind='1').order_by('-score')
+        if results:
+            return results[0]
+        return None                
     
     def num_experiments(self):
         if self.experiment:
@@ -1092,7 +1076,7 @@ class Crystal(models.Model):
     
     def barcode(self):
         return self.code or None
-    
+            
     def get_children(self):
         return []
     
@@ -1122,14 +1106,6 @@ class Crystal(models.Model):
             self.collect_status = Crystal.EXP_STATES.PENDING
         self.save()
             
-#        
-#        for experiment in self.experiment_set.all():
-#            all_crystals_received = True
-#            for crystal in experiment.crystals.all():
-#                all_crystals_received = all_crystals_received and crystal.status == Crystal.STATES.ON_SITE
-#            if all_crystals_received:
-#                experiment.status = Experiment.STATES.ACTIVE
-#                experiment.save()
 
     def is_completed(self):
         # checks type of it's experiment, and gives results as needed.
@@ -1194,41 +1170,13 @@ class Crystal(models.Model):
             'comments': self.comments
         }
         
-#    def _experiment(self, experiment):
-#        self.experiment_set.add(experiment)
-#    
-#    experiment = property(None, _experiment)
-
-        
-# The following set of pre/post save/delete methods are responsible for updating the priority of
-# a Runlist Container to the maximum priority of the associated Experiments. Container.priority/staff_priority 
-# are currently calculated values, so it might have made sense to use a SQL view for lims_container
-# rather than adding the fields directly. It is pretty easy to anticipate a scenario where this is not
-# always the case, so we added the field to Container, and keep the entities up-to-date whenever Experiment
-# instances are saved.
-        
-def Experiment_post_save(sender, **kwargs):
-    experiment = kwargs['instance']
-    experiment.update_priority() # does the actual work
-    
+                    
 def Experiment_pre_delete(sender, **kwargs):
-    experiment = kwargs['instance']
-    # After deletion, the instance has all reference fields nulled, so
+    # After deletion, the instance have all reference fields nulled, so
     # we need to store the original crystals for use in Experiment_post_delete
-    experiment.saved_crystals = [crystal for crystal in experiment.crystals.all()]
-    
-def Experiment_post_delete(sender, **kwargs):
     experiment = kwargs['instance']
-    for crystal in experiment.saved_crystals:
-        try:
-            crystal.container.update_priority() # does the actual work 
-            crystal.container.save()
-        except ObjectDoesNotExist:
-            pass # ie. Project.delete() called resulting in cascading delete of everything
-        
-post_save.connect(Experiment_post_save, sender=Experiment)
+    experiment.saved_crystals = [crystal for crystal in experiment.crystal_set.all()]    
 pre_delete.connect(Experiment_pre_delete, sender=Experiment)
-post_delete.connect(Experiment_post_delete, sender=Experiment)
     
 class Data(models.Model):
     DATA_TYPES = Enum(
@@ -1236,8 +1184,8 @@ class Data(models.Model):
         'Collection',
     )
     project = models.ForeignKey(Project)
-    experiment = models.ForeignKey(Experiment)
-    crystal = models.ForeignKey(Crystal)
+    experiment = models.ForeignKey(Experiment, null=True, blank=True)
+    crystal = models.ForeignKey(Crystal, null=True, blank=True)
     name = models.CharField(max_length=20)
     resolution = models.FloatField()
     start_angle = models.FloatField()
@@ -1254,6 +1202,7 @@ class Data(models.Model):
     pixel_size = models.FloatField()
     beam_x = models.FloatField()
     beam_y = models.FloatField()
+    beamline = models.ForeignKey(Beamline)
     url = models.CharField(max_length=200)
     kind = models.IntegerField('Data type',max_length=1, choices=DATA_TYPES.get_choices(), default=DATA_TYPES.SCREENING)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
@@ -1278,25 +1227,11 @@ class Data(models.Model):
         return frame_numbers
 
     def __unicode__(self):
-        return '%s, %d images' % (self.name, self.num_frames())
+        return '%s (%d images)' % (self.name, self.num_frames())
     
     def total_angle(self):
         return self.delta_angle * self.num_frames()
         
-    class Meta:
-        verbose_name_plural = 'Datasets'
-        
-    def thumbUrls(self):
-        urls = []
-        for i in range(self.num_frames):
-            urls.append("%s/%s/images/frame_thumb.png" % (self.url, self.pk))
-        return urls
-    
-    def mediumUrls(self):
-        urls = []
-        for i in range(self.num_frames):
-            urls.append("%s/%s/images/frame_medium.png" % (self.url, self.pk))
-        return urls
     
     def generate_image_url(self, frame, brightness=None):
         # brightness is assumed to be "nm" "dk" or "lt" 
@@ -1327,6 +1262,10 @@ class Data(models.Model):
     def start_angle_for_frame(self, frame):
         return (frame - self.first_frame) * self.delta_angle + self.start_angle 
 
+        
+    class Meta:
+        verbose_name = 'Dataset'
+
 
 class Result(models.Model):
     RESULT_TYPES = Enum(
@@ -1334,8 +1273,8 @@ class Result(models.Model):
         'Collection',
     )
     project = models.ForeignKey(Project)
-    experiment = models.ForeignKey(Experiment)
-    crystal = models.ForeignKey(Crystal)
+    experiment = models.ForeignKey(Experiment, null=True, blank=True)
+    crystal = models.ForeignKey(Crystal, null=True, blank=True)
     data = models.ForeignKey(Data)
     name = models.CharField(max_length=20)
     score = models.FloatField()
@@ -1374,32 +1313,11 @@ class Result(models.Model):
     identity.admin_order_field = 'pk'
 
     def __unicode__(self):
-        return self.identity()
+        return self.name
 
-    def is_resubmittable(self):
-        for strategy in self.strategy_set.all():
-            if strategy.is_resubmittable():
-                return True
-        return False
-
-    def get_results_link(self):
-        strategy = self.strategy_set.all()[0]
-        experimentName = RESUMBITTED_LABEL + strategy.name + '_' + strategy.result.crystal.name
-        link = "resubmit/?%s=%d&%s=%d&%s=%s&%s=%f&%s=%f&%s=%f&%s=%f&%s=%f&%s=%f&%s=%f&%s=%s&%s=%d" % \
-        ('project',       strategy.project.pk,
-         'strategy',      strategy.pk,
-         'name',          experimentName,
-         'delta_angle',   strategy.delta_angle,
-         'total_angle',   strategy.total_angle,
-         'energy',        strategy.energy,
-         'resolution',    strategy.exp_resolution,
-         'multiplicity',  strategy.exp_multiplicity,
-         'i_sigma',       strategy.exp_i_sigma,
-         'r_meas',        strategy.exp_r_factor,
-         'crystals',      strategy.result.crystal.pk,
-         'plan',          self.experiment.EXP_PLANS.JUST_COLLECT # all resubmitted experiments must use this type
-        )
-        return link
+    class Meta:
+        ordering = ['-score']
+        verbose_name = 'Analysis Report'
 
 class Strategy(models.Model):
     STATES = Enum(
@@ -1443,7 +1361,7 @@ class Strategy(models.Model):
     identity.admin_order_field = 'pk'
 
     def __unicode__(self):
-        return self.identity()
+        return self.name
 
     def is_resubmittable(self):
         return self.status == self.STATES.WAITING and \
@@ -1468,8 +1386,8 @@ class ScanResult(models.Model):
         'Excitation Scan',
     )
     project = models.ForeignKey(Project)
-    experiment = models.ForeignKey(Experiment)
-    crystal = models.ForeignKey(Crystal)
+    experiment = models.ForeignKey(Experiment, null=True, blank=True)
+    crystal = models.ForeignKey(Crystal, null=True, blank=True)
     edge = models.CharField(max_length=20)
     details = JSONField()
     kind = models.IntegerField('Scan type',max_length=1, choices=SCAN_TYPES.get_choices())
@@ -1485,27 +1403,87 @@ class ScanResult(models.Model):
     identity.admin_order_field = 'pk'
     
     def __unicode__(self):
-        return self.identity()
+        return self.name
+
+
+class Feedback(models.Model):
+    TYPE = Enum(
+        'Remote Control',
+        'LIMS Website',
+        'Other',
+    )
+    project = models.ForeignKey(Project)
+    category = models.IntegerField('Category',max_length=1, choices=TYPE.get_choices())
+    contact_name = models.CharField(max_length=100, blank=True, null=True)
+    contact = models.EmailField(max_length=100, blank=True, null=True)
+    message = models.TextField(blank=False)
+    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
+
+    is_editable = True
+
+    def __unicode__(self):
+        if len(self.message) > 23:
+            return "%s:'%s'..." % (self.get_category_display(), self.message[:20])
+        else:
+            return "%s:'%s'" % (self.get_category_display(), self.message)
+  
+    class Meta:
+        verbose_name = 'Feedback comment'
+
+class ActivityLogManager(models.Manager):
+    def log_activity(self, request, obj, action_type, description=''):
+        e = self.model()
+        if obj is None:
+            try:
+                project = request.user.get_profile()
+                e.project_id = project.pk
+            except Project.DoesNotExist:
+                project = None
+                
+        else:
+            if getattr(obj, 'project', None) is not None:
+                e.project_id = obj.project.pk
+            elif getattr(request, 'project', None) is not None:
+                e.project_id = request.project.pk
+            elif isinstance(obj, Project):
+                e.project_id = obj.pk
+
+            e.object_id = obj.pk
+            e.affected_item = obj
+            e.content_type = ContentType.objects.get_for_model(obj)
+                     
+        e.user_id = request.user.pk
+        e.ip_number = request.META['REMOTE_ADDR']
+        e.action_type = action_type
+        e.description = description
+        e.object_repr = repr(obj)
+        e.save()
+
+    def last_login(self, request):
+        logs = self.filter(user__exact=request.user, action_type__exact=ActivityLog.TYPE.LOGIN)
+        if logs.count() > 1:
+            return logs[1]
+        else:
+            return None
+        
 
     
-class ActivityLogManager(models.Manager):
-    def log_activity(self, project_id, user_id, ip_number, content_type_id, object_id, object_repr, action_type, description=''):
-        e = self.model(None, None, project_id, user_id,  ip_number, content_type_id, str(object_id), object_repr, action_type, description)
-        e.save()
-    
 class ActivityLog(models.Model):
-    TYPE = Enum('Login', 'Logout', 'Task','Create', 'Modify','Delete', 'Archive')
-    created = models.DateTimeField('date/time', auto_now_add=True, editable=False)
-    project = models.ForeignKey(Project)
+    TYPE = Enum('Login', 'Logout', 'Task', 'Create', 'Modify','Delete', 'Archive')
+    created = models.DateTimeField('Date/Time', auto_now_add=True, editable=False)
+    project = models.ForeignKey(Project, blank=True, null=True)
     user = models.ForeignKey(User)
     ip_number = models.IPAddressField('IP Address')
+    object_id = models.PositiveIntegerField(blank=True, null=True)
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
-    object_id = models.CharField(max_length=20, blank=True, null=True)
-    object_repr = models.CharField(max_length=200, blank=True, null=True)
+    affected_item = generic.GenericForeignKey('content_type', 'object_id')
     action_type = models.IntegerField(max_length=1, choices=TYPE.get_choices() )
+    object_repr = models.CharField('Item', max_length=200, blank=True, null=True)
     description = models.TextField(blank=True)
     
     objects = ActivityLogManager()
+    created.weekly_filter = True
+    
 
     class Meta:
         ordering = ('-created',)
@@ -1513,7 +1491,7 @@ class ActivityLog(models.Model):
     def __unicode__(self):
         return str(self.created)
     
-def delete(model, id, orphan_models):
+def delete(request, model, id, orphan_models):
     """ Deletes an instance of ``model`` with primary key ``id`` and orphans the 
     Models types given in ``orphan_models``. If ``orphan_models`` is empty, then a "cascading
     delete" occurs.
@@ -1530,6 +1508,8 @@ def delete(model, id, orphan_models):
         for orphan in manager.all():
             setattr(orphan, orphan_field, None)
             orphan.save()
+            message = 'Related field (%s) set to NULL, since it was deleted.' % ( orphan_field)
+            ActivityLog.objects.log_activity(request, orphan, ActivityLog.TYPE.MODIFY,  message)
     obj.delete()
 
 def archive(model, id):
@@ -1548,11 +1528,10 @@ __all__ = [
     'FilterManagerWrapper',
     'OrderByManagerWrapper',
     'DistinctManagerWrapper',
-    'Laboratory',
+    'Carrier',
     'Project',
     'Session',
     'Beamline',
-    'Constituent',
     'Cocktail',
     'Crystal',
     'CrystalForm',
@@ -1565,87 +1544,10 @@ __all__ = [
     'Data',
     'Strategy',
     'SpaceGroup',
+    'Feedback',
     'ActivityLog',
-    'Carrier',
     'delete',
     'archive',
     'perform_action',
     ]   
 
-def ActivityLog_pre_save(sender, **kwargs):
-    """ pre_save handler """
-    # values in the current (to be saved) instance
-    instance = kwargs['instance']
-    instanceVars = vars(instance)
-    
-    try:
-        # values in the existing (already in db) instance
-        existingInstance = sender._default_manager.get(pk=instance.pk)
-        existingInstanceVars = vars(existingInstance)
-        
-        # flag to indicate an ActivityLog MODIFY or CREATED entity
-        instance._ActivityLog_type = None
-        changes = {}
-        
-        # iterate of the dictionaries to see if anything notable has changed
-        for key in set(instanceVars.keys() + existingInstanceVars.keys()):
-            if key in ['created', 'modified'] or key.startswith('_') or key.startswith('tmp_'):
-                continue
-            if instanceVars.get(key) != existingInstanceVars.get(key):
-                changes[key] = (existingInstanceVars.get(key), instanceVars.get(key))
-                
-        # if there are changes, construct a message for the ActivityLog entry that shows the changes
-        # to each field in the format "field": "oldValue" -> "newValue"
-        if changes:
-            instance._ActivityLog_type = ActivityLog.TYPE.MODIFY
-            messages = []
-            for key, value in changes.items():
-                value = list(value)
-                for i, v in enumerate(value):
-                    if isinstance(v, basestring):
-                        value[i] = '"%s"' % v
-                    elif hasattr(sender, 'FIELD_TO_ENUM'):
-                        if sender.FIELD_TO_ENUM.has_key(key):
-                            value[i] = '"%s"' % sender.FIELD_TO_ENUM[key][v]
-                messages.append('%s: %s -> %s' % (key, value[0], value[1]))
-            instance._ActivityLog_message = ','.join(messages)
-            
-    except sender.DoesNotExist:
-        # this is a new entity, create a simple ActivityLog entry
-        instance._ActivityLog_type = ActivityLog.TYPE.CREATE
-        instance._ActivityLog_message = 'Created'
-        
-def ActivityLog_post_save(sender, **kwargs):
-    """ post_save handler """
-    # if the instance was created of changed, then create an ActivityLog entry
-    instance = kwargs['instance']
-    if instance._ActivityLog_type is not None:
-        project = instance.project
-        ActivityLog.objects.log_activity(
-                project.pk,
-                project.user.pk,
-                '0.0.0.0', # no access to request object, just use a dummy IP address
-                ContentType.objects.get_for_model(sender).id,
-                instance.pk, 
-                str(instance), 
-                instance._ActivityLog_type,
-                instance._ActivityLog_message,
-                )
-        
-ACTIVITY_LOG_MODELS = [Constituent, Cocktail, Crystal, CrystalForm, Shipment, Container,  Dewar,
-                       Experiment, ScanResult, Result, Data, Strategy]
-
-def connectActivityLog():
-    """ Hooks ActivityLog_post_save to all relevant models """
-    for modelClass in ACTIVITY_LOG_MODELS:
-        pre_save.connect(ActivityLog_pre_save, sender=modelClass)
-        post_save.connect(ActivityLog_post_save, sender=modelClass)
-        
-def disconnectActivityLog():
-    """ Unhooks ActivityLog_post_save from all relevant models """
-    for modelClass in ACTIVITY_LOG_MODELS:
-        pre_save.disconnect(ActivityLog_pre_save, sender=modelClass)
-        post_save.disconnect(ActivityLog_post_save, sender=modelClass)
-        
-connectActivityLog()
-    

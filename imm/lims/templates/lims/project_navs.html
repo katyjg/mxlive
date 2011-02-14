@@ -1,8 +1,28 @@
 {% load nav %}
-<ul class="nav">
-	<li id="home" class='{% active request "^/(lims/)?$" %}'><a href="/lims/">Project&nbsp;Home</a></li>
-	<li id="samples" class='{% active request "^/lims/samples/" %}'><a href="/lims/samples/">Samples</a></li>
-	<li id="experiments-main" class='{% active request "^/lims/experiment/" %}'><a href="/lims/experiment/">Experiments</a></li>
-	<li id="shipping" class='{% active request "^/lims/shipping/" %}'><a href="/lims/shipping/">Shipping</a></li>
+
+<ul id="nav">
+<li class='nav-menu {% active request "^/(lims/)?$" %}'><a href="/lims/">Project&nbsp;Home</a></li>
+<li class='nav-menu {% active request "^/lims/samples/" %}'><a href="{% url lims-crystal-list %}">Samples</a>
+    <ul class="nav-submenu">
+        <li><a href="{% url lims-crystal-list %}">Crystals</a></li>
+        <li><a href="{% url lims-cocktail-list %}">Cocktails</a></li>
+        <li><a href="{% url lims-crystalform-list %}">Crystal Forms</a></li>
+        <li><a href="{% url lims-container-list %}">Containers</a></li>
+    </ul>
+</li>
+<li class='nav-menu {% active request "^/lims/shipping/" %}'><a href="{% url lims-shipment-list %}">Shipping</a>
+    <ul class="nav-submenu">
+        <li><a href="{% url lims-shipment-list %}">Shipments</a></li>
+        <li><a href="{% url lims-dewar-list %}">Dewars</a></li>
+        <li><a href="{% url lims-container-list %}">Containers</a></li>
+    </ul>
+</li>
+<li class='nav-menu {% active request "^/lims/experiment/" %}'><a href="{% url lims-experiment-list %}">Experiments</a>
+    <ul class="nav-submenu">
+        <li><a href="{% url lims-experiment-list %}">Experiments</a></li>
+        <li><a href="{% url lims-data-list %}">Datasets</a></li>
+        <li><a href="{% url lims-result-list %}">Reports</a></li>
+    </ul>
+</li>
 </ul>
 

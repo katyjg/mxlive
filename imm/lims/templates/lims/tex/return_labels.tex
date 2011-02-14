@@ -1,0 +1,121 @@
+{% load tex %}
+\documentclass[a4paper,10pt]{report}
+\usepackage{ps4pdf}
+\PSforPDF{
+\usepackage{pst-barcode}
+}
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{xcolor,colortbl}
+\usepackage{boxedminipage}
+\oddsidemargin -0.25in 
+\marginparwidth 0pt \marginparsep 0pt
+\topmargin -0.5in \headsep 0pt
+\headheight 0pt
+\textheight 297mm
+\textwidth  6.8in
+\addtolength{\fboxsep}{0.2cm}
+\renewcommand{\arraystretch}{1.5}
+
+%------------------------------------------------------------
+% Appearance Control
+%------------------------------------------------------------
+% normal line spacing: 1.0
+% double spacing     : 1.6
+
+\begin{document}
+
+\hspace{-0.25in}
+\includegraphics[height=0.5in,width=\textwidth,page=1]{clslogo_print.pdf}
+
+\begin{center}
+
+    \begin{minipage}{0.8\textwidth}
+        \section*{LABEL INSTRUCTIONS}
+        
+        Print this document and cut out each return label.  Remove the labels currently on the dewar transport containers, and replace them with the return labels.
+
+    \end{minipage}
+
+    \vspace{0.5in}
+    {% for dewar in shipment.dewar_set.all %}
+    {\color{blue} {\bf Return Label {{ forloop.counter }}: Replace the current label on the outside of a dewar transport container with this label. }}
+    \begin{center}
+        \begin{boxedminipage}{\textwidth}
+        \begin{minipage}{4in}
+
+            \begin{boxedminipage}{10cm}
+            	\PSforPDF{
+                    \begin{pspicture}(10cm,2cm)
+                        \psbarcode[transy=1em]{^104{{dewar.barcode}}}{includetext}{code128}
+                    \end{pspicture}
+                }
+            \end{boxedminipage}
+
+            \vskip\fboxsep
+            \vskip\fboxsep
+
+            {\bf 
+            \begin{tabular}{ll}
+
+                {\Large To: } & {\Large {{ project.name|texsafe|default:"" }} } \\
+	             & {\Large {{ project.department|texsafe|default:"" }} } \\
+	             & {\Large {{ project.organisation|texsafe|default:"" }} } \\
+	             & {\Large {{ project.address|texsafe|default:"" }} } \\
+	             & {\Large {{ project.city|texsafe|default:"" }} } \\
+	             & {\Large {{ project.postal_code|texsafe|default:"" }} } \\
+	             & {\Large {{ project.country|texsafe|default:"" }} } \\
+	             & Phone: {{ project.contact_phone|texsafe|default:"" }} \\
+	             & Fax: {{ project.contact_fax|texsafe|default:"" }} \\
+            \end{tabular}
+            }
+
+            \vskip\fboxsep
+            \vskip\fboxsep
+
+            \colorbox[gray]{0.92}{
+                \begin{tabular}{|p{1.1in}|p{2.1in}|}
+                \hline
+                Shipment name & {{shipment.label}} \\ \hline 
+                Package Number & {% for d in shipment.dewar_set.all %}{% ifequal d dewar %}{{ forloop.counter}}{% endifequal %}{% if forloop.last %} of {{ forloop.counter }}{% endif %}{% endfor %} \\ \hline
+                \hline
+                From: & {\large Canadian Light Source Inc. } \\
+                 & {\large University of Saskatchewan } \\
+                 & {\large 101 Perimeter Road } \\
+                 & {\large Saskatoon, SK S7N 0X4 } \\
+                 & {\large CANADA } \\
+                 & {\normalsize Shipping Phone: (306) 657-3657 } \\
+                 & {\normalsize Shipping Fax: (306) 657-3533 } \\
+                \hline
+                \end{tabular}
+            }
+
+        \end{minipage}
+        \begin{minipage}{2.5in}
+        \begin{center}
+
+        \Large{{\bf FROZEN SAMPLES IN \\ A DRY-SHIPPER \\ 
+        \vspace{0.6cm}
+        FRAGILE
+ }}
+        \vspace{0.2in}
+
+\includegraphics[width=2.5in,page=1]{fragile_up.pdf}
+
+\vspace{0.2in}
+\Large{ {\bf NON-HAZARDOUS \\ NON-INFECTIOUS }}
+
+        \end{center}
+        \end{minipage}
+
+
+               
+
+        \end{boxedminipage}
+    \end{center}
+    \newpage
+    {% endfor %}
+
+\end{center}
+
+\end{document}

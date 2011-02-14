@@ -1,0 +1,8 @@
+<div>
+    <h3 class="feedback">Feedback from {{object.project}}</h3>
+    {% if object.contact_name %}<p>Name: {{ object.contact_name }}</p>{% endif %}
+    {% if  object.contact %}<p>Email: {{ object.contact }}</p>{% endif %}
+    {% if object.category.display %}<p>Category: {{ object.category.display }}</p>{% endif %}
+    <p>Message:</p>
+    <div class="feedback"><p> {{ object.message }}</p></div>
+</div>

@@ -1,31 +1,28 @@
+{% extends "base.html" %}
+ 
 {% load humanize %}
 
-{% comment %}
-{% if request.user.is_superuser %}
-    <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
-{% endif %}
-{% if not request.user.is_superuser %}
-    <span onclick="linkto('../new/?clone={{object.id}}');" class="clone-tool">Clone</span>
-    {% if object.is_editable %}
-        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/edit/', '');" class="edit-tool">Edit</span>
-    {% endif %}
-    {% if object.is_deletable %}
-        <span onclick="load_page('entry-scratchpad', '../{{object.id}}/delete/', '');" class="delete-tool">Delete</span>
-    {% endif %}
-{% endif %}
-{% endcomment %}
+{% block headline %}
+<h2><span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
+{% endblock %}
+
+{% block object-tools %}
+<div class="object-tools">
+    {% include "lims/tools.html" %}
+    <ul class="toolbar">
+        <li class="back-tool" >
+            <a href="{% url lims-dewar-list %}">Full List</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
 
 {% with object as dewar %}
-    {% comment %}
+    <div class="dewar-img droppable droppable-replace" {% if dewar.is_editable %}accept="container" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>
+
     <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
-        <tr valign="top">
-            <th>Created:</th>
-            <td>{{dewar.created|naturalday}} at {{dewar.created|date:"H:i T"}}</td>
-        </tr>
-        <tr valign="top">
-            <th>Modified:</th>
-            <td>{{dewar.modified|naturalday}} at {{dewar.modified|date:"H:i T"}}</td>
-        </tr>
         <tr valign="top">
             <th>Status:</th>
             <td>{{dewar.get_status_display}}</td>
@@ -36,22 +33,48 @@
                 <td>{{dewar.storage_location|default:"Unknown"}}</td>
             </tr>
         {% endifequal %}
+        <tr valign="top">
+            <th>Label:</th>
+            <td>{{dewar.label}}</td>
+        </tr>
+        <tr valign="top">
+            <th>Barcode:</th>
+            <td>{{dewar.barcode}}</td>
+        </tr>
+        <tr valign="top">
+            <th>Shipment:</th>
+            {% if dewar.shipment %}
+            <td><a href="{% url lims-shipment-detail dewar.shipment.pk %}">{{dewar.shipment.name}}</a></td>
+            {% else %}
+            <td>None</td>
+            {% endif %}
+        </tr>
     </table>
-    {% endcomment %}
-    {% if dewar.container_set.count %}
-        {% for container in dewar.container_set.all %}
-            <li id="{{ container.id }}" class="container draggable-link-parent parent-stop ui-draggable" 
-                rel="{% url lims-container-detail container.id %}">
-                <a href="{% url lims-container-detail container.id %}">{{ container.label }} ({{ container.identity }})</a>
-            </li>
-        {% endfor %}
-    {% else %}
-        (No containers are assigned to this Dewar).
+    {% if object.comments %}
+    <div class="entrycomment">
+    <span class="left-pointer"></span>
+    <h3>Comments</h3>
+    <p>{{ object.comments|default:"" }}</p>
+    <p>{{ object.staff_comments|default:""}}</p>
+    </div>
     {% endif %}
-
+    <div class="clear"></div>
+    
+    {% load dewar_table %}
+    {% dewar_table dewar request.user.is_superuser "dewar" %}
 {% endwith %}
 
-{% comment %}
-{% include "lims/entries/dewar_contents.html" %}
-{% include "lims/entries/dewar_treeview.html" %}
-{% endcomment %}
+{% endblock %}
+
+{% block sidebar %}
+    {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
+        <div id="containers" class="widget droppable-remove parent-stop" data="{% url lims-container-basic-list %}?orphan_field=dewar">
+	       <div class="widget-title">
+	       <span>Container</span><a href="{% url lims-container-new %}" class="modal-form add-action" title="Add New Container" ><img src="/img/small-add-icon.png" /></a>
+	       </div>
+            <ul>
+                <p class="list-empty">( Not loaded )</p>
+            </ul>
+        </div>
+    {% endif %}
+{% endblock %}

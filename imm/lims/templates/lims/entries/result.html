@@ -1,43 +1,36 @@
+{% extends "base.html" %}
 {% load zip %}
-
-<div id="view-images" class="hidden modal-content"></div>
-
-<div id="result-page">
-    <div id="result-title" class="floatleft size60">
+{% block headline %}
     {% ifequal object.kind object.RESULT_TYPES.SCREENING %}
-        <h2> Crystal Screening Report</h2>
+        <h2 class="screen"> Crystal Screening Report - &ldquo;{{object.name}}&rdquo;</h2>
     {% else %}
-        <h2> Data Processing Report</h2>
+        <h2 class="process"> Data Processing Report - &ldquo;{{object.name}}&rdquo;</h2>
     {% endifequal %}
-    </div>
+{% endblock %}
+{% block object-tools %}
+<div class="object-tools">
+    <ul class="toolbar">
+        <li class="print-tool" >
+            <a href="javascript:window.print();">Print</a>
+        </li>
+        <li class="back-tool" >
+            <a href="{% url lims-result-list %}">Full List</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
 
-    <div id="result-links" class="floatright">
-        <ul>
-            <li>Crystal: &nbsp;<a href={% url lims-crystal-detail object.crystal.id %}>{{object.crystal}}</a></li>
-            <li>Experiment: &nbsp;<a href={% url lims-experiment-detail object.experiment.id %}>{{object.experiment.name}}</a></li>
-            <li>Dataset: &nbsp;<a href={% url lims-dataset-detail object.data.id %}>{{object.data}}</a></li>
-            <li>Print: <a href="{% url lims-result-print object.id %}">Click to print</a></li>
-        </ul>
-    </div>
+{% block content-override %}
+<!-- maincol -->
+<div id="content" class="col-12">
 
-    <div class="clear"></div>
-
-    {% if object.is_resubmittable %}
-        <a class="add-tool" href='/lims/experiment/result/{{object.get_results_link}}'>Resubmit</a>
-    {% endif %}
-
+<div id="result-page">   
     <h3>Summary</h3>
     <div id="result-summary">
         <table id="result-table">
             <colgroup>
-                <col class='result-labels' />
+                <col class="result-labels"/>
             </colgroup>
-            <thead>
-                <tr>
-                    <th scope="col">Dataset</th>
-                    <th scope="col">&ldquo;{{object.name}}&rdquo;</th>
-                </tr>
-            </thead>
             <tbody>
                 <tr><td>Score<sup class="footnote">[1]</sup></td><td>{{object.score|floatformat:"-2"}}</td></tr>
                 <tr><td>Wavelength (A)</td><td>{{object.data.wavelength}}</td></tr>
@@ -62,7 +55,16 @@
         </table>
     </div>
 
-    <div class="tablenotes floatright size30">
+    <div id="summary-notes" class="tablenotes">
+        <div id="result-links">
+            <ul>
+                <li>Crystal: &nbsp;<a href={% url lims-crystal-detail object.crystal.id %}>{{object.crystal}}</a></li>
+                <li>Experiment: &nbsp;<a href={% url lims-experiment-detail object.experiment.id %}>{{object.experiment.name}}</a></li>
+                <li>Dataset: &nbsp;<a class="modal" href={% url lims-data-detail object.data.id %}>{{object.data}}</a></li>
+            </ul>
+        </div>
+
+    <div class="clear"></div>
         <h3>Notes</h3>
             <dl class="note-list">
             <dt>[1] -<dt>
@@ -119,16 +121,8 @@
     </table>
 
     <h3>Automatic Space-Group Selection</h3>
-    <div class="tablenotes floatright size45">
-        <h3>Notes</h3>
-        <p>The following table contains result from POINTLESS (see Evans, Acta Cryst. D62, 72-82, 2005). </p>
-
-        <p>Indistinguishable space groups will have similar probabilities. If two or more of the top candidates have the same probability, the one with the fewest symmetry assumptions is chosen. This usually corresponds to the point group,  trying out higher symmetry space groups within the top tier does not require re-indexing the data as they are already in the same setting. </p>
-
-        <p>For more detailed results, please inspect the output file &lsquo;pointless.log&rsquo;.</p>
-    </div>
-
-    <table class="rtable floatleft size45">
+    
+    <table class="rtable full">
         <thead>
             <tr>
                 <th scope="col">Selected</th>
@@ -158,15 +152,33 @@
         <tr><td colspan=4></td></tr>
         </tfoot>
     </table>
-
-    <div class="clear spacer"></div>
-
-    <h3>Integration and Scaling Statistics (by shell)</h3>
-    <table class="rtable floatleft size40">
+    <div class="tablenotes">
+        <h3>Notes</h3>
+        <p>The above table contains results from POINTLESS (see Evans, Acta Cryst. D62, 72-82, 2005).</p>
+        <p>Indistinguishable space groups will have similar probabilities. If two or more of the top candidates have the same probability, the one with the fewest symmetry assumptions is chosen. This usually corresponds to the point group,  trying out higher symmetry space groups within the top tier does not require re-indexing the data as they are already in the same setting.</p>
+        <p>For more detailed results, please inspect the output file 'pointless.log'.</p>
+    </div><div class="clear spacer pagebreak"></div>
+    
+    <h3>Standard errors of reflection intensities by resolution</h3>
+    <img src="{% if admin %}{% url staff-plot-stderr object.id %}{% else %}{% url lims-plot-stderr object.id %}{% endif %}" />
+    <div class="tablenotes">
+        <h3>Notes</h3>
+        <dl class="note-list">
+        <dt>I/Sigma    - </dt><dd>Mean intensity/Sigma of a reflection in shell</dd>
+        <dt>&chi;&sup2;  - </dt><dd>Goodness of fit between sample variances of symmetry-related intensities and their errors (&chi;&sup2; = 1 for perfect agreement).</dd>
+        <dt>R-observed - </dt><dd>&Sigma;|I(h,i)-I(h)| / &Sigma;[I(h,i)]</dd>
+        <dt>R-expected - </dt><dd>Expected R-FACTOR derived from Sigma(I)</dd>
+        </dl>
+    </div>
+    <div class="clear spacer pagebreak"></div>
+    
+    <h3>Statistics of final reflections by shell</h3>
+    <img src="{% if admin %}{% url staff-plot-shells object.id %}{% else %}{% url lims-plot-shells object.id %}{% endif %}" />
+    <table class="rtable full">
         <thead>
             <tr>
                 <th scope="col">Shell</th>
-                <th scope="col">Complete</th>
+                <th scope="col">Completeness</th>
                 <th scope="col">R<sub>meas</sub></th>
                 <th scope="col">R<sub>mrgd-F</sub></th>
                 <th scope="col">I/sigma(I)<sup class="footnote">[1]</sup></th>
@@ -189,13 +201,7 @@
         <tr><td colspan=4></td></tr>
         </tfoot>
     </table>
-    <image class="floatright" src={% if admin %}
-    	{% url staff-plot-shells object.id %}
-    	{% else %}
-    	{% url lims-plot-shells object.id %} 
-    	{% endif %}/>
-
-    <div class="tablenotes floatright size30">
+    <div class="tablenotes">
         <h3>Notes</h3>
         <dl class="note-list">
             <dt>[1] -<dt>
@@ -214,31 +220,38 @@
     </div>
 
     <div class="clear spacer"></div>
-
-    <h3>Integration and Scaling Statistics (by frame/frame difference)</h3>
-    <image class="center" src={% if admin %}
-    	{% url staff-plot-frames object.id %} 
-    	{% else %}
-    	{% url lims-plot-frames object.id %}
-    	{% endif %} />
-    <image class="center" src={% if admin %}
-	    {% url staff-plot-diffs object.id %}
-	    {% else %}
-	    {% url lims-plot-diffs object.id %} 
-	    {% endif %}/>
-
-    <div class="clear"></div>
-
+    <h3>Statistics of final reflections by frame number and frame number difference</h3>
+    <img src="{% if admin %}{% url staff-plot-frames object.id %}{% else %}{% url lims-plot-frames object.id %}{% endif %}" />
+    <img src="{% if admin %}{% url staff-plot-diffs object.id %}{% else %}{% url lims-plot-diffs object.id %}{% endif %}" />
     <div class="tablenotes">
-        <h3>Notes</h3>
+    <h3>Notes</h3>
+        <p>The above plot was calculated by XDSSTAT. See See Diederichs K. (2006) Acta Cryst D62, 96-101.</p>
         <dl class="note-list">
-            <dt>Divergence -<dt>
-            <dd>Estimated Standard Deviation of Beam divergence</dd>
-            <dt>R<sub>d</sub> -<dt>
-            <dd>R-factors as a function of frame difference. See Diederichs K. (2006) Acta Cryst D62, 96-101.</dd>
+        <dt>Divergence - </dt><dd>Estimated Standard Deviation of Beam divergence</dd>
+        <dt>R<sub>d</sub> - </dt><dd>R-factors as a function of frame difference. An increase in R-d with frame difference is suggestive of radiation damage.</dd>
         </dl>
     </div>
 
+
+    <h3>Wilson Plot</h3>
+    <img src="{% if admin %}{% url staff-plot-wilson object.id %}{% else %}{% url lims-plot-wilson object.id %}{% endif %}" />
+    <div class="tablenotes">
+        <h3>Notes</h3>
+        <p>The above clipper-style wilson plot was calculated by CTRUNCATE which is part of the CCP4 Package.</p>
+        <p>See S. French and K. Wilson, Acta Cryst. A34, 517-525 (1978).</p>
+    </div>
     <div class="clear spacer"></div>
 
+    <h3>L Test for twinning</h3>
+    <img src="{% if admin %}{% url staff-plot-twinning object.id %}{% else %}{% url lims-plot-twinning object.id %}{% endif %}" />
+    <div class="tablenotes">
+        <h3>Notes</h3>
+        <p>The above plot was calculated by CTRUNCATE which is part of the CCP4 Package.</p>
+        <p>All data regardless of I/sigma(I) has been included in the L test. Anisotropy correction has been applied before calculating L.</p>
+        <p>See J. E. Padilla and T. O. Yeates, Acta Cryst. D59, 1124-1130 (2003)</p>
+    </div>
+
 </div>
+</div>
+<!-- end maincol -->
+{% endblock %}

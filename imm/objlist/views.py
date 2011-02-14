@@ -19,18 +19,20 @@ SEARCH_VAR = 'q'
 ERROR_FLAG = 'e'
 IS_POPUP_VAR = 'pop'
 TO_FIELD_VAR = 't'
-   
     
 
 class ObjectList(ChangeList):
     """ A Clone of the Admin ChangeList which enables us to use changelist like
     features such as filters, search and pagination in non-admin related applications
+    
+    Only one instance can be created per view as it overwrites
     """
     
     def __init__(self, request, manager, admin_site=None, num_show=None):
         self.manager = manager
         self.model = self.manager.model
         self.object_type = self.model.__name__
+
         self.opts = self.model._meta
         self.lookup_opts = self.opts
         
@@ -78,6 +80,8 @@ class ObjectList(ChangeList):
             del self.params[TO_FIELD_VAR]
         if ERROR_FLAG in self.params:
             del self.params[ERROR_FLAG]
+        if ALL_VAR in self.params:
+            del self.params[ALL_VAR]
 
         self.order_field, self.order_type = self.get_ordering()
         self.query = request.GET.get(SEARCH_VAR, '')
@@ -117,7 +121,6 @@ class ObjectList(ChangeList):
                     header = force_unicode(self.opts.verbose_name)
                 elif field_name == '__str__':
                     header = smart_str(self.opts.verbose_name)
-                    print field_name
                 else:
                     attr = getattr(self.model, field_name) # Let AttributeErrors propagate.
                     try:

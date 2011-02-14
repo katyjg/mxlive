@@ -9,6 +9,40 @@ from imm import objforms
 from django.forms.util import ErrorList
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
             
+class ProjectForm(objforms.forms.OrderedForm):
+    contact_person = objforms.widgets.LargeCharField(required=True, help_text="Full name of contact person")
+    contact_email = forms.EmailField(widget=objforms.widgets.LargeInput, max_length=100, required=True)
+    carrier = forms.ModelChoiceField(
+        widget=objforms.widgets.LeftHalfSelect,
+        queryset=Carrier.objects.all(), 
+        required=False)
+    account_number = objforms.widgets.RightHalfCharField(required=False)
+    organisation = objforms.widgets.LargeCharField(required=True)
+    department = objforms.widgets.LargeCharField(required=False)
+    address = objforms.widgets.LargeCharField(required=True)
+    city = forms.CharField(widget=objforms.widgets.LeftHalfInput, required=True)
+    province = forms.CharField(widget=objforms.widgets.RightHalfInput, required=True)
+    postal_code = forms.CharField(widget=objforms.widgets.LeftHalfInput, required=True)
+    country = forms.CharField(widget=objforms.widgets.RightHalfInput, required=True)
+    contact_phone = forms.CharField(widget=objforms.widgets.LeftHalfInput, required=True)
+    contact_fax =forms.CharField(widget=objforms.widgets.RightHalfInput, required=False)
+    updated = forms.CharField(widget=forms.HiddenInput())
+
+    class Meta:
+        model = Project
+        fields = ('contact_person','contact_email',
+                  'carrier','account_number', 'organisation', 'department','address',
+                  'city', 'province','postal_code','country','contact_phone','contact_fax','updated')
+                  
+    def clean_updated(self):
+        """
+        Toggle updated value to True when the profile is saved for the first time.
+        """
+        return True
+
+    def restrict_by(self, field_name, id): 
+        pass
+       
 class ShipmentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     label = forms.CharField(
@@ -20,17 +54,15 @@ class ShipmentForm(objforms.forms.OrderedForm):
         model = Shipment
         fields = ('project','label','comments',)
         
-class ShipmentDeleteForm(objforms.forms.OrderedForm):
+class ConfirmDeleteForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    #label = forms.CharField(widget=objforms.widgets.LargeInput, help_text='Delete'  )
     class Meta:
-        model = Shipment
         fields = ('project',)
     
         
 class ShipmentUploadForm(forms.Form):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    excel = forms.Field(widget=forms.FileInput)
+    excel = forms.FileField(widget=objforms.widgets.LargeFileInput)
     
     NUM_ERRORS = 3
     
@@ -44,13 +76,40 @@ class ShipmentUploadForm(forms.Form):
             self.workbook = LimsWorkbook(temp.name, cleaned_data['project'])
             if not self.workbook.is_valid():
                 self._errors['excel'] = self._errors.get('excel', ErrorList())
-                errors = self.workbook.errors[:self.NUM_ERRORS]
-                if len(self.workbook.errors) > len(errors):
-                    errors.append("and %d more errors..." % (len(self.workbook.errors)-len(errors)))
-                self._errors['excel'].extend(errors)
+                errors = 'Please check the format of your spreadsheet and try to upload again.'
                 del cleaned_data['excel']
         return cleaned_data
     
+    def error_message(self):
+        if not self.workbook.is_valid():
+                self._errors['excel'] = self._errors.get('excel', ErrorList())
+                errors = self.workbook.errors
+                #errors = self.workbook.errors[:self.NUM_ERRORS]
+                #if len(self.workbook.errors) > len(errors):
+                #    errors.append("and %d more errors..." % (len(self.workbook.errors)-len(errors)))
+                self._errors['excel'].extend(errors)          
+
+        error_list = list()
+        short_errors = list()
+        for error in errors:
+            if ' '.join(error.split(' ')[0:3]) not in short_errors:
+                error_list.append(' '.join(error.split(' ')[0:3]) + ' in cell(s) ')
+                short_errors.append(' '.join(error.split(' ')[0:3]))
+            for i in range(len(error_list)):
+                if ' '.join(error.split(' ')[0:3]) == ' '.join(error_list[i].split(' ')[0:3]):
+                    if len(error_list[i]) < 90:
+                        error_list[i] += error.split(' ')[6].split('!')[1][:-1] + ', '
+                    elif error_list[i][-3:] != '...':
+                        error_list[i] += 'and others ...'                        
+                        
+        error_text = list()
+        error_text.append('The following problems with the spreadsheet have been identified:')
+        for error in error_list:
+            error_text.append('- ' + error)
+                      
+        return error_text
+
+
     def save(self, request=None):
         """ Saves the form which writes the Shipment spreadsheet data to the database """
         assert self.is_valid()
@@ -66,8 +125,8 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
     carrier = forms.ModelChoiceField(
         queryset=Carrier.objects.all(),
         widget=objforms.widgets.LargeSelect,
-        help_text='Please select the carrier company.',
-        required=True
+        help_text='Please select the carrier company. To change shipping companies, edit your profile on the Project Home page.',
+        required=True, initial=''
         )
     tracking_code = objforms.widgets.LargeCharField(required=True)
     comments = objforms.widgets.CommentField(required=False)
@@ -76,6 +135,15 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
         model = Shipment
         fields = ('project','carrier', 'tracking_code','comments')
         
+    def __init__(self, *args, **kwargs):
+        super(ShipmentSendForm, self).__init__(*args, **kwargs)
+        for pro in Project.objects.all():
+            car = pro.carrier
+        try:
+            self.fields['carrier'].queryset = Carrier.objects.filter(pk=car.pk) 
+        except:
+            self.fields['carrier'].queryset = Carrier.objects.all()
+
     def warning_message(self):
         shipment = self.instance
         if shipment:
@@ -92,6 +160,9 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
             raise forms.ValidationError('Shipment already sent.')
         return cleaned_data
 
+    def restrict_by(self, field_name, id): 
+        pass
+
 class DewarForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     shipment = forms.ModelChoiceField(
@@ -99,15 +170,13 @@ class DewarForm(objforms.forms.OrderedForm):
         widget=objforms.widgets.LargeSelect,
         required=False
         )
-    label = forms.CharField(
-        widget=objforms.widgets.LargeInput,
+    label =  objforms.widgets.BarCodeField(
         help_text=Dewar.HELP['label']
         )
-    code = objforms.widgets.BarCodeField(required=False, help_text=Dewar.HELP['code'])
     comments = objforms.widgets.CommentField(required=False)
     class Meta:
         model = Dewar
-        fields = ('project','label','code','shipment','comments',)
+        fields = ('project','label','shipment','comments',)
 
 class ContainerForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
@@ -246,8 +315,10 @@ class ContainerSelectForm(forms.Form):
 class ExperimentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     name = objforms.widgets.LargeCharField(required=True)
-    kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES.get_choices(), required=True)
-    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS.get_choices(), required=True)
+    kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES.get_choices(), required=True,
+        help_text="If you select SAD or MAD make sure you provide the absorption edge below, otherwise Se-K will be assumed.")
+    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS.get_choices(), required=True,
+          help_text="Select the plan which describes your instructions for all crystals in this experiment group.")
     resolution = forms.FloatField(label='Desired Resolution', widget=objforms.widgets.LeftHalfInput, required=False )
     delta_angle = forms.FloatField(widget=objforms.widgets.RightHalfInput, required=False,
           help_text='If left blank, an appropriate value will be calculated during screening.')
@@ -305,19 +376,29 @@ class ExperimentFromStrategyForm(objforms.forms.OrderedForm):
             
 class CocktailForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    constituents = forms.ModelMultipleChoiceField(
-        widget=forms.SelectMultiple(attrs={'class': 'field select large'}),
-        queryset=Constituent.objects.all(),
-        required=False,
-        help_text='Select multiple items and then click submit to add them.') 
-    comments = forms.CharField(
+    #constituents = forms.ModelMultipleChoiceField(
+    #    widget=forms.SelectMultiple(attrs={'class': 'field select large'}),
+    #    queryset=Constituent.objects.all(),
+    #    required=False,
+    #    help_text='Select multiple items and then click submit to add them.') 
+    name = objforms.widgets.LargeCharField(required=True)
+    constituents = objforms.widgets.LargeCharField(required=True, help_text=Cocktail.HELP['constituents'])
+    is_radioactive = objforms.widgets.LeftCheckBoxField(required=False)
+    is_contaminant = objforms.widgets.RightCheckBoxField(required=False)
+    is_toxic = objforms.widgets.LeftCheckBoxField(required=False)
+    is_oxidising = objforms.widgets.RightCheckBoxField(required=False)
+    is_explosive = objforms.widgets.LeftCheckBoxField(required=False)
+    is_corrosive = objforms.widgets.RightCheckBoxField(required=False)
+    is_inflamable = objforms.widgets.LeftCheckBoxField(required=False)
+    is_biological_hazard = objforms.widgets.RightCheckBoxField(required=False)
+    description = forms.CharField(
         widget=objforms.widgets.CommentInput,
         max_length=200, 
         required=False,
         help_text= Crystal.HELP['comments'])
+
     class Meta:
         model = Cocktail
-        fields = ('project','constituents','comments')
 
 class CrystalFormForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
@@ -336,25 +417,6 @@ class CrystalFormForm(objforms.forms.OrderedForm):
         model = CrystalForm 
         fields = ('project','name', 'space_group','cell_a','cell_b','cell_c','cell_alpha','cell_beta','cell_gamma')
     
-class ConstituentForm(objforms.forms.OrderedForm):
-    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    name = objforms.widgets.LargeCharField(required=True)
-    acronym = objforms.widgets.LargeCharField(required=True)
-    kind = objforms.widgets.RightHalfChoiceField(required=True,choices=Constituent.TYPES.get_choices())
-    source = objforms.widgets.LeftHalfChoiceField(required=True, choices=Constituent.SOURCES.get_choices())
-    is_radioactive = objforms.widgets.LeftCheckBoxField(required=False)
-    is_contaminant = objforms.widgets.RightCheckBoxField(required=False)
-    is_toxic = objforms.widgets.LeftCheckBoxField(required=False)
-    is_oxidising = objforms.widgets.RightCheckBoxField(required=False)
-    is_explosive = objforms.widgets.LeftCheckBoxField(required=False)
-    is_corrosive = objforms.widgets.RightCheckBoxField(required=False)
-    is_inflamable = objforms.widgets.LeftCheckBoxField(required=False)
-    is_biological_hazard = objforms.widgets.RightCheckBoxField(required=False)
-    hazard_details = objforms.widgets.CommentField(required=False)
-    class Meta:
-        model = Constituent
-    
-
 class DataForm(forms.ModelForm):
     class Meta:
         model = Data
@@ -367,4 +429,17 @@ class StrategyRejectForm(objforms.forms.OrderedForm):
         
     def get_message(self):
         return "Are you sure you want to reject this Strategy?"
+
+class FeedbackForm(forms.ModelForm):
+    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
+    contact_name = objforms.widgets.LargeCharField(label='Name (optional)', required=False)
+    contact = forms.EmailField(widget=objforms.widgets.LargeInput, label="Email Address (optional)", required=False)
+    category = forms.ChoiceField(choices=Feedback.TYPE.get_choices(), widget=objforms.widgets.LargeSelect)
+    message = objforms.widgets.LargeTextField(required=True)
+    class Meta:
+        model = Feedback
+        fields = ('project','contact_name','contact','category','message')
+    def restrict_by(self, field_name, id): 
+        pass
+
     

@@ -135,7 +135,7 @@ var cvi_szclback, cvi_sztimer, cvi_szactive, cvi_szimage=null, shiftzoom = { _sh
 					st.display='block'; st.position='absolute'; st.left='0px'; st.bottom='0px'; st.MozUserSelect=st.KhtmlUserSelect="none"; over.unselectable="on"; 
 					if(img.fading&&img.showcoords||!img.showcoords) {st.visibility='hidden';} st.cursor='help'; div.appendChild(over); img.xycoid=over.id; 
 					if(!img.trident) {var view=shiftzoom.E('div'); st=view.style; st.height='100%'; st.width='100%'; st.left='0px'; st.bottom='0px'; st.position='absolute'; st.backgroundColor='black'; st.opacity=0.5; over.appendChild(view);}
-					view=shiftzoom.E('div'); view.id=img.id+'_cpos'; view.innerHTML="x:0 y:0"; view.unselectable="on"; st=view.style; st.textAlign='left'; st.verticalAlign='middle'; st.left='0px'; st.bottom='0px';
+					view=shiftzoom.E('div'); view.id=img.id+'_cpos'; view.innerHTML="[ - ]"; view.unselectable="on"; st=view.style; st.textAlign='left'; st.verticalAlign='middle'; st.left='0px'; st.bottom='0px';
 					st.position='relative'; st.display='block'; st.color='white'; st.fontSize='10px'; st.fontFamily='Arial, Helvetica, sans-serif'; st.fontStyle='normal'; 
 					st.fontWeight='bold'; st.whiteSpace='nowrap'; st.padding='2px 4px'; st.textShadow='0px 0px 4px black'; over.appendChild(view); img.cposid=view.id;
 					over=shiftzoom.E('div'); st=over.style; if(img.fading&&img.buttons||!img.buttons) {st.visibility='hidden';} over.id=img.id+'_ctrl'; st.height='16px'; 
@@ -293,7 +293,9 @@ var cvi_szclback, cvi_sztimer, cvi_szactive, cvi_szimage=null, shiftzoom = { _sh
 	source : function(img,src,v,z) {
 		if(img&&typeof(img.ctrlid)==="string") {
 			if(typeof(src)==="string"&&typeof(v)==="boolean") {
-				var tmp=new Image(); shiftzoom.G(img.xrefid)
+				var tmp=new Image(); 
+				dataViewer.showActivity();
+				shiftzoom.G(img.xrefid)
 				tmp.onload=function() {
 					shiftzoom.G(img.ctrlid).style.visibility="hidden"; shiftzoom.G(img.overid).style.visibility="hidden"; shiftzoom.G(img.xycoid).style.visibility="hidden"; 
 					if(v==true) {
@@ -302,6 +304,7 @@ var cvi_szclback, cvi_sztimer, cvi_szactive, cvi_szimage=null, shiftzoom = { _sh
 						obj.src=tmp.src; obj.style.msInterpolationMode=img.bicubic; if(!z) {shiftzoom.G(img.tumbid).src=obj.src; if(img.highres!=obj.src) {img.highres=obj.src;} if(img.trident) {tmp.onload=''; tmp=null;} delete tmp;} if(img.buttons&&!img.tod) {shiftzoom.G(img.ctrlid).style.visibility="visible";}
 						if(img.overview&&(img.parentNode.width>img.minwidth||img.parentNode.height>img.minheight)) {shiftzoom.G(img.overid).style.visibility="visible";} if(img.showcoords&&!img.tod) {shiftzoom.G(img.xycoid).style.visibility="visible";}
 					}
+				    dataViewer.hideActivity();
 				}; tmp.src=src;
 			}
 		}return false;
@@ -399,10 +402,16 @@ var cvi_szclback, cvi_sztimer, cvi_szactive, cvi_szimage=null, shiftzoom = { _sh
 	},
 	_showPercent : function(e) {
 		if(cvi_szactive!=null) {var k,t,x,y,z,ex,ey,px=0,py=0,na=!Number.prototype.toFixed?0:1,o=shiftzoom.G(cvi_szactive),w=o.parentNode.width,h=o.parentNode.height;
-			e=e?e:window.event; ex=e.clientX; ey=e.clientY; if(e.pageX||e.pageY) {px=e.pageX; py=e.pageY;} k=shiftzoom._getMousePos(ex,ey,px,py); t=shiftzoom._findPosXY(o); 
-			x=parseFloat((Math.min(Math.max(k.ex+k.ox-t.x,0.0),w)/w)*100); x=na?x.toFixed(2):parseInt(x); y=parseFloat((Math.min(Math.max(k.ey+k.oy-t.y,0.0),h)/h)*100); 
+			e=e?e:window.event; ex=e.clientX; ey=e.clientY; if(e.pageX||e.pageY) {px=e.pageX; py=e.pageY;} k=shiftzoom._getMousePos(ex,ey,px,py); t=shiftzoom._findPosXY(o);
+			// CLS: inserted changed this so it shows resolution instead
+			x=2.0* Math.abs((Math.min(Math.max(k.ex+k.ox-t.x-12,0.0),w)/w)-0.5);
+			y=2.0* Math.abs((Math.min(Math.max(k.ey+k.oy-t.y-12,0.0),h)/h)-0.5);
+			z=parseFloat(dataViewer.calcRes(Math.sqrt(x*x+y*y)));
+			z=na?z.toFixed(2):parseInt(z);
+			shiftzoom.G(o.cposid).innerHTML='<span>Resolution: '+z+' &#8491;<\/span>';			
+			/*x=parseFloat((Math.min(Math.max(k.ex+k.ox-t.x,0.0),w)/w)*100); x=na?x.toFixed(2):parseInt(x); y=parseFloat((Math.min(Math.max(k.ey+k.oy-t.y,0.0),h)/h)*100); 
 			y=na?y.toFixed(2):parseInt(y); z=parseFloat(((w-o.minwidth)/(o.maxwidth-o.minwidth))*100); z=na?z.toFixed(2):parseInt(z);
-			shiftzoom.G(o.cposid).innerHTML='<span>x:'+x+'% y:'+y+'% z:'+z+'%<\/span>';
+			shiftzoom.G(o.cposid).innerHTML='<span>x:'+x+'% y:'+y+'% z:'+z+'%<\/span>'; */
 		}return false;
 	},
 	_showLatLon : function(e) {

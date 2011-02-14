@@ -1,11 +1,11 @@
-import datetime
+from datetime import datetime, timedelta
 import subprocess
 import tempfile
 import os
 import shutil
 import sys
-
 import xlrd
+from shutil import copyfile
 
 from django.conf import settings
 
@@ -17,6 +17,7 @@ from django.template import RequestContext
 from django.views.decorators.cache import cache_page
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models import Max
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db import IntegrityError
@@ -24,15 +25,14 @@ from django.template import loader
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import smart_str
-
 import logging
 
 from imm.objlist.views import ObjectList
 from imm.lims.models import *
-from imm.staff.models import Runlist
+from imm.staff.models import Runlist, Link
 from imm.lims.forms import ObjectSelectForm, DataForm
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
-  
+from imm.download.views import create_download_key 
 from imm.remote.user_api import UserApi
   
 #from imm.remote.user_api import UserApi
@@ -43,8 +43,25 @@ try:
     import json
 except:
     from django.utils import simplejson as json
+
+
+ 
+ACTIVITY_LOG_LENGTH  = 10       
+
+
+def get_ldap_user_info(username):
+    """
+    Get the ldap record for user identified by 'username'.
+    """
     
-ACTIVITY_LOG_LENGTH  = 5       
+    import ldap
+    l = ldap.initialize(settings.LDAP_SERVER_URI)
+    flt = settings.LDAP_SEARCH_FILTER % username
+    result = l.search_s(settings.LDAP_SEARCHDN,
+                ldap.SCOPE_SUBTREE, flt)
+    if len(result) != 1:
+        raise ValueError("More than one entry found for 'username'")
+    return result[0]
 
 def admin_login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME):
     """
@@ -59,86 +76,26 @@ def admin_login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME)
         return actual_decorator(function)
     return actual_decorator
 
-def create_and_update_project_and_laboratory(user, fetcher=None):
-    if not user:
-        raise ValueError('"user" must not be None')
-    
-    user_api = UserApi(settings.USER_API_HOST, fetcher=fetcher)
-    profile_details = user_api.get_profile_details(user.username)
-    
+def create_project(user=None, username=None, fetcher=None):
+    if user is None:
+        # find out if we have a user by the same username in LDAP and create a new one.
+        if username is None:
+            raise ValueError('"username" must be provided if "user" is not given.')
+        userinfo = get_ldap_user_info(username)[1]
+        user = User(username=username, password=userinfo['userPassword'][0])
+        user.last_name = userinfo['cn'][0].split()[0]
+        user.first_name  =  userinfo['cn'][0].split()[-1]
+        user.save()
+                   
     try:
         project = user.get_profile()
-        if project.permit_no != profile_details['experimentId']:
-            project.permit_no = profile_details['experimentId']
-            project.save()
-        # want this to be the login name for th euser. 
-        if project.name != user.name:
-            project.name = user.name
-            project.save()
-        if project.lab.organisation != profile_details['primaryContact']['institution']:
-            project.lab.organisation = profile_details['primaryContact']['institution']
-            project.lab.save()
-        if project.lab.name != profile_details['primaryContact']['department']:
-            project.lab.name = profile_details['primaryContact']['department']
-            project.lab.save()
-        if project.lab.contact_phone != profile_details['primaryContact']['phoneNum']:
-            project.lab.contact_phone = profile_details['primaryContact']['phoneNum']
-            project.lab.save()
         
     except Project.DoesNotExist:
-        laboratory = Laboratory(organisation=profile_details['primaryContact']['institution'],
-                                name=profile_details['primaryContact']['department'],
-                                contact_phone=profile_details['primaryContact']['phoneNum'])
-        laboratory.save()
-        project = Project(user=user, 
-                          lab=laboratory,
-                          permit_no=profile_details['experimentId'],
-                          name=profile_details['title'],
-                          beam_time=0,
-                          start_date=datetime.datetime.now(),
-                          end_date=datetime.datetime.now())
+        project = Project(user=user, name=user.username)
         project.save()
-#        user.email = contact_phone=profile_details['primaryContact']['email']
-#        user.first_name, user.last_name = contact_phone=profile_details['primaryContact']['name'].split(' ')
-#        user.save()
     
     return project
     
-
-#def get_default_laboratory():
-#    """ Gets a default Canadian Light Source Laboratory object if it exists
-#        and creates it if it doesn't
-#    """
-#    try:
-#        default_lab = Laboratory.objects.get(id=settings.DEFAULT_LABORATORY_ID, name=settings.DEFAULT_LABORATORY_NAME)
-#    except Laboratory.DoesNotExist:
-#        default_lab = Laboratory(id=settings.DEFAULT_LABORATORY_ID, name=settings.DEFAULT_LABORATORY_NAME)
-#        default_lab.save()
-#        
-#    return default_lab
-#     
-#def create_default_project(user):
-#    if not user:
-#        raise ValueError('"user" must not be None')
-#
-#    cls_lab = get_default_laboratory()
-#    
-#    # todo: use remote.user_api
-#    # user_api = UserApi(settings.SOMEHOST)
-#    # user_api.get_profile_details(user.id)
-#    # populate with retrieved data
-#    project_args = {'user': user,
-#                    'name': user.username,
-#                    'title': '%s_project' % user.username,
-#                    'summary': '',
-#                    'beam_time': 0,
-#                    'lab': cls_lab,
-#                    'start_date': datetime.datetime.now(),
-#                    'end_date': datetime.datetime.now()
-#                    }
-#    project = Project(**project_args)
-#    project.save()
-#    return project
 
 def project_required(function):
     """ Decorator that enforces the existence of a imm.lims.models.Project """
@@ -150,6 +107,21 @@ def project_required(function):
         except Project.DoesNotExist:
             raise Http404
     return project_required_wrapper
+
+def project_optional(function):
+    """ Decorator that enforces the existence of a imm.lims.models.Project """
+    def project_optional_wrapper(request, *args, **kwargs):
+        try:
+            project = request.user.get_profile()
+            request.project = project
+            return function(request, *args, **kwargs)
+        except Project.DoesNotExist:
+            if not request.user.is_staff:
+                raise
+            project=None
+            request.project = project
+            return function(request, *args, **kwargs)
+    return project_optional_wrapper
 
 MANAGER_FILTERS = {
     (Shipment, True) : {'status__in': [Shipment.STATES.SENT, Shipment.STATES.ON_SITE, Shipment.STATES.RETURNED]},
@@ -188,7 +160,10 @@ def manager_required(function):
             try:
                 project = request.user.get_profile()
                 request.project = project
-                manager = FilterManagerWrapper(manager, project__exact=project)
+                if model != Project:
+                    manager = FilterManagerWrapper(manager, project__exact=project)
+                else:
+                    manager = FilterManagerWrapper(manager, pk__exact=project.pk)
             except Project.DoesNotExist:
                 raise Http404
         if MANAGER_FILTERS.has_key((model, request.user.is_superuser)):
@@ -200,15 +175,17 @@ def manager_required(function):
         return function(request, *args, **kwargs)
     return manager_required_wrapper
 
+
 def project_assurance(function):
     """ Decorator that creates a default imm.lims.models.Project if there isn't one """
     def project_assurance_wrapper(request, fetcher=None):
         try:
             request.user.get_profile() # test for existence of the project 
         except Project.DoesNotExist:
-            request.project = create_and_update_project_and_laboratory(request.user, fetcher=fetcher)
+            request.project = create_project(request.user, fetcher=fetcher)
         return function(request)
     return project_assurance_wrapper
+
 
 @login_required
 def home(request):
@@ -226,37 +203,55 @@ def home(request):
 @project_required
 def show_project(request):
     project = request.project
-    msglist = ObjectList(request, request.user.inbox)
+    
+    # if user has logged in past week, show recent items in past week otherwise
+    # show recent items since last login.
+    
+    recent_start = datetime.now() - timedelta(days=7)
+    last_login = ActivityLog.objects.last_login(request)
+    if last_login is not None:
+        if last_login.created < recent_start:
+            recent_start = last_login.created       
 
     statistics = {
-        'shipment': {
-                'draft': project.shipment_set.filter(status__exact=Shipment.STATES.DRAFT), 
-                'outgoing': project.shipment_set.filter(status__exact=Shipment.STATES.SENT),
-                'incoming': project.shipment_set.filter(status__exact=Shipment.STATES.RETURNED),
-                'received': project.shipment_set.filter(status__exact=Shipment.STATES.ON_SITE),
-                'closed': project.shipment_set.filter(status__exact=Shipment.STATES.ARCHIVED),   
+        'shipments': {
+                'outgoing': project.shipment_set.filter(status__exact=Shipment.STATES.SENT).count(),
+                'incoming': project.shipment_set.filter(status__exact=Shipment.STATES.RETURNED).count(),
+                'on_site': project.shipment_set.filter(status__exact=Shipment.STATES.ON_SITE).count(),
                 },
-        'experiment': {
-                'draft': project.experiment_set.filter(status__exact=Experiment.STATES.DRAFT),
-                'active': project.experiment_set.filter(status__exact=Experiment.STATES.ACTIVE),
-                'processing': project.experiment_set.filter(status__exact=Experiment.STATES.PROCESSING),
-                'paused': project.experiment_set.filter(status__exact=Experiment.STATES.PAUSED),
-                'closed': project.experiment_set.filter(status__exact=Experiment.STATES.CLOSED),            
+        'experiments': {
+                'active': project.experiment_set.filter(status__exact=Experiment.STATES.ACTIVE).count(),
+                'processing': project.experiment_set.filter(status__exact=Experiment.STATES.PROCESSING).count(),
                 },
-                
+        'crystals': {
+                'on_site': project.crystal_set.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).count(),
+                'outgoing': project.crystal_set.filter(status__exact=Crystal.STATES.SENT).count(),
+                'incoming': project.crystal_set.filter(status__exact=Crystal.STATES.RETURNED).count(),
+                },
+        'reports':{
+                'total': project.result_set.all().count(),
+                'new': project.result_set.filter(modified__gte=recent_start).count(),
+                'start_date': recent_start,                
+                },
+        'datasets':{
+                'total': project.data_set.all().count(),
+                'new': project.data_set.filter(modified__gte=recent_start).count(),
+                'start_date': recent_start,
+        },                
     }
+    
     return render_to_response('lims/project.html', {
         'project': project,
         'statistics': statistics,
-        'inbox': msglist,
-        'link':False,
+        'activity_log': ObjectList(request, project.activitylog_set),
+        'handler' : request.path,
         },
     context_instance=RequestContext(request))
-    
+ 
 @login_required
 @project_required
 @transaction.commit_on_success
-def upload_shipment(request, model, form, template='lims/forms/new_base.html'):
+def upload_shipment(request, model, form, template='lims/forms/form_base.html'):
     """A generic view which displays a Form of type ``form`` using the Template
     ``template`` and when submitted will create new data using the LimsWorkbook
     class
@@ -273,14 +268,14 @@ def upload_shipment(request, model, form, template='lims/forms/new_base.html'):
     if request.method == 'POST':
         frm = form(request.POST, request.FILES)
         if frm.is_valid():
-            
             # saving valid data to the database can fail if duplicates are found. in this case
             # we need to manually rollback the transaction and return a normal rendered form error
             # to the user, rather than a 500 page
             try:
-                frm.save(request)
-                request.user.message_set.create(message = "The data was uploaded correctly.")
-                return render_to_response("lims/message.html", context_instance=RequestContext(request))
+                frm.save(request) #FIXME ShipmentUpload form.save does not return the model being saved!
+                message = 'Shipment uploaded successfully'
+                request.user.message_set.create(message = message)
+                return render_to_response("lims/iframe_refresh.html", context_instance=RequestContext(request))
 
             except IntegrityError:
                 transaction.rollback()
@@ -292,68 +287,30 @@ def upload_shipment(request, model, form, template='lims/forms/new_base.html'):
         frm = form(initial={'project': project.pk})
         return render_to_response(template, {'form': frm, 'info': form_info}, context_instance=RequestContext(request))
 
-@login_required
-@manager_required
-def shipping_summary(request, model=ActivityLog):
-    log_set = [
-        ContentType.objects.get_for_model(Container).pk, 
-        ContentType.objects.get_for_model(Dewar).pk,
-        ContentType.objects.get_for_model(Shipment).pk,
-    ]
-    return render_to_response('lims/shipping.html',{
-        'logs': request.manager.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
-        'project': request.project,
-        'request': request,
-        },
-        context_instance=RequestContext(request))
 
-@login_required
-@manager_required
-def sample_summary(request, model=ActivityLog):
-    log_set = [
-        ContentType.objects.get_for_model(Crystal).pk,
-        ContentType.objects.get_for_model(Constituent).pk,
-        ContentType.objects.get_for_model(Cocktail).pk,
-        ContentType.objects.get_for_model(CrystalForm).pk,
-    ]
-    return render_to_response('lims/samples.html', {
-        'logs': request.manager.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
-        'project': request.project,
-        'request': request,
-        },
-        context_instance=RequestContext(request))
-
-@login_required
-@manager_required
-def experiment_summary(request, model=ActivityLog):
-    log_set = [
-        ContentType.objects.get_for_model(Experiment).pk,
-    ]
-    return render_to_response('lims/experiment.html',{
-        'logs': request.manager.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH],
-        'project': request.project,
-        'request': request,
-        },
-        context_instance=RequestContext(request))
-    
 @login_required
 @transaction.commit_on_success
-def add_existing_object(request, dest_id, obj_id, destination, object, src_id=None, source=None, replace=False, reverse=False):
+def add_existing_object(request, dest_id, obj_id, destination, object, src_id=None, loc_id=None, source=None, replace=False, reverse=False):
     """
     New add method. Meant for AJAX, so only intended to be POST'd to. This will add an object of type 'object'
     and id 'obj_id' to the object of type 'destination' with the id of 'dest_id'.
     Replace means if the field already has an item in it, replace it, else fail
     Reverse means, due to model layout, you are actually adding destination to object
     """
+    object_type = destination.__name__
+    form_info = {
+        'title': 'Add Existing %s' % (object_type),
+        'sub_title': 'Select existing %ss to add to %s' % (object_type.lower(), object),
+        'action':  request.path,
+        'target': 'entry-scratchpad',
+    }
     if request.method != 'POST':
         raise Http404
-    
+
     if reverse:
         # swap obj and destination
         obj_id, dest_id = dest_id, obj_id
         object, destination = destination, object
-
-    
 
     model = destination;
     manager = model.objects
@@ -392,7 +349,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
         to_add = obj_manager.get(pk=obj_id)
     except:
         raise Http404
-        
+
     # get the display name
     display_name = to_add.name
     if reverse:
@@ -419,29 +376,29 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
                 request.user.message_set.create(message = message)
                 return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
                 
-        
+        if loc_id:
+            setattr(dest, 'container_location', loc_id)
+        if ((destination.__name__ == 'Experiment' and object.__name__ == 'Crystal') or (destination.__name__ == 'Container' and object.__name__ == 'Dewar')):
+            for exp in dest.get_experiment_list():
+                exp.priority = 0
+                exp.save()    
+    
         dest.save()
-        message = '%s has been successfully added' % display_name
+        message = '%s (%s) added' % (to_add.__class__._meta.verbose_name, display_name)
+        ActivityLog.objects.log_activity(request, dest, ActivityLog.TYPE.MODIFY, message)
     else:
         message = '%s has not been added, as %s is not editable' % (display_name, dest.name)
-    ActivityLog.objects.log_activity(
-        0,
-        request.user.pk, 
-        request.META['REMOTE_ADDR'],
-        obj_id,
-        dest_id, 
-        smart_str(destination), 
-        ActivityLog.TYPE.MODIFY,
-        message
-        )
+
     request.user.message_set.create(message = message)
-    return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
+    return render_to_response('lims/refresh.html', {
+        'info': form_info,
+        }, context_instance=RequestContext(request))
     
 
 @login_required
 @project_required
 @transaction.commit_on_success
-def add_existing_object_old(request, src_id, dest_id, obj_id, parent_model, model, field, additional_fields=None, form=ObjectSelectForm):
+def add_multiple_existing(request, src_id, dest_id, obj_id, parent_model, model, field, additional_fields=None, form=ObjectSelectForm):
     """
     A generic view which displays a form of type ``form`` which when submitted 
     will set the foreign key field `field` of one/more existing objects of 
@@ -483,20 +440,11 @@ def add_existing_object_old(request, src_id, dest_id, obj_id, parent_model, mode
                 
             if changed:
                 parent.save()            
-                form_info['message'] = '%ss has been successfully added' % object_type.lower()
+                message = '%ss added' % object_type.lower()
+                ActivityLog.objects.log_activity(request, parent, ActivityLog.TYPE.MODIFY, message)
             else:
-                form_info['message'] = '%ss has not been added, as the destination is not editable' %  object_type.lower()        
-            ActivityLog.objects.log_activity(
-                project.pk,
-                request.user.pk, 
-                request.META['REMOTE_ADDR'],
-                ContentType.objects.get_for_model(parent_model).id,
-                parent.pk, 
-                smart_str(parent), 
-                ActivityLog.TYPE.MODIFY,
-                form_info['message']
-                )
-            request.user.message_set.create(message = form_info['message'])
+                message = '%ss have not been added, as the destination is not editable' %  object_type.lower()        
+            request.user.message_set.create(message = message)
             return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
         else:
             return render_to_response('objforms/form_base.html', {
@@ -512,7 +460,7 @@ def add_existing_object_old(request, src_id, dest_id, obj_id, parent_model, mode
         return render_to_response('objforms/form_base.html', {
             'info': form_info, 
             'form': frm, 
-            })
+            }, context_instance=RequestContext(request))
         
 @login_required
 @manager_required
@@ -528,84 +476,72 @@ def object_detail(request, id, model, template):
     return render_to_response(template, {
         'object': obj,
         'handler' : request.path
-        },
-        context_instance=RequestContext(request))
+        }, context_instance=RequestContext(request))
     
 @login_required
-@manager_required
-def experiment_object_detail(request, id, model, template, admin=False):
-    """
-    Experiment needs a unique detail since it needs to pass the relevant information
-    from results and datasets into it's detail.
-    """
-    try:
-        obj = request.manager.get(pk=id)
-    except:
-        raise Http404
-    
-    datasets = Data.objects.filter(experiment__exact=obj)
-    results = Result.objects.filter(experiment__exact=obj)
-    
-    return render_to_response(template, {
-        'object': obj,
-        'handler': request.path,
-        'datasets': datasets,
-        'results': results,
-        'admin': admin
-        }, 
-        context_instance=RequestContext(request))
-
-@login_required
-@project_required
+@project_optional
 @transaction.commit_on_success
-def create_object(request, model, form, template='lims/forms/new_base.html', action=None, redirect=None):
+def create_object(request, model, form, template='lims/forms/new_base.html', action=None, redirect=None, modal_upload=False):
     """
     A generic view which displays a Form of type ``form`` using the Template
     ``template`` and when submitted will create a new object of type ``model``.
     """
-    project = request.project
-    object_type = model.__name__
+    if request.project:
+        project = request.project
+    else:
+        project = None
+    object_type = model._meta.verbose_name
 
     form_info = {
         'title': 'New %s' % object_type,
         'action':  request.path,
-        'add_another': True,
+        'add_another': True, # does not work right now
     }
-        
+    if modal_upload:
+        form_info['enctype'] = 'multipart/form-data'
+
     if request.method == 'POST':
-        frm = form(request.POST)
-        frm.restrict_by('project', project.pk)
+        if request.FILES:
+            frm = form(request.POST, request.FILES)
+        else:
+            frm = form(request.POST)
+        frm.restrict_by('project', project)
         if frm.is_valid():
             new_obj = frm.save()
             if action:
                 perform_action(new_obj, action, data=frm.cleaned_data)
-            info_msg = 'The %(name)s "%(obj)s" was added successfully.' % {'name': smart_str(model._meta.verbose_name), 'obj': smart_str(new_obj)}
-            ActivityLog.objects.log_activity(
-                project.pk,
-                request.user.pk, 
-                request.META['REMOTE_ADDR'],
-                ContentType.objects.get_for_model(model).id,
-                new_obj.pk, 
-                smart_str(new_obj), 
-                ActivityLog.TYPE.CREATE,
-                info_msg
-                )
+            info_msg = 'New %(name)s (%(obj)s) added' % {'name': smart_str(model._meta.verbose_name), 'obj': smart_str(new_obj)}
+            ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE,
+                info_msg)
             request.user.message_set.create(message = info_msg)
-
-            # messages are simply passed down to the template via the request context
-            return render_to_response("lims/message.html", context_instance=RequestContext(request))
+            if request.POST.has_key('_addanother'):
+                initial = {'project': project.pk}
+                initial.update(dict(request.GET.items()))      
+                frm = form(initial=initial)
+                frm.restrict_by('project', project)
+                return render_to_response(template, {
+                    'info': form_info, 
+                    'form': frm, 
+                    }, context_instance=RequestContext(request))
+            else:
+                if modal_upload:
+                    return render_to_response("lims/iframe_refresh.html", context_instance=RequestContext(request))
+                # messages are simply passed down to the template via the request context
+                return render_to_response("lims/redirect.html", context_instance=RequestContext(request))
         else:
             return render_to_response(template, {
                 'info': form_info,
-                'form': frm, 
-                }, 
-                context_instance=RequestContext(request))
+                'form': frm,
+                }, context_instance=RequestContext(request))
     else:
-        initial = {'project': project.pk}
-        initial.update(dict(request.GET.items()))      
-        frm = form(initial=initial)
+        if project:
+            initial = {'project': project.pk}
+            initial.update(dict(request.GET.items()))      
+            frm = form(initial=initial)
+        else:
+            frm = form(initial=None)
 
-        frm.restrict_by('project', project.pk)
+        frm.restrict_by('project', project)
         if request.GET.has_key('clone'):
             clone_id = request.GET['clone']
             try:
@@ -626,8 +562,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
         return render_to_response(template, {
             'info': form_info, 
             'form': frm, 
-            }, 
-            context_instance=RequestContext(request))
+            }, context_instance=RequestContext(request))
 
 
 @login_required
@@ -639,7 +574,7 @@ def add_new_object(request, id, model, form, field):
     `field` to the related object identified by the primary key `id`.
     """
     project = request.project
-    object_type = model.__name__
+    object_type = model._meta.verbose_name
     try:
         manager = getattr(project, field+'_set')
         related = manager.get(pk=id)
@@ -651,31 +586,27 @@ def add_new_object(request, id, model, form, field):
         'sub_title': 'Adding a new %s to %s "%s"' % (object_type, related_type, smart_str(related)),
         'action':  request.path,
         'target': 'entry-scratchpad',
-        'add_another': True,
+        'add_another': False,
     }
     if request.method == 'POST':
         q = request.POST.copy()
         q.update({field: related.pk})
         frm = form(q)
         frm[field].field.widget.attrs['disabled'] = 'disabled'
-        frm.restrict_by('project', project.pk)
+        frm.restrict_by('project', project)
         if frm.is_valid():
             new_obj = frm.save()
-            info_msg = '%s "%s" added to %s "%s"' % (object_type, smart_str(new_obj), related_type, smart_str(related))
+            info_msg = '%s (%s) added to %s (%s)' % (smart_str(model._meta.verbose_name), smart_str(new_obj), related_type, smart_str(related))
             ActivityLog.objects.log_activity(
-                project.pk,
-                request.user.pk,
-                request.META['REMOTE_ADDR'],
-                ContentType.objects.get_for_model(model).id,
-                new_obj.pk, 
-                smart_str(new_obj), 
+                request,
+                new_obj, 
                 ActivityLog.TYPE.CREATE,
                 info_msg
                 )
             request.user.message_set.create(message = info_msg)
             if request.POST.has_key('_addanother'):
                 frm = form(initial={'project': project.pk, field: related.pk})
-                frm.restrict_by('project', project.pk)
+                frm.restrict_by('project', project)
                 frm[field].field.widget.attrs['disabled'] = 'disabled'
                 return render_to_response('objforms/form_base.html', {
                     'info': form_info, 
@@ -690,7 +621,7 @@ def add_new_object(request, id, model, form, field):
                 }, context_instance=RequestContext(request))
     else:
         frm = form(initial={'project': project.pk, field: related.pk})
-        frm.restrict_by('project', project.pk)
+        frm.restrict_by('project', project)
         frm[field].field.widget.attrs['disabled'] = 'disabled'
         return render_to_response('objforms/form_base.html', {
             'info': form_info, 
@@ -699,7 +630,7 @@ def add_new_object(request, id, model, form, field):
 
 @login_required
 @manager_required
-def object_list(request, model, template='objlist/object_list.html', link=True, can_add=False, can_upload=False, can_receive=False, can_prioritize=False):
+def object_list(request, model, template='objlist/object_list.html', link=False, modal_link=False, modal_edit=False, modal_upload=False, delete_inline=False, can_add=False, can_prioritize=False):
     """
     A generic view which displays a list of objects of type ``model`` owned by
     the current users project. The list is displayed using the template
@@ -710,14 +641,25 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
         - ``can_add`` (boolean) specifies whether or not new entries can be added on the list page.   
         - 
     """
-    ol = ObjectList(request, request.manager, num_show=25)    
+    log_set = [
+        ContentType.objects.get_for_model(model).pk, 
+    ]
+    ol = ObjectList(request, request.manager)
+    if not request.user.is_superuser:
+        project = request.user.get_profile()
+        logs = project.activitylog_set.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]
+    else:
+        logs = ActivityLog.objects.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]
     return render_to_response(template, {'ol': ol, 
-                                         'link': link, 
+                                         'link': link,
+                                         'modal_link': modal_link,
+                                         'modal_edit': modal_edit,
+                                         'modal_upload': modal_upload,
+                                         'delete_inline': delete_inline,
                                          'can_add': can_add, 
-                                         'can_upload': can_upload, 
-                                         'can_receive': can_receive, 
                                          'can_prioritize': can_prioritize,
-                                         'handler': request.path},
+                                         'handler': request.path,
+                                         'logs': logs},                                         
         context_instance=RequestContext(request)
     )
 
@@ -725,30 +667,21 @@ def object_list(request, model, template='objlist/object_list.html', link=True, 
 @manager_required    
 def basic_object_list(request, model, template='objlist/basic_object_list.html'):
     """
-    A very basic object list that will only display .name and .id for the entity
+    Request a basic list of objects for which the orphan field specified as a GET parameter is null.
     The template this uses will be rendered in the sidebar controls.
     """
-    ol = ObjectList(request, request.manager, num_show=200)
+    ol = {}
+    if request.GET.get('orphan_field', None) is not None:
+        params = {'%s__isnull' %  str(request.GET['orphan_field']): True}
+        objects = request.manager.filter(**params)
+    else:
+        objects = request.manager.all()
+    ol['object_list'] = objects
     handler = request.path
     # if path has /basic on it, remove that. 
     if 'basic' in handler:
         handler = handler[0:-6]
-    return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
-    
-@login_required
-@manager_required
-def basic_crystal_list(request, model, template="objlist/basic_object_list.html"):
-    # get all crystals
-    # filter result to just this project
-    #filer results to just ones with experiment = none
-    ol = ObjectList(request, request.manager, num_show=200)
-    handler = request.path
-    # if path has /basic on it, remove that. 
-    if 'basic' in handler:
-        handler = handler[0:-6]
-    ol.object_list = Crystal.objects.filter(experiment=None).filter(project=request.project)
-    # filter ol.object_list to just crystals with no experiment
-    return render_to_response(template, {'ol' : ol, 'type' : ol.model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
+    return render_to_response(template, {'ol' : ol, 'type' : model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
 
 @login_required
 def user_object_list(request, model, template='lims/lists/list_base.html', link=True, can_add=True):
@@ -766,69 +699,60 @@ def user_object_list(request, model, template='lims/lists/list_base.html', link=
     """
     manager = getattr(request.user, model.__name__.lower()+'_set')
     ol = ObjectList(request, manager)
-    return render_to_response(template, {'ol': ol,'link': link, 'can_add': can_add },
+    handler = request.path
+    return render_to_response(template, {'ol': ol,'link': link, 'can_add': can_add, 'handler': handler },
         context_instance=RequestContext(request)
     )
     
 @login_required
-@manager_required
-@transaction.commit_on_success
-def change_priority(request, id,  model, action, field):
-    """
-    """
-    try:
-        obj = request.manager.get(pk=id)
-    except:
-        raise Http404
-    
-    if request.method == 'POST':
-        
-        try:
-            filter, order = '__gt', '' # return results with priority > obj.priority
-            if action == 'down': 
-                filter, order = '__lt', '-' # return results with priority < obj.priority
-                
-            # order by priority, DESC (ie. 9,8,7,6,...)
-            results = model.objects.order_by(order + field).filter(**{field + filter: getattr(obj, field)})
-            next_obj = results[0]
-                
-        except IndexError:
-            next_obj = None
-            
-        delta = int(action == 'up') or -1
-        setattr(obj, field, getattr(next_obj or obj, field) + delta)
-        obj.save()
-    
-    return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
-
-@login_required
 @transaction.commit_on_success
 def priority(request, id,  model, field):
-    
     if request.method == 'POST':
-        pks = request.POST.getlist('objlist-list-table[]')
+        pks = map(int, request.POST.getlist('id_list[]'))
         pks.reverse()
-        i = 0
-        for pk in pks:
-            if pk: # not all rows have ids (hidden ones)
-                pk = int(pk)
-                instance = model.objects.get(pk=pk)
-                setattr(instance, field, i)
-                instance.save()
-                i += 1
-            
-    return HttpResponse()
+        _priorities_changed = False
+        for obj in model.objects.filter(pk__in=pks).all():
+            new_priority = pks.index(obj.pk) + 1
+            if obj.priority != new_priority:
+                obj.priority = new_priority
+                obj.save()
+                _priorities_changed = True
+    if _priorities_changed:
+        request.user.message_set.create(message = "%s priority updated" % model.__name__)
+    return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
+    
+@login_required
+@transaction.commit_on_success
+def edit_profile(request, form, template='objforms/form_base.html', action=None):
+    """
+    View for editing user profiles
+    """
+    try:
+        model = Project
+        obj = request.user.get_profile()
+        request.project = obj
+        request.manager = Project.objects
+    except:
+        raise Http404
+    return edit_object_inline(request, obj.pk, model=model, form=form, template=template)
+    
     
 @login_required
 @manager_required
 @transaction.commit_on_success
-def edit_object_inline(request, id, model, form, template='objforms/form_base.html', action=None):
+def edit_object_inline(request, id, model, form, template='objforms/form_base.html', action=None, modal_upload=False):
     """
     A generic view which displays a form of type ``form`` using the template 
     ``template``, for editing an object of type ``model``, identified by primary 
     key ``id``, which when submitted will update the entry asynchronously through
     AJAX.
     """
+    #if request.GET.get('orphan_field', None) is not None:
+    #    params = {'%s__isnull' %  str(request.GET['orphan_field']): True}
+    #   objects = request.manager.filter(**params)
+    #else:
+    #    objects = request.manager.all()
+
     try:
         obj = request.manager.get(pk=id)
     except:
@@ -839,48 +763,45 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
         save_label = action[0].upper() + action[1:]
     
     form_info = {
-        'title': request.GET.get('title', 'Edit %s' % model.__name__),
+        'title': request.GET.get('title', 'Edit %s' % model._meta.verbose_name),
         'sub_title': obj.identity(),
         'action':  request.path,
         'target': 'entry-scratchpad',
         'save_label': save_label
     }
+
+    if modal_upload:
+        form_info['enctype'] = 'multipart/form-data'
+
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
         if request.project:
-            frm.restrict_by('project', request.project.pk)
+            frm.restrict_by('project', request.project)
         if frm.is_valid():
+            form_info['message'] = '%s (%s) modified' % ( model._meta.verbose_name, obj)
             frm.save()
             # if an action ('send', 'close') is specified, the perform the action
             if action:
                 perform_action(obj, action, data=frm.cleaned_data)
-            form_info['message'] = '%s %s %s successfully modified' % ( model.__name__, obj.__unicode__(), obj.identity())
-            if hasattr(obj, 'project'):
-                ActivityLog.objects.log_activity(
-                    obj.project.pk,
-                    request.user.pk, 
-                    request.META['REMOTE_ADDR'],
-                    ContentType.objects.get_for_model(model).id,
-                    obj.pk, 
-                    smart_str(obj), 
-                    ActivityLog.TYPE.MODIFY,
-                    form_info['message']
-                    )
+
             request.user.message_set.create(message = form_info['message'])
-            return render_to_response('lims/message.html', context_instance=RequestContext(request))
+            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, form_info['message'])            
+            if modal_upload:
+                return render_to_response("lims/iframe_refresh.html", context_instance=RequestContext(request))
+            return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
         else:
             return render_to_response(template, {
             'info': form_info, 
             'form' : frm, 
-            })
+            }, context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=dict(request.GET.items())) # casting to a dict pulls out first list item in each value list
         if request.project:
-            frm.restrict_by('project', request.project.pk)
+            frm.restrict_by('project', request.project)
         return render_to_response(template, {
         'info': form_info, 
-        'form' : frm, 
-        })
+        'form' : frm,
+        }, context_instance=RequestContext(request))
        
        
 @login_required
@@ -910,6 +831,13 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
         except Project.DoesNotExist:
             raise Http404    
 
+    form_info = {
+        'title': request.GET.get('title', 'Remove %s' % model.__name__),
+        'sub_title': obj_id,
+        'action':  request.path,
+        'target': 'entry-scratchpad'
+    }
+
     model = object;
     obj_manager = model.objects
     request.project = None
@@ -936,43 +864,40 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
     display_name = to_remove.name
     if reverse:
         display_name = src.name
-    
-    
+
     if src.is_editable():
         #if replace == True or dest.(object.__name__.lower()) == None
         try:
             getattr(src, object.__name__.lower())
             setattr(src, object.__name__.lower(), None)
+            if object.__name__.lower() == "container":
+                setattr(src, "container_location", None)
         except AttributeError:
             # attrib didn't exist, append 's' for many field
             try:
                 current = getattr(src, '%ss' % object.__name__.lower())
                 # want destination.objects.add(to_add)
                 current.remove(to_remove)
+                if src.__class__.__name__.lower() == "runlist":
+                    src.remove_container(to_remove)
                 #setattr(dest, '%ss' % object.__name__.lower(), current_values)
             except AttributeError:
                 message = '%s has not been removed. No Field (tried %s and %s)' % (display_name, object.__name__.lower(), '%ss' % object.__name__.lower())
                 request.user.message_set.create(message = message)
                 return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
-                
-        
+                       
         src.save()
-        message = '%s has been successfully removed' % display_name
-    
+        message = '%s removed from %s' % (to_remove, src)
+        ActivityLog.objects.log_activity(request, src, ActivityLog.TYPE.MODIFY, message)
+           
     else:
         message = '%s has not been removed, as %s is not editable' % (display_name, src.name)
-    ActivityLog.objects.log_activity(
-        to_remove.project.pk,
-        request.user.pk, 
-        request.META['REMOTE_ADDR'],
-        obj_id,
-        src_id, 
-        smart_str(destination), 
-        ActivityLog.TYPE.MODIFY,
-        message
-        )
+
     request.user.message_set.create(message = message)
-    return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
+
+    return render_to_response('lims/refresh.html', {
+        'info': form_info,
+        }, context_instance=RequestContext(request))
 
 @login_required
 @project_required
@@ -1010,22 +935,13 @@ def remove_object_old(request, id, model, field):
         if request.POST.has_key('_confirmed'):
             setattr(obj,field,None)
             obj.save()
-            form_info['message'] = '%s "%s" removed from %s  "%s".' % (
+            form_info['message'] = '%s (%s) removed from %s (%s)' % (
                 object_type, 
                 smart_str(obj), 
                 related_type.lower(), 
                 smart_str(related)
                 )
-            ActivityLog.objects.log_activity(
-                project.pk,
-                request.user.pk, 
-                request.META['REMOTE_ADDR'],
-                ContentType.objects.get_for_model(model).id,
-                obj.pk, 
-                smart_str(obj), 
-                ActivityLog.TYPE.MODIFY,
-                form_info['message']
-                )
+            ActivityLog.objects.log_activity(request,  obj,  ActivityLog.TYPE.MODIFY, form_info['message'])
             request.user.message_set.create(message = form_info['message'])            
             return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
         else:
@@ -1034,9 +950,8 @@ def remove_object_old(request, id, model, field):
         return render_to_response('lims/forms/confirm_action.html', {
             'info': form_info, 
             'id': obj.pk,
-            'confirm_action': 'Remove %s' % object_type, 
-            }, 
-            context_instance=RequestContext(request))
+            'confirm_action': 'Remove %s' % object_type,
+            },  context_instance=RequestContext(request))
         
         
 @login_required
@@ -1054,13 +969,12 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
     except:
         raise Http404
     
+
     orphan_models = orphan_models or []
-    
     form_info = {
         'title': 'Delete %s?' % obj.__unicode__(),
-        'sub_title': 'The %s %s will be deleted' % ( model.__name__, obj.__unicode__()),
+        'sub_title': 'The %s (%s) will be deleted' % ( model._meta.verbose_name, obj.__unicode__()),
         'action':  request.path,
-        'target': 'entry-scratchpad',
         'message': 'Are you sure you want to delete %s "%s"?' % (
             model.__name__, obj.__unicode__()
             ),
@@ -1069,38 +983,41 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
         if request.project:
-            frm.restrict_by('project', request.project.pk)
+            frm.restrict_by('project', request.project)
         if request.POST.has_key('_save'):
-            delete(model, id, orphan_models)
-            form_info['message'] = '%s %s successfully deleted' % ( model.__name__, obj.__unicode__())
+            form_info['message'] = '%s (%s) deleted' % ( model._meta.verbose_name, obj)
             if hasattr(obj, 'project'):
-                ActivityLog.objects.log_activity(
-                    request.project.pk,
-                    request.user.pk, 
-                    request.META['REMOTE_ADDR'],
-                    ContentType.objects.get_for_model(model).id,
-                    obj.pk, 
-                    smart_str(obj), 
-                    ActivityLog.TYPE.DELETE,
-                    form_info['message']
-                    )
+                ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.DELETE,  form_info['message'])
+            delete(request, model, id, orphan_models)
             request.user.message_set.create(message = form_info['message'])
-            # messages are simply passed down to the template via the request context
-            return render_to_response("lims/message.html", context_instance=RequestContext(request))
+            
+            # prepare url to redirect after delete. Always return to list
+            # Since this view is called from Ajax, the client has to interpret the
+            # redirect message and act accordingly
+            # example: JSON {"url" : "/path/to/redirect/to"}
+            
+            if request.user.is_staff:
+                url_prefix = 'staff'
+            else:
+                url_prefix = 'lims'
+            url_name = "%s-%s-list" % (url_prefix, model.__name__.lower())
+            return render_to_response("lims/redirect.json", {
+            'redirect_to': reverse(url_name),
+            }, context_instance=RequestContext(request), mimetype="application/json")
         else:
             return render_to_response(template, {
             'info': form_info, 
             'form' : frm, 
-            })
+            }, context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=None) 
         if request.project:
-            frm.restrict_by('project', request.project.pk)
+            frm.restrict_by('project', request.project)
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm, 
         'save_label': 'Delete',
-        })
+        }, context_instance=RequestContext(request))
 
 @login_required
 @project_required
@@ -1137,59 +1054,120 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
         if request.POST.has_key('_save'):
             str_obj = smart_str(obj)
             archive(model, id)
-            form_info['message'] = '%s "%s" closed.' % (
-                model.__name__, 
-                obj.__unicode__()
-                )
-            ActivityLog.objects.log_activity(
-                project.pk,
-                request.user.pk, 
-                request.META['REMOTE_ADDR'],
-                ContentType.objects.get_for_model(model).id,
-                obj.pk, 
-                obj.__unicode__(), 
-                ActivityLog.TYPE.ARCHIVE,
-                form_info['message']
-                )
+            form_info['message'] = '%s (%s) archived' % (model._meta.verbose_name, obj)
+            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.ARCHIVE, form_info['message'])
             request.user.message_set.create(message = form_info['message'])   
-            return render_to_response("lims/message.html", context_instance=RequestContext(request))         
+            return render_to_response("lims/redirect.html", context_instance=RequestContext(request))         
             
         else:
             return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=None) 
         if request.project:
-            frm.restrict_by('project', request.project.pk)
+            frm.restrict_by('project', request.project)
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm, 
         'save_label': 'Delete',
-        })
+        }, context_instance=RequestContext(request))
         
 @login_required
-@project_required
-def shipment_pdf(request, id):
+@project_optional
+def shipment_pdf(request, id, format):
     """ """
-    project = request.project
     try:
-        shipment = Shipment.objects.get(id=id)
+         object = Shipment.objects.get(id=id)
     except:
-        raise Http404
-    
+        try: 
+            object = Runlist.objects.get(id=id)
+        except:
+            raise Http404
+
+    if request.project:
+        project = request.project
+    else:
+        try:
+            project = object.project
+        except:
+            project = None
+
     # create a temporary directory
     temp_dir = tempfile.mkdtemp()
-    
+
+    if format == 'pdf':
+        exp_list = list()
+        con_list = list()
+        xtal_list = list()
+        projects = None
+        dewars = Dewar.objects.filter(shipment=object)
+        for dewar in dewars:
+            containers = Container.objects.filter(dewar=dewar)
+            for container in containers:
+                cont_exp_list = container.get_experiment_list()
+                if container not in con_list:
+                    con_list.append(container)
+                for exp in cont_exp_list:
+                    if exp not in exp_list:
+                        exp_list.append(exp)
+        experiments = list()
+        all_exps = Experiment.objects.all().order_by('priority').reverse()
+        for experiment in all_exps:
+            if experiment in exp_list:
+                experiments.append(experiment)
+
+        for exp in exp_list:
+            exp_xtal_list = Crystal.objects.filter(experiment=exp).order_by('priority', 'container', 'container_location').reverse()
+            for xtal in exp_xtal_list:
+                if xtal not in xtal_list:
+                    xtal_list.append(xtal)
+
+    if format == 'runlist':
+        exp_list = list()
+        con_list = object.containers.all()
+        xtal_list = list()
+        projects = list()
+        for container in con_list:
+            cont_exp_list = container.get_experiment_list()
+            for exp in cont_exp_list:
+                if exp not in exp_list:
+                    exp_list.append(exp)
+
+        experiments = list()
+        all_exps = Experiment.objects.all().order_by('priority').reverse()
+        for experiment in all_exps:
+            if experiment in exp_list:
+                experiments.append(experiment)
+
+        for exp in exp_list:
+            exp_xtal_list = Crystal.objects.filter(experiment=exp).order_by('priority', 'container', 'container_location').reverse()
+            for xtal in exp_xtal_list:
+                if xtal not in xtal_list:
+                    xtal_list.append(xtal)
+        for exp in exp_list:
+            if exp.project not in projects:
+                projects.append(exp.project)
+
     try:
-    
         # configure an HttpResponse so that it has the mimetype and attachment name set correctly
         response = HttpResponse(mimetype='application/pdf')
-        filename = ('%s-%s.pdf' % (project.name, shipment.label)).replace(' ', '_')
+        if project:
+            filename = ('%s-%s.pdf' % (project.name, object.label)).replace(' ', '_')
+        else:
+            filename = ('%s-%s.pdf' % ('auto', object.name)).replace(' ', '_')
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         
+        if os.path.exists('media/img/clslogo_print.pdf'):
+            copyfile('media/img/clslogo_print.pdf', '%s/clslogo_print.pdf' % temp_dir)
+            copyfile('media/img/fragile_up.pdf', '%s/fragile_up.pdf' % temp_dir)
         # create a temporary file into which the LaTeX will be written
         temp_file = tempfile.mkstemp(dir=temp_dir, suffix='.tex')[1]
         # render and output the LaTeX into temap_file
-        tex = loader.render_to_string('lims/tex/shipment.tex', {'project': project, 'shipment' : shipment})
+        if format == 'pdf' or format == 'runlist':
+            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'projects': projects, 'shipment' : object, 'experiments': experiments, 'crystals': xtal_list, 'containers': con_list })
+        elif format == 'label':
+            tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': project, 'shipment' : object})
+        elif format == 'return':
+            tex = loader.render_to_string('lims/tex/return_labels.tex', {'project': project, 'shipment' : object})
         tex_file = open(temp_file, 'w')
         tex_file.write(tex)
         tex_file.close()
@@ -1289,11 +1267,27 @@ def shipment_xls(request, id):
             # remove the tempfiles
             shutil.rmtree(temp_dir)
     
-@jsonrpc_method('lims.add_data', authenticated=settings.AUTH_REQ or True)
+@jsonrpc_method('lims.add_data', authenticated=getattr(settings, 'AUTH_REQ', True))
 def add_data(request, data_info):
     info = {}
+    
+    # check if project_id is provided if not check if project_name is provided
+    if data_info.get('project_id') is not None:
+        data_owner = Project.objects.get(pk=data_info['project_id'])   
+    elif data_info.get('project_name') is not None:
+        try:
+            data_owner = Project.objects.get(name=data_info['project_name'])
+        except:
+            data_ownder = create_project(username=data_info['project_name'])
+            data_info['project_id'] = project.pk
+        del data_info['project_name']
+    else:
+        return {'error': 'Unknown Project' }    
+     
     # convert unicode to str
     for k,v in data_info.items():
+        if k == 'url':
+            v = create_download_key(v, data_owner.pk)
         info[smart_str(k)] = v
     try:
         new_obj = Data(**info)
@@ -1305,26 +1299,34 @@ def add_data(request, data_info):
             new_obj.crystal.collect_status = Crystal.EXP_STATES.COMPLETED
             new_obj.crystal.save()
         new_obj.save()
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
+            "New dataset (%s) added" % new_obj)
+        
         return {'data_id': new_obj.pk}
     except Exception, e:
         raise e
         return {'error': str(e)}
 
-@jsonrpc_method('lims.add_result', authenticated=settings.AUTH_REQ or True)
+@jsonrpc_method('lims.add_result', authenticated=getattr(settings, 'AUTH_REQ', True))
 def add_result(request, res_info):
     info = {}
     # convert unicode to str
+    data_owner = Project.objects.get(pk=res_info['project_id'])
     for k,v in res_info.items():
+        if k == 'url':
+            v = create_download_key(v, data_owner.pk)
         info[smart_str(k)] = v
     try:
         new_obj = Result(**info)
         new_obj.save()
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
+            "New analysis report (%s) added" % new_obj)
         return {'result_id': new_obj.pk}
     except Exception, e:
         raise e
         return {'error':str(e)}
 
-@jsonrpc_method('lims.add_strategy', authenticated=settings.AUTH_REQ or True)
+@jsonrpc_method('lims.add_strategy', authenticated=getattr(settings, 'AUTH_REQ', True))
 def add_strategy(request, stg_info):
     info = {}
     # convert unicode to str
@@ -1332,22 +1334,73 @@ def add_strategy(request, stg_info):
         info[smart_str(k)] = v
     new_obj = Strategy(**info)
     new_obj.save()
+    ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
+       "New strategy (%s) added" % new_obj)
     return {'strategy_id': new_obj.pk}
 
 
 @login_required
+def rescreen(request, id):
+    crystal = Crystal.objects.get(pk=id)
+    crystal.rescreen()
+    return render_to_response('lims/refresh.html')
+    
+@login_required
+def recollect(request, id):
+    crystal = Crystal.objects.get(pk=id)
+    crystal.recollect()
+    return render_to_response('lims/refresh.html')
+    
+@login_required
+def complete(request, id):
+    crystal = Crystal.objects.get(pk=id)
+    crystal.complete()
+    return render_to_response('lims/refresh.html')
+
+
+# -------------------------- PLOTTING ----------------------------------------#
+import numpy
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.ticker import Formatter, FormatStrFormatter, Locator
+from matplotlib.figure import Figure
+from matplotlib import rcParams
+from matplotlib.colors import LogNorm, Normalize
+import matplotlib.cm as cm
+#from mpl_toolkits.axes_grid import AxesGrid
+
+# Adjust rc parameters
+rcParams['legend.loc'] = 'best'
+rcParams['legend.fontsize'] = 12
+rcParams['legend.isaxes'] = False
+rcParams['figure.facecolor'] = 'white'
+rcParams['figure.edgecolor'] = 'white'
+rcParams['mathtext.fontset'] = 'stix'
+rcParams['mathtext.fallback_to_cm'] = True
+rcParams['font.size'] = 14
+rcParams['font.family'] = 'serif'
+rcParams['font.serif'] = 'Gentium Basic'
+
+class ResFormatter(Formatter):
+    def __call__(self, x, pos=None):
+        if x <= 0.0:
+            return u""
+        else:
+            return u"%0.2f" % (x**-0.5)
+
+class ResLocator(Locator):
+    def __call__(self, *args, **kwargs):
+        locs = numpy.linspace(0.0156, 1, 30 )
+        return locs
+
+
+PLOT_WIDTH = 8
+PLOT_HEIGHT = 7 
+PLOT_DPI = 75
+IMG_WIDTH = int(round(PLOT_WIDTH * PLOT_DPI))
+
+@login_required
 @cache_page(60*3600)
 def plot_shell_stats(request, id):
-    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-    from matplotlib.ticker import FormatStrFormatter, MultipleLocator, MaxNLocator
-    from matplotlib.figure import Figure
-    from matplotlib import rcParams
-    
-    # Adjust Legend parameters
-    rcParams['legend.loc'] = 'best'
-    rcParams['legend.fontsize'] = 10
-    rcParams['legend.isaxes'] = False
-    
     try:
         project = request.user.get_profile()
         result = project.result_set.get(pk=id)
@@ -1355,14 +1408,15 @@ def plot_shell_stats(request, id):
         raise Http404
     # extract shell statistics to plot
     data = result.details['shell_statistics']
-    fig = Figure(figsize=(5.6,5), dpi=72)
+    shell = numpy.array(data['shell'])**-2
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
     ax1 = fig.add_subplot(211)
-    ax1.plot(data['shell'], data['completeness'], 'r-+')
+    ax1.plot(shell, data['completeness'], 'r-')
     ax1.set_ylabel('completeness (%)', color='r')
     ax11 = ax1.twinx()
-    ax11.plot(data['shell'], data['r_meas'], 'g-', label='R-meas')
-    ax11.plot(data['shell'], data['r_mrgdf'], 'g:+', label='R-mrgd-F')
-    ax11.legend(loc='best')
+    ax11.plot(shell, data['r_meas'], 'g-', label='R-meas')
+    ax11.plot(shell, data['r_mrgdf'], 'g:+', label='R-mrgd-F')
+    ax11.legend(loc='center left')
     ax1.grid(True)
     ax11.set_ylabel('R-factors (%)', color='g')
     for tl in ax11.get_yticklabels():
@@ -1375,11 +1429,11 @@ def plot_shell_stats(request, id):
     ax11.set_ylim((0, 105))
 
     ax2 = fig.add_subplot(212, sharex=ax1)
-    ax2.plot(data['shell'], data['i_sigma'], 'm-x')
+    ax2.plot(shell, data['i_sigma'], 'm-')
     ax2.set_xlabel('Resolution Shell')
     ax2.set_ylabel('I/SigmaI', color='m')
     ax21 = ax2.twinx()
-    ax21.plot(data['shell'], data['sig_ano'], 'b-+')
+    ax21.plot(shell, data['sig_ano'], 'b-')
     ax2.grid(True)
     ax21.set_ylabel('SigAno', color='b')
     for tl in ax21.get_yticklabels():
@@ -1391,105 +1445,155 @@ def plot_shell_stats(request, id):
     ax2.set_ylim((-5, max(data['i_sigma'])+5))
     ax21.set_ylim((0, max(data['sig_ano'])+1))
 
+    ax1.xaxis.set_major_formatter(ResFormatter())
+    ax1.xaxis.set_minor_formatter(ResFormatter())
+    ax1.xaxis.set_major_locator(ResLocator())
+    ax2.xaxis.set_major_formatter(ResFormatter())
+    ax2.xaxis.set_minor_formatter(ResFormatter())
+    ax2.xaxis.set_major_locator(ResLocator())
 
     canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')
     canvas.print_png(response)
     return response
-    
+
+
+@login_required
+@cache_page(60*3600)
+def plot_error_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        raise Http404
+
+    data = result.details['standard_errors'] # extract data to plot
+    shell = numpy.array(data['shell'])**-2    
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(shell, data['chi_sq'], 'r-')
+    ax1.set_ylabel(r'$\chi^{2}$', color='r')
+    ax11 = ax1.twinx()
+    ax11.plot(shell, data['i_sigma'], 'b-')
+    ax11.set_ylabel(r'I/Sigma', color='b')
+    ax1.grid(True)
+    for tl in ax11.get_yticklabels():
+        tl.set_color('b')
+    for tl in ax1.get_yticklabels():
+        tl.set_color('r')
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax1.set_ylim((0, 3))
+    #ax11.set_ylim((0, 105))
+
+    ax2 = fig.add_subplot(212, sharex=ax1)
+    ax2.plot(shell, data['r_obs'], 'g-', label='R-observed')
+    ax2.plot(shell, data['r_exp'], 'r:', label='R-expected')
+    ax2.set_xlabel('Resolution Shell')
+    ax2.set_ylabel('R-factors (%)')
+    ax2.legend(loc='best')
+    ax2.grid(True)
+    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax2.set_ylim((0,105))
+
+    ax1.xaxis.set_major_formatter(ResFormatter())
+    ax1.xaxis.set_minor_formatter(ResFormatter())
+    ax1.xaxis.set_major_locator(ResLocator())
+
+    ax2.xaxis.set_major_formatter(ResFormatter())
+    ax2.xaxis.set_minor_formatter(ResFormatter())
+    ax2.xaxis.set_major_locator(ResLocator())
+
+    # make and return png image
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
 
 @login_required
 @cache_page(60*3600)
 def plot_diff_stats(request, id):
-    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-    from matplotlib.ticker import FormatStrFormatter, MultipleLocator, MaxNLocator
-    from matplotlib.figure import Figure
-    from matplotlib import rcParams
-    
-    # Adjust Legend parameters
-    rcParams['legend.loc'] = 'best'
-    rcParams['legend.fontsize'] = 10
-    rcParams['legend.isaxes'] = False
-    
     try:
         project = request.user.get_profile()
         result = project.result_set.get(pk=id)
     except:
         raise Http404
-    # extract shell statistics to plot
+        
+    # extract statistics to plot
     data = result.details['diff_statistics']
-    fig = Figure(figsize=(5.6,5), dpi=72)
-    ax1 = fig.add_subplot(311)
-    ax1.plot(data['frame_diff'], data['rd'], 'r-')
-    ax1.set_ylabel('R-d', color='r')
-    ax11 = ax1.twinx()
-    ax11.plot(data['frame_diff'], data['n_refl'], 'g-')
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.66), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    ax1.plot(data['frame_diff'], data['rd'], 'r-', label="all")
+    ax1.set_ylabel('R-d')
     ax1.grid(True)
-    ax11.set_ylabel('# Reflections', color='g')
-    for tl in ax11.get_yticklabels():
-        tl.set_color('g')
-    for tl in ax1.get_yticklabels():
-        tl.set_color('r')
     ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
-    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
-    #ax1.set_ylim((0, 105))
-    #ax11.set_ylim((0, max(data['n_refl'])+5))
 
-    ax2 = fig.add_subplot(312, sharex=ax1)
-    ax2.plot(data['frame_diff'], data['rd_friedel'], 'm-')
-    ax2.set_ylabel('R-d Friedel', color='m')
-    ax21 = ax2.twinx()
-    ax21.plot(data['frame_diff'], data['n_friedel'], 'b-')
-    ax2.grid(True)
-    ax21.set_ylabel('# Reflections', color='b')
-    for tl in ax21.get_yticklabels():
-        tl.set_color('b')
-    for tl in ax2.get_yticklabels():
-        tl.set_color('m')
-    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
-    ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax1.plot(data['frame_diff'], data['rd_friedel'], 'm-', label="friedel")
+    ax1.plot(data['frame_diff'], data['rd_non_friedel'], 'k-', label="non_friedel")
+    ax1.set_xlabel('Frame Difference')
+    ax1.legend()
 
-    ax3 = fig.add_subplot(313, sharex=ax1)
-    ax3.plot(data['frame_diff'], data['rd_non_friedel'], 'k-')
-    ax3.set_xlabel('Frame Difference')
-    ax3.set_ylabel('R-d Non-friedel', color='k')
-    ax31 = ax3.twinx()
-    ax31.plot(data['frame_diff'], data['n_non_friedel'], 'c-')
-    ax3.grid(True)
-    ax31.set_ylabel('# Reflections', color='c')
-    for tl in ax31.get_yticklabels():
-        tl.set_color('c')
-    for tl in ax3.get_yticklabels():
-        tl.set_color('k')
-    ax3.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
-    ax31.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
-
+    # make and return png image
     canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')
     canvas.print_png(response)
     return response
 
+
 @login_required
 @cache_page(60*3600)
-def plot_frame_stats(request, id):
-    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-    from matplotlib.ticker import FormatStrFormatter, MultipleLocator, MaxNLocator
-    from matplotlib.figure import Figure
-    from matplotlib import rcParams
-    
-    # Adjust Legend parameters
-    rcParams['legend.loc'] = 'best'
-    rcParams['legend.fontsize'] = 10
-    rcParams['legend.isaxes'] = False
-    
+def plot_wilson_stats(request, id):
     try:
         project = request.user.get_profile()
         result = project.result_set.get(pk=id)
     except:
         raise Http404
-    # extract shell statistics to plot
+        
+    # extract statistics to plot
+    data = result.details['wilson_plot']
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.6), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    plot_data = zip(data['inv_res_sq'], data['log_i_sigma'])
+    plot_data.sort()
+    plot_data = numpy.array(plot_data)
+    ax1.plot(plot_data[:,0], plot_data[:,1], 'r-+')
+    ax1.set_xlabel('Resolution')
+    ax1.set_ylabel(r'$ln\left(\frac{<I>}{\sigma(f)^2}\right)$')
+    ax1.grid(True)
+    ax1.xaxis.set_major_formatter(ResFormatter())
+    ax1.xaxis.set_major_locator(ResLocator())
+    
+    # set font parameters for the ouput table
+    wilson_line = result.details['wilson_line']
+    wilson_scale = result.details['wilson_scale']
+    fontpar = {}
+    fontpar["family"]="monospace"
+    fontpar["size"]=9
+    info =  "Estimated B: %0.3f\n" % wilson_line[0]
+    info += "sigma a: %8.3f\n" % wilson_line[1]
+    info += "sigma b: %8.3f\n" % wilson_line[2]
+    info += "Scale factor: %0.3f\n" % wilson_scale    
+    fig.text(0.55,0.65, info, fontdict=fontpar, color='k')
+
+    # make and return png image
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+
+@login_required
+@cache_page(60*3600)
+def plot_frame_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        raise Http404
+    # extract statistics to plot
     data = result.details['frame_statistics']
-    fig = Figure(figsize=(5.6,5), dpi=72)
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
     ax1 = fig.add_subplot(311)
     ax1.plot(data['frame'], data['scale'], 'r-')
     ax1.set_ylabel('Scale Factor', color='r')
@@ -1509,80 +1613,113 @@ def plot_frame_stats(request, id):
     ax2 = fig.add_subplot(312, sharex=ax1)
     ax2.plot(data['frame'], data['divergence'], 'm-')
     ax2.set_ylabel('Divergence', color='m')
-    ax21 = ax2.twinx()
-    ax21.plot(data['frame'], data['i_sigma'], 'b-')
-    ax2.grid(True)
-    ax21.set_ylabel('I/Sigma(I)', color='b')
-    for tl in ax21.get_yticklabels():
-        tl.set_color('b')
-    for tl in ax2.get_yticklabels():
-        tl.set_color('m')
-    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.3f'))
-    ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
     ax2.set_ylim((min(data['divergence'])-0.02, max(data['divergence'])+0.02))
+    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.3f'))
+    ax2.grid(True)
+    if data.get('frame_no') is not None:
+        ax21 = ax2.twinx()
+        ax21.plot(data['frame_no'], data['i_sigma'], 'b-')
 
-    ax3 = fig.add_subplot(313, sharex=ax1)
-    ax3.plot(data['frame'], data['r_meas'], 'k-')
-    ax3.set_xlabel('Frame Number')
-    ax3.set_ylabel('R-meas', color='k')
-    ax31 = ax3.twinx()
-    ax31.plot(data['frame'], data['unique'], 'c-')
-    ax3.grid(True)
-    ax31.set_ylabel('Unique Reflections', color='c')
-    for tl in ax31.get_yticklabels():
-        tl.set_color('c')
-    for tl in ax3.get_yticklabels():
-        tl.set_color('k')
-    ax3.yaxis.set_major_formatter(FormatStrFormatter('%0.3f'))
-    ax31.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+        ax21.set_ylabel('I/Sigma(I)', color='b')
+        for tl in ax21.get_yticklabels():
+            tl.set_color('b')
+        for tl in ax2.get_yticklabels():
+            tl.set_color('m')
+
+        ax3 = fig.add_subplot(313, sharex=ax1)
+        ax3.plot(data['frame_no'], data['r_meas'], 'k-')
+        ax3.set_xlabel('Frame Number')
+        ax3.set_ylabel('R-meas', color='k')
+        ax31 = ax3.twinx()
+        ax31.plot(data['frame_no'], data['unique'], 'c-')
+        ax3.grid(True)
+        ax31.set_ylabel('Unique Reflections', color='c')
+        for tl in ax31.get_yticklabels():
+            tl.set_color('c')
+        for tl in ax3.get_yticklabels():
+            tl.set_color('k')
+        ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+        ax3.yaxis.set_major_formatter(FormatStrFormatter('%0.3f'))
+        ax31.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
 
     canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')
     canvas.print_png(response)
     return response
 
-@login_required
-def data_viewer(request, id):
-    # use the data_viewer template
-    # load data for displaying
-    manager = Data.objects
-    
-    try:
-        data = manager.get(pk=id)
-    except:
-        raise Http404
-    
-    results = Result.objects.filter(data__id=id)
-    expanded_frame_set = data.get_frame_list();
-    
-    return render_to_response('lims/entries/data.html', {'data':data, 'results':results, 'expanded_frame_set': expanded_frame_set})
 
 @login_required
-def result_print(request, id):
-    manager = Result.objects
-    
+@cache_page(60*3600)
+def plot_twinning_stats(request, id):
     try:
-        result = manager.get(pk=id)
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
     except:
         raise Http404
+    # extract statistics to plot
+    data = result.details['twinning_l_test']
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.6), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    ax1.plot(data['abs_l'], data['observed'], 'b-+', label='observed')
+    ax1.plot(data['abs_l'], data['untwinned'], 'r-+', label='untwinned')
+    ax1.plot(data['abs_l'], data['twinned'], 'm-+', label='twinned')
+    ax1.set_xlabel('$|L|$')
+    ax1.set_ylabel('$P(L>=1)$')
+    ax1.grid(True)
     
-    admin = request.user.is_superuser
-    return render_to_response('lims/entries/result_print.html', {'object':result, 'admin':admin})
+    # set font parameters for the ouput table
+    l_statistic = result.details.get('twinning_l_statistic')
+    if l_statistic is not None:
+        fontpar = {}
+        fontpar["family"]="monospace"
+        fontpar["size"]=9
+        info =  "Observed:     %0.3f\n" % l_statistic[0]
+        info += "Untwinned:    %0.3f\n" % l_statistic[1]
+        info += "Perfect twin: %0.3f\n" % l_statistic[2]
+        fig.text(0.6,0.2, info, fontdict=fontpar, color='k')
+    ax1.legend()
+    
+
+    # make and return png image
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
 
 @login_required
-def rescreen(request, id):
-    crystal = Crystal.objects.get(pk=id)
-    crystal.rescreen()
-    return render_to_response('lims/refresh.html')
+@cache_page(60*3600)
+def plot_profiles_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        raise Http404
+    # extract statistics to plot
+    profiles = result.details['integration_profiles']
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_WIDTH), dpi=PLOT_DPI)
+    cmap = cm.get_cmap('gray_r')
+    norm = Normalize(None, 100, clip=True)
+    grid = AxesGrid(fig, 111,
+                    nrows_ncols = (9,10),
+                    share_all=True,
+                    axes_pad = 0,
+                    label_mode = '1',
+                    cbar_mode=None)
+    for i, profile in enumerate(profiles):
+        grid[i*10].plot([profile['x']],[profile['y']], 'cs', markersize=15)
+        for loc in ['left','top','bottom','right']:
+            grid[i*10].axis[loc].toggle(ticklabels=False, ticks=False)
+        for j,spot in enumerate(profile['spots']):
+            idx = i*10 + j+1
+            _a = numpy.array(spot).reshape((9,9))
+            intpl = 'nearest' #'mitchell'
+            grid[idx].imshow(_a, cmap=cmap, norm=norm, interpolation=intpl)
+            for loc in ['left','top','bottom','right']:
+                grid[idx].axis[loc].toggle(ticklabels=False, ticks=False)
     
-@login_required
-def recollect(request, id):
-    crystal = Crystal.objects.get(pk=id)
-    crystal.recollect()
-    return render_to_response('lims/refresh.html')
-    
-@login_required
-def complete(request, id):
-    crystal = Crystal.objects.get(pk=id)
-    crystal.complete()
-    return render_to_response('lims/refresh.html')
+    # make and return png image
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+

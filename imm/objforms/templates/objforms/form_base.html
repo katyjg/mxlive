@@ -1,4 +1,5 @@
 {% load objforms %}
+<div id="objform-container">
 <div class="heading">
     <h2>{{info.title}}</h2>
 </div>
@@ -11,12 +12,13 @@
 {% if form.get_message %}
     <div>{{form.get_message}}</div>
 {% endif %}
-{% if info.update %}
-    <img src="/img/blank.png" width=1 height 1 onload='load_page("{{info.update.target}}","{{info.update.url}}","");' />
-{% endif %}
 {% if form %}
 {% block form_display %}
     {% show_form form info %}
 {% endblock %}
 {% endif %}
+</div>
+<script>
+    initForms(); //initialize form and transform any select boxes into multi-select widgets
+</script>
 

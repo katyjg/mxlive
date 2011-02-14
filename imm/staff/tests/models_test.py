@@ -10,7 +10,6 @@ from imm.lims.models import Crystal
 
 from imm.lims.models import change_status
 from imm.lims.models import perform_action
-from imm.messaging.models import Message
 
 from imm.staff.models import Runlist
 from imm.staff.models import AutomounterLayout
@@ -218,19 +217,6 @@ class RunlistTest(DjangoTestCase):
         self.reload_models()
         self.assertEqual(Runlist.STATES.COMPLETED, self.runlist.status)
         
-    def test_accept(self):
-        self.assertEqual(Runlist.STATES.PENDING, self.runlist.status)
-        perform_action(self.shipment, 'send')
-        perform_action(self.shipment, 'receive')
-        perform_action(self.runlist, 'load')
-        self.reload_models()
-        perform_action(self.runlist, 'unload')
-        self.reload_models()
-        self.assertEqual(0, Message.objects.count())
-        perform_action(self.runlist, 'accept', {'message': 'message'})
-        self.reload_models()
-        self.assertEqual(1, Message.objects.count())
-        self.assertEqual(Runlist.STATES.CLOSED, self.runlist.status)
         
     def test_reject(self):
         self.assertEqual(Runlist.STATES.PENDING, self.runlist.status)

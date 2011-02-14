@@ -1,0 +1,52 @@
+{% load score_colors %}
+
+<div class="object-list crystal-data-table">
+<h3>Datasets</h3>
+<table cellspacing="0" cellpadding="2" border="0" width="100%">
+    <thead>
+        <tr class="header">
+            <th>Dataset</th>
+      		<th>Frame sets</th>
+            <th>Delta Angle</th>
+            <th>Wavelength</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for data in datasets %}
+        <tr class="{% cycle 'odd' 'even'%}">
+        	<td><a href="{% url lims-data-detail data.pk %}" class="modal" >{{ data.name }}</a></td>
+        	<td>{{ data.num_frames }}</td>
+        	<td>{{ data.delta_angle }}</td>
+        	<td>{{ data.wavelength }}</td>
+    {% empty %}
+        <tr><td colspan="20" align="center" class="list-empty">(No datasets collected for this crystal)</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<div class="object-list crystal-report-table">
+<h3>Reports</h3>
+<table cellspacing="0" cellpadding="2" border="0" width="100%">
+    <thead>
+        <tr class="header">
+            <th>Report</th>
+      		<th>Type</th>
+            <th>Resolution</th>
+            <th>Completeness</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for result in results %}
+        <!-- "odd" if loop_count % 2 == 1 else "even" -->
+            <tr class="{% cycle 'odd' 'even'%}">
+            	<td><a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|color_score:2 }})</a></td>
+            	<td>{% if result.kind == 0 %}Screening{% else %}{% if result.kind == 1 %}Collection{% endif %}{% endif %}</td>
+            	<td>{{ result.resolution }}</td>
+            	<td>{{ result.completeness }}</td>
+        {% empty %}
+            <tr><td colspan="20" align="center" class="list-empty">(No reports available for this crystal)</td></tr>        
+       	{% endfor %}
+    </tbody>
+</table>
+</div>

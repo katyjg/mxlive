@@ -18,11 +18,12 @@ CACHE_DIR = getattr(settings, 'DOWNLOAD_CACHE_DIR', '/tmp')
 BRIGHTNESS_VALUES = getattr(settings, 'DOWNLOAD_BRIGHTNESS_VALUES', {'nm': 0.0, 'dk': -0.5, 'lt': 1.5})
 FRONTEND = getattr(settings, 'DOWNLOAD_FRONTEND', 'xsendfile')
 
-def create_download_key(path):
+def create_download_key(path, owner_id):
     """Convenience method to create and return a key for a given path"""
 
     obj = SecurePath()
     obj.path = path
+    obj.owner_id = owner_id
     obj.save()
     return obj.key
 
@@ -33,7 +34,7 @@ def get_download_path(key):
     return obj.path
 
 
-def send_file(request, full_path, attatchment=False):
+def send_raw_file(request, full_path, attatchment=False):
     """Send a file using mod_xsendfile or similar functionality. 
     Use django's static serve option for development servers"""
     
@@ -51,7 +52,7 @@ def send_file(request, full_path, attatchment=False):
     elif FRONTEND == "django":
         dirname = os.path.dirname(full_path)
         path = os.path.basename(full_path)
-        print "Serving file %s in directory %s through django static serve." % (path, dirname)
+        #"Serving file %s in directory %s through django static serve." % (path, dirname)
         response = serve(request, path, dirname)
         
     elif FRONTEND == "xaccelredirect":
@@ -65,7 +66,7 @@ def send_file(request, full_path, attatchment=False):
         
     return response
 
-def send_image(request, key, path):
+def send_file(request, key, path):
 
     obj = get_object_or_404(SecurePath, key=key)
     document_root = obj.path
@@ -86,10 +87,10 @@ def send_image(request, key, path):
         newpath = os.path.join(newpath, part).replace('\\', '/')
     if newpath and path != newpath:
         return HttpResponseRedirect(newpath)
-    full_path = os.path.join(document_root, newpath)
-    print full_path, os.path.exists(full_path)
-    
-    return send_file(request, full_path)
+    full_path = os.path.join(document_root, newpath)    
+    return send_raw_file(request, full_path)
+
+
     
 def send_png(request, key, path, brightness):
     if brightness not in BRIGHTNESS_VALUES:
@@ -98,12 +99,13 @@ def send_png(request, key, path, brightness):
     obj = get_object_or_404(SecurePath, key=key)
     img_file = os.path.join(obj.path, '%s.img' % path)
     png_file = os.path.join(CACHE_DIR, obj.key, '%s-%s.png' % (path, brightness))
+
     if not os.path.exists(png_file):
         try:
             create_png(img_file, png_file, BRIGHTNESS_VALUES[brightness])
         except OSError:
             raise Http404        
-    return send_file(request, png_file, attatchment=False)
+    return send_raw_file(request, png_file, attatchment=False)
 
 def send_archive(request, key, path):
 
@@ -115,4 +117,4 @@ def send_archive(request, key, path):
             create_tar(dir_name, tar_file)
         except OSError:
             raise Http404        
-    return send_file(request, tar_file, attatchment=True)   
+    return send_raw_file(request, tar_file, attatchment=True)   
