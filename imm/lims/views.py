@@ -1269,7 +1269,6 @@ def shipment_xls(request, id):
     
 @jsonrpc_method('lims.add_data', authenticated=getattr(settings, 'AUTH_REQ', True))
 def add_data(request, data_info):
-    info = {}
     
     # check if project_id is provided if not check if project_name is provided
     if data_info.get('project_id') is not None:
@@ -1278,8 +1277,8 @@ def add_data(request, data_info):
         try:
             data_owner = Project.objects.get(name=data_info['project_name'])
         except:
-            data_ownder = create_project(username=data_info['project_name'])
-            data_info['project_id'] = project.pk
+            data_owner = create_project(username=data_info['project_name'])
+        data_info['project_id'] = data_owner.pk
         del data_info['project_name']
     else:
         return {'error': 'Unknown Project' }    
@@ -1287,18 +1286,20 @@ def add_data(request, data_info):
     # convert unicode to str
     for k,v in data_info.items():
         if k == 'url':
-            v = create_download_key(v, data_owner.pk)
-        info[smart_str(k)] = v
+            v = create_download_key(v, data_info['project_id'])
+        data_info[smart_str(k)] = v
+    print data_info
     try:
-        new_obj = Data(**info)
-        # check type, and change status accordingly
-        if new_obj.kind == Result.RESULT_TYPES.SCREENING:
-            new_obj.crystal.screen_status = Crystal.EXP_STATES.COMPLETED
-            new_obj.crystal.save()
-        elif new_obj.kind == Result.RESULT_TYPES.COLLECTION:
-            new_obj.crystal.collect_status = Crystal.EXP_STATES.COMPLETED
-            new_obj.crystal.save()
+        new_obj = Data(**data_info)
         new_obj.save()
+        # check type, and change status accordingly
+        if new_obj.crystal is not None:
+            if new_obj.kind == Result.RESULT_TYPES.SCREENING:
+                new_obj.crystal.screen_status = Crystal.EXP_STATES.COMPLETED
+                new_obj.crystal.save()
+            elif new_obj.kind == Result.RESULT_TYPES.COLLECTION:
+                new_obj.crystal.collect_status = Crystal.EXP_STATES.COMPLETED
+                new_obj.crystal.save()
         ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
             "New dataset (%s) added" % new_obj)
         

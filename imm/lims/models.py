@@ -1451,8 +1451,10 @@ class ActivityLogManager(models.Manager):
             e.object_id = obj.pk
             e.affected_item = obj
             e.content_type = ContentType.objects.get_for_model(obj)
-                     
-        e.user_id = request.user.pk
+        if not request.user.is_anonymous:
+            e.user_id = request.user.pk
+        else:
+            e.user_id = 1
         e.ip_number = request.META['REMOTE_ADDR']
         e.action_type = action_type
         e.description = description
