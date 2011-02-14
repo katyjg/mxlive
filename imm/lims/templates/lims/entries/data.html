@@ -40,6 +40,7 @@
 <div class="meta-data">
     <p>Parameters</p>
 	<ul>
+		<li><strong>Beamline:</strong> {{ data.beamline }}</li>
 	    {% if data.experiment %}
 	    <li><strong>Experiment:</strong><a href="{% url lims-experiment-detail data.experiment.pk %}">{{ data.experiment.name }}</a></li>
 	    {% endif %}		
