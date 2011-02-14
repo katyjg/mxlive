@@ -1156,9 +1156,9 @@ def shipment_pdf(request, id, format):
             filename = ('%s-%s.pdf' % ('auto', object.name)).replace(' ', '_')
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         
-        if os.path.exists('media/img/clslogo_print.pdf'):
-            copyfile('media/img/clslogo_print.pdf', '%s/clslogo_print.pdf' % temp_dir)
-            copyfile('media/img/fragile_up.pdf', '%s/fragile_up.pdf' % temp_dir)
+        if os.path.exists('/var/website/lims-website/imm/media/img/clslogo_print.pdf'):
+            copyfile('/var/website/lims-website/imm/media/img/clslogo_print.pdf', '%s/clslogo_print.pdf' % temp_dir)
+            copyfile('/var/website/lims-website/imm/media/img/fragile_up.pdf', '%s/fragile_up.pdf' % temp_dir)
         # create a temporary file into which the LaTeX will be written
         temp_file = tempfile.mkstemp(dir=temp_dir, suffix='.tex')[1]
         # render and output the LaTeX into temap_file
