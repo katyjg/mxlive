@@ -1,7 +1,7 @@
 import datetime
+import hashlib
 
 from django.conf import settings
-
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
@@ -367,6 +367,17 @@ class Shipment(models.Model):
     def num_dewars(self):
         return self.dewar_set.count()
     
+    def label_hash(self):
+        # use dates of project, shipment, and each shipment within dewar to determine
+        # when contents were last changed
+        txt = str(self.project) + str(self.project.modified) + str(self.modified)
+        for dewar in self.dewar_set.all():
+            txt += str(dewar.modified)
+        h = hashlib.new('ripemd160') # no successful collisoin attacks yet
+        h.update(txt)
+        return h.hexdigest()
+    
+    
     def is_empty(self):
         return self.dewar_set.count() == 0
     
@@ -518,7 +529,7 @@ class Dewar(models.Model):
     identity.admin_order_field = 'pk'
     
     def barcode(self):
-        return str(self.shipment.id) + '-' + str(self.label) + '-' + str(self.id)
+        return "CLS%04d-%04d" % (self.id, self.shipment.id)
     
     def get_children(self):
         return self.container_set.all()

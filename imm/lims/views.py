@@ -32,7 +32,7 @@ from imm.lims.models import *
 from imm.staff.models import Runlist, Link
 from imm.lims.forms import ObjectSelectForm, DataForm
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
-from imm.download.views import create_download_key 
+from imm.download.views import create_download_key, create_cache_dir, send_raw_file
 from imm.remote.user_api import UserApi
   
 #from imm.remote.user_api import UserApi
@@ -1076,10 +1076,10 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
 def shipment_pdf(request, id, format):
     """ """
     try:
-         object = Shipment.objects.get(id=id)
+         obj = Shipment.objects.get(id=id)
     except:
         try: 
-            object = Runlist.objects.get(id=id)
+            obj = Runlist.objects.get(id=id)
         except:
             raise Http404
 
@@ -1087,7 +1087,7 @@ def shipment_pdf(request, id, format):
         project = request.project
     else:
         try:
-            project = object.project
+            project = obj.project
         except:
             project = None
 
@@ -1095,11 +1095,11 @@ def shipment_pdf(request, id, format):
     temp_dir = tempfile.mkdtemp()
 
     if format == 'pdf':
-        exp_list = list()
-        con_list = list()
-        xtal_list = list()
+        exp_list = []
+        con_list = []
+        xtal_list = []
         projects = None
-        dewars = Dewar.objects.filter(shipment=object)
+        dewars = Dewar.objects.filter(shipment=obj)
         for dewar in dewars:
             containers = Container.objects.filter(dewar=dewar)
             for container in containers:
@@ -1109,7 +1109,7 @@ def shipment_pdf(request, id, format):
                 for exp in cont_exp_list:
                     if exp not in exp_list:
                         exp_list.append(exp)
-        experiments = list()
+        experiments = []
         all_exps = Experiment.objects.all().order_by('priority').reverse()
         for experiment in all_exps:
             if experiment in exp_list:
@@ -1122,17 +1122,17 @@ def shipment_pdf(request, id, format):
                     xtal_list.append(xtal)
 
     if format == 'runlist':
-        exp_list = list()
-        con_list = object.containers.all()
-        xtal_list = list()
-        projects = list()
+        exp_list = []
+        con_list = obj.containers.all()
+        xtal_list = []
+        projects = []
         for container in con_list:
             cont_exp_list = container.get_experiment_list()
             for exp in cont_exp_list:
                 if exp not in exp_list:
                     exp_list.append(exp)
 
-        experiments = list()
+        experiments = []
         all_exps = Experiment.objects.all().order_by('priority').reverse()
         for experiment in all_exps:
             if experiment in exp_list:
@@ -1147,63 +1147,38 @@ def shipment_pdf(request, id, format):
             if exp.project not in projects:
                 projects.append(exp.project)
 
-    try:
-        # configure an HttpResponse so that it has the mimetype and attachment name set correctly
-        response = HttpResponse(mimetype='application/pdf')
-        if project:
-            filename = ('%s-%s.pdf' % (project.name, object.label)).replace(' ', '_')
-        else:
-            filename = ('%s-%s.pdf' % ('auto', object.name)).replace(' ', '_')
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
-        
-        if os.path.exists('/var/website/lims-website/imm/media/img/clslogo_print.pdf'):
-            copyfile('/var/website/lims-website/imm/media/img/clslogo_print.pdf', '%s/clslogo_print.pdf' % temp_dir)
-            copyfile('/var/website/lims-website/imm/media/img/fragile_up.pdf', '%s/fragile_up.pdf' % temp_dir)
-        # create a temporary file into which the LaTeX will be written
-        temp_file = tempfile.mkstemp(dir=temp_dir, suffix='.tex')[1]
+    work_dir = create_cache_dir(obj.label_hash())
+    prefix = "%s-%s" % (obj.label_hash(), format)
+    pdf_file = os.path.join(work_dir, '%s.pdf' % prefix)
+    if not os.path.exists(pdf_file): # remove the True after testing
+        # create a file into which the LaTeX will be written
+        tex_file = os.path.join(work_dir, '%s.tex' % prefix)
         # render and output the LaTeX into temap_file
         if format == 'pdf' or format == 'runlist':
-            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'projects': projects, 'shipment' : object, 'experiments': experiments, 'crystals': xtal_list, 'containers': con_list })
+            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'projects': projects, 'shipment' : obj, 'experiments': experiments, 'crystals': xtal_list, 'containers': con_list })
         elif format == 'label':
-            tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': project, 'shipment' : object})
+            tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': project, 'shipment' : obj})
         elif format == 'return':
-            tex = loader.render_to_string('lims/tex/return_labels.tex', {'project': project, 'shipment' : object})
-        tex_file = open(temp_file, 'w')
-        tex_file.write(tex)
-        tex_file.close()
-        
-        # the arg for generate.sh is simply the .tex filename minus the .tex
-        arg = os.path.basename(temp_file).replace('.tex', '')
+            tex = loader.render_to_string('lims/tex/return_labels.tex', {'project': project, 'shipment' : obj})
+        f = open(tex_file, 'w')
+        f.write(tex)
+        f.close()
+    
         devnull = file('/dev/null', 'rw')
         stdout = sys.stdout
         stderr = sys.stderr
         if not settings.DEBUG:
             stdout = devnull
             stderr = devnull
-        subprocess.call(['/bin/bash', settings.TEX_TOOLS_DIR + '/ps4pdf.sh', arg], 
-                        env={'TEXINPUTS' : '.:' + settings.TEX_TOOLS_DIR + ':',
-                             'PATH' : settings.TEX_BIN_PATH},
-                        cwd=temp_dir,
+        subprocess.call(['xelatex', tex_file], 
+                        cwd=work_dir,
                         #stdout=stdout.fileno(),
                         #stderr=stderr.fileno(),
                         #stdin=devnull
                         )
+    
+    return send_raw_file(request, pdf_file, attachment=True)
         
-        # open the resulting .pdf and write it out to the response/browser
-        pdf_file = open(temp_file.replace('.tex', '.pdf'), 'r')
-        pdf = pdf_file.read()
-        pdf_file.close()
-        response.write(pdf)
-        
-        # return the response
-        return response
-        
-    finally:
-        
-        if not settings.DEBUG:
-            # remove the tempfiles
-            shutil.rmtree(temp_dir)
-
 @login_required
 @project_required
 def shipment_xls(request, id):
