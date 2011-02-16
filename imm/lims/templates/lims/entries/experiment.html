@@ -36,7 +36,7 @@
 	<tr valign="top"><th>Desired R-factor:</th><td>{{object.r_meas}}</td></tr>
 	{% if object.energy %}<tr valign="top"><th>Energy:</th><td>{{object.energy}}</td></tr>{% endif %}
 	{% if object.absorption_edge %}<tr valign="top"><th>Absorption Edge:</th><td>{{object.absorption_edge}}</td></tr>{% endif %}
-    <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
+    <tr valign="top"><th>Status:</th><td>{% if user.is_superuser %}{{object.get_exp_status_display}}{% else %}{{object.get_status_display}}{% endif %}</td></tr>
 	<tr valign="top"><th>Completed:</th><td>{% if object.is_complete %}Yes{% else %} No {% endif %}</td></tr>
 </table>
 {% if object.comments %}

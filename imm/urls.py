@@ -1,5 +1,4 @@
 from django.conf.urls.defaults import *
-
 from django.contrib import admin
 from django.conf import settings
 from views import logout_view, login_view, show_page
@@ -49,6 +48,9 @@ if settings.DEBUG:
             }),
         (r'^css/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': os.path.join(os.path.dirname(__file__), 'media/css'), 
+            }),
+        (r'^uploads/(?P<path>.*)$', 'django.views.static.serve', {
+            'document_root': os.path.join(os.path.dirname(__file__), 'media/uploads'), 
             }),
     )
 

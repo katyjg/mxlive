@@ -121,7 +121,8 @@ class LimsWorkbook(object):
         
         @return: a Dewar instance
         """
-        return Dewar(project=self.project, label="Default Dewar")
+        label = "Default Dewar %s " % dateformat.format(datetime.now(), 'M js, P')
+        return Dewar(project=self.project, label=label)
     
     def _get_containers(self):
         """ Returns a dict of {'name' : Container} from the Excel file 

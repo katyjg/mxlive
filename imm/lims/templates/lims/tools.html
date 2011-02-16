@@ -6,6 +6,13 @@
 <ul class="toolbar">
     {# STAFF TOOLS #}
     {% if request.user.is_staff %}
+        {% if object.is_reviewable %}
+            <li class="review-tool">
+                <a href="{% url staff-experiment-complete object.pk %}"  class="action modal-form">
+                    Mark as <br>Reviewed
+                </a>
+            </li>
+        {% endif %}
         {% if object.is_receivable %}
             <li class="receive-tool">
                 <a href="{% url staff-dewar-receive %}?label={{object.label}}"  class="action modal-form">
@@ -43,7 +50,10 @@
         {% endif %}
         {% if object.has_labels %}
             <li class="pdf-tool">
-                <a href="{{handler}}label/" class="">
+                <a {% if object.project.address and object.project.city and object.project.province and object.project.country and object.project.postal_code %}
+                    href="{{handler}}label/" class=""
+                    {% else %}
+                    href="{% url lims-profile-edit %}?warning=label" class="modal-form{% endif %}">
                     Labels
                 </a>
             </li>

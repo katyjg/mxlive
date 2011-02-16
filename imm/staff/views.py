@@ -17,6 +17,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.template import loader
 from django.db import transaction
+from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.http import HttpRequest
@@ -33,11 +34,7 @@ from imm.staff.admin import runlist_site
 from imm.lims.models import *
 from imm.staff.models import Runlist
 from imm.objlist.views import ObjectList
-from imm.lims.models import Container, Experiment, Shipment
-
-from jsonrpc import jsonrpc_method
-from jsonrpc.exceptions import InvalidRequestError
-from jsonrpc.exceptions import MethodNotFoundError
+from imm.lims.models import Container, Experiment, Shipment, Crystal
 
 ACTIVITY_LOG_LENGTH  = 10 
 
@@ -371,6 +368,114 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
         else:
             ol.object_list = Container.objects.filter(crystal__experiment=experiment).filter(status=Container.STATES.ON_SITE).distinct()
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
+
+@login_required
+def crystal_status(request):
+    pks = map(int, request.POST.getlist('id_list[]'))
+    action = int(request.POST.get('action'))
+    if action == 1:
+        Crystal.objects.filter(pk__in=pks, screen_status__exact=Crystal.EXP_STATES.COMPLETED).update(screen_status=Crystal.EXP_STATES.PENDING)
+    elif action == 2:
+        Crystal.objects.filter(pk__in=pks, collect_status__exact=Crystal.EXP_STATES.COMPLETED).update(collect_status=Crystal.EXP_STATES.PENDING)
+    elif action == 3:
+        Crystal.objects.filter(Q(pk__in=pks), Q(screen_status__exact=Crystal.EXP_STATES.PENDING) | Q(collect_status__exact=Crystal.EXP_STATES.PENDING)).update(collect_status=Crystal.EXP_STATES.COMPLETED, screen_status=Crystal.EXP_STATES.COMPLETED)
+    return render_to_response('lims/refresh.html')
+
+@login_required
+def complete_experiment(request, id, model, form, template='objforms/form_base.html', action=None):
+    try:
+        obj = Experiment.objects.get(pk=id)
+    except:
+        raise Http404
+
+    form_info = {
+        'title': 'Mark experiment "%s" as Reviewed?' % (model.objects.get(pk=id).name),
+        'sub_title': 'The %s will be marked as reviewed' % ( model._meta.verbose_name),
+        'action':  request.path,
+        'message': 'Are you sure no further tests of %s "%s" are necessary?' % (
+            model.__name__.lower(), model.objects.get(pk=id).name),
+        'save_label': 'Review'    }
+
+    if request.method == 'POST':
+        frm = form(request.POST, instance=obj)
+        if request.POST.has_key('_save'):
+            form_info['message'] = '%s (%s) completed' % ( model._meta.verbose_name, obj)
+            if hasattr(obj, 'project'):
+                ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY,  form_info['message'])
+            getattr(obj, 'exp_status')
+            setattr(obj, 'exp_status', Experiment.EXP_STATES.REVIEWED)
+            obj.save()
+            request.user.message_set.create(message = form_info['message'])
+            return render_to_response('lims/refresh.html')
+        else:
+            return render_to_response(template, {
+            'info': form_info, 
+            'form' : frm, 
+            }, context_instance=RequestContext(request))
+    else:   
+        if not obj.is_complete():
+            form.warning_message = "There are crystals in this experiment that have not been processed according to the experiment plan."
+        else:
+            form.warning_message = None
+        form._meta.model = Experiment
+        frm = form(initial=dict(request.GET.items()))
+        return render_to_response(template, {
+        'info': form_info, 
+        'form' : frm, 
+        }, context_instance=RequestContext(request))
+
+'''
+@admin_login_required
+@transaction.commit_on_success
+def receive_shipment(request, model, form, template='objforms/form_base.html', action=None):
+    """
+    """
+    save_label = None
+    if action:
+        save_label = action[0].upper() + action[1:]
+        
+    form_info = {
+        'title': 'Receive Dewar',
+        'action':  request.path,
+        'save_label': save_label,
+    }
+    if request.method == 'POST':
+        frm = form(request.POST)
+        if frm.is_valid(): # frm.instance will be populated here
+            frm.save()
+            obj = frm.instance
+            # if an action ('send', 'close') is specified, the perform the action
+            if action:
+                perform_action(obj, action)
+            form_info['message'] = '%s %s successfully received' % ( model.__name__, obj.identity())
+            ActivityLog.objects.log_activity(
+                request,
+                obj,
+                ActivityLog.TYPE.MODIFY,
+                form_info['message']
+                )
+            request.user.message_set.create(message = form_info['message'])
+            
+            return render_to_response("lims/redirect.html", context_instance=RequestContext(request)) 
+            #return HttpResponseRedirect(reverse('staff-shipment-list'))
+        else:
+            return render_to_response(template, {
+            'info': form_info, 
+            'form' : frm, 
+            }, context_instance=RequestContext(request))
+    else:
+        frm = form(initial=dict(request.GET.items()))
+        return render_to_response(template, {
+        'info': form_info, 
+        'form' : frm, 
+        }, context_instance=RequestContext(request))
+'''
+
+
+# -------------------------- JSONRPC Methods ----------------------------------------#
+from jsonrpc import jsonrpc_method
+from jsonrpc.exceptions import InvalidRequestError
+from jsonrpc.exceptions import MethodNotFoundError
 
 @jsonrpc_method('lims.detailed_runlist', authenticated=getattr(settings, 'AUTH_REQ', True))
 def detailed_runlist(request, runlist_id):
