@@ -1,4 +1,5 @@
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls.defaults import *
+
 from django.contrib import admin
 from django.conf import settings
 from views import logout_view, login_view, show_page
@@ -34,6 +35,7 @@ urlpatterns = patterns('',
     url(r'^json/$', jsonrpc_site.dispatch, name="jsonrpc_mountpoint"),
     (r'^json/(?P<method>[a-zA-Z0-9._]+)/$', jsonrpc_site.dispatch),
     (r'^api/profile/detail/', mock_user_api),
+
 )
 
 if settings.DEBUG:

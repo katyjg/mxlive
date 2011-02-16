@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block headline %}<h2>Oops...</h2>{% endblock %}
+
+{% block content-override %}
+
+<ul id="news">
+    <li class="title"><h2>We've encountered an Internal Server Error.</h2></li>
+</ul>
+<p>A notification has been sent, and we will try to sort out the problem as soon as possible.  (If you would like to help, let us know what you were trying to do when the error occurred by giving us some <a class="modal-form"  href="{% url lims-feedback-new %}">feedback</a>.)</p><br>
+<h2>Sorry for the inconvenience!</h2>
+{% endblock %}
