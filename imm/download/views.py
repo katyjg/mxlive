@@ -18,6 +18,13 @@ CACHE_DIR = getattr(settings, 'DOWNLOAD_CACHE_DIR', '/tmp')
 BRIGHTNESS_VALUES = getattr(settings, 'DOWNLOAD_BRIGHTNESS_VALUES', {'nm': 0.0, 'dk': -0.5, 'lt': 1.5})
 FRONTEND = getattr(settings, 'DOWNLOAD_FRONTEND', 'xsendfile')
 
+
+def create_cache_dir(key):
+    dir_name = os.path.join(CACHE_DIR, key)
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+    return dir_name
+    
 def create_download_key(path, owner_id):
     """Convenience method to create and return a key for a given path"""
 
@@ -34,7 +41,7 @@ def get_download_path(key):
     return obj.path
 
 
-def send_raw_file(request, full_path, attatchment=False):
+def send_raw_file(request, full_path, attachment=False):
     """Send a file using mod_xsendfile or similar functionality. 
     Use django's static serve option for development servers"""
     
@@ -44,8 +51,8 @@ def send_raw_file(request, full_path, attatchment=False):
     if FRONTEND == "xsendfile":
         response = HttpResponse()
         response['X-Sendfile'] = full_path
-        if attatchment:
-            response['Content-Disposition'] = 'attatchment; filename=%s' % os.path.basename(full_path)
+        if attachment:
+            response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(full_path)
         # Unset the Content-Type as to allow for the webserver
         # to determine it.
         response['Content-Type'] = ''
@@ -58,8 +65,8 @@ def send_raw_file(request, full_path, attatchment=False):
     elif FRONTEND == "xaccelredirect":
         response = HttpResponse()
         response['X-Accel-Redirect'] = full_path
-        if attatchment:
-            response['Content-Disposition'] = 'attatchment; filename=%s' % os.path.basename(full_path)
+        if attachment:
+            response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(full_path)
         response['Content-Type'] = ''
         response = HttpResponse()
         # FIXME: find out how to use wsgi.file_wrapper as a frontend as well
@@ -117,7 +124,7 @@ def send_png(request, key, path, brightness):
             create_png(img_file, png_file, BRIGHTNESS_VALUES[brightness])
         except OSError:
             raise Http404        
-    return send_raw_file(request, png_file, attatchment=False)
+    return send_raw_file(request, png_file, attachment=False)
 
 @login_required
 def send_archive(request, key, path):
@@ -135,4 +142,4 @@ def send_archive(request, key, path):
             create_tar(dir_name, tar_file)
         except OSError:
             raise Http404        
-    return send_raw_file(request, tar_file, attatchment=True)   
+    return send_raw_file(request, tar_file, attachment=True)   
