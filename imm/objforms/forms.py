@@ -26,9 +26,9 @@ class OrderedForm(forms.ModelForm):
                 if field_name in queryset.model._meta.get_all_field_names(): # some models will not have the field
                     formfield.queryset = queryset.filter(**{'%s__exact' % (field_name): value})
 
-    def check_unique_names(self, name):
-        for obj in self._meta.model.objects.filter(project=self.cleaned_data['project']).exclude(status=self._meta.model.STATES.ARCHIVED):
-            if getattr(obj, name) == self.cleaned_data[name]:
-                raise form.ValidationError('An un-archived %s already exists with this %s' % (self._meta.model.__name__, name))
-        
+    def duplicate_name(self, project, value, field):
+        for obj in self._meta.model.objects.filter(project__exact=project).exclude(status=self._meta.model.STATES.ARCHIVED):
+            if getattr(obj, field) == value:
+                return True
+        return False
 

@@ -29,8 +29,8 @@
 \begin{center}
 
 {\bf Investigator: }{{ project.name|texsafe|default:"" }} \hfill  {{ project.department|texsafe|default:"" }} \\
-{\bf FedEx Account: }{{ project.account_number|texsafe|default:"" }} \hfill {{ project.organisation|texsafe|default:"" }} \\
-\hfill {{ project.address|texsafe|default:"" }} \\
+\hfill {{ project.organisation|texsafe|default:"" }} \\
+{\bf FedEx Account: }{{ project.account_number|texsafe|default:"" }} \hfill {{ project.address|texsafe|default:"" }} \\
 {\bf Phone: }{{ project.contact_phone|texsafe|default:"" }} \hfill {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}   {{ project.postal_code|texsafe|default:"" }} \\
 {\bf Fax: }{{ project.contact_fax|texsafe|default:"" }} \hfill {{ project.country|texsafe|default:"" }} \\ 
 \end{center}
@@ -47,8 +47,7 @@
 {% endif %}
 
 \section*{Sample List By Experiment}
-
-\begin{longtable}{|p{0.3cm}|p{2.5cm}|p{0.75cm}|p{2.4cm}|p{0.85cm}|p{.8cm}|p{.8cm}|p{0.5cm}|p{0.5cm}|p{4cm}|}
+\begin{longtable}{|p{.015\textwidth}|p{.12\textwidth}|p{.035\textwidth}|p{.12\textwidth}|p{.04\textwidth}|p{.04\textwidth}|p{.04\textwidth}|p{.03\textwidth}|p{.03\textwidth}|p{0.26\textwidth}|}
 
 \hline
 \rowcolor[gray]{.8} \multicolumn{4}{|c|}{\cellcolor[gray]{.8}Experiment Parameters} & 
@@ -125,13 +124,13 @@
 
 \section*{Sample List By Container}
 
-\begin{longtable}{|p{0.5cm}|p{1.2cm}|p{1.cm}|p{1.2cm}|p{1.2cm}|p{0.45cm}|p{1cm}|p{2.2cm}|p{1.8cm}|p{3.5cm}|}
+\begin{longtable}{|p{0.5cm}|p{1.2cm}|p{.5cm}|p{1.2cm}|p{2cm}|p{0.45cm}|p{1cm}|p{2.2cm}|p{1.8cm}|p{3.5cm}|}
 
 \hline
-\rowcolor[gray]{.85} Exp Pr. & Container & Position & Crystal & Group & Req. Res. & Exp Type & Unit Cell & Spacegroup & Special Instructions \\ \hline
+\rowcolor[gray]{.85} Exp Pr. & Container & Loc & Crystal & Group & Req. Res. & Exp Type & Unit Cell & Spacegroup & Special Instructions \\ \hline
 \endfirsthead
 
-\rowcolor[gray]{.85} Exp Pr. & Container & Position & Crystal & Group & Req. Res. & Exp Type & Unit Cell & Spacegroup & Special Instructions \\ \hline
+\rowcolor[gray]{.85} Exp Pr. & Container & Loc & Crystal & Group & Req. Res. & Exp Type & Unit Cell & Spacegroup & Special Instructions \\ \hline
 \endhead
 
 \multicolumn{10}{|r|}{Continued on next page...} \\ \hline

@@ -175,6 +175,12 @@ class DewarForm(objforms.forms.OrderedForm):
         help_text=Dewar.HELP['label']
         )
     comments = objforms.widgets.CommentField(required=False)
+
+    def clean_label(self):
+        if self.raise_validation:
+            raise forms.ValidationError(self.raise_validation)
+        return self.cleaned_data['label']
+
     class Meta:
         model = Dewar
         fields = ('project','label','shipment','comments',)
@@ -199,6 +205,11 @@ class ContainerForm(objforms.forms.OrderedForm):
                     raise forms.ValidationError('Cannot change kind of Container when Crystals are associated')
         return cleaned_data['kind']
     
+    def clean_label(self):
+        if self.raise_validation:
+            raise forms.ValidationError(self.raise_validation)
+        return self.cleaned_data['label']
+
     class Meta:
         model = Container
         fields = ('project','label','code','kind','dewar','comments')
@@ -238,14 +249,10 @@ class SampleForm(objforms.forms.OrderedForm):
         required=False,
         help_text= Crystal.HELP['comments'])
    
-    ''' 
     def clean_name(self):
-        #check_unique_name(self, 'name')
-        for obj in self.Meta.model.objects.filter(project=self.cleaned_data['project']).exclude(status=Crystal.STATES.ARCHIVED):
-            if obj.name == self.cleaned_data['name']:
-                raise forms.ValidationError('An un-archived crystal already exists with this name')
+        if self.raise_validation:
+            raise forms.ValidationError(self.raise_validation)
         return self.cleaned_data['name']
-    '''
 
     def clean_container_location(self):
         if self.cleaned_data['container'] and not self.cleaned_data['container_location']:
@@ -340,6 +347,12 @@ class ExperimentForm(objforms.forms.OrderedForm):
     energy = forms.DecimalField( max_digits=10, decimal_places=4, widget=objforms.widgets.LeftHalfInput, required=False )
     absorption_edge = objforms.widgets.RightHalfCharField(required=False )
     comments = objforms.widgets.CommentField(required=False)
+
+    def clean_name(self):
+        if self.raise_validation:
+            raise forms.ValidationError(self.raise_validation)
+        return self.cleaned_data['name']
+
     class Meta:
         model = Experiment
         fields = ('project','name', 'kind', 'plan', 'resolution',
@@ -406,6 +419,11 @@ class CocktailForm(objforms.forms.OrderedForm):
         required=False,
         help_text= Crystal.HELP['comments'])
 
+    def clean_name(self):
+        if self.raise_validation:
+            raise forms.ValidationError(self.raise_validation)
+        return self.cleaned_data['name']
+
     class Meta:
         model = Cocktail
 
@@ -422,6 +440,12 @@ class CrystalFormForm(objforms.forms.OrderedForm):
     cell_alpha = forms.FloatField(label='alpha', widget=objforms.widgets.LeftThirdInput,required=False)
     cell_beta = forms.FloatField(label='beta', widget=objforms.widgets.MiddleThirdInput,required=False)
     cell_gamma = forms.FloatField(label='gamma', widget=objforms.widgets.RightThirdInput,required=False)
+
+    def clean_name(self):
+        if self.raise_validation:
+            raise forms.ValidationError(self.raise_validation)
+        return self.cleaned_data['name']
+
     class Meta:
         model = CrystalForm 
         fields = ('project','name', 'space_group','cell_a','cell_b','cell_c','cell_alpha','cell_beta','cell_gamma')
