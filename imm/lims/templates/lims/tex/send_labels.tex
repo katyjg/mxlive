@@ -105,8 +105,7 @@
 	                 & {\large {{ project.department|texsafe|default:"" }} } \\
 	                 & {\large {{ project.organisation|texsafe|default:"" }} } \\
 	                 & {\large {{ project.address|texsafe|default:"" }} } \\
-	                 & {\large {{ project.city|texsafe|default:"" }} } \\
-	                 & {\large {{ project.postal_code|texsafe|default:"" }} } \\
+	                 & {\large {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}\ \ {{project.postal_code|texsafe|default:"" }} } \\
 	                 & {\large {{ project.country|texsafe|default:"" }} } \\
 	                 & Phone: {{ project.contact_phone|texsafe|default:"" }} \\
 	                 & Fax: {{ project.contact_fax|texsafe|default:"" }} \\

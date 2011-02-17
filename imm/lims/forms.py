@@ -26,13 +26,14 @@ class ProjectForm(objforms.forms.OrderedForm):
     country = forms.CharField(widget=objforms.widgets.RightHalfInput, required=True)
     contact_phone = forms.CharField(widget=objforms.widgets.LeftHalfInput, required=True)
     contact_fax =forms.CharField(widget=objforms.widgets.RightHalfInput, required=False)
+    show_archives = objforms.widgets.LeftCheckBoxField(required=False)
     updated = forms.CharField(widget=forms.HiddenInput())
 
     class Meta:
         model = Project
         fields = ('contact_person','contact_email',
                   'carrier','account_number', 'organisation', 'department','address',
-                  'city', 'province','postal_code','country','contact_phone','contact_fax','updated')
+                  'city', 'province','postal_code','country','contact_phone','contact_fax','show_archives','updated')
                   
     def clean_updated(self):
         """
@@ -290,59 +291,6 @@ class SampleForm(objforms.forms.OrderedForm):
         fields = ('project','name','code','cocktail','crystal_form', 'pin_length',
                     'loop_size','container','container_location','comments')
 
-
-class ObjectSelectForm(forms.Form):
-    items = forms.ModelMultipleChoiceField(
-        widget=forms.SelectMultiple(attrs={'class': 'field select large'}),
-        queryset=None, 
-        required=False,
-        help_text='Select multiple items and then click submit to add them. Items already assigned will be reassigned.'
-        )
-
-        
-class SampleSelectForm(forms.Form):
-    """ A form that obeys the same 'items' interface as ObjectSelectForm, but also
-        has the 'parent' model associated with the form.
-    """
-    parent = forms.ModelChoiceField(queryset=None, widget=forms.HiddenInput)
-    items = forms.ModelChoiceField(queryset=None, label='Crystal sample')
-    container_location = forms.ChoiceField(label='Container location')
-    
-    def __init__(self, *args, **kwargs):
-        # construct the form
-        super(SampleSelectForm, self).__init__(*args, **kwargs)
-        
-        # pop the parent model out because it is not valid to pass into superclass
-        pk = self.initial.get('parent', None) or self.data.get('parent', None)
-        container = Container.objects.get(pk=pk)
-        self.fields['parent'].queryset = Container.objects.all()
-        
-        # find the crystals assign to the container, and remove the port choices
-        # that are already assigned
-        choices = list(container.get_location_choices()) # all ports
-        for crystal in container.crystal_set.all():
-            choice = (crystal.container_location, crystal.container_location)
-            if choice in choices:
-                choices.pop(choices.index(choice)) # remove assigned port
-        self.fields['container_location'].choices = tuple(choices)
-        
-
-class DewarSelectForm(forms.Form):
-    dewars = forms.ModelMultipleChoiceField(
-        widget=forms.SelectMultiple(attrs={'class': 'field select large'}),
-        queryset=Dewar.objects.all(), 
-        required=False,
-        help_text='Select multiple dewars and then click submit to add them to the shipment. Dewars already assigned to other shipments will be transfered to the current shipment'
-        )
-    
-class ContainerSelectForm(forms.Form):
-    containers = forms.ModelMultipleChoiceField(
-        widget=forms.SelectMultiple(attrs={'class': 'field select large'}),
-        queryset=Container.objects.all(), 
-        required=False,
-        help_text='Select multiple containers and then click submit to add them to the dewar. Containers already assigned to other dewars will be transfered to the current dewar'
-        )
-    
 class ExperimentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     name = objforms.widgets.LargeCharField(required=True)

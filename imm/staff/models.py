@@ -3,6 +3,7 @@ from django.db import models
 from lims.jsonfield import JSONField
 from django.utils.translation import ugettext_lazy as _
 import os
+import hashlib
 
 from imm.lims.models import Container
 from imm.lims.models import Experiment
@@ -145,6 +146,13 @@ class Runlist(models.Model):
         """ Create a message when the Runlist is 'accepted' """
         pass
             
+    def label_hash(self):
+        # use date of last runlist modification to determine when contents were last changed
+        txt = str(self.modified)
+        h = hashlib.new('ripemd160') # no successful collision attacks yet
+        h.update(txt)
+        return h.hexdigest()
+
     def container_to_location(self, container, location):
         if container.kind == Container.TYPE.CASSETTE:
             if location[0] == "L":

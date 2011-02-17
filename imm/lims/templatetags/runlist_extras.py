@@ -80,6 +80,10 @@ def in_runlist(crystals, containers):
 @register.filter("runlist_position")
 def runlist_position(runlist, container):
     return runlist.get_position(container)
+
+@register.filter("prioritize")
+def prioritize(object_list):
+    return object_list.order_by('priority').reverse()
     
     
 

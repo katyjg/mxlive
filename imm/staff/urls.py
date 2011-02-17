@@ -135,7 +135,7 @@ urlpatterns += patterns('imm.lims.views',
 
     # Runlists
     (r'^runlist/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),
-    (r'^runlist/(?P<id>\d+)/pdf/$', 'shipment_pdf', {'format' : 'runlist' }, 'staff-runlist-pdf'),    
+    (r'^runlist/(?P<id>\d+)/protocol/$', 'shipment_pdf', {'model': Runlist, 'format' : 'runlist' }, 'staff-runlist-pdf'),    
     (r'^runlist/(?P<id>\d+)/load/$', 'edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'load'}, 'staff-runlist-load'),
     (r'^runlist/(?P<id>\d+)/unload/$', 'edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'unload'}, 'staff-runlist-complete'),
     #(r'^runlist/(?P<id>\d+)/accept/$', 'edit_object_inline', {'model': Runlist, 'form': RunlistAcceptForm, 'template': 'objforms/form_base.html', 'action' : 'accept'}, 'staff-runlist-accept'),

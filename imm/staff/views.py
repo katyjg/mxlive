@@ -424,54 +424,6 @@ def complete_experiment(request, id, model, form, template='objforms/form_base.h
         'form' : frm, 
         }, context_instance=RequestContext(request))
 
-'''
-@admin_login_required
-@transaction.commit_on_success
-def receive_shipment(request, model, form, template='objforms/form_base.html', action=None):
-    """
-    """
-    save_label = None
-    if action:
-        save_label = action[0].upper() + action[1:]
-        
-    form_info = {
-        'title': 'Receive Dewar',
-        'action':  request.path,
-        'save_label': save_label,
-    }
-    if request.method == 'POST':
-        frm = form(request.POST)
-        if frm.is_valid(): # frm.instance will be populated here
-            frm.save()
-            obj = frm.instance
-            # if an action ('send', 'close') is specified, the perform the action
-            if action:
-                perform_action(obj, action)
-            form_info['message'] = '%s %s successfully received' % ( model.__name__, obj.identity())
-            ActivityLog.objects.log_activity(
-                request,
-                obj,
-                ActivityLog.TYPE.MODIFY,
-                form_info['message']
-                )
-            request.user.message_set.create(message = form_info['message'])
-            
-            return render_to_response("lims/redirect.html", context_instance=RequestContext(request)) 
-            #return HttpResponseRedirect(reverse('staff-shipment-list'))
-        else:
-            return render_to_response(template, {
-            'info': form_info, 
-            'form' : frm, 
-            }, context_instance=RequestContext(request))
-    else:
-        frm = form(initial=dict(request.GET.items()))
-        return render_to_response(template, {
-        'info': form_info, 
-        'form' : frm, 
-        }, context_instance=RequestContext(request))
-'''
-
-
 # -------------------------- JSONRPC Methods ----------------------------------------#
 from jsonrpc import jsonrpc_method
 from jsonrpc.exceptions import InvalidRequestError

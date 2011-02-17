@@ -156,6 +156,7 @@ class Project(models.Model):
     contact_phone = models.CharField(max_length=60, blank=True, null=True)
     contact_fax = models.CharField(max_length=60, blank=True, null=True)
     organisation = models.CharField(max_length=600, blank=True, null=True)
+    show_archives = models.BooleanField(default=False)    
 
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
@@ -834,7 +835,8 @@ class Experiment(models.Model):
 
     ACTIONS = {
         'resubmit': { 'status': STATES.ACTIVE, 'methods': ['set_strategy_status_resubmitted',] },
-        'review': { 'exp_status': EXP_STATES.REVIEWED, 'methods': ['set']}
+        'review': { 'exp_status': EXP_STATES.REVIEWED, 'methods': ['set']},
+        'archive': { 'status': STATES.ARCHIVED }
     }
     project = models.ForeignKey(Project)
     name = models.CharField(max_length=60)
