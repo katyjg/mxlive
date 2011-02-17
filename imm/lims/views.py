@@ -508,6 +508,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
         else:
             frm = form(request.POST)
         frm.restrict_by('project', project_pk)
+        frm.check_unique_name('name')
         if frm.is_valid():
             new_obj = frm.save()
             if action:

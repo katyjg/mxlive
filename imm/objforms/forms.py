@@ -27,8 +27,8 @@ class OrderedForm(forms.ModelForm):
                     formfield.queryset = queryset.filter(**{'%s__exact' % (field_name): value})
 
     def check_unique_names(self, name):
-        for obj in self.Meta.model.objects.filter(project=self.cleaned_data['project']).exclude(status=Crystal.STATES.ARCHIVED):
+        for obj in self._meta.model.objects.filter(project=self.cleaned_data['project']).exclude(status=self._meta.model.STATES.ARCHIVED):
             if getattr(obj, name) == self.cleaned_data[name]:
-                raise form.ValidationError('An un-archived %s already exists with this %s' % (self.Meta.model.__name__, name))
+                raise form.ValidationError('An un-archived %s already exists with this %s' % (self._meta.model.__name__, name))
         
 

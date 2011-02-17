@@ -237,12 +237,15 @@ class SampleForm(objforms.forms.OrderedForm):
         max_length=200, 
         required=False,
         help_text= Crystal.HELP['comments'])
-    
+   
+    ''' 
     def clean_name(self):
+        #check_unique_name(self, 'name')
         for obj in self.Meta.model.objects.filter(project=self.cleaned_data['project']).exclude(status=Crystal.STATES.ARCHIVED):
             if obj.name == self.cleaned_data['name']:
                 raise forms.ValidationError('An un-archived crystal already exists with this name')
         return self.cleaned_data['name']
+    '''
 
     def clean_container_location(self):
         if self.cleaned_data['container'] and not self.cleaned_data['container_location']:
