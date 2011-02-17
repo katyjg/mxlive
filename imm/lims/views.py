@@ -504,10 +504,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
         form_info['enctype'] = 'multipart/form-data'
 
     if request.method == 'POST':
-        if request.FILES:
-            frm = form(request.POST, request.FILES)
-        else:
-            frm = form(request.POST)
+        frm = form(request.POST, request.FILES)
         frm.restrict_by('project', project_pk)
         if request.POST.get('label') or request.POST.get('name'):
             if request.POST.get('label'):
@@ -515,9 +512,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
             else:
                 field = 'name'
             if frm.duplicate_name(project, request.POST.get(field), field):
-                frm.raise_validation = 'An un-archived %s already exists with this %s' % (frm._meta.model.__name__, field)
-            elif not frm.duplicate_name(project, request.POST.get(field), field):
-                frm.raise_validation = None
+                frm.duplicate_entry = 'An un-archived %s already exists with this %s' % (frm._meta.model.__name__, field)
         if frm.is_valid():
             new_obj = frm.save()
             if action:

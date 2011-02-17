@@ -50,6 +50,15 @@ class ShipmentForm(objforms.forms.OrderedForm):
         help_text=Shipment.HELP['label']
         )
     comments = objforms.widgets.CommentField(required=False)
+
+    def clean_label(self):
+        try:
+            if self.duplicate_entry:
+                raise forms.ValidationError(self.duplicate_entry)
+            return self.cleaned_data['label']
+        except AttributeError:
+            return self.cleaned_data['label']
+
     class Meta:
         model = Shipment
         fields = ('project','label','comments',)
@@ -177,9 +186,12 @@ class DewarForm(objforms.forms.OrderedForm):
     comments = objforms.widgets.CommentField(required=False)
 
     def clean_label(self):
-        if self.raise_validation:
-            raise forms.ValidationError(self.raise_validation)
-        return self.cleaned_data['label']
+        try:
+            if self.duplicate_entry:
+                raise forms.ValidationError(self.duplicate_entry)
+            return self.cleaned_data['label']
+        except AttributeError:
+            return self.cleaned_data['label']
 
     class Meta:
         model = Dewar
@@ -206,8 +218,8 @@ class ContainerForm(objforms.forms.OrderedForm):
         return cleaned_data['kind']
     
     def clean_label(self):
-        if self.raise_validation:
-            raise forms.ValidationError(self.raise_validation)
+        if self.duplicate_entry:
+            raise forms.ValidationError(self.duplicate_entry)
         return self.cleaned_data['label']
 
     class Meta:
@@ -250,9 +262,12 @@ class SampleForm(objforms.forms.OrderedForm):
         help_text= Crystal.HELP['comments'])
    
     def clean_name(self):
-        if self.raise_validation:
-            raise forms.ValidationError(self.raise_validation)
-        return self.cleaned_data['name']
+        try:
+            if self.duplicate_entry:
+                raise forms.ValidationError(self.duplicate_entry)
+            return self.cleaned_data['name']
+        except AttributeError:
+            return self.cleaned_data['name']
 
     def clean_container_location(self):
         if self.cleaned_data['container'] and not self.cleaned_data['container_location']:
@@ -349,9 +364,12 @@ class ExperimentForm(objforms.forms.OrderedForm):
     comments = objforms.widgets.CommentField(required=False)
 
     def clean_name(self):
-        if self.raise_validation:
-            raise forms.ValidationError(self.raise_validation)
-        return self.cleaned_data['name']
+        try:
+            if self.duplicate_entry:
+                raise forms.ValidationError(self.duplicate_entry)
+            return self.cleaned_data['name']
+        except AttributeError:
+            return self.cleaned_data['name']
 
     class Meta:
         model = Experiment
@@ -420,9 +438,12 @@ class CocktailForm(objforms.forms.OrderedForm):
         help_text= Crystal.HELP['comments'])
 
     def clean_name(self):
-        if self.raise_validation:
-            raise forms.ValidationError(self.raise_validation)
-        return self.cleaned_data['name']
+        try:
+            if self.duplicate_entry:
+                raise forms.ValidationError(self.duplicate_entry)
+            return self.cleaned_data['name']
+        except AttributeError:
+            return self.cleaned_data['name']
 
     class Meta:
         model = Cocktail
@@ -442,9 +463,12 @@ class CrystalFormForm(objforms.forms.OrderedForm):
     cell_gamma = forms.FloatField(label='gamma', widget=objforms.widgets.RightThirdInput,required=False)
 
     def clean_name(self):
-        if self.raise_validation:
-            raise forms.ValidationError(self.raise_validation)
-        return self.cleaned_data['name']
+        try:
+            if self.duplicate_entry:
+                raise forms.ValidationError(self.duplicate_entry)
+            return self.cleaned_data['name']
+        except AttributeError:
+            return self.cleaned_data['name']
 
     class Meta:
         model = CrystalForm 
