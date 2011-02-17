@@ -166,7 +166,7 @@ def manager_required(function):
             except Project.DoesNotExist:
                 raise Http404
         if MANAGER_FILTERS.has_key((model, request.user.is_superuser)):
-            if not request.user.is_superuser and not project.show_archives:
+            if request.user.is_superuser or not project.show_archives:
                 manager = FilterManagerWrapper(manager,**MANAGER_FILTERS[(model, request.user.is_superuser)])
         if MANAGER_ORDER_BYS.has_key((model, request.user.is_superuser)):
             manager = OrderByManagerWrapper(manager,*MANAGER_ORDER_BYS[(model, request.user.is_superuser)])
