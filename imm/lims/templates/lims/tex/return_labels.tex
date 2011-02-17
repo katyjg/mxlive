@@ -4,26 +4,24 @@
 \usepackage{xcolor,colortbl}
 \usepackage{boxedminipage}
 \usepackage{fontspec}
-\usepackage[margin=1in]{geometry}
+\usepackage[top=0.5in,bottom=0.5in,left=1in,right=1in,nohead,nofoot]{geometry}
 \usepackage{parskip}
-\marginparwidth 0pt \marginparsep 0pt
-\headsep 0pt
-\headheight 0pt
-\textheight 297mm
+\usepackage{ncccropbox}
 \addtolength{\fboxsep}{0.2cm}
 \renewcommand{\arraystretch}{1.5}
+%\croplinelength{-0.1in}
 %------------------------------------------------------------
 % Appearance Control
 %------------------------------------------------------------
 % normal line spacing: 1.0
 % double spacing     : 1.6
-\setmainfont{Gentium Basic}
-\begin{document}
+\setmainfont{Gentium Basic}\begin{document}
 
 \begin{minipage}{\textwidth}
 {% include "lims/tex/cmcf_logo.tex" %}
 \end{minipage}
 \begin{center}
+    \vspace{0.2in}
 
     \begin{minipage}{\textwidth}
         \section*{LABEL INSTRUCTIONS}
@@ -41,13 +39,13 @@
     \begin{center}
         \begin{boxedminipage}{\textwidth}
         \begin{minipage}{4in}
-            \begin{boxedminipage}{\textwidth}
-                \begin{pspicture}(\textwidth,0.8in)
+            \fbox{
+                \begin{pspicture}(0.9\textwidth,0.8in)
                     \psbarcode[transy=1em,transx=0.8in]{^104{{dewar.barcode|texsafe|default:"CLS0000-0000"}}}{includetext height=0.6 guardwhitespace}{code128}
                 \end{pspicture}
-            \end{boxedminipage}
+            }
             \begin{minipage}{\textwidth}
-                \vspace{0.5in}
+                \vspace{0.25in}
                 \vskip\fboxsep
                 {\bf 
                 \begin{tabular}{ll}
@@ -63,9 +61,8 @@
                 \end{tabular}
                 }
                 \vskip\fboxsep
-                \vspace{0.5in}
+                \vspace{0.25in}
             \end{minipage}
-
             \colorbox[gray]{0.92}{
                 \begin{tabular*}{0.9\textwidth}{@{\extracolsep{\fill}} | p{.3\textwidth} | p{.5\textwidth} |}
                 \hline
@@ -84,13 +81,14 @@
             }
             \vskip\fboxsep
         \end{minipage}
-        \begin{minipage}{2.5in}
-        \begin{center}
-        {% include "lims/tex/cmcf_logo.tex" %}
-        {% include "lims/tex/fragile_sign.tex" %}
-        \Large{ {\sc Non-Hazardous \\ Frozen Samples In \\ a Dry-Shipper} }
-        \end{center}
-        \end{minipage}
+            \begin{minipage}{2.5in}
+                \begin{center}
+                {% include "lims/tex/cmcf_logo.tex" %}
+                \vspace{0.5in}
+                {% include "lims/tex/fragile_sign.tex" %}
+                \large{ {\bf Non-Hazardous \\ Frozen Samples In \\ a Dry-Shipper} }
+                \end{center}
+            \end{minipage}
         \end{boxedminipage}
     \end{center}
     {% endfor %}

@@ -1106,7 +1106,7 @@ def shipment_pdf(request, id, format):
     work_dir = create_cache_dir(obj.label_hash())
     prefix = "%s-%s" % (obj.label_hash(), format)
     pdf_file = os.path.join(work_dir, '%s.pdf' % prefix)
-    if not os.path.exists(pdf_file): # remove the True after testing
+    if not os.path.exists(pdf_file) or settings.DEBUG: # remove the True after testing
         # create a file into which the LaTeX will be written
         tex_file = os.path.join(work_dir, '%s.tex' % prefix)
         # render and output the LaTeX into temap_file
@@ -1126,7 +1126,7 @@ def shipment_pdf(request, id, format):
         if not settings.DEBUG:
             stdout = devnull
             stderr = devnull
-        subprocess.call(['xelatex', tex_file], 
+        subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], 
                         cwd=work_dir,
                         #stdout=stdout.fileno(),
                         #stderr=stderr.fileno(),
