@@ -1028,30 +1028,16 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
         }, context_instance=RequestContext(request))
         
 @login_required
-@project_optional
-def shipment_pdf(request, id, format):
+@manager_required
+def shipment_pdf(request, id, model, format):
     """ """
     try:
-         obj = Shipment.objects.get(id=id)
+        obj = request.manager.get(pk=id)
     except:
-        try: 
-            obj = Runlist.objects.get(id=id)
-        except:
-            raise Http404
-
-    if request.project:
-        project = request.project
-    else:
-        try:
-            project = obj.project
-        except:
-            project = None
-
-    # create a temporary directory
-    temp_dir = tempfile.mkdtemp()
-
-    if format == 'pdf':
-        exp_list = []
+        raise Http404
+        
+    if format == 'protocol':
+        experiments = set()
         con_list = []
         xtal_list = []
         projects = None
@@ -1064,12 +1050,8 @@ def shipment_pdf(request, id, format):
                     con_list.append(container)
                 for exp in cont_exp_list:
                     if exp not in exp_list:
-                        exp_list.append(exp)
-        experiments = []
+                        experiments.add(exp)
         all_exps = Experiment.objects.all().order_by('priority').reverse()
-        for experiment in all_exps:
-            if experiment in exp_list:
-                experiments.append(experiment)
 
         for exp in exp_list:
             exp_xtal_list = Crystal.objects.filter(experiment=exp).order_by('priority', 'container', 'container_location').reverse()
@@ -1110,11 +1092,11 @@ def shipment_pdf(request, id, format):
         # create a file into which the LaTeX will be written
         tex_file = os.path.join(work_dir, '%s.tex' % prefix)
         # render and output the LaTeX into temap_file
-        if format == 'pdf' or format == 'runlist':
+        if format == 'protocol' or format == 'runlist':
             tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'projects': projects, 'shipment' : obj, 'experiments': experiments, 'crystals': xtal_list, 'containers': con_list })
         elif format == 'label':
             tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': project, 'shipment' : obj})
-        elif format == 'return':
+        elif format == 'return_label':
             tex = loader.render_to_string('lims/tex/return_labels.tex', {'project': project, 'shipment' : obj})
         f = open(tex_file, 'w')
         f.write(tex)

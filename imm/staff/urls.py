@@ -130,8 +130,8 @@ urlpatterns += patterns('imm.lims.views',
 
     # Shipments
     (r'^shipping/shipment/(?P<id>\d+)/return/$', 'edit_object_inline', {'model': Shipment, 'form': ShipmentReturnForm, 'template': 'objforms/form_base.html', 'action' : 'return'}, 'staff-shipment-return'),
-    (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'format' : 'return' }, 'staff-shipment-label'),    
-    (r'^shipping/shipment/(?P<id>\d+)/pdf/$', 'shipment_pdf', {'format' : 'pdf' }, 'staff-shipment-pdf'),    
+    (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'model': Shipment, 'format' : 'return_label' }, 'staff-shipment-label'),    
+    (r'^shipping/shipment/(?P<id>\d+)/protocol/$', 'shipment_pdf', {'model': Shipment, 'format' : 'protocol' }, 'staff-shipment-protocol'),    
 
     # Runlists
     (r'^runlist/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),
