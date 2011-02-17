@@ -111,6 +111,10 @@ urlpatterns = patterns('imm.staff.views',
     # Dewars 
     (r'^shipping/dewar/receive/$', 'receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-dewar-receive'),
 
+    # Experiments
+    (r'^experiment/crystal/action/$', 'crystal_status', {}, 'staff-crystal-status'),
+    (r'^experiment/(?P<id>\d+)/complete/$', 'complete_experiment', {'model': Experiment, 'form': ConfirmDeleteForm, 'template': 'objforms/form_base.html', 'action': 'complete'}, 'staff-experiment-complete'),
+
     # Runlists
     (r'^runlist/(?P<runlist_id>\d+)/container/basic/(?P<exp_id>\d+)/$', 'container_basic_object_list', {'model':Container, 'template': 'objlist/basic_object_list.html'}, 'staff-container-basic-list'),
     (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'experiment_basic_object_list', {'model':Experiment, 'template': 'staff/lists/basic_experiment_list.html'}, 'staff-experiment-basic-list'),   
@@ -128,11 +132,6 @@ urlpatterns += patterns('imm.lims.views',
     (r'^shipping/shipment/(?P<id>\d+)/return/$', 'edit_object_inline', {'model': Shipment, 'form': ShipmentReturnForm, 'template': 'objforms/form_base.html', 'action' : 'return'}, 'staff-shipment-return'),
     (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'format' : 'return' }, 'staff-shipment-label'),    
     (r'^shipping/shipment/(?P<id>\d+)/pdf/$', 'shipment_pdf', {'format' : 'pdf' }, 'staff-shipment-pdf'),    
-
-    # Experiments
-    (r'^experiment/crystal/(?P<id>\d+)/rescreen/$', 'rescreen', {}, 'staff-crystal-rescreen'),
-    (r'^experiment/crystal/(?P<id>\d+)/recollect/$', 'recollect', {}, 'staff-crystal-recollect'),
-    (r'^experiment/crystal/(?P<id>\d+)/complete/$', 'complete', {}, 'staff-crystal-complete'),
 
     # Runlists
     (r'^runlist/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),

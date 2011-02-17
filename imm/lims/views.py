@@ -133,7 +133,7 @@ MANAGER_FILTERS = {
     (Crystal, True) : {'status__in': [Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
     (Crystal, False) : {'status__in': [Crystal.STATES.DRAFT, Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
     (Experiment, True) : {'status__in': [Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.PAUSED]},
-    (Experiment, False) : {'status__in': [Experiment.STATES.DRAFT, Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.PAUSED, Experiment.STATES.CLOSED]},
+    (Experiment, False) : {'status__in': [Experiment.STATES.DRAFT, Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.PAUSED, Experiment.STATES.ARCHIVED]},
 }
 
 # models.Manager ordering is overridden by admin.ModelAdmin.ordering in the ObjectList
@@ -488,8 +488,10 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
     """
     if request.project:
         project = request.project
+        project_pk = project.pk
     else:
         project = None
+        project_pk = None
     object_type = model._meta.verbose_name
 
     form_info = {
@@ -505,7 +507,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
             frm = form(request.POST, request.FILES)
         else:
             frm = form(request.POST)
-        frm.restrict_by('project', project)
+        frm.restrict_by('project', project_pk)
         if frm.is_valid():
             new_obj = frm.save()
             if action:
@@ -515,10 +517,10 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
                 info_msg)
             request.user.message_set.create(message = info_msg)
             if request.POST.has_key('_addanother'):
-                initial = {'project': project.pk}
+                initial = {'project': project_pk}
                 initial.update(dict(request.GET.items()))      
                 frm = form(initial=initial)
-                frm.restrict_by('project', project)
+                frm.restrict_by('project', project_pk)
                 return render_to_response(template, {
                     'info': form_info, 
                     'form': frm, 
@@ -535,13 +537,13 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
                 }, context_instance=RequestContext(request))
     else:
         if project:
-            initial = {'project': project.pk}
+            initial = {'project': project_pk}
             initial.update(dict(request.GET.items()))      
             frm = form(initial=initial)
         else:
             frm = form(initial=None)
 
-        frm.restrict_by('project', project)
+        frm.restrict_by('project', project_pk)
         if request.GET.has_key('clone'):
             clone_id = request.GET['clone']
             try:
@@ -560,70 +562,6 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
                     field.initial = val
 
         return render_to_response(template, {
-            'info': form_info, 
-            'form': frm, 
-            }, context_instance=RequestContext(request))
-
-
-@login_required
-@project_required
-def add_new_object(request, id, model, form, field):
-    """
-    A generic view which displays a form of type `form` which when submitted 
-    will create a new object of type `model` and set it's foreign key field 
-    `field` to the related object identified by the primary key `id`.
-    """
-    project = request.project
-    object_type = model._meta.verbose_name
-    try:
-        manager = getattr(project, field+'_set')
-        related = manager.get(pk=id)
-        related_type = related._meta.verbose_name
-    except:
-        raise Http404
-    form_info = {
-        'title': 'New %s' % object_type,
-        'sub_title': 'Adding a new %s to %s "%s"' % (object_type, related_type, smart_str(related)),
-        'action':  request.path,
-        'target': 'entry-scratchpad',
-        'add_another': False,
-    }
-    if request.method == 'POST':
-        q = request.POST.copy()
-        q.update({field: related.pk})
-        frm = form(q)
-        frm[field].field.widget.attrs['disabled'] = 'disabled'
-        frm.restrict_by('project', project)
-        if frm.is_valid():
-            new_obj = frm.save()
-            info_msg = '%s (%s) added to %s (%s)' % (smart_str(model._meta.verbose_name), smart_str(new_obj), related_type, smart_str(related))
-            ActivityLog.objects.log_activity(
-                request,
-                new_obj, 
-                ActivityLog.TYPE.CREATE,
-                info_msg
-                )
-            request.user.message_set.create(message = info_msg)
-            if request.POST.has_key('_addanother'):
-                frm = form(initial={'project': project.pk, field: related.pk})
-                frm.restrict_by('project', project)
-                frm[field].field.widget.attrs['disabled'] = 'disabled'
-                return render_to_response('objforms/form_base.html', {
-                    'info': form_info, 
-                    'form': frm, 
-                    }, context_instance=RequestContext(request))
-            else:
-                return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
-        else:
-            return render_to_response('objforms/form_base.html', {
-                'info': form_info,
-                'form': frm, 
-                }, context_instance=RequestContext(request))
-    else:
-        frm = form(initial={'project': project.pk, field: related.pk})
-        frm.restrict_by('project', project)
-        frm[field].field.widget.attrs['disabled'] = 'disabled'
-        return render_to_response('objforms/form_base.html', {
             'info': form_info, 
             'form': frm, 
             }, context_instance=RequestContext(request))
@@ -708,6 +646,7 @@ def user_object_list(request, model, template='lims/lists/list_base.html', link=
 @transaction.commit_on_success
 def priority(request, id,  model, field):
     if request.method == 'POST':
+        print request.POST
         pks = map(int, request.POST.getlist('id_list[]'))
         pks.reverse()
         _priorities_changed = False
@@ -727,6 +666,10 @@ def edit_profile(request, form, template='objforms/form_base.html', action=None)
     """
     View for editing user profiles
     """
+    if request.GET.get('warning', None) == 'label':
+        form.warning_message = "We don't have your address on file yet.  Please update your profile information before printing off shipping labels."
+    else:
+        form.warning_message = None
     try:
         model = Project
         obj = request.user.get_profile()
@@ -752,6 +695,12 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
     #   objects = request.manager.filter(**params)
     #else:
     #    objects = request.manager.all()
+    if request.project:
+        project = request.project
+        project_pk = project.pk
+    else:
+        project = None
+        project_pk = None
 
     try:
         obj = request.manager.get(pk=id)
@@ -775,8 +724,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
 
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
-        if request.project:
-            frm.restrict_by('project', request.project)
+        frm.restrict_by('project', project_pk)
         if frm.is_valid():
             form_info['message'] = '%s (%s) modified' % ( model._meta.verbose_name, obj)
             frm.save()
@@ -796,8 +744,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
             }, context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=dict(request.GET.items())) # casting to a dict pulls out first list item in each value list
-        if request.project:
-            frm.restrict_by('project', request.project)
+        frm.restrict_by('project', project_pk)
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm,
@@ -964,6 +911,13 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
     key ``id``, which when submitted will delete the entry asynchronously through
     AJAX.
     """
+    if request.project:
+        project = request.project
+        project_pk = project.pk
+    else:
+        project = None
+        project_pk = None
+
     try:
         obj = request.manager.get(pk=id)
     except:
@@ -982,8 +936,7 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
     }
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
-        if request.project:
-            frm.restrict_by('project', request.project)
+        frm.restrict_by('project', project_pk)
         if request.POST.has_key('_save'):
             form_info['message'] = '%s (%s) deleted' % ( model._meta.verbose_name, obj)
             if hasattr(obj, 'project'):
@@ -1011,8 +964,7 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
             }, context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=None) 
-        if request.project:
-            frm.restrict_by('project', request.project)
+        frm.restrict_by('project', project_pk)
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm, 
@@ -1031,7 +983,12 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
     of (Model, fk_field)) with a ForeignKey referencing ``model``/``id`` will also
     be archived.
     """
-    project = request.project
+    if request.project:
+        project = request.project
+        project_pk = project.pk
+    else:
+        project = None
+        project_pk = None
     try:
         obj = model.objects.get(pk=id)
     except:
@@ -1063,8 +1020,7 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
             return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=None) 
-        if request.project:
-            frm.restrict_by('project', request.project)
+        frm.restrict_by('project', project_pk)
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm, 
@@ -1313,26 +1269,6 @@ def add_strategy(request, stg_info):
     ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
        "New strategy (%s) added" % new_obj)
     return {'strategy_id': new_obj.pk}
-
-
-@login_required
-def rescreen(request, id):
-    crystal = Crystal.objects.get(pk=id)
-    crystal.rescreen()
-    return render_to_response('lims/refresh.html')
-    
-@login_required
-def recollect(request, id):
-    crystal = Crystal.objects.get(pk=id)
-    crystal.recollect()
-    return render_to_response('lims/refresh.html')
-    
-@login_required
-def complete(request, id):
-    crystal = Crystal.objects.get(pk=id)
-    crystal.complete()
-    return render_to_response('lims/refresh.html')
-
 
 # -------------------------- PLOTTING ----------------------------------------#
 import numpy

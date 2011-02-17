@@ -2,13 +2,13 @@
 {% load score_colors %}
 
 	{% if admin %}
-	<form id="action_form" method="post">{% csrf_token %}
-		<button  style="float:right; margin: 0;" title="Apply action to selected crystals">Apply</button>
+	<form id="action_form" method="POST">{% csrf_token %}
+		<button  type="submit" style="float:right; margin: 0;" title="Apply action to selected crystals">Apply</button>
 		<select id="selector" class="select" style="float:right;" name="action">
 			<option value="default" selected="selected">Select Action</option>
-			<option value="rescreen">Re-Screen</option>
-			<option value="recollect">Re-Collect</option>
-			<option value="complete">Complete</option>
+			<option name="rescreen" value="rescreen">Re-Screen</option>
+			<option name="recollect" value="recollect">Re-Collect</option>
+			<option name="complete" value="complete">Complete</option>
 		</select> 
 		
 		<br/>
@@ -105,36 +105,23 @@
 		jQuery('#action_form').submit(function() {
 			// check what action to do
 			var $action_id = document.getElementById('selector').selectedIndex;
-			var $url = "/lims/experiment/crystal/";
-			jQuery('.checkbox').filter(':checked').each( function()
-			{
-				$url = "/lims/experiment/crystal/";
-				var $crys_id = jQuery(this).val();
-				$url = $url + $crys_id;
-				if ($action_id == 1) {
-					// rescreen
-					$url = $url + '/rescreen/';
-				};
-				if ($action_id == 2) {
-					// recollect
-					$url = $url + '/recollect/';
-				};
-				if ($action_id == 3) {
-					// complete
-					$url = $url + '/complete/';
-				};
-				jQuery.ajax({
-					type: "POST",
-					url: $url,
-					dataType: "script",
-					success: function() {
-                        window.location.reload();
-					},
-					error: function() {
-						// error, just reload the widget
-						loadWidgets();
-					}
-				});
+			var $url = "/staff/experiment/crystal/action/";
+            var data_list = [];
+			jQuery('.checkbox').filter(':checked').each( function() {
+                data_list.push("id_list[]=" + jQuery(this).val());
+			});
+            data_list.push("action=" + $action_id);
+			jQuery.ajax({
+				type: "POST",
+				url: $url,
+                data: data_list.join("&"),
+				success: function() {
+                    window.location.reload();
+				},
+				error: function() {
+					// error, just reload the widget
+					loadWidgets();
+				}
 			});
 			document.getElementById('selector').selectedIndex = 0;
 			return false;

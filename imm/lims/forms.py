@@ -81,14 +81,14 @@ class ShipmentUploadForm(forms.Form):
         return cleaned_data
     
     def error_message(self):
+        errors = ''
         if not self.workbook.is_valid():
-                self._errors['excel'] = self._errors.get('excel', ErrorList())
-                errors = self.workbook.errors
-                #errors = self.workbook.errors[:self.NUM_ERRORS]
-                #if len(self.workbook.errors) > len(errors):
-                #    errors.append("and %d more errors..." % (len(self.workbook.errors)-len(errors)))
-                self._errors['excel'].extend(errors)          
-
+            self._errors['excel'] = self._errors.get('excel', ErrorList())
+            errors = self.workbook.errors
+            #errors = self.workbook.errors[:self.NUM_ERRORS]
+            #if len(self.workbook.errors) > len(errors):
+            #    errors.append("and %d more errors..." % (len(self.workbook.errors)-len(errors)))
+            self._errors['excel'].extend(errors)          
         error_list = list()
         short_errors = list()
         for error in errors:
@@ -106,8 +106,9 @@ class ShipmentUploadForm(forms.Form):
         error_text.append('The following problems with the spreadsheet have been identified:')
         for error in error_list:
             error_text.append('- ' + error)
-                      
-        return error_text
+        if len(error_text) > 1:
+            return error_text
+        return
 
 
     def save(self, request=None):
@@ -147,7 +148,7 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
     def warning_message(self):
         shipment = self.instance
         if shipment:
-            for crystal in shipment.project.crystal_set.all():
+            for crystal in shipment.project.crystal_set.filter(container__dewar__shipment__exact=shipment):
                 if crystal.num_experiments() == 0:
                     return 'Crystal "%s" is not associated with any Experiments. Sending the Shipment will create a ' \
                            'default "Screen and confirm" Experiment and assign all unassociated Crystals. Close this window ' \
@@ -237,6 +238,12 @@ class SampleForm(objforms.forms.OrderedForm):
         required=False,
         help_text= Crystal.HELP['comments'])
     
+    def clean_name(self):
+        for obj in self.Meta.model.objects.filter(project=self.cleaned_data['project']).exclude(status=Crystal.STATES.ARCHIVED):
+            if obj.name == self.cleaned_data['name']:
+                raise forms.ValidationError('An un-archived crystal already exists with this name')
+        return self.cleaned_data['name']
+
     def clean_container_location(self):
         if self.cleaned_data['container'] and not self.cleaned_data['container_location']:
             raise forms.ValidationError('This field is required with container selected')
@@ -252,7 +259,6 @@ class SampleForm(objforms.forms.OrderedForm):
             if not self.cleaned_data['container'].location_is_available( self.cleaned_data['container_location'], pk ):
                 raise forms.ValidationError('Another sample is already in that position.')
         return self.cleaned_data['container_location']
-        
         
     class Meta:
         model = Crystal
@@ -430,7 +436,7 @@ class StrategyRejectForm(objforms.forms.OrderedForm):
     def get_message(self):
         return "Are you sure you want to reject this Strategy?"
 
-class FeedbackForm(forms.ModelForm):
+class FeedbackForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     contact_name = objforms.widgets.LargeCharField(label='Name (optional)', required=False)
     contact = forms.EmailField(widget=objforms.widgets.LargeInput, label="Email Address (optional)", required=False)
@@ -439,7 +445,6 @@ class FeedbackForm(forms.ModelForm):
     class Meta:
         model = Feedback
         fields = ('project','contact_name','contact','category','message')
-    def restrict_by(self, field_name, id): 
-        pass
+
 
     
