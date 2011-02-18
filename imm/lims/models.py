@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+import copy
 
 from django.conf import settings
 from django.db import models
@@ -172,7 +173,6 @@ class Project(models.Model):
     class Meta:
         verbose_name = "Project Profile"
 
-
 class Session(models.Model):
     project = models.ForeignKey(Project)
     beamline = models.ForeignKey(Beamline)
@@ -180,6 +180,471 @@ class Session(models.Model):
     end_time = models.DateTimeField(null=False, blank=False)
     comments = models.TextField()
     
+def perform_action(instance, action, data=None):
+    """ Performs an action (send a message to FSM) on an object. See Shipment for a description
+        of how the FSM datastructure is setup.
+            
+        @param instance: a models.Model instance with STATES/TRANSITIONS/ACTIONS defined
+        @param status: a new STATE to transition to. 
+        @param data: a dict of additional data possibly required by the methods in the ACTIONS dictionary 
+    """
+    try: 
+        to_do = instance.ACTIONS[action]
+    except KeyError:
+        to_do = LimsBaseClass.ACTIONS[action]
+
+    # check the assertions
+    for field, value in to_do.items():
+        if field == 'assertions':
+            for assertion in value:
+                if not getattr(instance, assertion)():
+                    raise ValueError('Unsatisfied assertion: %s' % assertion)
+    
+    # set the status appropriately
+    for field, value in to_do.items():
+        if field == 'assertions':
+            continue # dealt with these already
+        if field == 'methods':
+            continue # deal with these later
+        if callable(value):
+            value = value()
+        if field == 'status':
+            change_status(instance, value)
+        else:
+            setattr(instance, field, value)
+    instance.save()
+
+    # perform the action on the children
+    # checks if child has 'content_type' which should only exist 
+    # for children of LimsBaseClass and ActivityLog objects
+    if hasattr(instance, 'get_children'):
+        for child in instance.get_children():
+            if child.ACTIONS.has_key(action) or hasattr(child, 'content_type'):
+                perform_action(child, action, data=data)
+        
+    # call the post methods
+    for field, value in to_do.items():
+        if field != 'methods':
+            continue # dealt with these already
+        for method in value:
+            if data:
+                getattr(instance, method)(data=data)
+            else:
+                getattr(instance, method)()
+            instance.save()
+            
+def change_status(instance, status):
+    """ Changes the state of the instance's FSM to status
+    
+    @param instance: a models.Model instance with STATES/TRANSITIONS/ACTIONS defined
+    @param status: a new STATE to transition to. 
+    """
+    if status == instance.status:
+        return
+    if status not in instance.TRANSITIONS[instance.status]:
+        raise ValueError("Invalid transition on '%s.%s':  '%s' -> '%s'" % (instance.__class__, instance.pk, instance.STATES[instance.status], instance.STATES[status]))
+    #logging.info("Changing status of '%s.%s': '%s' -> '%s'" % (instance.__class__, instance.pk, instance.STATES[instance.status], instance.STATES[status]))
+    instance.status = status
+
+class LimsBaseClass(models.Model):
+    # STATES/TRANSITIONS/ACTIONS define a finite state machine (FSM) for the Shipment (and other 
+    # models.Model instances also defined in this file).
+    #
+    # STATES: an Enum specifying all of the valid states for instances of Shipment.
+    #
+    # TRANSITIONS: a dict specifying valid state transitions. the keys are starting STATES and the 
+    #     values are lists of valid final STATES. 
+    #
+    # ACTIONS: a dict of valid actions (messages) for the FSM. the keys are actions/messages and 
+    #    the values are dicts describing what code should be executed as a result of the action/message.
+    #    this dictionary has the following possible keys : values 
+    #        'status' : the final state of the object
+    #        'date_*' : function returning a datetime object
+    #        'methods' : a list of method names to execute in order after the status has been changed
+    STATES =   Enum(
+            'Draft', 
+            'Sent', 
+            'On-site',
+            'Loaded', 
+            'Returned',
+            'Active',
+            'Processing',
+            'Complete',
+            'Reviewed', 
+            'Archived',
+        )
+    TRANSITIONS = {
+        STATES.DRAFT: [STATES.SENT],
+        STATES.SENT: [STATES.ON_SITE],
+        STATES.ON_SITE: [STATES.RETURNED],
+        STATES.LOADED: [STATES.ON_SITE],
+        STATES.RETURNED: [STATES.ARCHIVED],
+        STATES.ACTIVE: [STATES.PROCESSING],
+        STATES.PROCESSING: [STATES.COMPLETE],
+        STATES.COMPLETE: [STATES.PROCESSING, STATES.REVIEWED],
+        STATES.REVIEWED: [STATES.ARCHIVED],
+    }
+    ACTIONS = {
+        'send': { 'status': STATES.SENT },
+        'receive': { 'status': STATES.ON_SITE },
+        'load': { 'status': STATES.LOADED },
+        'unload': { 'status': STATES.ON_SITE },
+        'return': { 'status': STATES.RETURNED  },
+        'archive': { 'status': STATES.ARCHIVED},
+    }
+    project = models.ForeignKey(Project)
+    name = models.CharField(max_length=60)
+    content_type = models.ForeignKey(ContentType,editable=False,null=True)
+    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
+    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
+
+    FIELD_TO_ENUM = {
+        'status': STATES,
+    }
+
+    class Meta:
+        abstract = True
+
+    def __unicode__(self):
+        return self.name
+
+    def is_editable(self):
+        return self.status == self.STATES.DRAFT 
+    
+    def is_deletable(self):
+        return self.status == self.STATES.DRAFT 
+    
+    def is_closable(self):
+        return self.status == self.STATES.RETURNED 
+
+class ObjectBaseClass(LimsBaseClass):
+    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.SENT, LimsBaseClass.STATES.ON_SITE, LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.ARCHIVED])
+    status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
+    class Meta:
+        abstract = True
+
+class LoadableBaseClass(LimsBaseClass):
+    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.SENT, LimsBaseClass.STATES.ON_SITE, LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.ARCHIVED])
+    status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)    
+    class Meta:
+        abstract = True
+
+class AbstractBaseClass(LimsBaseClass):
+    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.PROCESSING, LimsBaseClass.STATES.COMPLETE, LimsBaseClass.STATES.REVIEWED])
+    status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
+    class Meta:
+        abstract = True
+
+class Shipment(ObjectBaseClass):
+    ALLOWED_STATES = [LimsBaseClass.STATES.SENT]
+    ACTIONS = copy.deepcopy(LimsBaseClass.ACTIONS)
+    ACTIONS['send'] = { 'status': LimsBaseClass.STATES.SENT, 'date_shipped': datetime.datetime.now, 'assertions': ['is_sendable'], 'methods': ['setup_default_experiment'] }
+    ACTIONS['return'] = { 'status': LimsBaseClass.STATES.RETURNED, 'date_returned': datetime.datetime.now, 'assertions': ['is_returnable'] }
+
+    HELP = {
+        'name': "This should be an externally visible label",
+        'comments': "Use this field to jot notes related to this shipment for your own use",
+    }
+    comments = models.TextField(blank=True, null=True, max_length=200)
+    staff_comments = models.TextField(blank=True, null=True)
+    tracking_code = models.CharField(blank=True, null=True, max_length=60)
+    return_code = models.CharField(blank=True, null=True, max_length=60)
+    date_shipped = models.DateTimeField(null=True, blank=True)
+    date_received = models.DateTimeField(null=True, blank=True)
+    date_returned = models.DateTimeField(null=True, blank=True)
+    carrier = models.ForeignKey(Carrier, null=True, blank=True)
+   
+    def identity(self):
+        return 'SH%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
+    
+    def barcode(self):
+        return self.tracking_code or self.name
+
+    def get_children(self):
+        return self.dewar_set.all()
+
+    def num_dewars(self):
+        return self.dewar_set.count()
+    
+    def is_sendable(self):
+        return self.status == self.STATES.DRAFT and not self.shipping_errors()
+    
+    def is_pdfable(self):
+        return self.is_sendable() or self.status >= self.STATES.SENT
+    
+    def is_xlsable(self):
+        # removed is_sendable check. orphan crystals don't get the default created experiment until sent. 
+        return self.status >= self.STATES.SENT
+    
+    def is_returnable(self):
+        return self.status == self.STATES.ON_SITE 
+
+    def has_labels(self):
+        return self.status <= self.STATES.SENT and self.num_dewars()  
+
+    def is_processed():
+        # if all experiments in shipment are complete, then it is a processed shipment. 
+        experiment_list = Experiment.objects.filter(shipment__get_container_list=self)
+        for dewar in self.dewar_set.all():
+            for container in dewar.container_set.all():
+                for experiment in container.get_experiment_list():
+                    if experiment not in experiment_list:
+                        experiment_list.append(experiment)
+        for experiment in experiment_list:
+            if experiment.is_reviewable():
+                return False
+        return True
+ 
+
+    def label_hash(self):
+        # use dates of project, shipment, and each shipment within dewar to determine
+        # when contents were last changed
+        txt = str(self.project) + str(self.project.modified) + str(self.modified)
+        for dewar in self.dewar_set.all():
+            txt += str(dewar.modified)
+        h = hashlib.new('ripemd160') # no successful collisoin attacks yet
+        h.update(txt)
+        return h.hexdigest()
+    
+    def shipping_errors(self):
+        """ Returns a list of descriptive string error messages indicating the Shipment is not
+            in a 'shippable' state
+        """
+        errors = []
+        if self.num_dewars() == 0:
+            errors.append("no Dewars")
+        for dewar in self.dewar_set.all():
+            if dewar.num_containers() == 0:
+                errors.append("empty Dewar (%s)" % dewar.name)
+            for container in dewar.container_set.all():
+                if container.num_crystals() == 0:
+                    errors.append("empty Container (%s)" % container.name)
+        return errors
+    
+    def setup_default_experiment(self, data=None):
+        """ If there are unassociated Crystals in the project, creates a default Experiment and associates the
+            crystals
+        """
+        #unassociated_crystals = []
+        unassociated_crystals = self.project.crystal_set.filter(experiment__isnull=True)
+        print unassociated_crystals
+        if unassociated_crystals:
+            exp_name = '%s auto' % dateformat.format(datetime.datetime.now(), 'M jS P')
+            experiment = Experiment(project=self.project, name=exp_name)
+            experiment.save()
+            for unassociated_crystal in unassociated_crystals:
+                unassociated_crystal.experiment = experiment
+                unassociated_crystal.save()
+        
+class Dewar(ObjectBaseClass):
+    ACTIONS = copy.deepcopy(LimsBaseClass.ACTIONS)
+    ACTIONS['receive'] = {'status': LimsBaseClass.STATES.ON_SITE, 'methods' : ['receive_parent_shipment',] }
+    HELP = {
+        'name': "An externally visible label on the dewar. If there is a barcode on the dewar, please scan it here",
+        'comments': "Use this field to jot notes related to this shipment for your own use",
+    }
+    comments = models.TextField(blank=True, null=True, help_text=HELP['comments'])
+    staff_comments = models.TextField(blank=True, null=True)
+    storage_location = models.CharField(max_length=60, null=True, blank=True)
+    shipment = models.ForeignKey(Shipment, blank=True, null=True)
+
+    def identity(self):
+        return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
+
+    def barcode(self):
+        return "CLS%04d-%04d" % (self.id, self.shipment.id)
+
+    def get_children(self):
+        return self.container_set.all()
+
+    def num_containers(self):
+        return self.container_set.count()   
+
+    def is_assigned(self):
+        return self.shipment is not None
+    
+    def is_receivable(self):
+        return self.status == self.STATES.SENT 
+    
+    def receive_parent_shipment(self, data=None):
+        """ Updates the status of the parent Shipment to 'On-Site' if all the Dewars are 'On-Site'
+        """
+        all_dewars_received = True
+        for dewar in self.shipment.dewar_set.all():
+            all_dewars_received = all_dewars_received and dewar.status == Dewar.STATES.ON_SITE
+        if all_dewars_received:
+            self.shipment.status = Shipment.STATES.ON_SITE
+            self.shipment.save()
+
+class Container(LoadableBaseClass):
+    TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
+    TRANSITIONS[LimsBaseClass.STATES.ON_SITE] = [LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.LOADED]
+
+    TYPE = Enum(
+        'Cassette', 
+        'Uni-Puck', 
+        'Cane', 
+    )
+    HELP = {
+        'name': "This should be an externally visible label on the container",
+        'code': "If there is a barcode on the container, please scan the value here",
+        'capacity': "The maximum number of samples this container can hold",
+    }
+    code = models.SlugField(null=True, blank=True)
+    kind = models.IntegerField('type', max_length=1, choices=TYPE.get_choices() )
+    dewar = models.ForeignKey(Dewar, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
+    priority = models.IntegerField(default=0)
+    staff_priority = models.IntegerField(default=0)
+    
+    FIELD_TO_ENUM = {
+        'status': LimsBaseClass.STATES,
+        'kind': TYPE,
+    }
+
+    def identity(self):
+        return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
+    
+    def barcode(self):
+        return self.code or self.name
+
+    def get_children(self):
+        return self.crystal_set.all()
+
+    def num_crystals(self):
+        return self.crystal_set.count()
+    
+    def is_assigned(self):
+        return self.dewar is not None
+
+    def capacity(self):
+        _cap = {
+            self.TYPE.CASSETTE : 96,
+            self.TYPE.UNI_PUCK : 16,
+            self.TYPE.CANE : 6,
+            None : 0,
+        }
+        return _cap[self.kind]
+
+    def get_form_field(self):
+        return 'container'
+
+    def experiments(self):
+        experiments = set([])
+        for crystal in self.crystal_set.all():
+            for experiment in crystal.experiment_set.all():
+                experiments.add('%s-%s' % (experiment.project.name, experiment.name))
+        return ', '.join(experiments)
+    
+    def get_experiment_list(self):
+        experiments = list()
+        for crystal in self.crystal_set.all():
+            if crystal.experiment not in experiments:
+                experiments.append(crystal.experiment)
+        return experiments
+    
+    def contains_experiment(self, experiment):
+        """
+        Checks if the specified experiment is in the container.
+        """
+        for crystal in self.crystal_set.all():
+            for crys_experiment in crystal.experiment_set.all():
+                if crys_experiment == experiment:
+                    return true
+        return false
+    
+    def contains_experiments(self, experiment_list):
+        for experiment in experiment_list:
+            if self.contains_experiment(experiment):
+                return true
+        return false
+    
+    def update_priority(self):
+        """ Updates the Container's priority/staff_priority to max(Experiment priorities)
+        """
+        for field in ['priority', 'staff_priority']:
+            priority = None
+            for crystal in self.crystal_set.all():
+                if crystal.experiment:
+                    if priority is None:
+                        priority = getattr(crystal.experiment, field)
+                    else:
+                        priority = max(priority, getattr(crystal.experiment, field))
+            if priority is not None:
+                setattr(self, field, priority)
+    
+    def get_location_choices(self):
+        vp = self.valid_locations()
+        return tuple([(a,a) for a in vp])
+            
+    def valid_locations(self):
+        if self.kind == self.TYPE.CASSETTE:
+            all_positions = []
+            for x in range(self.capacity()//12):
+                num = str(1+x%8)
+                position = ["ABCDEFGHIJKL"[y]+str(x+1) for y in range(self.capacity()//8) ]
+                for item in position:
+                    all_positions.append(item)
+        else:
+            all_positions = [ str(x+1) for x in range(self.capacity()) ]
+        return all_positions
+    
+    def location_is_valid(self, loc):
+        return loc in self.valid_locations()
+    
+    def location_is_available(self, loc, id=None):
+        occupied_positions = [xtl.container_location for xtl in self.crystal_set.all().exclude(pk=id) ]
+        return loc not in occupied_positions
+    
+    def location_and_crystal(self):
+        retval = []
+        xtalset = self.crystal_set.all()
+        for location in self.valid_locations():
+            xtl = None
+            for crystal in xtalset:
+                if crystal.container_location == location:
+                    xtl = crystal
+            retval.append((location, xtl))
+        return retval
+        
+    def json_dict(self):
+        return {
+            'project_id': self.project.pk,
+            'id': self.pk,
+            'name': self.name,
+            'type': Container.TYPE[self.kind],
+            'load_position': '',
+            'comments': self.comments,
+            'crystals': [crystal.pk for crystal in self.crystal_set.all()]
+        }
+
+class SpaceGroup(models.Model):
+    CS_CHOICES = (
+        ('a','triclinic'),
+        ('m','monoclinic'),
+        ('o','orthorombic'),
+        ('t','tetragonal'),
+        ('h','hexagonal'),
+        ('c','cubic'),
+    )
+    
+    LT_CHOICES = (
+        ('P','primitive'),
+        ('C','side-centered'),
+        ('I','body-centered'),
+        ('F','face-centered'),
+        ('R','rhombohedral'),       
+    )
+    
+    name = models.CharField(max_length=20)
+    crystal_system = models.CharField(max_length=1, choices=CS_CHOICES)
+    lattice_type = models.CharField(max_length=1, choices=LT_CHOICES)
+    
+    def __unicode__(self):
+        return self.name
 
 class Cocktail(models.Model):
     SOURCES = Enum(
@@ -240,536 +705,6 @@ class Cocktail(models.Model):
     class Meta:
         verbose_name = "Protein Cocktail"
         verbose_name_plural = 'Protein Cocktails'
-        
-        
-
-    
-def perform_action(instance, action, data=None):
-    """ Performs an action (send a message to FSM) on an object. See Shipment for a description
-        of how the FSM datastructure is setup.
-            
-        @param instance: a models.Model instance with STATES/TRANSITIONS/ACTIONS defined
-        @param status: a new STATE to transition to. 
-        @param data: a dict of additional data possibly required by the methods in the ACTIONS dictionary 
-    """
-    # check the assertions
-    for field, value in instance.ACTIONS[action].items():
-        if field == 'assertions':
-            for assertion in value:
-                if not getattr(instance, assertion)():
-                    raise ValueError('Unsatisfied assertion: %s' % assertion)
-    
-    # set the status appropriately
-    for field, value in instance.ACTIONS[action].items():
-        if field == 'assertions':
-            continue # dealt with these already
-        if field == 'methods':
-            continue # deal with these later
-        if callable(value):
-            value = value()
-        if field == 'status':
-            change_status(instance, value)
-        else:
-            setattr(instance, field, value)
-    instance.save()
-
-    # perform the action on the children
-    if hasattr(instance, 'get_children'):
-        for child in instance.get_children():
-            if child.ACTIONS.has_key(action):
-                perform_action(child, action, data=data)
-        
-    # call the post methods
-    for field, value in instance.ACTIONS[action].items():
-        if field != 'methods':
-            continue # dealt with these already
-        for method in value:
-            if data:
-                getattr(instance, method)(data=data)
-            else:
-                getattr(instance, method)()
-            instance.save()
-            
-def change_status(instance, status):
-    """ Changes the state of the instance's FSM to status
-    
-    @param instance: a models.Model instance with STATES/TRANSITIONS/ACTIONS defined
-    @param status: a new STATE to transition to. 
-    """
-    if status == instance.status:
-        return
-    if status not in instance.TRANSITIONS[instance.status]:
-        raise ValueError("Invalid transition on '%s.%s':  '%s' -> '%s'" % (instance.__class__, instance.pk, instance.STATES[instance.status], instance.STATES[status]))
-    #logging.info("Changing status of '%s.%s': '%s' -> '%s'" % (instance.__class__, instance.pk, instance.STATES[instance.status], instance.STATES[status]))
-    instance.status = status
-    
-class Shipment(models.Model):
-    #
-    # STATES/TRANSITIONS/ACTIONS define a finite state machine (FSM) for the Shipment (and other 
-    # models.Model instances also defined in this file).
-    #
-    # STATES: an Enum specifying all of the valid states for instances of Shipment.
-    #
-    # TRANSITIONS: a dict specifying valid state transitions. the keys are starting STATES and the 
-    #     values are lists of valid final STATES. 
-    #
-    # ACTIONS: a dict of valid actions (messages) for the FSM. the keys are actions/messages and 
-    #    the values are dicts describing what code should be executed as a result of the action/message.
-    #    this dictionary has the following possible keys : values 
-    #        'status' : the final state of the object
-    #        'date_*' : function returning a datetime object
-    #        'methods' : a list of method names to execute in order after the status has been changed
-    #
-    STATES = Enum(
-        'Draft', 
-        'Sent', 
-        'On-site', 
-        'Returned', 
-        'Archived',
-    )
-    TRANSITIONS = {
-        STATES.DRAFT: [STATES.SENT],
-        STATES.SENT: [STATES.ON_SITE],
-        STATES.ON_SITE: [STATES.RETURNED],
-        STATES.RETURNED: [STATES.ARCHIVED],
-    }
-    ACTIONS = {
-        'send': { 'status': STATES.SENT, 'date_shipped': datetime.datetime.now, 'assertions': ['is_sendable'], 'methods': ['setup_default_experiment'] },
-        'receive': { 'status': STATES.ON_SITE, 'date_received': datetime.datetime.now, 'assertions': ['is_receivable'] },
-        'return': { 'status': STATES.RETURNED, 'date_returned': datetime.datetime.now, 'assertions': ['is_returnable'] },
-        'archive': { 'status': STATES.ARCHIVED},
-    }
-    HELP = {
-        'label': "This should be an externally visible label",
-        'code': "Barcode",
-        'comments': "Use this field to jot notes related to this shipment for your own use",
-    }
-    project = models.ForeignKey(Project)
-    label = models.CharField(max_length=60)
-    comments = models.TextField(blank=True, null=True, max_length=200)
-    staff_comments = models.TextField(blank=True, null=True)
-    tracking_code = models.CharField(blank=True, null=True, max_length=60)
-    return_code = models.CharField(blank=True, null=True, max_length=60)
-    date_shipped = models.DateTimeField(null=True, blank=True)
-    date_received = models.DateTimeField(null=True, blank=True)
-    date_returned = models.DateTimeField(null=True, blank=True)
-    status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.DRAFT)
-    carrier = models.ForeignKey(Carrier, null=True, blank=True)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-    
-    FIELD_TO_ENUM = {
-        'status': STATES,
-    }
-    
-#    def accept(self):
-#        return "dewar"
-    
-    def num_dewars(self):
-        return self.dewar_set.count()
-    
-    def label_hash(self):
-        # use dates of project, shipment, and each shipment within dewar to determine
-        # when contents were last changed
-        txt = str(self.project) + str(self.project.modified) + str(self.modified)
-        for dewar in self.dewar_set.all():
-            txt += str(dewar.modified)
-        h = hashlib.new('ripemd160') # no successful collisoin attacks yet
-        h.update(txt)
-        return h.hexdigest()
-    
-    
-    def is_empty(self):
-        return self.dewar_set.count() == 0
-    
-    def __unicode__(self):
-        return self.label
-    
-    def _name(self):
-        return self.label
-    
-    name = property(_name)
-
-    def identity(self):
-        return 'SH%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-    
-    def shipping_errors(self):
-        """ Returns a list of descriptive string error messages indicating the Shipment is not
-            in a 'shippable' state
-        """
-        errors = []
-        if self.num_dewars() == 0:
-            errors.append("no Dewars")
-        for dewar in self.dewar_set.all():
-            if dewar.is_empty():
-                errors.append("empty Dewar (%s)" % dewar.label)
-            for container in dewar.container_set.all():
-                if container.num_crystals() == 0:
-                    errors.append("empty Container (%s)" % container.label)
-        # these are the orphaned crystals
-#        for crystal in self.project.crystal_set.all():
-#            if not crystal.is_assigned():
-#                errors.append("Crystal (%s) not in Container" % crystal.name)
-        return errors
-    
-    def setup_default_experiment(self, data=None):
-        """ If there are unassociated Crystals in the project, creates a default Experiment and associates the
-            crystals
-        """
-        unassociated_crystals = []
-        for crystal in self.project.crystal_set.all():
-            if crystal.num_experiments() == 0:
-                unassociated_crystals.append(crystal)
-        if unassociated_crystals:
-            exp_name = '%s auto' % dateformat.format(datetime.datetime.now(), 'M jS P')
-            experiment = Experiment(project=self.project, name=exp_name)
-            experiment.save()
-            for unassociated_crystal in unassociated_crystals:
-                unassociated_crystal.experiment = experiment
-                unassociated_crystal.save()
-#            experiment.save()
-  
-    def is_processed():
-        # if all experiments in shipment are complete, then it is a processed shipment. 
-        experiment_list = Experiment.objects.filter(shipment__get_container_list=self)
-        for dewar in self.dewar_set.all():
-            for container in dewar.container_set.all():
-                for experiment in container.get_experiment_list():
-                    if experiment not in experiment_list:
-                        experiment_list.append(experiment)
-        for experiment in experiment_list:
-            if experiment.is_reviewable():
-                return False
-        return True
- 
-    def barcode(self):
-        return self.tracking_code or self.label
-    
-    def get_children(self):
-        return self.dewar_set.all()
-    
-    def is_editable(self):
-        return self.status == self.STATES.DRAFT 
-    
-    def is_deletable(self):
-        return self.status == self.STATES.DRAFT 
-    
-    def is_sendable(self):
-        return self.status == self.STATES.DRAFT and not self.shipping_errors()
-    
-    def is_pdfable(self):
-        return self.is_sendable() or self.status >= self.STATES.SENT
-
-    def has_labels(self):
-        return self.status <= self.STATES.SENT and self.num_dewars()
-    
-    def is_xlsable(self):
-        # removed is_sendable check. orphan crystals don't get the default created experiment until sent. 
-        return self.status >= self.STATES.SENT
-    
-    def is_closable(self):
-        return self.status == self.STATES.RETURNED 
-    
-    def is_returnable(self):
-        return self.status == self.STATES.ON_SITE 
-        
-class Dewar(models.Model):
-    STATES = Enum(
-        'Draft', 
-        'Sent', 
-        'On-site', 
-        'Returned', 
-        'Archived',
-    )
-    TRANSITIONS = {
-        STATES.DRAFT: [STATES.SENT],
-        STATES.SENT: [STATES.ON_SITE],
-        STATES.ON_SITE: [STATES.RETURNED],
-        STATES.RETURNED: [STATES.ARCHIVED],
-    }
-    ACTIONS = {
-        'send': { 'status': STATES.SENT },
-        'receive': { 'status': STATES.ON_SITE, 'methods' : ['receive_parent_shipment',] },
-        'return': { 'status': STATES.RETURNED  },
-        'archive': { 'status': STATES.ARCHIVED},
-    }
-    HELP = {
-        'label': "An externally visible label on the dewar. If there is a barcode on the dewar, please scan it here",
-        'comments': "Use this field to jot notes related to this shipment for your own use",
-    }
-    project = models.ForeignKey(Project)
-    label = models.CharField(max_length=60, help_text=HELP['label'])
-    #code = models.CharField(max_length=128, blank=True, help_text=HELP['code'])
-    comments = models.TextField(blank=True, null=True, help_text=HELP['comments'])
-    staff_comments = models.TextField(blank=True, null=True)
-    storage_location = models.CharField(max_length=60, null=True, blank=True)
-    shipment = models.ForeignKey(Shipment, blank=True, null=True)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-    status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.DRAFT)
-    
-    FIELD_TO_ENUM = {
-        'status': STATES,
-    }
-    
-    def is_assigned(self):
-        return self.shipment is not None
-
-    def is_empty(self):
-        return self.container_set.count() == 0
-    
-    def num_containers(self):
-        return self.container_set.count()    
-
-    def __unicode__(self):
-        return self.label
-    
-    def _name(self):
-        return self.label
-    
-    name = property(_name)
-
-    def identity(self):
-        return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-    
-    def barcode(self):
-        return "CLS%04d-%04d" % (self.id, self.shipment.id)
-    
-    def get_children(self):
-        return self.container_set.all()
-    
-        
-    def receive_parent_shipment(self, data=None):
-        """ Updates the status of the parent Shipment to 'On-Site' if all the Dewars are 'On-Site'
-        """
-        all_dewars_received = True
-        for dewar in self.shipment.dewar_set.all():
-            all_dewars_received = all_dewars_received and dewar.status == Dewar.STATES.ON_SITE
-        if all_dewars_received:
-            self.shipment.status = Shipment.STATES.ON_SITE
-            self.shipment.save()
-            
-    def is_editable(self):
-        return self.status == self.STATES.DRAFT
-
-    def is_deletable(self):
-        return self.status == self.STATES.DRAFT 
-
-    def is_receivable(self):
-        return self.status == self.STATES.SENT 
-
-class Container(models.Model):
-    STATES = Enum(
-        'Draft', 
-        'Sent', 
-        'On-site', 
-        'Loaded',
-        'Returned', 
-        'Archived',
-    )
-    TRANSITIONS = {
-        STATES.DRAFT: [STATES.SENT],
-        STATES.SENT: [STATES.ON_SITE],
-        STATES.ON_SITE: [STATES.RETURNED, STATES.LOADED],
-        STATES.LOADED: [STATES.ON_SITE],
-        STATES.RETURNED: [STATES.ARCHIVED],
-    }
-    ACTIONS = {
-        'send': { 'status': STATES.SENT },
-        'receive': { 'status': STATES.ON_SITE },
-        'load': { 'status': STATES.LOADED },
-        'unload': { 'status': STATES.ON_SITE },
-        'return': { 'status': STATES.RETURNED },
-        'archive': { 'status': STATES.ARCHIVED },
-    }
-    TYPE = Enum(
-        'Cassette', 
-        'Uni-Puck', 
-        'Cane', 
-    )
-    HELP = {
-        'label': "This should be an externally visible label on the container",
-        'code': "If there is a barcode on the container, please scan the value here",
-        'capacity': "The maximum number of samples this container can hold",
-    }
-    project = models.ForeignKey(Project)
-    label = models.CharField(max_length=60)
-    code = models.SlugField(null=True, blank=True)
-    kind = models.IntegerField('type', max_length=1, choices=TYPE.get_choices() )
-    dewar = models.ForeignKey(Dewar, blank=True, null=True)
-    comments = models.TextField(blank=True, null=True)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-    status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.DRAFT)
-    priority = models.IntegerField(default=0)
-    staff_priority = models.IntegerField(default=0)
-    
-    FIELD_TO_ENUM = {
-        'status': STATES,
-        'kind': TYPE,
-    }
-
-    def experiments(self):
-        experiments = set([])
-        for crystal in self.crystal_set.all():
-            for experiment in crystal.experiment_set.all():
-                experiments.add('%s-%s' % (experiment.project.name, experiment.name))
-        return ', '.join(experiments)
-    
-    def get_experiment_list(self):
-        experiments = list()
-        for crystal in self.crystal_set.all():
-            if crystal.experiment not in experiments:
-                experiments.append(crystal.experiment)
-        return experiments
-    
-    def contains_experiment(self, experiment):
-        """
-        Checks if the specified experiment is in the container.
-        """
-        for crystal in self.crystal_set.all():
-            for crys_experiment in crystal.experiment_set.all():
-                if crys_experiment == experiment:
-                    return true
-        return false
-    
-    def contains_experiments(self, experiment_list):
-        for experiment in experiment_list:
-            if self.contains_experiment(experiment):
-                return true
-        return false
-    
-    def update_priority(self):
-        """ Updates the Container's priority/staff_priority to max(Experiment priorities)
-        """
-        for field in ['priority', 'staff_priority']:
-            priority = None
-            for crystal in self.crystal_set.all():
-                if crystal.experiment:
-                    if priority is None:
-                        priority = getattr(crystal.experiment, field)
-                    else:
-                        priority = max(priority, getattr(crystal.experiment, field))
-            if priority is not None:
-                setattr(self, field, priority)
-    
-    def num_crystals(self):
-        return self.crystal_set.count()
-    
-
-    def capacity(self):
-        _cap = {
-            self.TYPE.CASSETTE : 96,
-            self.TYPE.UNI_PUCK : 16,
-            self.TYPE.CANE : 6,
-            None : 0,
-        }
-        return _cap[self.kind]
-        
-    def is_assigned(self):
-        return self.dewar is not None
-    
-    def get_location_choices(self):
-        vp = self.valid_locations()
-        return tuple([(a,a) for a in vp])
-            
-    def valid_locations(self):
-        if self.kind == self.TYPE.CASSETTE:
-            all_positions = []
-            for x in range(self.capacity()//12):
-                num = str(1+x%8)
-                position = ["ABCDEFGHIJKL"[y]+str(x+1) for y in range(self.capacity()//8) ]
-                for item in position:
-                    all_positions.append(item)
-        else:
-            all_positions = [ str(x+1) for x in range(self.capacity()) ]
-        return all_positions
-    
-    def location_is_valid(self, loc):
-        return loc in self.valid_locations()
-    
-    def location_is_available(self, loc, id=None):
-        occupied_positions = [xtl.container_location for xtl in self.crystal_set.all().exclude(pk=id) ]
-        return loc not in occupied_positions
-    
-    def location_and_crystal(self):
-        retval = []
-        xtalset = self.crystal_set.all()
-        for location in self.valid_locations():
-            xtl = None
-            for crystal in xtalset:
-                if crystal.container_location == location:
-                    xtl = crystal
-            retval.append((location, xtl))
-        return retval
-        
-    def __unicode__(self):
-        return self.label
-
-    def identity(self):
-        return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-    
-    def barcode(self):
-        return self.code or self.label
-    
-    def get_children(self):
-        return self.crystal_set.all()
-    
-    def is_editable(self):
-        return self.status == self.STATES.DRAFT 
-
-    def is_closable(self):
-        return self.status == self.STATES.RETURNED 
-
-    def is_deletable(self):
-        return self.status == self.STATES.DRAFT 
-    
-    def get_form_field(self):
-        return 'container'
-    
-    def _name(self):
-        return self.label
-    
-    name = property(_name)
-        
-    def json_dict(self):
-        return {
-            'project_id': self.project.pk,
-            'id': self.pk,
-            'name': self.label,
-            'type': Container.TYPE[self.kind],
-            'load_position': '',
-            'comments': self.comments,
-            'crystals': [crystal.pk for crystal in self.crystal_set.all()]
-        }
-
-class SpaceGroup(models.Model):
-    CS_CHOICES = (
-        ('a','triclinic'),
-        ('m','monoclinic'),
-        ('o','orthorombic'),
-        ('t','tetragonal'),
-        ('h','hexagonal'),
-        ('c','cubic'),
-    )
-    
-    LT_CHOICES = (
-        ('P','primitive'),
-        ('C','side-centered'),
-        ('I','body-centered'),
-        ('F','face-centered'),
-        ('R','rhombohedral'),       
-    )
-    
-    name = models.CharField(max_length=20)
-    crystal_system = models.CharField(max_length=1, choices=CS_CHOICES)
-    lattice_type = models.CharField(max_length=1, choices=LT_CHOICES)
-    
-    def __unicode__(self):
-        return self.name
     
 class CrystalForm(models.Model):
     project = models.ForeignKey(Project)
@@ -797,7 +732,7 @@ class CrystalForm(models.Model):
     is_editable = True
     is_deletable = True
 
-class Experiment(models.Model):
+class Experiment(AbstractBaseClass):
     EXP_TYPES = Enum(
         'Native',   
         'MAD',
@@ -810,36 +745,19 @@ class Experiment(models.Model):
         'Screen and collect',
         'Just collect',
     )
-    STATES = Enum(
-        'Draft', 
-        'Active',
-        'Processing', 
-        'Paused', 
-        'Archived',
-    )  
     EXP_STATES = Enum(
         'Incomplete',
         'Complete',
         'Reviewed',
     )
-    
-    TRANSITIONS = {
-        STATES.DRAFT: [STATES.ACTIVE],
-        STATES.ACTIVE: [STATES.PROCESSING],
-        STATES.PROCESSING: [STATES.PAUSED],
-        STATES.PAUSED: [STATES.ARCHIVED],
-        EXP_STATES.INCOMPLETE: [EXP_STATES.COMPLETE],
-        EXP_STATES.COMPLETE: [EXP_STATES.REVIEWED, EXP_STATES.INCOMPLETE],
-        
-    }
-
+    TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
+    TRANSITIONS[LimsBaseClass.STATES.DRAFT] = [LimsBaseClass.STATES.ACTIVE]
+    TRANSITIONS[EXP_STATES.INCOMPLETE] = [EXP_STATES.COMPLETE]   
+    TRANSITIONS[EXP_STATES.COMPLETE] = [EXP_STATES.REVIEWED, EXP_STATES.INCOMPLETE]
     ACTIONS = {
-        'resubmit': { 'status': STATES.ACTIVE, 'methods': ['set_strategy_status_resubmitted',] },
+        'resubmit': { 'status': LimsBaseClass.STATES.ACTIVE, 'methods': ['set_strategy_status_resubmitted',] },
         'review': { 'exp_status': EXP_STATES.REVIEWED, 'methods': ['set']},
-        'archive': { 'status': STATES.ARCHIVED }
     }
-    project = models.ForeignKey(Project)
-    name = models.CharField(max_length=60)
     resolution = models.FloatField('Desired Resolution', null=True, blank=True)
     delta_angle = models.FloatField(null=True, blank=True)
     i_sigma = models.FloatField('Desired I/Sigma', null=True, blank=True)
@@ -851,15 +769,12 @@ class Experiment(models.Model):
     absorption_edge = models.CharField(max_length=5, null=True, blank=True)
     plan = models.IntegerField(max_length=1, choices=EXP_PLANS.get_choices(), default=EXP_PLANS.SCREEN_AND_CONFIRM)
     comments = models.TextField(blank=True, null=True)
-    status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.DRAFT)
     exp_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.INCOMPLETE)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
     
     FIELD_TO_ENUM = {
-        'status': STATES,
+        'status': LimsBaseClass.STATES,
         'kind': EXP_TYPES,
         'plan': EXP_PLANS,
     }
@@ -867,31 +782,22 @@ class Experiment(models.Model):
     class Meta:
         verbose_name = 'experiment request'
     
+    def identity(self):
+        return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))    
+    identity.admin_order_field = 'pk'
+
     def accept(self):
         return "crystal"
+
+    def get_children(self):
+        return []
     
     def num_crystals(self):
         return self.crystal_set.count()
         
-    def __unicode__(self):
-        return self.name
-
-    def identity(self):
-        return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))    
-    identity.admin_order_field = 'pk'
-    
-    def is_editable(self):
-        return self.status == self.STATES.DRAFT
-    
-    def is_deletable(self):
-        return self.status == self.STATES.DRAFT
-    
     def get_form_field(self):
         return 'experiment'
 
-    def get_children(self):
-        return []
-        
     def set_strategy_status_resubmitted(self, data=None):
         strategy = data['strategy']
         perform_action(strategy, 'resubmit')
@@ -899,14 +805,12 @@ class Experiment(models.Model):
     def best_crystal(self):
         # need to change to [id, score]
         if self.plan == Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST:
-            results = Result.objects.filter(experiment=self, crystal__in=self.crystals.all()).order_by('-score')
+            results = self.project.result_set.filter(experiment=self, crystal__in=self.crystal_set.all()).order_by('-score')
             if results:
                 return [results[0].crystal.pk, results[0].score]
         
     def is_reviewable(self):
-        if self.exp_status == Experiment.EXP_STATES.REVIEWED:
-            return False
-        return True
+        return self.exp_status != Experiment.EXP_STATES.REVIEWED
 
     def is_complete(self):
         """
@@ -990,30 +894,12 @@ class Experiment(models.Model):
         }
         
      
-class Crystal(models.Model):
-    STATES = Enum(
-        'Draft', 
-        'Sent', 
-        'On-site', 
-        'Loaded',
-        'Returned', 
-        'Archived',
-    )
-    TRANSITIONS = {
-        STATES.DRAFT: [STATES.SENT],
-        STATES.SENT: [STATES.ON_SITE],
-        STATES.ON_SITE: [STATES.RETURNED, STATES.LOADED],
-        STATES.LOADED: [STATES.ON_SITE],
-        STATES.RETURNED: [STATES.ARCHIVED],
-    }
-    ACTIONS = {
-        'send': { 'status': STATES.SENT },
-        'receive': { 'status': STATES.ON_SITE, 'methods': ['activate_associated_experiments',] },
-        'load': { 'status': STATES.LOADED },
-        'unload': { 'status': STATES.ON_SITE },
-        'return': { 'status': STATES.RETURNED  },
-        'archive': { 'status': STATES.ARCHIVED },
-    }
+class Crystal(LoadableBaseClass):
+    TRANSITIONS = Container.TRANSITIONS
+    ACTIONS = copy.deepcopy(LimsBaseClass.ACTIONS)
+    ACTIONS['send'] = { 'status': LimsBaseClass.STATES.SENT, 'methods': ['activate_associated_experiments',] }
+    ACTIONS['archive'] = { 'status': LimsBaseClass.STATES.ARCHIVED, 'methods': ['archive_experiment',] }
+
     HELP = {
         'name': "Give the sample a name by which you can recognize it",
         'code': "If there is a datamatrix code on sample, please scan or input the value here",
@@ -1026,8 +912,6 @@ class Crystal(models.Model):
         'Pending',
         'Completed',
     )
-    project = models.ForeignKey(Project)
-    name = models.CharField(max_length=60)
     code = models.SlugField(null=True, blank=True)
     crystal_form = models.ForeignKey(CrystalForm, null=True, blank=True)
     pin_length = models.IntegerField(max_length=2, default=18)
@@ -1036,30 +920,30 @@ class Crystal(models.Model):
     container = models.ForeignKey(Container, null=True, blank=True)
     container_location = models.CharField(max_length=10, null=True, blank=True)
     comments = models.TextField(blank=True, null=True)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-    status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.DRAFT)
     collect_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.IGNORE)
     screen_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.IGNORE)
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
     experiment = models.ForeignKey(Experiment, null=True, blank=True)
     
-    FIELD_TO_ENUM = {
-        'status': STATES,
-    }
-    
     class Meta:
         unique_together = (
             ("project", "container", "container_location"),
         )
-        
-    def __unicode__(self):
-        return self.name
+
+    def identity(self):
+        return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
+    
+    def barcode(self):
+        return self.code or None
+
+    def get_children(self):
+        return []
 
     def best_screening(self):
         # need to change to [id, score]
-        results = Result.objects.filter(crystal=self, kind='0').order_by('-score')
+        results = self.project.result_set.filter(crystal=self, kind='0').order_by('-score')
         if results:
             return results[0]
         return None
@@ -1070,31 +954,15 @@ class Crystal(models.Model):
         if results:
             return results[0]
         return None                
-    
-    def num_experiments(self):
-        if self.experiment:
-            return 1
-        return 0
 
-    def identity(self):
-        return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-    
-    def barcode(self):
-        return self.code or None
-            
-    def get_children(self):
-        return []
+    def is_clonable(self):
+        return True
     
     def activate_associated_experiments(self, data=None):
         """ Updates the status of the associated Experiment to 'Active' if all the Crystals are 'On-Site'
         Also sets all crystals collect and screen status correctly.
         """
         assert self.experiment
-        all_crystals_received = True
-#        for crystal in self.experiment.crystal_set.all():
-#            all_crystals_received = all_crystals_received and crystal.status == Crystal.STATES.ON_SITE
-#        if all_crystals_received:
         self.experiment.status = Experiment.STATES.ACTIVE
         self.experiment.save()
         if self.experiment.plan == Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST:
@@ -1111,19 +979,13 @@ class Crystal(models.Model):
         if self.experiment.plan == Experiment.EXP_PLANS.SCREEN_AND_COLLECT:
             self.collect_status = Crystal.EXP_STATES.PENDING
         self.save()
-    
-    def is_editable(self):
-        return self.status == self.STATES.DRAFT 
-    
-    def is_clonable(self):
-        return True
-    
-    def is_deletable(self):
-        return self.status == self.STATES.DRAFT
-    
-    def is_closable(self):
-        return self.status == self.STATES.RETURNED 
 
+    def archive_experiment(self):
+        assert self.experiment
+        if self.experiment.crystal_set and self.experiment.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).count() == 0:
+            self.experiment.status = Experiment.STATES.ARCHIVED
+            self.experiment.save()
+    
     def json_dict(self):
         return {
             'project_id': self.project.pk,
@@ -1135,13 +997,18 @@ class Crystal(models.Model):
             'comments': self.comments
         }
         
-                    
 def Experiment_pre_delete(sender, **kwargs):
     # After deletion, the instance have all reference fields nulled, so
     # we need to store the original crystals for use in Experiment_post_delete
     experiment = kwargs['instance']
     experiment.saved_crystals = [crystal for crystal in experiment.crystal_set.all()]    
 pre_delete.connect(Experiment_pre_delete, sender=Experiment)
+
+def Crystal_post_delete(sender, **kwargs):
+    crystal = kwargs['instance']
+    if crystal.experiment.crystal_set.count() == 0:
+        crystal.experiment.delete()
+post_delete.connect(Crystal_post_delete, sender=Crystal)
     
 class Data(models.Model):
     DATA_TYPES = Enum(
@@ -1384,7 +1251,8 @@ class Feedback(models.Model):
     message = models.TextField(blank=False)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
 
-    is_editable = True
+    def is_editable(self):
+        return True
 
     def __unicode__(self):
         if len(self.message) > 23:

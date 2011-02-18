@@ -7,17 +7,17 @@ ACTIVITY_ITEMS_PER_PAGE = 6
 staff_site = admin.AdminSite()
 
 class ShipmentAdmin(VersionAdmin):
-    search_fields = ['label', 'comments','status']
+    search_fields = ['name', 'comments','status']
     list_filter = ['created','status']
-    list_display = ('identity','label', 'status', 'date_shipped', 'carrier', 'num_dewars')
+    list_display = ('identity','name', 'status', 'date_shipped', 'carrier', 'num_dewars')
     list_per_page = ITEMS_PER_PAGE    
     ordering = ['-created']
 admin.site.register(Shipment, ShipmentAdmin)
 
 class DewarAdmin(VersionAdmin):
-    search_fields = ['label', 'comments']
+    search_fields = ['name', 'comments']
     list_filter = ['modified']
-    list_display = ('identity', 'label', 'shipment', 'modified', 'num_containers')
+    list_display = ('identity', 'name', 'shipment', 'modified', 'num_containers')
     ordering = ['-created']    
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Dewar, DewarAdmin)
@@ -79,9 +79,9 @@ admin.site.register(SpaceGroup, SpaceGroupAdmin)
            
 class ContainerAdmin(VersionAdmin):
     ordering = ['-created']
-    search_fields = ['label','code']
+    search_fields = ['name','code']
     list_filter = ['modified','kind']
-    list_display = ('identity', 'label', 'kind', 'capacity', 'num_crystals', 'status')
+    list_display = ('identity', 'name', 'kind', 'capacity', 'num_crystals', 'status')
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Container, ContainerAdmin)
 

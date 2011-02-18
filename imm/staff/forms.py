@@ -26,7 +26,7 @@ class DewarForm(objforms.forms.OrderedForm):
     
 class DewarReceiveForm(objforms.forms.OrderedForm):
     """ Form used to receive a Dewar, based on the Dewar upc code """
-    label = forms.ModelChoiceField(
+    name = forms.ModelChoiceField(
         queryset=Dewar.objects.filter(status=Dewar.STATES.SENT),
         widget=objforms.widgets.LargeSelect,
         help_text='Please select the Dewar to receive.',
@@ -38,19 +38,19 @@ class DewarReceiveForm(objforms.forms.OrderedForm):
     
     class Meta:
         model = Dewar
-        fields = ('label', 'barcode', 'staff_comments', 'storage_location')
+        fields = ('name', 'barcode', 'staff_comments', 'storage_location')
         
     def __init__(self, *args, **kwargs):
         super(DewarReceiveForm, self).__init__(*args, **kwargs)
-        self.fields['label'].queryset = Dewar.objects.filter(label=self.initial.get('label', None)) or Dewar.objects.filter(status=Dewar.STATES.SENT)
+        self.fields['name'].queryset = Dewar.objects.filter(name=self.initial.get('name', None)) or Dewar.objects.filter(status=Dewar.STATES.SENT)
 
     def clean(self):
         cleaned_data = self.cleaned_data
         barcode = cleaned_data.get("barcode")
-        label = cleaned_data.get("label")
-        if label:
+        name = cleaned_data.get("name")
+        if name:
             try:
-                instance = self.Meta.model.objects.get(label__exact=label)
+                instance = self.Meta.model.objects.get(name__exact=name)
                 if instance.status != Dewar.STATES.SENT:
                     raise forms.ValidationError('Dewar already received.')
                 if instance.barcode() != barcode:

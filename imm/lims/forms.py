@@ -46,23 +46,23 @@ class ProjectForm(objforms.forms.OrderedForm):
        
 class ShipmentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    label = forms.CharField(
+    name = forms.CharField(
         widget=objforms.widgets.LargeInput,
-        help_text=Shipment.HELP['label']
+        help_text=Shipment.HELP['name']
         )
     comments = objforms.widgets.CommentField(required=False)
 
-    def clean_label(self):
+    def clean_name(self):
         try:
             if self.duplicate_entry:
                 raise forms.ValidationError(self.duplicate_entry)
-            return self.cleaned_data['label']
+            return self.cleaned_data['name']
         except AttributeError:
-            return self.cleaned_data['label']
+            return self.cleaned_data['name']
 
     class Meta:
         model = Shipment
-        fields = ('project','label','comments',)
+        fields = ('project','name','comments',)
         
 class ConfirmDeleteForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
@@ -159,7 +159,7 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
         shipment = self.instance
         if shipment:
             for crystal in shipment.project.crystal_set.filter(container__dewar__shipment__exact=shipment):
-                if crystal.num_experiments() == 0:
+                if not crystal.experiment:
                     return 'Crystal "%s" is not associated with any Experiments. Sending the Shipment will create a ' \
                            'default "Screen and confirm" Experiment and assign all unassociated Crystals. Close this window ' \
                            'to setup the Experiment manually.' % crystal.name
@@ -181,29 +181,29 @@ class DewarForm(objforms.forms.OrderedForm):
         widget=objforms.widgets.LargeSelect,
         required=False
         )
-    label =  objforms.widgets.BarCodeField(
-        help_text=Dewar.HELP['label']
+    name =  objforms.widgets.BarCodeField(
+        help_text=Dewar.HELP['name']
         )
     comments = objforms.widgets.CommentField(required=False)
 
-    def clean_label(self):
+    def clean_name(self):
         try:
             if self.duplicate_entry:
                 raise forms.ValidationError(self.duplicate_entry)
-            return self.cleaned_data['label']
+            return self.cleaned_data['name']
         except AttributeError:
-            return self.cleaned_data['label']
+            return self.cleaned_data['name']
 
     class Meta:
         model = Dewar
-        fields = ('project','label','shipment','comments',)
+        fields = ('project','name','shipment','comments',)
 
 class ContainerForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     dewar = forms.ModelChoiceField(queryset=Dewar.objects.all(), widget=objforms.widgets.LargeSelect, required=False)
-    label = forms.CharField(
+    name = forms.CharField(
         widget=objforms.widgets.LargeInput,
-        help_text=Container.HELP['label']
+        help_text=Container.HELP['name']
         )
     code = objforms.widgets.MatrixCodeField(required=False, help_text=Container.HELP['code'])
     kind = forms.ChoiceField(choices=Container.TYPE.get_choices(), widget=objforms.widgets.LargeSelect, initial=Container.TYPE.UNI_PUCK)
@@ -218,14 +218,14 @@ class ContainerForm(objforms.forms.OrderedForm):
                     raise forms.ValidationError('Cannot change kind of Container when Crystals are associated')
         return cleaned_data['kind']
     
-    def clean_label(self):
+    def clean_name(self):
         if self.duplicate_entry:
             raise forms.ValidationError(self.duplicate_entry)
-        return self.cleaned_data['label']
+        return self.cleaned_data['name']
 
     class Meta:
         model = Container
-        fields = ('project','label','code','kind','dewar','comments')
+        fields = ('project','name','code','kind','dewar','comments')
 
 class SampleForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
