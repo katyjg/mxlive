@@ -119,6 +119,7 @@ INSTALLED_APPS = (
     'imm.download',
     'jsonrpc',
     'reversion',
+    'apikey',
 )
 
 

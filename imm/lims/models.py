@@ -1396,7 +1396,7 @@ class Feedback(models.Model):
         verbose_name = 'Feedback comment'
 
 class ActivityLogManager(models.Manager):
-    def log_activity(self, request, obj, action_type, description='', user_description='System'):
+    def log_activity(self, request, obj, action_type, description=''):
         e = self.model()
         if obj is None:
             try:
@@ -1420,7 +1420,11 @@ class ActivityLogManager(models.Manager):
             e.user = request.user
             e.user_description = request.user.get_full_name()
         except:
-            e.user_description = user_description
+            # use api_user if available in request
+            if getattr(request, 'api_user') is not None:
+                e.user_description = request.api_user.client_name
+            else:
+                e.user_description = "System"
         e.ip_number = request.META['REMOTE_ADDR']
         e.action_type = action_type
         e.description = description
