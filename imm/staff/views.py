@@ -430,7 +430,7 @@ from jsonrpc.exceptions import InvalidRequestError
 from jsonrpc.exceptions import MethodNotFoundError
 from imm.apikey.views import apikey_required
 
-@jsonrpc_method('lims.detailed_runlist', authenticated=getattr(settings, 'AUTH_REQ', True))
+@jsonrpc_method('lims.detailed_runlist')
 @apikey_required
 def detailed_runlist(request, runlist_id):
     try:
@@ -442,7 +442,7 @@ def detailed_runlist(request, runlist_id):
     
     return runlist.json_dict()
 
-@jsonrpc_method('lims.get_active_runlist',  authenticated=getattr(settings, 'AUTH_REQ', True), safe=True)
+@jsonrpc_method('lims.get_active_runlist')
 @apikey_required
 def get_active_runlist(request):
     try:

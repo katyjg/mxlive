@@ -100,7 +100,7 @@ admin.site.register(Result, ResultAdmin)
 
 class DataAdmin(admin.ModelAdmin):
     ordering = ['-created']
-    search_fields = ['name','url']
+    search_fields = ['name','beamline__name']
     list_filter = ['modified', 'kind']
     list_display = ('id', 'name', 'crystal', 'frame_sets', 'delta_angle', 'total_angle', 'wavelength')
     list_per_page = ITEMS_PER_PAGE

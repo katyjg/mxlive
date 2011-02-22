@@ -994,7 +994,7 @@ def shipment_xls(request, id):
 
 # -------------------------- JSONRPC Methods ----------------------------------------#
 
-@jsonrpc_method('lims.add_data', authenticated=getattr(settings, 'AUTH_REQ', True))
+@jsonrpc_method('lims.add_data')
 @apikey_required
 def add_data(request, data_info):
     
@@ -1016,7 +1016,6 @@ def add_data(request, data_info):
         if k == 'url':
             v = create_download_key(v, data_info['project_id'])
         data_info[smart_str(k)] = v
-    print data_info
     try:
         new_obj = Data(**data_info)
         new_obj.save()
@@ -1035,7 +1034,7 @@ def add_data(request, data_info):
     except Exception, e:
         raise exceptions.Error('Internal ServerError: %s' % e.message)
 
-@jsonrpc_method('lims.add_result', authenticated=getattr(settings, 'AUTH_REQ', True))
+@jsonrpc_method('lims.add_result')
 @apikey_required
 def add_result(request, res_info):
     info = {}
@@ -1054,7 +1053,7 @@ def add_result(request, res_info):
     except Exception, e:
         raise exceptions.Error('Internal Server Error: %s' % e.message)
 
-@jsonrpc_method('lims.add_strategy', authenticated=getattr(settings, 'AUTH_REQ', True))
+@jsonrpc_method('lims.add_strategy')
 @apikey_required
 def add_strategy(request, stg_info):
     info = {}
