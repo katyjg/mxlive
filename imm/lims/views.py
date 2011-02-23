@@ -34,12 +34,13 @@ from imm.staff.models import Runlist, Link
 from imm.lims.forms import DataForm
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
 from imm.download.views import create_download_key, create_cache_dir, send_raw_file
+from imm.apikey.views import apikey_required
 from imm.remote.user_api import UserApi
-  
+ 
 #from imm.remote.user_api import UserApi
 
 import jsonrpc
-from jsonrpc import jsonrpc_method
+from jsonrpc import jsonrpc_method, exceptions
 try:
     import json
 except:
@@ -1000,7 +1001,8 @@ def shipment_xls(request, id):
 
 # -------------------------- JSONRPC Methods ----------------------------------------#
 
-@jsonrpc_method('lims.add_data', authenticated=getattr(settings, 'AUTH_REQ', True))
+@jsonrpc_method('lims.add_data')
+@apikey_required
 def add_data(request, data_info):
     
     # check if project_id is provided if not check if project_name is provided
@@ -1021,7 +1023,6 @@ def add_data(request, data_info):
         if k == 'url':
             v = create_download_key(v, data_info['project_id'])
         data_info[smart_str(k)] = v
-    print data_info
     try:
         new_obj = Data(**data_info)
         new_obj.save()
@@ -1038,10 +1039,10 @@ def add_data(request, data_info):
         
         return {'data_id': new_obj.pk}
     except Exception, e:
-        raise e
-        return {'error': str(e)}
+        raise exceptions.Error('Internal ServerError: %s' % e.message)
 
-@jsonrpc_method('lims.add_result', authenticated=getattr(settings, 'AUTH_REQ', True))
+@jsonrpc_method('lims.add_result')
+@apikey_required
 def add_result(request, res_info):
     info = {}
     # convert unicode to str
@@ -1057,20 +1058,24 @@ def add_result(request, res_info):
             "New analysis report (%s) added" % new_obj)
         return {'result_id': new_obj.pk}
     except Exception, e:
-        raise e
-        return {'error':str(e)}
+        raise exceptions.Error('Internal Server Error: %s' % e.message)
 
-@jsonrpc_method('lims.add_strategy', authenticated=getattr(settings, 'AUTH_REQ', True))
+@jsonrpc_method('lims.add_strategy')
+@apikey_required
 def add_strategy(request, stg_info):
     info = {}
     # convert unicode to str
     for k,v in stg_info.items():
         info[smart_str(k)] = v
-    new_obj = Strategy(**info)
-    new_obj.save()
-    ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
-       "New strategy (%s) added" % new_obj)
-    return {'strategy_id': new_obj.pk}
+    try:
+        new_obj = Strategy(**info)
+        new_obj.save()
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
+           "New strategy (%s) added" % new_obj)
+        return {'strategy_id': new_obj.pk}
+    except Exception, e:
+        raise exceptions.Error('Internal Server Error: %s' % e.message)
+       
 
 # -------------------------- PLOTTING ----------------------------------------#
 import numpy

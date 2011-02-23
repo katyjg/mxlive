@@ -1310,10 +1310,15 @@ class ActivityLogManager(models.Manager):
             e.object_id = obj.pk
             e.affected_item = obj
             e.content_type = ContentType.objects.get_for_model(obj)
-        if not request.user.is_anonymous:
-            e.user_id = request.user.pk
-        else:
-            e.user_id = 1
+        try:
+            e.user = request.user
+            e.user_description = request.user.get_full_name()
+        except:
+            # use api_user if available in request
+            if getattr(request, 'api_user') is not None:
+                e.user_description = request.api_user.client_name
+            else:
+                e.user_description = "System"
         e.ip_number = request.META['REMOTE_ADDR']
         e.action_type = action_type
         e.description = description
@@ -1331,7 +1336,8 @@ class ActivityLog(models.Model):
     TYPE = Enum('Login', 'Logout', 'Task', 'Create', 'Modify','Delete', 'Archive')
     created = models.DateTimeField('Date/Time', auto_now_add=True, editable=False)
     project = models.ForeignKey(Project, blank=True, null=True)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, blank=True, null=True)
+    user_description = models.CharField('User name', max_length=60, blank=True, null=True)
     ip_number = models.IPAddressField('IP Address')
     object_id = models.PositiveIntegerField(blank=True, null=True)
     content_type = models.ForeignKey(ContentType, blank=True, null=True)

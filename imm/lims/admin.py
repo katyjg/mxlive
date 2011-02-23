@@ -25,7 +25,7 @@ admin.site.register(Dewar, DewarAdmin)
 class ActivityLogAdmin(admin.ModelAdmin):
     list_filter = ['created']
     search_fields = ['description','ip_number', 'content_type__name', 'action_type']
-    list_display = ('created', 'action_type','user','ip_number','description')
+    list_display = ('created', 'action_type','user_description','ip_number','description')
     ordering = ('-created',)
     list_per_page = ACTIVITY_ITEMS_PER_PAGE    
 admin.site.register(ActivityLog, ActivityLogAdmin)
@@ -100,7 +100,7 @@ admin.site.register(Result, ResultAdmin)
 
 class DataAdmin(admin.ModelAdmin):
     ordering = ['-created']
-    search_fields = ['name','url']
+    search_fields = ['name','beamline__name']
     list_filter = ['modified', 'kind']
     list_display = ('id', 'name', 'crystal', 'frame_sets', 'delta_angle', 'total_angle', 'wavelength')
     list_per_page = ITEMS_PER_PAGE

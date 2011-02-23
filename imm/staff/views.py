@@ -407,8 +407,10 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
 from jsonrpc import jsonrpc_method
 from jsonrpc.exceptions import InvalidRequestError
 from jsonrpc.exceptions import MethodNotFoundError
+from imm.apikey.views import apikey_required
 
-@jsonrpc_method('lims.detailed_runlist', authenticated=getattr(settings, 'AUTH_REQ', True))
+@jsonrpc_method('lims.detailed_runlist')
+@apikey_required
 def detailed_runlist(request, runlist_id):
     try:
         runlist = Runlist.objects.get(pk=runlist_id)
@@ -419,7 +421,8 @@ def detailed_runlist(request, runlist_id):
     
     return runlist.json_dict()
 
-@jsonrpc_method('lims.get_active_runlist',  authenticated=getattr(settings, 'AUTH_REQ', True), safe=True)
+@jsonrpc_method('lims.get_active_runlist')
+@apikey_required
 def get_active_runlist(request):
     try:
         # should only be one runlist loaded at a time
