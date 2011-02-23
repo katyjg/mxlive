@@ -3,7 +3,7 @@
     {% else %}accept="container" 
     parent="{{ object.id }}"{% endif %}
     automounter_location="{{ letter }}">
-    <a {% if container %}href="{% url staff-container-detail container.pk %}" title="Go to Container {{container.name }}"{% endif %}>{{ container.label }}</a>
+    <a {% if container %}href="{% url staff-container-detail container.pk %}" title="Go to Container {{container.name }}"{% endif %}>{{ container.name }}</a>
     {% if container %}
         <a class="remove"
            rel="{% url staff-runlist-remove-container object.pk container.pk %}"

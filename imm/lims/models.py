@@ -21,10 +21,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from lims.filterspecs import WeeklyFilterSpec
 
 IDENTITY_FORMAT = '-%y%m'
-OBJECT_STATES = Enum(
-    'ACTIVE', 
-    'ARCHIVED', 
-    'DELETED')
 RESUMBITTED_LABEL = 'Resubmitted_'
 
 def cassette_loc_repr(pos):
@@ -180,72 +176,6 @@ class Session(models.Model):
     end_time = models.DateTimeField(null=False, blank=False)
     comments = models.TextField()
     
-def perform_action(instance, action, data=None):
-    """ Performs an action (send a message to FSM) on an object. See Shipment for a description
-        of how the FSM datastructure is setup.
-            
-        @param instance: a models.Model instance with STATES/TRANSITIONS/ACTIONS defined
-        @param status: a new STATE to transition to. 
-        @param data: a dict of additional data possibly required by the methods in the ACTIONS dictionary 
-    """
-    try: 
-        to_do = instance.ACTIONS[action]
-    except KeyError:
-        to_do = LimsBaseClass.ACTIONS[action]
-
-    # check the assertions
-    for field, value in to_do.items():
-        if field == 'assertions':
-            for assertion in value:
-                if not getattr(instance, assertion)():
-                    raise ValueError('Unsatisfied assertion: %s' % assertion)
-    
-    # set the status appropriately
-    for field, value in to_do.items():
-        if field == 'assertions':
-            continue # dealt with these already
-        if field == 'methods':
-            continue # deal with these later
-        if callable(value):
-            value = value()
-        if field == 'status':
-            change_status(instance, value)
-        else:
-            setattr(instance, field, value)
-    instance.save()
-
-    # perform the action on the children
-    # checks if child has 'content_type' which should only exist 
-    # for children of LimsBaseClass and ActivityLog objects
-    if hasattr(instance, 'get_children'):
-        for child in instance.get_children():
-            if child.ACTIONS.has_key(action) or hasattr(child, 'content_type'):
-                perform_action(child, action, data=data)
-        
-    # call the post methods
-    for field, value in to_do.items():
-        if field != 'methods':
-            continue # dealt with these already
-        for method in value:
-            if data:
-                getattr(instance, method)(data=data)
-            else:
-                getattr(instance, method)()
-            instance.save()
-            
-def change_status(instance, status):
-    """ Changes the state of the instance's FSM to status
-    
-    @param instance: a models.Model instance with STATES/TRANSITIONS/ACTIONS defined
-    @param status: a new STATE to transition to. 
-    """
-    if status == instance.status:
-        return
-    if status not in instance.TRANSITIONS[instance.status]:
-        raise ValueError("Invalid transition on '%s.%s':  '%s' -> '%s'" % (instance.__class__, instance.pk, instance.STATES[instance.status], instance.STATES[status]))
-    #logging.info("Changing status of '%s.%s': '%s' -> '%s'" % (instance.__class__, instance.pk, instance.STATES[instance.status], instance.STATES[status]))
-    instance.status = status
-
 class LimsBaseClass(models.Model):
     # STATES/TRANSITIONS/ACTIONS define a finite state machine (FSM) for the Shipment (and other 
     # models.Model instances also defined in this file).
@@ -279,18 +209,10 @@ class LimsBaseClass(models.Model):
         STATES.ON_SITE: [STATES.RETURNED],
         STATES.LOADED: [STATES.ON_SITE],
         STATES.RETURNED: [STATES.ARCHIVED],
-        STATES.ACTIVE: [STATES.PROCESSING],
-        STATES.PROCESSING: [STATES.COMPLETE],
+        STATES.ACTIVE: [STATES.PROCESSING, STATES.REVIEWED],
+        STATES.PROCESSING: [STATES.COMPLETE, STATES.REVIEWED],
         STATES.COMPLETE: [STATES.PROCESSING, STATES.REVIEWED],
         STATES.REVIEWED: [STATES.ARCHIVED],
-    }
-    ACTIONS = {
-        'send': { 'status': STATES.SENT },
-        'receive': { 'status': STATES.ON_SITE },
-        'load': { 'status': STATES.LOADED },
-        'unload': { 'status': STATES.ON_SITE },
-        'return': { 'status': STATES.RETURNED  },
-        'archive': { 'status': STATES.ARCHIVED},
     }
     project = models.ForeignKey(Project)
     name = models.CharField(max_length=60)
@@ -313,37 +235,90 @@ class LimsBaseClass(models.Model):
     
     def is_deletable(self):
         return self.status == self.STATES.DRAFT 
-    
+
     def is_closable(self):
         return self.status == self.STATES.RETURNED 
+    
+    def delete(self, request=None, cascade=True):
+        if self.is_deletable:
+            message = '%s (%s) deleted.' % (self.__class__.__name__.upper(), self.name)
+            if request is not None:
+                ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.DELETE, message)
+            super(LimsBaseClass, self).delete()
+
+    def archive(self, request=None):
+        if self.is_closable:
+            self.change_status(self.STATES.ARCHIVED)
+            message = '%s (%s) archived.' % (self.__class__.__name__.upper(), self.name)
+            if request is not None:
+                ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.ARCHIVE, message)
+
+    def send(self, request=None):
+        self.change_status(self.STATES.SENT)       
+        message = '%s (%s) sent to CLS.' % (self.__class__.__name__.upper(), self.name)
+        if request is not None:
+            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
+
+    def receive(self, request=None):
+        self.change_status(self.STATES.ON_SITE) 
+        message = '%s (%s) received at CLS.' % (self.__class__.__name__.upper(), self.name)
+        if request is not None:
+            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
+
+    def load(self, request=None):
+        self.change_status(self.STATES.LOADED)    
+        message = '%s (%s) loaded into automounter.' % (self.__class__.__name__.upper(), self.name)
+        if request is not None:
+            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
+
+    def unload(self, request=None):
+        self.change_status(self.STATES.ON_SITE)   
+        message = '%s (%s) unloaded from automounter.' % (self.__class__.__name__.upper(), self.name)
+        if request is not None:
+            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
+
+    def returned(self, request=None):
+        self.change_status(self.STATES.RETURNED)     
+        message = '%s (%s) returned.' % (self.__class__.__name__.upper(), self.name)
+        if request is not None:
+            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
+
+    def change_status(self, status):
+        if status == self.status:
+            return
+        if status not in self.TRANSITIONS[self.status]:
+            raise ValueError("Invalid transition on '%s.%s':  '%s' -> '%s'" % (self.__class__, self.pk, self.STATES[self.status], self.STATES[status]))
+        self.status = status
+        self.save()
 
 class ObjectBaseClass(LimsBaseClass):
     STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.SENT, LimsBaseClass.STATES.ON_SITE, LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.ARCHIVED])
+
     status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
     class Meta:
         abstract = True
 
 class LoadableBaseClass(LimsBaseClass):
-    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.SENT, LimsBaseClass.STATES.ON_SITE, LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.ARCHIVED])
+    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.SENT, LimsBaseClass.STATES.ON_SITE, LimsBaseClass.STATES.LOADED, LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.ARCHIVED])
+    TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
+    TRANSITIONS[LimsBaseClass.STATES.ON_SITE] = [LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.LOADED]
+
     status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)    
     class Meta:
         abstract = True
 
-class AbstractBaseClass(LimsBaseClass):
-    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.PROCESSING, LimsBaseClass.STATES.COMPLETE, LimsBaseClass.STATES.REVIEWED])
+class ExpBaseClass(LimsBaseClass):
+    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.PROCESSING, LimsBaseClass.STATES.COMPLETE, LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ARCHIVED])
+
     status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
     class Meta:
         abstract = True
 
 class Shipment(ObjectBaseClass):
-    ALLOWED_STATES = [LimsBaseClass.STATES.SENT]
-    ACTIONS = copy.deepcopy(LimsBaseClass.ACTIONS)
-    ACTIONS['send'] = { 'status': LimsBaseClass.STATES.SENT, 'date_shipped': datetime.datetime.now, 'assertions': ['is_sendable'], 'methods': ['setup_default_experiment'] }
-    ACTIONS['return'] = { 'status': LimsBaseClass.STATES.RETURNED, 'date_returned': datetime.datetime.now, 'assertions': ['is_returnable'] }
-
     HELP = {
         'name': "This should be an externally visible label",
         'comments': "Use this field to jot notes related to this shipment for your own use",
+        'cascade': 'Keep dewars, containers and crystals in this shipment (those objects will have no shipment).',
     }
     comments = models.TextField(blank=True, null=True, max_length=200)
     staff_comments = models.TextField(blank=True, null=True)
@@ -360,9 +335,6 @@ class Shipment(ObjectBaseClass):
     
     def barcode(self):
         return self.tracking_code or self.name
-
-    def get_children(self):
-        return self.dewar_set.all()
 
     def num_dewars(self):
         return self.dewar_set.count()
@@ -396,7 +368,6 @@ class Shipment(ObjectBaseClass):
                 return False
         return True
  
-
     def label_hash(self):
         # use dates of project, shipment, and each shipment within dewar to determine
         # when contents were last changed
@@ -426,9 +397,7 @@ class Shipment(ObjectBaseClass):
         """ If there are unassociated Crystals in the project, creates a default Experiment and associates the
             crystals
         """
-        #unassociated_crystals = []
         unassociated_crystals = self.project.crystal_set.filter(experiment__isnull=True)
-        print unassociated_crystals
         if unassociated_crystals:
             exp_name = '%s auto' % dateformat.format(datetime.datetime.now(), 'M jS P')
             experiment = Experiment(project=self.project, name=exp_name)
@@ -436,13 +405,41 @@ class Shipment(ObjectBaseClass):
             for unassociated_crystal in unassociated_crystals:
                 unassociated_crystal.experiment = experiment
                 unassociated_crystal.save()
+
+    def delete(self, request=None, cascade=True):
+        if not cascade:
+            self.dewar_set.all().update(shipment=None)
+        for obj in self.dewar_set.all():
+            obj.delete(request=request)
+        super(Shipment, self).delete(request=request)
+
+    def send(self, request=None):
+        if self.is_sendable():
+            self.date_shipped = datetime.datetime.now()
+            self.setup_default_experiment()
+            self.save()
+            for obj in self.dewar_set.all():
+                obj.send(request=request)
+            super(Shipment, self).send(request=request)
+
+    def returned(self, request=None):
+        if self.is_returnable():
+            self.date_returned = datetime.datetime.now()
+            self.save()
+            for obj in self.dewar_set.all():
+                obj.returned(request=request)
+            super(Shipment, self).returned(request=request)
+
+    def archive(self, request=None):
+        for obj in self.dewar_set.all():
+            obj.archive(request=request)
+        super(Shipment, self).archive(request=request)
         
 class Dewar(ObjectBaseClass):
-    ACTIONS = copy.deepcopy(LimsBaseClass.ACTIONS)
-    ACTIONS['receive'] = {'status': LimsBaseClass.STATES.ON_SITE, 'methods' : ['receive_parent_shipment',] }
     HELP = {
         'name': "An externally visible label on the dewar. If there is a barcode on the dewar, please scan it here",
         'comments': "Use this field to jot notes related to this shipment for your own use",
+        'cascade': 'Keep containers (and crystals) in this dewar (those containers will have no dewar).',
     }
     comments = models.TextField(blank=True, null=True, help_text=HELP['comments'])
     staff_comments = models.TextField(blank=True, null=True)
@@ -456,9 +453,6 @@ class Dewar(ObjectBaseClass):
     def barcode(self):
         return "CLS%04d-%04d" % (self.id, self.shipment.id)
 
-    def get_children(self):
-        return self.container_set.all()
-
     def num_containers(self):
         return self.container_set.count()   
 
@@ -468,20 +462,40 @@ class Dewar(ObjectBaseClass):
     def is_receivable(self):
         return self.status == self.STATES.SENT 
     
-    def receive_parent_shipment(self, data=None):
-        """ Updates the status of the parent Shipment to 'On-Site' if all the Dewars are 'On-Site'
-        """
-        all_dewars_received = True
-        for dewar in self.shipment.dewar_set.all():
-            all_dewars_received = all_dewars_received and dewar.status == Dewar.STATES.ON_SITE
-        if all_dewars_received:
-            self.shipment.status = Shipment.STATES.ON_SITE
-            self.shipment.save()
+    def delete(self, request=None, cascade=True):
+        if not cascade:
+            self.container_set.all().update(dewar=None)
+        for obj in self.container_set.all():
+            obj.delete(request=request)
+        super(Dewar, self).delete(request=request)
+
+    def send(self, request=None):
+        for obj in self.container_set.all():
+            obj.send(request=request)
+        super(Dewar, self).send(request=request)
+
+    def receive(self, request=None):
+        if self.is_receivable():
+            for obj in self.container_set.all():
+                obj.receive(request=request)
+            super(Dewar, self).receive(request=request)
+            all_dewars_received = True
+            for dewar in self.shipment.dewar_set.all():
+                if dewar.status != Dewar.STATES.ON_SITE: all_dewars_received = False
+            if all_dewars_received:
+                super(Shipment, self.shipment).receive(request=request)
+
+    def returned(self, request=None):
+        for obj in self.container_set.all():
+            obj.returned(request=request)
+        super(Dewar, self).returned(request=request)
+
+    def archive(self, request=None):
+        for obj in self.container_set.all():
+            obj.archive(request=request)
+        super(Dewar, self).archive(request=request)
 
 class Container(LoadableBaseClass):
-    TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
-    TRANSITIONS[LimsBaseClass.STATES.ON_SITE] = [LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.LOADED]
-
     TYPE = Enum(
         'Cassette', 
         'Uni-Puck', 
@@ -491,6 +505,7 @@ class Container(LoadableBaseClass):
         'name': "This should be an externally visible label on the container",
         'code': "If there is a barcode on the container, please scan the value here",
         'capacity': "The maximum number of samples this container can hold",
+        'cascade': 'Keep crystals in this container (those crystals will have no container).',
     }
     code = models.SlugField(null=True, blank=True)
     kind = models.IntegerField('type', max_length=1, choices=TYPE.get_choices() )
@@ -499,20 +514,12 @@ class Container(LoadableBaseClass):
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
     
-    FIELD_TO_ENUM = {
-        'status': LimsBaseClass.STATES,
-        'kind': TYPE,
-    }
-
     def identity(self):
         return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
     
     def barcode(self):
         return self.code or self.name
-
-    def get_children(self):
-        return self.crystal_set.all()
 
     def num_crystals(self):
         return self.crystal_set.count()
@@ -609,6 +616,41 @@ class Container(LoadableBaseClass):
                     xtl = crystal
             retval.append((location, xtl))
         return retval
+
+    def delete(self, request=None, cascade=True):
+        if not cascade:
+            self.crystal_set.all().update(container=None)
+        for obj in self.crystal_set.all():
+            obj.delete(request=request)
+        super(Container, self).delete(request=request)
+
+    def send(self, request=None):
+        for obj in self.crystal_set.all():
+            obj.send(request=request)
+        super(Container, self).send(request=request)
+
+    def receive(self, request=None):
+        for obj in self.crystal_set.all():
+            obj.receive(request=request)
+        super(Container, self).receive(request=request)
+
+    def load(self, request=None):
+        for obj in self.crystal_set.all(): obj.load(request=request)
+        super(Container, self).load(request=request)
+
+    def unload(self, request=None):
+        for obj in self.crystal_set.all(): obj.unload(request=request)
+        super(Container, self).unload(request=request)  
+
+    def returned(self, request=None):
+        for obj in self.crystal_set.all():
+            obj.returned(request=request)
+        super(Container, self).returned(request=request)
+
+    def archive(self, request=None):
+        for obj in self.crystal_set.all():
+            obj.archive(request=request)
+        super(Container, self).archive(request=request)
         
     def json_dict(self):
         return {
@@ -646,7 +688,7 @@ class SpaceGroup(models.Model):
     def __unicode__(self):
         return self.name
 
-class Cocktail(models.Model):
+class Cocktail(LimsBaseClass):
     SOURCES = Enum(
         'Unknown',
         'Synthetic',
@@ -666,12 +708,9 @@ class Cocktail(models.Model):
     )
     HELP = {
         'constituents': 'Comma separated list of the constituents in this cocktail',
+        'cascade': 'Keep crystals assigned with this cocktail (cocktail will be undefined for those crystals).',
     }
-    project = models.ForeignKey(Project)
-    name = models.CharField(max_length=60)
     constituents = models.CharField(max_length=200) 
-    #source = models.IntegerField(max_length=1, choices=SOURCES.get_choices(), default=SOURCES.UNKNOWN)
-    #kind = models.IntegerField('type', max_length=1, choices=TYPES.get_choices(), default=TYPES.PROTEIN)
     is_radioactive = models.BooleanField()
     is_contaminant = models.BooleanField()
     is_toxic = models.BooleanField()
@@ -681,12 +720,6 @@ class Cocktail(models.Model):
     is_inflamable = models.BooleanField()
     is_biological_hazard = models.BooleanField()
     description = models.TextField(blank=True, null=True)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-
-    
-    def __unicode__(self):
-        return self.name
 
     def identity(self):
         return 'CT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -694,21 +727,24 @@ class Cocktail(models.Model):
 
     is_editable = True
     is_deletable = True
+    is_closable = False
     
-    '''    
-    FIELD_TO_ENUM = {
-        'source': SOURCES,
-        'kind': TYPES,
-    }
-    '''
+    def delete(self, request=None, cascade=True):
+        if not cascade:
+            for obj in self.crystal_set.all():
+                if obj.is_editable():
+                    obj.cocktail = None
+                    obj.save()
+        super(Cocktail, self).delete()
 
     class Meta:
         verbose_name = "Protein Cocktail"
         verbose_name_plural = 'Protein Cocktails'
     
-class CrystalForm(models.Model):
-    project = models.ForeignKey(Project)
-    name = models.CharField(max_length=60, blank=False)
+class CrystalForm(LimsBaseClass):
+    HELP = {
+        'cascade': 'Keep crystals assigned with this cocktail (cocktail will be undefined for those crystals).',
+    }
     space_group = models.ForeignKey(SpaceGroup,null=True, blank=True)
     cell_a = models.FloatField(' a', null=True, blank=True)
     cell_b = models.FloatField(' b', null=True, blank=True)
@@ -716,12 +752,7 @@ class CrystalForm(models.Model):
     cell_alpha = models.FloatField(' alpha',null=True, blank=True)
     cell_beta = models.FloatField(' beta',null=True, blank=True)
     cell_gamma = models.FloatField(' gamma',null=True, blank=True)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
     
-    def __unicode__(self):
-        return self.name
-
     def identity(self):
         return 'CF%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
@@ -731,8 +762,20 @@ class CrystalForm(models.Model):
 
     is_editable = True
     is_deletable = True
+    is_closable = False
+    
+    def delete(self, request=None, cascade=True):
+        if not cascade:
+            for obj in self.crystal_set.all():
+                if obj.is_editable():
+                    obj.crystal_form = None
+                    obj.save()
+        super(CrystalForm, self).delete()
 
-class Experiment(AbstractBaseClass):
+class Experiment(ExpBaseClass):
+    HELP = {
+        'cascade': 'Keep crystals in this experiment (those crystals will have no experiment).',
+    }
     EXP_TYPES = Enum(
         'Native',   
         'MAD',
@@ -745,18 +788,13 @@ class Experiment(AbstractBaseClass):
         'Screen and collect',
         'Just collect',
     )
-    EXP_STATES = Enum(
-        'Incomplete',
-        'Complete',
-        'Reviewed',
-    )
     TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
     TRANSITIONS[LimsBaseClass.STATES.DRAFT] = [LimsBaseClass.STATES.ACTIVE]
-    TRANSITIONS[EXP_STATES.INCOMPLETE] = [EXP_STATES.COMPLETE]   
-    TRANSITIONS[EXP_STATES.COMPLETE] = [EXP_STATES.REVIEWED, EXP_STATES.INCOMPLETE]
+    TRANSITIONS[LimsBaseClass.STATES.ACTIVE] = [LimsBaseClass.STATES.PROCESSING, LimsBaseClass.STATES.COMPLETE, LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ARCHIVED]   
+    TRANSITIONS[LimsBaseClass.STATES.COMPLETE] = [LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ACTIVE]
     ACTIONS = {
         'resubmit': { 'status': LimsBaseClass.STATES.ACTIVE, 'methods': ['set_strategy_status_resubmitted',] },
-        'review': { 'exp_status': EXP_STATES.REVIEWED, 'methods': ['set']},
+        'review': { 'exp_status': LimsBaseClass.STATES.REVIEWED, 'methods': ['set']},
     }
     resolution = models.FloatField('Desired Resolution', null=True, blank=True)
     delta_angle = models.FloatField(null=True, blank=True)
@@ -769,15 +807,8 @@ class Experiment(AbstractBaseClass):
     absorption_edge = models.CharField(max_length=5, null=True, blank=True)
     plan = models.IntegerField(max_length=1, choices=EXP_PLANS.get_choices(), default=EXP_PLANS.SCREEN_AND_CONFIRM)
     comments = models.TextField(blank=True, null=True)
-    exp_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.INCOMPLETE)
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
-    
-    FIELD_TO_ENUM = {
-        'status': LimsBaseClass.STATES,
-        'kind': EXP_TYPES,
-        'plan': EXP_PLANS,
-    }
     
     class Meta:
         verbose_name = 'experiment request'
@@ -789,9 +820,6 @@ class Experiment(AbstractBaseClass):
     def accept(self):
         return "crystal"
 
-    def get_children(self):
-        return []
-    
     def num_crystals(self):
         return self.crystal_set.count()
         
@@ -810,7 +838,7 @@ class Experiment(AbstractBaseClass):
                 return [results[0].crystal.pk, results[0].score]
         
     def is_reviewable(self):
-        return self.exp_status != Experiment.EXP_STATES.REVIEWED
+        return self.status != Experiment.STATES.REVIEWED
 
     def is_complete(self):
         """
@@ -822,54 +850,64 @@ class Experiment(AbstractBaseClass):
             success_collected = False
             for crystal in self.crystal_set.all():
                 if crystal.screen_status != Crystal.EXP_STATES.COMPLETED:
-                    self.exp_status = Experiment.EXP_STATES.INCOMPLETE
                     return False
                 if crystal.collect_status == Crystal.EXP_STATES.COMPLETED:
                     success_collected = True
             if success_collected:
-                self.exp_status = Experiment.EXP_STATES.COMPLETE
-            else:
-                self.exp_status = Experiment.EXP_STATES.INCOMPLETE
+                self.exp_status = Experiment.STATES.COMPLETE
             return success_collected
         elif self.plan == Experiment.EXP_PLANS.SCREEN_AND_CONFIRM:
             # complete if all crystals are "screened" or "collected"
             for crystal in self.crystal_set.all():
                 if crystal.screen_status != Crystal.EXP_STATES.COMPLETED:
-                    self.exp_status = Experiment.EXP_STATES.INCOMPLETE
                     return False
-            self.exp_status = Experiment.EXP_STATES.COMPLETE
+            self.exp_status = Experiment.STATES.COMPLETE
             return True
         elif self.plan == Experiment.EXP_PLANS.SCREEN_AND_COLLECT:
             # complete if all crystals are "screened" or "collected" 
             for crystal in self.crystal_set.all():
                 if crystal.screen_status != Crystal.EXP_STATES.COMPLETED:
-                    self.exp_status = Experiment.EXP_STATES.INCOMPLETE
                     return False
                 if crystal.collect_status != Crystal.EXP_STATES.COMPLETED:
-                    self.exp_status = Experiment.EXP_STATES.INCOMPLETE
                     return False    
-            self.exp_status = Experiment.EXP_STATES.COMPLETE
+            self.exp_status = Experiment.STATES.COMPLETE
             return True
         elif self.plan == Experiment.EXP_PLANS.COLLECT_FIRST_GOOD:
             # complete if 1 crystal is collected. 
             for crystal in self.crystal_set.all():
                 if crystal.collect_status == Crystal.EXP_STATES.COMPLETED:
-                    self.exp_status = Experiment.EXP_STATES.COMPLETE
+                    self.exp_status = Experiment.STATES.COMPLETE
                     return True
-            self.exp_status = Experiment.EXP_STATES.INCOMPLETE
             return False
         elif self.plan == Experiment.EXP_PLANS.JUST_COLLECT:
             # complete if all crystals are "collected"
             for crystal in self.crystal_set.all():
                 if crystal.collect_status != Crystal.EXP_STATES.COMPLETED:
-                    self.exp_status = Experiment.EXP_STATES.INCOMPLETE
                     return False
-            self.exp_status = Experiment.EXP_STATES.COMPLETE
+            self.exp_status = Experiment.STATES.COMPLETE
             return True
         else:
             # should never get here.
             raise Exception('Invalid plan')  
         
+    def delete(self, request=None, cascade=True):
+        if not cascade:
+            self.crystal_set.all().update(experiment=None)
+        for obj in self.crystal_set.all():
+            obj.delete(request=request)
+        super(Experiment, self).delete(request=request)
+
+    def review(self, request=None):
+        super(Experiment, self).change_status(LimsBaseClass.STATES.REVIEWED)
+        message = '%s (%s) marked as reviewed.' % (self.__class__.__name__.upper(), self.name)
+        if request is not None:
+            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
+
+    def archive(self, request=None):
+        if cascade:
+            for obj in self.crystal_set.all():
+                obj.archive(request=request)
+        super(Experiment, self).archive(request=request)
         
     def json_dict(self):
         """ Returns a json dictionary of the Runlist """
@@ -895,11 +933,6 @@ class Experiment(AbstractBaseClass):
         
      
 class Crystal(LoadableBaseClass):
-    TRANSITIONS = Container.TRANSITIONS
-    ACTIONS = copy.deepcopy(LimsBaseClass.ACTIONS)
-    ACTIONS['send'] = { 'status': LimsBaseClass.STATES.SENT, 'methods': ['activate_associated_experiments',] }
-    ACTIONS['archive'] = { 'status': LimsBaseClass.STATES.ARCHIVED, 'methods': ['archive_experiment',] }
-
     HELP = {
         'name': "Give the sample a name by which you can recognize it",
         'code': "If there is a datamatrix code on sample, please scan or input the value here",
@@ -937,9 +970,6 @@ class Crystal(LoadableBaseClass):
     
     def barcode(self):
         return self.code or None
-
-    def get_children(self):
-        return []
 
     def best_screening(self):
         # need to change to [id, score]
@@ -980,12 +1010,22 @@ class Crystal(LoadableBaseClass):
             self.collect_status = Crystal.EXP_STATES.PENDING
         self.save()
 
-    def archive_experiment(self):
+    def delete(self, request=None, cascade=True):
+        if self.experiment:
+            if self.experiment.crystal_set.count() == 1:
+                self.experiment.delete(request=request)
+        super(Crystal, self).delete(request=request)
+
+    def send(self, request=None):
+        self.activate_associated_experiments()
+        super(Crystal, self).send(request=request)
+
+    def archive(self, request=None):
+        super(Crystal, self).archive(request=request)
         assert self.experiment
         if self.experiment.crystal_set and self.experiment.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).count() == 0:
-            self.experiment.status = Experiment.STATES.ARCHIVED
-            self.experiment.save()
-    
+            super(Experiment, self.experiment).archive(request=request)
+
     def json_dict(self):
         return {
             'project_id': self.project.pk,
@@ -997,19 +1037,6 @@ class Crystal(LoadableBaseClass):
             'comments': self.comments
         }
         
-def Experiment_pre_delete(sender, **kwargs):
-    # After deletion, the instance have all reference fields nulled, so
-    # we need to store the original crystals for use in Experiment_post_delete
-    experiment = kwargs['instance']
-    experiment.saved_crystals = [crystal for crystal in experiment.crystal_set.all()]    
-pre_delete.connect(Experiment_pre_delete, sender=Experiment)
-
-def Crystal_post_delete(sender, **kwargs):
-    crystal = kwargs['instance']
-    if crystal.experiment.crystal_set.count() == 0:
-        crystal.experiment.delete()
-post_delete.connect(Crystal_post_delete, sender=Crystal)
-    
 class Data(models.Model):
     DATA_TYPES = Enum(
         'Screening',   
@@ -1237,7 +1264,6 @@ class ScanResult(models.Model):
     def __unicode__(self):
         return self.name
 
-
 class Feedback(models.Model):
     TYPE = Enum(
         'Remote Control',
@@ -1301,8 +1327,6 @@ class ActivityLogManager(models.Manager):
         else:
             return None
         
-
-    
 class ActivityLog(models.Model):
     TYPE = Enum('Login', 'Logout', 'Task', 'Create', 'Modify','Delete', 'Archive')
     created = models.DateTimeField('Date/Time', auto_now_add=True, editable=False)
@@ -1325,38 +1349,6 @@ class ActivityLog(models.Model):
     
     def __unicode__(self):
         return str(self.created)
-    
-def delete(request, model, id, orphan_models):
-    """ Deletes an instance of ``model`` with primary key ``id`` and orphans the 
-    Models types given in ``orphan_models``. If ``orphan_models`` is empty, then a "cascading
-    delete" occurs.
-    
-    @param model: a models.Model subclass (ie. Project, Crystal)
-    @param id: the id/pk of the model instance
-    @param orphan_models: a list of tuples of (models.Model, fk_field) of models to orphan by setting
-                          model.fk_field = None prior to deletion, thus avoiding a cascade.
-    @raise exception:  
-    """
-    obj = model.objects.get(id=id)
-    for (orphan_model, orphan_field) in orphan_models:
-        manager = getattr(obj, orphan_model.__name__.lower()+'_set')
-        for orphan in manager.all():
-            setattr(orphan, orphan_field, None)
-            orphan.save()
-            message = 'Related field (%s) set to NULL, since it was deleted.' % ( orphan_field)
-            ActivityLog.objects.log_activity(request, orphan, ActivityLog.TYPE.MODIFY,  message)
-    obj.delete()
-
-def archive(model, id):
-    """ Closes/archives an instance of ``model`` with primary key ``id``.
-    
-    @param model: a models.Model subclass (ie. Project, Crystal)
-    @param id: the id/pk of the model instance
-    @raise exception:  
-    """
-    obj = model.objects.get(id=id)
-    perform_action(obj, 'archive')
-    obj.save()
     
 __all__ = [
     'ExcludeManagerWrapper',
@@ -1381,8 +1373,5 @@ __all__ = [
     'SpaceGroup',
     'Feedback',
     'ActivityLog',
-    'delete',
-    'archive',
-    'perform_action',
     ]   
 

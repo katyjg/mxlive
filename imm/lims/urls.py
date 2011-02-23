@@ -98,9 +98,10 @@ for section, subsection in _URL_META.items():
         if params.get('close', True):
             _dynamic_patterns.append(
                 (r'^%s/%s/(?P<id>\d+)/close/$' % (section, key),
-                 'close_object', {'model': params.get('model'),
-                                   'form': ConfirmDeleteForm,
+                 'action_object', {'model': params.get('model'),
+                                   'form': LimsBasicForm,
                                    'template': params.get('form_template', 'objforms/form_base.html'),
+                                   'action': 'archive',
                                    },
                  'lims-%s-close' % params.get('model').__name__.lower()))
 
@@ -116,7 +117,7 @@ urlpatterns += patterns('imm.lims.views', *_dynamic_patterns )
 # Special cases
 urlpatterns += patterns('imm.lims.views',
     # Shipments
-    (r'^shipping/shipment/(?P<id>\d+)/send/$', 'edit_object_inline', {'model': Shipment, 'form': ShipmentSendForm, 'template': 'objforms/form_base.html', 'action' : 'send'}, 'lims-shipment-send'),
+    (r'^shipping/shipment/(?P<id>\d+)/send/$', 'action_object', {'model': Shipment, 'form': ShipmentSendForm, 'template': 'objforms/form_base.html', 'action' : 'send'}, 'lims-shipment-send'),
     (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'model': Shipment, 'format' : 'label' }, 'lims-shipment-label'),
     (r'^shipping/shipment/(?P<id>\d+)/xls/$', 'shipment_xls', {}, 'lims-shipment-xls'),
     (r'^shipping/shipment/upload/$', 'upload_shipment', {'model': Shipment, 'form': ShipmentUploadForm, 'template': 'objforms/form_full.html'}, 'lims-shipment-upload'),

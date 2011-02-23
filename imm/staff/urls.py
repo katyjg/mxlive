@@ -7,7 +7,7 @@ import os
 
 from imm.lims.models import *
 from imm.staff.models import Runlist, Link
-from imm.lims.forms import ExperimentForm, ConfirmDeleteForm
+from imm.lims.forms import ExperimentForm, ConfirmDeleteForm, LimsBasicForm
 from imm.staff.forms import *
 
 # Define url meta data for object lists detail pages
@@ -113,13 +113,17 @@ urlpatterns = patterns('imm.staff.views',
 
     # Experiments
     (r'^experiment/crystal/action/$', 'crystal_status', {}, 'staff-crystal-status'),
-    (r'^experiment/(?P<id>\d+)/complete/$', 'complete_experiment', {'model': Experiment, 'form': ConfirmDeleteForm, 'template': 'objforms/form_base.html', 'action': 'complete'}, 'staff-experiment-complete'),
+    (r'^experiment/(?P<id>\d+)/review/$', 'staff_action_object', {'model': Experiment, 'form': LimsBasicForm, 'template': 'objforms/form_base.html', 'action': 'review'}, 'staff-experiment-complete'),
 
     # Runlists
     (r'^runlist/(?P<runlist_id>\d+)/container/basic/(?P<exp_id>\d+)/$', 'container_basic_object_list', {'model':Container, 'template': 'objlist/basic_object_list.html'}, 'staff-container-basic-list'),
     (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'experiment_basic_object_list', {'model':Experiment, 'template': 'staff/lists/basic_experiment_list.html'}, 'staff-experiment-basic-list'),   
     (r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Runlist, 'object':Experiment }, 'staff-runlist-add-experiment'),
-    (r'^runlist/(?P<dest_id>\d+)/widget/.*/container/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'add_existing_object', {'destination':Runlist, 'object':Container }, 'staff-runlist-add-container')
+    (r'^runlist/(?P<dest_id>\d+)/widget/.*/container/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'add_existing_object', {'destination':Runlist, 'object':Container }, 'staff-runlist-add-container'),
+    (r'^runlist/(?P<id>\d+)/load/$', 'staff_action_object', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'load'}, 'staff-runlist-load'),
+    (r'^runlist/(?P<id>\d+)/unload/$', 'staff_action_object', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'unload'}, 'staff-runlist-complete'),
+    #(r'^runlist/(?P<id>\d+)/accept/$', 'action_object', {'model': Runlist, 'form': RunlistAcceptForm, 'template': 'objforms/form_base.html', 'action' : 'accept'}, 'staff-runlist-accept'),
+    #(r'^runlist/(?P<id>\d+)/reject/$', 'action_object', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'reject'}, 'staff-runlist-reject'),
 )
 
 # Dynamic patterns here
@@ -129,18 +133,13 @@ urlpatterns += patterns('imm.lims.views', *_dynamic_patterns )
 urlpatterns += patterns('imm.lims.views',
 
     # Shipments
-    (r'^shipping/shipment/(?P<id>\d+)/return/$', 'edit_object_inline', {'model': Shipment, 'form': ShipmentReturnForm, 'template': 'objforms/form_base.html', 'action' : 'return'}, 'staff-shipment-return'),
+    (r'^shipping/shipment/(?P<id>\d+)/return/$', 'action_object', {'model': Shipment, 'form': ShipmentReturnForm, 'template': 'objforms/form_base.html', 'action' : 'return'}, 'staff-shipment-return'),
     (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'model': Shipment, 'format' : 'return_label' }, 'staff-shipment-label'),    
     (r'^shipping/shipment/(?P<id>\d+)/protocol/$', 'shipment_pdf', {'model': Shipment, 'format' : 'protocol' }, 'staff-shipment-protocol'),    
 
     # Runlists
     (r'^runlist/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),
     (r'^runlist/(?P<id>\d+)/protocol/$', 'shipment_pdf', {'model': Runlist, 'format' : 'runlist' }, 'staff-runlist-pdf'),    
-    (r'^runlist/(?P<id>\d+)/load/$', 'edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'load'}, 'staff-runlist-load'),
-    (r'^runlist/(?P<id>\d+)/unload/$', 'edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'unload'}, 'staff-runlist-complete'),
-    #(r'^runlist/(?P<id>\d+)/accept/$', 'edit_object_inline', {'model': Runlist, 'form': RunlistAcceptForm, 'template': 'objforms/form_base.html', 'action' : 'accept'}, 'staff-runlist-accept'),
-    #(r'^runlist/(?P<id>\d+)/reject/$', 'edit_object_inline', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'reject'}, 'staff-runlist-reject'),
-
 )
 
 urlpatterns += patterns('django.views.generic.simple',

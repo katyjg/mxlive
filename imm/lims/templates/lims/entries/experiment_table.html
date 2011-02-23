@@ -29,7 +29,7 @@
                     <td class="redirect"
                     href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.crystal_set|in_shipment:containers }}/{{ experiment.num_crystals }}</td>
                     <td class="redirect"
-                    href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.get_exp_status_display }}</td>
+                    href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.get_status_display }}</td>
                 </tr>
             {% endif %}{% endfor %}
         {% else %}                

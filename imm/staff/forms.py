@@ -81,7 +81,7 @@ class ShipmentReturnForm(objforms.forms.OrderedForm):
         shipment = self.instance
         if shipment:
             for experiment in shipment.project.experiment_set.all():
-                if experiment.exp_status != Experiment.EXP_STATES.REVIEWED:
+                if experiment.status != Experiment.STATES.REVIEWED:
                     return 'Experiment "%s" has not been reviewed. Click "Cancel" to complete Experiments.' % experiment.name
 
     def clean_return_code(self):
