@@ -2312,4 +2312,21 @@ body.login #no-javascript {
     margin: 0;
 }
 
-
+p#vtip { 
+    display: none; 
+    position: absolute; 
+    padding: 10px; 
+    left: 5px; 
+    font-size: 0.9em; 
+    background-color: #fff1c4; 
+    border: 1px solid #e2c66c; 
+    -moz-border-radius: 5px; 
+    -webkit-border-radius: 5px; 
+    z-index: 9999
+}
+p#vtip #vtipArrow { 
+    position: absolute; 
+    top: -10px; 
+    left: 5px
+}
+ 

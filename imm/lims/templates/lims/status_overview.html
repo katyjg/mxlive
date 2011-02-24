@@ -17,7 +17,7 @@
     <tr><td class="incoming" title="In-coming items">Incoming</td>
     <td class="links">
         {% if statistics.shipments.incoming %}
-        <p>({{statistics.shipments.incoming}})<br/><a href="{% url lims-shipment-list %}?status__exact=3">Shipments</a></p>
+        <p>({{statistics.shipments.incoming}})<br/><a href="{% url lims-shipment-list %}?status__exact=4">Shipments</a></p>
         {% else %}<p class="nothing">No<br/>Shipments</p>{% endif %}
     </td> 
     <td class="links">
@@ -41,7 +41,7 @@
     </td>
     <td class="links" title="Active Experiment Requests">
         {% if statistics.experiments.active %}
-        <p>({{statistics.experiments.active}})<br/><a href="{% url lims-experiment-list %}?status__in=1,2,3">Requests</a></p>
+        <p>({{statistics.experiments.active}})<br/><a href="{% url lims-experiment-list %}?status__in=5,6,7,8">Requests</a></p>
         {% else %}<p class="nothing">No<br/>Requests</p>{% endif %}
     </td>
     </tr>
