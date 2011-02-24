@@ -132,8 +132,8 @@ MANAGER_FILTERS = {
     (Container, False) : {'status__in': [Container.STATES.DRAFT, Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED, Container.STATES.RETURNED]},
     (Crystal, True) : {'status__in': [Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
     (Crystal, False) : {'status__in': [Crystal.STATES.DRAFT, Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
-    (Experiment, True) : {'status__in': [Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.PAUSED]},
-    (Experiment, False) : {'status__in': [Experiment.STATES.DRAFT, Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.PAUSED]},
+    (Experiment, True) : {'status__in': [Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.COMPLETE, Experiment.STATES.REVIEWED]},
+    (Experiment, False) : {'status__in': [Experiment.STATES.DRAFT, Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.COMPLETE, Experiment.STATES.REVIEWED]},
 }
 
 # models.Manager ordering is overridden by admin.ModelAdmin.ordering in the ObjectList
@@ -429,17 +429,14 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
     if request.method == 'POST':
         frm = form(request.POST, request.FILES)
         frm.restrict_by('project', project_pk)
-        if request.POST.get('label') or request.POST.get('name'):
-            if request.POST.get('label'):
-                field = 'label'
-            else:
-                field = 'name'
-            if frm.duplicate_name(project, request.POST.get(field), field):
-                frm.duplicate_entry = 'An un-archived %s already exists with this %s' % (frm._meta.model.__name__, field)
+        if request.POST.get('name'):
+            if frm.duplicate_name(project, request.POST.get('name'), 'name'):
+                if frm._meta.model.__name__ == 'Cocktail' or frm._meta.model.__name__ == 'CrystalForm':
+                    frm.duplicate_entry = 'A %s with this name already exists.' % frm._meta.model.__name__
+                else:
+                    frm.duplicate_entry = 'An un-archived %s already exists with this name' % (frm._meta.model.__name__)
         if frm.is_valid():
             new_obj = frm.save()
-            if action:
-                perform_action(new_obj, action, data=frm.cleaned_data)
             info_msg = 'New %(name)s (%(obj)s) added' % {'name': smart_str(model._meta.verbose_name), 'obj': smart_str(new_obj)}
             ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE,
                 info_msg)
@@ -612,16 +609,12 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
     except:
         raise Http404
     
-    save_label = None
-    if action:
-        save_label = action[0].upper() + action[1:]
-    
     form_info = {
         'title': request.GET.get('title', 'Edit %s' % model._meta.verbose_name),
         'sub_title': obj.identity(),
         'action':  request.path,
         'target': 'entry-scratchpad',
-        'save_label': save_label
+        'save_label': 'Save'
     }
 
     if modal_upload:
@@ -633,10 +626,6 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
         if frm.is_valid():
             form_info['message'] = '%s (%s) modified' % ( model._meta.verbose_name, obj)
             frm.save()
-            # if an action ('send', 'close') is specified, the perform the action
-            if action:
-                perform_action(obj, action, data=frm.cleaned_data)
-
             request.user.message_set.create(message = form_info['message'])
             ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, form_info['message'])            
             if modal_upload:
@@ -754,7 +743,7 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
 @login_required
 @manager_required
 @transaction.commit_on_success
-def delete_object(request, id, model, form, template='objforms/form_base.html', orphan_models = None):
+def delete_object(request, id, model, form, template='objforms/form_base.html'):
     """
     A generic view which displays a form of type ``form`` using the template 
     ``template``, for deleting an object of type ``model``, identified by primary 
@@ -773,7 +762,6 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
     except:
         raise Http404
     
-    orphan_models = orphan_models or []
     form_info = {
         'title': 'Delete %s?' % obj.__unicode__(),
         'sub_title': 'The %s (%s) will be deleted' % ( model._meta.verbose_name, obj.__unicode__()),
@@ -790,7 +778,10 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
             form_info['message'] = '%s (%s) deleted' % ( model._meta.verbose_name, obj)
             if hasattr(obj, 'project'):
                 ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.DELETE,  form_info['message'])
-            delete(request, model, id, orphan_models)
+            cascade = True
+            if request.POST.get('cascade'):
+                cascade = False
+            obj.delete(request, cascade)
             request.user.message_set.create(message = form_info['message'])
             
             # prepare url to redirect after delete. Always return to list
@@ -821,9 +812,9 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
         }, context_instance=RequestContext(request))
 
 @login_required
-@project_required
+@project_optional
 @transaction.commit_on_success
-def close_object(request, id, model, form, template="objforms/form_base.html"):
+def action_object(request, id, model, form, template="objforms/form_base.html", action=None):
     """
     A generic view which displays a confirmation form and if confirmed, will
     archive the object of type ``model`` identified by primary key ``id``.
@@ -843,28 +834,44 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
     except:
         raise Http404
     object_type = model.__name__
-    
+
+    save_label = None
+    save_labeled = None
+    if action:
+        save_label = action[0].upper() + action[1:]
+        if save_label[-1:] == 'e': save_labeled = '%sd' % save_label
+        else: save_labeled = '%sed' % save_label        
+
     form_info = {
-        'title': 'Archive %s?' % obj.__unicode__(),
-        'sub_title': 'The %s %s will be archived' % (model.__name__, obj.__unicode__()),
+        'title': '%s %s?' % (save_label, obj.__unicode__()),
+        'sub_title': 'The %s %s will be %s' % (model.__name__, obj.__unicode__(), save_labeled),
         'action':  request.path,
         'target': 'entry-scratchpad',
-        'message': 'Are you sure you want to archive %s "%s"?  You can access archived objects by editing your profile and selecting "Show Archives"  ' % (
-            model.__name__, 
-            obj.__unicode__()
-            ),
-        'save_label': 'Archive'
+        'save_label': save_label
     }
+    if action == 'archive':
+        form_info['message'] = 'Are you sure you want to archive %s "%s"?  You can access archived objects by editing \n your profile and selecting "Show Archives" ' % (model.__name__, obj.__unicode__())
 
     if request.method == 'POST':
-        if request.POST.has_key('_save'):
-            str_obj = smart_str(obj)
-            archive(model, id)
-            form_info['message'] = '%s (%s) archived' % (model._meta.verbose_name, obj)
-            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.ARCHIVE, form_info['message'])
-            request.user.message_set.create(message = form_info['message'])
-            url_name = "lims-%s-list" % (model.__name__.lower())   
-            return render_to_response("lims/redirect.json", {'redirect_to': reverse(url_name),}, context_instance=RequestContext(request), mimetype="application/json")         
+        frm = form(request.POST, instance=obj)
+        frm.restrict_by('project', project_pk)
+        if frm.is_valid():
+            form_info['message'] = '%s (%s) modified' % ( model._meta.verbose_name, obj)
+            frm.save()
+            # if an action ('send', 'close') is specified, the perform the action
+            if action:
+                print action
+                if action == 'send': obj.send(request=request)
+                if action == 'load': obj.load(request=request)
+                if action == 'unload': obj.unload(request=request)
+                if action == 'return': obj.returned(request=request)
+                if action == 'archive': 
+                    obj.archive(request=request)
+                    if not obj.project.show_archives:
+                        request.user.message_set.create(message = form_info['message'])
+                        url_name = "lims-%s-list" % (model.__name__.lower())   
+                        return render_to_response("lims/redirect.json", {'redirect_to': reverse(url_name),}, context_instance=RequestContext(request), mimetype="application/json")      
+            return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
         else:
             return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
     else:
@@ -944,7 +951,7 @@ def shipment_xls(request, id):
     
         # configure an HttpResponse so that it has the mimetype and attachment name set correctly
         response = HttpResponse(mimetype='application/xls')
-        filename = ('%s-%s.xls' % (project.name, shipment.label)).replace(' ', '_')
+        filename = ('%s-%s.xls' % (project.name, shipment.name)).replace(' ', '_')
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         
         # create a temporary directory

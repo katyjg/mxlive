@@ -10,7 +10,8 @@ from imm.lims.models import Experiment
 from imm.lims.models import Beamline
 from imm.lims.models import Crystal
 from imm.lims.models import Result
-from imm.lims.models import perform_action, IDENTITY_FORMAT
+from imm.lims.models import ActivityLog
+from imm.lims.models import IDENTITY_FORMAT
 from imm.enum import Enum
 
 from django.contrib.auth.models import User
@@ -132,9 +133,6 @@ class Runlist(models.Model):
 
     def is_pdfable(self):
         return self.num_containers() > 0
-
-    def get_children(self):
-        return self.containers.all()
     
     def check_for_other_loaded_runlists(self, data=None):
         """ Checks for other Runlists in the 'loaded' state """
@@ -363,6 +361,30 @@ class Runlist(models.Model):
         self.Right = None
         self.save()
     
+    def load(self, request=None):
+        for obj in self.containers.all():
+            obj.load(request)
+        self.change_status(self.STATES.LOADED)    
+        message = '%s (%s) loaded into automounter.' % (self.__class__.__name__.upper(), self.name)
+        if request is not None:
+            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
+
+    def unload(self, request=None):
+        for obj in self.containers.all():
+            obj.unload(request)
+        self.change_status(self.STATES.COMPLETED)    
+        message = '%s (%s) unloaded from automounter.' % (self.__class__.__name__.upper(), self.name)
+        if request is not None:
+            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
+
+    def change_status(self, status):
+        if status == self.status:
+            return
+        if status not in self.TRANSITIONS[self.status]:
+            raise ValueError("Invalid transition on '%s.%s':  '%s' -> '%s'" % (self.__class__, self.pk, STATES[self.status], STATES[status]))
+        self.status = status
+        self.save()
+
     def json_dict(self):
         """ Returns a json dictionary of the Runlist """
         # meta data first
@@ -394,37 +416,7 @@ class Runlist(models.Model):
                 'containers': containers, 
                 'crystals': crystals, 
                 'experiments': experiments}
-       
-    ''' 
-    def save(self, *args, **kwargs):
-        super(Runlist, self).save(*args, **kwargs)
-        self.automounter.reset()
-        for container in self.containers.all():
-            self.automounter.add_container(container)
-    '''    
-            
-#        if self.pk is not None:
-#            orig = Runlist.objects.get(pk=self.pk)
-#            # these two seem to always match. Doesn't actually give me old and new. 
-#            logging.critical(self.containers.all())
-#            logging.critical(orig.containers.all())
-#            for container in self.containers.all():
-#                logging.critical("self.pk exists, checking container")
-#                if container not in orig.containers.all():
-#                    logging.critical("adding")
-#                    self.automounter.add_container(container)
-#            for container in orig.containers.all():
-#                if container not in self.containers.all():
-#                    logging.critical("removing")
-#                    self.automounter.remove_container(container)
-#            super(Runlist, self).save(*args, **kwargs)
-#        else:
-#            logging.critical("pk doesn't exist, add all")
-#            super(Runlist, self).save(*args, **kwargs)
-#            logging.critical(self.containers.all())
-#            for container in self.containers.all():
-#                logging.critical("Adding")
-#                self.automounter.add_container(container)
+
         
 def update_automounter(signal, sender, instance, **kwargs):
     if sender != Runlist:

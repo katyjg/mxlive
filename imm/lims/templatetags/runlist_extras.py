@@ -3,7 +3,7 @@ from django.template import Library
 from django.shortcuts import render_to_response
 
 
-from lims.models import Container
+from lims.models import Container, Experiment, Crystal
 
 register = Library()
 
@@ -32,50 +32,33 @@ def automounter_position(context, object, side, spot, letter):
         except:
             cont = None
         position = "L" + letter
-
     if side == "middle":
         try: 
             cont = Container.objects.get(pk=object.middle[spot])
         except:
             cont = None
         position = "M" + letter
-
     if side == "right":
         try: 
             cont = Container.objects.get(pk=object.right[spot])
         except:
             cont = None
         position = "R" + letter
-        
     return { 'container': cont,
               'object': object,
               'letter': position }
 
 @register.inclusion_tag('staff/entries/experiment_table.html', takes_context=True)
 def experiment_table(context, object, admin):
-    experiment_list = list()
-    if object.containers:
-        for container in object.containers.all():
-            cont_experiment_list = container.get_experiment_list()
-            for experiment in cont_experiment_list:
-                if experiment not in experiment_list:
-                    experiment_list.append(experiment)
-    
-    return { 'experiments': experiment_list,
+    experiments = Experiment.objects.filter(pk__in=Crystal.objects.filter(container__pk__in=object.containers.all()).values('experiment'))
+    return { 'experiments': experiments,
               'admin': admin,
               'object': object
             }
 
 @register.filter("in_runlist")  
 def in_runlist(crystals, containers):  
-    crystal_set = list()    
-    if containers:
-        for container in containers.all():
-            for crystal in crystals.all():
-                if crystal.container == container:
-                    crystal_set.append(crystal)
-        
-    return len(crystal_set)
+    return len(crystals.all().filter(container__pk__in=containers.all()))
 
 @register.filter("runlist_position")
 def runlist_position(runlist, container):

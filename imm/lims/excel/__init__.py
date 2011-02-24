@@ -113,16 +113,16 @@ class LimsWorkbook(object):
         
         @return: a Shipment instance
         """
-        label = "Uploaded %s " % dateformat.format(datetime.now(), 'M jS, P')
-        return Shipment(project=self.project, label=label)
+        name = "Uploaded %s " % dateformat.format(datetime.now(), 'M jS, P')
+        return Shipment(project=self.project, name=name)
     
     def _get_dewar(self):
         """ Returns a Dewar
         
         @return: a Dewar instance
         """
-        label = "Default Dewar %s " % dateformat.format(datetime.now(), 'M js, P')
-        return Dewar(project=self.project, label=label)
+        name = "Default Dewar %s " % dateformat.format(datetime.now(), 'M js, P')
+        return Dewar(project=self.project, name=name)
     
     def _get_containers(self):
         """ Returns a dict of {'name' : Container} from the Excel file 
@@ -138,7 +138,7 @@ class LimsWorkbook(object):
                     container.project = self.project
                     
                     if row_values[CRYSTAL_CONTAINER]:
-                        container.label = row_values[CRYSTAL_CONTAINER]
+                        container.name = row_values[CRYSTAL_CONTAINER]
                     else:
                         self.errors.append(CRYSTAL_CONTAINER_ERROR % (row_values[CRYSTAL_CONTAINER], row_num))
                     
@@ -147,7 +147,7 @@ class LimsWorkbook(object):
                     else:
                         self.errors.append(CRYSTAL_CONTAINER_KIND_ERROR % (row_values[CRYSTAL_CONTAINER_KIND], row_num))
                         
-                    containers[container.label] = container
+                    containers[container.name] = container
                     
                 # a bit more validation to ensure that the Container 'kind' does not change
                 else:
@@ -541,13 +541,13 @@ class LimsWorkbookExport(object):
             if crystal.code:
                 row.write(CRYSTAL_BARCODE, crystal.code)
                 
-            if crystal.num_experiments() > 0:
+            if crystal.experiment:
                 experiment = crystal.experiment
                 if experiment.name:
                     row.write(CRYSTAL_EXPERIMENT, experiment.name)
                     
-            if crystal.container and crystal.container.label:
-                row.write(CRYSTAL_CONTAINER, crystal.container.label)
+            if crystal.container and crystal.container.name:
+                row.write(CRYSTAL_CONTAINER, crystal.container.name)
                 
             if crystal.container and crystal.container.kind != None:
                 row.write(CRYSTAL_CONTAINER_KIND, Container.TYPE[crystal.container.kind])

@@ -35,7 +35,7 @@
     \vspace{0.2in}
     {% for dewar in shipment.dewar_set.all %}
     \newpage
-    {\color{blue} {\bf Return Label {{ forloop.counter }}: Replace the current label on the outside of a dewar "{{ dewar.label|texsafe|default:"" }}" with this label. } }
+    {\color{blue} {\bf Return Label {{ forloop.counter }}: Replace the current label on the outside of a dewar "{{ dewar.name|texsafe|default:"" }}" with this label. } }
     \begin{center}
         \begin{boxedminipage}{\textwidth}
         \begin{minipage}{4in}
@@ -65,7 +65,7 @@
             \colorbox[gray]{0.92}{
                 \begin{tabular*}{0.9\textwidth}{@{\extracolsep{\fill}} | p{.3\textwidth} | p{.5\textwidth} |}
                 \hline
-                Shipment name & {{shipment.label}} \\ \hline 
+                Shipment name & {{shipment.name}} \\ \hline 
                 Package Number & {{ forloop.counter}} of {{shipment.dewar_set.count}} \\ \hline
                 \hline
                 From: & {\large Canadian Light Source Inc. } \\

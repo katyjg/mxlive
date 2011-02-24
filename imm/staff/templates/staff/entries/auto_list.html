@@ -20,7 +20,7 @@
                 <li class="occupied Cassette"   
                     automounter_location="{{ side }}"
                     style="height:100%">
-                    <a href="{% url staff-container-detail cassette.pk %}" title="Go to Container {{cassette.name }}">{{ cassette.label }}</a>
+                    <a href="{% url staff-container-detail cassette.pk %}" title="Go to Container {{cassette.name }}">{{ cassette.name }}</a>
                     <a class="remove"
                        rel="{% url staff-runlist-remove-container object.pk cassette.pk %}"
                        href="#"

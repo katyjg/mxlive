@@ -100,18 +100,12 @@ def receive_shipment(request, model, form, template='objforms/form_base.html', a
             obj = frm.instance
             # if an action ('send', 'close') is specified, the perform the action
             if action:
-                perform_action(obj, action)
+                if action == 'receive':
+                    obj.receive(request)
             form_info['message'] = '%s %s successfully received' % ( model.__name__, obj.identity())
-            ActivityLog.objects.log_activity(
-                request,
-                obj,
-                ActivityLog.TYPE.MODIFY,
-                form_info['message']
-                )
             request.user.message_set.create(message = form_info['message'])
             
             return render_to_response("lims/redirect.html", context_instance=RequestContext(request)) 
-            #return HttpResponseRedirect(reverse('staff-shipment-list'))
         else:
             return render_to_response(template, {
             'info': form_info, 
@@ -298,7 +292,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
 @manager_required
 def experiment_basic_object_list(request, runlist_id, model, template='objlist/basic_object_list.html'):
     """
-    Slightly more complex than above. Should display name and id for entity, but filter
+    Should display name and id for entity, but filter
     to only display experiments with containers with unprocessed crystals available to add to a runlist.
     """
     basic_list = list()
@@ -308,26 +302,9 @@ def experiment_basic_object_list(request, runlist_id, model, template='objlist/b
     except:
         runlist = None
 
-    try:
-        experiment = Experiment.objects.get(pk=exp_id)
-    except:
-        experiment = None
-        ol.object_list = None
-
-    if runlist != None:
-        active_experiments = Experiment.objects.all().filter(status=1)
-        processing_experiments = Experiment.objects.all().filter(status=2)
-        paused_experiments = Experiment.objects.all().filter(status=3)
-
-        if runlist.containers:
-            container_list = runlist.containers.all()
-        for experiment in active_experiments:
-            exp_container_list = Container.objects.filter(crystal__experiment=experiment).distinct().exclude(id__in=container_list)
-            if len(exp_container_list) != 0:
-                basic_list.append(experiment)
+    if runlist:
+        ol.object_list = Experiment.objects.filter(status=Experiment.STATES.ACTIVE).filter(pk__in=Crystal.objects.filter(container__pk__in=Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all())).values('experiment'))
     
-    ol.object_list = basic_list
-
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
 
@@ -351,22 +328,8 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
         experiment = None
         ol.object_list = None
 
-    if runlist != None:
-        container_list = []
-        for container in Container.objects.filter(status=Container.STATES.ON_SITE):
-            exp_list = container.get_experiment_list()
-            for exp in exp_list:
-                if experiment == exp:
-                    container_list.append(container)
-        # currently selected containers
-        active_containers = runlist.containers.all()
-    
-    """ only want containers that pass experiment check. """
-    if container_list != None:
-        if len(active_containers) != 0:
-            ol.object_list = Container.objects.filter(crystal__experiment=experiment).filter(status=Container.STATES.ON_SITE).distinct().exclude(id__in=active_containers)
-        else:
-            ol.object_list = Container.objects.filter(crystal__experiment=experiment).filter(status=Container.STATES.ON_SITE).distinct()
+    if runlist and experiment:
+        ol.object_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).filter(pk__in=(experiment.crystal_set.all().values('container'))).exclude(pk__in=runlist.containers.all())
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
 @login_required
@@ -381,30 +344,48 @@ def crystal_status(request):
         Crystal.objects.filter(Q(pk__in=pks), Q(screen_status__exact=Crystal.EXP_STATES.PENDING) | Q(collect_status__exact=Crystal.EXP_STATES.PENDING)).update(collect_status=Crystal.EXP_STATES.COMPLETED, screen_status=Crystal.EXP_STATES.COMPLETED)
     return render_to_response('lims/refresh.html')
 
-@login_required
-def complete_experiment(request, id, model, form, template='objforms/form_base.html', action=None):
+@admin_login_required
+@transaction.commit_on_success
+def staff_action_object(request, id, model, form, template='objforms/form_base.html', action=None):
     try:
-        obj = Experiment.objects.get(pk=id)
+        obj = model.objects.get(pk=id)
     except:
         raise Http404
 
+    save_label = None
+    save_labeled = None
+    if action:
+        save_label = action[0].upper() + action[1:]
+        if save_label[-1:] == 'e': save_labeled = '%sd' % save_label
+        else: save_labeled = '%sed' % save_label      
+
     form_info = {
-        'title': 'Mark experiment "%s" as Reviewed?' % (model.objects.get(pk=id).name),
-        'sub_title': 'The %s will be marked as reviewed' % ( model._meta.verbose_name),
+        'title': '%s %s "%s"?' % (save_label, model.__name__, model.objects.get(pk=id).name),
+        'sub_title': 'The %s will be marked as %s' % ( model._meta.verbose_name, save_labeled),
         'action':  request.path,
-        'message': 'Are you sure no further tests of %s "%s" are necessary?' % (
+        'save_label': save_label    }
+
+    if action:
+        if action == 'review':
+            form_info['message'] = 'Are you sure no further tests of %s "%s" are necessary?' % (
             model.__name__.lower(), model.objects.get(pk=id).name),
-        'save_label': 'Review'    }
+            if not obj.is_complete():
+                form.warning_message = "There are crystals in this experiment that have not been processed according to the experiment plan."
+            else:
+                form.warning_message = None
+        if action == 'load':
+            form_info['message'] = 'You are verifying that this runlist has been loaded into the automounter.'
 
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
         if request.POST.has_key('_save'):
-            form_info['message'] = '%s (%s) completed' % ( model._meta.verbose_name, obj)
+            if action:
+                if action == 'review': obj.review(request=request)
+                if action == 'load': obj.load(request=request)
+                if action == 'unload': obj.unload(request=request)
+            form_info['message'] = '%s (%s) successfully %s' % ( model._meta.verbose_name, obj, save_labeled)
             if hasattr(obj, 'project'):
                 ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY,  form_info['message'])
-            getattr(obj, 'exp_status')
-            setattr(obj, 'exp_status', Experiment.EXP_STATES.REVIEWED)
-            obj.save()
             request.user.message_set.create(message = form_info['message'])
             return render_to_response('lims/refresh.html')
         else:
@@ -413,16 +394,14 @@ def complete_experiment(request, id, model, form, template='objforms/form_base.h
             'form' : frm, 
             }, context_instance=RequestContext(request))
     else:   
-        if not obj.is_complete():
-            form.warning_message = "There are crystals in this experiment that have not been processed according to the experiment plan."
-        else:
-            form.warning_message = None
         form._meta.model = Experiment
         frm = form(initial=dict(request.GET.items()))
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm, 
         }, context_instance=RequestContext(request))
+
+
 
 # -------------------------- JSONRPC Methods ----------------------------------------#
 from jsonrpc import jsonrpc_method

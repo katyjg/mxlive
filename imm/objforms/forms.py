@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Q
 
 class OrderedForm(forms.ModelForm):
     """
@@ -27,8 +28,7 @@ class OrderedForm(forms.ModelForm):
                     formfield.queryset = queryset.filter(**{'%s__exact' % (field_name): value})
 
     def duplicate_name(self, project, value, field):
-        for obj in self._meta.model.objects.filter(project__exact=project).exclude(status=self._meta.model.STATES.ARCHIVED):
-            if getattr(obj, field) == value:
-                return True
-        return False
-
+        if hasattr(self, 'status'):
+            return self._meta.model.objects.filter(project__exact=project).exclude(status__exact=self._meta.model.STATES.ARCHIVED).filter(name__exact=value).exists()
+        else:
+            return self._meta.model.objects.filter(Q(project__exact=project), Q(name__exact=value)).exists()
