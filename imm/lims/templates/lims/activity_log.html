@@ -8,9 +8,11 @@
             {% if log.affected_item and not request.user.is_staff%}
                 {% if modal_edit %}
             &lsquo;<a class="modal-form" href="{{log.affected_item.pk}}/edit/">{{ log.affected_item.identity }}| {{ log.affected_item}}</a>&rsquo;<br />    
-                {% else %}
+                {% else %}{% if modal_link %}
+            &lsquo;<a class="modal" href="{{log.affected_item.pk}}/">{{ log.affected_item.identity }}| {{ log.affected_item}}</a>&rsquo;<br />  
+                {% else %}   
             &lsquo;<a href="{{log.affected_item.pk}}/">{{ log.affected_item.identity }}|  {{ log.affected_item }}</a>&rsquo;<br />
-                {% endif %}
+                {% endif %}{% endif %}
             {% else %}
                 {{log.object_repr}} <br />
             {% endif %}

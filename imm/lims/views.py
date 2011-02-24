@@ -1023,16 +1023,33 @@ def add_data(request, data_info):
             v = create_download_key(v, data_info['project_id'])
         data_info[smart_str(k)] = v
     try:
+        # if id is provided, make sure it is owned by current owner otherwise add new entry
+        # to prevent overwriting other's stuff
+        force_update = False
+        if data_info.get('id') is not None:
+            try:
+                new_obj = data_owner.data_set.get(pk=data_info.get('id'))
+                force_update = True
+                data_info['created'] = datetime.now()
+            except:
+                data_info['id'] = None
+        
+                     
         new_obj = Data(**data_info)
-        new_obj.save()
+        new_obj.save(force_update=force_update)
         # check type, and change status accordingly
         if new_obj.crystal is not None:
             if new_obj.kind == Result.RESULT_TYPES.SCREENING:
                 new_obj.change_screen_status(Crystal.EXP_STATES.COMPLETED)
             elif new_obj.kind == Result.RESULT_TYPES.COLLECTION:
-                new_obj.change_collect_status(Crystal.EXP_STATES.COMPLETED)
+                new_obj.crystal.collect_status = Crystal.EXP_STATES.COMPLETED
+                new_obj.crystal.save()
+            
+        if new_obj.experiment is not None:
+            if new_obj.experiment.status == Experiment.STATES.ACTIVE:
+                new_obj.experiment.change_status(Experiment.STATES.PROCESSING)
         ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
-            "New dataset (%s) added" % new_obj)
+            "Dataset (%s) uploaded" % new_obj)
         
         return {'data_id': new_obj.pk}
     except Exception, e:
