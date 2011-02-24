@@ -62,6 +62,14 @@
     {% endfor %}
     </tr>
     </table>
+{% if object.comments or object.staff_comments %}
+    <div class="entrycomment">
+    <span class="left-pointer"></span>
+    <h3>Comments</h3>
+    <p>{{ object.comments}}</p>
+    <p>{{ object.staff_comments }}</p>
+    </div>
+{% endif %}
     <br>
     {% container_table object request.user.is_superuser %}
 

@@ -37,13 +37,14 @@
 	{% if object.energy %}<tr valign="top"><th>Energy:</th><td>{{object.energy}}</td></tr>{% endif %}
 	{% if object.absorption_edge %}<tr valign="top"><th>Absorption Edge:</th><td>{{object.absorption_edge}}</td></tr>{% endif %}
     <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
-	<tr valign="top"><th>Completed:</th><td>{% if object.is_complete %}Yes{% else %} No {% endif %}</td></tr>
+	<tr valign="top"><th>Completed:</th><td>{% if object.get_status_display == 'Complete' %}Yes{% else %} No {% endif %}</td></tr>
 </table>
-{% if object.comments %}
+{% if object.comments or object.staff_comments %}
     <div class="entrycomment">
     <span class="left-pointer"></span>
     <h3>Comments</h3>
-	<p>{{object.comments}}</p>
+    <p>{{ object.comments}}</p>
+    <p>{{ object.staff_comments }}</p>
     </div>
 {% endif %}
 <div class="clear"></div>

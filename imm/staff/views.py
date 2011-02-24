@@ -336,12 +336,26 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
 def crystal_status(request):
     pks = map(int, request.POST.getlist('id_list[]'))
     action = int(request.POST.get('action'))
-    if action == 1:
-        Crystal.objects.filter(pk__in=pks, screen_status__exact=Crystal.EXP_STATES.COMPLETED).update(screen_status=Crystal.EXP_STATES.PENDING)
-    elif action == 2:
-        Crystal.objects.filter(pk__in=pks, collect_status__exact=Crystal.EXP_STATES.COMPLETED).update(collect_status=Crystal.EXP_STATES.PENDING)
-    elif action == 3:
-        Crystal.objects.filter(Q(pk__in=pks), Q(screen_status__exact=Crystal.EXP_STATES.PENDING) | Q(collect_status__exact=Crystal.EXP_STATES.PENDING)).update(collect_status=Crystal.EXP_STATES.COMPLETED, screen_status=Crystal.EXP_STATES.COMPLETED)
+    experiment = Crystal.objects.get(pk=pks[0]).experiment
+    for crystal in Crystal.objects.filter(pk__in=pks):
+        if action == 1:
+            crystal.change_screen_status(Crystal.EXP_STATES.PENDING) 
+        elif action == 2:
+            crystal.change_collect_status(Crystal.EXP_STATES.PENDING) 
+        elif action == 3:
+            if crystal.screen_status != Crystal.EXP_STATES.COMPLETED:
+                crystal.change_screen_status(Crystal.EXP_STATES.IGNORE) 
+            if crystal.collect_status != Crystal.EXP_STATES.COMPLETED:
+                crystal.change_collect_status(Crystal.EXP_STATES.IGNORE) 
+    if experiment.is_complete():
+        experiment.change_status(Experiment.STATES.COMPLETE)
+    else:
+        if experiment.status == Experiment.STATES.COMPLETE:
+            if experiment.result_set.exists() or experiment.data_set.exists():
+                experiment.change_status(Experiment.STATES.PROCESSING)
+            else:
+                experiment.change_status(Experiment.STATES.ACTIVE)
+            
     return render_to_response('lims/refresh.html')
 
 @admin_login_required

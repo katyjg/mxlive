@@ -1,12 +1,14 @@
 import datetime
 import hashlib
 import copy
+import string
 
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
+from django.db.models import Q
 
 from imm.enum import Enum
 from jsonfield import JSONField
@@ -26,15 +28,19 @@ RESUMBITTED_LABEL = 'Resubmitted_'
 def cassette_loc_repr(pos):
     return "ABCDEFGHIJKL"[pos/8]+str(1+pos%8)
 
-class Beamline(models.Model):
-    name = models.CharField(max_length=600)
-    energy_lo = models.FloatField(default=4.0)
-    energy_hi = models.FloatField(default=18.5)
-    contact_phone = models.CharField(max_length=60)
+GLOBAL_STATES =   Enum(
+        'Draft', 
+        'Sent', 
+        'On-site',
+        'Loaded', 
+        'Returned',
+        'Active',
+        'Processing',
+        'Complete',
+        'Reviewed', 
+        'Archived',
+    )
 
-    def __unicode__(self):
-        return self.name
-        
 class ManagerWrapper(models.Manager):
     """ This a models.Manager instance that wraps any models.Manager instance and alters the query_set() of
     the warpper models.Manager instance. All it does it proxy all requests to the wrapped manager EXCEPT
@@ -127,6 +133,15 @@ class OrderByManagerWrapper(ManagerWrapper):
         query_set = query_set.order_by(*self.fields)
         return query_set
 
+class Beamline(models.Model):
+    name = models.CharField(max_length=600)
+    energy_lo = models.FloatField(default=4.0)
+    energy_hi = models.FloatField(default=18.5)
+    contact_phone = models.CharField(max_length=60)
+
+    def __unicode__(self):
+        return self.name
+
 class Carrier(models.Model):
     name = models.CharField(max_length=60)
     phone_number = models.CharField(max_length=20)
@@ -177,32 +192,15 @@ class Session(models.Model):
     comments = models.TextField()
     
 class LimsBaseClass(models.Model):
-    # STATES/TRANSITIONS/ACTIONS define a finite state machine (FSM) for the Shipment (and other 
+    # STATES/TRANSITIONS define a finite state machine (FSM) for the Shipment (and other 
     # models.Model instances also defined in this file).
     #
     # STATES: an Enum specifying all of the valid states for instances of Shipment.
     #
     # TRANSITIONS: a dict specifying valid state transitions. the keys are starting STATES and the 
     #     values are lists of valid final STATES. 
-    #
-    # ACTIONS: a dict of valid actions (messages) for the FSM. the keys are actions/messages and 
-    #    the values are dicts describing what code should be executed as a result of the action/message.
-    #    this dictionary has the following possible keys : values 
-    #        'status' : the final state of the object
-    #        'date_*' : function returning a datetime object
-    #        'methods' : a list of method names to execute in order after the status has been changed
-    STATES =   Enum(
-            'Draft', 
-            'Sent', 
-            'On-site',
-            'Loaded', 
-            'Returned',
-            'Active',
-            'Processing',
-            'Complete',
-            'Reviewed', 
-            'Archived',
-        )
+
+    STATES = GLOBAL_STATES
     TRANSITIONS = {
         STATES.DRAFT: [STATES.SENT],
         STATES.SENT: [STATES.ON_SITE],
@@ -216,13 +214,9 @@ class LimsBaseClass(models.Model):
     }
     project = models.ForeignKey(Project)
     name = models.CharField(max_length=60)
-    content_type = models.ForeignKey(ContentType,editable=False,null=True)
+    staff_comments = models.TextField(blank=True, null=True)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-
-    FIELD_TO_ENUM = {
-        'status': STATES,
-    }
 
     class Meta:
         abstract = True
@@ -240,11 +234,12 @@ class LimsBaseClass(models.Model):
         return self.status == self.STATES.RETURNED 
     
     def delete(self, request=None, cascade=True):
-        if self.is_deletable:
-            message = '%s (%s) deleted.' % (self.__class__.__name__.upper(), self.name)
-            if request is not None:
-                ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.DELETE, message)
-            super(LimsBaseClass, self).delete()
+        print self
+        message = '%s (%s) deleted.' % (self.__class__.__name__.upper(), self.name)
+        if request is not None:
+            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.DELETE, message)
+        super(LimsBaseClass, self).delete()
+        #self.__class__.objects.filter(pk__exact=self.pk).delete()
 
     def archive(self, request=None):
         if self.is_closable:
@@ -291,6 +286,14 @@ class LimsBaseClass(models.Model):
         self.status = status
         self.save()
 
+    def add_comments(self, message):
+        if self.staff_comments:
+            if string.find(self.staff_comments, message) == -1:
+                self.staff_comments += ' ' + message
+        else:
+            self.staff_comments = message
+        self.save()
+
 class ObjectBaseClass(LimsBaseClass):
     STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.SENT, LimsBaseClass.STATES.ON_SITE, LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.ARCHIVED])
 
@@ -307,13 +310,6 @@ class LoadableBaseClass(LimsBaseClass):
     class Meta:
         abstract = True
 
-class ExpBaseClass(LimsBaseClass):
-    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.PROCESSING, LimsBaseClass.STATES.COMPLETE, LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ARCHIVED])
-
-    status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
-    class Meta:
-        abstract = True
-
 class Shipment(ObjectBaseClass):
     HELP = {
         'name': "This should be an externally visible label",
@@ -321,7 +317,6 @@ class Shipment(ObjectBaseClass):
         'cascade': 'Keep dewars, containers and crystals in this shipment (those objects will have no shipment).',
     }
     comments = models.TextField(blank=True, null=True, max_length=200)
-    staff_comments = models.TextField(blank=True, null=True)
     tracking_code = models.CharField(blank=True, null=True, max_length=60)
     return_code = models.CharField(blank=True, null=True, max_length=60)
     date_shipped = models.DateTimeField(null=True, blank=True)
@@ -407,11 +402,12 @@ class Shipment(ObjectBaseClass):
                 unassociated_crystal.save()
 
     def delete(self, request=None, cascade=True):
-        if not cascade:
-            self.dewar_set.all().update(shipment=None)
-        for obj in self.dewar_set.all():
-            obj.delete(request=request)
-        super(Shipment, self).delete(request=request)
+        if self.is_deletable:
+            if not cascade:
+                self.dewar_set.all().update(shipment=None)
+            for obj in self.dewar_set.all():
+                obj.delete(request=request)
+            super(Shipment, self).delete(request=request)
 
     def send(self, request=None):
         if self.is_sendable():
@@ -442,7 +438,6 @@ class Dewar(ObjectBaseClass):
         'cascade': 'Keep containers (and crystals) in this dewar (those containers will have no dewar).',
     }
     comments = models.TextField(blank=True, null=True, help_text=HELP['comments'])
-    staff_comments = models.TextField(blank=True, null=True)
     storage_location = models.CharField(max_length=60, null=True, blank=True)
     shipment = models.ForeignKey(Shipment, blank=True, null=True)
 
@@ -463,11 +458,12 @@ class Dewar(ObjectBaseClass):
         return self.status == self.STATES.SENT 
     
     def delete(self, request=None, cascade=True):
-        if not cascade:
-            self.container_set.all().update(dewar=None)
-        for obj in self.container_set.all():
-            obj.delete(request=request)
-        super(Dewar, self).delete(request=request)
+        if self.is_deletable:
+            if not cascade:
+                self.container_set.all().update(dewar=None)
+            for obj in self.container_set.all():
+                obj.delete(request=request)
+            super(Dewar, self).delete(request=request)
 
     def send(self, request=None):
         for obj in self.container_set.all():
@@ -618,11 +614,12 @@ class Container(LoadableBaseClass):
         return retval
 
     def delete(self, request=None, cascade=True):
-        if not cascade:
-            self.crystal_set.all().update(container=None)
-        for obj in self.crystal_set.all():
-            obj.delete(request=request)
-        super(Container, self).delete(request=request)
+        if self.is_deletable:
+            if not cascade:
+                self.crystal_set.all().update(container=None)
+            for obj in self.crystal_set.all():
+                obj.delete(request=request)
+            super(Container, self).delete(request=request)
 
     def send(self, request=None):
         for obj in self.crystal_set.all():
@@ -772,7 +769,8 @@ class CrystalForm(LimsBaseClass):
                     obj.save()
         super(CrystalForm, self).delete()
 
-class Experiment(ExpBaseClass):
+class Experiment(LimsBaseClass):
+    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.PROCESSING, LimsBaseClass.STATES.COMPLETE, LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ARCHIVED])
     HELP = {
         'cascade': 'Keep crystals in this experiment (those crystals will have no experiment).',
     }
@@ -791,11 +789,9 @@ class Experiment(ExpBaseClass):
     TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
     TRANSITIONS[LimsBaseClass.STATES.DRAFT] = [LimsBaseClass.STATES.ACTIVE]
     TRANSITIONS[LimsBaseClass.STATES.ACTIVE] = [LimsBaseClass.STATES.PROCESSING, LimsBaseClass.STATES.COMPLETE, LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ARCHIVED]   
-    TRANSITIONS[LimsBaseClass.STATES.COMPLETE] = [LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ACTIVE]
-    ACTIONS = {
-        'resubmit': { 'status': LimsBaseClass.STATES.ACTIVE, 'methods': ['set_strategy_status_resubmitted',] },
-        'review': { 'exp_status': LimsBaseClass.STATES.REVIEWED, 'methods': ['set']},
-    }
+    TRANSITIONS[LimsBaseClass.STATES.COMPLETE] = [LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.PROCESSING]
+
+    status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
     resolution = models.FloatField('Desired Resolution', null=True, blank=True)
     delta_angle = models.FloatField(null=True, blank=True)
     i_sigma = models.FloatField('Desired I/Sigma', null=True, blank=True)
@@ -845,57 +841,35 @@ class Experiment(ExpBaseClass):
         Checks experiment type, and depending on type, determines if it's fully completed or not. 
         Updates Exp Status if considered complete. 
         """
-        if self.plan == Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST:
-            # complete if all crystals are "screened" and at least 1 is "collected"
-            success_collected = False
-            for crystal in self.crystal_set.all():
-                if crystal.screen_status != Crystal.EXP_STATES.COMPLETED:
-                    return False
-                if crystal.collect_status == Crystal.EXP_STATES.COMPLETED:
-                    success_collected = True
-            if success_collected:
-                self.exp_status = Experiment.STATES.COMPLETE
-            return success_collected
-        elif self.plan == Experiment.EXP_PLANS.SCREEN_AND_CONFIRM:
-            # complete if all crystals are "screened" or "collected"
-            for crystal in self.crystal_set.all():
-                if crystal.screen_status != Crystal.EXP_STATES.COMPLETED:
-                    return False
-            self.exp_status = Experiment.STATES.COMPLETE
-            return True
-        elif self.plan == Experiment.EXP_PLANS.SCREEN_AND_COLLECT:
-            # complete if all crystals are "screened" or "collected" 
-            for crystal in self.crystal_set.all():
-                if crystal.screen_status != Crystal.EXP_STATES.COMPLETED:
-                    return False
-                if crystal.collect_status != Crystal.EXP_STATES.COMPLETED:
-                    return False    
-            self.exp_status = Experiment.STATES.COMPLETE
-            return True
-        elif self.plan == Experiment.EXP_PLANS.COLLECT_FIRST_GOOD:
-            # complete if 1 crystal is collected. 
-            for crystal in self.crystal_set.all():
-                if crystal.collect_status == Crystal.EXP_STATES.COMPLETED:
-                    self.exp_status = Experiment.STATES.COMPLETE
-                    return True
+        if self.crystal_set.filter(Q(screen_status__exact=Crystal.EXP_STATES.PENDING) | Q(collect_status__exact=Crystal.EXP_STATES.PENDING)).exists():
             return False
-        elif self.plan == Experiment.EXP_PLANS.JUST_COLLECT:
-            # complete if all crystals are "collected"
-            for crystal in self.crystal_set.all():
-                if crystal.collect_status != Crystal.EXP_STATES.COMPLETED:
-                    return False
-            self.exp_status = Experiment.STATES.COMPLETE
-            return True
+        if self.plan == Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST or self.plan == Experiment.EXP_PLANS.COLLECT_FIRST_GOOD:
+            # complete if all crystals are "screened" (or "ignored") and at least 1 is "collected"
+            if not self.crystal_set.filter(collect_status__exact=Crystal.EXP_STATES.COMPLETED).exists():
+                if not self.crystal_set.filter(collect_status__exact=Crystal.EXP_STATES.NOT_REQUIRED).exists():
+                    self.add_comments('Unable to collect a dataset for any crystal in this experiment.')
+                return False
+        elif self.plan == Experiment.EXP_PLANS.SCREEN_AND_CONFIRM:
+            # complete if all crystals are "screened" (or "ignored")
+            if not self.crystal_set.exclude(screen_status__exact=Crystal.EXP_STATES.IGNORE).exists():
+                self.add_comments('Unable to screen any crystals in this experiment.')
+        elif self.plan == Experiment.EXP_PLANS.SCREEN_AND_COLLECT or self.plan == Experiment.EXP_PLANS.JUST_COLLECT:
+            # complete if all crystals are "screened" or "collected"
+            if not self.crystal_set.exclude(collect_status__exact=Crystal.EXP_STATES.IGNORE).exists():
+                self.add_comments('Unable to collect a dataset for any crystal in this experiment.')
         else:
             # should never get here.
             raise Exception('Invalid plan')  
+        return True
         
     def delete(self, request=None, cascade=True):
-        if not cascade:
-            self.crystal_set.all().update(experiment=None)
-        for obj in self.crystal_set.all():
-            obj.delete(request=request)
-        super(Experiment, self).delete(request=request)
+        if self.is_deletable:
+            if not cascade:
+                self.crystal_set.all().update(experiment=None)
+            else: 
+                for obj in self.crystal_set.all():
+                    obj.delete(request=request)
+            super(Experiment, self).delete(request=request)
 
     def review(self, request=None):
         super(Experiment, self).change_status(LimsBaseClass.STATES.REVIEWED)
@@ -941,9 +915,10 @@ class Crystal(LoadableBaseClass):
         'cocktail': '',
     }
     EXP_STATES = Enum(
-        'Ignore',
+        'Not Required',
         'Pending',
         'Completed',
+        'Ignore',
     )
     code = models.SlugField(null=True, blank=True)
     crystal_form = models.ForeignKey(CrystalForm, null=True, blank=True)
@@ -953,8 +928,8 @@ class Crystal(LoadableBaseClass):
     container = models.ForeignKey(Container, null=True, blank=True)
     container_location = models.CharField(max_length=10, null=True, blank=True)
     comments = models.TextField(blank=True, null=True)
-    collect_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.IGNORE)
-    screen_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.IGNORE)
+    collect_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.NOT_REQUIRED)
+    screen_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.NOT_REQUIRED)
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
     experiment = models.ForeignKey(Experiment, null=True, blank=True)
@@ -995,26 +970,18 @@ class Crystal(LoadableBaseClass):
         assert self.experiment
         self.experiment.status = Experiment.STATES.ACTIVE
         self.experiment.save()
-        if self.experiment.plan == Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST:
-            self.screen_status = Crystal.EXP_STATES.PENDING
-            self.save()
-            return
-        if self.experiment.plan == Experiment.EXP_PLANS.COLLECT_FIRST_GOOD:
-            return
-        if self.experiment.plan == Experiment.EXP_PLANS.JUST_COLLECT:
-            self.collect_status = Crystal.EXP_STATES.PENDING
-            self.save()
-            return
-        self.screen_status = Crystal.EXP_STATES.PENDING
-        if self.experiment.plan == Experiment.EXP_PLANS.SCREEN_AND_COLLECT:
-            self.collect_status = Crystal.EXP_STATES.PENDING
-        self.save()
+        if self.experiment.plan != Experiment.EXP_PLANS.JUST_COLLECT:
+            self.change_screen_status(Crystal.EXP_STATES.PENDING)
+            if self.experiment.plan != Experiment.EXP_PLANS.SCREEN_AND_COLLECT:
+                return
+        self.change_collect_status(Crystal.EXP_STATES.PENDING) 
 
     def delete(self, request=None, cascade=True):
-        if self.experiment:
-            if self.experiment.crystal_set.count() == 1:
-                self.experiment.delete(request=request)
-        super(Crystal, self).delete(request=request)
+        if self.is_deletable:
+            if self.experiment:
+                if self.experiment.crystal_set.count() == 1:
+                    self.experiment.delete(request=request, cascade=False)
+            super(Crystal, self).delete(request=request)
 
     def send(self, request=None):
         self.activate_associated_experiments()
@@ -1025,6 +992,16 @@ class Crystal(LoadableBaseClass):
         assert self.experiment
         if self.experiment.crystal_set and self.experiment.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).count() == 0:
             super(Experiment, self.experiment).archive(request=request)
+
+    def change_screen_status(self, status):
+        if self.screen_status != status:
+            self.screen_status = status
+            self.save()
+
+    def change_collect_status(self, status):
+        if self.collect_status != status:
+            self.collect_status = status
+            self.save()
 
     def json_dict(self):
         return {
@@ -1037,22 +1014,19 @@ class Crystal(LoadableBaseClass):
             'comments': self.comments
         }
         
-class Data(models.Model):
+class Data(LimsBaseClass):
     DATA_TYPES = Enum(
         'Screening',   
         'Collection',
     )
-    project = models.ForeignKey(Project)
     experiment = models.ForeignKey(Experiment, null=True, blank=True)
     crystal = models.ForeignKey(Crystal, null=True, blank=True)
-    name = models.CharField(max_length=20)
     resolution = models.FloatField()
     start_angle = models.FloatField()
     delta_angle = models.FloatField()
     first_frame = models.IntegerField(default=1)
     #changed to frame_sets 
     frame_sets = models.CharField(max_length=200)
-    #num_frames = models.IntegerField('No. Images')
     exposure_time = models.FloatField()
     two_theta = models.FloatField()
     wavelength = models.FloatField()
@@ -1064,13 +1038,7 @@ class Data(models.Model):
     beamline = models.ForeignKey(Beamline)
     url = models.CharField(max_length=200)
     kind = models.IntegerField('Data type',max_length=1, choices=DATA_TYPES.get_choices(), default=DATA_TYPES.SCREENING)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
     
-    FIELD_TO_ENUM = {
-        'kind': DATA_TYPES,
-    }
-
     # need a method to determine how many frames are in item
     def num_frames(self):
         return len(self.get_frame_list())          
@@ -1120,22 +1088,43 @@ class Data(models.Model):
     
     def start_angle_for_frame(self, frame):
         return (frame - self.first_frame) * self.delta_angle + self.start_angle 
-
         
     class Meta:
         verbose_name = 'Dataset'
 
+class Strategy(LimsBaseClass):
+    attenuation = models.FloatField()
+    distance = models.FloatField(default=200.0)
+    start_angle = models.FloatField(default=0.0)
+    delta_angle = models.FloatField(default=1.0)
+    total_angle = models.FloatField(default=180.0)
+    exposure_time = models.FloatField(default=1.0)
+    two_theta = models.FloatField(default=0.0)
+    energy = models.FloatField(default=12.658)
+    exp_resolution = models.FloatField('Expected Resolution')
+    exp_completeness = models.FloatField('Expected Completeness')
+    exp_multiplicity = models.FloatField('Expected Multiplicity')
+    exp_i_sigma = models.FloatField('Expected I/Sigma')
+    exp_r_factor =models.FloatField('Expected R-factor')
 
-class Result(models.Model):
+    def identity(self):
+        return 'ST%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
+
+    def is_strategy_type(self):
+        return True
+
+    class Meta:
+        verbose_name_plural = 'Strategies'
+
+class Result(LimsBaseClass):
     RESULT_TYPES = Enum(
         'Screening',   
         'Collection',
     )
-    project = models.ForeignKey(Project)
     experiment = models.ForeignKey(Experiment, null=True, blank=True)
     crystal = models.ForeignKey(Crystal, null=True, blank=True)
     data = models.ForeignKey(Data)
-    name = models.CharField(max_length=20)
     score = models.FloatField()
     space_group = models.ForeignKey(SpaceGroup)
     cell_a = models.FloatField('a')
@@ -1160,135 +1149,31 @@ class Result(models.Model):
     url = models.CharField(max_length=200)
     kind = models.IntegerField('Result type',max_length=1, choices=RESULT_TYPES.get_choices())
     details = JSONField()
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-    
-    FIELD_TO_ENUM = {
-        'kind': RESULT_TYPES,
-    }
+    strategy = models.OneToOneField(Strategy, null=True, blank=True)
     
     def identity(self):
         return 'RT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
 
-    def __unicode__(self):
-        return self.name
-
     class Meta:
         ordering = ['-score']
         verbose_name = 'Analysis Report'
 
-class Strategy(models.Model):
-    STATES = Enum(
-        'Waiting', 
-        'Rejected',
-        'Resubmitted',
-    )
-    TRANSITIONS = {
-        STATES.WAITING: [STATES.REJECTED, STATES.RESUBMITTED],
-    }
-    ACTIONS = {
-        'reject': { 'status': STATES.REJECTED },
-        'resubmit': { 'status': STATES.RESUBMITTED }
-    }
-    project = models.ForeignKey(Project)
-    result = models.ForeignKey(Result, unique=True)
-    attenuation = models.FloatField()
-    name = models.CharField(max_length=20)
-    distance = models.FloatField(default=200.0)
-    start_angle = models.FloatField(default=0.0)
-    delta_angle = models.FloatField(default=1.0)
-    total_angle = models.FloatField(default=180.0)
-    exposure_time = models.FloatField(default=1.0)
-    two_theta = models.FloatField(default=0.0)
-    energy = models.FloatField(default=12.658)
-    exp_resolution = models.FloatField('Expected Resolution')
-    exp_completeness = models.FloatField('Expected Completeness')
-    exp_multiplicity = models.FloatField('Expected Multiplicity')
-    exp_i_sigma = models.FloatField('Expected I/Sigma')
-    exp_r_factor =models.FloatField('Expected R-factor')
-    status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.WAITING)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-    
-    FIELD_TO_ENUM = {
-        'status': STATES,
-    }
-
-    def identity(self):
-        return 'ST%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-
-    def __unicode__(self):
-        return self.name
-
-    def is_resubmittable(self):
-        return self.status == self.STATES.WAITING and \
-               self.result.experiment.status in [Experiment.STATES.ACTIVE, 
-                                                 Experiment.STATES.PROCESSING, 
-                                                 Experiment.STATES.PAUSED]
-    
-    def is_rejectable(self):
-        return self.status == self.STATES.WAITING and \
-               self.result.experiment.status in [Experiment.STATES.ACTIVE, 
-                                                 Experiment.STATES.PROCESSING, 
-                                                 Experiment.STATES.PAUSED]
-    def is_strategy_type(self):
-        return True
-
-    class Meta:
-        verbose_name_plural = 'Strategies'
-
-class ScanResult(models.Model):
+class ScanResult(LimsBaseClass):
     SCAN_TYPES = Enum(
         'MAD Scan',   
         'Excitation Scan',
     )
-    project = models.ForeignKey(Project)
     experiment = models.ForeignKey(Experiment, null=True, blank=True)
     crystal = models.ForeignKey(Crystal, null=True, blank=True)
     edge = models.CharField(max_length=20)
     details = JSONField()
     kind = models.IntegerField('Scan type',max_length=1, choices=SCAN_TYPES.get_choices())
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-    
-    FIELD_TO_ENUM = {
-        'kind': SCAN_TYPES,
-    }
     
     def identity(self):
         return 'SC%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
     
-    def __unicode__(self):
-        return self.name
-
-class Feedback(models.Model):
-    TYPE = Enum(
-        'Remote Control',
-        'LIMS Website',
-        'Other',
-    )
-    project = models.ForeignKey(Project)
-    category = models.IntegerField('Category',max_length=1, choices=TYPE.get_choices())
-    contact_name = models.CharField(max_length=100, blank=True, null=True)
-    contact = models.EmailField(max_length=100, blank=True, null=True)
-    message = models.TextField(blank=False)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-
-    def is_editable(self):
-        return True
-
-    def __unicode__(self):
-        if len(self.message) > 23:
-            return "%s:'%s'..." % (self.get_category_display(), self.message[:20])
-        else:
-            return "%s:'%s'" % (self.get_category_display(), self.message)
-  
-    class Meta:
-        verbose_name = 'Feedback comment'
-
 class ActivityLogManager(models.Manager):
     def log_activity(self, request, obj, action_type, description=''):
         e = self.model()
@@ -1349,13 +1234,34 @@ class ActivityLog(models.Model):
     objects = ActivityLogManager()
     created.weekly_filter = True
     
-
     class Meta:
         ordering = ('-created',)
     
     def __unicode__(self):
         return str(self.created)
     
+class Feedback(models.Model):
+    TYPE = Enum(
+        'Remote Control',
+        'LIMS Website',
+        'Other',
+    )
+    project = models.ForeignKey(Project)
+    category = models.IntegerField('Category',max_length=1, choices=TYPE.get_choices())
+    contact_name = models.CharField(max_length=100, blank=True, null=True)
+    contact = models.EmailField(max_length=100, blank=True, null=True)
+    message = models.TextField(blank=False)
+    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
+
+    def __unicode__(self):
+        if len(self.message) > 23:
+            return "%s:'%s'..." % (self.get_category_display(), self.message[:20])
+        else:
+            return "%s:'%s'" % (self.get_category_display(), self.message)
+  
+    class Meta:
+        verbose_name = 'Feedback comment'
+
 __all__ = [
     'ExcludeManagerWrapper',
     'FilterManagerWrapper',
@@ -1365,19 +1271,19 @@ __all__ = [
     'Project',
     'Session',
     'Beamline',
-    'Cocktail',
-    'Crystal',
-    'CrystalForm',
     'Shipment',
-    'Container',
     'Dewar',
+    'Container',
+    'SpaceGroup',
+    'Cocktail',
+    'CrystalForm',
     'Experiment',
-    'ScanResult',
-    'Result',
+    'Crystal',
     'Data',
     'Strategy',
-    'SpaceGroup',
-    'Feedback',
+    'Result',
+    'ScanResult',
     'ActivityLog',
+    'Feedback',
     ]   
 

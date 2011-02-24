@@ -109,8 +109,8 @@ admin.site.register(Data, DataAdmin)
 class StrategyAdmin(admin.ModelAdmin):
     ordering = ['-created']
     search_fields = ['name']
-    list_filter = ['modified','status']
-    list_display = ('identity', 'name', 'status', 'result', 'start_angle', 'delta_angle', 'total_angle', 'exposure_time', 'energy', 'exp_completeness')
+    list_filter = ['modified']
+    list_display = ('identity', 'name', 'result', 'start_angle', 'delta_angle', 'total_angle', 'exposure_time', 'energy', 'exp_completeness')
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Strategy, StrategyAdmin)
 

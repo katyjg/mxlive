@@ -860,7 +860,6 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
             frm.save()
             # if an action ('send', 'close') is specified, the perform the action
             if action:
-                print action
                 if action == 'send': obj.send(request=request)
                 if action == 'load': obj.load(request=request)
                 if action == 'unload': obj.unload(request=request)
@@ -1029,11 +1028,9 @@ def add_data(request, data_info):
         # check type, and change status accordingly
         if new_obj.crystal is not None:
             if new_obj.kind == Result.RESULT_TYPES.SCREENING:
-                new_obj.crystal.screen_status = Crystal.EXP_STATES.COMPLETED
-                new_obj.crystal.save()
+                new_obj.change_screen_status(Crystal.EXP_STATES.COMPLETED)
             elif new_obj.kind == Result.RESULT_TYPES.COLLECTION:
-                new_obj.crystal.collect_status = Crystal.EXP_STATES.COMPLETED
-                new_obj.crystal.save()
+                new_obj.change_collect_status(Crystal.EXP_STATES.COMPLETED)
         ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
             "New dataset (%s) added" % new_obj)
         

@@ -50,7 +50,7 @@
             {% endif %}
         </tr>
     </table>
-    {% if object.comments %}
+    {% if object.comments or object.staff_comments%}
     <div class="entrycomment">
     <span class="left-pointer"></span>
     <h3>Comments</h3>
