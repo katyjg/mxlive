@@ -234,12 +234,10 @@ class LimsBaseClass(models.Model):
         return self.status == self.STATES.RETURNED 
     
     def delete(self, request=None, cascade=True):
-        print self
         message = '%s (%s) deleted.' % (self.__class__.__name__.upper(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.DELETE, message)
         super(LimsBaseClass, self).delete()
-        #self.__class__.objects.filter(pk__exact=self.pk).delete()
 
     def archive(self, request=None):
         if self.is_closable:

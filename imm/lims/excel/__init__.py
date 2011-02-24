@@ -121,7 +121,7 @@ class LimsWorkbook(object):
         
         @return: a Dewar instance
         """
-        name = "Default Dewar %s " % dateformat.format(datetime.now(), 'M js, P')
+        name = "Dewar %s" % dateformat.format(datetime.now(), 'Y/m/d/H:i:s')
         return Dewar(project=self.project, name=name)
     
     def _get_containers(self):
@@ -264,12 +264,14 @@ class LimsWorkbook(object):
             if row_values[EXPERIMENT_KIND]:
                 experiment.kind = Experiment.EXP_TYPES.get_value_by_name(row_values[EXPERIMENT_KIND]) # validated by Excel
             else:
-                self.errors.append(EXPERIMENT_KIND_ERROR % (row_values[EXPERIMENT_KIND], row_num))
+                # default to Native
+                experiment.kind = Experiment.EXP_TYPES.NATIVE
                 
             if row_values[EXPERIMENT_PLAN]:
                 experiment.plan = Experiment.EXP_PLANS.get_value_by_name(row_values[EXPERIMENT_PLAN]) # validated by Excel
             else:
-                self.errors.append(EXPERIMENT_PLAN_ERROR % (row_values[EXPERIMENT_PLAN], row_num))
+                # no experiment plan provided default to just collect
+                experiment.plan = Experiment.EXP_PLANS.SCREEN_AND_COLLECT
                 
             if row_values[EXPERIMENT_ABSORPTION_EDGE]:
                 experiment.absorption_edge = row_values[EXPERIMENT_ABSORPTION_EDGE]
@@ -342,11 +344,8 @@ class LimsWorkbook(object):
                 if not crystal.container.location_is_valid(crystal.container_location):
                     self.errors.append(CRYSTAL_CONTAINER_LOCATION_ERROR % (row_values[CRYSTAL_CONTAINER_LOCATION], row_num))
                 
-            NAME_JOIN_STRING = '/'
             if row_values[CRYSTAL_COCKTAIL] and row_values[CRYSTAL_COCKTAIL] in self.cocktails:
                 crystal.cocktail = self.cocktails[row_values[CRYSTAL_COCKTAIL]]
-            else:
-                self.errors.append(CRYSTAL_COCKTAIL_ERROR % (row_values[CRYSTAL_CONTAINER], row_num))
                 
             if row_values[CRYSTAL_COMMENTS]:
                 crystal.comments = row_values[CRYSTAL_COMMENTS]
