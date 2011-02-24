@@ -1011,9 +1011,11 @@ class Crystal(LoadableBaseClass):
         self.save()
 
     def delete(self, request=None, cascade=True):
+        print "request to delete crystal", self.pk
         if self.experiment:
             if self.experiment.crystal_set.count() == 1:
                 self.experiment.delete(request=request)
+        
         super(Crystal, self).delete(request=request)
 
     def send(self, request=None):
