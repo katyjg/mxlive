@@ -1042,8 +1042,7 @@ def add_data(request, data_info):
             if new_obj.kind == Result.RESULT_TYPES.SCREENING:
                 new_obj.change_screen_status(Crystal.EXP_STATES.COMPLETED)
             elif new_obj.kind == Result.RESULT_TYPES.COLLECTION:
-                new_obj.crystal.collect_status = Crystal.EXP_STATES.COMPLETED
-                new_obj.crystal.save()
+                new_obj.change_collect_status(Crystal.EXP_STATES.COMPLETED)
             
         if new_obj.experiment is not None:
             if new_obj.experiment.status == Experiment.STATES.ACTIVE:

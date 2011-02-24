@@ -234,7 +234,7 @@ class LimsBaseClass(models.Model):
         return self.status == self.STATES.RETURNED 
     
     def delete(self, request=None, cascade=True):
-        message = '%s (%s) deleted.' % (self.__class__.__name__.upper(), self.name)
+        message = '%s (%s) deleted.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:], self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.DELETE, message)
         super(LimsBaseClass, self).delete()
@@ -260,7 +260,7 @@ class LimsBaseClass(models.Model):
 
     def load(self, request=None):
         self.change_status(self.STATES.LOADED)    
-        message = '%s (%s) loaded into automounter.' % (self.__class__.__name__.upper(), self.name)
+        message = '%s (%s) loaded into automounter.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:], self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
