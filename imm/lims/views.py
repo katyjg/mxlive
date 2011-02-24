@@ -1046,6 +1046,10 @@ def add_data(request, data_info):
             elif new_obj.kind == Result.RESULT_TYPES.COLLECTION:
                 new_obj.crystal.collect_status = Crystal.EXP_STATES.COMPLETED
                 new_obj.crystal.save()
+            
+        if new_obj.experiment is not None:
+            if new_obj.experiment.status == Experiment.STATES.ACTIVE:
+                new_obj.experiment.change_status(Experiment.STATES.PROCESSING)
         ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
             "Dataset (%s) uploaded" % new_obj)
         
