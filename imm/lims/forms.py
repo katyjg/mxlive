@@ -66,7 +66,7 @@ class ShipmentForm(objforms.forms.OrderedForm):
         
 class ConfirmDeleteForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    cascade = objforms.widgets.LeftCheckBoxField(required=False, label='Keep all child objects associated with this object.')
+    cascade = objforms.widgets.LargeCheckBoxField(required=False, label='Keep all child objects associated with this object.')
     class Meta:
         fields = ('project','cascade')
 

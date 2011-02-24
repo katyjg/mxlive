@@ -47,7 +47,7 @@ except:
     from django.utils import simplejson as json
 
 
-ACTIVITY_LOG_LENGTH  = 10       
+ACTIVITY_LOG_LENGTH  = 8       
 
 def get_ldap_user_info(username):
     """
