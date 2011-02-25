@@ -109,6 +109,20 @@ div.entrycomment span.left-pointer {
 
 }
 
+div.entrycomment .user {
+    font-size: 90%;
+    color: #a38db6;
+}
+
+div.entrycomment .staff {
+    font-size: 90%;
+    color: #333;
+}
+
+div.entrycomment .errors {
+    font-size: 90%;
+    color: red;
+}
 
 .entrysummary { 
     margin-bottom: 0.5em;

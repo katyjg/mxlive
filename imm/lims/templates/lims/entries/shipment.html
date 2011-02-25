@@ -47,14 +47,16 @@
     <div class="entrycomment">
     <span class="left-pointer"></span>
     <h3>Comments</h3>
-    <p>{{ shipment.comments|default:""}}</p>
-    <p>{{ shipment.staff_comments|default:""}}</p>
+    <p class="user">{{ object.comments|default:""}}</p>
+    <p class="staff">{{ object.staff_comments|default:""}}</p>
     	{% if shipment.shipping_errors %}
-    	<ul>
+    	<p class="errors">
     	{% for error in shipment.shipping_errors %}
-        <li style="color: red">{{error}}</li>
+        {% if forloop.counter != 1 %}; 
+        {% endif %}
+        {{error|capfirst}}
         {% endfor %}
-        </ul>
+        </p>
     	{% endif  %}
     </div>
 {% endif  %}
