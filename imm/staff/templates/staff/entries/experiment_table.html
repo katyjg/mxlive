@@ -23,7 +23,7 @@
                     <td>{{ experiment.name }}</td>
                     <td>{{ experiment.get_kind_display }}</td>
                     <td>{{ experiment.get_plan_display }}</td>
-                    <td>{{ experiment.crystal_set|num_on_site:object.containers }}/{{ experiment.num_crystals }}</td>
+                    <td>{{ experiment.crystal_set|in_runlist:object.containers }}/{{ experiment.num_crystals }}</td>
                     <td>{{ experiment.get_status_display }}</td>
                 </tr>
             {% endfor %}

@@ -67,6 +67,7 @@ class Runlist(models.Model):
         'Pending', 
         'Loaded', 
         'Unloaded',
+        'Incomplete',
         'Completed',
         'Closed',
     )
