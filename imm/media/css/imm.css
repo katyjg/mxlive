@@ -489,6 +489,8 @@ li.list-empty {
     border: 0px !important;
 }
 
+.staff-comment { color:#000080; }
+
 div.left{
 	display:inline;
 	float:left;

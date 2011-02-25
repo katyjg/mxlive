@@ -6,6 +6,11 @@
 <ul class="toolbar">
     {# STAFF TOOLS #}
     {% if request.user.is_staff %}
+        <li class="feedback-tool">
+            <a href="{% url staff-staffcomments-add object.pk %}" class="action modal-form">
+                Add Comments
+            </a>
+        </li>
         {% if object.is_reviewable %}
             <li class="review-tool">
                 <a href="{% url staff-experiment-complete object.pk %}"  class="action modal-form">

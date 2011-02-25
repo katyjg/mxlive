@@ -592,11 +592,6 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
     key ``id``, which when submitted will update the entry asynchronously through
     AJAX.
     """
-    #if request.GET.get('orphan_field', None) is not None:
-    #    params = {'%s__isnull' %  str(request.GET['orphan_field']): True}
-    #   objects = request.manager.filter(**params)
-    #else:
-    #    objects = request.manager.all()
     if request.project:
         project = request.project
         project_pk = project.pk
@@ -645,6 +640,42 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
         }, context_instance=RequestContext(request))
        
        
+@login_required
+@transaction.commit_on_success
+def staff_comments(request, id, model, form, template='objforms/form_base.html'):
+    try:
+        obj = model.objects.get(pk=id)
+    except:
+        raise Http404
+    
+    form_info = {
+        'title': 'Add a note to this %s' % model._meta.verbose_name,
+        'sub_title': obj.identity(),
+        'action':  request.path,
+        'target': 'entry-scratchpad',
+        'save_label': 'Save'
+    }
+
+    if request.method == 'POST':
+        frm = form(request.POST, instance=obj)
+        if frm.is_valid():
+            form_info['message'] = '%s (%s) modified' % ( model._meta.verbose_name, obj)
+            frm.save()
+            request.user.message_set.create(message = form_info['message'])
+            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, form_info['message'])            
+            return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
+        else:
+            return render_to_response(template, {
+            'info': form_info, 
+            'form' : frm, 
+            }, context_instance=RequestContext(request))
+    else:
+        frm = form(instance=obj, initial=dict(request.GET.items())) # casting to a dict pulls out first list item in each value list
+        return render_to_response(template, {
+        'info': form_info, 
+        'form' : frm,
+        }, context_instance=RequestContext(request))
+
 @login_required
 @transaction.commit_on_success
 def remove_object(request, src_id, obj_id, source, object, dest_id=None, destination=None, reverse=False):

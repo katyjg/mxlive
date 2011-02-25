@@ -104,6 +104,15 @@ for section, subsection in _URL_META.items():
                                    },
                  'staff-%s-delete' % params.get('model').__name__.lower()))
 
+        # Add Staff Comments
+        if params.get('staff_comments', True):
+            _dynamic_patterns.append(
+                (r'%s/(?P<id>\d+)/staff_comments/add/$' % (base_url),
+                 'staff_comments', {'model': params.get('model'),
+                                    'form': StaffCommentsForm,
+                                   },
+                 'staff-staffcomments-add'))        
+
 #Special Staff Cases
 urlpatterns = patterns('imm.staff.views',
     (r'^$', 'staff_home', {}, 'staff-home'),
@@ -122,8 +131,6 @@ urlpatterns = patterns('imm.staff.views',
     (r'^runlist/(?P<dest_id>\d+)/widget/.*/container/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'add_existing_object', {'destination':Runlist, 'object':Container }, 'staff-runlist-add-container'),
     (r'^runlist/(?P<id>\d+)/load/$', 'staff_action_object', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'load'}, 'staff-runlist-load'),
     (r'^runlist/(?P<id>\d+)/unload/$', 'staff_action_object', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'unload'}, 'staff-runlist-complete'),
-    #(r'^runlist/(?P<id>\d+)/accept/$', 'action_object', {'model': Runlist, 'form': RunlistAcceptForm, 'template': 'objforms/form_base.html', 'action' : 'accept'}, 'staff-runlist-accept'),
-    #(r'^runlist/(?P<id>\d+)/reject/$', 'action_object', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'reject'}, 'staff-runlist-reject'),
 )
 
 # Dynamic patterns here

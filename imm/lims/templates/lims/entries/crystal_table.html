@@ -24,7 +24,7 @@
            		{% endif %}
                 <th>Name</th>
                 {% if admin %}
-                	<th>Collect, Screen</th>
+                	<th>Collect</th><th>Screen</th>
                 {% else %}
             		<th>Status</th>
             	{% endif %}
@@ -49,15 +49,11 @@
 	            			{% if crystal.collect_status != Crystal.EXP_STATES.IGNORE %}
 	            				{{ crystal.get_collect_status_display }}
 	            			{% endif %}
-	            			{% if crystal.collect_status != Crystal.EXP_STATES.IGNORE %}
-	            				{% if crystal.screen_status != Crystal.EXP_STATES.IGNORE %}
-	            				, 
-	            				{% endif %}
-	            			{% endif %}
+                        </td>
+                        <td>
 	            			{% if crystal.screen_status != Crystal.EXP_STATES.IGNORE %}
 	            				{{ crystal.get_screen_status_display }}
 	            			{% endif %}
-	            			
 	            		</td>
 	            	{% else %}
 	            		<td class="redirect"

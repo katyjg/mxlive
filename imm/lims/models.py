@@ -234,7 +234,7 @@ class LimsBaseClass(models.Model):
         return self.status == self.STATES.RETURNED 
     
     def delete(self, request=None, cascade=True):
-        message = '%s (%s) deleted.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:], self.name)
+        message = '%s (%s) deleted.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.DELETE, message)
         super(LimsBaseClass, self).delete()
@@ -242,37 +242,37 @@ class LimsBaseClass(models.Model):
     def archive(self, request=None):
         if self.is_closable:
             self.change_status(self.STATES.ARCHIVED)
-            message = '%s (%s) archived.' % (self.__class__.__name__.upper(), self.name)
+            message = '%s (%s) archived.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
             if request is not None:
                 ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.ARCHIVE, message)
 
     def send(self, request=None):
         self.change_status(self.STATES.SENT)       
-        message = '%s (%s) sent to CLS.' % (self.__class__.__name__.upper(), self.name)
+        message = '%s (%s) sent to CLS.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def receive(self, request=None):
         self.change_status(self.STATES.ON_SITE) 
-        message = '%s (%s) received at CLS.' % (self.__class__.__name__.upper(), self.name)
+        message = '%s (%s) received at CLS.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def load(self, request=None):
         self.change_status(self.STATES.LOADED)    
-        message = '%s (%s) loaded into automounter.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:], self.name)
+        message = '%s (%s) loaded into automounter.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def unload(self, request=None):
         self.change_status(self.STATES.ON_SITE)   
-        message = '%s (%s) unloaded from automounter.' % (self.__class__.__name__.upper(), self.name)
+        message = '%s (%s) unloaded from automounter.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def returned(self, request=None):
         self.change_status(self.STATES.RETURNED)     
-        message = '%s (%s) returned.' % (self.__class__.__name__.upper(), self.name)
+        message = '%s (%s) returned.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
@@ -846,6 +846,7 @@ class Experiment(LimsBaseClass):
             if not self.crystal_set.filter(collect_status__exact=Crystal.EXP_STATES.COMPLETED).exists():
                 if not self.crystal_set.filter(collect_status__exact=Crystal.EXP_STATES.NOT_REQUIRED).exists():
                     self.add_comments('Unable to collect a dataset for any crystal in this experiment.')
+                    return True
                 return False
         elif self.plan == Experiment.EXP_PLANS.SCREEN_AND_CONFIRM:
             # complete if all crystals are "screened" (or "ignored")
