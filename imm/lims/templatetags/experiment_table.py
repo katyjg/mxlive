@@ -13,46 +13,25 @@ from django.utils.datastructures import MultiValueDict
 
 from imm.lims.models import Container
 from imm.lims.models import Experiment
+from imm.lims.models import Crystal
 
 register = Library()
 
 @register.inclusion_tag('lims/entries/experiment_table.html', takes_context=True)
 def experiment_table(context, object, admin):
-    experiment_list = list()
-    experiments = list()
-    dewar_list = object.dewar_set.all()
-    conts = list()
-    for dewar in dewar_list:
-        cont_list = dewar.container_set.all()
-        for cont in cont_list:
-            if cont not in conts:
-                conts.append(cont)
+    containers = object.project.container_set.filter(dewar__in=object.dewar_set.all())
+    experiments = object.project.experiment_set.filter(pk__in=object.project.crystal_set.filter(container__dewar__shipment__exact=object.pk).values('experiment')).order_by('priority').reverse()
 
-    if conts:
-        for container in conts:
-            cont_experiment_list = container.get_experiment_list()
-            for experiment in cont_experiment_list:
-                if experiment not in experiment_list:
-                    experiment_list.append(experiment)
-    
-    for exp in Experiment.objects.all().order_by('priority').reverse():
-        if exp in experiment_list:
-            experiments.append(exp)
-
-    
     return { 'experiments': experiments,
-              'containers': conts,
+              'containers': containers,
               'admin': admin,
               'object': object
             }
 
 @register.filter("in_shipment")  
-def in_shipment(crystals, containers):  
-    crystal_set = list()    
-    if containers:
-        for container in containers:
-            for crystal in crystals.all():
-                if crystal.container == container:
-                    crystal_set.append(crystal)
-        
-    return len(crystal_set)
+def in_shipment(crystals, containers):
+    return crystals.filter(container__in=containers).count()
+
+@register.filter("arrived_onsite")
+def arrived_onsite(crystals, containers):
+    return crystals.filter(container__in=containers).filter(status__exact=Crystal.STATES.ON_SITE).count()

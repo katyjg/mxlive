@@ -39,12 +39,22 @@
     <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
 	<tr valign="top"><th>Completed:</th><td>{% if object.get_status_display == 'Complete' %}Yes{% else %} No {% endif %}</td></tr>
 </table>
-{% if object.comments or object.staff_comments %}
+
+{% if object.comments or object.staff_comments or object.experiment_errors %}
     <div class="entrycomment">
     <span class="left-pointer"></span>
     <h3>Comments</h3>
     <p class="user">{{ object.comments|default:""}}</p>
     <p class="staff">{{ object.staff_comments|default:""}}</p>
+    	{% if object.experiment_errors %}
+    	<p class="errors">
+    	{% for error in object.experiment_errors %}
+        {% if forloop.counter != 1 %}; 
+        {% endif %}
+        {{error|capfirst}}
+        {% endfor %}
+        </p>
+    	{% endif  %}
     </div>
 {% endif %}
 <div class="clear"></div>

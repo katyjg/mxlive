@@ -17,7 +17,7 @@ _URL_META = {
         'container':{'model': Container, 'form': ContainerForm},        
     },
     'samples': {
-        'crystal':  {'model': Crystal, 'form': SampleForm},
+        'crystal':  {'model': Crystal, 'form': SampleForm, 'delete_form': LimsBasicForm},
         'cocktail': {'model': Cocktail, 'form': CocktailForm, 'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True}, 
         'crystalform': {'model': CrystalForm, 'form': CrystalFormForm,'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True},  
     },
@@ -89,7 +89,7 @@ for section, subsection in _URL_META.items():
             _dynamic_patterns.append(
                 (r'^%s/%s/(?P<id>\d+)/delete/$' % (section, key),
                  'delete_object', {'model': params.get('model'),
-                                   'form': ConfirmDeleteForm,
+                                   'form': params.get('delete_form', ConfirmDeleteForm),
                                    'template': params.get('form_template', 'objforms/form_base.html'),
                                    },
                  'lims-%s-delete' % params.get('model').__name__.lower()))

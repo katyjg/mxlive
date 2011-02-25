@@ -12,6 +12,9 @@
 {% if form.get_message %}
     <div>{{form.get_message}}</div>
 {% endif %}
+{% if  form.help_text %}
+<p class="instruct"><small>{{form.help_text}}</small></p>
+{% endif %}
 {% if form %}
 {% block form_display %}
     {% show_form form info %}

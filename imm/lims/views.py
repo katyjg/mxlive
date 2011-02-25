@@ -585,7 +585,7 @@ def edit_profile(request, form, template='objforms/form_base.html', action=None)
 @login_required
 @manager_required
 @transaction.commit_on_success
-def edit_object_inline(request, id, model, form, template='objforms/form_base.html', action=None, modal_upload=False):
+def edit_object_inline(request, id, model, form, template='objforms/form_base.html', modal_upload=False):
     """
     A generic view which displays a form of type ``form`` using the template 
     ``template``, for editing an object of type ``model``, identified by primary 
@@ -643,7 +643,6 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
 @login_required
 @transaction.commit_on_success
 def staff_comments(request, id, model, form, template='objforms/form_base.html'):
-    print model
     try:
         obj = model.objects.get(pk=id)
     except:
@@ -660,7 +659,7 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html')
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
         if frm.is_valid():
-            form_info['message'] = '%s (%s) modified' % ( model._meta.verbose_name, obj)
+            form_info['message'] = '%s (%s) comments added by staff' % ( model._meta.verbose_name, obj)
             frm.save()
             request.user.message_set.create(message = form_info['message'])
             ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, form_info['message'])            
@@ -671,7 +670,7 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html')
             'form' : frm, 
             }, context_instance=RequestContext(request))
     else:
-        frm = form(instance=obj, initial=dict(request.GET.items())) # casting to a dict pulls out first list item in each value list
+        frm = form(instance=obj, initial=dict(request.GET.items())) 
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm,
@@ -721,14 +720,6 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
             obj_manager = FilterManagerWrapper(obj_manager, project__exact=project)
         except Project.DoesNotExist:
             raise Http404
-    
-#    try:
-#        # get all items of the type we want to add to
-#        manager = getattr(project, source.__name__.lower()+'_set')
-#        obj_manager = getattr(project, object.__name__.lower()+'_set')
-#        
-#    except: 
-#        raise Http404
     
     #get just the items we want
     src = manager.get(pk=src_id)
@@ -808,11 +799,9 @@ def delete_object(request, id, model, form, template='objforms/form_base.html'):
         frm.restrict_by('project', project_pk)
         if request.POST.has_key('_save'):
             form_info['message'] = '%s (%s) deleted' % ( model._meta.verbose_name, obj)
-            if hasattr(obj, 'project'):
-                ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.DELETE,  form_info['message'])
-            cascade = True
+            cascade = False
             if request.POST.get('cascade'):
-                cascade = False
+                cascade = True
             obj.delete(request, cascade)
             request.user.message_set.create(message = form_info['message'])
             
@@ -836,6 +825,9 @@ def delete_object(request, id, model, form, template='objforms/form_base.html'):
             }, context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=None) 
+        if 'cascade' in frm.fields:
+            frm.fields['cascade'].label = 'Delete all %s associated with this %s.' % (obj.HELP['cascade'], model.__name__.lower())
+            frm.fields['cascade'].help_text = 'If this box is left blank, only the %s will be deleted and all associated %s.' % (model.__name__.lower(), obj.HELP['cascade_help'])
         frm.restrict_by('project', project_pk)
         return render_to_response(template, {
         'info': form_info, 
@@ -882,7 +874,7 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
         'save_label': save_label
     }
     if action == 'archive':
-        form_info['message'] = 'Are you sure you want to archive %s "%s"?  You can access archived objects by editing \n your profile and selecting "Show Archives" ' % (model.__name__, obj.__unicode__())
+        form_info['message'] = 'Are you sure you want to archive %s "%s"?  ' % (model.__name__, obj.__unicode__())
 
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
@@ -908,6 +900,7 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
     else:
         frm = form(instance=obj, initial=None) 
         frm.restrict_by('project', project_pk)
+        frm.help_text = 'You can access archived objects by editing \n your profile and selecting "Show Archives" '
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm, 

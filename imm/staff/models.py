@@ -66,19 +66,19 @@ class Runlist(models.Model):
     STATES = Enum(
         'Pending', 
         'Loaded', 
+        'Unloaded',
         'Completed',
         'Closed',
     )
     TRANSITIONS = {
         STATES.PENDING: [STATES.LOADED],
-        STATES.LOADED: [STATES.COMPLETED],
+        STATES.LOADED: [STATES.UNLOADED],
+        STATES.INCOMPLETE: [STATES.COMPLETED],
         STATES.COMPLETED: [STATES.PENDING, STATES.CLOSED],
     }
     ACTIONS = {
         'load': { 'status': STATES.LOADED, 'methods': ['check_for_other_loaded_runlists'] },
         'unload': { 'status': STATES.COMPLETED },
-        'accept': { 'status': STATES.CLOSED, 'methods': ['send_accept_message'] },
-        'reject': { 'status': STATES.PENDING },
     }
     status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.PENDING)
     name = models.CharField(max_length=600)
@@ -372,7 +372,7 @@ class Runlist(models.Model):
     def unload(self, request=None):
         for obj in self.containers.all():
             obj.unload(request)
-        self.change_status(self.STATES.COMPLETED)    
+        self.change_status(self.STATES.UNLOADED)    
         message = '%s (%s) unloaded from automounter.' % (self.__class__.__name__.upper(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
