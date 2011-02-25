@@ -643,6 +643,7 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
 @login_required
 @transaction.commit_on_success
 def staff_comments(request, id, model, form, template='objforms/form_base.html'):
+    print model
     try:
         obj = model.objects.get(pk=id)
     except:

@@ -7,7 +7,7 @@
     {# STAFF TOOLS #}
     {% if request.user.is_staff %}
         <li class="feedback-tool">
-            <a href="{% url staff-staffcomments-add object.pk %}" class="action modal-form">
+            <a href="{{ handler }}staff_comments/add/" class="action modal-form">
                 Add Comments
             </a>
         </li>

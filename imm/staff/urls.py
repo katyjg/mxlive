@@ -111,7 +111,7 @@ for section, subsection in _URL_META.items():
                  'staff_comments', {'model': params.get('model'),
                                     'form': StaffCommentsForm,
                                    },
-                 'staff-staffcomments-add'))        
+                 'staff-comments-%s-add'% params.get('model').__name__.lower()))        
 
 #Special Staff Cases
 urlpatterns = patterns('imm.staff.views',
