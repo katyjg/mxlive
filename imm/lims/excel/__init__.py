@@ -113,15 +113,16 @@ class LimsWorkbook(object):
         
         @return: a Shipment instance
         """
-        name = "Uploaded %s " % dateformat.format(datetime.now(), 'M jS, P')
-        return Shipment(project=self.project, name=name)
+        name = "Shipment %s" % dateformat.format(datetime.now(), 'ymd His')
+        staff_comments = "Uploaded on %s." % (dateformat.format(datetime.now(), 'M, jS P'))
+        return Shipment(project=self.project, name=name, staff_comments=staff_comments)
     
     def _get_dewar(self):
         """ Returns a Dewar
         
         @return: a Dewar instance
         """
-        name = "Dewar %s" % dateformat.format(datetime.now(), 'Y/m/d/H:i:s')
+        name = "Dewar %s" % dateformat.format(datetime.now(), 'ymd His')
         return Dewar(project=self.project, name=name)
     
     def _get_containers(self):

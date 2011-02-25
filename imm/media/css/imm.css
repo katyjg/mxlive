@@ -109,6 +109,20 @@ div.entrycomment span.left-pointer {
 
 }
 
+div.entrycomment .user {
+    font-size: 90%;
+    color: #a38db6;
+}
+
+div.entrycomment .staff {
+    font-size: 90%;
+    color: #333;
+}
+
+div.entrycomment .errors {
+    font-size: 90%;
+    color: red;
+}
 
 .entrysummary { 
     margin-bottom: 0.5em;
@@ -488,8 +502,6 @@ div.system-message p.system-message-title { padding:4px 5px 4px 25px; margin:0; 
 li.list-empty {
     border: 0px !important;
 }
-
-.staff-comment { color:#000080; }
 
 div.left{
 	display:inline;

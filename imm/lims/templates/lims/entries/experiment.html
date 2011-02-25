@@ -43,8 +43,13 @@
     <div class="entrycomment">
     <span class="left-pointer"></span>
     <h3>Comments</h3>
+<<<<<<< HEAD
     <p>{{ object.comments}}</p>
     <p class="staff-comment">{{ object.staff_comments }}</p>
+=======
+    <p class="user">{{ object.comments|default:""}}</p>
+    <p class="staff">{{ object.staff_comments|default:""}}</p>
+>>>>>>> 3fb4a833993d8162d96f6c5584dfb0ec9331e228
     </div>
 {% endif %}
 <div class="clear"></div>
