@@ -47,7 +47,7 @@ except:
     from django.utils import simplejson as json
 
 
-ACTIVITY_LOG_LENGTH  = 8       
+ACTIVITY_LOG_LENGTH  = 5      
 
 def get_ldap_user_info(username):
     """
@@ -219,6 +219,11 @@ def show_project(request):
                 'outgoing': project.shipment_set.filter(status__exact=Shipment.STATES.SENT).count(),
                 'incoming': project.shipment_set.filter(status__exact=Shipment.STATES.RETURNED).count(),
                 'on_site': project.shipment_set.filter(status__exact=Shipment.STATES.ON_SITE).count(),
+                },
+        'dewars': {
+                'outgoing': project.dewar_set.filter(status__exact=Dewar.STATES.SENT).count(),
+                'incoming': project.dewar_set.filter(status__exact=Dewar.STATES.RETURNED).count(),
+                'on_site': project.dewar_set.filter(status__exact=Dewar.STATES.ON_SITE).count(),
                 },
         'experiments': {
                 'active': project.experiment_set.filter(status__exact=Experiment.STATES.ACTIVE).count(),
@@ -429,12 +434,15 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
     if request.method == 'POST':
         frm = form(request.POST, request.FILES)
         frm.restrict_by('project', project_pk)
-        if request.POST.get('name'):
-            if frm.duplicate_name(project, request.POST.get('name'), 'name'):
-                if frm._meta.model.__name__ == 'Cocktail' or frm._meta.model.__name__ == 'CrystalForm':
-                    frm.duplicate_entry = 'A %s with this name already exists.' % frm._meta.model.__name__
-                else:
-                    frm.duplicate_entry = 'An un-archived %s already exists with this name' % (frm._meta.model.__name__)
+        
+        # This should be moved into the clean method of the appropriate Form
+        #if request.POST.get('name'):
+        #    if frm.duplicate_name(project, request.POST.get('name'), 'name'):
+        #        if frm._meta.model.__name__ == 'Cocktail' or frm._meta.model.__name__ == 'CrystalForm':
+        #            frm.duplicate_entry = 'A %s with this name already exists.' % frm._meta.model.__name__
+        #        else:
+        #            frm.duplicate_entry = 'An un-archived %s already exists with this name' % (frm._meta.model.__name__)
+        
         if frm.is_valid():
             new_obj = frm.save()
             info_msg = 'New %(name)s (%(obj)s) added' % {'name': smart_str(model._meta.verbose_name), 'obj': smart_str(new_obj)}
@@ -781,7 +789,7 @@ def delete_object(request, id, model, form, template='objforms/form_base.html'):
             cascade = True
             if request.POST.get('cascade'):
                 cascade = False
-            obj.delete(request, cascade)
+            obj.delete(request=request, cascade=cascade)
             request.user.message_set.create(message = form_info['message'])
             
             # prepare url to redirect after delete. Always return to list

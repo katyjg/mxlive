@@ -168,7 +168,9 @@ urlpatterns += patterns('django.views.generic.simple',
 # Debug options
 if settings.DEBUG:
     urlpatterns += patterns('',
-        (r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': os.path.join('media/')}),
+        (r'^media/(?P<path>.*)$', 'django.views.static.serve', {
+            'document_root': os.path.join(os.path.dirname(__file__), 'media/')
+        }),
     )
     
     from django.contrib import databrowse

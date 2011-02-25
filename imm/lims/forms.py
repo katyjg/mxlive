@@ -144,7 +144,7 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
         help_text='Please select the carrier company. To change shipping companies, edit your profile on the Project Home page.',
         required=True, initial=''
         )
-    tracking_code = objforms.widgets.LargeCharField(required=True)
+    tracking_code = objforms.widgets.LargeCharField(required=False)
     comments = objforms.widgets.CommentField(required=False)
     
     class Meta:

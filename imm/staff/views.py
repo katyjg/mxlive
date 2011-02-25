@@ -55,6 +55,11 @@ def staff_home(request):
                 'incoming': Shipment.objects.filter(status__exact=Shipment.STATES.RETURNED).count(),
                 'on_site': Shipment.objects.filter(status__exact=Shipment.STATES.ON_SITE).count(),
                 },
+        'dewars': {
+                'outgoing': Dewar.objects.filter(status__exact=Dewar.STATES.SENT).count(),
+                'incoming': Dewar.objects.filter(status__exact=Dewar.STATES.RETURNED).count(),
+                'on_site': Dewar.objects.filter(status__exact=Dewar.STATES.ON_SITE).count(),
+                },
         'experiments': {
                 'active': Experiment.objects.filter(status__exact=Experiment.STATES.ACTIVE).count(),
                 'processing': Experiment.objects.filter(status__exact=Experiment.STATES.PROCESSING).count(),
@@ -377,7 +382,7 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
         'title': '%s %s "%s"?' % (save_label, model.__name__, model.objects.get(pk=id).name),
         'sub_title': 'The %s will be marked as %s' % ( model._meta.verbose_name, save_labeled),
         'action':  request.path,
-        'save_label': save_label    }
+        'save_label': save_label }
 
     if action:
         if action == 'review':

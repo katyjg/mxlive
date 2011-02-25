@@ -3,12 +3,12 @@
     <tr><td class="outgoing" title="Out-going items">Outgoing</td>
     <td class="links">
         {% if statistics.shipments.outgoing %}
-        <p>({{statistics.shipments.outgoing}})<br/><a href="{% url lims-shipment-list %}?status__exact=1">Shipments</a></p>
+        <p>({{statistics.shipments.outgoing}})<br/><a href="{% url lims-shipment-list %}?status__exact=1">Shipment{{statistics.shipments.outgoing|pluralize}}</a></p>
         {% else %}<p class="nothing">No<br/>Shipments</p>{% endif %}
     </td>
     <td class="links">
         {% if statistics.crystals.outgoing %}
-        <p>({{statistics.crystals.outgoing}})<br><a href="{% url lims-crystal-list %}?status__exact=1">Crystals</a></p>
+        <p>({{statistics.crystals.outgoing}})<br><a href="{% url lims-crystal-list %}?status__exact=1">Crystal{{statistics.crystals.outgoing|pluralize}}</a></p>
         {% else %}<p class="nothing">No<br/>Crystals</p>{% endif %}
     </td>
     <td>&nbsp;</td>
@@ -17,12 +17,12 @@
     <tr><td class="incoming" title="In-coming items">Incoming</td>
     <td class="links">
         {% if statistics.shipments.incoming %}
-        <p>({{statistics.shipments.incoming}})<br/><a href="{% url lims-shipment-list %}?status__exact=4">Shipments</a></p>
+        <p>({{statistics.shipments.incoming}})<br/><a href="{% url lims-shipment-list %}?status__exact=4">Shipment{{statistics.shipments.incoming|pluralize}}</a></p>
         {% else %}<p class="nothing">No<br/>Shipments</p>{% endif %}
     </td> 
     <td class="links">
         {% if statistics.crystals.incoming %}
-        <p>({{statistics.crystals.incoming}})<br/><a href="{% url lims-crystal-list %}?status__exact=4">Crystals</a></p>
+        <p>({{statistics.crystals.incoming}})<br/><a href="{% url lims-crystal-list %}?status__exact=4">Crystal{{statistics.crystals.incoming|pluralize}}</a></p>
         {% else %}<p class="nothing">No<br/>Crystals</p>{% endif %}
     </td>
     <td>&nbsp;</td>
@@ -30,30 +30,30 @@
 
     <tr><td class="on-site" title="On-site items">On-site</td>
     <td class="links">
-        {% if statistics.shipments.on_site %}
-        <p>({{statistics.shipments.on_site}})<br/><a href="{% url lims-shipment-list %}?status__exact=2">Shipments</a></p>
-        {% else %}<p class="nothing">No<br/>Shipments</p>{% endif %}
+        {% if statistics.dewars.on_site %}
+        <p>({{statistics.dewars.on_site}})<br/><a href="{% url lims-dewar-list %}?status__exact=2">Dewar{{statistics.dewars.on_site|pluralize}}</a></p>
+        {% else %}<p class="nothing">No<br/>Dewars</p>{% endif %}
     </td> 
     <td class="links">
         {% if statistics.crystals.on_site %}
-        <p>({{statistics.crystals.on_site}})<br/><a href="{% url lims-crystal-list %}?status__in=2,3">Crystals</a></p>
+        <p>({{statistics.crystals.on_site}})<br/><a href="{% url lims-crystal-list %}?status__in=2,3">Crystal{{statistics.crystals.on_site|pluralize}}</a></p>
         {% else %}<p class="nothing">No<br/>Crystals</p>{% endif %}
     </td>
     <td class="links" title="Active Experiment Requests">
         {% if statistics.experiments.active %}
-        <p>({{statistics.experiments.active}})<br/><a href="{% url lims-experiment-list %}?status__in=5,6,7,8">Requests</a></p>
+        <p>({{statistics.experiments.active}})<br/><a href="{% url lims-experiment-list %}?status__in=5,6,7,8">Request{{statistics.experiments.active|pluralize}}</a></p>
         {% else %}<p class="nothing">No<br/>Requests</p>{% endif %}
     </td>
     </tr>
     <tr><td class="new" title="Datasets and Reports added since last login or in the past week">New!</td>
     <td class="links">
         {% if statistics.datasets.new %}
-        <p>({{statistics.datasets.new}})<br/><a href="{% url lims-data-list %}?modified__gte={{statistics.datasets.start_date|date:'Y-m-d'}}">Datasets</a></p>
+        <p>({{statistics.datasets.new}})<br/><a href="{% url lims-data-list %}?modified__gte={{statistics.datasets.start_date|date:'Y-m-d'}}">Dataset{{statistics.datasets.new|pluralize}}</a></p>
         {% else %}<p class="nothing">No<br/>Datasets</p>{% endif %}
     </td> 
     <td class="links">
         {% if statistics.reports.new %}
-        <p>({{statistics.reports.new}})<br/><a href="{% url lims-result-list %}?modified__gte={{statistics.reports.start_date|date:'Y-m-d'}}">Reports</a></p>
+        <p>({{statistics.reports.new}})<br/><a href="{% url lims-result-list %}?modified__gte={{statistics.reports.start_date|date:'Y-m-d'}}">Report{{statistics.reports.new|pluralize}}</a></p>
         {% else %}<p class="nothing">No<br/>Reports</p>{% endif %}
     </td>
     <td>&nbsp;</td>
