@@ -240,7 +240,7 @@ class LimsBaseClass(models.Model):
         super(LimsBaseClass, self).delete()
 
     def archive(self, request=None):
-        if self.is_closable:
+        if self.is_closable():
             self.change_status(self.STATES.ARCHIVED)
             message = '%s (%s) archived.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
             if request is not None:
@@ -313,7 +313,7 @@ class Shipment(ObjectBaseClass):
         'name': "This should be an externally visible label",
         'comments': "Use this field to jot notes related to this shipment for your own use",
         'cascade': 'dewars, containers and crystals (along with experiments)',
-        'cascade_help': 'dewars will be left without a shipment'
+        'cascade_help': 'All associated dewars will be left without a shipment'
     }
     comments = models.TextField(blank=True, null=True, max_length=200)
     tracking_code = models.CharField(blank=True, null=True, max_length=60)
@@ -401,7 +401,7 @@ class Shipment(ObjectBaseClass):
                 unassociated_crystal.save()
 
     def delete(self, request=None, cascade=True):
-        if self.is_deletable:
+        if self.is_deletable():
             if not cascade:
                 self.dewar_set.all().update(shipment=None)
             for obj in self.dewar_set.all():
@@ -435,7 +435,7 @@ class Dewar(ObjectBaseClass):
         'name': "An externally visible label on the dewar. If there is a barcode on the dewar, please scan it here",
         'comments': "Use this field to jot notes related to this shipment for your own use",
         'cascade': 'containers and crystals (along with experiments)',
-        'cascade_help': 'containers will be left without a dewar'
+        'cascade_help': 'All associated containers will be left without a dewar'
     }
     comments = models.TextField(blank=True, null=True, help_text=HELP['comments'])
     storage_location = models.CharField(max_length=60, null=True, blank=True)
@@ -458,7 +458,7 @@ class Dewar(ObjectBaseClass):
         return self.status == self.STATES.SENT 
     
     def delete(self, request=None, cascade=True):
-        if self.is_deletable:
+        if self.is_deletable():
             if not cascade:
                 self.container_set.all().update(dewar=None)
             for obj in self.container_set.all():
@@ -502,7 +502,7 @@ class Container(LoadableBaseClass):
         'code': "If there is a barcode on the container, please scan the value here",
         'capacity': "The maximum number of samples this container can hold",
         'cascade': 'crystals (along with experiments)',
-        'cascade_help': 'crystals will be left without a container'
+        'cascade_help': 'All associated crystals will be left without a container'
     }
     code = models.SlugField(null=True, blank=True)
     kind = models.IntegerField('type', max_length=1, choices=TYPE.get_choices() )
@@ -708,7 +708,7 @@ class Cocktail(LimsBaseClass):
     HELP = {
         'constituents': 'Comma separated list of the constituents in this cocktail',
         'cascade': 'crystals',
-        'cascade_help': 'crystals will be left without a cocktail'
+        'cascade_help': 'All associated crystals will be left without a cocktail'
     }
     constituents = models.CharField(max_length=200) 
     is_radioactive = models.BooleanField()
@@ -744,7 +744,7 @@ class Cocktail(LimsBaseClass):
 class CrystalForm(LimsBaseClass):
     HELP = {
         'cascade': 'crystals',
-        'cascade_help': 'crystals will be left without a crystal form'
+        'cascade_help': 'All associated crystals will be left without a crystal form'
     }
     space_group = models.ForeignKey(SpaceGroup,null=True, blank=True)
     cell_a = models.FloatField(' a', null=True, blank=True)
@@ -777,7 +777,7 @@ class Experiment(LimsBaseClass):
     STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.PROCESSING, LimsBaseClass.STATES.COMPLETE, LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ARCHIVED])
     HELP = {
         'cascade': 'crystals',
-        'cascade_help': 'crystals will be left without an experiment'
+        'cascade_help': 'All associated crystals will be left without an experiment'
     }
     EXP_TYPES = Enum(
         'Native',   
@@ -929,7 +929,7 @@ class Crystal(LoadableBaseClass):
         'name': "Give the sample a name by which you can recognize it",
         'code': "If there is a datamatrix code on sample, please scan or input the value here",
         'pin_length': "18 mm pins are standard. Please make sure you discuss other sizes with Beamline staff before sending the sample!",
-        'comments': 'Add extra notes for your own use here',
+        'comments': 'You can use restructured text formatting in this field',
         'cocktail': '',
     }
     EXP_STATES = Enum(

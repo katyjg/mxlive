@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% load zip %}
+{% load markup %}
+
 {% block headline %}
     {% ifequal object.kind object.RESULT_TYPES.SCREENING %}
         <h2 class="screen"> Crystal Screening Report - &ldquo;{{object.name}}&rdquo;</h2>

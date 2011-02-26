@@ -28,6 +28,20 @@ def handle_uploaded_file(f):
         destination.write(chunk)
     destination.close()
 
+class StaffBaseClass(models.Model):
+    def is_deletable(self):
+        return True
+
+    def delete(self, *args, **kwargs):
+        request = kwargs.get('request', None)
+        message = '%s (%s) deleted.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.__unicode__())
+        if request is not None:
+            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.DELETE, message, )
+        super(StaffBaseClass, self).delete()
+
+    class Meta:
+        abstract = True
+
 class Link(models.Model):
     TYPE = Enum(
         'iframe',
@@ -62,7 +76,7 @@ class Link(models.Model):
     def save(self, *args, **kwargs):
         super(Link, self).save(*args, **kwargs)
 
-class Runlist(models.Model):
+class Runlist(StaffBaseClass):
     STATES = Enum(
         'Pending', 
         'Loaded', 
@@ -81,6 +95,7 @@ class Runlist(models.Model):
         'load': { 'status': STATES.LOADED, 'methods': ['check_for_other_loaded_runlists'] },
         'unload': { 'status': STATES.COMPLETED },
     }
+    HELP = {}
     status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.PENDING)
     name = models.CharField(max_length=600)
     containers = models.ManyToManyField(Container)

@@ -808,7 +808,7 @@ def delete_object(request, id, model, form, template='objforms/form_base.html'):
             cascade = False
             if request.POST.get('cascade'):
                 cascade = True
-            obj.delete(request, cascade)
+            obj.delete(request=request, cascade=cascade)
             request.user.message_set.create(message = form_info['message'])
             
             # prepare url to redirect after delete. Always return to list
@@ -832,8 +832,8 @@ def delete_object(request, id, model, form, template='objforms/form_base.html'):
     else:
         frm = form(instance=obj, initial=None) 
         if 'cascade' in frm.fields:
-            frm.fields['cascade'].label = 'Delete all %s associated with this %s.' % (obj.HELP['cascade'], model.__name__.lower())
-            frm.fields['cascade'].help_text = 'If this box is left blank, only the %s will be deleted and all associated %s.' % (model.__name__.lower(), obj.HELP['cascade_help'])
+            frm.fields['cascade'].label = 'Delete all %s associated with this %s.' % (obj.HELP.get('cascade','objects'), model.__name__.lower())
+            frm.fields['cascade'].help_text = 'If this box is left unchecked, only the %s will be deleted. %s' % (model.__name__.lower(), obj.HELP.get('cascade_help',''))
         frm.restrict_by('project', project_pk)
         return render_to_response(template, {
         'info': form_info, 

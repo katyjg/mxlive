@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load markup %}
 
 {% block headline %}
 <h2><span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
@@ -47,16 +48,16 @@
     <div class="entrycomment">
     <span class="left-pointer"></span>
     <h3>Comments</h3>
-    <p class="user">{{ object.comments|default:""}}</p>
-    <p class="staff">{{ object.staff_comments|default:""}}</p>
+    <div class="user">{{ object.comments|restructuredtext}}</div>
+    <div class="staff">{{ object.staff_comments|restructuredtext}}</div>
     	{% if shipment.shipping_errors %}
-    	<p class="errors">
+    	<div class="errors">
     	{% for error in shipment.shipping_errors %}
         {% if forloop.counter != 1 %}; 
         {% endif %}
         {{error|capfirst}}
         {% endfor %}
-        </p>
+        </div>
     	{% endif  %}
     </div>
 {% endif  %}

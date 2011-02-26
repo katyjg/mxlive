@@ -33,7 +33,7 @@ _URL_META = {
     '': {
         'feedback': {'model': Feedback, 'template': 'lims/feedback_item.html', 'list_link': False, 'list_modal': True},
         'runlist': {'model': Runlist, 'form': RunlistForm, 'template': 'staff/entries/runlist.html', 
-                    'list_add': True, 'add': True, 'edit': True, 'delete': True},
+                    'list_add': True, 'add': True, 'edit': True, 'delete': True, 'delete_form': LimsBasicForm},
         'link': {'model': Link, 'form': LinkForm, 'list_template': 'staff/lists/link_object_list.html', 
                  'detail': False, 'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True,
                  'list_add': True, 'add': True, 'edit': True, 'delete': True, 'form_template': 'objforms/form_full.html', 'modal_upload': True},
@@ -99,7 +99,7 @@ for section, subsection in _URL_META.items():
             _dynamic_patterns.append(
                 (r'%s/(?P<id>\d+)/delete/$' % (base_url),
                  'delete_object', {'model': params.get('model'),
-                                   'form': ConfirmDeleteForm,
+                                   'form': params.get('delete_form', ConfirmDeleteForm),
                                    'template': 'objforms/form_base.html',
                                    },
                  'staff-%s-delete' % params.get('model').__name__.lower()))

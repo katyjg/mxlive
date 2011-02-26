@@ -127,6 +127,11 @@ div.entrycomment .errors {
     color: red;
 }
 
+div.entrycomment ul li {
+    list-style-type: square;
+    list-style-position: inside;
+}
+
 .entrysummary { 
     margin-bottom: 0.5em;
     width: 300px;

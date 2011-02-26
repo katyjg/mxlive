@@ -50,7 +50,8 @@ class ShipmentForm(objforms.forms.OrderedForm):
         widget=objforms.widgets.LargeInput,
         help_text=Shipment.HELP['name']
         )
-    comments = objforms.widgets.CommentField(required=False)
+    comments = objforms.widgets.CommentField(required=False,
+           help_text='You can use Restructured Text formatting here.')
 
     def clean_name(self):
         try:
@@ -145,7 +146,8 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
         required=True, initial=''
         )
     tracking_code = objforms.widgets.LargeCharField(required=False)
-    comments = objforms.widgets.CommentField(required=False)
+    comments = objforms.widgets.CommentField(required=False,
+           help_text='You can use Restructured Text formatting here.')
     
     class Meta:
         model = Shipment
@@ -189,7 +191,8 @@ class DewarForm(objforms.forms.OrderedForm):
     name =  objforms.widgets.BarCodeField(
         help_text=Dewar.HELP['name']
         )
-    comments = objforms.widgets.CommentField(required=False)
+    comments = objforms.widgets.CommentField(required=False,
+           help_text='You can use Restructured Text formatting here.')
 
     def clean_name(self):
         try:
@@ -212,7 +215,8 @@ class ContainerForm(objforms.forms.OrderedForm):
         )
     code = objforms.widgets.MatrixCodeField(required=False, help_text=Container.HELP['code'])
     kind = forms.ChoiceField(choices=Container.TYPE.get_choices(), widget=objforms.widgets.LargeSelect, initial=Container.TYPE.UNI_PUCK)
-    comments = objforms.widgets.CommentField(required=False)
+    comments = objforms.widgets.CommentField(required=False,
+           help_text='You can use Restructured Text formatting here.')
     
     def clean_kind(self):
         """ Ensures that the 'kind' of Container cannot be changed when Crystals are associated with it """
@@ -314,7 +318,8 @@ class ExperimentForm(objforms.forms.OrderedForm):
     r_meas = forms.FloatField(label='Desired R-factor', widget=objforms.widgets.RightHalfInput, required=False )
     energy = forms.DecimalField( max_digits=10, decimal_places=4, widget=objforms.widgets.LeftHalfInput, required=False )
     absorption_edge = objforms.widgets.RightHalfCharField(required=False )
-    comments = objforms.widgets.CommentField(required=False)
+    comments = objforms.widgets.CommentField(required=False,
+           help_text='You can use Restructured Text formatting here.')
 
     def clean_name(self):
         try:
@@ -348,7 +353,8 @@ class ExperimentFromStrategyForm(objforms.forms.OrderedForm):
     energy = forms.DecimalField(widget=objforms.widgets.LeftHalfInput, required=False )
     absorption_edge = objforms.widgets.RightHalfCharField(required=False )
     crystals = forms.ModelChoiceField(queryset=None, widget=forms.Select)
-    comments = objforms.widgets.CommentField(required=False)
+    comments = objforms.widgets.CommentField(required=False,
+           help_text='You can use Restructured Text formatting here.')
     class Meta:
         model = Experiment
         fields = ('project','strategy', 'name', 'kind', 'plan', 'resolution',
@@ -446,7 +452,8 @@ class FeedbackForm(objforms.forms.OrderedForm):
     contact_name = objforms.widgets.LargeCharField(label='Name (optional)', required=False)
     contact = forms.EmailField(widget=objforms.widgets.LargeInput, label="Email Address (optional)", required=False)
     category = forms.ChoiceField(choices=Feedback.TYPE.get_choices(), widget=objforms.widgets.LargeSelect)
-    message = objforms.widgets.LargeTextField(required=True)
+    message = objforms.widgets.LargeTextField(required=True,
+           help_text='You can use Restructured Text formatting to compose your message.')
     class Meta:
         model = Feedback
         fields = ('project','contact_name','contact','category','message')
