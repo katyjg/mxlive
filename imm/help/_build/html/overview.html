@@ -1,0 +1,164 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Overview &mdash; LIMS v1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="LIMS v1.0.0 documentation" href="index.html" />
+    <link rel="next" title="Getting Started" href="getting_started.html" />
+    <link rel="prev" title="LIMS’s documentation" href="index.html" /> 
+  </head>
+  <body>
+
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="getting_started.html" title="Getting Started"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="index.html" title="LIMS’s documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">home</a>|&nbsp;</li>
+        <li><a href="search.html">search</a>|&nbsp;</li>
+ 
+      </ul>
+    </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Overview</a><ul>
+<li><a class="reference internal" href="#lims-entities">LIMS Entities</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">LIMS&#8217;s documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="getting_started.html"
+                        title="next chapter">Getting Started</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="overview">
+<span id="id1"></span><h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
+<p>The CMCF LIMS is a Laboratory Information Management System for managing sample,
+shipping and experiment information related to macromolecular crystallography
+experiments at the Canadian Light Source, Inc. It will assists you to prepare
+crystal samples for shipping to the CLS, request experiments to be performed
+on those samples, manage experimental parameters, inspect and download results
+and data, all from a single location.</p>
+<p>The LIMS is divided into the following sections:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Samples:  This section provides tools for dealing with crystals you are preparing,
+their contents and associated hazard information.</li>
+<li>Shipping: This section provides tools for organizing samples you intend to
+send to the sychrotron in Containers, Dewars, and Shipments.</li>
+<li>Experiments: This section provides tools for creating experimental requests
+and associating requests with crystals. It also provides tools for viewing
+results of already performed experiments, and processed data.</li>
+</ul>
+</div></blockquote>
+<p>Access to the LIMS is via a secure web-site.</p>
+<div class="section" id="lims-entities">
+<span id="entities"></span><h2>LIMS Entities<a class="headerlink" href="#lims-entities" title="Permalink to this headline">¶</a></h2>
+<p>The following entities can be viewed or managed within the LIMS:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Crystals: Refers to a frozen crystal on a pin ready for a diffraction experiment.</li>
+<li>Protein Cocktails: Contains information about the contents of the crystallization drop.
+Each crystal may be associated with a cocktail and multiple crystals can be
+associated to the same cocktail. It is not a required to specify a cocktail
+although it is highly recommended since the cocktail also contains harzard information
+about the sample.</li>
+<li>Crystal-forms: Contains information about the cell dimensions, and space group.
+Each crystal may be associated with a crystal-form and multiple crystals can be
+associated to a single crystal-form. It is not a necessary to specify a crystal-form
+although it is recommended if the cell parameters and or space group is known.
+Once entered, crystal-forms can be reused later.</li>
+<li>Containers: Can be a Universal Container (Uni-Puck), SSRL Cassette, or Cane.</li>
+<li>Dewars: A dry-shipper which can contain one or more containers</li>
+<li>Shipments: A collection of one or more dewars being sent to the synchrotron.</li>
+<li>Experiment Requests: An experiment request is an instruction with a set of parameters governing
+how the samples associated with the request should be processed once at the facility. Each crystal
+can and must be assigned to one and only one experiment. If no experiment is specified, it will
+be interpreted as an instruction to screen and collect data on the crystal.</li>
+<li>Data sets: A set of images collected either for Screening or Data Collection together
+with their meta-data such as beamline and beamline settings when the data were collected.
+Data sets are generated by the beamline software and uploaded to the LIMS. Users can only view but
+not create or edit datasets within the LIMS.</li>
+<li>Processing Reports: This is the result of automated data processing with AutoProcess.
+Reports are generated by the beamline software and uploaded to the LIMS. Users can can only view but
+not create or edit processing reports within the LIMS.</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="getting_started.html" title="Getting Started"
+             >next</a></li>
+        <li class="right" >
+          <a href="index.html" title="LIMS’s documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">home</a>|&nbsp;</li>
+        <li><a href="search.html">search</a>|&nbsp;</li>
+ 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Kathryn Janzen, Michel Fodje.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
