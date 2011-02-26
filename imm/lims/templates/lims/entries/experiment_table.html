@@ -9,7 +9,7 @@
              	<th>Experiment</th>
                 <th>Type</th>
                 <th>Plan</th>
-                <th>Num Crystals</th>
+                <th>{% if admin %}Crystals On-site{% else %}Num Crystals{% endif %}</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -25,9 +25,9 @@
                     href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.get_kind_display }}</td>
                     <td class="redirect" title="Go to Experiment {{experiment.name}}"
                     href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.get_plan_display }}</td>
-                    <td class="redirect" title="Go to Experiment {{experiment.name}}"
-                    href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.crystal_set|in_shipment:containers }}/{{ experiment.num_crystals }}</td>
-                    <td class="redirect" title="Go to Experiment {{experiment.name}}"
+                    <td class="redirect"
+                    href="{% url lims-experiment-detail experiment.pk %}">{% if admin %}{{ experiment.crystal_set|arrived_onsite:containers}}{% else %}{{ experiment.crystal_set|in_shipment:containers }}{% endif %}/{{ experiment.num_crystals }}</td>
+                    <td class="redirect"
                     href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.get_status_display }}</td>
                 </tr>
             {% endif %}{% endfor %}

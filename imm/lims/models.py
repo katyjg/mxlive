@@ -232,9 +232,9 @@ class LimsBaseClass(models.Model):
 
     def is_closable(self):
         return self.status == self.STATES.RETURNED 
-    
+
     def delete(self, request=None, cascade=True):
-        message = '%s (%s) deleted.' % (self.__class__.__name__.upper(), self.name)
+        message = '%s (%s) deleted.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.DELETE, message)
         super(LimsBaseClass, self).delete()
@@ -242,37 +242,37 @@ class LimsBaseClass(models.Model):
     def archive(self, request=None):
         if self.is_closable:
             self.change_status(self.STATES.ARCHIVED)
-            message = '%s (%s) archived.' % (self.__class__.__name__.upper(), self.name)
+            message = '%s (%s) archived.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
             if request is not None:
                 ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.ARCHIVE, message)
 
     def send(self, request=None):
         self.change_status(self.STATES.SENT)       
-        message = '%s (%s) sent to CLS.' % (self.__class__.__name__.upper(), self.name)
+        message = '%s (%s) sent to CLS.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def receive(self, request=None):
         self.change_status(self.STATES.ON_SITE) 
-        message = '%s (%s) received at CLS.' % (self.__class__.__name__.upper(), self.name)
+        message = '%s (%s) received at CLS.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def load(self, request=None):
         self.change_status(self.STATES.LOADED)    
-        message = '%s (%s) loaded into automounter.' % (self.__class__.__name__.upper(), self.name)
+        message = '%s (%s) loaded into automounter.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def unload(self, request=None):
         self.change_status(self.STATES.ON_SITE)   
-        message = '%s (%s) unloaded from automounter.' % (self.__class__.__name__.upper(), self.name)
+        message = '%s (%s) unloaded from automounter.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def returned(self, request=None):
         self.change_status(self.STATES.RETURNED)     
-        message = '%s (%s) returned.' % (self.__class__.__name__.upper(), self.name)
+        message = '%s (%s) returned.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
@@ -312,7 +312,8 @@ class Shipment(ObjectBaseClass):
     HELP = {
         'name': "This should be an externally visible label",
         'comments': "Use this field to jot notes related to this shipment for your own use",
-        'cascade': 'Keep dewars, containers and crystals in this shipment (those objects will have no shipment).',
+        'cascade': 'dewars, containers and crystals (along with experiments)',
+        'cascade_help': 'dewars will be left without a shipment'
     }
     comments = models.TextField(blank=True, null=True, max_length=200)
     tracking_code = models.CharField(blank=True, null=True, max_length=60)
@@ -433,7 +434,8 @@ class Dewar(ObjectBaseClass):
     HELP = {
         'name': "An externally visible label on the dewar. If there is a barcode on the dewar, please scan it here",
         'comments': "Use this field to jot notes related to this shipment for your own use",
-        'cascade': 'Keep containers (and crystals) in this dewar (those containers will have no dewar).',
+        'cascade': 'containers and crystals (along with experiments)',
+        'cascade_help': 'containers will be left without a dewar'
     }
     comments = models.TextField(blank=True, null=True, help_text=HELP['comments'])
     storage_location = models.CharField(max_length=60, null=True, blank=True)
@@ -499,7 +501,8 @@ class Container(LoadableBaseClass):
         'name': "This should be an externally visible label on the container",
         'code': "If there is a barcode on the container, please scan the value here",
         'capacity': "The maximum number of samples this container can hold",
-        'cascade': 'Keep crystals in this container (those crystals will have no container).',
+        'cascade': 'crystals (along with experiments)',
+        'cascade_help': 'crystals will be left without a container'
     }
     code = models.SlugField(null=True, blank=True)
     kind = models.IntegerField('type', max_length=1, choices=TYPE.get_choices() )
@@ -627,6 +630,7 @@ class Container(LoadableBaseClass):
     def receive(self, request=None):
         for obj in self.crystal_set.all():
             obj.receive(request=request)
+            obj.setup_experiment()
         super(Container, self).receive(request=request)
 
     def load(self, request=None):
@@ -703,7 +707,8 @@ class Cocktail(LimsBaseClass):
     )
     HELP = {
         'constituents': 'Comma separated list of the constituents in this cocktail',
-        'cascade': 'Keep crystals assigned with this cocktail (cocktail will be undefined for those crystals).',
+        'cascade': 'crystals',
+        'cascade_help': 'crystals will be left without a cocktail'
     }
     constituents = models.CharField(max_length=200) 
     is_radioactive = models.BooleanField()
@@ -738,7 +743,8 @@ class Cocktail(LimsBaseClass):
     
 class CrystalForm(LimsBaseClass):
     HELP = {
-        'cascade': 'Keep crystals assigned with this cocktail (cocktail will be undefined for those crystals).',
+        'cascade': 'crystals',
+        'cascade_help': 'crystals will be left without a crystal form'
     }
     space_group = models.ForeignKey(SpaceGroup,null=True, blank=True)
     cell_a = models.FloatField(' a', null=True, blank=True)
@@ -770,7 +776,8 @@ class CrystalForm(LimsBaseClass):
 class Experiment(LimsBaseClass):
     STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.PROCESSING, LimsBaseClass.STATES.COMPLETE, LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ARCHIVED])
     HELP = {
-        'cascade': 'Keep crystals in this experiment (those crystals will have no experiment).',
+        'cascade': 'crystals',
+        'cascade_help': 'crystals will be left without an experiment'
     }
     EXP_TYPES = Enum(
         'Native',   
@@ -831,6 +838,18 @@ class Experiment(LimsBaseClass):
             if results:
                 return [results[0].crystal.pk, results[0].score]
         
+    def experiment_errors(self):
+        """ Returns a list of descriptive string error messages indicating the Experiment has missing crystals
+        """
+        errors = []
+        if self.crystal_set.count() == 0:
+            errors.append("no Crystals")
+        if self.status == Experiment.STATES.ACTIVE:
+            diff = self.crystal_set.count() - self.crystal_set.filter(status__exact=Crystal.STATES.ON_SITE).count()
+            if diff:
+                errors.append("%i crystals have not arrived on-site." % diff)
+        return errors
+
     def is_reviewable(self):
         return self.status != Experiment.STATES.REVIEWED
 
@@ -846,6 +865,7 @@ class Experiment(LimsBaseClass):
             if not self.crystal_set.filter(collect_status__exact=Crystal.EXP_STATES.COMPLETED).exists():
                 if not self.crystal_set.filter(collect_status__exact=Crystal.EXP_STATES.NOT_REQUIRED).exists():
                     self.add_comments('Unable to collect a dataset for any crystal in this experiment.')
+                    return True
                 return False
         elif self.plan == Experiment.EXP_PLANS.SCREEN_AND_CONFIRM:
             # complete if all crystals are "screened" (or "ignored")
@@ -961,18 +981,16 @@ class Crystal(LoadableBaseClass):
     def is_clonable(self):
         return True
     
-    def activate_associated_experiments(self, data=None):
-        """ Updates the status of the associated Experiment to 'Active' if all the Crystals are 'On-Site'
-        Also sets all crystals collect and screen status correctly.
+    def setup_experiment(self):
+        """ If crystal is on-site, updates the screen_status and collect_status based on its experiment type
         """
         assert self.experiment
-        self.experiment.status = Experiment.STATES.ACTIVE
-        self.experiment.save()
-        if self.experiment.plan != Experiment.EXP_PLANS.JUST_COLLECT:
-            self.change_screen_status(Crystal.EXP_STATES.PENDING)
-            if self.experiment.plan != Experiment.EXP_PLANS.SCREEN_AND_COLLECT:
-                return
-        self.change_collect_status(Crystal.EXP_STATES.PENDING) 
+        if self.status == Crystal.STATES.ON_SITE:
+            if self.experiment.plan != Experiment.EXP_PLANS.JUST_COLLECT:
+                self.change_screen_status(Crystal.EXP_STATES.PENDING)
+                if self.experiment.plan != Experiment.EXP_PLANS.SCREEN_AND_COLLECT:
+                    return
+            self.change_collect_status(Crystal.EXP_STATES.PENDING) 
 
     def delete(self, request=None, cascade=True):
         if self.is_deletable:
@@ -982,7 +1000,8 @@ class Crystal(LoadableBaseClass):
             super(Crystal, self).delete(request=request)
 
     def send(self, request=None):
-        self.activate_associated_experiments()
+        assert self.experiment
+        self.experiment.change_status(Experiment.STATES.ACTIVE)
         super(Crystal, self).send(request=request)
 
     def archive(self, request=None):

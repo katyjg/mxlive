@@ -26,6 +26,8 @@ def crystal_table(context, crystals, admin, experiment):
     # after discussion, make it an expandable row, 
     datasets = Data.objects.filter(crystal__in=crystals)
     results = Result.objects.filter(crystal__in=crystals)
+    if admin:
+        crystals = crystals.filter(status__exact=Crystal.STATES.ON_SITE)
     return { 'crystals': crystals,
             'datasets': datasets,
             'results': results,

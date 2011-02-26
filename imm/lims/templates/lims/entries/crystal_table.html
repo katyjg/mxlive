@@ -9,6 +9,8 @@
 			<option name="rescreen" value="rescreen">Re-Screen</option>
 			<option name="recollect" value="recollect">Re-Collect</option>
 			<option name="ignore" value="ignore">Ignore</option>
+            <option name="screened" value="screened">Mark Screened</option>
+            <option name="collected" value="collected">Mark Collected</option>
 		</select> 
 		
 		<br/>
@@ -24,7 +26,7 @@
            		{% endif %}
                 <th>Name</th>
                 {% if admin %}
-                	<th>Collect, Screen</th>
+                	<th>Collect</th><th>Screen</th>
                 {% else %}
             		<th>Status</th>
             	{% endif %}
@@ -46,18 +48,14 @@
 	            	<td><a href="{% url lims-crystal-detail crystal.pk %}">{{ crystal.name }}</a></td>
 	            	{% if admin %}
 	            		<td>
-	            			{% if crystal.collect_status != Crystal.EXP_STATES.IGNORE %}
+	            			{% if crystal.collect_status != crystal.EXP_STATES.NOT_REQUIRED %}
 	            				{{ crystal.get_collect_status_display }}
 	            			{% endif %}
-	            			{% if crystal.collect_status != Crystal.EXP_STATES.IGNORE %}
-	            				{% if crystal.screen_status != Crystal.EXP_STATES.IGNORE %}
-	            				, 
-	            				{% endif %}
-	            			{% endif %}
-	            			{% if crystal.screen_status != Crystal.EXP_STATES.IGNORE %}
+                        </td>
+                        <td>
+	            			{% if crystal.screen_status != crystal.EXP_STATES.NOT_REQUIRED %}
 	            				{{ crystal.get_screen_status_display }}
 	            			{% endif %}
-	            			
 	            		</td>
 	            	{% else %}
 	            		<td class="redirect"

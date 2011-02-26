@@ -400,6 +400,7 @@ class CocktailForm(objforms.forms.OrderedForm):
 
     class Meta:
         model = Cocktail
+        fields = ('project','name', 'constituents','is_radioactive','is_contaminant','is_toxic','is_oxidising','is_explosive','is_corrosive','is_inflamable','is_biological_hazard','description')
 
 class CrystalFormForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)

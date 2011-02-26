@@ -6,6 +6,11 @@
 <ul class="toolbar">
     {# STAFF TOOLS #}
     {% if request.user.is_staff %}
+        <li class="feedback-tool">
+            <a href="{{ handler }}staff_comments/add/" class="action modal-form">
+                Add Comments
+            </a>
+        </li>
         {% if object.is_reviewable %}
             <li class="review-tool">
                 <a href="{% url staff-experiment-complete object.pk %}"  class="action modal-form">
@@ -15,7 +20,7 @@
         {% endif %}
         {% if object.is_receivable %}
             <li class="receive-tool">
-                <a href="{% url staff-dewar-receive %}?label={{object.label}}"  class="action modal-form">
+                <a href="{% url staff-dewar-receive %}?name={{object.name}}"  class="action modal-form">
                     Receive
                 </a>
             </li>

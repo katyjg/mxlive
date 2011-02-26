@@ -434,6 +434,7 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
     if request.method == 'POST':
         frm = form(request.POST, request.FILES)
         frm.restrict_by('project', project_pk)
+<<<<<<< HEAD
         
         # This should be moved into the clean method of the appropriate Form
         #if request.POST.get('name'):
@@ -443,6 +444,15 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
         #        else:
         #            frm.duplicate_entry = 'An un-archived %s already exists with this name' % (frm._meta.model.__name__)
         
+=======
+        if request.POST.get('name'):
+            if project:
+                if frm.duplicate_name(project, request.POST.get('name'), 'name'):
+                    if frm._meta.model.__name__ == 'Cocktail' or frm._meta.model.__name__ == 'CrystalForm':
+                        frm.duplicate_entry = 'A %s with this name already exists.' % frm._meta.model.__name__
+                    else:
+                        frm.duplicate_entry = 'An un-archived %s already exists with this name' % (frm._meta.model.__name__)
+>>>>>>> d93fa0822faa35874b688d90850a578e79c16790
         if frm.is_valid():
             new_obj = frm.save()
             info_msg = 'New %(name)s (%(obj)s) added' % {'name': smart_str(model._meta.verbose_name), 'obj': smart_str(new_obj)}
@@ -593,18 +603,13 @@ def edit_profile(request, form, template='objforms/form_base.html', action=None)
 @login_required
 @manager_required
 @transaction.commit_on_success
-def edit_object_inline(request, id, model, form, template='objforms/form_base.html', action=None, modal_upload=False):
+def edit_object_inline(request, id, model, form, template='objforms/form_base.html', modal_upload=False):
     """
     A generic view which displays a form of type ``form`` using the template 
     ``template``, for editing an object of type ``model``, identified by primary 
     key ``id``, which when submitted will update the entry asynchronously through
     AJAX.
     """
-    #if request.GET.get('orphan_field', None) is not None:
-    #    params = {'%s__isnull' %  str(request.GET['orphan_field']): True}
-    #   objects = request.manager.filter(**params)
-    #else:
-    #    objects = request.manager.all()
     if request.project:
         project = request.project
         project_pk = project.pk
@@ -655,6 +660,42 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
        
 @login_required
 @transaction.commit_on_success
+def staff_comments(request, id, model, form, template='objforms/form_base.html'):
+    try:
+        obj = model.objects.get(pk=id)
+    except:
+        raise Http404
+    
+    form_info = {
+        'title': 'Add a note to this %s' % model._meta.verbose_name,
+        'sub_title': obj.identity(),
+        'action':  request.path,
+        'target': 'entry-scratchpad',
+        'save_label': 'Save'
+    }
+
+    if request.method == 'POST':
+        frm = form(request.POST, instance=obj)
+        if frm.is_valid():
+            form_info['message'] = '%s (%s) comments added by staff' % ( model._meta.verbose_name, obj)
+            frm.save()
+            request.user.message_set.create(message = form_info['message'])
+            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, form_info['message'])            
+            return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
+        else:
+            return render_to_response(template, {
+            'info': form_info, 
+            'form' : frm, 
+            }, context_instance=RequestContext(request))
+    else:
+        frm = form(instance=obj, initial=dict(request.GET.items())) 
+        return render_to_response(template, {
+        'info': form_info, 
+        'form' : frm,
+        }, context_instance=RequestContext(request))
+
+@login_required
+@transaction.commit_on_success
 def remove_object(request, src_id, obj_id, source, object, dest_id=None, destination=None, reverse=False):
     """
     New way to remove objects. Expected to be called via AJAX. By default removes object with id obj_id 
@@ -697,14 +738,6 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
             obj_manager = FilterManagerWrapper(obj_manager, project__exact=project)
         except Project.DoesNotExist:
             raise Http404
-    
-#    try:
-#        # get all items of the type we want to add to
-#        manager = getattr(project, source.__name__.lower()+'_set')
-#        obj_manager = getattr(project, object.__name__.lower()+'_set')
-#        
-#    except: 
-#        raise Http404
     
     #get just the items we want
     src = manager.get(pk=src_id)
@@ -784,12 +817,10 @@ def delete_object(request, id, model, form, template='objforms/form_base.html'):
         frm.restrict_by('project', project_pk)
         if request.POST.has_key('_save'):
             form_info['message'] = '%s (%s) deleted' % ( model._meta.verbose_name, obj)
-            if hasattr(obj, 'project'):
-                ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.DELETE,  form_info['message'])
-            cascade = True
+            cascade = False
             if request.POST.get('cascade'):
-                cascade = False
-            obj.delete(request=request, cascade=cascade)
+                cascade = True
+            obj.delete(request, cascade)
             request.user.message_set.create(message = form_info['message'])
             
             # prepare url to redirect after delete. Always return to list
@@ -812,6 +843,9 @@ def delete_object(request, id, model, form, template='objforms/form_base.html'):
             }, context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=None) 
+        if 'cascade' in frm.fields:
+            frm.fields['cascade'].label = 'Delete all %s associated with this %s.' % (obj.HELP['cascade'], model.__name__.lower())
+            frm.fields['cascade'].help_text = 'If this box is left blank, only the %s will be deleted and all associated %s.' % (model.__name__.lower(), obj.HELP['cascade_help'])
         frm.restrict_by('project', project_pk)
         return render_to_response(template, {
         'info': form_info, 
@@ -858,7 +892,7 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
         'save_label': save_label
     }
     if action == 'archive':
-        form_info['message'] = 'Are you sure you want to archive %s "%s"?  You can access archived objects by editing \n your profile and selecting "Show Archives" ' % (model.__name__, obj.__unicode__())
+        form_info['message'] = 'Are you sure you want to archive %s "%s"?  ' % (model.__name__, obj.__unicode__())
 
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
@@ -884,6 +918,7 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
     else:
         frm = form(instance=obj, initial=None) 
         frm.restrict_by('project', project_pk)
+        frm.help_text = 'You can access archived objects by editing \n your profile and selecting "Show Archives" '
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm, 
@@ -1050,8 +1085,7 @@ def add_data(request, data_info):
             if new_obj.kind == Result.RESULT_TYPES.SCREENING:
                 new_obj.change_screen_status(Crystal.EXP_STATES.COMPLETED)
             elif new_obj.kind == Result.RESULT_TYPES.COLLECTION:
-                new_obj.crystal.collect_status = Crystal.EXP_STATES.COMPLETED
-                new_obj.crystal.save()
+                new_obj.change_collect_status(Crystal.EXP_STATES.COMPLETED)
             
         if new_obj.experiment is not None:
             if new_obj.experiment.status == Experiment.STATES.ACTIVE:

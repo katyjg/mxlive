@@ -352,6 +352,11 @@ def crystal_status(request):
                 crystal.change_screen_status(Crystal.EXP_STATES.IGNORE) 
             if crystal.collect_status != Crystal.EXP_STATES.COMPLETED:
                 crystal.change_collect_status(Crystal.EXP_STATES.IGNORE) 
+        elif action == 4:
+            crystal.change_screen_status(Crystal.EXP_STATES.COMPLETED)
+        elif action == 5: 
+            crystal.change_collect_status(Crystal.EXP_STATES.COMPLETED) 
+            
     if experiment.is_complete():
         experiment.change_status(Experiment.STATES.COMPLETE)
     else:
@@ -376,8 +381,9 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
     if action:
         save_label = action[0].upper() + action[1:]
         if save_label[-1:] == 'e': save_labeled = '%sd' % save_label
-        else: save_labeled = '%sed' % save_label      
-
+        else: 
+            save_labeled = '%sed' % save_label      
+            if action == 'send': save_labeled = 'sent'
     form_info = {
         'title': '%s %s "%s"?' % (save_label, model.__name__, model.objects.get(pk=id).name),
         'sub_title': 'The %s will be marked as %s' % ( model._meta.verbose_name, save_labeled),
