@@ -299,6 +299,8 @@ class LimsWorkbook(object):
                 experiment.resolution = row_values[EXPERIMENT_RESOLUTION]
                 
             experiments[experiment.name] = experiment
+            if experiment.project.experiment_set.filter(name__exact=experiment.name).exists():
+                experiment.name += '-%s' % dateformat.format(datetime.now(), 'MY')
         return experiments
     
     def _get_crystals(self):
@@ -365,9 +367,24 @@ class LimsWorkbook(object):
             self._read_xls()
         except xlrd.XLRDError:
             self.errors.append('Spreadsheet invalid')
+
+        temp_errors = list()
+        crystal_doubles = str()
         for crystal in self.crystals.values():
-            if project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).get(name=crystal).exists():
-                self.errors.append('An unarchived crystal "%s" already exists.' % crystal)
+            if self.project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).filter(name=crystal).exists():
+                crystal_doubles += str(crystal) + ' '
+        if crystal_doubles:
+            temp_errors.append('Un-archived crystals (%s) already exist.' % crystal_doubles)
+
+        container_doubles = str()
+        for container in self.containers.values():
+            if self.project.container_set.exclude(status__exact=Container.STATES.ARCHIVED).filter(name=container).exists():
+                container_doubles += str(container) + ' '
+        if container_doubles:
+            temp_errors.append('Un-archived containers (%s) already exist.' % container_doubles)
+
+        for err in temp_errors:
+            if err not in self.errors: self.errors.append(err)
 
         return not bool(self.errors)
     
@@ -391,54 +408,52 @@ class LimsWorkbook(object):
         @param request: a django.http.HttpRequest object used for logging ActivityLog entities during upload
         @return: a (possibly empty) list of strings errors that occured while reading the Excel file
         """
-        if self.is_valid():
-            self.shipment.save()
-            self.log_activity(self.shipment, request)
-            self.dewar.shipment = self.shipment
-            self.dewar.save()
-            self.log_activity(self.dewar, request)
-            for experiment in self.experiments.values():
-                experiment.save()
-                
-                # manage the CrystalForm/SpaceGroup relationship
-                if self.crystal_forms.has_key(experiment.name):
-                    crystal_form = self.crystal_forms[experiment.name]
+        self.shipment.save()
+        self.log_activity(self.shipment, request)
+        self.dewar.shipment = self.shipment
+        self.dewar.save()
+        self.log_activity(self.dewar, request)
+        for experiment in self.experiments.values():
+            experiment.save()
+            
+            # manage the CrystalForm/SpaceGroup relationship
+            if self.crystal_forms.has_key(experiment.name):
+                crystal_form = self.crystal_forms[experiment.name]
+                crystal_form.save()
+                if self.space_groups.has_key(experiment.name):
+                    space_group = self.space_groups[experiment.name]
+                    crystal_form.space_group = space_group
                     crystal_form.save()
-                    if self.space_groups.has_key(experiment.name):
-                        space_group = self.space_groups[experiment.name]
-                        crystal_form.space_group = space_group
-                        crystal_form.save()
-                        
-                self.log_activity(experiment, request)
-            for container in self.containers.values():
-                container.dewar = self.dewar
-                container.save()
-                self.log_activity(container, request)
-            for cocktail in self.cocktails.values():
-                cocktail.save()
-                self.log_activity(cocktail, request)
-            for crystal in self.crystals.values():
-                crystal.container = crystal.container # force the fk reln
-                crystal.cocktail = crystal.cocktail # force the fk reln
-                crystal.experiment = crystal.experiment
-                crystal.save()
-                self.log_activity(crystal, request)
-                print "saved crystal %s" % crystal.name
-                
-                # unneeded. Crystal read just puts it in to experiment now. 
-                # needed for order of operations?
                     
-                # buffer was needed to add crystal to experiment.
-                if crystal.experiment:
-                    # manage the Crystal/CrystalForm relationship
-                    if self.crystal_forms.has_key(crystal.experiment.name):
-                        crystal_form = self.crystal_forms[crystal.experiment.name]
-                        crystal.crystal_form = crystal_form
-                        crystal.crystal_form.name = crystal.crystal_form.identity()
-                        crystal.crystal_form.save()
-                        crystal.save()
-                    print "added crystals to experiment"
-            print "at the end"
+            self.log_activity(experiment, request)
+        for container in self.containers.values():
+            container.dewar = self.dewar
+            container.save()
+            self.log_activity(container, request)
+        for cocktail in self.cocktails.values():
+            cocktail.save()
+            self.log_activity(cocktail, request)
+        for crystal in self.crystals.values():
+            crystal.container = crystal.container # force the fk reln
+            crystal.cocktail = crystal.cocktail # force the fk reln
+            crystal.experiment = crystal.experiment
+            crystal.save()
+            self.log_activity(crystal, request)
+            print "saved crystal %s" % crystal.name
+            
+            # unneeded. Crystal read just puts it in to experiment now. 
+            # needed for order of operations?
+                
+            # buffer was needed to add crystal to experiment.
+            if crystal.experiment:
+                # manage the Crystal/CrystalForm relationship
+                if self.crystal_forms.has_key(crystal.experiment.name):
+                    crystal_form = self.crystal_forms[crystal.experiment.name]
+                    crystal.crystal_form = crystal_form
+                    crystal.crystal_form.name = crystal.crystal_form.identity()
+                    crystal.crystal_form.save()
+                    crystal.save()
+                print "added crystals to experiment"
                        
         return self.errors
         
