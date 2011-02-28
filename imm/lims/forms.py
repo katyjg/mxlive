@@ -1,5 +1,7 @@
 import tempfile
 import logging
+from django.utils import dateformat
+from datetime import datetime
 
 from django import forms
 from imm.lims.models import *
@@ -53,14 +55,6 @@ class ShipmentForm(objforms.forms.OrderedForm):
     comments = objforms.widgets.CommentField(required=False,
            help_text='You can use Restructured Text formatting here.')
 
-    def clean_name(self):
-        try:
-            if self.duplicate_entry:
-                raise forms.ValidationError(self.duplicate_entry)
-            return self.cleaned_data['name']
-        except AttributeError:
-            return self.cleaned_data['name']
-
     class Meta:
         model = Shipment
         fields = ('project','name','comments',)
@@ -79,23 +73,41 @@ class LimsBasicForm(objforms.forms.OrderedForm):
 class ShipmentUploadForm(forms.Form):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     excel = forms.FileField(widget=objforms.widgets.LargeFileInput)
-    
-    NUM_ERRORS = 3
-    
+    dewar = forms.CharField(widget=objforms.widgets.LargeInput, label='Dewar Name', help_text='A dewar with this name will be created for the contents of the uploaded spreadsheet.', initial='')
+    shipment = forms.CharField(widget=objforms.widgets.LargeInput, label='Shipment Name', help_text='Provide a name for this shipment.')    
+
+    NUM_ERRORS = 3    
+
+    def __init__(self, *args, **kwargs):
+        super(ShipmentUploadForm, self).__init__(*args, **kwargs)
+        self.fields['dewar'].initial = "Dewar %s" % dateformat.format(datetime.now(), 'ymd His')
+        self.fields['shipment'].initial = "Shipment %s" % dateformat.format(datetime.now(), 'ymd His')
+
     def clean(self):
         """ Cleans the form globally. This simply delegates validation to the LimsWorkbook. """
         cleaned_data = self.cleaned_data
-        if cleaned_data.has_key('project') and cleaned_data.has_key('excel'):
-            temp = tempfile.NamedTemporaryFile()
-            temp.write(self.files['excel'].read())
-            temp.flush()
-            self.workbook = LimsWorkbook(temp.name, cleaned_data['project'])
-            if not self.workbook.is_valid():
-                self._errors['excel'] = self._errors.get('excel', ErrorList())
-                errors = 'Please check the format of your spreadsheet and try to upload again.'
-                del cleaned_data['excel']
-        return cleaned_data
+        if self.is_valid():
+            if cleaned_data.has_key('project') and cleaned_data.has_key('excel'):
+                temp = tempfile.NamedTemporaryFile()
+                temp.write(self.files['excel'].read())
+                temp.flush()
+                self.workbook = LimsWorkbook(temp.name, cleaned_data['project'], dewar_name=cleaned_data['dewar'], shipment_name=cleaned_data['shipment'])
+                if not self.workbook.is_valid():
+                    self._errors['excel'] = self._errors.get('excel', ErrorList())
+                    errors = 'Please check the format of your spreadsheet and try to upload again.'
+                    del cleaned_data['excel']
+            return cleaned_data
     
+    def clean_dewar(self):
+        if Dewar.objects.filter(project__exact=self.cleaned_data['project'], name__exact=self.cleaned_data['dewar']).exclude(status__exact=Dewar.STATES.ARCHIVED).exists():
+            raise forms.ValidationError('An un-archived dewar already exists with this name')
+        return self.cleaned_data['dewar']
+
+    def clean_shipment(self):
+        if Shipment.objects.filter(project__exact=self.cleaned_data['project'], name__exact=self.cleaned_data['shipment']).exclude(status__exact=Shipment.STATES.ARCHIVED).exists():
+            raise forms.ValidationError('An un-archived shipment already exists with this name')
+        return self.cleaned_data['shipment']
+
     def error_message(self):
         errors = ''
         if not self.workbook.is_valid():
@@ -125,7 +137,6 @@ class ShipmentUploadForm(forms.Form):
         if len(error_text) > 1:
             return error_text
         return
-
 
     def save(self, request=None):
         """ Saves the form which writes the Shipment spreadsheet data to the database """
@@ -194,14 +205,6 @@ class DewarForm(objforms.forms.OrderedForm):
     comments = objforms.widgets.CommentField(required=False,
            help_text='You can use Restructured Text formatting here.')
 
-    def clean_name(self):
-        try:
-            if self.duplicate_entry:
-                raise forms.ValidationError(self.duplicate_entry)
-            return self.cleaned_data['name']
-        except AttributeError:
-            return self.cleaned_data['name']
-
     class Meta:
         model = Dewar
         fields = ('project','name','shipment','comments',)
@@ -227,11 +230,6 @@ class ContainerForm(objforms.forms.OrderedForm):
                     raise forms.ValidationError('Cannot change kind of Container when Crystals are associated')
         return cleaned_data['kind']
     
-    def clean_name(self):
-        if self.duplicate_entry:
-            raise forms.ValidationError(self.duplicate_entry)
-        return self.cleaned_data['name']
-
     class Meta:
         model = Container
         fields = ('project','name','code','kind','dewar','comments')
@@ -271,14 +269,6 @@ class SampleForm(objforms.forms.OrderedForm):
         required=False,
         help_text= Crystal.HELP['comments'])
    
-    def clean_name(self):
-        try:
-            if self.duplicate_entry:
-                raise forms.ValidationError(self.duplicate_entry)
-            return self.cleaned_data['name']
-        except AttributeError:
-            return self.cleaned_data['name']
-
     def clean_container_location(self):
         if self.cleaned_data['container'] and not self.cleaned_data['container_location']:
             raise forms.ValidationError('This field is required with container selected')
@@ -320,14 +310,6 @@ class ExperimentForm(objforms.forms.OrderedForm):
     absorption_edge = objforms.widgets.RightHalfCharField(required=False )
     comments = objforms.widgets.CommentField(required=False,
            help_text='You can use Restructured Text formatting here.')
-
-    def clean_name(self):
-        try:
-            if self.duplicate_entry:
-                raise forms.ValidationError(self.duplicate_entry)
-            return self.cleaned_data['name']
-        except AttributeError:
-            return self.cleaned_data['name']
 
     class Meta:
         model = Experiment
@@ -375,38 +357,21 @@ class ExperimentFromStrategyForm(objforms.forms.OrderedForm):
             
 class CocktailForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    #constituents = forms.ModelMultipleChoiceField(
-    #    widget=forms.SelectMultiple(attrs={'class': 'field select large'}),
-    #    queryset=Constituent.objects.all(),
-    #    required=False,
-    #    help_text='Select multiple items and then click submit to add them.') 
     name = objforms.widgets.LargeCharField(required=True)
     constituents = objforms.widgets.LargeCharField(required=True, help_text=Cocktail.HELP['constituents'])
     is_radioactive = objforms.widgets.LeftCheckBoxField(required=False)
-    is_contaminant = objforms.widgets.RightCheckBoxField(required=False)
-    is_toxic = objforms.widgets.LeftCheckBoxField(required=False)
-    is_oxidising = objforms.widgets.RightCheckBoxField(required=False)
-    is_explosive = objforms.widgets.LeftCheckBoxField(required=False)
-    is_corrosive = objforms.widgets.RightCheckBoxField(required=False)
-    is_inflamable = objforms.widgets.LeftCheckBoxField(required=False)
-    is_biological_hazard = objforms.widgets.RightCheckBoxField(required=False)
+    contains_heavy_metals = objforms.widgets.RightCheckBoxField(required=False)
+    contains_prions = objforms.widgets.LeftCheckBoxField(required=False)
+    contains_viruses = objforms.widgets.RightCheckBoxField(required=False)
     description = forms.CharField(
         widget=objforms.widgets.CommentInput,
         max_length=200, 
         required=False,
         help_text= Crystal.HELP['comments'])
 
-    def clean_name(self):
-        try:
-            if self.duplicate_entry:
-                raise forms.ValidationError(self.duplicate_entry)
-            return self.cleaned_data['name']
-        except AttributeError:
-            return self.cleaned_data['name']
-
     class Meta:
         model = Cocktail
-        fields = ('project','name', 'constituents','is_radioactive','is_contaminant','is_toxic','is_oxidising','is_explosive','is_corrosive','is_inflamable','is_biological_hazard','description')
+        fields = ('project','name', 'constituents','is_radioactive','contains_heavy_metals','contains_prions','contains_viruses','description')
 
 class CrystalFormForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
@@ -421,14 +386,6 @@ class CrystalFormForm(objforms.forms.OrderedForm):
     cell_alpha = forms.FloatField(label='alpha', widget=objforms.widgets.LeftThirdInput,required=False)
     cell_beta = forms.FloatField(label='beta', widget=objforms.widgets.MiddleThirdInput,required=False)
     cell_gamma = forms.FloatField(label='gamma', widget=objforms.widgets.RightThirdInput,required=False)
-
-    def clean_name(self):
-        try:
-            if self.duplicate_entry:
-                raise forms.ValidationError(self.duplicate_entry)
-            return self.cleaned_data['name']
-        except AttributeError:
-            return self.cleaned_data['name']
 
     class Meta:
         model = CrystalForm 

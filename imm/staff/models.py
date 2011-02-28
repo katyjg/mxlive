@@ -56,7 +56,7 @@ class Link(models.Model):
     description = models.TextField(blank=False)
     category = models.IntegerField(max_length=1, choices=CATEGORY.get_choices(), blank=True, null=True)    
     frame_type = models.IntegerField(max_length=1, choices=TYPE.get_choices(), blank=True, null=True)
-    url = models.URLField(verify_exists=True, max_length=200, blank=True)
+    url = models.CharField(max_length=200, blank=True)
     document = models.FileField(_('document'), blank=True, upload_to=get_storage_path)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)

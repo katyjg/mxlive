@@ -688,23 +688,6 @@ class SpaceGroup(models.Model):
         return self.name
 
 class Cocktail(LimsBaseClass):
-    SOURCES = Enum(
-        'Unknown',
-        'Synthetic',
-        'Plant',
-        'Animal',
-        'Human',
-        'Bacterial',
-        'Fungal',
-        'Viral',
-    )
-    TYPES = Enum(
-        'Protein',
-        'Salt',
-        'Precipitant',
-        'Organic molecule',
-        'Buffer',
-    )
     HELP = {
         'constituents': 'Comma separated list of the constituents in this cocktail',
         'cascade': 'crystals',
@@ -712,13 +695,9 @@ class Cocktail(LimsBaseClass):
     }
     constituents = models.CharField(max_length=200) 
     is_radioactive = models.BooleanField()
-    is_contaminant = models.BooleanField()
-    is_toxic = models.BooleanField()
-    is_oxidising = models.BooleanField()
-    is_explosive = models.BooleanField()
-    is_corrosive = models.BooleanField()
-    is_inflamable = models.BooleanField()
-    is_biological_hazard = models.BooleanField()
+    contains_heavy_metals = models.BooleanField()
+    contains_prions = models.BooleanField()
+    contains_viruses = models.BooleanField()
     description = models.TextField(blank=True, null=True)
 
     def identity(self):

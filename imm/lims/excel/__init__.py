@@ -4,7 +4,7 @@ import xlutils.copy
 import xlutils.save
 import os
 import logging
-
+from django.db import transaction
 
 from imm.lims.models import Experiment
 from imm.lims.models import Dewar
@@ -75,7 +75,7 @@ PLAN_SHEET_NAME = 'Plans'
 class LimsWorkbook(object):
     """ A wrapper for an Excel shipment/experiment spreadsheet """
     
-    def __init__(self, xls, project):
+    def __init__(self, xls, project, dewar_name, shipment_name):
         """ Reads the xls file into a xlrd.Book wrapper 
         
         @param xls: the filename of an Excel file
@@ -83,6 +83,8 @@ class LimsWorkbook(object):
         """
         self.xls = xls
         self.project = project
+        self.dewar_name = dewar_name
+        self.shipment_name = shipment_name
         self.errors = []
         
     def _read_xls(self):
@@ -113,7 +115,7 @@ class LimsWorkbook(object):
         
         @return: a Shipment instance
         """
-        name = "Shipment %s" % dateformat.format(datetime.now(), 'ymd His')
+        name = self.shipment_name
         staff_comments = "Uploaded on %s." % (dateformat.format(datetime.now(), 'M, jS P'))
         return Shipment(project=self.project, name=name, staff_comments=staff_comments)
     
@@ -122,7 +124,7 @@ class LimsWorkbook(object):
         
         @return: a Dewar instance
         """
-        name = "Dewar %s" % dateformat.format(datetime.now(), 'ymd His')
+        name = self.dewar_name
         return Dewar(project=self.project, name=name)
     
     def _get_containers(self):
@@ -417,6 +419,7 @@ class LimsWorkbook(object):
                 crystal.experiment = crystal.experiment
                 crystal.save()
                 self.log_activity(crystal, request)
+                print "saved crystal %s" % crystal.name
                 
                 # unneeded. Crystal read just puts it in to experiment now. 
                 # needed for order of operations?
@@ -430,7 +433,9 @@ class LimsWorkbook(object):
                         crystal.crystal_form.name = crystal.crystal_form.identity()
                         crystal.crystal_form.save()
                         crystal.save()
-                        
+                    print "added crystals to experiment"
+            print "at the end"
+                       
         return self.errors
         
 class LimsWorkbookExport(object):

@@ -8,7 +8,7 @@
         <p class="dewar droppable droppable-add" 
             {% if dewar.is_editable %}accept="container"{% else %}accept=""{% endif %}  
             rel="{% url lims-dewar-detail dewar.id %}">
-            <a class="dewar-title" href="{% url lims-dewar-detail dewar.id %}" title="{{ dewar.name }}">{{ dewar.identity }}</a>
+            <a class="dewar-title" href="{% url lims-dewar-detail dewar.id %}" title="{{ dewar.name }}">{{ dewar.name }}</a>
             {% if admin %}{% if dewar.is_receivable %}
             <a class="receive modal-form"
                href="{% url staff-dewar-receive %}?name={{dewar.name}}"

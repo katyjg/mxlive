@@ -434,13 +434,6 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
     if request.method == 'POST':
         frm = form(request.POST, request.FILES)
         frm.restrict_by('project', project_pk)
-        if request.POST.get('name'):
-            if project:
-                if frm.duplicate_name(project, request.POST.get('name'), 'name'):
-                    if frm._meta.model.__name__ == 'Cocktail' or frm._meta.model.__name__ == 'CrystalForm':
-                        frm.duplicate_entry = 'A %s with this name already exists.' % frm._meta.model.__name__
-                    else:
-                        frm.duplicate_entry = 'An un-archived %s already exists with this name' % (frm._meta.model.__name__)
         if frm.is_valid():
             new_obj = frm.save()
             info_msg = 'New %(name)s (%(obj)s) added' % {'name': smart_str(model._meta.verbose_name), 'obj': smart_str(new_obj)}
