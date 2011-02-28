@@ -35,7 +35,7 @@ _URL_META = {
         'runlist': {'model': Runlist, 'form': RunlistForm, 'template': 'staff/entries/runlist.html', 
                     'list_add': True, 'add': True, 'edit': True, 'delete': True, 'delete_form': LimsBasicForm},
         'link': {'model': Link, 'form': LinkForm, 'list_template': 'staff/lists/link_object_list.html', 
-                 'detail': False, 'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True,
+                 'detail': False, 'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True, 'delete_form': LimsBasicForm,
                  'list_add': True, 'add': True, 'edit': True, 'delete': True, 'form_template': 'objforms/form_full.html', 'modal_upload': True},
     },
 }

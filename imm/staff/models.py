@@ -42,7 +42,7 @@ class StaffBaseClass(models.Model):
     class Meta:
         abstract = True
 
-class Link(models.Model):
+class Link(StaffBaseClass):
     TYPE = Enum(
         'iframe',
         'flash',
@@ -67,9 +67,6 @@ class Link(models.Model):
     def is_editable(self):
         return True
 
-    def is_deletable(self):
-        return True
-
     def identity(self):
         return self.description
 
@@ -90,10 +87,6 @@ class Runlist(StaffBaseClass):
         STATES.LOADED: [STATES.UNLOADED],
         STATES.INCOMPLETE: [STATES.COMPLETED],
         STATES.COMPLETED: [STATES.PENDING, STATES.CLOSED],
-    }
-    ACTIONS = {
-        'load': { 'status': STATES.LOADED, 'methods': ['check_for_other_loaded_runlists'] },
-        'unload': { 'status': STATES.COMPLETED },
     }
     HELP = {}
     status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.PENDING)
@@ -129,9 +122,6 @@ class Runlist(StaffBaseClass):
     def __unicode__(self):
         return self.name
     
-    def is_deletable(self):
-        return True
-    
     def is_editable(self):
         return self.status == self.STATES.PENDING
     
@@ -149,12 +139,6 @@ class Runlist(StaffBaseClass):
 
     def is_pdfable(self):
         return self.num_containers() > 0
-    
-    def check_for_other_loaded_runlists(self, data=None):
-        """ Checks for other Runlists in the 'loaded' state """
-        already_loaded = Runlist.objects.exclude(pk=self.pk).filter(status=Runlist.STATES.LOADED).count()
-        if already_loaded:
-            raise ValueError('Another Runlist is already loaded.')
         
     def send_accept_message(self, data=None):
         """ Create a message when the Runlist is 'accepted' """
@@ -378,10 +362,14 @@ class Runlist(StaffBaseClass):
         self.save()
     
     def load(self, request=None):
+        if Runlist.objects.exclude(pk=self.pk).filter(status=Runlist.STATES.LOADED, beamline=self.beamline).exists():
+            message = '%s has not been loaded, as there is another runlist currently loaded on %s' % (self.name, self.beamline)
+            request.user.message_set.create(message = message)     
+            return   
         for obj in self.containers.all():
             obj.load(request)
         self.change_status(self.STATES.LOADED)    
-        message = '%s (%s) loaded into automounter.' % (self.__class__.__name__.upper(), self.name)
+        message = '%s (%s) successfully loaded into automounter.' % (self.__class__.__name__.upper(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 

@@ -28,8 +28,11 @@ class OrderedForm(forms.ModelForm):
                     formfield.queryset = queryset.filter(**{'%s__exact' % (field_name): value})
 
     def clean_name(self):
-        if self.Meta.model.objects.filter(project__exact=self.cleaned_data['project'], name__exact=self.cleaned_data['name']).exclude(status__exact=self.Meta.model.STATES.ARCHIVED).exists():
-                raise forms.ValidationError('An un-archived %s already exists with this name' % self.Meta.model.__name__)
+        try:
+            if self.Meta.model.objects.filter(project__exact=self.cleaned_data['project'], name__exact=self.cleaned_data['name']).exclude(status__exact=self.Meta.model.STATES.ARCHIVED).exists():
+                    raise forms.ValidationError('An un-archived %s already exists with this name' % self.Meta.model.__name__)
+        except KeyError:
+            pass
         return self.cleaned_data['name']
           
 
