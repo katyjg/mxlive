@@ -906,7 +906,8 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
     else:
         frm = form(instance=obj, initial=None) 
         frm.restrict_by('project', project_pk)
-        frm.help_text = 'You can access archived objects by editing \n your profile and selecting "Show Archives" '
+        if action == 'archive':
+            frm.help_text = 'You can access archived objects by editing \n your profile and selecting "Show Archives" '
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm, 

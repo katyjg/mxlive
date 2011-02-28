@@ -67,8 +67,8 @@
     <div class="entrycomment">
     <span class="left-pointer"></span>
     <h3>Comments</h3>
-    <p class="user">{{ object.comments|default:""}}</p>
-    <p class="staff">{{ object.staff_comments|default:"" }}</p>
+    <div class="user">{{ object.comments|default:""|restructuredtext}}</div>
+    <div class="staff">{{ object.staff_comments|default:""|restructuredtext}}</div>
     </div>
 {% endif %}
     <br>
