@@ -365,6 +365,10 @@ class LimsWorkbook(object):
             self._read_xls()
         except xlrd.XLRDError:
             self.errors.append('Spreadsheet invalid')
+        for crystal in self.crystals.values():
+            if project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).get(name=crystal).exists():
+                self.errors.append('An unarchived crystal "%s" already exists.' % crystal)
+
         return not bool(self.errors)
     
     def log_activity(self, obj, request):

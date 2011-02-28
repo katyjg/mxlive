@@ -409,10 +409,6 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
                 if action == 'review': obj.review(request=request)
                 if action == 'load': obj.load(request=request)
                 if action == 'unload': obj.unload(request=request)
-            form_info['message'] = '%s (%s) successfully %s' % ( model._meta.verbose_name, obj, save_labeled)
-            if hasattr(obj, 'project'):
-                ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY,  form_info['message'])
-            request.user.message_set.create(message = form_info['message'])
             return render_to_response('lims/refresh.html')
         else:
             return render_to_response(template, {
