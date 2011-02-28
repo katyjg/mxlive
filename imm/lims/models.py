@@ -717,6 +717,7 @@ class Cocktail(LimsBaseClass):
         super(Cocktail, self).delete()
 
     class Meta:
+        ordering = ['name','-created']
         verbose_name = "Protein Cocktail"
         verbose_name_plural = 'Protein Cocktails'
     
@@ -738,6 +739,7 @@ class CrystalForm(LimsBaseClass):
     identity.admin_order_field = 'pk'
     
     class Meta:
+        ordering = ['name','-created']
         verbose_name = 'Crystal Form'
 
     is_editable = True
