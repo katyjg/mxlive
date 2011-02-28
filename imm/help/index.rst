@@ -18,9 +18,5 @@ Contents:
    
    overview.rst
    getting_started.rst
-
-Indices and tables
-==================
-
-* :ref:`search`
+   user_interface.rst
 
