@@ -63,7 +63,7 @@ class CocktailAdmin(VersionAdmin):
 admin.site.register(Cocktail, CocktailAdmin)
     
 class CrystalFormAdmin(VersionAdmin):
-    ordering = ['id']
+    ordering = ['-created']
     search_fields = ['name','space_group__name']
     list_filter = ['modified']
     list_display = ('identity', 'name', 'cell_a', 'cell_b', 'cell_c','cell_alpha', 'cell_beta', 'cell_gamma', 'space_group' )

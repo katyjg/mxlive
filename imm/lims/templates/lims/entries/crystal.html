@@ -86,5 +86,7 @@
                 <p class="list-empty">( Not loaded )</p>
             </ul>
         </div>
+    {% else %}
+        {% include "staff/entries/comments_form.html" %}
     {% endif %}
 {% endblock %}
