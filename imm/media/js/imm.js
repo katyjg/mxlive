@@ -267,7 +267,7 @@ function tooltips() {
     this.xOffset = -10; // x distance from mouse
     this.yOffset = 20; // y distance from mouse       
     
-    $("[title]").unbind().hover(    
+    $("[title]").unbind().hover(
         function(e) {
             this.t = this.title;
             this.title = ''; 
