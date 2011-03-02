@@ -412,7 +412,8 @@ class Runlist(StaffBaseClass):
         
         # determine the list of Experiments in the Runlist
         experiments = []
-        for experiment in self.experiments.all():
+        exp_list = Experiment.objects.filter(pk__in=Crystal.objects.filter(container__pk__in=self.containers.all()).values('experiment')).order_by('priority').reverse()
+        for experiment in exp_list:
             experiment_json = experiment.json_dict()
             experiments.append(experiment_json)
         

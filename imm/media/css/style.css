@@ -2334,6 +2334,7 @@ p#vtip {
     -moz-border-radius: 5px; 
     -webkit-border-radius: 5px; 
     z-index: 9999
+    height: 50px;
 }
 p#vtip #vtipArrow { 
     position: absolute; 
