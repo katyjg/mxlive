@@ -498,13 +498,11 @@ class Container(LoadableBaseClass):
         'Cane', 
     )
     HELP = {
-        'name': "This should be an externally visible label on the container",
-        'code': "If there is a barcode on the container, please scan the value here",
+        'name': "An externally visible label on the container. If there is a barcode on the container, please scan it here",
         'capacity': "The maximum number of samples this container can hold",
         'cascade': 'crystals (along with experiments)',
         'cascade_help': 'All associated crystals will be left without a container'
     }
-    code = models.SlugField(null=True, blank=True)
     kind = models.IntegerField('type', max_length=1, choices=TYPE.get_choices() )
     dewar = models.ForeignKey(Dewar, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
@@ -516,7 +514,7 @@ class Container(LoadableBaseClass):
     identity.admin_order_field = 'pk'
     
     def barcode(self):
-        return self.code or self.name
+        return self.name
 
     def num_crystals(self):
         return self.crystal_set.count()
@@ -906,8 +904,8 @@ class Experiment(LimsBaseClass):
      
 class Crystal(LoadableBaseClass):
     HELP = {
-        'name': "Give the sample a name by which you can recognize it",
-        'code': "If there is a datamatrix code on sample, please scan or input the value here",
+        'name': "Give the sample a name by which you can recognize it. Avoid using spaces or special characters in sample names",
+        'barcode': "If there is a datamatrix code on sample, please scan or input the value here",
         'pin_length': "18 mm pins are standard. Please make sure you discuss other sizes with Beamline staff before sending the sample!",
         'comments': 'You can use restructured text formatting in this field',
         'cocktail': '',
@@ -918,7 +916,7 @@ class Crystal(LoadableBaseClass):
         'Completed',
         'Ignore',
     )
-    code = models.SlugField(null=True, blank=True)
+    barcode = models.SlugField(null=True, blank=True)
     crystal_form = models.ForeignKey(CrystalForm, null=True, blank=True)
     pin_length = models.IntegerField(max_length=2, default=18)
     loop_size = models.FloatField(null=True, blank=True)
@@ -941,9 +939,6 @@ class Crystal(LoadableBaseClass):
         return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
     
-    def barcode(self):
-        return self.code or None
-
     def best_screening(self):
         info = {}
         results = self.result_set.filter(kind__exact=Result.RESULT_TYPES.SCREENING).order_by('-score')
@@ -1016,7 +1011,7 @@ class Crystal(LoadableBaseClass):
             'container_id': self.container.pk,
             'id': self.pk,
             'name': self.name,
-            'barcode': self.barcode(),
+            'barcode': self.barcode,
             'container_location': self.container_location,
             'comments': self.comments
         }

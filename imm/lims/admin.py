@@ -44,7 +44,7 @@ class ExperimentStaffAdmin(ExperimentAdmin):
 staff_site.register(Experiment, ExperimentStaffAdmin)
 
 class CrystalAdmin(VersionAdmin):
-    search_fields = ['name', 'code']
+    search_fields = ['name', 'barcode']
     list_filter = ['modified','status']
     list_display = ('identity', 'name', 'status', 'cocktail', 'comments', 'container', 'container_location')       
     ordering = ['-created', '-priority']
@@ -79,7 +79,7 @@ admin.site.register(SpaceGroup, SpaceGroupAdmin)
            
 class ContainerAdmin(VersionAdmin):
     ordering = ['-created']
-    search_fields = ['name','code']
+    search_fields = ['name']
     list_filter = ['modified','kind']
     list_display = ('identity', 'name', 'kind', 'capacity', 'num_crystals', 'status')
     list_per_page = ITEMS_PER_PAGE

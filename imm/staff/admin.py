@@ -31,7 +31,7 @@ class ContainerRunlistAdmin(admin.ModelAdmin):
     ordering = ['-staff_priority', '-created']
     search_fields = ['name','code']
     list_filter = ['modified','kind']
-    list_display = ('experiments', 'id', 'name', 'code', 'capacity', 'num_crystals')
+    list_display = ('experiments', 'id', 'name', 'capacity', 'num_crystals')
     list_per_page = 999999
     unsortable = list_display
 runlist_site.register(Container, ContainerRunlistAdmin)

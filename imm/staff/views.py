@@ -394,7 +394,7 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
     if action:
         if action == 'review':
             form_info['message'] = 'Are you sure no further tests of %s "%s" are necessary?' % (
-            model.__name__.lower(), model.objects.get(pk=id).name),
+            model.__name__.lower(), model.objects.get(pk=id).name)
             if not obj.is_complete():
                 form.warning_message = "There are crystals in this experiment that have not been processed according to the experiment plan."
             else:

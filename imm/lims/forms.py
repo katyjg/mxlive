@@ -1,5 +1,6 @@
 import tempfile
 import logging
+import re
 from django.utils import dateformat
 from datetime import datetime
 
@@ -215,11 +216,9 @@ class DewarForm(objforms.forms.OrderedForm):
 class ContainerForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     dewar = forms.ModelChoiceField(queryset=Dewar.objects.all(), widget=objforms.widgets.LargeSelect, required=False)
-    name = forms.CharField(
-        widget=objforms.widgets.LargeInput,
+    name = objforms.widgets.BarCodeField(
         help_text=Container.HELP['name']
         )
-    code = objforms.widgets.MatrixCodeField(required=False, help_text=Container.HELP['code'])
     kind = forms.ChoiceField(choices=Container.TYPE.get_choices(), widget=objforms.widgets.LargeSelect, initial=Container.TYPE.UNI_PUCK)
     comments = objforms.widgets.CommentField(required=False,
            help_text='You can use Restructured Text formatting here.')
@@ -235,7 +234,7 @@ class ContainerForm(objforms.forms.OrderedForm):
     
     class Meta:
         model = Container
-        fields = ('project','name','code','kind','dewar','comments')
+        fields = ('project','name','kind','dewar','comments')
 
 class SampleForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
@@ -243,7 +242,7 @@ class SampleForm(objforms.forms.OrderedForm):
         widget=objforms.widgets.LargeInput,
         help_text=Crystal.HELP['name']
         )
-    code = objforms.widgets.MatrixCodeField(required=False, help_text=Crystal.HELP['code'])
+    barcode = objforms.widgets.MatrixCodeField(required=False, help_text=Crystal.HELP['barcode'], label='Code')
     cocktail = forms.ModelChoiceField(
         queryset=Cocktail.objects.all(), 
         widget=objforms.widgets.LargeSelect(attrs={'class': 'field select leftHalf'}),
@@ -272,6 +271,12 @@ class SampleForm(objforms.forms.OrderedForm):
         required=False,
         help_text= Crystal.HELP['comments'])
    
+    def clean(self):
+        if self.cleaned_data.has_key('name'):
+            if not re.compile('^[a-zA-Z0-9-_]+[\w]+$').match(self.cleaned_data['name']):
+                self._errors['name'] = self.error_class(['Name cannot contain any spaces or special characters'])
+        return self.cleaned_data
+
     def clean_container_location(self):
         if self.cleaned_data['container'] and not self.cleaned_data['container_location']:
             raise forms.ValidationError('This field is required with container selected')
@@ -290,7 +295,7 @@ class SampleForm(objforms.forms.OrderedForm):
         
     class Meta:
         model = Crystal
-        fields = ('project','name','code','cocktail','crystal_form', 'pin_length',
+        fields = ('project','name','barcode','cocktail','crystal_form', 'pin_length',
                     'loop_size','container','container_location','comments')
 
 class ExperimentForm(objforms.forms.OrderedForm):

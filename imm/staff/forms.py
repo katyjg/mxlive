@@ -32,7 +32,7 @@ class DewarReceiveForm(objforms.forms.OrderedForm):
         help_text='Please select the Dewar to receive.',
         required=True, initial=''
         )
-    barcode = objforms.widgets.BarCodeField(required=True)
+    barcode = objforms.widgets.BarCodeReturnField(required=True)
     staff_comments = objforms.widgets.CommentField(required=False)
     storage_location = objforms.widgets.CommentField(required=False)
     
@@ -80,9 +80,9 @@ class ShipmentReturnForm(objforms.forms.OrderedForm):
         """ Returns a warning message to display in the form - accessed in objforms/plain.py """
         shipment = self.instance
         if shipment:
-            for experiment in shipment.project.experiment_set.all():
+            for experiment in shipment.project.experiment_set.filter(pk__in=shipment.project.crystal_set.filter(container__dewar__shipment__exact=shipment.pk).values('experiment')):
                 if experiment.status != Experiment.STATES.REVIEWED:
-                    return 'Experiment "%s" has not been reviewed. Click "Cancel" to complete Experiments.' % experiment.name
+                    return 'Experiment "%s" has not been reviewed. Click "Cancel" to review Experiments.' % experiment.name
 
     def clean_return_code(self):
         cleaned_data = self.cleaned_data['return_code']

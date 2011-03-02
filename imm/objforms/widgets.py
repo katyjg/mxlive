@@ -100,6 +100,11 @@ class BarCodeInput(forms.TextInput):
         kwargs.setdefault('attrs',{'class': 'field barcode large'})
         super(BarCodeInput, self).__init__(*args, **kwargs)
 
+class BarCodeReturn(forms.TextInput):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('attrs',{'class': 'field barcode-return large'})
+        super(BarCodeReturn, self).__init__(*args, **kwargs)
+
 class MatrixCodeInput(forms.TextInput):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('attrs',{'class': 'field matrixcode large'})
@@ -155,6 +160,9 @@ class SmallTextField(forms.CharField):
 
 class BarCodeField(forms.CharField):
     widget = BarCodeInput
+
+class BarCodeReturnField(forms.CharField):
+    widget = BarCodeReturn
     
 class MatrixCodeField(forms.CharField):
     widget = MatrixCodeInput

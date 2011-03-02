@@ -91,7 +91,7 @@ function initForms(){
             $dst_sel.find('option:selected').each(function(i, v){
                 $src_sel.append(v);
             });
-        });       
+        });
     });
     
     // Make sure all entries in right select are selected on submit
@@ -108,7 +108,23 @@ function initForms(){
         
     // make sure we do not initialize a form twice
     jQuery('form.objform_raw').addClass('objform').removeClass('objform_raw');
-     
+
+    // disable submit-on-enter for barcode fields
+    $('input.barcode, input.matrixcode').live("keypress", function(e) {
+        /* ENTER PRESSED*/
+        if (e.keyCode == 13) {
+            /* FOCUS ELEMENT */
+            var inputs = $(this).parents("form").eq(0).find(":input");
+            var idx = inputs.index(this);
+            if (idx == inputs.length - 1) {
+                inputs[0].select()
+            } else {
+                inputs[idx + 1].focus(); // handles submit buttons
+            }
+            return false;
+        }
+    });
+
 }
 
 function initModals(){

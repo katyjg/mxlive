@@ -1627,14 +1627,14 @@ textarea.large
 	height:20em;
 }
 
-input.text,input.file,textarea.textarea,select.select,input.barcode,input.matrixcode,input.search
+input.text,input.file,textarea.textarea,select.select,input.barcode,input.matrixcode,input.search,input.barcode-return
 {
 	margin:0;
 	font-size:100%;
 	color:#333;
 }
 
-input.text, input.search, textarea.field, input.barcode, input.matrixcode
+input.text, input.search, textarea.field, input.barcode, input.matrixcode, input.barcode-return
 {
 /*border-color: #7C7C7C #CECECE #C3C3C3 #7C7C7C;
 	border-color:#abc;
@@ -1655,7 +1655,7 @@ input.text, input.search, textarea.field, input.barcode, input.matrixcode
     background: #ffffef;
 }
 
-input.text,input.file,input.barcode,textarea.textarea,input.matrixcode,input.search
+input.text,input.file,input.barcode,textarea.textarea,input.matrixcode,input.search, input.barcode-return
 {
 	padding:3px;
 }
@@ -1664,7 +1664,7 @@ input.text,input.file,input.barcode,textarea.textarea,input.matrixcode,input.sea
 {
 }
 
-input.barcode
+input.barcode, input.barcode-return
 {
 	background:#fff url(/img/barcode-bg.png) no-repeat top right;
 }
