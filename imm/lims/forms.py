@@ -73,8 +73,8 @@ class LimsBasicForm(objforms.forms.OrderedForm):
 class ShipmentUploadForm(forms.Form):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     excel = forms.FileField(widget=objforms.widgets.LargeFileInput)
-    dewar = forms.CharField(widget=objforms.widgets.LargeInput, label='Dewar Name', help_text='A dewar with this name will be created for the contents of the uploaded spreadsheet.', initial='')
-    shipment = forms.CharField(widget=objforms.widgets.LargeInput, label='Shipment Name', help_text='Provide a name for this shipment.')    
+    dewar = forms.CharField(widget=objforms.widgets.LargeInput, label='Dewar Name', help_text='A dewar with this name will be created for the contents of the uploaded spreadsheet.', initial='', required=True)
+    shipment = forms.CharField(widget=objforms.widgets.LargeInput, label='Shipment Name', help_text='Provide a name for this shipment.', required=True)    
 
     NUM_ERRORS = 3    
 
@@ -360,8 +360,7 @@ class ExperimentFromStrategyForm(objforms.forms.OrderedForm):
             
 class CocktailForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    name = objforms.widgets.LargeCharField(required=True)
-    constituents = objforms.widgets.LargeCharField(required=True, help_text=Cocktail.HELP['constituents'])
+    name = objforms.widgets.LargeCharField(required=True, label='Constituents')
     is_radioactive = objforms.widgets.LeftCheckBoxField(required=False)
     contains_heavy_metals = objforms.widgets.RightCheckBoxField(required=False)
     contains_prions = objforms.widgets.LeftCheckBoxField(required=False)
@@ -374,7 +373,7 @@ class CocktailForm(objforms.forms.OrderedForm):
 
     class Meta:
         model = Cocktail
-        fields = ('project','name', 'constituents','is_radioactive','contains_heavy_metals','contains_prions','contains_viruses','description')
+        fields = ('project','name','is_radioactive','contains_heavy_metals','contains_prions','contains_viruses','description')
 
 class CrystalFormForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)

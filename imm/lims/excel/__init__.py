@@ -105,10 +105,10 @@ class LimsWorkbook(object):
         self.dewar = self._get_dewar()
         self.experiments = self._get_experiments()
         self.containers = self._get_containers()
+        self.space_groups = self._get_space_groups()
         self.cocktails = self._get_cocktails()
         self.crystal_forms = self._get_crystal_forms()
         self.crystals = self._get_crystals()
-        self.space_groups = self._get_space_groups()
         
     def _get_shipment(self):
         """ Returns a Shipment
@@ -218,14 +218,14 @@ class LimsWorkbook(object):
                row_values[EXPERIMENT_CELL_GAMMA]:
 
                 old_cf = self.project.crystalform_set.all()
-                if row_values[EXPERIMENT_CELL_A]: old_cf.filter(cell_a=float(row_values[EXPERIMENT_CELL_A]))
-                if row_values[EXPERIMENT_CELL_B]: old_cf.filter(cell_b=float(row_values[EXPERIMENT_CELL_B]))
-                if row_values[EXPERIMENT_CELL_C]: old_cf.filter(cell_c=float(row_values[EXPERIMENT_CELL_C]))
-                if row_values[EXPERIMENT_CELL_ALPHA]: old_cf.filter(cell_alpha=float(row_values[EXPERIMENT_CELL_ALPHA]))
-                if row_values[EXPERIMENT_CELL_BETA]: old_cf.filter(cell_beta=float(row_values[EXPERIMENT_CELL_BETA]))
-                if row_values[EXPERIMENT_CELL_GAMMA]: old_cf.filter(cell_gamma=float(row_values[EXPERIMENT_CELL_GAMMA]))
+                if row_values[EXPERIMENT_CELL_A]: old_cf = old_cf.filter(cell_a__exact=row_values[EXPERIMENT_CELL_A])
+                if row_values[EXPERIMENT_CELL_B]: old_cf = old_cf.filter(cell_b=float(row_values[EXPERIMENT_CELL_B]))
+                if row_values[EXPERIMENT_CELL_C]: old_cf = old_cf.filter(cell_c=float(row_values[EXPERIMENT_CELL_C]))
+                if row_values[EXPERIMENT_CELL_ALPHA]: old_cf = old_cf.filter(cell_alpha=float(row_values[EXPERIMENT_CELL_ALPHA]))
+                if row_values[EXPERIMENT_CELL_BETA]: old_cf = old_cf.filter(cell_beta=float(row_values[EXPERIMENT_CELL_BETA]))
+                if row_values[EXPERIMENT_CELL_GAMMA]: old_cf = old_cf.filter(cell_gamma=float(row_values[EXPERIMENT_CELL_GAMMA]))
+                if row_values[EXPERIMENT_SPACE_GROUP]: old_cf = old_cf.filter(space_group__in=SpaceGroup.objects.filter(name=row_values[EXPERIMENT_SPACE_GROUP]))
                 if old_cf.exists():
-                    print "existing crystal_form", old_cf
                     crystal_form = old_cf[0]
                 else:
                     crystal_form = CrystalForm(project=self.project)
@@ -259,7 +259,12 @@ class LimsWorkbook(object):
                         crystal_form.cell_gamma = float(row_values[EXPERIMENT_CELL_GAMMA])
                     except ValueError:
                         pass
-                    
+
+                    if self.space_groups.has_key(row_values[EXPERIMENT_NAME]):
+                        space_group = self.space_groups[row_values[EXPERIMENT_NAME]]
+                        crystal_form.space_group = space_group
+                        crystal_form.save()                    
+
                 crystal_forms[row_values[EXPERIMENT_NAME]] = crystal_form
         return crystal_forms
     
@@ -314,7 +319,7 @@ class LimsWorkbook(object):
             if row_values[EXPERIMENT_RESOLUTION]:
                 experiment.resolution = row_values[EXPERIMENT_RESOLUTION]
                 
-            experiments[experiment.name] = experiment
+            experiments[row_values[EXPERIMENT_NAME]] = experiment
             if experiment.project.experiment_set.filter(name__exact=experiment.name).exists():
                 experiment.name += '-%s' % dateformat.format(datetime.now(), 'dMY')
         return experiments
@@ -343,8 +348,6 @@ class LimsWorkbook(object):
             if row_values[CRYSTAL_EXPERIMENT] and row_values[CRYSTAL_EXPERIMENT] in self.experiments:
                 # patch the reference - it will be put in the Experiment in .save()
                 crystal.experiment = self.experiments[row_values[CRYSTAL_EXPERIMENT]]
-                if self.crystal_forms.has_key(row_values[CRYSTAL_EXPERIMENT]):
-                    print "hello"
             else:
                 self.errors.append(CRYSTAL_EXPERIMENT_ERROR % (row_values[CRYSTAL_EXPERIMENT], row_num))
                 
@@ -433,16 +436,10 @@ class LimsWorkbook(object):
         self.log_activity(self.dewar, request)
         for experiment in self.experiments.values():
             experiment.save()
-            
             # manage the CrystalForm/SpaceGroup relationship
             if self.crystal_forms.has_key(experiment.name):
                 crystal_form = self.crystal_forms[experiment.name]
                 crystal_form.save()
-                if self.space_groups.has_key(experiment.name):
-                    space_group = self.space_groups[experiment.name]
-                    crystal_form.space_group = space_group
-                    crystal_form.save()
-                    
             self.log_activity(experiment, request)
         for container in self.containers.values():
             container.dewar = self.dewar
@@ -467,9 +464,12 @@ class LimsWorkbook(object):
                 
             # buffer was needed to add crystal to experiment.
             if crystal.experiment:
+                for key in self.experiments:
+                    if self.experiments[key].name == crystal.experiment.name:
+                        experiment_key = key
                 # manage the Crystal/CrystalForm relationship
-                if self.crystal_forms.has_key(crystal.experiment.name):
-                    crystal_form = self.crystal_forms[crystal.experiment.name]
+                if self.crystal_forms.has_key(experiment_key):
+                    crystal_form = self.crystal_forms[experiment_key]
                     crystal.crystal_form = crystal_form
                     crystal.crystal_form.name = crystal.crystal_form.identity()
                     crystal.crystal_form.save()

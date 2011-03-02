@@ -57,9 +57,9 @@ staff_site.register(Crystal, CrystalAdmin)
 
 class CocktailAdmin(VersionAdmin):
     ordering = ['-created']
-    search_fields = ['description','name','constituents']
+    search_fields = ['description','name',]
     list_filter = ['modified']
-    list_display = ('identity', 'name', 'constituents', 'description', 'modified')    
+    list_display = ('identity', 'name', 'description', 'modified')    
 admin.site.register(Cocktail, CocktailAdmin)
     
 class CrystalFormAdmin(VersionAdmin):
