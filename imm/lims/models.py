@@ -826,7 +826,7 @@ class Experiment(LimsBaseClass):
         if self.crystal_set.count() == 0:
             errors.append("no Crystals")
         if self.status == Experiment.STATES.ACTIVE:
-            diff = self.crystal_set.count() - self.crystal_set.filter(status__exact=Crystal.STATES.ON_SITE).count()
+            diff = self.crystal_set.count() - self.crystal_set.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).count()
             if diff:
                 errors.append("%i crystals have not arrived on-site." % diff)
         return errors
@@ -884,7 +884,7 @@ class Experiment(LimsBaseClass):
         
     def json_dict(self):
         """ Returns a json dictionary of the Runlist """
-        return {
+        json_info = {
             'project_id': self.project.pk,
             'project_name': self.project.name,
             'id': self.pk,
@@ -900,9 +900,10 @@ class Experiment(LimsBaseClass):
             'total_angle': self.total_angle,
             'multiplicity': self.multiplicity,
             'comments': self.comments,
-            'crystals': [crystal.pk for crystal in self.crystals.all()],
+            'crystals': [crystal.pk for crystal in self.crystal_set.filter(Q(screen_status__exact=Crystal.EXP_STATES.PENDING) | Q(collect_status__exact=Crystal.EXP_STATES.PENDING))],
             'best_crystal': self.best_crystal()
         }
+        return json_info
         
      
 class Crystal(LoadableBaseClass):

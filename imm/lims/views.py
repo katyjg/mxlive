@@ -1040,7 +1040,21 @@ def add_data(request, data_info):
         data_info['project_id'] = data_owner.pk
         del data_info['project_name']
     else:
-        return {'error': 'Unknown Project' }    
+        return {'error': 'Unknown Project' }  
+    
+    
+    # check if beamline_id is provided if not check if beamline_name is provided
+    if data_info.get('beamline_id') is None:
+        if data_info.get('beamline_name') is not None:
+        try:
+            beamline = Beamline.objects.get(name=data_info['beamline_name'])
+            del data_info['beamline_name']
+            data_info['beamline_id'] = beamline.pk
+        except:
+            return {'error', 'Beamline Not Specified'}
+    else:
+        return {'error': 'Unknown Project'}  
+      
      
     # convert unicode to str
     for k,v in data_info.items():

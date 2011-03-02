@@ -12,7 +12,7 @@
         </tr>
     </thead>
     <tbody>
-    {% for data in datasets %}
+    {% for data in object.data_set.all %}
         <tr class="{% cycle 'odd' 'even'%}">
         	<td><a href="{% url lims-data-detail data.pk %}" class="modal" >{{ data.name }}</a></td>
         	<td>{{ data.num_frames }}</td>
@@ -37,7 +37,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for result in results %}
+        {% for result in object.result_set.all %}
         <!-- "odd" if loop_count % 2 == 1 else "even" -->
             <tr class="{% cycle 'odd' 'even'%}">
             	<td><a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|color_score:2 }})</a></td>

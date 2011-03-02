@@ -1,6 +1,12 @@
 <li class="filter-title">{{title|capfirst}}:</li>
 {% for choice in choices %}
-    <li {% if choice.selected %}class="selected"{% endif %}>
+    <li {% if choice.selected %}class="selected"{% endif %}
+    {% if forloop.first %}
+        title="Cancel this filter"
+    {% else %}
+        title="Show only items for which '{{title}}' is {{choice.display|escape}}"
+    {% endif %}
+    >
         <a class="filter" href="{{ url }}{{ choice.query_string }}">{{choice.display|escape}}</a>{% if not forloop.last %} &middot;{% endif %}
     </li>
 {% endfor %}
