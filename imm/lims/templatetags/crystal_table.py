@@ -23,17 +23,24 @@ def crystal_table(context, crystals, admin, experiment):
     # want results as a list of results from all results, filtered to just have ones relevant to crystals. 
     
     # after discussion, make it an expandable row, 
+    if admin:
+        crystals = crystals.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED])
+
     crystal_list = list()
     for crystal in crystals:
-        best = crystal.best_screening()
+        best_s = crystal.best_screening()
+        best_c = crystal.best_collection()
+        if best_s.get('report') is not None:
+            best = best_s
+        else:
+            best = best_c
         if best.get('report') is not None:
             crystal_list.append((best['report'].score, crystal))
         else:
             crystal_list.append((-99, crystal))
     crystal_list.sort()
+    crystal_list.reverse()
     
-    if admin:
-        crystals = crystals.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED])
     return { 'crystals': [xtl for s,xtl in crystal_list],
             'admin': admin,
             'experiment': experiment
