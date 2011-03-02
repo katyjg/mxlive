@@ -947,18 +947,28 @@ class Crystal(LoadableBaseClass):
         return self.code or None
 
     def best_screening(self):
-        # need to change to [id, score]
-        results = self.project.result_set.filter(crystal=self, kind='0').order_by('-score')
-        if results:
-            return results[0]
-        return None
+        info = {}
+        results = self.result_set.filter(kind__exact=Result.RESULT_TYPES.SCREENING).order_by('-score')
+        if len(results) > 0:
+            info['report'] = results[0]
+            info['data'] = info['report'].data
+        else:
+            data = self.data_set.filter(kind__exact=Data.DATA_TYPES.SCREENING).order_by('-created')
+            if len(data) > 0:
+                info['data'] = data[0]
+        return info
     
     def best_collection(self):
-        # need to change to [id, score]
-        results = Result.objects.filter(crystal=self, kind='1').order_by('-score')
-        if results:
-            return results[0]
-        return None                
+        info = {}
+        results = self.result_set.filter(kind__exact=Result.RESULT_TYPES.COLLECTION).order_by('-score')
+        if len(results) > 0:
+            info['report'] = results[0]
+            info['data'] = info['report'].data
+        else:
+            data = self.data_set.filter(kind__exact=Data.DATA_TYPES.COLLECTION).order_by('-created')
+            if len(data) > 0:
+                info['data'] = data[0]
+        return info
 
     def is_clonable(self):
         return True
