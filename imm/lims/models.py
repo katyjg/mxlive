@@ -829,7 +829,10 @@ class Experiment(LimsBaseClass):
 
     def is_reviewable(self):
         return self.status != Experiment.STATES.REVIEWED
-
+    
+    def is_closable(self):
+        return self.status == Experiment.STATES.REVIEWED
+        
     def is_complete(self):
         """
         Checks experiment type, and depending on type, determines if it's fully completed or not. 
@@ -1090,6 +1093,10 @@ class Data(LimsBaseClass):
     
     def start_angle_for_frame(self, frame):
         return (frame - self.first_frame) * self.delta_angle + self.start_angle 
+
+    def is_closable(self):
+        return True
+
         
     class Meta:
         verbose_name = 'Dataset'
