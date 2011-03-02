@@ -717,6 +717,18 @@ ul.filter-choices ul {
     width: 750px;
 }
 
+#data-viewer .heading h2 {
+    text-shadow:#FFFFFF 0 1px 1px;    
+}
+
+#data-viewer .heading h2 span.identity {
+    border-right: 1px solid #ccc;
+    color: #999;
+    padding-right: 0.6em;
+    margin-right: 0.2em;
+}
+
+
 #data-viewer .meta-data {
     float: right;
     clear: right;
