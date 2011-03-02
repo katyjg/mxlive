@@ -831,7 +831,10 @@ class Experiment(LimsBaseClass):
 
     def is_reviewable(self):
         return self.status != Experiment.STATES.REVIEWED
-
+    
+    def is_closable(self):
+        return self.status == Experiment.STATES.REVIEWED
+        
     def is_complete(self):
         """
         Checks experiment type, and depending on type, determines if it's fully completed or not. 
