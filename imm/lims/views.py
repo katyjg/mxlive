@@ -1051,7 +1051,7 @@ def add_data(request, data_info):
                 del data_info['beamline_name']
                 data_info['beamline_id'] = beamline.pk
             except Beamline.DoesNotExist:
-                return {'error', 'Beamline Not Specified'}
+                return {'error': 'Beamline Not Specified'}
     else:
         return {'error': 'Unknown Project'}  
       

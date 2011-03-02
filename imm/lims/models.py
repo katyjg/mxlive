@@ -689,11 +689,9 @@ class SpaceGroup(models.Model):
 
 class Cocktail(LimsBaseClass):
     HELP = {
-        'constituents': 'Comma separated list of the constituents in this cocktail',
         'cascade': 'crystals',
         'cascade_help': 'All associated crystals will be left without a cocktail'
     }
-    constituents = models.CharField(max_length=200) 
     is_radioactive = models.BooleanField()
     contains_heavy_metals = models.BooleanField()
     contains_prions = models.BooleanField()

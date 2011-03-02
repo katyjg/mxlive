@@ -24,7 +24,8 @@
                 {% endif %}
                 {% for header in ol.header_list %}<th{{ header.class_attrib }}>
                     {% if header.sortable %}<a class="header" href="{{ handler }}{{ header.url }}">{% endif %}
-                    {{ header.text|capfirst }}
+                    {% if ol.object_type == 'Cocktail' %}{% if header.text == 'name' %}Constituents{% else %} {{ header.text|capfirst }}{% endif %}{% else %}
+                    {{ header.text|capfirst }}{% endif %}
                     {% if header.sortable %}</a>{% endif %}</th>
                 {% endfor %}
                 {% if form %}

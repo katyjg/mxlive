@@ -63,9 +63,9 @@
 {% load crystal_table %}
 
 {% if object.get_status_display == 'Draft' %}
-{% crystal_priority_table object.crystal_set.all request.user.is_superuser object.pk %}
+    {% crystal_priority_table object.crystal_set.all request.user.is_superuser object.pk %}
 {% else %}
-{% crystal_table object.crystal_set.all request.user.is_superuser object.pk %}
+    {% crystal_table object.crystal_set.all request.user.is_superuser object.pk %}
 {% endif %}
 
 <div style="clear: both;"></div>
