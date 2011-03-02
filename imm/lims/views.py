@@ -1050,8 +1050,8 @@ def add_data(request, data_info):
                 beamline = Beamline.objects.get(name=data_info['beamline_name'])
                 del data_info['beamline_name']
                 data_info['beamline_id'] = beamline.pk
-            except:
-                return {'error': 'Beamline Not Specified'}
+            except Beamline.DoesNotExist:
+                return {'error', 'Beamline Not Specified'}
     else:
         return {'error': 'Unknown Project'}  
       

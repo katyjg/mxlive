@@ -62,23 +62,31 @@
                         href="{% url lims-crystal-detail crystal.pk %}">{{ crystal.get_status_display }}</td>
 	            	{% endif %}
 	            	<td>
-                        {% if crystal.best_screening.data.pk %}
+                        {% if crystal.best_screening.data %}
                   			<a href="{% url lims-data-detail crystal.best_screening.data.pk %}" class="modal" title="View dataset images">{{ crystal.best_screening.data }}</a>
+	            	    {% else %}
+	            	        &mdash;
                         {% endif %}
 	            	</td>
 	            	<td>
-                        {% if crystal.best_screening.pk %}
-	            			<a href="{% url lims-result-detail crystal.best_screening.pk %}" title="Go to Crystal Screening Report">{{ crystal.best_screening.score|color_score:2 }}</a>
+                        {% if crystal.best_screening.report %}
+	            			<a href="{% url lims-result-detail crystal.best_screening.report.pk %}" title="Go to Crystal Screening Report">{{ crystal.best_screening.report.score|color_score:2 }}</a>
+	            	    {% else %}
+	            	        &mdash;
                         {% endif %}
 	            	</td>
 	            	<td>
-                        {% if crystal.best_collection.data.pk %}
+                        {% if crystal.best_collection.data %}
                  			<a href="{% url lims-data-detail crystal.best_collection.data.pk %}" class="modal" title="View dataset images">{{ crystal.best_collection.data }}</a>
+	            	    {% else %}
+	            	        &mdash;
                         {% endif %}
 	            	</td>
 	            	<td>
-                        {% if crystal.best_collection.pk %}
-   	            			<a href="{% url lims-result-detail crystal.best_collection.pk %}" title="Go to Data Processing Report">{{ crystal.best_collection.score|color_score:2 }}</a>
+                        {% if crystal.best_collection.report %}
+   	            			<a href="{% url lims-result-detail crystal.best_collection.report.pk %}" title="Go to Data Processing Report">{{ crystal.best_collection.report.score|color_score:2 }}</a>
+	            	    {% else %}
+	            	        &mdash;
                         {% endif %}
 	            	</td>
 	            </tr>
