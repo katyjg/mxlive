@@ -102,13 +102,13 @@
                     Package Number & {{ forloop.counter}} of {{shipment.dewar_set.count}} \\ \hline
                     \hline
                     From: & {\large {{ project.contact_person|texsafe|default:"" }} } \\
-	                 & {\large {{ project.department|texsafe|default:"" }} } \\
+	                 {% if project.department %}& {\large {{ project.department|texsafe|default:"" }} } \\{% endif %}
 	                 & {\large {{ project.organisation|texsafe|default:"" }} } \\
 	                 & {\large {{ project.address|texsafe|default:"" }} } \\
 	                 & {\large {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}\ \ {{project.postal_code|texsafe|default:"" }} } \\
 	                 & {\large {{ project.country|texsafe|default:"" }} } \\
 	                 & Phone: {{ project.contact_phone|texsafe|default:"" }} \\
-	                 & Fax: {{ project.contact_fax|texsafe|default:"" }} \\
+	                 {% if project.contact_fax %}& Fax: {{ project.contact_fax|texsafe|default:"" }} \\{% endif %}
                     \hline
                     \end{tabular*}
                 }

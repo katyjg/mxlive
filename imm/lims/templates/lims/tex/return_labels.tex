@@ -50,7 +50,7 @@
                 {\bf 
                 \begin{tabular}{ll}
                     {\Large To: } & {\Large {{ project.contact_person|texsafe|default:"" }} } \\
-	                 & {\Large {{ project.department|texsafe|default:"" }} } \\
+	                 {% if project.department %}& {\Large {{ project.department|texsafe|default:"" }} } \\{% endif %}
 	                 & {\Large {{ project.organisation|texsafe|default:"" }} } \\
 	                 & {\Large {{ project.address|texsafe|default:"" }} } \\
 	                 & {\Large {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}\ \ {{project.postal_code|texsafe|default:"" }} } \\
