@@ -322,7 +322,7 @@ class LimsWorkbook(object):
             experiments[row_values[EXPERIMENT_NAME]] = experiment
             appended = False
             for suffix in range(1,100):
-                if not experiment.project.experiment_set.filter(name__exact=experiment.name).exists():
+                if not experiment.project.experiment_set.filter(name__exact=experiment.name).exclude(status__exact=Experiment.STATES.ARCHIVED).exists():
                     return experiments
                 else:
                     if appended:
