@@ -1,8 +1,13 @@
 {% load humanize %}
 {% load score_colors %}
 
+<div class="object-list">
+<h3> Crystals</h3>
 	{% if admin %}
 	<form id="action_form" method="POST">{% csrf_token %}
+	    <div class="action_form_tools">
+        <button type="button" onclick="jQuery('#action_form input.checkbox').attr('checked',true);">Select All</button>
+        <button type="button" onclick="jQuery('#action_form input.checkbox').attr('checked',false);">Deselect All</button>
 		<button  type="submit" style="float:right; margin: 0;" title="Apply action to selected crystals">Apply</button>
 		<select id="selector" class="select" style="float:right;" name="action">
 			<option value="default" selected="selected">Select Action</option>
@@ -11,13 +16,10 @@
 			<option name="ignore" value="ignore">Ignore</option>
             <option name="screened" value="screened">Mark Screened</option>
             <option name="collected" value="collected">Mark Collected</option>
-		</select> 
-		
-		<br/>
+		</select> 		
+		</div>
 	{% endif %}
 
-<div class="object-list">
-<h3> Crystals</h3>
    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
         <thead>
             <tr class="header">
@@ -43,7 +45,7 @@
 	            <tr class="{% cycle 'odd' 'even'%}">
 	            	<!-- checkbox for actions, only admin -->
 	            	{% if admin %}
-            			<td><input type="checkbox" class="checkbox" name="crystal_chk" value="{{crystal.pk}}" {{checked|yesno:"checked='checked',,"}}/></td>
+            			<td><input type="checkbox" class="checkbox" name="crystal_chk" value="{{crystal.pk}}"></td>
             		{% endif %}
 	            	<td><a href="{% url lims-crystal-detail crystal.pk %}">{{ crystal.name }}</a></td>
 	            	{% if admin %}
