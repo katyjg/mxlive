@@ -9,6 +9,7 @@
 \usepackage[margin=0.5in]{geometry}
 \usepackage{parskip}
 \usepackage{longtable}
+\usepackage[utf8]{inputenc}
 \addtolength{\fboxsep}{0.2cm}
 \renewcommand{\arraystretch}{1.5}
 %------------------------------------------------------------
@@ -83,7 +84,7 @@
 {{ exp.total_angle|texsafe|default:"" }}&
 {{ exp.delta_angle|texsafe|default:"" }}&
 {{ exp.resolution|texsafe|default:"" }}&
-{{ exp.comments }} \\ \cline{2-10} \nopagebreak
+{{ exp.comments|texsafe|default:"" }} \\ \cline{2-10} \nopagebreak
 
  & \multicolumn{1}{c}{\cellcolor[gray]{.92}Crystal} & 
 \multicolumn{1}{c}{\cellcolor[gray]{.92}Pr.} & 
@@ -151,7 +152,7 @@
 {{ xtal.experiment.get_type_display|texsafe|default:"" }} &
 {% if xtal.crystal_form %}{{ xtal.crystal_form.cell_a|texsafe|default:"" }}, {{ xtal.crystal_form.cell_b|texsafe|default:"" }}, {{ xtal.crystal_form.cell_c|texsafe|default:"" }} & {% else %} & {% endif %}  
 {{ xtal.crystal_form.space_group|texsafe|default:"" }} & 
-{{ xtal.comments|texsafe|default:"" }} \\ \nopagebreak
+{% comment %}{{ xtal.comments|texsafe|default:"" }}{% endcomment %} \\ \nopagebreak
 {% endifequal %}{% endfor %}{% endfor %}
 {% if forloop.last %}{% else %} & & & & & & & & & \\{% endif %}
 
