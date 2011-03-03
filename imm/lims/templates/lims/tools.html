@@ -49,14 +49,14 @@
     {# USER TOOLS #}
     {% else %}
         {% if object.is_sendable %}
-            <li class="send-tool">
+            <li class="send-tool" title="Send this shipment">
                 <a href="{{handler}}send/?title=Send%20Shipment"  class="action modal-form">
                     Send
                 </a>
             </li>
         {% endif %}
         {% if object.has_labels %}
-            <li class="pdf-tool">
+            <li class="pdf-tool" title="Generate PDF labels for printing">
                 <a {% if object.project.address and object.project.city and object.project.province and object.project.country and object.project.postal_code %}
                     href="{{handler}}label/" class=""
                     {% else %}
@@ -66,40 +66,53 @@
             </li>
         {% endif %}
         {% if object.is_xlsable %}
-            <li class="template-tool">
+            <li class="template-tool" title="Download a spreadsheet of this entry">
                 <a href="{{handler}}xls/">
                     Spreadsheet
                 </a>
             </li>
         {% endif %}
         {% if object.is_closable %}
-            <li class="close-tool">
+            <li class="close-tool" title="Archive this entry">
                 <a href="{{handler}}close/" class="action modal-form">
                     Archive
                 </a>
             </li>
         {% endif %}
         {% comment %}
-        <li class="clone-tool">
+        <li class="clone-tool" title="Create a new entry using this one as a template">
             <a href="{{ handler }}../new/?clone={{object.id}}" class="action modal-form">
                 Clone
             </a>
         </li>
         {% endcomment %}
         {% if object.is_editable %}
-            <li class="edit-tool">
+            <li class="edit-tool" title="Edit this entry">
                 <a href="{{ handler }}edit/"  class="action modal-form">
                     Edit
                 </a>
             </li>
         {% endif %}
         {% if object.is_deletable %}
-            <li class="delete-tool">
+            <li class="delete-tool" title="Delete this entry">
                 <a href="{{ handler }}delete/"  class="action modal-form">
                     Delete
                 </a>
             </li>
         {% endif %}
     {% endif %}
+    <li class="toolbar-separator"></li>
+    {% if list_url %}
+        <li class="back-tool" title="Show the full list of entries">
+            <a href="{{list_url}}">
+                Show all
+            </a>
+        </li>
+    {% endif %}        
+    <li class="help-tool" title="Show user guide">
+        <a class="modal-iframe" href="/help/index.html">
+        User Guide
+        </a>
+    </li>
 </ul>
 

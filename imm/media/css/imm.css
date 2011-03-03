@@ -2,7 +2,7 @@ table { border-collapse: collapse;  empty-cells: show;}
 #content-title h2 {
     font-size: 1.6em;
     font-weight: bold;
-    padding-right: 48px;
+    padding-right: 24px;
     line-height: 60px;
     display: block;
     float: left;
@@ -245,6 +245,14 @@ ul.toolbar li a {
     text-align: center;
     /*font-family: 'TelegramaRen', sans-serif;*/
 }
+
+ul.toolbar li.toolbar-separator {
+    padding: 0 !important;
+    min-width: 1em !important;
+    height: 44px;
+    background: url(/img/toolbar-separator.png) no-repeat center center;
+}
+
 
 ul.toolbar li.edit-tool {background-image: url(/img/edit-icon.png);}
 ul.toolbar li.load-tool {background-image: url(/img/load-icon.png);}

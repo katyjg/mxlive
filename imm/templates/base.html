@@ -79,7 +79,7 @@
     {% if messages %}
         <script>
             {% for msg in messages %}
-                jQuery.jGrowl("{{msg|escape}}", { life: 5000 });
+                jQuery.jGrowl("{{msg|escape|capfirst}}", { life: 4000 });
             {% endfor %}
         </script>
     {% endif %}

@@ -1,6 +1,6 @@
 <table class="stats" cellspacing="0" cellpadding="0" border="0" width="100%">
     <tr><th colspan="10">Status Overview</th></tr>
-    <tr><td class="outgoing" title="In-coming items">Incoming</td>
+    <tr><td class="outgoing" title="In-coming items">Sent items</td>
     <td class="links">
         {% if statistics.shipments.outgoing %}
         <p>({{statistics.shipments.outgoing}})<br/><a href="{% url staff-shipment-list %}?status__exact=1">Shipment{{statistics.shipments.outgoing|pluralize}}</a></p>
@@ -14,7 +14,7 @@
     <td>&nbsp;</td>
     </tr>
 
-    <tr><td class="incoming" title="Out-going items">Outgoing</td>
+    <tr><td class="incoming" title="Out-going items">Returned</td>
     <td class="links">
         {% if statistics.shipments.incoming %}
         <p>({{statistics.shipments.incoming}})<br/><a href="{% url staff-shipment-list %}?status__exact=1">Shipment{{statistics.shipments.incoming|pluralize}}</a></p>

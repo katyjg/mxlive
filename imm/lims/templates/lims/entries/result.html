@@ -11,12 +11,10 @@
 {% endblock %}
 {% block object-tools %}
 <div class="object-tools">
+    {% include "lims/tools.html" %}
     <ul class="toolbar">
         <li class="print-tool" >
             <a href="javascript:window.print();">Print</a>
-        </li>
-        <li class="back-tool" >
-            <a href="{% url lims-result-list %}">Full List</a>
         </li>
     </ul>
 </div>

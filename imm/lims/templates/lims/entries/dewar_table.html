@@ -1,4 +1,5 @@
 {% load objlist %}
+{% load truncate_filters %}
 {% ifequal page "shipment" %}
 <div id="{{dewar.id}}" 
      class="dewar dewar-detail droppable droppable-add" 
@@ -8,7 +9,7 @@
         <p class="dewar droppable droppable-add" 
             {% if dewar.is_editable %}accept="container"{% else %}accept=""{% endif %}  
             rel="{% url lims-dewar-detail dewar.id %}">
-            <a class="dewar-title" href="{% url lims-dewar-detail dewar.id %}" title="{{ dewar.name }}">{{ dewar.name }}</a>
+            <a class="dewar-title" href="{% url lims-dewar-detail dewar.id %}" title="{{ dewar.name }}">{{ dewar.name|truncate_chars:15 }}</a>
             {% if admin %}{% if dewar.is_receivable %}
             <a class="receive modal-form"
                href="{% url staff-dewar-receive %}?name={{dewar.name}}"

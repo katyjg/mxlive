@@ -1,6 +1,6 @@
 {% load humanize %}
 <div id="sidebar-activity-log">
-<h2>Recent Activity</h2>
+<h2>Recent Items</h2>
 <ul>
     {% if logs %}
         {% for log in logs %}
@@ -16,10 +16,7 @@
             {% else %}
                 {{log.object_repr}} 
             {% endif %}
-            {% if log.user.is_admin or log.user.is_staff %}
-            by {{ log.user|capfirst }} 
-            {% endif %}<br/>
-            <em>{{ log.created|date:"M jS @ P" }}</em>
+            by&nbsp;{{ log.user}}, <em>{{ log.created|date:"M jS H:i" }}</em>
         </li>
         {% endfor %}
     {% else %}
