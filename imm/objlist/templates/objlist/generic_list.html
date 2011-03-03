@@ -12,7 +12,14 @@
             {% show_all_filters ol handler %}
         </div>
         <ul class="toolbar">
-            {% if can_add %}<li class="add-tool"><a class="modal-form"  href='{{ handler }}new/'>Add {{ol.object_type}}</a></li>{% endif %}
+            {% if can_add %}
+                <li class="add-tool" title="Add a new {{ol.object_type}} to the list">
+                <a class="modal-form"  href='{{ handler }}new/'>Add {{ol.object_type}}</a>
+                </li>
+            {% endif %}
+            <li class="toolbar-separator"></li>
+            <li class="help-tool left-separator"><a class="modal-iframe" href="/help/index.html" title="User guide">
+            Help</a></li>
         </ul>
         <div class="clear"></div>
     </div>

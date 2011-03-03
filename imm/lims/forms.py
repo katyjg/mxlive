@@ -365,7 +365,7 @@ class ExperimentFromStrategyForm(objforms.forms.OrderedForm):
             
 class CocktailForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    name = objforms.widgets.LargeCharField(required=True, label='Constituents')
+    name = objforms.widgets.LargeCharField(required=True, label='Constituents', help_text=Cocktail.HELP.get('name'))
     is_radioactive = objforms.widgets.LeftCheckBoxField(required=False)
     contains_heavy_metals = objforms.widgets.RightCheckBoxField(required=False)
     contains_prions = objforms.widgets.LeftCheckBoxField(required=False)

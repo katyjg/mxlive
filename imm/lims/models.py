@@ -234,7 +234,7 @@ class LimsBaseClass(models.Model):
         return self.status == self.STATES.RETURNED 
 
     def delete(self, request=None, cascade=True):
-        message = '%s (%s) deleted.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
+        message = '%s deleted' % (self._meta.verbose_name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.DELETE, message)
         super(LimsBaseClass, self).delete()
@@ -242,37 +242,37 @@ class LimsBaseClass(models.Model):
     def archive(self, request=None):
         if self.is_closable():
             self.change_status(self.STATES.ARCHIVED)
-            message = '%s (%s) archived.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
+            message = '%s archived' % (self._meta.verbose_name)
             if request is not None:
                 ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.ARCHIVE, message)
 
     def send(self, request=None):
         self.change_status(self.STATES.SENT)       
-        message = '%s (%s) sent to CLS.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
+        message = '%s sent to CLS' % (self._meta.verbose_name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def receive(self, request=None):
         self.change_status(self.STATES.ON_SITE) 
-        message = '%s (%s) received at CLS.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
+        message = '%s received at CLS' % (self._meta.verbose_name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def load(self, request=None):
         self.change_status(self.STATES.LOADED)    
-        message = '%s (%s) loaded into automounter.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
+        message = '%s loaded into automounter' % (self._meta.verbose_name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def unload(self, request=None):
         self.change_status(self.STATES.ON_SITE)   
-        message = '%s (%s) unloaded from automounter.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
+        message = '%s unloaded from automounter' % (self._meta.verbose_name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def returned(self, request=None):
         self.change_status(self.STATES.RETURNED)     
-        message = '%s (%s) returned.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.name)
+        message = '%s returned to user' % (self._meta.verbose_name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
@@ -687,6 +687,7 @@ class SpaceGroup(models.Model):
 
 class Cocktail(LimsBaseClass):
     HELP = {
+        'name': 'Enter a series of keywords here which summarize the constituents of the protein cocktail',
         'cascade': 'crystals',
         'cascade_help': 'All associated crystals will be left without a cocktail'
     }
@@ -871,7 +872,7 @@ class Experiment(LimsBaseClass):
 
     def review(self, request=None):
         super(Experiment, self).change_status(LimsBaseClass.STATES.REVIEWED)
-        message = '%s (%s) marked as reviewed.' % (self.__class__.__name__.upper(), self.name)
+        message = '%s reviewed' % (self._meta.verbose_name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
@@ -1216,7 +1217,10 @@ class ActivityLogManager(models.Manager):
         e.ip_number = request.META['REMOTE_ADDR']
         e.action_type = action_type
         e.description = description
-        e.object_repr = repr(obj)
+        if obj is not None:
+            e.object_repr = '%s: %s' % (obj.__class__.__name__.upper(), obj)
+        else:
+            e.object_repr = 'N/A'
         e.save()
 
     def last_login(self, request):
@@ -1227,7 +1231,7 @@ class ActivityLogManager(models.Manager):
             return None
         
 class ActivityLog(models.Model):
-    TYPE = Enum('Login', 'Logout', 'Task', 'Create', 'Modify','Delete', 'Archive')
+    TYPE = Enum('Login', 'Logout', 'Task', 'Create', 'Modify', 'Delete', 'Archive')
     created = models.DateTimeField('Date/Time', auto_now_add=True, editable=False)
     project = models.ForeignKey(Project, blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True)
@@ -1237,7 +1241,7 @@ class ActivityLog(models.Model):
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
     affected_item = generic.GenericForeignKey('content_type', 'object_id')
     action_type = models.IntegerField(max_length=1, choices=TYPE.get_choices() )
-    object_repr = models.CharField('Item', max_length=200, blank=True, null=True)
+    object_repr = models.CharField('Entity', max_length=200, blank=True, null=True)
     description = models.TextField(blank=True)
     
     objects = ActivityLogManager()

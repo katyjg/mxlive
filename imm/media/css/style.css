@@ -821,14 +821,14 @@ td.list-empty {
 
 #sidebar-activity-log {
     line-height: 1.2em;
-    min-height: 200px;
+    min-height: 170px;
     -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
        -moz-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
             box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
     background-color: #fffeda;
     background-image: -moz-linear-gradient(top, #fefcaf, #fffeee);
     background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #fefcaf), color-stop(1, #fffeee));
-    padding: 1.5em;
+    padding: 1.2em;
 }
 
 #sidebar-activity-log li {

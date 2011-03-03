@@ -9,11 +9,6 @@
 {% block object-tools %}
 <div class="object-tools">
     {% include "lims/tools.html" %}
-    <ul class="toolbar">
-        <li class="back-tool" >
-            <a href="{% url lims-dewar-list %}">Full List</a>
-        </li>
-    </ul>
 </div>
 {% endblock %}
 
@@ -79,4 +74,5 @@
     {% else %}
         {% include "staff/entries/comments_form.html" %}
     {% endif %}
+    {% include "lims/individual_history.html" %}
 {% endblock %}

@@ -47,7 +47,7 @@ except:
     from django.utils import simplejson as json
 
 
-ACTIVITY_LOG_LENGTH  = 5      
+ACTIVITY_LOG_LENGTH  = 6      
 
 def get_ldap_user_info(username):
     """
@@ -382,7 +382,8 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     
         dest.save()
         message = '%s (%s) added' % (to_add.__class__._meta.verbose_name, display_name)
-        ActivityLog.objects.log_activity(request, dest, ActivityLog.TYPE.MODIFY, message)
+        ActivityLog.objects.log_activity(request, dest, ActivityLog.TYPE.MODIFY, 
+            '%s added to %s (%s)' % (dest._meta.verbose_name, to_add._meta.verbose_name, to_add))
     else:
         message = '%s has not been added, as %s is not editable' % (display_name, dest.name)
 
@@ -402,9 +403,24 @@ def object_detail(request, id, model, template):
         obj = request.manager.get(pk=id)
     except:
         raise Http404
+    cnt_type = ContentType.objects.get_for_model(obj)
+    history = ActivityLog.objects.filter(content_type__pk=cnt_type.id, object_id=obj.id)
+    
+    # determine if there is a list url for this model and pass it in as list_url
+    if request.user.is_staff:
+        url_prefix = 'staff'
+    else:
+        url_prefix = 'lims'
+    url_name = "%s-%s-list" % (url_prefix, model.__name__.lower())
+    try:
+        list_url = reverse(url_name)
+    except:
+        list_url = None
     return render_to_response(template, {
         'object': obj,
-        'handler' : request.path
+        'history': history[:ACTIVITY_LOG_LENGTH],
+        'handler' : request.path,
+        'list_url': list_url,
         }, context_instance=RequestContext(request))
     
 @login_required
@@ -437,8 +453,8 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
         if frm.is_valid():
             new_obj = frm.save()
             info_msg = 'New %(name)s (%(obj)s) added' % {'name': smart_str(model._meta.verbose_name), 'obj': smart_str(new_obj)}
-            ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE,
-                info_msg)
+            ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
+                'new %s added' % (smart_str(model._meta.verbose_name),))
             request.user.message_set.create(message = info_msg)
             if request.POST.has_key('_addanother'):
                 initial = {'project': project_pk}
@@ -621,7 +637,9 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
             form_info['message'] = '%s (%s) modified' % ( model._meta.verbose_name, obj)
             frm.save()
             request.user.message_set.create(message = form_info['message'])
-            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, form_info['message'])            
+            
+            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, 
+                '%s edited' % ( model._meta.verbose_name,))         
             if modal_upload:
                 return render_to_response("lims/iframe_refresh.html", context_instance=RequestContext(request))
             return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
@@ -658,10 +676,11 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html')
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
         if frm.is_valid():
-            form_info['message'] = '%s (%s) comments added by staff' % ( model._meta.verbose_name, obj)
+            form_info['message'] = 'comments added to %s (%s) by staff' % ( model._meta.verbose_name, obj)
             frm.save()
             request.user.message_set.create(message = form_info['message'])
-            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, form_info['message'])            
+            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, 
+                'comments added to %s by staff' % ( model._meta.verbose_name,))            
             return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
         else:
             return render_to_response(template, {
@@ -750,8 +769,9 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
                 return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
                        
         src.save()
-        message = '%s removed from %s' % (to_remove, src)
-        ActivityLog.objects.log_activity(request, src, ActivityLog.TYPE.MODIFY, message)
+        message = '%s removed from %s' % (src, to_remove)
+        ActivityLog.objects.log_activity(request, src, ActivityLog.TYPE.MODIFY, 
+            '%s removed from %s' % (src._meta.verbose_name, to_remove._meta.verbose_name))
            
     else:
         message = '%s has not been removed, as %s is not editable' % (display_name, src.name)
@@ -1087,7 +1107,7 @@ def add_data(request, data_info):
             if new_obj.experiment.status == Experiment.STATES.ACTIVE:
                 new_obj.experiment.change_status(Experiment.STATES.PROCESSING)
         ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
-            "Dataset (%s) uploaded" % new_obj)
+            "Dataset uploaded from beamline")
         
         return {'data_id': new_obj.pk}
     except Exception, e:
@@ -1107,7 +1127,7 @@ def add_result(request, res_info):
         new_obj = Result(**info)
         new_obj.save()
         ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
-            "New analysis report (%s) added" % new_obj)
+            "New analysis report uploaded from beamline" % new_obj)
         return {'result_id': new_obj.pk}
     except Exception, e:
         raise exceptions.Error('Internal Server Error: %s' % e.message)
@@ -1123,7 +1143,7 @@ def add_strategy(request, stg_info):
         new_obj = Strategy(**info)
         new_obj.save()
         ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
-           "New strategy (%s) added" % new_obj)
+           "New strategy uploaded from beamline" % new_obj)
         return {'strategy_id': new_obj.pk}
     except Exception, e:
         raise exceptions.Error('Internal Server Error: %s' % e.message)
