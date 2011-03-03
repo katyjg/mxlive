@@ -241,6 +241,7 @@ function remove_item(element) {
     });
 }
 
+
 var dataViewer = function(){
 
     var  loadingTimer, loadingFrame= 1;

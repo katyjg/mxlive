@@ -1581,6 +1581,18 @@ form li label
 	text-align:left;
 }
 
+
+#action_form button, #action_form select {
+    font-size: 85%;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+#action_form div.action_form_tools {
+    padding: 2px;
+}
+
 /* ----- SIZES ----- */
 .third
 {
