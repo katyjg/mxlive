@@ -832,7 +832,7 @@ class Experiment(LimsBaseClass):
         return self.status != Experiment.STATES.REVIEWED
     
     def is_closable(self):
-        return self.status == Experiment.STATES.REVIEWED
+        return self.crystal_set.all().exists() and not self.crystal_set.exclude(status__in=[Crystal.STATES.RETURNED, Crystal.STATES.ARCHIVED]).exists() and self.status != Experiment.STATES.ARCHIVED
         
     def is_complete(self):
         """
@@ -877,9 +877,8 @@ class Experiment(LimsBaseClass):
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def archive(self, request=None):
-        if cascade:
-            for obj in self.crystal_set.all():
-                obj.archive(request=request)
+        for obj in self.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED):
+            obj.archive(request=request)
         super(Experiment, self).archive(request=request)
         
     def json_dict(self):
@@ -997,6 +996,7 @@ class Crystal(LoadableBaseClass):
         super(Crystal, self).archive(request=request)
         assert self.experiment
         if self.experiment.crystal_set and self.experiment.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).count() == 0:
+            print "archiving experiment"
             super(Experiment, self.experiment).archive(request=request)
 
     def change_screen_status(self, status):
