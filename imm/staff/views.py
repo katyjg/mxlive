@@ -349,10 +349,8 @@ def crystal_status(request):
         elif action == 2:
             crystal.change_collect_status(Crystal.EXP_STATES.PENDING) 
         elif action == 3:
-            if crystal.screen_status != Crystal.EXP_STATES.COMPLETED:
-                crystal.change_screen_status(Crystal.EXP_STATES.IGNORE) 
-            if crystal.collect_status != Crystal.EXP_STATES.COMPLETED:
-                crystal.change_collect_status(Crystal.EXP_STATES.IGNORE) 
+            crystal.change_screen_status(Crystal.EXP_STATES.IGNORE) 
+            crystal.change_collect_status(Crystal.EXP_STATES.IGNORE) 
         elif action == 4:
             crystal.change_screen_status(Crystal.EXP_STATES.COMPLETED)
         elif action == 5: 

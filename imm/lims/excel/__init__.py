@@ -320,8 +320,16 @@ class LimsWorkbook(object):
                 experiment.resolution = row_values[EXPERIMENT_RESOLUTION]
                 
             experiments[row_values[EXPERIMENT_NAME]] = experiment
-            if experiment.project.experiment_set.filter(name__exact=experiment.name).exists():
-                experiment.name += '-%s' % dateformat.format(datetime.now(), 'dMY')
+            appended = False
+            for suffix in range(1,100):
+                if not experiment.project.experiment_set.filter(name__exact=experiment.name).exists():
+                    return experiments
+                else:
+                    if appended:
+                        experiment.name = experiment.name[:-1] + str(suffix)
+                    else:
+                        appended = True
+                        experiment.name += '_%s' % str(suffix)
         return experiments
     
     def _get_crystals(self):
@@ -341,7 +349,7 @@ class LimsWorkbook(object):
                 self.errors.append(CRYSTAL_NAME_ERROR % (row_values[CRYSTAL_NAME], row_num))
                 
             if row_values[CRYSTAL_BARCODE]:
-                crystal.code = row_values[CRYSTAL_BARCODE]
+                crystal.barcode = row_values[CRYSTAL_BARCODE]
                 
             # changed, as experiment is actually a crystal property now.
             crystal.experiment = None
@@ -420,7 +428,7 @@ class LimsWorkbook(object):
                         request,
                         obj, 
                         ActivityLog.TYPE.CREATE,
-                        '%(name)s (%(obj)s) uploaded' % {'name': smart_str(obj.__class__._meta.verbose_name), 'obj': smart_str(obj)}
+                        'uploaded from spreadsheet'
                         )
     
     def save(self, request=None):
@@ -582,8 +590,8 @@ class LimsWorkbookExport(object):
             if crystal.name:
                 row.write(CRYSTAL_NAME, crystal.name)
                 
-            if crystal.code:
-                row.write(CRYSTAL_BARCODE, crystal.code)
+            if crystal.barcode:
+                row.write(CRYSTAL_BARCODE, crystal.barcode)
                 
             if crystal.experiment:
                 experiment = crystal.experiment

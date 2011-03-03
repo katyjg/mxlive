@@ -27,6 +27,7 @@ def crystal_table(context, crystals, admin, experiment):
         crystals = crystals.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED])
 
     crystal_list = list()
+    unprocessed = list()
     for crystal in crystals:
         best_s = crystal.best_screening()
         best_c = crystal.best_collection()
@@ -37,9 +38,11 @@ def crystal_table(context, crystals, admin, experiment):
         if best.get('report') is not None:
             crystal_list.append((best['report'].score, crystal))
         else:
-            crystal_list.append((-99, crystal))
+            unprocessed.append(crystal)
     crystal_list.sort()
     crystal_list.reverse()
+    for crystal in unprocessed:
+        crystal_list.append((-99, crystal))
     
     return { 'crystals': [xtl for s,xtl in crystal_list],
             'admin': admin,
