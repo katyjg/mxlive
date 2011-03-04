@@ -91,7 +91,11 @@ class ShipmentUploadForm(forms.Form):
             temp = tempfile.NamedTemporaryFile()
             temp.write(self.files['excel'].read())
             temp.flush()
-            self.workbook = LimsWorkbook(temp.name, cleaned_data['project'], dewar_name=cleaned_data['dewar'], shipment_name=cleaned_data['shipment'])
+            try:
+                self.workbook = LimsWorkbook(temp.name, cleaned_data['project'], dewar_name=cleaned_data['dewar'], shipment_name=cleaned_data['shipment'])
+            except KeyError:
+                del cleaned_data['excel']
+                return cleaned_data
             if not self.workbook.is_valid():
                 self._errors['excel'] = self._errors.get('excel', ErrorList())
                 errors = 'Please check the format of your spreadsheet and try to upload again.'

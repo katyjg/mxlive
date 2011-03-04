@@ -1,5 +1,7 @@
 from django import forms
 from django.db.models import Q
+from django.core.exceptions import FieldError
+
 
 class OrderedForm(forms.ModelForm):
     """
@@ -37,7 +39,7 @@ class OrderedForm(forms.ModelForm):
         try:        
             if self.Meta.model.objects.filter(project__exact=self.cleaned_data['project'], name__exact=self.cleaned_data['name']).exclude(status__exact=self.Meta.model.STATES.ARCHIVED).exists():
                 raise forms.ValidationError('An un-archived %s already exists with this name' % self.Meta.model.__name__)
-        except KeyError:
+        except (KeyError, FieldError):
             pass
         return self.cleaned_data['name']
           
