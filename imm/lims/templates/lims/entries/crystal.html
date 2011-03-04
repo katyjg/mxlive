@@ -17,6 +17,13 @@
 <div class="crystal droppable droppable-replace" {% if object.is_editable %}accept="crystalform cocktail" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>
 
 <table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
+    <tr valign="top"><th>Status:</th><td>{{ object.get_status_display }}</td></tr>
+	{% if object.screen_status != 0 %}
+		<tr valign="top"><th NOWRAP>Screen Status:</th><td>{{ object.get_screen_status_display }}</td></tr>
+	{% endif %}
+	{% if object.collect_status != 0 %}
+		<tr valign="top"><th NOWRAP>Collect Status:</th><td>{{ object.get_collect_status_display }}</td></tr>
+	{% endif %}
 	<tr valign="top"><th>Barcode:</th><td>{{ object.code }}</td></tr>
 	<tr valign="top"><th>Loop-size:</th><td>{{ object.loop_size }}</td></tr>
 	<tr valign="top"><th>Pin-length:</th><td>{{ object.pin_length }}</td></tr>
@@ -37,12 +44,6 @@
 	<tr valign="top"><th>Experiment:</th><td><a href="{% url lims-experiment-detail object.experiment.pk %}">{{object.experiment}}</a></td></tr>
 	{% else %}
 	<tr valign="top"><th>Experiment:</th><td>None</td></tr>
-	{% endif %}
-	{% if object.screen_status != 0 %}
-		<tr valign="top"><th NOWRAP>Screen Status:</th><td>{{ object.get_screen_status_display }}</td></tr>
-	{% endif %}
-	{% if object.collect_status != 0 %}
-		<tr valign="top"><th NOWRAP>Collect Status:</th><td>{{ object.get_collect_status_display }}</td></tr>
 	{% endif %}
 </table>
 {% if object.comments or object.staff_comments %}
