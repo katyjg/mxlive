@@ -70,7 +70,7 @@ class ShipmentReturnForm(objforms.forms.OrderedForm):
         help_text='Please select the carrier company.',
         required=True
         )
-    return_code = objforms.widgets.LargeCharField(required=True)
+    return_code = objforms.widgets.LargeCharField(required=False)
 
     class Meta:
         model = Shipment
@@ -91,6 +91,9 @@ class ShipmentReturnForm(objforms.forms.OrderedForm):
             raise forms.ValidationError('Shipment already returned.')
         return cleaned_data
     
+    def restrict_by(self, field_name, value):
+        pass
+
 class RunlistForm(objforms.forms.OrderedForm):
     """ Form used to create a Runlist """
     name = objforms.widgets.LargeCharField(required=True)
