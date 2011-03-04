@@ -1,4 +1,5 @@
 import logging
+import re
 
 from imm import objforms
 from imm.lims.models import Shipment
@@ -26,40 +27,48 @@ class DewarForm(objforms.forms.OrderedForm):
     
 class DewarReceiveForm(objforms.forms.OrderedForm):
     """ Form used to receive a Dewar, based on the Dewar upc code """
-    name = forms.ModelChoiceField(
-        queryset=Dewar.objects.filter(status=Dewar.STATES.SENT),
-        widget=objforms.widgets.LargeSelect,
-        help_text='Please select the Dewar to receive.',
-        required=True, initial=''
-        )
-    barcode = objforms.widgets.BarCodeReturnField(required=True)
+    barcode = objforms.widgets.BarCodeReturnField(required=True,
+        help_text='Please scan in the dewar barcode or type it in. The format is "CLSxxxx-xxxx".')
+    storage_location = objforms.widgets.LargeCharField(required=True,
+        help_text='Please briefly describe where the dewar will be stored. For example "CMCF-BM 1608-7".')
     staff_comments = objforms.widgets.CommentField(required=False)
-    storage_location = objforms.widgets.CommentField(required=False)
     
     class Meta:
         model = Dewar
-        fields = ('name', 'barcode', 'staff_comments', 'storage_location')
+        fields = ('barcode', 'storage_location', 'staff_comments')
         
     def __init__(self, *args, **kwargs):
         super(DewarReceiveForm, self).__init__(*args, **kwargs)
-        self.fields['name'].queryset = Dewar.objects.filter(name=self.initial.get('name', None)) or Dewar.objects.filter(status=Dewar.STATES.SENT)
 
     def clean(self):
         cleaned_data = self.cleaned_data
-        barcode = cleaned_data.get("barcode")
-        name = cleaned_data.get("name")
-        if name:
+        barcode = cleaned_data.get("barcode","")
+        bc_match = re.match("CLS(?P<dewar_id>\d{4})-(?P<shipment_id>\d{4})", barcode)
+        
+        if bc_match:
+            dewar_id = int(bc_match.group('dewar_id'))
+            shipment_id = int(bc_match.group('shipment_id'))
             try:
-                instance = self.Meta.model.objects.get(name__exact=name)
+                instance = Dewar.objects.filter(shipment__id__exact=shipment_id).get(pk=dewar_id)
                 if instance.status != Dewar.STATES.SENT:
+                    self._errors['barcode'] = self._errors.get('barcode', ErrorList())
+                    self._errors['barcode'].append('This dewar can not be received.')
                     raise forms.ValidationError('Dewar already received.')
                 if instance.barcode() != barcode:
                     self._errors['barcode'] = self._errors.get('barcode', ErrorList())
-                    self._errors['barcode'].append('Incorrect barcode.')
+                    self._errors['barcode'].append('Barcode Mismatch.')
                     raise forms.ValidationError('Incorrect barcode.')
                 self.instance = instance
             except Dewar.DoesNotExist:
-                raise forms.ValidationError('No Dewar found with matching tracking code. Did you scan the correct Shipment?')
+                self._errors['barcode'] = self._errors.get('barcode', ErrorList())
+                self._errors['barcode'].append('Incorrect barcode.')
+                raise forms.ValidationError('No Dewar found with matching tracking code. Did you scan the correct dewar?')
+        else:
+            if barcode != "":
+                self._errors['barcode'] = self._errors.get('barcode', ErrorList())
+                self._errors['barcode'].append('Invalid barcode format.')
+            raise forms.ValidationError('Invalid barcode. Please scan in the correct barcode.')
+        print cleaned_data, self.is_valid(), self.errors
         return cleaned_data
    
 class ShipmentReturnForm(objforms.forms.OrderedForm):
