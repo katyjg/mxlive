@@ -5,6 +5,8 @@
     {# should likely point to an ajax style popup #} 
     	<li id="{{object.id}}" class="draggable-link-parent {{ type }}" rel="{{ handler }}{{object.pk}}" ondragstart="setupDragAndDrop()">
     		<a {% if object.is_editable %} href="{{ handler }}{{object.pk}}/edit/" class="{{ type }} action modal-form"
-               {% else %} class="{{ type}}"{% endif %}>{{ object.name }}</a>
+               {% else %} class="{{ type}}"{% endif %}>
+               {{ object.name }}
+            </a>
     	</li>
 {% endfor %}

@@ -1,0 +1,46 @@
+<form method="post" id="inline-form" action="{{handler}}staff_comments/add/">
+{% csrf_token %}
+<ul class="form-body" style="padding: 0 2px;">
+    <li class="field">
+    <div>
+    <label for="id_staff_comments">Staff comments</label>
+    </div>
+    <div title="Add notes for the user here. You can use Restructured Text markup.">
+    <textarea id="id_staff_comments" name="staff_comments" class="field textarea large">{{object.staff_comments|default:''}}</textarea>
+    </div>
+    </li>
+</ul>
+<ul class="form-buttons">
+<li>
+<input value="Save" name="_save" class="default" type="submit">
+</li>
+</ul>
+</form>
+
+<script>
+//bind the submit of our new form
+jQuery('#inline-form').ajaxForm({
+    beforeSubmit: function(){
+        jQuery.fancybox.showActivity();
+    },
+    success:  function(msg){
+        if (typeof(msg) == 'string') {
+            var error = msg.indexOf("error") > -1; // given an error there will be an error string string present
+        } else {
+            var error = false;
+        }
+        if(error) {
+            /*jQuery.fancybox({content:msg,onComplete:func,scrolling:'no',titleShow:false});*/
+        } else {
+            // A json object with a url field will be returned in some cases. just redirect to it.
+            if (typeof(msg) == 'object') {
+                window.location.href = msg.url;                        
+            } else {
+               window.location.reload();
+            }
+        }
+        jQuery.fancybox.hideActivity();
+        return false;
+    }
+});
+</script>

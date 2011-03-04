@@ -1,0 +1,16 @@
+[
+    {
+        "pk": 1, 
+        "model": "apikey.apikey", 
+        "fields": {
+            "allowed_methods": "all", 
+            "created": "2011-02-18 14:14:15", 
+            "client_name": "Dev Server Host", 
+            "modified": "2011-02-18 14:14:15", 
+            "client_email": "", 
+            "key": "8CABA1A7-3FD9-494F-8D14-62A6876B2BC7", 
+            "active": true, 
+            "allowed_hosts": "127.0.0.1/32"
+        }
+    }
+]

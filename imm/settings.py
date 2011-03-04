@@ -110,6 +110,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.humanize',
+    'django.contrib.markup',
     'django.contrib.databrowse',
     'imm.lims',
     'imm.staff',
@@ -119,6 +120,8 @@ INSTALLED_APPS = (
     'imm.download',
     'jsonrpc',
     'reversion',
+    'apikey',
+    
 )
 
 

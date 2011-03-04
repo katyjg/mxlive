@@ -9,7 +9,7 @@
              	<th>Experiment</th>
                 <th>Type</th>
                 <th>Plan</th>
-                <th>Num Crystals</th>
+                <th>{% if admin %}Crystals On-site{% else %}Num Crystals{% endif %}</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -17,19 +17,18 @@
         {% if experiments %}
             {% for experiment in experiments %}{% if experiment.pk %}
                 <tr id="{{ experiment.pk }}" class="{% cycle 'odd' 'even'%} link-row"
-                    title="Go to Experiment {{experiment.name}}"
                     rel="{% url lims-experiment-detail experiment.pk %}">
                     {% if object.get_status_display == 'Draft' %}<td class="prioritize dragHandle" title="Drag to Prioritize"></td>{% endif %}
-                    <td class="redirect"
+                    <td class="redirect" title="Go to Experiment {{experiment.name}}"
                     href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.name }}</td>
-                    <td class="redirect"
+                    <td class="redirect" title="Go to Experiment {{experiment.name}}"
                     href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.get_kind_display }}</td>
-                    <td class="redirect"
+                    <td class="redirect" title="Go to Experiment {{experiment.name}}"
                     href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.get_plan_display }}</td>
                     <td class="redirect"
-                    href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.crystal_set|in_shipment:containers }}/{{ experiment.num_crystals }}</td>
+                    href="{% url lims-experiment-detail experiment.pk %}">{% if admin %}{{ experiment.crystal_set|arrived_onsite:containers}}{% else %}{{ experiment.crystal_set|in_shipment:containers }}{% endif %}/{{ experiment.num_crystals }}</td>
                     <td class="redirect"
-                    href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.get_exp_status_display }}</td>
+                    href="{% url lims-experiment-detail experiment.pk %}">{{ experiment.get_status_display }}</td>
                 </tr>
             {% endif %}{% endfor %}
         {% else %}                
@@ -43,7 +42,7 @@
 </div>
 
 <script>
-
+        $(document).ready(function() {
             // Initialise the table
             $("#objlist-list-table").tableDnD({
                 onDragClass: "lims-droppable-active",
@@ -69,5 +68,5 @@
 
                 }
             });
-
+        });
 </script>

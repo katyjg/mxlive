@@ -26,28 +26,28 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import smart_str
 import logging
+from django import forms
 
 from imm.objlist.views import ObjectList
 from imm.lims.models import *
 from imm.staff.models import Runlist, Link
-from imm.lims.forms import ObjectSelectForm, DataForm
+from imm.lims.forms import DataForm
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
-from imm.download.views import create_download_key 
+from imm.download.views import create_download_key, create_cache_dir, send_raw_file
+from imm.apikey.views import apikey_required
 from imm.remote.user_api import UserApi
-  
+ 
 #from imm.remote.user_api import UserApi
 
 import jsonrpc
-from jsonrpc import jsonrpc_method
+from jsonrpc import jsonrpc_method, exceptions
 try:
     import json
 except:
     from django.utils import simplejson as json
 
 
- 
-ACTIVITY_LOG_LENGTH  = 10       
-
+ACTIVITY_LOG_LENGTH  = 6      
 
 def get_ldap_user_info(username):
     """
@@ -132,8 +132,8 @@ MANAGER_FILTERS = {
     (Container, False) : {'status__in': [Container.STATES.DRAFT, Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED, Container.STATES.RETURNED]},
     (Crystal, True) : {'status__in': [Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
     (Crystal, False) : {'status__in': [Crystal.STATES.DRAFT, Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
-    (Experiment, True) : {'status__in': [Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.PAUSED]},
-    (Experiment, False) : {'status__in': [Experiment.STATES.DRAFT, Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.PAUSED, Experiment.STATES.CLOSED]},
+    (Experiment, True) : {'status__in': [Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.COMPLETE, Experiment.STATES.REVIEWED]},
+    (Experiment, False) : {'status__in': [Experiment.STATES.DRAFT, Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.COMPLETE, Experiment.STATES.REVIEWED]},
 }
 
 # models.Manager ordering is overridden by admin.ModelAdmin.ordering in the ObjectList
@@ -167,7 +167,8 @@ def manager_required(function):
             except Project.DoesNotExist:
                 raise Http404
         if MANAGER_FILTERS.has_key((model, request.user.is_superuser)):
-            manager = FilterManagerWrapper(manager,**MANAGER_FILTERS[(model, request.user.is_superuser)])
+            if request.user.is_superuser or not project.show_archives:
+                manager = FilterManagerWrapper(manager,**MANAGER_FILTERS[(model, request.user.is_superuser)])
         if MANAGER_ORDER_BYS.has_key((model, request.user.is_superuser)):
             manager = OrderByManagerWrapper(manager,*MANAGER_ORDER_BYS[(model, request.user.is_superuser)])
         request.manager = manager
@@ -218,6 +219,11 @@ def show_project(request):
                 'outgoing': project.shipment_set.filter(status__exact=Shipment.STATES.SENT).count(),
                 'incoming': project.shipment_set.filter(status__exact=Shipment.STATES.RETURNED).count(),
                 'on_site': project.shipment_set.filter(status__exact=Shipment.STATES.ON_SITE).count(),
+                },
+        'dewars': {
+                'outgoing': project.dewar_set.filter(status__exact=Dewar.STATES.SENT).count(),
+                'incoming': project.dewar_set.filter(status__exact=Dewar.STATES.RETURNED).count(),
+                'on_site': project.dewar_set.filter(status__exact=Dewar.STATES.ON_SITE).count(),
                 },
         'experiments': {
                 'active': project.experiment_set.filter(status__exact=Experiment.STATES.ACTIVE).count(),
@@ -334,15 +340,6 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
         except Project.DoesNotExist:
             raise Http404    
 
-#    #project = request.project
-#    try:
-#        # get all items of the type we want to add to
-#        manager = getattr(project, destination.__name__.lower()+'_set')
-#        obj_manager = getattr(project, object.__name__.lower()+'_set')
-#        
-#    except: 
-#        raise Http404
-#    
     #get just the items we want
     try:
         dest = manager.get(pk=dest_id)
@@ -385,7 +382,8 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     
         dest.save()
         message = '%s (%s) added' % (to_add.__class__._meta.verbose_name, display_name)
-        ActivityLog.objects.log_activity(request, dest, ActivityLog.TYPE.MODIFY, message)
+        ActivityLog.objects.log_activity(request, dest, ActivityLog.TYPE.MODIFY, 
+            '%s added to %s (%s)' % (dest._meta.verbose_name, to_add._meta.verbose_name, to_add))
     else:
         message = '%s has not been added, as %s is not editable' % (display_name, dest.name)
 
@@ -394,74 +392,6 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
         'info': form_info,
         }, context_instance=RequestContext(request))
     
-
-@login_required
-@project_required
-@transaction.commit_on_success
-def add_multiple_existing(request, src_id, dest_id, obj_id, parent_model, model, field, additional_fields=None, form=ObjectSelectForm):
-    """
-    A generic view which displays a form of type ``form`` which when submitted 
-    will set the foreign key field `field` of one/more existing objects of 
-    type ``model`` to the related object of type `parent_model` identified by the 
-    primary key ``id``.
-    """
-    
-    id = int(obj_id)
-    project = request.project
-    try:
-        manager = getattr(project, model.__name__.lower()+'_set')
-        parent_manager = getattr(project, parent_model.__name__.lower()+'_set')
-        parent = parent_manager.get(pk=id)
-    except:
-        raise Http404
-        
-    queryset = manager.filter(models.Q(**{'%s__isnull' % (field): True}) |
-                              ~models.Q(**{'%s__exact' % (field): id}))
-    object_type = model.__name__
-    form_info = {
-        'title': 'Add Existing %s' % (object_type),
-        'sub_title': 'Select existing %ss to add to %s' % (object_type.lower(), parent),
-        'action':  request.path,
-        'target': 'entry-scratchpad',
-    }
-    if request.method == 'POST':
-        frm = form(request.POST)
-        frm['items'].field.queryset = queryset
-        if frm.is_valid():
-            changed = False
-            if parent.is_editable():
-                item_id = obj_id
-                d = manager.get(pk=item_id)
-                setattr(d, field, parent)
-                for additional_field in additional_fields or []:
-                    setattr(d, additional_field, frm.cleaned_data[additional_field])
-                d.save()
-                changed = True
-                
-            if changed:
-                parent.save()            
-                message = '%ss added' % object_type.lower()
-                ActivityLog.objects.log_activity(request, parent, ActivityLog.TYPE.MODIFY, message)
-            else:
-                message = '%ss have not been added, as the destination is not editable' %  object_type.lower()        
-            request.user.message_set.create(message = message)
-            return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
-        else:
-            return render_to_response('objforms/form_base.html', {
-                'info': form_info,
-                'form': frm, 
-                })
-    else:
-        if form.base_fields.has_key('parent'):
-            frm = form(initial={'parent': id})
-        else:
-            frm = form()
-        frm['items'].field.queryset = queryset
-        return render_to_response('objforms/form_base.html', {
-            'info': form_info, 
-            'form': frm, 
-            }, context_instance=RequestContext(request))
-        
 @login_required
 @manager_required
 def object_detail(request, id, model, template):
@@ -473,9 +403,24 @@ def object_detail(request, id, model, template):
         obj = request.manager.get(pk=id)
     except:
         raise Http404
+    cnt_type = ContentType.objects.get_for_model(obj)
+    history = ActivityLog.objects.filter(content_type__pk=cnt_type.id, object_id=obj.id)
+    
+    # determine if there is a list url for this model and pass it in as list_url
+    if request.user.is_staff:
+        url_prefix = 'staff'
+    else:
+        url_prefix = 'lims'
+    url_name = "%s-%s-list" % (url_prefix, model.__name__.lower())
+    try:
+        list_url = reverse(url_name)
+    except:
+        list_url = None
     return render_to_response(template, {
         'object': obj,
-        'handler' : request.path
+        'history': history[:ACTIVITY_LOG_LENGTH],
+        'handler' : request.path,
+        'list_url': list_url,
         }, context_instance=RequestContext(request))
     
 @login_required
@@ -488,8 +433,10 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
     """
     if request.project:
         project = request.project
+        project_pk = project.pk
     else:
         project = None
+        project_pk = None
     object_type = model._meta.verbose_name
 
     form_info = {
@@ -501,24 +448,19 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
         form_info['enctype'] = 'multipart/form-data'
 
     if request.method == 'POST':
-        if request.FILES:
-            frm = form(request.POST, request.FILES)
-        else:
-            frm = form(request.POST)
-        frm.restrict_by('project', project)
+        frm = form(request.POST, request.FILES)
+        frm.restrict_by('project', project_pk)
         if frm.is_valid():
             new_obj = frm.save()
-            if action:
-                perform_action(new_obj, action, data=frm.cleaned_data)
             info_msg = 'New %(name)s (%(obj)s) added' % {'name': smart_str(model._meta.verbose_name), 'obj': smart_str(new_obj)}
-            ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE,
-                info_msg)
+            ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
+                'new %s added' % (smart_str(model._meta.verbose_name),))
             request.user.message_set.create(message = info_msg)
             if request.POST.has_key('_addanother'):
-                initial = {'project': project.pk}
+                initial = {'project': project_pk}
                 initial.update(dict(request.GET.items()))      
                 frm = form(initial=initial)
-                frm.restrict_by('project', project)
+                frm.restrict_by('project', project_pk)
                 return render_to_response(template, {
                     'info': form_info, 
                     'form': frm, 
@@ -535,13 +477,13 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
                 }, context_instance=RequestContext(request))
     else:
         if project:
-            initial = {'project': project.pk}
+            initial = {'project': project_pk}
             initial.update(dict(request.GET.items()))      
             frm = form(initial=initial)
         else:
             frm = form(initial=None)
 
-        frm.restrict_by('project', project)
+        frm.restrict_by('project', project_pk)
         if request.GET.has_key('clone'):
             clone_id = request.GET['clone']
             try:
@@ -560,70 +502,6 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
                     field.initial = val
 
         return render_to_response(template, {
-            'info': form_info, 
-            'form': frm, 
-            }, context_instance=RequestContext(request))
-
-
-@login_required
-@project_required
-def add_new_object(request, id, model, form, field):
-    """
-    A generic view which displays a form of type `form` which when submitted 
-    will create a new object of type `model` and set it's foreign key field 
-    `field` to the related object identified by the primary key `id`.
-    """
-    project = request.project
-    object_type = model._meta.verbose_name
-    try:
-        manager = getattr(project, field+'_set')
-        related = manager.get(pk=id)
-        related_type = related._meta.verbose_name
-    except:
-        raise Http404
-    form_info = {
-        'title': 'New %s' % object_type,
-        'sub_title': 'Adding a new %s to %s "%s"' % (object_type, related_type, smart_str(related)),
-        'action':  request.path,
-        'target': 'entry-scratchpad',
-        'add_another': False,
-    }
-    if request.method == 'POST':
-        q = request.POST.copy()
-        q.update({field: related.pk})
-        frm = form(q)
-        frm[field].field.widget.attrs['disabled'] = 'disabled'
-        frm.restrict_by('project', project)
-        if frm.is_valid():
-            new_obj = frm.save()
-            info_msg = '%s (%s) added to %s (%s)' % (smart_str(model._meta.verbose_name), smart_str(new_obj), related_type, smart_str(related))
-            ActivityLog.objects.log_activity(
-                request,
-                new_obj, 
-                ActivityLog.TYPE.CREATE,
-                info_msg
-                )
-            request.user.message_set.create(message = info_msg)
-            if request.POST.has_key('_addanother'):
-                frm = form(initial={'project': project.pk, field: related.pk})
-                frm.restrict_by('project', project)
-                frm[field].field.widget.attrs['disabled'] = 'disabled'
-                return render_to_response('objforms/form_base.html', {
-                    'info': form_info, 
-                    'form': frm, 
-                    }, context_instance=RequestContext(request))
-            else:
-                return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
-        else:
-            return render_to_response('objforms/form_base.html', {
-                'info': form_info,
-                'form': frm, 
-                }, context_instance=RequestContext(request))
-    else:
-        frm = form(initial={'project': project.pk, field: related.pk})
-        frm.restrict_by('project', project)
-        frm[field].field.widget.attrs['disabled'] = 'disabled'
-        return render_to_response('objforms/form_base.html', {
             'info': form_info, 
             'form': frm, 
             }, context_instance=RequestContext(request))
@@ -684,27 +562,6 @@ def basic_object_list(request, model, template='objlist/basic_object_list.html')
     return render_to_response(template, {'ol' : ol, 'type' : model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
 
 @login_required
-def user_object_list(request, model, template='lims/lists/list_base.html', link=True, can_add=True):
-    """
-    A generic view which displays a list of objects of type ``model`` owned by
-    the current user. The list is displayed using the template
-    ``template``. 
-    
-    Keyworded options
-    -----------------
-        - ``link`` (boolean) specifies whether or not to link each item to it's
-           detailed page.
-        - ``can_add`` (boolean) specifies whether or not new entries can be added
-           on the list page.    
-    """
-    manager = getattr(request.user, model.__name__.lower()+'_set')
-    ol = ObjectList(request, manager)
-    handler = request.path
-    return render_to_response(template, {'ol': ol,'link': link, 'can_add': can_add, 'handler': handler },
-        context_instance=RequestContext(request)
-    )
-    
-@login_required
 @transaction.commit_on_success
 def priority(request, id,  model, field):
     if request.method == 'POST':
@@ -727,6 +584,10 @@ def edit_profile(request, form, template='objforms/form_base.html', action=None)
     """
     View for editing user profiles
     """
+    if request.GET.get('warning', None) == 'label':
+        form.warning_message = "We don't have your address on file yet.  Please update your profile information before printing off shipping labels."
+    else:
+        form.warning_message = None
     try:
         model = Project
         obj = request.user.get_profile()
@@ -736,38 +597,34 @@ def edit_profile(request, form, template='objforms/form_base.html', action=None)
         raise Http404
     return edit_object_inline(request, obj.pk, model=model, form=form, template=template)
     
-    
 @login_required
 @manager_required
 @transaction.commit_on_success
-def edit_object_inline(request, id, model, form, template='objforms/form_base.html', action=None, modal_upload=False):
+def edit_object_inline(request, id, model, form, template='objforms/form_base.html', modal_upload=False):
     """
     A generic view which displays a form of type ``form`` using the template 
     ``template``, for editing an object of type ``model``, identified by primary 
     key ``id``, which when submitted will update the entry asynchronously through
     AJAX.
     """
-    #if request.GET.get('orphan_field', None) is not None:
-    #    params = {'%s__isnull' %  str(request.GET['orphan_field']): True}
-    #   objects = request.manager.filter(**params)
-    #else:
-    #    objects = request.manager.all()
+    if request.project:
+        project = request.project
+        project_pk = project.pk
+    else:
+        project = None
+        project_pk = None
 
     try:
         obj = request.manager.get(pk=id)
     except:
         raise Http404
     
-    save_label = None
-    if action:
-        save_label = action[0].upper() + action[1:]
-    
     form_info = {
         'title': request.GET.get('title', 'Edit %s' % model._meta.verbose_name),
         'sub_title': obj.identity(),
         'action':  request.path,
         'target': 'entry-scratchpad',
-        'save_label': save_label
+        'save_label': 'Save'
     }
 
     if modal_upload:
@@ -775,17 +632,14 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
 
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
-        if request.project:
-            frm.restrict_by('project', request.project)
+        frm.restrict_by('project', project_pk)
         if frm.is_valid():
             form_info['message'] = '%s (%s) modified' % ( model._meta.verbose_name, obj)
             frm.save()
-            # if an action ('send', 'close') is specified, the perform the action
-            if action:
-                perform_action(obj, action, data=frm.cleaned_data)
-
             request.user.message_set.create(message = form_info['message'])
-            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, form_info['message'])            
+            
+            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, 
+                '%s edited' % ( model._meta.verbose_name,))         
             if modal_upload:
                 return render_to_response("lims/iframe_refresh.html", context_instance=RequestContext(request))
             return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
@@ -796,14 +650,50 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
             }, context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=dict(request.GET.items())) # casting to a dict pulls out first list item in each value list
-        if request.project:
-            frm.restrict_by('project', request.project)
+        frm.restrict_by('project', project_pk)
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm,
         }, context_instance=RequestContext(request))
        
        
+@login_required
+@transaction.commit_on_success
+def staff_comments(request, id, model, form, template='objforms/form_base.html'):
+    try:
+        obj = model.objects.get(pk=id)
+    except:
+        raise Http404
+    
+    form_info = {
+        'title': 'Add a note to this %s' % model._meta.verbose_name,
+        'sub_title': obj.identity(),
+        'action':  request.path,
+        'target': 'entry-scratchpad',
+        'save_label': 'Save'
+    }
+
+    if request.method == 'POST':
+        frm = form(request.POST, instance=obj)
+        if frm.is_valid():
+            form_info['message'] = 'comments added to %s (%s) by staff' % ( model._meta.verbose_name, obj)
+            frm.save()
+            request.user.message_set.create(message = form_info['message'])
+            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, 
+                'comments added to %s by staff' % ( model._meta.verbose_name,))            
+            return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
+        else:
+            return render_to_response(template, {
+            'info': form_info, 
+            'form' : frm, 
+            }, context_instance=RequestContext(request))
+    else:
+        frm = form(instance=obj, initial=dict(request.GET.items())) 
+        return render_to_response(template, {
+        'info': form_info, 
+        'form' : frm,
+        }, context_instance=RequestContext(request))
+
 @login_required
 @transaction.commit_on_success
 def remove_object(request, src_id, obj_id, source, object, dest_id=None, destination=None, reverse=False):
@@ -849,14 +739,6 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
         except Project.DoesNotExist:
             raise Http404
     
-#    try:
-#        # get all items of the type we want to add to
-#        manager = getattr(project, source.__name__.lower()+'_set')
-#        obj_manager = getattr(project, object.__name__.lower()+'_set')
-#        
-#    except: 
-#        raise Http404
-    
     #get just the items we want
     src = manager.get(pk=src_id)
     to_remove = obj_manager.get(pk=obj_id)
@@ -887,8 +769,9 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
                 return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
                        
         src.save()
-        message = '%s removed from %s' % (to_remove, src)
-        ActivityLog.objects.log_activity(request, src, ActivityLog.TYPE.MODIFY, message)
+        message = '%s removed from %s' % (src, to_remove)
+        ActivityLog.objects.log_activity(request, src, ActivityLog.TYPE.MODIFY, 
+            '%s removed from %s' % (src._meta.verbose_name, to_remove._meta.verbose_name))
            
     else:
         message = '%s has not been removed, as %s is not editable' % (display_name, src.name)
@@ -900,77 +783,27 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
         }, context_instance=RequestContext(request))
 
 @login_required
-@project_required
-@transaction.commit_on_success
-def remove_object_old(request, id, model, field):
-    """
-    A generic view which displays a confirmation form and if confirmed, will
-    set the foreign key field ``field`` of the object of type ``model`` identified
-    by primary key ``id`` to null. The model must have specified ``null=True`` as an
-    option of the field.
-    """
-    project = request.project
-    try:
-        manager = getattr(project, model.__name__.lower()+'_set')
-        obj = manager.get(pk=id)
-    except:
-        raise Http404
-    object_type = model.__name__
-    related = getattr(obj, field)
-    related_type = related._meta.verbose_name    
-    
-    form_info = {
-        'title': 'Remove %s?' % object_type.lower(),
-        'sub_title': 'The %s will become unassigned.' % object_type.lower(),
-        'action':  request.path,
-        'target': 'entry-scratchpad',
-        'message': 'Are you sure you want to remove %s "%s" from %s "%s"?' % (
-            object_type.lower(), 
-            smart_str(obj), 
-            related_type.lower(), 
-            smart_str(related)
-            )
-    }
-    if request.method == 'POST':
-        if request.POST.has_key('_confirmed'):
-            setattr(obj,field,None)
-            obj.save()
-            form_info['message'] = '%s (%s) removed from %s (%s)' % (
-                object_type, 
-                smart_str(obj), 
-                related_type.lower(), 
-                smart_str(related)
-                )
-            ActivityLog.objects.log_activity(request,  obj,  ActivityLog.TYPE.MODIFY, form_info['message'])
-            request.user.message_set.create(message = form_info['message'])            
-            return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
-        else:
-            return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
-    else:
-        return render_to_response('lims/forms/confirm_action.html', {
-            'info': form_info, 
-            'id': obj.pk,
-            'confirm_action': 'Remove %s' % object_type,
-            },  context_instance=RequestContext(request))
-        
-        
-@login_required
 @manager_required
 @transaction.commit_on_success
-def delete_object(request, id, model, form, template='objforms/form_base.html', orphan_models = None):
+def delete_object(request, id, model, form, template='objforms/form_base.html'):
     """
     A generic view which displays a form of type ``form`` using the template 
     ``template``, for deleting an object of type ``model``, identified by primary 
     key ``id``, which when submitted will delete the entry asynchronously through
     AJAX.
     """
+    if request.project:
+        project = request.project
+        project_pk = project.pk
+    else:
+        project = None
+        project_pk = None
+
     try:
         obj = request.manager.get(pk=id)
     except:
         raise Http404
     
-
-    orphan_models = orphan_models or []
     form_info = {
         'title': 'Delete %s?' % obj.__unicode__(),
         'sub_title': 'The %s (%s) will be deleted' % ( model._meta.verbose_name, obj.__unicode__()),
@@ -982,13 +815,13 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
     }
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
-        if request.project:
-            frm.restrict_by('project', request.project)
+        frm.restrict_by('project', project_pk)
         if request.POST.has_key('_save'):
             form_info['message'] = '%s (%s) deleted' % ( model._meta.verbose_name, obj)
-            if hasattr(obj, 'project'):
-                ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.DELETE,  form_info['message'])
-            delete(request, model, id, orphan_models)
+            cascade = False
+            if request.POST.get('cascade'):
+                cascade = True
+            obj.delete(request=request, cascade=cascade)
             request.user.message_set.create(message = form_info['message'])
             
             # prepare url to redirect after delete. Always return to list
@@ -1011,8 +844,10 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
             }, context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=None) 
-        if request.project:
-            frm.restrict_by('project', request.project)
+        if 'cascade' in frm.fields:
+            frm.fields['cascade'].label = 'Delete all %s associated with this %s.' % (obj.HELP.get('cascade','objects'), model.__name__.lower())
+            frm.fields['cascade'].help_text = 'If this box is left unchecked, only the %s will be deleted. %s' % (model.__name__.lower(), obj.HELP.get('cascade_help',''))
+        frm.restrict_by('project', project_pk)
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm, 
@@ -1020,9 +855,9 @@ def delete_object(request, id, model, form, template='objforms/form_base.html', 
         }, context_instance=RequestContext(request))
 
 @login_required
-@project_required
+@project_optional
 @transaction.commit_on_success
-def close_object(request, id, model, form, template="objforms/form_base.html"):
+def action_object(request, id, model, form, template="objforms/form_base.html", action=None):
     """
     A generic view which displays a confirmation form and if confirmed, will
     archive the object of type ``model`` identified by primary key ``id``.
@@ -1031,179 +866,119 @@ def close_object(request, id, model, form, template="objforms/form_base.html"):
     of (Model, fk_field)) with a ForeignKey referencing ``model``/``id`` will also
     be archived.
     """
-    project = request.project
+    if request.project:
+        project = request.project
+        project_pk = project.pk
+    else:
+        project = None
+        project_pk = None
     try:
         obj = model.objects.get(pk=id)
     except:
         raise Http404
     object_type = model.__name__
-    
+
+    save_label = None
+    save_labeled = None
+    if action:
+        save_label = action[0].upper() + action[1:]
+        if save_label[-1:] == 'e': save_labeled = '%sd' % save_label
+        else: save_labeled = '%sed' % save_label        
 
     form_info = {
-        'title': 'Close %s?' % obj.__unicode__(),
-        'sub_title': 'The %s %s will be closed.' % (model.__name__, obj.__unicode__()),
+        'title': '%s %s?' % (save_label, obj.__unicode__()),
+        'sub_title': 'The %s %s will be %s' % (model.__name__, obj.__unicode__(), save_labeled),
         'action':  request.path,
         'target': 'entry-scratchpad',
-        'message': 'Are you sure you want to close %s "%s"?' % (
-            model.__name__, 
-            obj.__unicode__()
-            ),
-        'save_label': 'Close'
+        'save_label': save_label
     }
+    if action == 'archive':
+        form_info['message'] = 'Are you sure you want to archive %s "%s"?  ' % (model.__name__, obj.__unicode__())
+
     if request.method == 'POST':
-        if request.POST.has_key('_save'):
-            str_obj = smart_str(obj)
-            archive(model, id)
-            form_info['message'] = '%s (%s) archived' % (model._meta.verbose_name, obj)
-            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.ARCHIVE, form_info['message'])
-            request.user.message_set.create(message = form_info['message'])   
-            return render_to_response("lims/redirect.html", context_instance=RequestContext(request))         
-            
+        frm = form(request.POST, instance=obj)
+        frm.restrict_by('project', project_pk)
+        if frm.is_valid():
+            form_info['message'] = '%s (%s) modified' % ( model._meta.verbose_name, obj)
+            frm.save()
+            # if an action ('send', 'close') is specified, the perform the action
+            if action:
+                if action == 'send': obj.send(request=request)
+                if action == 'load': obj.load(request=request)
+                if action == 'unload': obj.unload(request=request)
+                if action == 'return': obj.returned(request=request)
+                if action == 'archive': 
+                    obj.archive(request=request)
+                    if not obj.project.show_archives:
+                        request.user.message_set.create(message = form_info['message'])
+                        url_name = "lims-%s-list" % (model.__name__.lower())   
+                        return render_to_response("lims/redirect.json", {'redirect_to': reverse(url_name),}, context_instance=RequestContext(request), mimetype="application/json")      
+            return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
         else:
             return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
     else:
         frm = form(instance=obj, initial=None) 
-        if request.project:
-            frm.restrict_by('project', request.project)
+        frm.restrict_by('project', project_pk)
+        if action == 'archive':
+            frm.help_text = 'You can access archived objects by editing \n your profile and selecting "Show Archives" '
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm, 
-        'save_label': 'Delete',
+        'save_label': 'Archive',
         }, context_instance=RequestContext(request))
         
 @login_required
-@project_optional
-def shipment_pdf(request, id, format):
+@manager_required
+def shipment_pdf(request, id, model, format):
     """ """
     try:
-         object = Shipment.objects.get(id=id)
+        obj = request.manager.get(pk=id)
     except:
-        try: 
-            object = Runlist.objects.get(id=id)
-        except:
-            raise Http404
+        raise Http404
 
-    if request.project:
-        project = request.project
-    else:
-        try:
-            project = object.project
-        except:
-            project = None
-
-    # create a temporary directory
-    temp_dir = tempfile.mkdtemp()
-
-    if format == 'pdf':
-        exp_list = list()
-        con_list = list()
-        xtal_list = list()
-        projects = None
-        dewars = Dewar.objects.filter(shipment=object)
-        for dewar in dewars:
-            containers = Container.objects.filter(dewar=dewar)
-            for container in containers:
-                cont_exp_list = container.get_experiment_list()
-                if container not in con_list:
-                    con_list.append(container)
-                for exp in cont_exp_list:
-                    if exp not in exp_list:
-                        exp_list.append(exp)
-        experiments = list()
-        all_exps = Experiment.objects.all().order_by('priority').reverse()
-        for experiment in all_exps:
-            if experiment in exp_list:
-                experiments.append(experiment)
-
-        for exp in exp_list:
-            exp_xtal_list = Crystal.objects.filter(experiment=exp).order_by('priority', 'container', 'container_location').reverse()
-            for xtal in exp_xtal_list:
-                if xtal not in xtal_list:
-                    xtal_list.append(xtal)
+    if format == 'protocol':
+        containers = obj.project.container_set.filter(dewar__in=obj.dewar_set.all())
+        experiments = obj.project.experiment_set.filter(pk__in=obj.project.crystal_set.filter(container__dewar__shipment__exact=obj.pk).values('experiment')).order_by('priority').reverse()
+        group = None
 
     if format == 'runlist':
-        exp_list = list()
-        con_list = object.containers.all()
-        xtal_list = list()
-        projects = list()
-        for container in con_list:
-            cont_exp_list = container.get_experiment_list()
-            for exp in cont_exp_list:
-                if exp not in exp_list:
-                    exp_list.append(exp)
+        containers = obj.containers.all()
+        experiments = Experiment.objects.filter(pk__in=Crystal.objects.filter(container__in=obj.containers.all()).values('experiment')).order_by('priority').reverse()
+        group = Project.objects.filter(pk__in=obj.containers.all().values('project'))
 
-        experiments = list()
-        all_exps = Experiment.objects.all().order_by('priority').reverse()
-        for experiment in all_exps:
-            if experiment in exp_list:
-                experiments.append(experiment)
-
-        for exp in exp_list:
-            exp_xtal_list = Crystal.objects.filter(experiment=exp).order_by('priority', 'container', 'container_location').reverse()
-            for xtal in exp_xtal_list:
-                if xtal not in xtal_list:
-                    xtal_list.append(xtal)
-        for exp in exp_list:
-            if exp.project not in projects:
-                projects.append(exp.project)
-
-    try:
-        # configure an HttpResponse so that it has the mimetype and attachment name set correctly
-        response = HttpResponse(mimetype='application/pdf')
-        if project:
-            filename = ('%s-%s.pdf' % (project.name, object.label)).replace(' ', '_')
-        else:
-            filename = ('%s-%s.pdf' % ('auto', object.name)).replace(' ', '_')
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
-        
-        if os.path.exists('/var/website/lims-website/imm/media/img/clslogo_print.pdf'):
-            copyfile('/var/website/lims-website/imm/media/img/clslogo_print.pdf', '%s/clslogo_print.pdf' % temp_dir)
-            copyfile('/var/website/lims-website/imm/media/img/fragile_up.pdf', '%s/fragile_up.pdf' % temp_dir)
-        # create a temporary file into which the LaTeX will be written
-        temp_file = tempfile.mkstemp(dir=temp_dir, suffix='.tex')[1]
+    work_dir = create_cache_dir(obj.label_hash())
+    prefix = "%s-%s" % (obj.label_hash(), format)
+    pdf_file = os.path.join(work_dir, '%s.pdf' % prefix)
+    if not os.path.exists(pdf_file) or settings.DEBUG: # remove the True after testing
+        # create a file into which the LaTeX will be written
+        tex_file = os.path.join(work_dir, '%s.tex' % prefix)
         # render and output the LaTeX into temap_file
-        if format == 'pdf' or format == 'runlist':
-            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'projects': projects, 'shipment' : object, 'experiments': experiments, 'crystals': xtal_list, 'containers': con_list })
+        if format == 'protocol' or format == 'runlist':
+            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': request.project, 'group': group, 'shipment' : obj, 'experiments': experiments, 'containers': containers })
         elif format == 'label':
-            tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': project, 'shipment' : object})
-        elif format == 'return':
-            tex = loader.render_to_string('lims/tex/return_labels.tex', {'project': project, 'shipment' : object})
-        tex_file = open(temp_file, 'w')
-        tex_file.write(tex)
-        tex_file.close()
-        
-        # the arg for generate.sh is simply the .tex filename minus the .tex
-        arg = os.path.basename(temp_file).replace('.tex', '')
+            tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': obj.project, 'shipment' : obj})
+        elif format == 'return_label':
+            tex = loader.render_to_string('lims/tex/return_labels.tex', {'project': obj.project, 'shipment' : obj})
+        f = open(tex_file, 'w')
+        f.write(tex)
+        f.close()
+    
         devnull = file('/dev/null', 'rw')
         stdout = sys.stdout
         stderr = sys.stderr
         if not settings.DEBUG:
             stdout = devnull
             stderr = devnull
-        subprocess.call(['/bin/bash', settings.TEX_TOOLS_DIR + '/ps4pdf.sh', arg], 
-                        env={'TEXINPUTS' : '.:' + settings.TEX_TOOLS_DIR + ':',
-                             'PATH' : settings.TEX_BIN_PATH},
-                        cwd=temp_dir,
-                        #stdout=stdout.fileno(),
-                        #stderr=stderr.fileno(),
-                        #stdin=devnull
+        subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], 
+                        cwd=work_dir,
                         )
+        if format == 'protocol' or format == 'runlist':
+            subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], 
+                            cwd=work_dir,
+                            )
+    
+    return send_raw_file(request, pdf_file, attachment=True)
         
-        # open the resulting .pdf and write it out to the response/browser
-        pdf_file = open(temp_file.replace('.tex', '.pdf'), 'r')
-        pdf = pdf_file.read()
-        pdf_file.close()
-        response.write(pdf)
-        
-        # return the response
-        return response
-        
-    finally:
-        
-        if not settings.DEBUG:
-            # remove the tempfiles
-            shutil.rmtree(temp_dir)
-
 @login_required
 @project_required
 def shipment_xls(request, id):
@@ -1220,7 +995,7 @@ def shipment_xls(request, id):
     
         # configure an HttpResponse so that it has the mimetype and attachment name set correctly
         response = HttpResponse(mimetype='application/xls')
-        filename = ('%s-%s.xls' % (project.name, shipment.label)).replace(' ', '_')
+        filename = ('%s-%s.xls' % (project.name, shipment.name)).replace(' ', '_')
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         
         # create a temporary directory
@@ -1267,9 +1042,12 @@ def shipment_xls(request, id):
             # remove the tempfiles
             shutil.rmtree(temp_dir)
     
-@jsonrpc_method('lims.add_data', authenticated=getattr(settings, 'AUTH_REQ', True))
+
+# -------------------------- JSONRPC Methods ----------------------------------------#
+
+@jsonrpc_method('lims.add_data')
+@apikey_required
 def add_data(request, data_info):
-    info = {}
     
     # check if project_id is provided if not check if project_name is provided
     if data_info.get('project_id') is not None:
@@ -1278,36 +1056,65 @@ def add_data(request, data_info):
         try:
             data_owner = Project.objects.get(name=data_info['project_name'])
         except:
-            data_ownder = create_project(username=data_info['project_name'])
-            data_info['project_id'] = project.pk
+            data_owner = create_project(username=data_info['project_name'])
+        data_info['project_id'] = data_owner.pk
         del data_info['project_name']
     else:
-        return {'error': 'Unknown Project' }    
+        return {'error': 'Unknown Project' }  
+    
+    
+    # check if beamline_id is provided if not check if beamline_name is provided
+    if data_info.get('beamline_id') is None:
+        if data_info.get('beamline_name') is not None:
+            try:
+                beamline = Beamline.objects.get(name=data_info['beamline_name'])
+                del data_info['beamline_name']
+                data_info['beamline_id'] = beamline.pk
+            except Beamline.DoesNotExist:
+                return {'error': 'Beamline Not Specified'}
+    else:
+        return {'error': 'Unknown Project'}  
+      
      
     # convert unicode to str
     for k,v in data_info.items():
         if k == 'url':
-            v = create_download_key(v, data_owner.pk)
-        info[smart_str(k)] = v
+            v = create_download_key(v, data_info['project_id'])
+        data_info[smart_str(k)] = v
     try:
-        new_obj = Data(**info)
+        # if id is provided, make sure it is owned by current owner otherwise add new entry
+        # to prevent overwriting other's stuff
+        force_update = False
+        if data_info.get('id') is not None:
+            try:
+                new_obj = data_owner.data_set.get(pk=data_info.get('id'))
+                force_update = True
+                data_info['created'] = datetime.now()
+            except:
+                data_info['id'] = None
+        
+                     
+        new_obj = Data(**data_info)
+        new_obj.save(force_update=force_update)
         # check type, and change status accordingly
-        if new_obj.kind == Result.RESULT_TYPES.SCREENING:
-            new_obj.crystal.screen_status = Crystal.EXP_STATES.COMPLETED
-            new_obj.crystal.save()
-        elif new_obj.kind == Result.RESULT_TYPES.COLLECTION:
-            new_obj.crystal.collect_status = Crystal.EXP_STATES.COMPLETED
-            new_obj.crystal.save()
-        new_obj.save()
+        if new_obj.crystal is not None:
+            if new_obj.kind == Result.RESULT_TYPES.SCREENING:
+                new_obj.change_screen_status(Crystal.EXP_STATES.COMPLETED)
+            elif new_obj.kind == Result.RESULT_TYPES.COLLECTION:
+                new_obj.change_collect_status(Crystal.EXP_STATES.COMPLETED)
+            
+        if new_obj.experiment is not None:
+            if new_obj.experiment.status == Experiment.STATES.ACTIVE:
+                new_obj.experiment.change_status(Experiment.STATES.PROCESSING)
         ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
-            "New dataset (%s) added" % new_obj)
+            "Dataset uploaded from beamline")
         
         return {'data_id': new_obj.pk}
     except Exception, e:
-        raise e
-        return {'error': str(e)}
+        raise exceptions.Error('Internal ServerError: %s' % e.message)
 
-@jsonrpc_method('lims.add_result', authenticated=getattr(settings, 'AUTH_REQ', True))
+@jsonrpc_method('lims.add_result')
+@apikey_required
 def add_result(request, res_info):
     info = {}
     # convert unicode to str
@@ -1320,43 +1127,27 @@ def add_result(request, res_info):
         new_obj = Result(**info)
         new_obj.save()
         ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
-            "New analysis report (%s) added" % new_obj)
+            "New analysis report uploaded from beamline" % new_obj)
         return {'result_id': new_obj.pk}
     except Exception, e:
-        raise e
-        return {'error':str(e)}
+        raise exceptions.Error('Internal Server Error: %s' % e.message)
 
-@jsonrpc_method('lims.add_strategy', authenticated=getattr(settings, 'AUTH_REQ', True))
+@jsonrpc_method('lims.add_strategy')
+@apikey_required
 def add_strategy(request, stg_info):
     info = {}
     # convert unicode to str
     for k,v in stg_info.items():
         info[smart_str(k)] = v
-    new_obj = Strategy(**info)
-    new_obj.save()
-    ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
-       "New strategy (%s) added" % new_obj)
-    return {'strategy_id': new_obj.pk}
-
-
-@login_required
-def rescreen(request, id):
-    crystal = Crystal.objects.get(pk=id)
-    crystal.rescreen()
-    return render_to_response('lims/refresh.html')
-    
-@login_required
-def recollect(request, id):
-    crystal = Crystal.objects.get(pk=id)
-    crystal.recollect()
-    return render_to_response('lims/refresh.html')
-    
-@login_required
-def complete(request, id):
-    crystal = Crystal.objects.get(pk=id)
-    crystal.complete()
-    return render_to_response('lims/refresh.html')
-
+    try:
+        new_obj = Strategy(**info)
+        new_obj.save()
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
+           "New strategy uploaded from beamline" % new_obj)
+        return {'strategy_id': new_obj.pk}
+    except Exception, e:
+        raise exceptions.Error('Internal Server Error: %s' % e.message)
+       
 
 # -------------------------- PLOTTING ----------------------------------------#
 import numpy

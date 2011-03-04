@@ -6,6 +6,34 @@ function initBrowser(){
             jQuery('body, html').addClass(value);
         }
     });
+    
+    // Enable nicer tooltips
+    tooltips();
+    
+    // Make sure ajax POSTs are not rejected by django CSRF mechanism
+    jQuery.ajaxSetup({ 
+         beforeSend: function(xhr, settings) {
+             function getCookie(name) {
+                 var cookieValue = null;
+                 if (document.cookie && document.cookie != '') {
+                     var cookies = document.cookie.split(';');
+                     for (var i = 0; i < cookies.length; i++) {
+                         var cookie = jQuery.trim(cookies[i]);
+                         // Does this cookie string begin with the name we want?
+                     if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                         break;
+                     }
+                 }
+             }
+             return cookieValue;
+             }
+             if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                 // Only send the token to relative URLs i.e. locally.
+                 xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+             }
+         } 
+    });
 }
 
 function initRedirects(){
@@ -63,7 +91,7 @@ function initForms(){
             $dst_sel.find('option:selected').each(function(i, v){
                 $src_sel.append(v);
             });
-        });       
+        });
     });
     
     // Make sure all entries in right select are selected on submit
@@ -80,7 +108,23 @@ function initForms(){
         
     // make sure we do not initialize a form twice
     jQuery('form.objform_raw').addClass('objform').removeClass('objform_raw');
-     
+
+    // disable submit-on-enter for barcode fields
+    $('input.barcode, input.matrixcode').live("keypress", function(e) {
+        /* ENTER PRESSED*/
+        if (e.keyCode == 13) {
+            /* FOCUS ELEMENT */
+            var inputs = $(this).parents("form").eq(0).find(":input");
+            var idx = inputs.index(this);
+            if (idx == inputs.length - 1) {
+                inputs[0].select()
+            } else {
+                inputs[idx + 1].focus(); // handles submit buttons
+            }
+            return false;
+        }
+    });
+
 }
 
 function initModals(){
@@ -197,6 +241,7 @@ function remove_item(element) {
     });
 }
 
+
 var dataViewer = function(){
 
     var  loadingTimer, loadingFrame= 1;
@@ -234,4 +279,34 @@ var dataViewer = function(){
 	    }
     }
 }();
+
+function tooltips() {    
+    this.xOffset = -10; // x distance from mouse
+    this.yOffset = 20; // y distance from mouse       
+    
+    $("[title]").unbind().hover(
+        function(e) {
+            this.t = this.title;
+            this.title = ''; 
+            this.top = (e.pageY + yOffset); this.left = (e.pageX + xOffset);
+            
+            $('body').append( '<p id="vtip"><img id="vtipArrow" />' + this.t + '</p>' );
+                        
+            $('p#vtip #vtipArrow').attr("src", '/img/vtip_arrow.png');
+            $('p#vtip').css("top", this.top+"px").css("left", this.left+"px").css("max-width", '18em').fadeIn("slow");
+            
+        },
+        function() {
+            this.title = this.t;
+            $("p#vtip").fadeOut("slow").remove();
+        }
+    ).mousemove(
+        function(e) {
+            this.top = (e.pageY + yOffset);
+            this.left = (e.pageX + xOffset);
+                         
+            $("p#vtip").css("top", this.top+"px").css("left", this.left+"px");
+        }
+    );                
+};
 

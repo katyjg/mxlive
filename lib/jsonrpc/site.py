@@ -1,13 +1,17 @@
+import datetime, decimal
 from functools import wraps
 from uuid import uuid1
 from jsonrpc._json import loads, dumps
 from jsonrpc.exceptions import *
 from jsonrpc.types import *
+from django.core import signals
 empty_dec = lambda f: f
 try:
   from django.views.decorators.csrf import csrf_exempt
 except (NameError, ImportError):
   csrf_exempt = empty_dec
+
+from django.core.serializers.json import DjangoJSONEncoder
 
 NoneType = type(None)
 encode_kw = lambda p: dict([(str(k), v) for k, v in p.iteritems()])
@@ -73,14 +77,17 @@ def validate_params(method, D):
 
 class JSONRPCSite(object):
   "A JSON-RPC Site"
-  def __init__(self):
+  def __init__(self, json_encoder=DjangoJSONEncoder):
     self.urls = {}
     self.uuid = str(uuid1())
     self.version = '1.0'
     self.name = 'django-json-rpc'
     self.register('system.describe', self.describe)
-    self.content_type = 'application/json-rpc'
-  
+    self.set_json_encoder(json_encoder)
+
+  def set_json_encoder(self, json_encoder=DjangoJSONEncoder):
+    self.json_encoder = json_encoder
+
   def register(self, name, method):
     self.urls[unicode(name)] = method
   
@@ -109,7 +116,8 @@ class JSONRPCSite(object):
         return True, D
     return False, {}
   
-  def response_dict(self, request, D, is_batch=False, version_hint='1.0'):
+  def response_dict(self, request, D, is_batch=False, version_hint='1.0', json_encoder=None):
+    json_encoder = json_encoder or self.json_encoder
     version = version_hint
     response = self.empty_response(version=version)
     apply_version = {'2.0': lambda f, r, p: f(r, **encode_kw(p)) if type(p) is dict else f(r, *p),
@@ -139,10 +147,14 @@ class JSONRPCSite(object):
         validate_params(method, D)
       R = apply_version[version](method, request, D['params'])
       
-      assert sum(map(lambda e: isinstance(R, e), 
-        (dict, str, unicode, int, long, list, set, NoneType, bool))), \
-        "Return type not supported"
-      
+      encoder = json_encoder()
+      if not sum(map(lambda e: isinstance(R, e), # type of `R` should be one of these or...
+         (dict, str, unicode, int, long, list, set, NoneType, bool))):
+        try:
+          rs = encoder.default(R) # ...or something this thing supports
+        except TypeError, exc:
+          raise TypeError("Return type not supported, for %r" % R)
+
       if 'id' in D and D['id'] is not None: # regular request
         response['result'] = R
         response['id'] = D['id']
@@ -156,25 +168,27 @@ class JSONRPCSite(object):
       status = 200
     
     except Error, e:
+      signals.got_request_exception.send(sender=self.__class__, request=request)
       response['error'] = e.json_rpc_format
       if version == '1.1' and 'result' in response:
         response.pop('result')
-      status = e.status    
+      status = e.status
     except Exception, e:
       # exception missed by others
+      signals.got_request_exception.send(sender=self.__class__, request=request)
       other_error = OtherError(e)
       response['error'] = other_error.json_rpc_format
-      status = other_error.status    
+      status = other_error.status
       if version == '1.1' and 'result' in response:
         response.pop('result')
     
     return response, status
   
   @csrf_exempt
-  def dispatch(self, request, method=''):      
+  def dispatch(self, request, method='', json_encoder=None):
     from django.http import HttpResponse
-    from django.core.serializers.json import DjangoJSONEncoder
-    
+    json_encoder = json_encoder or self.json_encoder
+
     try:
       # in case we do something json doesn't like, we always get back valid json-rpc response
       response = self.empty_response()
@@ -192,28 +206,30 @@ class JSONRPCSite(object):
           raise InvalidRequestError
       
       if type(D) is list:
-        response = [self.response_dict(request, d, is_batch=True)[0] for d in D]
+        response = [self.response_dict(request, d, is_batch=True, json_encoder=json_encoder)[0] for d in D]
         status = 200
       else:
-        response, status = self.response_dict(request, D)
+        response, status = self.response_dict(request, D, json_encoder=json_encoder)
         if response is None and (not u'id' in D or D[u'id'] is None): # a notification
           return HttpResponse('', status=status)
       
-      json_rpc = dumps(response, cls=DjangoJSONEncoder)
+      json_rpc = dumps(response, cls=json_encoder)
     except Error, e:
+      signals.got_request_exception.send(sender=self.__class__, request=request)
       response['error'] = e.json_rpc_format
       status = e.status
-      json_rpc = dumps(response, cls=DjangoJSONEncoder)
+      json_rpc = dumps(response, cls=json_encoder)
     except Exception, e:
       # exception missed by others
+      signals.got_request_exception.send(sender=self.__class__, request=request)
       other_error = OtherError(e)
       response['result'] = None
       response['error'] = other_error.json_rpc_format
       status = other_error.status    
       
-      json_rpc = dumps(response,cls=DjangoJSONEncoder)
+      json_rpc = dumps(response,cls=json_encoder)
     
-    return HttpResponse(json_rpc, status=status, content_type=self.content_type)
+    return HttpResponse(json_rpc, status=status, content_type='application/json-rpc')
   
   def procedure_desc(self, key):
     M = self.urls[key]

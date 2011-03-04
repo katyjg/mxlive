@@ -17,8 +17,8 @@
     <tr>
     <td onclick="linkto('{% url lims-container-detail container.id %}');" class="link-row">
     <strong>{{container.identity}}</strong> : {{container.num_crystals}} crystals<br/>
-    Label: {{container.label}} {%if container.comments %} &ndash; {% endif %}{{container.comments|truncatewords:8}}<br>
-    Location: {{container.dewar.label}} stored in location <strong>{{container.dewar.storage_location|default:"Unknown"}}</strong>
+    Label: {{container.name}} {%if container.comments %} &ndash; {% endif %}{{container.comments|truncatewords:8}}<br>
+    Location: {{container.dewar.name}} stored in location <strong>{{container.dewar.storage_location|default:"Unknown"}}</strong>
     </td>
     <td style="text-align: right;">
     {% if request.user.is_superuser %}

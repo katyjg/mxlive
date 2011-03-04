@@ -1,5 +1,4 @@
 from django.conf.urls.defaults import *
-
 from django.contrib import admin
 from django.conf import settings
 from views import logout_view, login_view, show_page
@@ -27,7 +26,6 @@ urlpatterns = patterns('',
     (r'^download/', include('imm.download.urls')),
     
     (r'^home/',  'imm.lims.views.home'),
-    (r'^help/',  show_page, {'template_name': 'lims/project_help.html'}),
     (r'^login/$',  login_view, {'template_name': 'login.html'}),
     (r'^logout/$', logout_view),
     
@@ -38,9 +36,11 @@ urlpatterns = patterns('',
 
 )
 
-if settings.DEBUG:
-        
+if settings.DEBUG:       
     urlpatterns += patterns('',
+        (r'^help/(?P<path>.*)$', 'django.views.static.serve', {
+            'document_root': os.path.join(os.path.dirname(__file__), 'help/_build/html')
+            }),
         (r'^img/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': os.path.join(os.path.dirname(__file__), 'media/img'), 
             }),
@@ -49,6 +49,9 @@ if settings.DEBUG:
             }),
         (r'^css/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': os.path.join(os.path.dirname(__file__), 'media/css'), 
+            }),
+        (r'^uploads/(?P<path>.*)$', 'django.views.static.serve', {
+            'document_root': os.path.join(os.path.dirname(__file__), 'media/uploads'), 
             }),
     )
 

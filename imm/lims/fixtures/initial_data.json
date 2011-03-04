@@ -4,7 +4,7 @@
         "model": "lims.beamline",
         "fields": {
             "name": "08ID-1",
-            "energy_lo": 4.0,
+            "energy_lo": 6.0,
             "energy_hi": 18.5,
             "contact_phone": "306-657-3610"
         }
@@ -17,6 +17,16 @@
             "energy_lo": 4.0,
             "energy_hi": 18.5,
             "contact_phone": "306-657-3619"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "lims.beamline",
+        "fields": {
+            "name": "SIM-1",
+            "energy_lo": 4.0,
+            "energy_hi": 18.5,
+            "contact_phone": "306-657-3758"
         }
     },
     {

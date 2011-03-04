@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% load zip %}
+{% load markup %}
+
 {% block headline %}
     {% ifequal object.kind object.RESULT_TYPES.SCREENING %}
         <h2 class="screen"> Crystal Screening Report - &ldquo;{{object.name}}&rdquo;</h2>
@@ -9,12 +11,10 @@
 {% endblock %}
 {% block object-tools %}
 <div class="object-tools">
+    {% include "lims/tools.html" %}
     <ul class="toolbar">
         <li class="print-tool" >
             <a href="javascript:window.print();">Print</a>
-        </li>
-        <li class="back-tool" >
-            <a href="{% url lims-result-list %}">Full List</a>
         </li>
     </ul>
 </div>

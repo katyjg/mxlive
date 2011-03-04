@@ -1,3 +1,4 @@
+{% load markup %}
 <tr {% if link %}
         class="link-row redirect {{ row_state }} {{ type|lower }}"
         href="{{ handler }}{{ object.pk }}/"
@@ -5,9 +6,13 @@
     {% else %}{% if modal_link %}
         class="link-row modal {{ row_state }} {{ type|lower }}"        
         href="{{handler}}{{object.pk}}/"
-        title="Show {{type}} {{object.pk}}"
+        {% if object.staff_comments %}
+        title="{{object.staff_comments|default:''|restructuredtext}}"
+        {% else %}
+        title="Show dataset frames"
+        {% endif %}
     {% else %}{% if modal_edit %}
-        class="link-row {{ row_state }} {{ type|lower }}"
+        class="link-row {{ row_state }} {{ type|lower }}"       
     {% else %}
         class="{{ row_state }} {{ type|lower }}"
         {% if object.description %}title="{{object.description}}"{% endif %}
@@ -31,7 +36,7 @@
         {% if field|make_list == object.score|make_list %}
             {{ field|floatformat:3 }}
     	{% else %}
-    		{{ field|truncate_chars:40 }}
+    		{{ field|truncate_chars:22 }}
     	{% endif %}
     	{% endif %}
         </td>

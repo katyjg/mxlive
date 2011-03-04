@@ -3,13 +3,15 @@ from django.db import models
 from lims.jsonfield import JSONField
 from django.utils.translation import ugettext_lazy as _
 import os
+import hashlib
 
 from imm.lims.models import Container
 from imm.lims.models import Experiment
 from imm.lims.models import Beamline
 from imm.lims.models import Crystal
 from imm.lims.models import Result
-from imm.lims.models import perform_action, IDENTITY_FORMAT
+from imm.lims.models import ActivityLog
+from imm.lims.models import IDENTITY_FORMAT
 from imm.enum import Enum
 
 from django.contrib.auth.models import User
@@ -26,7 +28,21 @@ def handle_uploaded_file(f):
         destination.write(chunk)
     destination.close()
 
-class Link(models.Model):
+class StaffBaseClass(models.Model):
+    def is_deletable(self):
+        return True
+
+    def delete(self, *args, **kwargs):
+        request = kwargs.get('request', None)
+        message = '%s (%s) deleted.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.__unicode__())
+        if request is not None:
+            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.DELETE, message, )
+        super(StaffBaseClass, self).delete()
+
+    class Meta:
+        abstract = True
+
+class Link(StaffBaseClass):
     TYPE = Enum(
         'iframe',
         'flash',
@@ -40,7 +56,7 @@ class Link(models.Model):
     description = models.TextField(blank=False)
     category = models.IntegerField(max_length=1, choices=CATEGORY.get_choices(), blank=True, null=True)    
     frame_type = models.IntegerField(max_length=1, choices=TYPE.get_choices(), blank=True, null=True)
-    url = models.URLField(verify_exists=True, max_length=200, blank=True)
+    url = models.CharField(max_length=200, blank=True)
     document = models.FileField(_('document'), blank=True, upload_to=get_storage_path)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
@@ -51,33 +67,28 @@ class Link(models.Model):
     def is_editable(self):
         return True
 
-    def is_deletable(self):
-        return True
-
     def identity(self):
         return self.description
 
     def save(self, *args, **kwargs):
         super(Link, self).save(*args, **kwargs)
 
-class Runlist(models.Model):
+class Runlist(StaffBaseClass):
     STATES = Enum(
         'Pending', 
         'Loaded', 
+        'Unloaded',
+        'Incomplete',
         'Completed',
         'Closed',
     )
     TRANSITIONS = {
         STATES.PENDING: [STATES.LOADED],
-        STATES.LOADED: [STATES.COMPLETED],
+        STATES.LOADED: [STATES.UNLOADED],
+        STATES.INCOMPLETE: [STATES.COMPLETED],
         STATES.COMPLETED: [STATES.PENDING, STATES.CLOSED],
     }
-    ACTIONS = {
-        'load': { 'status': STATES.LOADED, 'methods': ['check_for_other_loaded_runlists'] },
-        'unload': { 'status': STATES.COMPLETED },
-        'accept': { 'status': STATES.CLOSED, 'methods': ['send_accept_message'] },
-        'reject': { 'status': STATES.PENDING },
-    }
+    HELP = {}
     status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.PENDING)
     name = models.CharField(max_length=600)
     containers = models.ManyToManyField(Container)
@@ -111,9 +122,6 @@ class Runlist(models.Model):
     def __unicode__(self):
         return self.name
     
-    def is_deletable(self):
-        return True
-    
     def is_editable(self):
         return self.status == self.STATES.PENDING
     
@@ -131,20 +139,18 @@ class Runlist(models.Model):
 
     def is_pdfable(self):
         return self.num_containers() > 0
-
-    def get_children(self):
-        return self.containers.all()
-    
-    def check_for_other_loaded_runlists(self, data=None):
-        """ Checks for other Runlists in the 'loaded' state """
-        already_loaded = Runlist.objects.exclude(pk=self.pk).filter(status=Runlist.STATES.LOADED).count()
-        if already_loaded:
-            raise ValueError('Another Runlist is already loaded.')
         
     def send_accept_message(self, data=None):
         """ Create a message when the Runlist is 'accepted' """
         pass
             
+    def label_hash(self):
+        # use date of last runlist modification to determine when contents were last changed
+        txt = str(self.modified)
+        h = hashlib.new('ripemd160') # no successful collision attacks yet
+        h.update(txt)
+        return h.hexdigest()
+
     def container_to_location(self, container, location):
         if container.kind == Container.TYPE.CASSETTE:
             if location[0] == "L":
@@ -355,6 +361,34 @@ class Runlist(models.Model):
         self.Right = None
         self.save()
     
+    def load(self, request=None):
+        if Runlist.objects.exclude(pk=self.pk).filter(status=Runlist.STATES.LOADED, beamline=self.beamline).exists():
+            message = '%s has not been loaded, as there is another runlist currently loaded on %s' % (self.name, self.beamline)
+            request.user.message_set.create(message = message)     
+            return   
+        for obj in self.containers.all():
+            obj.load(request)
+        self.change_status(self.STATES.LOADED)    
+        message = '%s (%s) successfully loaded into automounter.' % (self.__class__.__name__.upper(), self.name)
+        if request is not None:
+            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
+
+    def unload(self, request=None):
+        for obj in self.containers.all():
+            obj.unload(request)
+        self.change_status(self.STATES.UNLOADED)    
+        message = '%s (%s) unloaded from automounter.' % (self.__class__.__name__.upper(), self.name)
+        if request is not None:
+            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
+
+    def change_status(self, status):
+        if status == self.status:
+            return
+        if status not in self.TRANSITIONS[self.status]:
+            raise ValueError("Invalid transition on '%s.%s':  '%s' -> '%s'" % (self.__class__, self.pk, STATES[self.status], STATES[status]))
+        self.status = status
+        self.save()
+
     def json_dict(self):
         """ Returns a json dictionary of the Runlist """
         # meta data first
@@ -378,7 +412,8 @@ class Runlist(models.Model):
         
         # determine the list of Experiments in the Runlist
         experiments = []
-        for experiment in self.experiments.all():
+        exp_list = Experiment.objects.filter(pk__in=Crystal.objects.filter(container__pk__in=self.containers.all()).values('experiment')).order_by('priority').reverse()
+        for experiment in exp_list:
             experiment_json = experiment.json_dict()
             experiments.append(experiment_json)
         
@@ -386,37 +421,7 @@ class Runlist(models.Model):
                 'containers': containers, 
                 'crystals': crystals, 
                 'experiments': experiments}
-       
-    ''' 
-    def save(self, *args, **kwargs):
-        super(Runlist, self).save(*args, **kwargs)
-        self.automounter.reset()
-        for container in self.containers.all():
-            self.automounter.add_container(container)
-    '''    
-            
-#        if self.pk is not None:
-#            orig = Runlist.objects.get(pk=self.pk)
-#            # these two seem to always match. Doesn't actually give me old and new. 
-#            logging.critical(self.containers.all())
-#            logging.critical(orig.containers.all())
-#            for container in self.containers.all():
-#                logging.critical("self.pk exists, checking container")
-#                if container not in orig.containers.all():
-#                    logging.critical("adding")
-#                    self.automounter.add_container(container)
-#            for container in orig.containers.all():
-#                if container not in self.containers.all():
-#                    logging.critical("removing")
-#                    self.automounter.remove_container(container)
-#            super(Runlist, self).save(*args, **kwargs)
-#        else:
-#            logging.critical("pk doesn't exist, add all")
-#            super(Runlist, self).save(*args, **kwargs)
-#            logging.critical(self.containers.all())
-#            for container in self.containers.all():
-#                logging.critical("Adding")
-#                self.automounter.add_container(container)
+
         
 def update_automounter(signal, sender, instance, **kwargs):
     if sender != Runlist:

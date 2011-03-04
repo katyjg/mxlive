@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load markup %}
 
 {% block headline %}
 <h2><span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
@@ -8,11 +9,6 @@
 {% block object-tools %}
 <div class="object-tools">
     {% include "lims/tools.html" %}
-    <ul class="toolbar">
-        <li class="back-tool" >
-            <a href="{% url lims-shipment-list %}">Full List</a>
-        </li>
-    </ul>
 </div>
 {% endblock %}
 
@@ -25,6 +21,9 @@
         {% ifequal shipment.status shipment.STATES.DRAFT %}
             <tr valign="top"><th>Shippable:</th><td>{{shipment.shipping_errors|yesno:"No,Yes"}}</td></tr>
         {% endifequal %}
+        {% if request.user.is_superuser %}
+            <tr valign="top"><th>Project:</th><td>{{ shipment.project }}</td></tr>
+        {% endif %}
         {% if shipment.date_shipped %}
         	<tr valign="top"><th>Carrier:</th><td>{{ shipment.carrier }}</td></tr>
         	<tr valign="top"><th>Shipped:</th><td>{{shipment.date_shipped|naturalday}} at {{shipment.date_shipped|date:"H:i T"}}</td></tr>
@@ -40,17 +39,20 @@
         <tr valign="top"><th>Processed:</th><td>{% if shipment.is_processed %}Yes{% else %} No {% endif %}</td></tr>
     </table>
 
-{% if shipment.comments or shipment.shipping_errors %}
+{% if shipment.comments or shipment.shipping_errors or shipment.staff_comments %}
     <div class="entrycomment">
     <span class="left-pointer"></span>
     <h3>Comments</h3>
-    <p>{{ shipment.comments|default:""}}</p>
+    <div class="user">{{ object.comments|restructuredtext}}</div>
+    <div class="staff">{{ object.staff_comments|restructuredtext}}</div>
     	{% if shipment.shipping_errors %}
-    	<ul>
+    	<div class="errors">
     	{% for error in shipment.shipping_errors %}
-        <li style="color: red">{{error}}</li>
+        {% if forloop.counter != 1 %}; 
+        {% endif %}
+        {{error|capfirst}}
         {% endfor %}
-        </ul>
+        </div>
     	{% endif  %}
     </div>
 {% endif  %}
@@ -101,5 +103,8 @@
                 <p class="list-empty">( Not loaded )</p>
             </ul>
         </div>
+    {% else %}
+        {% include "staff/entries/comments_form.html" %}
     {% endif %}
+    {% include "lims/individual_history.html" %}
 {% endblock %}

@@ -4,7 +4,7 @@ import xlutils.copy
 import xlutils.save
 import os
 import logging
-
+from django.db import transaction
 
 from imm.lims.models import Experiment
 from imm.lims.models import Dewar
@@ -75,7 +75,7 @@ PLAN_SHEET_NAME = 'Plans'
 class LimsWorkbook(object):
     """ A wrapper for an Excel shipment/experiment spreadsheet """
     
-    def __init__(self, xls, project):
+    def __init__(self, xls, project, dewar_name, shipment_name):
         """ Reads the xls file into a xlrd.Book wrapper 
         
         @param xls: the filename of an Excel file
@@ -83,6 +83,8 @@ class LimsWorkbook(object):
         """
         self.xls = xls
         self.project = project
+        self.dewar_name = dewar_name
+        self.shipment_name = shipment_name
         self.errors = []
         
     def _read_xls(self):
@@ -103,25 +105,27 @@ class LimsWorkbook(object):
         self.dewar = self._get_dewar()
         self.experiments = self._get_experiments()
         self.containers = self._get_containers()
-        self.cocktails = self._get_cocktails()
-        self.crystals = self._get_crystals()
         self.space_groups = self._get_space_groups()
+        self.cocktails = self._get_cocktails()
         self.crystal_forms = self._get_crystal_forms()
+        self.crystals = self._get_crystals()
         
     def _get_shipment(self):
         """ Returns a Shipment
         
         @return: a Shipment instance
         """
-        label = "Uploaded %s " % dateformat.format(datetime.now(), 'M jS, P')
-        return Shipment(project=self.project, label=label)
+        name = self.shipment_name
+        staff_comments = "Uploaded on %s." % (dateformat.format(datetime.now(), 'M, jS P'))
+        return Shipment(project=self.project, name=name, staff_comments=staff_comments)
     
     def _get_dewar(self):
         """ Returns a Dewar
         
         @return: a Dewar instance
         """
-        return Dewar(project=self.project, label="Default Dewar")
+        name = self.dewar_name
+        return Dewar(project=self.project, name=name)
     
     def _get_containers(self):
         """ Returns a dict of {'name' : Container} from the Excel file 
@@ -137,7 +141,7 @@ class LimsWorkbook(object):
                     container.project = self.project
                     
                     if row_values[CRYSTAL_CONTAINER]:
-                        container.label = row_values[CRYSTAL_CONTAINER]
+                        container.name = str(row_values[CRYSTAL_CONTAINER])
                     else:
                         self.errors.append(CRYSTAL_CONTAINER_ERROR % (row_values[CRYSTAL_CONTAINER], row_num))
                     
@@ -146,7 +150,7 @@ class LimsWorkbook(object):
                     else:
                         self.errors.append(CRYSTAL_CONTAINER_KIND_ERROR % (row_values[CRYSTAL_CONTAINER_KIND], row_num))
                         
-                    containers[container.label] = container
+                    containers[container.name] = container
                     
                 # a bit more validation to ensure that the Container 'kind' does not change
                 else:
@@ -171,12 +175,15 @@ class LimsWorkbook(object):
             row_values = self.crystals_sheet.row_values(row_num)
             if row_values[CRYSTAL_COCKTAIL]:
                 if row_values[CRYSTAL_COCKTAIL] not in cocktails:
-                    cocktail = Cocktail()
-                    cocktail.project = self.project
-                    if row_values[CRYSTAL_COCKTAIL]:
-                        cocktail.name = row_values[CRYSTAL_COCKTAIL]
+                    if self.project.cocktail_set.filter(name__exact=row_values[CRYSTAL_COCKTAIL]).exists():
+                        cocktail = self.project.cocktail_set.get(name__exact=row_values[CRYSTAL_COCKTAIL]) 
+                    else:
+                        cocktail = Cocktail()
+                        cocktail.project = self.project
+                        if row_values[CRYSTAL_COCKTAIL]:
+                            cocktail.name = row_values[CRYSTAL_COCKTAIL]
                     cocktails[cocktail.name] = cocktail
-                    
+
         return cocktails
     
     def _get_space_groups(self):
@@ -209,38 +216,55 @@ class LimsWorkbook(object):
                row_values[EXPERIMENT_CELL_ALPHA] or \
                row_values[EXPERIMENT_CELL_BETA] or \
                row_values[EXPERIMENT_CELL_GAMMA]:
-                crystal_form = CrystalForm(project=self.project)
-                
-                try:
-                    crystal_form.cell_a = float(row_values[EXPERIMENT_CELL_A])
-                except ValueError:
-                    pass
+
+                old_cf = self.project.crystalform_set.all()
+                if row_values[EXPERIMENT_CELL_A]: old_cf = old_cf.filter(cell_a__exact=row_values[EXPERIMENT_CELL_A])
+                if row_values[EXPERIMENT_CELL_B]: old_cf = old_cf.filter(cell_b=float(row_values[EXPERIMENT_CELL_B]))
+                if row_values[EXPERIMENT_CELL_C]: old_cf = old_cf.filter(cell_c=float(row_values[EXPERIMENT_CELL_C]))
+                if row_values[EXPERIMENT_CELL_ALPHA]: old_cf = old_cf.filter(cell_alpha=float(row_values[EXPERIMENT_CELL_ALPHA]))
+                if row_values[EXPERIMENT_CELL_BETA]: old_cf = old_cf.filter(cell_beta=float(row_values[EXPERIMENT_CELL_BETA]))
+                if row_values[EXPERIMENT_CELL_GAMMA]: old_cf = old_cf.filter(cell_gamma=float(row_values[EXPERIMENT_CELL_GAMMA]))
+                if row_values[EXPERIMENT_SPACE_GROUP]: old_cf = old_cf.filter(space_group__in=SpaceGroup.objects.filter(name=row_values[EXPERIMENT_SPACE_GROUP]))
+                if old_cf.exists():
+                    crystal_form = old_cf[0]
+                else:
+                    crystal_form = CrystalForm(project=self.project)
                     
-                try:
-                    crystal_form.cell_b = float(row_values[EXPERIMENT_CELL_B])
-                except ValueError:
-                    pass
-                    
-                try:
-                    crystal_form.cell_c = float(row_values[EXPERIMENT_CELL_C])
-                except ValueError:
-                    pass
-                    
-                try:
-                    crystal_form.cell_alpha = float(row_values[EXPERIMENT_CELL_ALPHA])
-                except ValueError:
-                    pass
-                    
-                try:
-                    crystal_form.cell_beta = float(row_values[EXPERIMENT_CELL_BETA])
-                except ValueError:
-                    pass
-                    
-                try:
-                    crystal_form.cell_gamma = float(row_values[EXPERIMENT_CELL_GAMMA])
-                except ValueError:
-                    pass
-                    
+                    try:
+                        crystal_form.cell_a = float(row_values[EXPERIMENT_CELL_A])
+                    except ValueError:
+                        pass
+                        
+                    try:
+                        crystal_form.cell_b = float(row_values[EXPERIMENT_CELL_B])
+                    except ValueError:
+                        pass
+                        
+                    try:
+                        crystal_form.cell_c = float(row_values[EXPERIMENT_CELL_C])
+                    except ValueError:
+                        pass
+                        
+                    try:
+                        crystal_form.cell_alpha = float(row_values[EXPERIMENT_CELL_ALPHA])
+                    except ValueError:
+                        pass
+                        
+                    try:
+                        crystal_form.cell_beta = float(row_values[EXPERIMENT_CELL_BETA])
+                    except ValueError:
+                        pass
+                        
+                    try:
+                        crystal_form.cell_gamma = float(row_values[EXPERIMENT_CELL_GAMMA])
+                    except ValueError:
+                        pass
+
+                    if self.space_groups.has_key(row_values[EXPERIMENT_NAME]):
+                        space_group = self.space_groups[row_values[EXPERIMENT_NAME]]
+                        crystal_form.space_group = space_group
+                        crystal_form.save()                    
+
                 crystal_forms[row_values[EXPERIMENT_NAME]] = crystal_form
         return crystal_forms
     
@@ -257,18 +281,21 @@ class LimsWorkbook(object):
             
             if row_values[EXPERIMENT_NAME]:
                 experiment.name = row_values[EXPERIMENT_NAME]
+
             else:
                 self.errors.append(EXPERIMENT_NAME_ERROR % (row_values[EXPERIMENT_NAME], row_num))
                 
             if row_values[EXPERIMENT_KIND]:
                 experiment.kind = Experiment.EXP_TYPES.get_value_by_name(row_values[EXPERIMENT_KIND]) # validated by Excel
             else:
-                self.errors.append(EXPERIMENT_KIND_ERROR % (row_values[EXPERIMENT_KIND], row_num))
+                # default to Native
+                experiment.kind = Experiment.EXP_TYPES.NATIVE
                 
             if row_values[EXPERIMENT_PLAN]:
                 experiment.plan = Experiment.EXP_PLANS.get_value_by_name(row_values[EXPERIMENT_PLAN]) # validated by Excel
             else:
-                self.errors.append(EXPERIMENT_PLAN_ERROR % (row_values[EXPERIMENT_PLAN], row_num))
+                # no experiment plan provided default to just collect
+                experiment.plan = Experiment.EXP_PLANS.SCREEN_AND_COLLECT
                 
             if row_values[EXPERIMENT_ABSORPTION_EDGE]:
                 experiment.absorption_edge = row_values[EXPERIMENT_ABSORPTION_EDGE]
@@ -292,7 +319,19 @@ class LimsWorkbook(object):
             if row_values[EXPERIMENT_RESOLUTION]:
                 experiment.resolution = row_values[EXPERIMENT_RESOLUTION]
                 
-            experiments[experiment.name] = experiment
+            experiments[row_values[EXPERIMENT_NAME]] = experiment
+
+        for key, experiment in experiments.items():
+            appended = False
+            for suffix in range(1,100):
+                if not experiment.project.experiment_set.filter(name__exact=experiment.name).exclude(status__exact=Experiment.STATES.ARCHIVED).exists():
+                    pass
+                else:
+                    if appended:
+                        experiment.name = experiment.name[:-1] + str(suffix)
+                    else:
+                        appended = True
+                        experiment.name += '_%s' % str(suffix)
         return experiments
     
     def _get_crystals(self):
@@ -312,7 +351,7 @@ class LimsWorkbook(object):
                 self.errors.append(CRYSTAL_NAME_ERROR % (row_values[CRYSTAL_NAME], row_num))
                 
             if row_values[CRYSTAL_BARCODE]:
-                crystal.code = row_values[CRYSTAL_BARCODE]
+                crystal.barcode = row_values[CRYSTAL_BARCODE]
                 
             # changed, as experiment is actually a crystal property now.
             crystal.experiment = None
@@ -322,10 +361,10 @@ class LimsWorkbook(object):
             else:
                 self.errors.append(CRYSTAL_EXPERIMENT_ERROR % (row_values[CRYSTAL_EXPERIMENT], row_num))
                 
-            if row_values[CRYSTAL_CONTAINER] and row_values[CRYSTAL_CONTAINER] in self.containers:
-                crystal.container = self.containers[row_values[CRYSTAL_CONTAINER]]
+            if row_values[CRYSTAL_CONTAINER] and str(row_values[CRYSTAL_CONTAINER]) in self.containers:
+                crystal.container = self.containers[str(row_values[CRYSTAL_CONTAINER])]
             else:
-                self.errors.append(CRYSTAL_CONTAINER_ERROR % (row_values[CRYSTAL_CONTAINER], row_num))
+                self.errors.append(CRYSTAL_CONTAINER_ERROR % (str(row_values[CRYSTAL_CONTAINER]), row_num))
                 
             if row_values[CRYSTAL_CONTAINER_LOCATION]:
                 # xlrd is doing some auto-conversion to floats regardless of the Excel field type
@@ -341,12 +380,9 @@ class LimsWorkbook(object):
                 if not crystal.container.location_is_valid(crystal.container_location):
                     self.errors.append(CRYSTAL_CONTAINER_LOCATION_ERROR % (row_values[CRYSTAL_CONTAINER_LOCATION], row_num))
                 
-            NAME_JOIN_STRING = '/'
             if row_values[CRYSTAL_COCKTAIL] and row_values[CRYSTAL_COCKTAIL] in self.cocktails:
                 crystal.cocktail = self.cocktails[row_values[CRYSTAL_COCKTAIL]]
-            else:
-                self.errors.append(CRYSTAL_COCKTAIL_ERROR % (row_values[CRYSTAL_CONTAINER], row_num))
-                
+
             if row_values[CRYSTAL_COMMENTS]:
                 crystal.comments = row_values[CRYSTAL_COMMENTS]
                 
@@ -362,6 +398,25 @@ class LimsWorkbook(object):
             self._read_xls()
         except xlrd.XLRDError:
             self.errors.append('Spreadsheet invalid')
+
+        temp_errors = list()
+        crystal_doubles = str()
+        for crystal in self.crystals.values():
+            if self.project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).filter(name=crystal).exists():
+                crystal_doubles += str(crystal) + ' '
+        if crystal_doubles:
+            temp_errors.append('Un-archived crystals (%s) already exist.' % crystal_doubles)
+
+        container_doubles = str()
+        for container in self.containers.values():
+            if self.project.container_set.exclude(status__exact=Container.STATES.ARCHIVED).filter(name__exact=container).exists():
+                container_doubles += str(container) + ' '
+        if container_doubles:
+            temp_errors.append('Un-archived containers (%s) already exist.' % container_doubles)
+
+        for err in temp_errors:
+            if err not in self.errors: self.errors.append(err)
+
         return not bool(self.errors)
     
     def log_activity(self, obj, request):
@@ -375,7 +430,7 @@ class LimsWorkbook(object):
                         request,
                         obj, 
                         ActivityLog.TYPE.CREATE,
-                        '%(name)s (%(obj)s) uploaded' % {'name': smart_str(obj.__class__._meta.verbose_name), 'obj': smart_str(obj)}
+                        'uploaded from spreadsheet'
                         )
     
     def save(self, request=None):
@@ -384,52 +439,52 @@ class LimsWorkbook(object):
         @param request: a django.http.HttpRequest object used for logging ActivityLog entities during upload
         @return: a (possibly empty) list of strings errors that occured while reading the Excel file
         """
-        if self.is_valid():
-            self.shipment.save()
-            self.log_activity(self.shipment, request)
-            self.dewar.shipment = self.shipment
-            self.dewar.save()
-            self.log_activity(self.dewar, request)
-            for experiment in self.experiments.values():
-                experiment.save()
+        self.shipment.save()
+        self.log_activity(self.shipment, request)
+        self.dewar.shipment = self.shipment
+        self.dewar.save()
+        self.log_activity(self.dewar, request)
+        for experiment in self.experiments.values():
+            experiment.save()
+            # manage the CrystalForm/SpaceGroup relationship
+            if self.crystal_forms.has_key(experiment.name):
+                crystal_form = self.crystal_forms[experiment.name]
+                crystal_form.save()
+            self.log_activity(experiment, request)
+        for container in self.containers.values():
+            container.dewar = self.dewar
+            container.save()
+            self.log_activity(container, request)
+        for cocktail in self.cocktails.values():
+            cocktail.save()
+            self.log_activity(cocktail, request)
+        for crystal_form in self.crystal_forms.values():
+            crystal_form.save()
+            self.log_activity(crystal_form, request)
+        for crystal in self.crystals.values():
+            crystal.container = crystal.container # force the fk reln
+            crystal.cocktail = crystal.cocktail # force the fk reln
+            crystal.crystal_form = crystal.crystal_form
+            crystal.experiment = crystal.experiment
+            crystal.save()
+            self.log_activity(crystal, request)
+            
+            # unneeded. Crystal read just puts it in to experiment now. 
+            # needed for order of operations?
                 
-                # manage the CrystalForm/SpaceGroup relationship
-                if self.crystal_forms.has_key(experiment.name):
-                    crystal_form = self.crystal_forms[experiment.name]
-                    crystal_form.save()
-                    if self.space_groups.has_key(experiment.name):
-                        space_group = self.space_groups[experiment.name]
-                        crystal_form.space_group = space_group
-                        crystal_form.save()
-                        
-                self.log_activity(experiment, request)
-            for container in self.containers.values():
-                container.dewar = self.dewar
-                container.save()
-                self.log_activity(container, request)
-            for cocktail in self.cocktails.values():
-                cocktail.save()
-                self.log_activity(cocktail, request)
-            for crystal in self.crystals.values():
-                crystal.container = crystal.container # force the fk reln
-                crystal.cocktail = crystal.cocktail # force the fk reln
-                crystal.experiment = crystal.experiment
-                crystal.save()
-                self.log_activity(crystal, request)
-                
-                # unneeded. Crystal read just puts it in to experiment now. 
-                # needed for order of operations?
-                    
-                # buffer was needed to add crystal to experiment.
-                if crystal.experiment:
-                    # manage the Crystal/CrystalForm relationship
-                    if self.crystal_forms.has_key(crystal.experiment.name):
-                        crystal_form = self.crystal_forms[crystal.experiment.name]
-                        crystal.crystal_form = crystal_form
-                        crystal.crystal_form.name = crystal.crystal_form.identity()
-                        crystal.crystal_form.save()
-                        crystal.save()
-                        
+            # buffer was needed to add crystal to experiment.
+            if crystal.experiment:
+                for key in self.experiments:
+                    if self.experiments[key].name == crystal.experiment.name:
+                        experiment_key = key
+                # manage the Crystal/CrystalForm relationship
+                if self.crystal_forms.has_key(experiment_key):
+                    crystal_form = self.crystal_forms[experiment_key]
+                    crystal.crystal_form = crystal_form
+                    crystal.crystal_form.name = crystal.crystal_form.identity()
+                    crystal.crystal_form.save()
+                    crystal.save()
+                       
         return self.errors
         
 class LimsWorkbookExport(object):
@@ -537,16 +592,16 @@ class LimsWorkbookExport(object):
             if crystal.name:
                 row.write(CRYSTAL_NAME, crystal.name)
                 
-            if crystal.code:
-                row.write(CRYSTAL_BARCODE, crystal.code)
+            if crystal.barcode:
+                row.write(CRYSTAL_BARCODE, crystal.barcode)
                 
-            if crystal.num_experiments() > 0:
+            if crystal.experiment:
                 experiment = crystal.experiment
                 if experiment.name:
                     row.write(CRYSTAL_EXPERIMENT, experiment.name)
                     
-            if crystal.container and crystal.container.label:
-                row.write(CRYSTAL_CONTAINER, crystal.container.label)
+            if crystal.container and crystal.container.name:
+                row.write(CRYSTAL_CONTAINER, crystal.container.name)
                 
             if crystal.container and crystal.container.kind != None:
                 row.write(CRYSTAL_CONTAINER_KIND, Container.TYPE[crystal.container.kind])

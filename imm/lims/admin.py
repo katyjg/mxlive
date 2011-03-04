@@ -7,17 +7,17 @@ ACTIVITY_ITEMS_PER_PAGE = 6
 staff_site = admin.AdminSite()
 
 class ShipmentAdmin(VersionAdmin):
-    search_fields = ['label', 'comments','status']
+    search_fields = ['name', 'comments','status']
     list_filter = ['created','status']
-    list_display = ('identity','label', 'status', 'date_shipped', 'carrier', 'num_dewars')
+    list_display = ('identity','name', 'status', 'date_shipped', 'carrier', 'num_dewars')
     list_per_page = ITEMS_PER_PAGE    
     ordering = ['-created']
 admin.site.register(Shipment, ShipmentAdmin)
 
 class DewarAdmin(VersionAdmin):
-    search_fields = ['label', 'comments']
+    search_fields = ['name', 'comments']
     list_filter = ['modified']
-    list_display = ('identity', 'label', 'shipment', 'modified', 'num_containers')
+    list_display = ('identity', 'name', 'shipment', 'modified', 'num_containers')
     ordering = ['-created']    
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Dewar, DewarAdmin)
@@ -25,7 +25,7 @@ admin.site.register(Dewar, DewarAdmin)
 class ActivityLogAdmin(admin.ModelAdmin):
     list_filter = ['created']
     search_fields = ['description','ip_number', 'content_type__name', 'action_type']
-    list_display = ('created', 'action_type','user','ip_number','description')
+    list_display = ('created', 'action_type','user_description','ip_number','object_repr','description')
     ordering = ('-created',)
     list_per_page = ACTIVITY_ITEMS_PER_PAGE    
 admin.site.register(ActivityLog, ActivityLogAdmin)
@@ -44,7 +44,7 @@ class ExperimentStaffAdmin(ExperimentAdmin):
 staff_site.register(Experiment, ExperimentStaffAdmin)
 
 class CrystalAdmin(VersionAdmin):
-    search_fields = ['name', 'code']
+    search_fields = ['name', 'barcode']
     list_filter = ['modified','status']
     list_display = ('identity', 'name', 'status', 'cocktail', 'comments', 'container', 'container_location')       
     ordering = ['-created', '-priority']
@@ -57,13 +57,13 @@ staff_site.register(Crystal, CrystalAdmin)
 
 class CocktailAdmin(VersionAdmin):
     ordering = ['-created']
-    search_fields = ['description','name','constituents']
+    search_fields = ['description','name',]
     list_filter = ['modified']
-    list_display = ('identity', 'name', 'constituents', 'description', 'modified')    
+    list_display = ('identity', 'name', 'description', 'modified')    
 admin.site.register(Cocktail, CocktailAdmin)
     
 class CrystalFormAdmin(VersionAdmin):
-    ordering = ['id']
+    ordering = ['-created']
     search_fields = ['name','space_group__name']
     list_filter = ['modified']
     list_display = ('identity', 'name', 'cell_a', 'cell_b', 'cell_c','cell_alpha', 'cell_beta', 'cell_gamma', 'space_group' )
@@ -79,9 +79,9 @@ admin.site.register(SpaceGroup, SpaceGroupAdmin)
            
 class ContainerAdmin(VersionAdmin):
     ordering = ['-created']
-    search_fields = ['label','code']
+    search_fields = ['name']
     list_filter = ['modified','kind']
-    list_display = ('identity', 'label', 'kind', 'capacity', 'num_crystals', 'status')
+    list_display = ('identity', 'name', 'kind', 'capacity', 'num_crystals', 'status')
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Container, ContainerAdmin)
 
@@ -100,7 +100,7 @@ admin.site.register(Result, ResultAdmin)
 
 class DataAdmin(admin.ModelAdmin):
     ordering = ['-created']
-    search_fields = ['name','url']
+    search_fields = ['name','beamline__name']
     list_filter = ['modified', 'kind']
     list_display = ('id', 'name', 'crystal', 'frame_sets', 'delta_angle', 'total_angle', 'wavelength')
     list_per_page = ITEMS_PER_PAGE
@@ -109,8 +109,8 @@ admin.site.register(Data, DataAdmin)
 class StrategyAdmin(admin.ModelAdmin):
     ordering = ['-created']
     search_fields = ['name']
-    list_filter = ['modified','status']
-    list_display = ('identity', 'name', 'status', 'result', 'start_angle', 'delta_angle', 'total_angle', 'exposure_time', 'energy', 'exp_completeness')
+    list_filter = ['modified']
+    list_display = ('identity', 'name', 'result', 'start_angle', 'delta_angle', 'total_angle', 'exposure_time', 'energy', 'exp_completeness')
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Strategy, StrategyAdmin)
 

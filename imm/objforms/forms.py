@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Q
 
 class OrderedForm(forms.ModelForm):
     """
@@ -11,20 +12,33 @@ class OrderedForm(forms.ModelForm):
         if self._meta.fields:
             self.fields.keyOrder = self._meta.fields
 
-    def restrict_by(self, field_name, obj):
+    def restrict_by(self, field_name, value):
         """
         Restrict the form such that only items related to the object identified by
-        the primary key `id` through a field specified by `field_name`,
+        the primary key `value` through a field specified by `field_name`,
         are displayed within select boxes.
-        
+    
+        Can also be used to restrict querysets based on some other field, where `field_name`
+        also refers to the field of the foreign key object, like container__status, for example        
         """
-        if obj is not None:
-            id = obj.pk
-        else:
-            return
         for name, formfield in self.fields.items():
             if name != field_name and hasattr(formfield, 'queryset'):
                 queryset = formfield.queryset
                 if field_name in queryset.model._meta.get_all_field_names(): # some models will not have the field
-                    formfield.queryset = queryset.filter(**{'%s__exact' % (field_name): id})
+                    formfield.queryset = queryset.filter(**{'%s__exact' % (field_name): value})
+
+    def clean_name(self):
+        try: 
+            if self.initial['name'] == self.cleaned_data['name']:
+                return self.cleaned_data['name']
+        except KeyError:
+            pass
+
+        try:        
+            if self.Meta.model.objects.filter(project__exact=self.cleaned_data['project'], name__exact=self.cleaned_data['name']).exclude(status__exact=self.Meta.model.STATES.ARCHIVED).exists():
+                raise forms.ValidationError('An un-archived %s already exists with this name' % self.Meta.model.__name__)
+        except KeyError:
+            pass
+        return self.cleaned_data['name']
+          
 

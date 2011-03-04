@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load humanize %}
+{% load markup %}
 
 {% block headline %}
 <h2><span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
@@ -9,11 +10,6 @@
 {% block object-tools %}
 <div class="object-tools">
     {% include "lims/tools.html" %}
-    <ul class="toolbar">
-        <li class="back-tool" >
-            <a href="{% url lims-crystal-list %}">Full List</a>
-        </li>
-    </ul>
 </div>
 {% endblock %}
 
@@ -49,11 +45,12 @@
 		<tr valign="top"><th NOWRAP>Collect Status:</th><td>{{ object.get_collect_status_display }}</td></tr>
 	{% endif %}
 </table>
-{% if object.comments %}
+{% if object.comments or object.staff_comments %}
     <div class="entrycomment">
     <span class="left-pointer"></span>
     <h3>Comments</h3>
-    <p>{{ object.comments}}</p>
+    <div class="user">{{ object.comments|default:""|restructuredtext}}</div>
+    <div class="staff">{{ object.staff_comments|default:""|restructuredtext}}</div>
     </div>
 {% endif %}
 <div class="clear"></div>
@@ -84,5 +81,8 @@
                 <p class="list-empty">( Not loaded )</p>
             </ul>
         </div>
+    {% else %}
+        {% include "staff/entries/comments_form.html" %}
     {% endif %}
+    {% include "lims/individual_history.html" %}
 {% endblock %}

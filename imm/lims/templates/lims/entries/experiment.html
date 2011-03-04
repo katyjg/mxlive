@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-
 {% load humanize %}
+{% load markup %}
 
 {% block headline %}
 <h2> <span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
@@ -9,11 +9,6 @@
 {% block object-tools %}
 <div class="object-tools">
     {% include "lims/tools.html" %}
-    <ul class="toolbar">
-        <li class="back-tool">
-            <a href="{% url lims-experiment-list %}">Full List</a>
-        </li>
-    </ul>
 </div>
 {% endblock %}
 
@@ -31,19 +26,30 @@
 	<tr valign="top"><th NOWRAP>Desired Resolution:</th><td>{{object.resolution}}</td></tr>
 	<tr valign="top"><th>Delta Angle:</th><td>{{object.delta_angle}}</td></tr>
 	<tr valign="top"><th>Multiplicity:</th><td>{{object.multiplicity}}</td></tr>
-	<tr valign="top"><th>Angle Range:</th><td>{{object.delta_angle}}</td></tr>
+	<tr valign="top"><th>Angle Range:</th><td>{{object.total_angle}}</td></tr>
 	<tr valign="top"><th>I/Sigma:</th><td>{{object.i_sigma}}</td></tr>
 	<tr valign="top"><th>Desired R-factor:</th><td>{{object.r_meas}}</td></tr>
 	{% if object.energy %}<tr valign="top"><th>Energy:</th><td>{{object.energy}}</td></tr>{% endif %}
 	{% if object.absorption_edge %}<tr valign="top"><th>Absorption Edge:</th><td>{{object.absorption_edge}}</td></tr>{% endif %}
     <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
-	<tr valign="top"><th>Completed:</th><td>{% if object.is_complete %}Yes{% else %} No {% endif %}</td></tr>
+	<tr valign="top"><th>Completed:</th><td>{% if object.get_status_display == 'Complete' %}Yes{% else %} No {% endif %}</td></tr>
 </table>
-{% if object.comments %}
+
+{% if object.comments or object.staff_comments or object.experiment_errors %}
     <div class="entrycomment">
     <span class="left-pointer"></span>
     <h3>Comments</h3>
-	<p>{{object.comments}}</p>
+    <div class="user">{{ object.comments|default:""|restructuredtext}}</div>
+    <div class="staff">{{ object.staff_comments|default:""|restructuredtext}}</div>
+    	{% if object.experiment_errors %}
+    	<div class="errors">
+    	{% for error in object.experiment_errors %}
+        {% if forloop.counter != 1 %}; 
+        {% endif %}
+        {{error|capfirst}}
+        {% endfor %}
+        </div>
+    	{% endif  %}
     </div>
 {% endif %}
 <div class="clear"></div>
@@ -52,9 +58,9 @@
 {% load crystal_table %}
 
 {% if object.get_status_display == 'Draft' %}
-{% crystal_priority_table object.crystal_set.all request.user.is_superuser object.pk %}
+    {% crystal_priority_table object.crystal_set.all request.user.is_superuser object.pk %}
 {% else %}
-{% crystal_table object.crystal_set.all request.user.is_superuser object.pk %}
+    {% crystal_table object.crystal_set.all request.user.is_superuser object.pk %}
 {% endif %}
 
 <div style="clear: both;"></div>
@@ -71,7 +77,10 @@
                 <p class="list-empty">( Not loaded )</p>
 		    </ul>
 		</div>
+    {% else %}
+        {% include "staff/entries/comments_form.html" %}
     {% endif %}
+    {% include "lims/individual_history.html" %}
 {% endblock %}
 
 

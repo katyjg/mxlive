@@ -1,4 +1,5 @@
 {% load zip %}
+{% load markup %}
 {% load image_url %}
 
 {% with object as data %}
@@ -6,12 +7,8 @@
 
 <div id="data-viewer">
 <div class="heading">
-	<h2 id="maintitle">
-	{% if data.kind == Data.DATA_TYPES.SCREENING %}
-		Screening Dataset
-	{% else %}
-		Full Dataset
-	{% endif %} - {{ data.name }}
+	<h2>
+	<span class="identity">{{data.get_kind_display|capfirst}} Dataset</span> {{ data.name }}
 	</h2>
 </div>
 
@@ -131,8 +128,6 @@
 		osc = osc + {{data.delta_angle}};
 		jQuery('#oscend').text("Osc. End: " + osc + " deg");
 		
-		jQuery('#maintitle').text("{% if data.kind == Data.DATA_TYPES.SCREENING %}Screening Dataset{% else %}Full Dataset{% endif %} - {{ data.name }} : " 
-			+ generateFrameName($current_frame_to_display)	);
 	}	
 	
 	function nextClicked() {

@@ -17,7 +17,7 @@ _URL_META = {
         'container':{'model': Container, 'form': ContainerForm},        
     },
     'samples': {
-        'crystal':  {'model': Crystal, 'form': SampleForm},
+        'crystal':  {'model': Crystal, 'form': SampleForm, 'delete_form': LimsBasicForm},
         'cocktail': {'model': Cocktail, 'form': CocktailForm, 'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True}, 
         'crystalform': {'model': CrystalForm, 'form': CrystalFormForm,'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True},  
     },
@@ -89,7 +89,7 @@ for section, subsection in _URL_META.items():
             _dynamic_patterns.append(
                 (r'^%s/%s/(?P<id>\d+)/delete/$' % (section, key),
                  'delete_object', {'model': params.get('model'),
-                                   'form': ConfirmDeleteForm,
+                                   'form': params.get('delete_form', ConfirmDeleteForm),
                                    'template': params.get('form_template', 'objforms/form_base.html'),
                                    },
                  'lims-%s-delete' % params.get('model').__name__.lower()))
@@ -98,9 +98,10 @@ for section, subsection in _URL_META.items():
         if params.get('close', True):
             _dynamic_patterns.append(
                 (r'^%s/%s/(?P<id>\d+)/close/$' % (section, key),
-                 'close_object', {'model': params.get('model'),
-                                   'form': ConfirmDeleteForm,
+                 'action_object', {'model': params.get('model'),
+                                   'form': LimsBasicForm,
                                    'template': params.get('form_template', 'objforms/form_base.html'),
+                                   'action': 'archive',
                                    },
                  'lims-%s-close' % params.get('model').__name__.lower()))
 
@@ -116,8 +117,8 @@ urlpatterns += patterns('imm.lims.views', *_dynamic_patterns )
 # Special cases
 urlpatterns += patterns('imm.lims.views',
     # Shipments
-    (r'^shipping/shipment/(?P<id>\d+)/send/$', 'edit_object_inline', {'model': Shipment, 'form': ShipmentSendForm, 'template': 'objforms/form_base.html', 'action' : 'send'}, 'lims-shipment-send'),
-    (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'format' : 'label' }, 'lims-shipment-label'),
+    (r'^shipping/shipment/(?P<id>\d+)/send/$', 'action_object', {'model': Shipment, 'form': ShipmentSendForm, 'template': 'objforms/form_base.html', 'action' : 'send'}, 'lims-shipment-send'),
+    (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'model': Shipment, 'format' : 'label' }, 'lims-shipment-label'),
     (r'^shipping/shipment/(?P<id>\d+)/xls/$', 'shipment_xls', {}, 'lims-shipment-xls'),
     (r'^shipping/shipment/upload/$', 'upload_shipment', {'model': Shipment, 'form': ShipmentUploadForm, 'template': 'objforms/form_full.html'}, 'lims-shipment-upload'),
     (r'^shipping/shipment/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/dewar/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Shipment, 'object':Dewar, 'reverse':True}, 'lims-shipment-add-dewar'),
@@ -167,7 +168,9 @@ urlpatterns += patterns('django.views.generic.simple',
 # Debug options
 if settings.DEBUG:
     urlpatterns += patterns('',
-        (r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': os.path.join('media/')}),
+        (r'^media/(?P<path>.*)$', 'django.views.static.serve', {
+            'document_root': os.path.join(os.path.dirname(__file__), 'media/')
+        }),
     )
     
     from django.contrib import databrowse

@@ -2,7 +2,7 @@ table { border-collapse: collapse;  empty-cells: show;}
 #content-title h2 {
     font-size: 1.6em;
     font-weight: bold;
-    padding-right: 48px;
+    padding-right: 24px;
     line-height: 60px;
     display: block;
     float: left;
@@ -109,6 +109,28 @@ div.entrycomment span.left-pointer {
 
 }
 
+div.entrycomment .user {
+    font-size: 90%;
+    line-height: 1.1em;
+    color: #000;
+}
+
+div.entrycomment .staff {
+    font-size: 90%;
+    line-height: 1.1em;
+    color: #747e80;
+}
+
+div.entrycomment .errors {
+    font-size: 90%;
+    line-height: 1.1em;
+    color: red;
+}
+
+div.entrycomment ul li {
+    list-style-type: square;
+    list-style-position: inside;
+}
 
 .entrysummary { 
     margin-bottom: 0.5em;
@@ -224,6 +246,14 @@ ul.toolbar li a {
     /*font-family: 'TelegramaRen', sans-serif;*/
 }
 
+ul.toolbar li.toolbar-separator {
+    padding: 0 !important;
+    min-width: 1em !important;
+    height: 44px;
+    background: url(/img/toolbar-separator.png) no-repeat center center;
+}
+
+
 ul.toolbar li.edit-tool {background-image: url(/img/edit-icon.png);}
 ul.toolbar li.load-tool {background-image: url(/img/load-icon.png);}
 ul.toolbar li.unload-tool {background-image: url(/img/unload-icon.png);}
@@ -232,7 +262,7 @@ ul.toolbar li.remove-tool {background-image: url(/img/remove-icon.png);}
 ul.toolbar li.add-tool {background-image: url(/img/add-icon.png);}
 ul.toolbar li.clone-tool {background-image: url(/img/clone-icon.png);}
 ul.toolbar li.send-tool {background-image: url(/img/send-icon.png);}
-ul.toolbar li.close-tool {background-image: url(/img/close-icon.png);}
+ul.toolbar li.close-tool {background-image: url(/img/archive-icon.png);}
 ul.toolbar li.pdf-tool {background-image: url(/img/pdf-icon.png);}
 ul.toolbar li.upload-tool {background-image: url(/img/spreadsheet-icon.png);}
 ul.toolbar li.back-tool {background-image: url(/img/list-icon.png);}
@@ -243,6 +273,7 @@ ul.toolbar li.template-tool {background-image: url(/img/template-icon.png);}
 ul.toolbar li.receive-tool {background-image: url(/img/receive-icon.png);}
 ul.toolbar li.return-tool {background-image: url(/img/return-icon.png);}
 ul.toolbar li.help-tool {background-image: url(/img/help-icon.png);}
+ul.toolbar li.review-tool {background-image: url(/img/emblem-success.png);}
 
 /* -- end toolbar -- */
 
@@ -693,6 +724,18 @@ ul.filter-choices ul {
 #data-viewer {
     width: 750px;
 }
+
+#data-viewer .heading h2 {
+    text-shadow:#FFFFFF 0 1px 1px;    
+}
+
+#data-viewer .heading h2 span.identity {
+    border-right: 1px solid #ccc;
+    color: #999;
+    padding-right: 0.6em;
+    margin-right: 0.2em;
+}
+
 
 #data-viewer .meta-data {
     float: right;

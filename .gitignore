@@ -7,3 +7,4 @@
 .svn/
 .settings
 *.db
+settings_local.py

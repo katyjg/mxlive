@@ -6,9 +6,23 @@
 <ul class="toolbar">
     {# STAFF TOOLS #}
     {% if request.user.is_staff %}
+        {% comment %}
+        <li class="feedback-tool">
+            <a href="{{ handler }}staff_comments/add/" class="action modal-form">
+                Add Comments
+            </a>
+        </li>
+        {% endcomment %}
+        {% if object.is_reviewable %}
+            <li class="review-tool">
+                <a href="{% url staff-experiment-complete object.pk %}"  class="action modal-form">
+                    Review
+                </a>
+            </li>
+        {% endif %}
         {% if object.is_receivable %}
             <li class="receive-tool">
-                <a href="{% url staff-dewar-receive %}?label={{object.label}}"  class="action modal-form">
+                <a href="{% url staff-dewar-receive %}?name={{object.name}}"  class="action modal-form">
                     Receive
                 </a>
             </li>
@@ -27,7 +41,7 @@
         {% endif %}
         {% if object.is_pdfable %}
             <li class="pdf-tool">
-                <a href="{{handler}}pdf/">
+                <a href="{{handler}}protocol/">
                     Protocol
                 </a>
             </li>
@@ -35,54 +49,70 @@
     {# USER TOOLS #}
     {% else %}
         {% if object.is_sendable %}
-            <li class="send-tool">
+            <li class="send-tool" title="Send this shipment">
                 <a href="{{handler}}send/?title=Send%20Shipment"  class="action modal-form">
                     Send
                 </a>
             </li>
         {% endif %}
         {% if object.has_labels %}
-            <li class="pdf-tool">
-                <a href="{{handler}}label/" class="">
+            <li class="pdf-tool" title="Generate PDF labels for printing">
+                <a {% if object.project.address and object.project.city and object.project.province and object.project.country and object.project.postal_code %}
+                    href="{{handler}}label/" class=""
+                    {% else %}
+                    href="{% url lims-profile-edit %}?warning=label" class="modal-form{% endif %}">
                     Labels
                 </a>
             </li>
         {% endif %}
         {% if object.is_xlsable %}
-            <li class="template-tool">
+            <li class="template-tool" title="Download a spreadsheet of this entry">
                 <a href="{{handler}}xls/">
                     Spreadsheet
                 </a>
             </li>
         {% endif %}
         {% if object.is_closable %}
-            <li class="close-tool">
+            <li class="close-tool" title="Archive this entry">
                 <a href="{{handler}}close/" class="action modal-form">
-                    Close
+                    Archive
                 </a>
             </li>
         {% endif %}
         {% comment %}
-        <li class="clone-tool">
+        <li class="clone-tool" title="Create a new entry using this one as a template">
             <a href="{{ handler }}../new/?clone={{object.id}}" class="action modal-form">
                 Clone
             </a>
         </li>
         {% endcomment %}
         {% if object.is_editable %}
-            <li class="edit-tool">
+            <li class="edit-tool" title="Edit this entry">
                 <a href="{{ handler }}edit/"  class="action modal-form">
                     Edit
                 </a>
             </li>
         {% endif %}
         {% if object.is_deletable %}
-            <li class="delete-tool">
+            <li class="delete-tool" title="Delete this entry">
                 <a href="{{ handler }}delete/"  class="action modal-form">
                     Delete
                 </a>
             </li>
         {% endif %}
     {% endif %}
+    <li class="toolbar-separator"></li>
+    {% if list_url %}
+        <li class="back-tool" title="Show the full list of entries">
+            <a href="{{list_url}}">
+                Show all
+            </a>
+        </li>
+    {% endif %}        
+    <li class="help-tool" title="Show user guide">
+        <a class="modal-iframe" href="/help/index.html">
+        Help
+        </a>
+    </li>
 </ul>
 
