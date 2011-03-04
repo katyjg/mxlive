@@ -13,6 +13,20 @@
             </a>
         </li>
         {% endcomment %}
+        {% if object.is_loadable %}
+            <li class="load-tool">
+                <a href="{{ handler }}load/" class="action modal-form">
+                    Load
+                </a>
+            </li>
+        {% endif %}
+        {% if object.is_unloadable %}
+            <li class="unload-tool">
+                <a href="{{ handler }}unload/"  class="action modal-form">
+                    Unload
+                </a>
+            </li>
+        {% endif %}
         {% if object.is_reviewable %}
             <li class="review-tool">
                 <a href="{% url staff-experiment-complete object.pk %}"  class="action modal-form">
