@@ -805,6 +805,9 @@ class Experiment(LimsBaseClass):
     def get_form_field(self):
         return 'experiment'
 
+    def get_shipments(self):
+        return self.project.shipment_set.filter(pk__in=self.crystal_set.values('container__dewar__shipment__pk'))
+
     def set_strategy_status_resubmitted(self, data=None):
         strategy = data['strategy']
         perform_action(strategy, 'resubmit')

@@ -403,15 +403,19 @@ class LimsWorkbook(object):
         crystal_doubles = str()
         for crystal in self.crystals.values():
             if self.project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).filter(name=crystal).exists():
-                crystal_doubles += str(crystal) + ' '
+                crystal_doubles += str(crystal) + ', '
         if crystal_doubles:
+            if len(crystal_doubles.split(',')) > 5:
+                crystal_doubles = ','.join(crystal_doubles.split(',')[:5]) + '...'
             temp_errors.append('Un-archived crystals (%s) already exist.' % crystal_doubles)
 
         container_doubles = str()
         for container in self.containers.values():
             if self.project.container_set.exclude(status__exact=Container.STATES.ARCHIVED).filter(name__exact=container).exists():
-                container_doubles += str(container) + ' '
+                container_doubles += str(container) + ', '
         if container_doubles:
+            if len(container_doubles.split(',')) > 5:
+                container_doubles = ','.join(container_doubles.split(',')[:5]) + '...'
             temp_errors.append('Un-archived containers (%s) already exist.' % container_doubles)
 
         for err in temp_errors:
