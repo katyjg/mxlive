@@ -707,6 +707,10 @@ li.modify-log {
     background:url("/img/activity-edit.png") no-repeat left center;
     padding-left: 20px !important;
 }
+li.archive-log {
+    background:url("/img/activity-archive.png") no-repeat left center;
+    padding-left: 20px !important;
+}
 
 li.create-log {
     background:url("/img/activity-add.png") no-repeat left center;
