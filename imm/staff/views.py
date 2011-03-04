@@ -108,8 +108,7 @@ def receive_shipment(request, model, form, template='objforms/form_base.html', a
                 if action == 'receive':
                     obj.receive(request)
             form_info['message'] = '%s %s successfully received' % ( model.__name__, obj.identity())
-            request.user.message_set.create(message = form_info['message'])
-            
+            request.user.message_set.create(message = form_info['message'])           
             return render_to_response("lims/redirect.html", context_instance=RequestContext(request)) 
         else:
             return render_to_response(template, {
