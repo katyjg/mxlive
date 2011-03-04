@@ -12,5 +12,19 @@
             "active": true, 
             "allowed_hosts": "127.0.0.1/32"
         }
+    },
+    {
+        "pk": 2, 
+        "model": "apikey.apikey", 
+        "fields": {
+            "allowed_methods": "all", 
+            "created": "2011-02-18 14:14:15", 
+            "client_name": "ECM", 
+            "modified": "2011-02-18 14:14:15", 
+            "client_email": "", 
+            "key": "4A8285AB-9E5F-476E-B17B-92BEB299A985", 
+            "active": true, 
+            "allowed_hosts": "10.52.0.0/16"
+        }
     }
 ]
