@@ -104,7 +104,8 @@ class Runlist(StaffBaseClass):
     right = JSONField(null=True)
     
     def identity(self):
-        return self.name
+        return 'RL%03d%s' % (self.id, self.created.strftime('-%y%m'))
+    identity.admin_order_field = 'pk'
     
     def num_containers(self):
         return self.containers.count()
