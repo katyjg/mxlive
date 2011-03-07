@@ -104,7 +104,8 @@ class Runlist(StaffBaseClass):
     right = JSONField(null=True)
     
     def identity(self):
-        return self.name
+        return 'RL%03d%s' % (self.id, self.created.strftime('-%y%m'))
+    identity.admin_order_field = 'pk'
     
     def num_containers(self):
         return self.containers.count()
@@ -392,7 +393,10 @@ class Runlist(StaffBaseClass):
     def json_dict(self):
         """ Returns a json dictionary of the Runlist """
         # meta data first
-        meta = {'id': self.pk, 'name': self.name}
+        meta = {'id': self.pk, 
+                'name': self.name,
+                'beamline_name': self.beamline.name,
+                }
                     
         # fetch the containers and crystals
         containers = {}
