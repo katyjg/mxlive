@@ -1062,7 +1062,6 @@ def add_data(request, data_info):
     else:
         return {'error': 'Unknown Project' }  
     
-    
     # check if beamline_id is provided if not check if beamline_name is provided
     if data_info.get('beamline_id') is None:
         if data_info.get('beamline_name') is not None:
@@ -1072,45 +1071,40 @@ def add_data(request, data_info):
                 data_info['beamline_id'] = beamline.pk
             except Beamline.DoesNotExist:
                 return {'error': 'Beamline Not Specified'}
-    else:
-        return {'error': 'Unknown Project'}  
       
-     
     # convert unicode to str
+    new_info = {}
     for k,v in data_info.items():
         if k == 'url':
             v = create_download_key(v, data_info['project_id'])
-        data_info[smart_str(k)] = v
+        new_info[str(k)] = v
     try:
         # if id is provided, make sure it is owned by current owner otherwise add new entry
         # to prevent overwriting other's stuff
         force_update = False
-        if data_info.get('id') is not None:
+        if new_info.get('id') is not None:
             try:
-                new_obj = data_owner.data_set.get(pk=data_info.get('id'))
+                new_obj = data_owner.data_set.get(pk=new_info.get('id'))
                 force_update = True
-                data_info['created'] = datetime.now()
+                new_info['created'] = datetime.now()
             except:
-                data_info['id'] = None
+                new_info['id'] = None
         
-                     
-        new_obj = Data(**data_info)
+        new_obj = Data(**new_info)
         new_obj.save(force_update=force_update)
+
         # check type, and change status accordingly
         if new_obj.crystal is not None:
             if new_obj.kind == Result.RESULT_TYPES.SCREENING:
-                new_obj.change_screen_status(Crystal.EXP_STATES.COMPLETED)
+                new_obj.crystal.change_screen_status(Crystal.EXP_STATES.COMPLETED)
             elif new_obj.kind == Result.RESULT_TYPES.COLLECTION:
-                new_obj.change_collect_status(Crystal.EXP_STATES.COMPLETED)
-            
+                new_obj.crystal.change_collect_status(Crystal.EXP_STATES.COMPLETED)
         if new_obj.experiment is not None:
             if new_obj.experiment.status == Experiment.STATES.ACTIVE:
                 new_obj.experiment.change_status(Experiment.STATES.PROCESSING)
-        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
-            "Dataset uploaded from beamline")
-        
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, "Dataset uploaded from beamline")
         return {'data_id': new_obj.pk}
-    except Exception, e:
+    except Experiment.DoesNotExist, e:
         raise exceptions.Error('Internal ServerError: %s' % e.message)
 
 @jsonrpc_method('lims.add_result')
