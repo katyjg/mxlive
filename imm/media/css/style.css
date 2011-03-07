@@ -1040,7 +1040,22 @@ tr.odd td
 {
 	cursor:pointer;
 }
-
+tr.loaded-row td
+{
+    background-color: #f4e6ef;
+}
+tr.complete-row td
+{
+    color: #737373;
+}
+tr.complete-row a
+{
+    color: #3d819e;
+}
+tr.complete-row a:active, tr.complete-row a:hover, tr.complete-row a:focus
+{
+    color: #0066cc;
+}
 td.first, th.first
 {
 	width:10px;
