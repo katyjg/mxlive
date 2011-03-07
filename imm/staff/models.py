@@ -393,7 +393,10 @@ class Runlist(StaffBaseClass):
     def json_dict(self):
         """ Returns a json dictionary of the Runlist """
         # meta data first
-        meta = {'id': self.pk, 'name': self.name}
+        meta = {'id': self.pk, 
+                'name': self.name,
+                'beamline_name': self.beamline.name,
+                }
                     
         # fetch the containers and crystals
         containers = {}

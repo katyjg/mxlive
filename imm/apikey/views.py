@@ -34,9 +34,9 @@ def apikey_required(function):
                 request.api_user = api_key
                 return function(request, *args, **kwargs)
             else:
-                raise exceptions.Error('Permission Denied: Valid API Key required.')
+                raise exceptions.InvalidCredentialsError('Permission Denied: Valid API Key required.')
         except APIKey.DoesNotExist:
         
-                raise exceptions.Error('Permission Denied: Valid API Key required.')
+                raise exceptions.InvalidCredentialsError('Permission Denied: Valid API Key required.')
     return apikey_required_wrapper
 

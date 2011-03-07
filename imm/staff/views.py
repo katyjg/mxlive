@@ -427,18 +427,44 @@ from jsonrpc import jsonrpc_method
 from jsonrpc.exceptions import InvalidRequestError
 from jsonrpc.exceptions import MethodNotFoundError
 from imm.apikey.views import apikey_required
+from django.db import models
 
-@jsonrpc_method('lims.detailed_runlist')
+@jsonrpc_method('lims.get_onsite_samples')
 @apikey_required
-def detailed_runlist(request, runlist_id):
+def get_onsite_samples(request, info):
     try:
-        runlist = Runlist.objects.get(pk=runlist_id)
-    except Runlist.DoesNotExist:
-        raise MethodNotFoundError("Runlist does not exist.")
- #   if runlist.status != Runlist.STATES.LOADED:
- #       raise InvalidRequestError("Runlist is not loaded.")
+        project = Project.objects.get(name__exact=info.get('project_name'))
+    except Project.DoesNotExist:
+        raise InvalidRequestError("Project does not exist.")
     
-    return runlist.json_dict()
+    cnt_list = Container.objects.filter(
+        models.Q(project__id__exact=project.pk),
+        models.Q(status__exact=Container.STATES.ON_SITE) | 
+        models.Q(status__exact=Container.STATES.LOADED))
+    xtl_list = Crystal.objects.filter(
+        models.Q(project__id__exact=project.pk),
+        models.Q(status__exact=Crystal.STATES.ON_SITE) | 
+        models.Q(status__exact=Crystal.STATES.LOADED))
+    exp_list = Experiment.objects.filter(
+        models.Q(project__id__exact=project.pk),
+        models.Q(status__exact=Experiment.STATES.ACTIVE) | 
+        models.Q(status__exact=Experiment.STATES.PROCESSING) |
+        models.Q(status__exact=Experiment.STATES.COMPLETE)) 
+    containers = {}
+    crystals = {}
+    experiments = {}
+
+    for cnt_obj in cnt_list:
+        cnt = cnt_obj.json_dict()
+        containers[cnt_obj.name] = cnt
+    for xtl_obj in xtl_list:
+        xtl = xtl_obj.json_dict()
+        crystals[xtl_obj.name] = xtl
+    for exp_obj in exp_list:
+        ex = exp_obj.json_dict()
+        experiments[exp_obj.name] = ex
+           
+    return {'containers': containers, 'crystals': crystals, 'experiments': experiments}
 
 @jsonrpc_method('lims.get_active_runlist')
 @apikey_required
