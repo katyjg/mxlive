@@ -1013,9 +1013,14 @@ class Crystal(LoadableBaseClass):
             self.save()
 
     def json_dict(self):
+        if self.experiment is not None:
+            exp_id = self.experiment.pk
+        else:
+            exp_id = None
         return {
             'project_id': self.project.pk,
             'container_id': self.container.pk,
+            'experiment_id': exp_id,
             'id': self.pk,
             'name': self.name,
             'barcode': self.barcode,

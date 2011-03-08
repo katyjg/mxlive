@@ -437,16 +437,13 @@ def get_onsite_samples(request, info):
     except Project.DoesNotExist:
         raise InvalidRequestError("Project does not exist.")
     
-    cnt_list = Container.objects.filter(
-        models.Q(project__id__exact=project.pk),
+    cnt_list = project.container_set.filter(
         models.Q(status__exact=Container.STATES.ON_SITE) | 
         models.Q(status__exact=Container.STATES.LOADED))
-    xtl_list = Crystal.objects.filter(
-        models.Q(project__id__exact=project.pk),
+    xtl_list = project.crystal_set.filter(
         models.Q(status__exact=Crystal.STATES.ON_SITE) | 
-        models.Q(status__exact=Crystal.STATES.LOADED))
-    exp_list = Experiment.objects.filter(
-        models.Q(project__id__exact=project.pk),
+        models.Q(status__exact=Crystal.STATES.LOADED)).order_by('priority')
+    exp_list = project.experiment_set.filter(
         models.Q(status__exact=Experiment.STATES.ACTIVE) | 
         models.Q(status__exact=Experiment.STATES.PROCESSING) |
         models.Q(status__exact=Experiment.STATES.COMPLETE)) 
@@ -455,14 +452,11 @@ def get_onsite_samples(request, info):
     experiments = {}
 
     for cnt_obj in cnt_list:
-        cnt = cnt_obj.json_dict()
-        containers[cnt_obj.name] = cnt
+        containers[str(cnt_obj.pk)] = cnt_obj.json_dict()
     for xtl_obj in xtl_list:
-        xtl = xtl_obj.json_dict()
-        crystals[xtl_obj.name] = xtl
+        crystals[str(xtl_obj.pk)] = xtl_obj.json_dict()
     for exp_obj in exp_list:
-        ex = exp_obj.json_dict()
-        experiments[exp_obj.name] = ex
+        experiments[str(exp_obj.pk)] = exp_obj.json_dict()
            
     return {'containers': containers, 'crystals': crystals, 'experiments': experiments}
 
