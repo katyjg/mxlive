@@ -450,13 +450,30 @@ def get_onsite_samples(request, info):
     containers = {}
     crystals = {}
     experiments = {}
+    rl_dict = {}
+    
+    if info.get('beamline_name') is not None:
+        try:
+            beamline = Beamline.objects.get(name__exact=info['beamline_name'])
+            active_runlist = beamline.runlist_set.get(status=Runlist.STATES.LOADED)
+            rl_dict = active_runlist.json_dict()
+        except Beamline.DoesNotExist:
+            raise InvalidRequestError("Beamline does not exist.")
+        except Runlist.DoesNotExist:
+            pass
+        except Runlist.MultipleObjectsReturned:
+            raise ServerError("Expected only one object. Found many.")
 
     for cnt_obj in cnt_list:
-        containers[str(cnt_obj.pk)] = cnt_obj.json_dict()
+        if cnt_obj.pk in rl_dict.get('containers', {}):
+            containers[str(cnt_obj.pk)] = rl_dict['containers'][cnt_obj.pk]
+        else:
+            containers[str(cnt_obj.pk)] = cnt_obj.json_dict()
     for xtl_obj in xtl_list:
         crystals[str(xtl_obj.pk)] = xtl_obj.json_dict()
     for exp_obj in exp_list:
         experiments[str(exp_obj.pk)] = exp_obj.json_dict()
+
            
     return {'containers': containers, 'crystals': crystals, 'experiments': experiments}
 
