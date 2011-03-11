@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load score_colors %}
+
+{% block headline %}
+<h2><span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
+{% endblock %}
+
+{% block object-tools %}
+<div class="object-tools">
+    <ul class="toolbar">
+        <li class="print-tool" >
+            <a href="javascript:window.print();">Print</a>
+        </li>
+        <li class="toolbar-separator"></li>
+        <li class="back-tool" title="Show the shipment details">
+            <a href="{{list_url}}">
+                Shipment Details
+            </a>
+        </li>
+        <li class="help-tool" title="Show user guide">
+            <a class="modal-iframe" href="/help/index.html">
+            Help
+            </a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content-override %}
+<!-- maincol -->
+<div id="content" class="col-12">
+
+{% with object as shipment %}   
+{% load progress_extras %}
+<div class="object-list">
+    <h3>Crystals</h3>
+    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">
+        <thead>
+            <tr> 
+                <th>Crystal</th>  
+                <th>Datasets</th>
+                <th>Best Statistics</th>
+                <th width=275px>Staff Comments</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for crystal in shipment|get_crystal_set %}
+                <tr class="{% cycle 'odd' 'even'%}{% if crystal.status == Crystal.STATES.LOADED %} loaded-row{% endif %}
+                 {% if crystal.is_complete %} complete-row{% endif %}">
+                    <td class="prose redirect" title="Go to Crystal {{crystal.name}}"
+                        href="{% url lims-crystal-detail crystal.pk %}"><a>{{ crystal.name }} ({{ crystal.experiment.get_kind_display }})</a><br>
+                        {% if crystal.staff_comments %}Comments: {{crystal.staff_comments }}{% endif %}</td>
+
+                    <td class="prose">
+                        Screening: {% for data in crystal|get_data_set:0 %}
+                            <a href="{% url lims-data-detail data.pk %}" class="modal" >{% ifequal data crystal.best_overall.data %}<b>{% endifequal %}
+                                {{ data.name }}{% if data.score_label %}({{ data.score_label|color_score:2}}){% endif %}
+                            </a>{% ifequal data crystal.best_overall.data %}</b>{% endifequal %} {% endfor %}<br>
+
+                        Collection: {% for data in crystal|get_data_set:1 %}
+                            <a href="{% url lims-data-detail data.pk %}" class="modal" >{% ifequal data crystal.best_overall.data %}<b>{% endifequal %}
+                                {{ data.name }}{% if crystal.experiment.get_kind_display == 'MAD' %}({{ data.energy|floatformat:2}}keV){% endif %}
+                            </a> {% ifequal data crystal.best_overall.data %}</b>{% endifequal %}{% endfor %}
+                    </td>
+
+                    <td class="prose" style="width: 275px">
+                        {% if crystal.best_overall.report %}{% with crystal.best_overall.report as stat %}
+                            <b>{{ stat.name }} - score {{ stat.score|color_score:2 }}</b><br>
+                            Spacegroup: {{ stat.space_group }}<br>
+                            Unit Cell: {{ stat.cell_a }} {{ stat.cell_b }} {{ stat.cell_c }} {{ stat.cell_alpha }} {{ stat.cell_beta }} {{ stat.cell_gamma }}<br>
+                            Resolution: {{ stat.resolution }} {% if crystal.experiment.resolution %}(wanted {{ crystal.experiment.resolution }}){% endif %}<br>
+                            Completeness: {{ stat.completeness }}% <br>
+                            R-meas: {{ stat.r_meas }} {% if crystal.experiment.r_meas %}(wanted {{ crystal.experiment.r_meas }}){% endif %}<br>
+                            I/Sigma: {{ stat.i_sigma }} {% if crystal.experiment.i_sigma %}(wanted {{ crystal.experiment.i_sigma }}){% endif %}<br>
+                        {% endwith %}{% endif %}
+                    </td>
+
+                    <td class="prose">{{ crystal.staff_comments|default:"" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+        <p class="table-notes">* If multiple screening or full collection datasets have been taken for a crystal, only the dataset with the best score is displayed on this table.  To view all datasets collected for a specific crystal, go to the crystal page.</p>
+</div>
+{% endwith %}
+
+</div>
+{% endblock %}
+
+

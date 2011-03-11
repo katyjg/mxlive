@@ -972,6 +972,11 @@ class Crystal(LoadableBaseClass):
                 info['data'] = data[0]
         return info
 
+    def best_overall(self):
+        if 'report' in self.best_collection():
+            return self.best_collection()
+        return self.best_screening()
+
     def is_clonable(self):
         return True
 
@@ -1062,7 +1067,7 @@ class Data(LimsBaseClass):
     # need a method to determine how many frames are in item
     def num_frames(self):
         return len(self.get_frame_list())          
-    
+
     def get_frame_list(self):
         frame_numbers = []
         wlist = [map(int, w.split('-')) for w in self.frame_sets.split(',')]
@@ -1076,6 +1081,16 @@ class Data(LimsBaseClass):
     def __unicode__(self):
         return '%s (%d)' % (self.name, self.num_frames())
     
+    def score_label(self):
+        if len(self.result_set.all()) is 1:
+            return self.result_set.all()[0].score
+        return False
+
+    def energy(self):
+        if self.wavelength: 
+            return 4.13566733e-15 * 299792458e10 / (self.wavelength * 1000) 
+        return 0
+
     def total_angle(self):
         return self.delta_angle * self.num_frames()
         

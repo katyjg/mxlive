@@ -979,6 +979,13 @@ div.object-list td
     white-space: nowrap;
 }
 
+div.object-list td.prose
+{
+    text-align: left;
+    white-space: normal;
+    vertical-align: top;
+}
+
 div.object-list th a
 {
 	text-decoration:none;
