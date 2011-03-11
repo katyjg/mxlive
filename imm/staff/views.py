@@ -437,47 +437,62 @@ def get_onsite_samples(request, info):
     except Project.DoesNotExist:
         raise InvalidRequestError("Project does not exist.")
     
-    cnt_list = Container.objects.filter(
-        models.Q(project__id__exact=project.pk),
+    cnt_list = project.container_set.filter(
         models.Q(status__exact=Container.STATES.ON_SITE) | 
         models.Q(status__exact=Container.STATES.LOADED))
-    xtl_list = Crystal.objects.filter(
-        models.Q(project__id__exact=project.pk),
+    xtl_list = project.crystal_set.filter(
         models.Q(status__exact=Crystal.STATES.ON_SITE) | 
-        models.Q(status__exact=Crystal.STATES.LOADED))
-    exp_list = Experiment.objects.filter(
-        models.Q(project__id__exact=project.pk),
+        models.Q(status__exact=Crystal.STATES.LOADED)).order_by('priority')
+    exp_list = project.experiment_set.filter(
         models.Q(status__exact=Experiment.STATES.ACTIVE) | 
         models.Q(status__exact=Experiment.STATES.PROCESSING) |
         models.Q(status__exact=Experiment.STATES.COMPLETE)) 
     containers = {}
     crystals = {}
     experiments = {}
+    rl_dict = {}
+    
+    if info.get('beamline_name') is not None:
+        try:
+            beamline = Beamline.objects.get(name__exact=info['beamline_name'])
+            active_runlist = beamline.runlist_set.get(status=Runlist.STATES.LOADED)
+            rl_dict = active_runlist.json_dict()
+        except Beamline.DoesNotExist:
+            raise InvalidRequestError("Beamline does not exist.")
+        except Runlist.DoesNotExist:
+            pass
+        except Runlist.MultipleObjectsReturned:
+            raise ServerError("Expected only one object. Found many.")
 
     for cnt_obj in cnt_list:
-        cnt = cnt_obj.json_dict()
-        containers[cnt_obj.name] = cnt
+        if cnt_obj.pk in rl_dict.get('containers', {}):
+            containers[str(cnt_obj.pk)] = rl_dict['containers'][cnt_obj.pk]
+        else:
+            containers[str(cnt_obj.pk)] = cnt_obj.json_dict()
     for xtl_obj in xtl_list:
-        xtl = xtl_obj.json_dict()
-        crystals[xtl_obj.name] = xtl
+        crystals[str(xtl_obj.pk)] = xtl_obj.json_dict()
     for exp_obj in exp_list:
-        ex = exp_obj.json_dict()
-        experiments[exp_obj.name] = ex
+        experiments[str(exp_obj.pk)] = exp_obj.json_dict()
+
            
     return {'containers': containers, 'crystals': crystals, 'experiments': experiments}
 
 @jsonrpc_method('lims.get_active_runlist')
 @apikey_required
-def get_active_runlist(request):
-    try:
-        # should only be one runlist loaded at a time
-        runlist = Runlist.objects.get(status=Runlist.STATES.LOADED)
-    except Runlist.DoesNotExist:
-        # can't just except, need to return no runlist found.
-        return 'None'
-    except Runlist.MultipleObjectsReturned:
-        # too many runlists are considered loaded
-        return 'Too many'
+def get_active_runlist(request, info):
+    if info.get('beamline_name') is not None:
+        try:
+        `# should only be one runlist per beamline
+            beamline = Beamline.objects.get(name__exact=info['beamline_name'])
+            active_runlist = beamline.runlist_set.get(status=Runlist.STATES.LOADED)
+            return active_runlist.json_dict()
+        except Beamline.DoesNotExist:
+            raise InvalidRequestError("Beamline does not exist.")
+        except Runlist.DoesNotExist:
+            pass
+        except Runlist.MultipleObjectsReturned:
+            raise ServerError("Expected only one runlist. Found many.")
+    else:
+          raise InvalidRequestError("A valid beamline name must be provided.")  
     
-    return runlist.json_dict()
         
