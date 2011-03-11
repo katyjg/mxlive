@@ -482,7 +482,7 @@ def get_onsite_samples(request, info):
 def get_active_runlist(request, info):
     if info.get('beamline_name') is not None:
         try:
-        `# should only be one runlist per beamline
+        # should only be one runlist per beamline
             beamline = Beamline.objects.get(name__exact=info['beamline_name'])
             active_runlist = beamline.runlist_set.get(status=Runlist.STATES.LOADED)
             return active_runlist.json_dict()
