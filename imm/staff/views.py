@@ -479,16 +479,20 @@ def get_onsite_samples(request, info):
 
 @jsonrpc_method('lims.get_active_runlist')
 @apikey_required
-def get_active_runlist(request):
-    try:
-        # should only be one runlist loaded at a time
-        runlist = Runlist.objects.get(status=Runlist.STATES.LOADED)
-    except Runlist.DoesNotExist:
-        # can't just except, need to return no runlist found.
-        return 'None'
-    except Runlist.MultipleObjectsReturned:
-        # too many runlists are considered loaded
-        return 'Too many'
+def get_active_runlist(request, info):
+    if info.get('beamline_name') is not None:
+        try:
+        `# should only be one runlist per beamline
+            beamline = Beamline.objects.get(name__exact=info['beamline_name'])
+            active_runlist = beamline.runlist_set.get(status=Runlist.STATES.LOADED)
+            return active_runlist.json_dict()
+        except Beamline.DoesNotExist:
+            raise InvalidRequestError("Beamline does not exist.")
+        except Runlist.DoesNotExist:
+            pass
+        except Runlist.MultipleObjectsReturned:
+            raise ServerError("Expected only one runlist. Found many.")
+    else:
+          raise InvalidRequestError("A valid beamline name must be provided.")  
     
-    return runlist.json_dict()
         
