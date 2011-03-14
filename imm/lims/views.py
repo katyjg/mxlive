@@ -498,7 +498,6 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
                     elif hasattr(val, 'all'):
                         val = [o.pk for o in val.all() ]
                     field.initial = val
-
         return render_to_response(template, {
             'info': form_info, 
             'form': frm, 
