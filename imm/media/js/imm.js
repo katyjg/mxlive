@@ -194,11 +194,11 @@ function initModals(){
                 },
                 success:  function(msg){
                     if (typeof(msg) == 'string') {
-                        var error = msg.indexOf("error") > -1; // given an error there will be an error string string present
+                        var form = msg.indexOf("form") > -1; // if another form is sent back, it should be displayed
                     } else {
-                        var error = false;
+                        var form = false;
                     }
-                    if(error) {
+                    if(form) {
                         jQuery.fancybox({content:msg,onComplete:func,scrolling:'no',titleShow:false});
                     } else {
                         // A json object with a url field will be returned in some cases. just redirect to it.
