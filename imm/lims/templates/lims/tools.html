@@ -62,6 +62,12 @@
         {% endif %}
     {# USER TOOLS #}
     {% else %}
+        {% if object.is_processing %}
+            <li class="process-tool" title="View the updated progress report for this shipment">
+                <a href="{{handler}}progress/">
+                    Progress
+                </a>
+        {% endif %}
         {% if object.is_sendable %}
             <li class="send-tool" title="Send this shipment">
                 <a href="{{handler}}send/?title=Send%20Shipment"  class="action modal-form">

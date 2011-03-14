@@ -361,6 +361,9 @@ class Shipment(ObjectBaseClass):
             if experiment.is_reviewable():
                 return False
         return True
+
+    def is_processing(self):
+        return self.project.crystal_set.filter(container__dewar__shipment__exact=self).filter(Q(pk__in=self.project.data_set.values('crystal')) | Q(pk__in=self.project.result_set.values('crystal'))).exists()
  
     def label_hash(self):
         # use dates of project, shipment, and each shipment within dewar to determine
@@ -969,8 +972,16 @@ class Crystal(LoadableBaseClass):
                 info['data'] = data[0]
         return info
 
+    def best_overall(self):
+        if 'report' in self.best_collection():
+            return self.best_collection()
+        return self.best_screening()
+
     def is_clonable(self):
         return True
+
+    def is_complete(self):
+        return self.screen_status != Crystal.EXP_STATES.PENDING and self.collect_status != Crystal.EXP_STATES.PENDING and self.status > Crystal.STATES.DRAFT
     
     def setup_experiment(self):
         """ If crystal is on-site, updates the screen_status and collect_status based on its experiment type
@@ -1013,9 +1024,14 @@ class Crystal(LoadableBaseClass):
             self.save()
 
     def json_dict(self):
+        if self.experiment is not None:
+            exp_id = self.experiment.pk
+        else:
+            exp_id = None
         return {
             'project_id': self.project.pk,
             'container_id': self.container.pk,
+            'experiment_id': exp_id,
             'id': self.pk,
             'name': self.name,
             'barcode': self.barcode,
@@ -1051,7 +1067,7 @@ class Data(LimsBaseClass):
     # need a method to determine how many frames are in item
     def num_frames(self):
         return len(self.get_frame_list())          
-    
+
     def get_frame_list(self):
         frame_numbers = []
         wlist = [map(int, w.split('-')) for w in self.frame_sets.split(',')]
@@ -1063,8 +1079,18 @@ class Data(LimsBaseClass):
         return frame_numbers
 
     def __unicode__(self):
-        return '%s (%d images)' % (self.name, self.num_frames())
+        return '%s (%d)' % (self.name, self.num_frames())
     
+    def score_label(self):
+        if len(self.result_set.all()) is 1:
+            return self.result_set.all()[0].score
+        return False
+
+    def energy(self):
+        if self.wavelength: 
+            return 4.13566733e-15 * 299792458e10 / (self.wavelength * 1000) 
+        return 0
+
     def total_angle(self):
         return self.delta_angle * self.num_frames()
         

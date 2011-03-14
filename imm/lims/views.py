@@ -39,8 +39,6 @@ from imm.remote.user_api import UserApi
  
 #from imm.remote.user_api import UserApi
 
-import jsonrpc
-from jsonrpc import jsonrpc_method, exceptions
 try:
     import json
 except:
@@ -500,7 +498,6 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
                     elif hasattr(val, 'all'):
                         val = [o.pk for o in val.all() ]
                     field.initial = val
-
         return render_to_response(template, {
             'info': form_info, 
             'form': frm, 
@@ -1044,6 +1041,8 @@ def shipment_xls(request, id):
     
 
 # -------------------------- JSONRPC Methods ----------------------------------------#
+import jsonrpc
+from jsonrpc import jsonrpc_method, exceptions
 
 @jsonrpc_method('lims.add_data')
 @apikey_required
@@ -1060,7 +1059,7 @@ def add_data(request, data_info):
         data_info['project_id'] = data_owner.pk
         del data_info['project_name']
     else:
-        return {'error': 'Unknown Project' }  
+        raise exceptions.InvalidRequestError('Unknown Project')
     
     # check if beamline_id is provided if not check if beamline_name is provided
     if data_info.get('beamline_id') is None:
@@ -1070,7 +1069,7 @@ def add_data(request, data_info):
                 del data_info['beamline_name']
                 data_info['beamline_id'] = beamline.pk
             except Beamline.DoesNotExist:
-                return {'error': 'Beamline Not Specified'}
+                raise exceptions.InvalidRequestError('Unknown Beamline')
       
     # convert unicode to str
     new_info = {}
@@ -1104,8 +1103,8 @@ def add_data(request, data_info):
                 new_obj.experiment.change_status(Experiment.STATES.PROCESSING)
         ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, "Dataset uploaded from beamline")
         return {'data_id': new_obj.pk}
-    except Experiment.DoesNotExist, e:
-        raise exceptions.Error('Internal ServerError: %s' % e.message)
+    except Exception, e:
+        raise exceptions.ServerError(e.message)
 
 @jsonrpc_method('lims.add_result')
 @apikey_required
@@ -1124,7 +1123,7 @@ def add_result(request, res_info):
             "New analysis report uploaded from beamline" % new_obj)
         return {'result_id': new_obj.pk}
     except Exception, e:
-        raise exceptions.Error('Internal Server Error: %s' % e.message)
+        raise exceptions.ServerError(e.message)
 
 @jsonrpc_method('lims.add_strategy')
 @apikey_required
@@ -1140,7 +1139,7 @@ def add_strategy(request, stg_info):
            "New strategy uploaded from beamline" % new_obj)
         return {'strategy_id': new_obj.pk}
     except Exception, e:
-        raise exceptions.Error('Internal Server Error: %s' % e.message)
+        raise exceptions.ServerError(e.message)
        
 
 # -------------------------- PLOTTING ----------------------------------------#

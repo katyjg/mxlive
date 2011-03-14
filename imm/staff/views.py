@@ -237,14 +237,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     if dest.is_editable():
         if destination.__name__ == 'Runlist':
             if object.__name__ == 'Experiment':
-                container_list = list()
-                runlist_containers = dest.containers.all()
-                for container in Container.objects.all():
-                    exp_list = container.get_experiment_list()
-                    for exp in exp_list:
-                        if exp == Experiment.objects.get(pk=obj_id):
-                            if container not in runlist_containers:
-                                container_list.append(container)
+                container_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).filter(pk__in=Experiment.objects.get(pk=obj_id).crystal_set.values('container')).exclude(pk__in=dest.containers.all()).exclude(kind__exact=Container.TYPE.CANE)
                 for container in container_list:
                     dest.add_container(container)
                     try:
@@ -308,7 +301,7 @@ def experiment_basic_object_list(request, runlist_id, model, template='objlist/b
         runlist = None
 
     if runlist:
-        ol.object_list = Experiment.objects.filter(status=Experiment.STATES.ACTIVE).filter(pk__in=Crystal.objects.filter(container__pk__in=Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all())).values('experiment'))
+        ol.object_list = Experiment.objects.filter(status=Experiment.STATES.ACTIVE).filter(pk__in=Crystal.objects.filter(container__pk__in=Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE)).values('experiment'))
     
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
@@ -334,7 +327,7 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
         ol.object_list = None
 
     if runlist and experiment:
-        ol.object_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).filter(pk__in=(experiment.crystal_set.all().values('container'))).exclude(pk__in=runlist.containers.all())
+        ol.object_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).filter(pk__in=(experiment.crystal_set.all().values('container'))).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE)
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
 @login_required
@@ -427,31 +420,72 @@ from jsonrpc import jsonrpc_method
 from jsonrpc.exceptions import InvalidRequestError
 from jsonrpc.exceptions import MethodNotFoundError
 from imm.apikey.views import apikey_required
+from django.db import models
 
-@jsonrpc_method('lims.detailed_runlist')
+@jsonrpc_method('lims.get_onsite_samples')
 @apikey_required
-def detailed_runlist(request, runlist_id):
+def get_onsite_samples(request, info):
     try:
-        runlist = Runlist.objects.get(pk=runlist_id)
-    except Runlist.DoesNotExist:
-        raise MethodNotFoundError("Runlist does not exist.")
- #   if runlist.status != Runlist.STATES.LOADED:
- #       raise InvalidRequestError("Runlist is not loaded.")
+        project = Project.objects.get(name__exact=info.get('project_name'))
+    except Project.DoesNotExist:
+        raise InvalidRequestError("Project does not exist.")
     
-    return runlist.json_dict()
+    cnt_list = project.container_set.filter(
+        models.Q(status__exact=Container.STATES.ON_SITE) | 
+        models.Q(status__exact=Container.STATES.LOADED))
+    xtl_list = project.crystal_set.filter(
+        models.Q(status__exact=Crystal.STATES.ON_SITE) | 
+        models.Q(status__exact=Crystal.STATES.LOADED)).order_by('priority')
+    exp_list = project.experiment_set.filter(
+        models.Q(status__exact=Experiment.STATES.ACTIVE) | 
+        models.Q(status__exact=Experiment.STATES.PROCESSING) |
+        models.Q(status__exact=Experiment.STATES.COMPLETE)) 
+    containers = {}
+    crystals = {}
+    experiments = {}
+    rl_dict = {}
+    
+    if info.get('beamline_name') is not None:
+        try:
+            beamline = Beamline.objects.get(name__exact=info['beamline_name'])
+            active_runlist = beamline.runlist_set.get(status=Runlist.STATES.LOADED)
+            rl_dict = active_runlist.json_dict()
+        except Beamline.DoesNotExist:
+            raise InvalidRequestError("Beamline does not exist.")
+        except Runlist.DoesNotExist:
+            pass
+        except Runlist.MultipleObjectsReturned:
+            raise ServerError("Expected only one object. Found many.")
+
+    for cnt_obj in cnt_list:
+        if cnt_obj.pk in rl_dict.get('containers', {}):
+            containers[str(cnt_obj.pk)] = rl_dict['containers'][cnt_obj.pk]
+        else:
+            containers[str(cnt_obj.pk)] = cnt_obj.json_dict()
+    for xtl_obj in xtl_list:
+        crystals[str(xtl_obj.pk)] = xtl_obj.json_dict()
+    for exp_obj in exp_list:
+        experiments[str(exp_obj.pk)] = exp_obj.json_dict()
+
+           
+    return {'containers': containers, 'crystals': crystals, 'experiments': experiments}
 
 @jsonrpc_method('lims.get_active_runlist')
 @apikey_required
-def get_active_runlist(request):
-    try:
-        # should only be one runlist loaded at a time
-        runlist = Runlist.objects.get(status=Runlist.STATES.LOADED)
-    except Runlist.DoesNotExist:
-        # can't just except, need to return no runlist found.
-        return 'None'
-    except Runlist.MultipleObjectsReturned:
-        # too many runlists are considered loaded
-        return 'Too many'
+def get_active_runlist(request, info):
+    if info.get('beamline_name') is not None:
+        try:
+        # should only be one runlist per beamline
+            beamline = Beamline.objects.get(name__exact=info['beamline_name'])
+            active_runlist = beamline.runlist_set.get(status=Runlist.STATES.LOADED)
+            return active_runlist.json_dict()
+        except Beamline.DoesNotExist:
+            raise InvalidRequestError("Beamline does not exist.")
+        except Runlist.DoesNotExist:
+            pass
+        except Runlist.MultipleObjectsReturned:
+            raise ServerError("Expected only one runlist. Found many.")
+    else:
+          raise InvalidRequestError("A valid beamline name must be provided.")  
     
-    return runlist.json_dict()
         

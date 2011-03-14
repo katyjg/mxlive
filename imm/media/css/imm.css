@@ -238,7 +238,7 @@ ul.toolbar li{
 
 ul.toolbar li a {
 	display: block;
-	padding: 32px 2px 0 0;
+	padding: 32px 2px 2px 0;
 	overflow: hidden;
     font-size: 85%;
     line-height: 1em;
@@ -274,6 +274,7 @@ ul.toolbar li.receive-tool {background-image: url(/img/receive-icon.png);}
 ul.toolbar li.return-tool {background-image: url(/img/return-icon.png);}
 ul.toolbar li.help-tool {background-image: url(/img/help-icon.png);}
 ul.toolbar li.review-tool {background-image: url(/img/emblem-success.png);}
+ul.toolbar li.process-tool {background-image: url(/img/process-icon.png);}
 
 /* -- end toolbar -- */
 
@@ -585,34 +586,32 @@ div.crystal.droppable, div.experiment.droppable, div.shipment.droppable, div.dew
   float: right;
   margin-top: 0;
   clear: right;
-  margin: 0.5em;
+  margin: 1em;
 }
 div.crystal.droppable {
-  background: url(/img/samples-crystal.png) top left no-repeat;
-  height: 130px;
+  background: url(/img/crystal.png) no-repeat center center;
+  height: 125px;
   width: 100px;
-  margin-top: -10px;
 }
 div.experiment.droppable {
-  background: url(/img/experiment.png) top left no-repeat;
-  height: 148px;
-  width: 120px;
+  background: url(/img/experiment.png) no-repeat center center;
+  height: 125px;
+  width: 100px;
 }
 div.shipment.droppable {
-  background: url(/img/shipment.png) top left no-repeat;
-  height: 75px;
-  width: 53px;
-  margin-right: 35px;
+  background: url(/img/shipment.png) no-repeat center center;
+  height: 125px;
+  width: 100px;
 }
 div.dewar-img.droppable {
-  background: url(/img/dewar.png) top left no-repeat;
-  height: 121px;
-  width: 85px;
+  background: url(/img/dewar.png) no-repeat center center;
+  height: 125px;
+  width: 100px;
 }
 div.runlist.droppable {
-    background: url(/img/runlist.png) top left no-repeat;
-    height: 92px;
-    width: 80px;
+    background: url(/img/runlist.png) no-repeat center center;
+    height: 125px;
+    width: 100px;
 }
 a.swf {
     background: url(/img/video-icon.png) center left no-repeat;
@@ -649,43 +648,43 @@ a.swf {
 }
 
 .lims-droppable-active.crystal {
-    background: url(/img/samples-crystal-bw.png) no-repeat top left !important;
+    background: url(/img/crystal-active.png) no-repeat center center !important;
     border: none;
 }
 .lims-droppable-hover.crystal {
-    background: url(/img/samples-crystal-hover.png) no-repeat top left !important;
+    background: url(/img/crystal-hover.png) no-repeat center center !important;
     border: none;
 }
 .lims-droppable-active.experiment {
-    background: url(/img/experiment-bw.png) no-repeat top left !important;
+    background: url(/img/experiment-active.png) no-repeat center center !important;
     border: none;
 }
 .lims-droppable-hover.experiment {
-    background: url(/img/experiment-hover.png) no-repeat top left !important;
+    background: url(/img/experiment-hover.png) no-repeat center center !important;
     border: none;
 }
 .lims-droppable-active.shipment {
-    background: url(/img/shipment-active.png) no-repeat top left !important;
+    background: url(/img/shipment-active.png) no-repeat center center !important;
     border: none;
 }
 .lims-droppable-hover.shipment {
-    background: url(/img/shipment-hover.png) no-repeat top left !important;
+    background: url(/img/shipment-hover.png) no-repeat center center !important;
     border: none;
 }
 .lims-droppable-active.runlist {
-    background: url(/img/runlist_active.png) no-repeat top left !important;
+    background: url(/img/runlist-active.png) no-repeat center center !important;
     border: none;
 }
 .lims-droppable-hover.runlist {
-    background: url(/img/runlist_hover.png) no-repeat top left !important;
+    background: url(/img/runlist-hover.png) no-repeat center center !important;
     border: none;
 }
 .lims-droppable-active.dewar-img {
-    background: url(/img/dewar-active.png) no-repeat top left !important;
+    background: url(/img/dewar-active.png) no-repeat center center !important;
     border: none;
 }
 .lims-droppable-hover.dewar-img {
-    background: url(/img/dewar-hover.png) no-repeat top left !important;
+    background: url(/img/dewar-hover.png) no-repeat center center !important;
     border: none;
 }
 #shiftzoomimg_ttip {
