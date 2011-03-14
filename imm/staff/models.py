@@ -127,7 +127,7 @@ class Runlist(StaffBaseClass):
         return self.status == self.STATES.PENDING
     
     def is_loadable(self):
-        return self.status == self.STATES.PENDING
+        return self.status == self.STATES.PENDING and self.containers.exists()
     
     def is_unloadable(self):
         return self.status == self.STATES.LOADED

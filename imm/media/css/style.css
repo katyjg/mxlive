@@ -978,14 +978,31 @@ div.object-list td
     vertical-align: middle; 
     white-space: nowrap;
 }
-
+table.subtable td, table.subtable th {
+    border: 0 !important;
+    text-align: left;
+    padding: 0 5px 0 5px;
+    max-width: 200px;
+    white-space: normal;
+    vertical-align: top;
+}
+table.subtable th {
+    font-weight: 200;
+    background: none;
+    padding-left: 0;
+    white-space: nowrap;
+    max-width: 250px;
+}
 div.object-list td.prose
 {
     text-align: left;
     white-space: normal;
     vertical-align: top;
 }
-
+div.object-list a.stress
+{
+    font-weight: bold;
+}
 div.object-list th a
 {
 	text-decoration:none;
