@@ -11,3 +11,7 @@ def multiplied_by(value, rows=0, total=300):
     ''' 
     return value*total-25-rows*50 
 
+
+@register.filter("dewar_price")
+def dewar_price(value, price=200):
+    return value*price
