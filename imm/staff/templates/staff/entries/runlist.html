@@ -16,7 +16,7 @@
 
 {% with object as runlist %}
     
-    <div class="runlist droppable droppable-add" accept="experiment" title="Drag and drop onto this image"></div>    
+    <div class="runlist droppable droppable-add" {% if object.is_editable %}accept="experiment" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>    
 
     <!-- width set to 70% to give the image space to sit side by side -->
     <table class="entrysummary" cellpadding="2" cellspacing="0" border="0">

@@ -1,4 +1,5 @@
 {% load tex %}
+{% load math_filters %}
 \documentclass[letterpaper,10pt]{report}
 \usepackage{pst-barcode}
 \usepackage{xcolor,colortbl}
@@ -7,6 +8,9 @@
 \usepackage[top=0.5in,bottom=0.5in,left=1in,right=1in,nohead,nofoot]{geometry}
 \usepackage{parskip}
 \usepackage{ncccropbox}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{multirow}
 \addtolength{\fboxsep}{0.2cm}
 \renewcommand{\arraystretch}{1.5}
 %\croplinelength{-0.1in}
@@ -15,7 +19,8 @@
 %------------------------------------------------------------
 % normal line spacing: 1.0
 % double spacing     : 1.6
-\setmainfont{Gentium Basic}\begin{document}
+\setmainfont{Gentium Basic}
+\begin{document}
 
 \begin{minipage}{\textwidth}
 {% include "lims/tex/cmcf_logo.tex" %}
@@ -34,7 +39,7 @@
 
     \vspace{0.2in}
     {% for dewar in shipment.dewar_set.all %}
-    \newpage
+    {% if not forloop.first %}\newpage{% endif %}
     {\color{blue} {\bf Return Label {{ forloop.counter }}: Replace the current label on the outside of a dewar "{{ dewar.name|texsafe|default:"" }}" with this label. } }
     \begin{center}
         \begin{boxedminipage}{\textwidth}
@@ -91,5 +96,141 @@
         \end{boxedminipage}
     \end{center}
     {% endfor %}
+
+
+%%%%%%%%%%%%%%%%CLSI Shipping Order Form%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\renewcommand{\arraystretch}{1} 
+\newgeometry{left=0.5in, top=0.25in, bottom=0.25in}
+\thispagestyle{empty}
+
+\begin{minipage}{.2\textwidth}
+{% include "lims/tex/cls_logo.tex" %}
+\end{minipage}
+\begin{minipage}{.75\textwidth}
+\begin{center}
+Canadian Light Source $\bullet$ 101 Perimeter Road $\bullet$ University of Saskatchewan 
+
+Saskatoon Saskatchewan Canada S7N 0X4 $\bullet$ Phone \# 306-657-3657, Fax \# 306-657-3533 
+
+{\Large {\bf Shipping Order}}
 \end{center}
+\end{minipage}
+\nopagebreak
+\begin{center}
+{% with shipment.project as project %}
+\begin{tabular}{|l|l|c|c|l|l|c|c|l|c|c|c|}
+
+\multicolumn{1}{l}{ {\bf Date:} } & \multicolumn{11}{l}{ {% now "jS F Y" %} } \\ \hline \hline
+\multicolumn{6}{|l|}{ {\bf Ship To:} } & \multicolumn{3}{c|}{ {\bf Ship To Phone \#} } & \multicolumn{3}{c|}{ {\bf Ship To Fax \#} } \\ 
+
+\multicolumn{6}{|c|}{ {\Large {{ project.organisation }} } } &                                            % "Ship To:"
+\multicolumn{3}{c|}{\multirow{2}{*}{ {\Large {{ project.contact_phone }} } } } &                % "Ship To Phone #:"
+\multicolumn{3}{c|}{\multirow{2}{*}{ {\Large {{ project.contact_fax }} } } } \\ \cline{1-6}     % "Ship To Fax #:"
+\multicolumn{6}{|l|}{ {\bf Tax ID\#} } & \multicolumn{3}{c|}{} & \multicolumn{3}{c|}{} \\ \hline                                    
+
+\multicolumn{6}{|l|}{ {\bf Address} } & 
+\multicolumn{3}{l}{$\Box$ {\footnotesize  Warranty Repair} } & 
+\multicolumn{3}{l|}{ $\Box$  {\footnotesize Return To Vendor} } \\
+
+\multicolumn{6}{|c|}{\multirow{2}{*}{ {\Large {{ project.address }} } } } &                      % "Address"
+\multicolumn{3}{l}{$\Box$ {\footnotesize  Loan} } & 
+\multicolumn{3}{l|}{ $\Box$ {\footnotesize  Return of Loan} } \\                                   %\boxtimes
+
+\multicolumn{6}{|l|}{} &
+\multicolumn{3}{l}{$\Box$ {\footnotesize  Chargeable Repair}  }& 
+\multicolumn{3}{l|}{ {\bf RMA \#} } \\ \hline
+
+\multicolumn{4}{|l|}{ {\bf City} } &  {\bf State/Prov &  {\bf Postal Code } & 
+\multicolumn{6}{l|}{\cellcolor[gray]{0.95} {\bf {% if project.carrier %}{{ project.carrier }}{% else %}CLSI{% endif %} Account \# } } \\
+
+\multicolumn{4}{|l|}{\multirow{2}{*}{ {\Large  {{ project.city }} } } } &                                                    % "City"
+\multirow{2}{*}{ {\Large {{ project.province }} } } &                                                                        % "State/Prov"
+\multirow{2}{*}{ {\Large {{ project.postal_code }} } } &                                                                     % "Postal Code"
+\multicolumn{6}{c|}{\cellcolor[gray]{0.95} {\large {{ project.account_number }} } } \\ \cline{7-12}                          % "Account #"
+\multicolumn{4}{|l|}{} & & & \multicolumn{6}{l|}{\cellcolor[gray]{0.95}  {\bf Managers Signature}  }\\ \cline{1-6}
+\multicolumn{4}{|l|}{ {\bf Attention} } & \multicolumn{2}{l|}{ {\bf Country} } & \multicolumn{6}{l|}{\cellcolor[gray]{0.95} } \\ \cline{7-12}
+
+\multicolumn{4}{|l|}{\multirow{2}{*}{ {\Large  {{ project.contact_person }} } } } &                                         % "Attention"
+\multicolumn{2}{l|}{\multirow{2}{*}{ {\Large  {{ project.country }} } } } &                                                 % "Country"
+\multicolumn{6}{c|}{ {\bf Date Required at Destination } } \\
+
+\multicolumn{4}{|l|}{} & \multicolumn{2}{l|}{} & \multicolumn{6}{c|}{} \\ \hline
+
+\multicolumn{6}{|l|}{ {\bf Originated By} } & \multicolumn{3}{c|}{ {\bf Phone No.} } & \multicolumn{3}{c|}{ {\bf Room No.} } \\ 
+
+\multicolumn{6}{|l|}{} &                                                                        % "originated By" 
+\multicolumn{3}{l|}{} &                                                                         % "Phone No."
+\multicolumn{3}{c|}{} \\ \hline                                                                 % "Room No."
+
+\multicolumn{1}{|c}{ {\footnotesize {\bf  QTY} } } & 
+\multicolumn{5}{|c|}{ {\footnotesize {\bf  Description (Include Model/Part\#)} } } & 
+\multicolumn{2}{c|}{ {\footnotesize {\bf  Serial \#} } } & 
+ {\footnotesize {\bf  Inventory Tag \# } } & 
+ {\footnotesize {\bf  Country of Origin } }& 
+\multicolumn{2}{c|}{ {\bf Value} } \\ \hline    
+\multicolumn{1}{|c}{ {{shipment.dewar_set.count }} } & \multicolumn{5}{|c|}{Dry Shipping Dewar} & \multicolumn{2}{c|}{} &  &  & \multicolumn{2}{c|}{ \${{ shipment.dewar_set.count|dewar_price:200 }} } \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{5}{|c|}{} & \multicolumn{2}{c|}{} &  &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{5}{|c|}{} & \multicolumn{2}{c|}{} &  &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{5}{|c|}{} & \multicolumn{2}{c|}{} &  &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{5}{|c|}{} & \multicolumn{2}{c|}{} &  &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{5}{|c|}{} & \multicolumn{2}{c|}{} &  &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{5}{|c|}{} & \multicolumn{2}{c|}{} &  &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{5}{|c|}{} & \multicolumn{2}{c|}{} &  &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{5}{|c|}{} & \multicolumn{2}{c|}{} &  &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{5}{|c|}{} & \multicolumn{2}{c|}{} &  &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{8}{|l|}{ {\bf HS Code -} } &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{8}{|l|}{ {\bf Noted Defect or problem: } } &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{8}{|l|}{} &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{8}{|l|}{ {\bf Where goods came from internally in CLSI: } } &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{8}{|l|}{} &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{8}{|l|}{ {\bf HSE Scan (when req'd):} } &  & \multicolumn{2}{c|}{} \\ \hline
+\multicolumn{1}{|c}{} & \multicolumn{7}{|l}{ {\bf HSE Signature: } }& \multicolumn{1}{l|}{ {\bf Total} } &  & \multicolumn{2}{c|}{ \${{ shipment.dewar_set.count|dewar_price:200 }} } \\ \hline \hline
+
+\multicolumn{12}{c}{ {\bf Does This Shipment Contain Any of The Following Hazards?} } \\ \hline \hline
+
+\multicolumn{2}{|c|}{ {\small {\bf Hazard} } } &  {\small {\bf YES } } &  {\small {\bf NO } } & \multicolumn{2}{c|}{ {\small {\bf Hazard} } } &  {\small {\bf YES } } &  {\small {\bf NO } } & \multicolumn{2}{c|}{ {\small {\bf Hazard} } } &  {\small {\bf YES  } }&  {\small {\bf NO  } }\\ \hline
+\multicolumn{2}{|l|}{ {\footnotesize Explosives} } & & X &
+\multicolumn{2}{l|}{ {\footnotesize Flammable Liquid } } & & X &
+\multicolumn{2}{l|}{ {\footnotesize Miscellaneous Hazardous Material } } & & X \\ \hline
+\multicolumn{2}{|l|}{ {\footnotesize Flammable } } & & X &
+\multicolumn{2}{l|}{ {\footnotesize Combustible Liquid} } & & X &
+\multicolumn{2}{l|}{ {\footnotesize } } & & \\ \hline
+\multicolumn{2}{|l|}{ {\scriptsize Nonflammable Compressed Gas} } & & X &
+\multicolumn{2}{l|}{ {\footnotesize Spontaneously Combustible Liquid} } & & X &
+\multicolumn{2}{l|}{ {\footnotesize Radioactive Material} } & & X \\ \hline
+\multicolumn{2}{|l|}{ {\footnotesize Infectious Substance} } & & X &
+\multicolumn{2}{l|}{ {\footnotesize Flammable Solids} } & & X &
+\multicolumn{2}{l|}{ {\footnotesize } } & & \\ \hline
+\multicolumn{2}{|l|}{ {\footnotesize Corrosive Material} } & & X &
+\multicolumn{2}{l|}{ {\footnotesize Dangerous-When-Wet} } & & X &
+\multicolumn{2}{l|}{ {\footnotesize } } & & \\ \hline
+\multicolumn{2}{|l|}{ {\footnotesize } } & & &
+\multicolumn{2}{l|}{ {\footnotesize Oxidizer} } & & X &
+\multicolumn{2}{l|}{ {\footnotesize } } & & \\ \hline
+\multicolumn{2}{|l|}{ {\footnotesize Poisonous Gas} } & & X &
+\multicolumn{2}{l|}{ {\footnotesize Organic Peroxides} } & & X &
+\multicolumn{2}{l|}{ {\footnotesize } } & & \\ \hline
+\multicolumn{2}{|l|}{ {\footnotesize Poisonous Material} } & & X &
+\multicolumn{2}{l|}{ {\footnotesize } } & & &
+\multicolumn{2}{l|}{ {\footnotesize } } & & \\ \cline{1-2} \cline{1-2} \cline{11-12} \cline{11-12}
+
+\multicolumn{12}{c}{\cellcolor[gray]{0.95} {\bf DO NOT WRITE BELOW THIS LINE} } \\ \hline
+
+\multicolumn{2}{|c|}{\cellcolor[gray]{0.95} {\bf  No. of Packages} } & \multicolumn{7}{c|}{\cellcolor[gray]{0.95} {\bf  Classification Description} } & \cellcolor[gray]{0.95}  {\bf Size of PKGS } & \multicolumn{2}{c|}{\cellcolor[gray]{0.95}  {\bf Weight} } \\ \hline
+\multicolumn{2}{|c|}{\cellcolor[gray]{0.95} } & \multicolumn{7}{c|}{\cellcolor[gray]{0.95} } & \cellcolor[gray]{0.95} & \multicolumn{2}{c|}{\cellcolor[gray]{0.95} } \\ \hline
+\multicolumn{2}{|c|}{\cellcolor[gray]{0.95} } & \multicolumn{7}{c|}{\cellcolor[gray]{0.95} } & \cellcolor[gray]{0.95} & \multicolumn{2}{c|}{\cellcolor[gray]{0.95} } \\ \hline
+\multicolumn{2}{|c|}{\cellcolor[gray]{0.95} } & \multicolumn{7}{c|}{\cellcolor[gray]{0.95} } & \cellcolor[gray]{0.95} {\bf  Prepaid } & \multicolumn{2}{c|}{\cellcolor[gray]{0.95}  {\bf Collect}  }\\
+\multicolumn{2}{|c|}{\cellcolor[gray]{0.95} } & \multicolumn{7}{c|}{\cellcolor[gray]{0.95} } & \cellcolor[gray]{0.95} \Box & \multicolumn{2}{c|}{\cellcolor[gray]{0.95} \Box } \\ \hline 
+\multicolumn{6}{c}{ } & \multicolumn{3}{|l|}{\cellcolor[gray]{0.95} {\bf  Total Packages} } & \multicolumn{3}{c|}{\cellcolor[gray]{0.95} {\bf  Total Weight} } \\
+\multicolumn{6}{c}{ } & \multicolumn{3}{|l|}{\cellcolor[gray]{0.95} } & \multicolumn{3}{c|}{\cellcolor[gray]{0.95} } \\ \cline{7-12} 
+
+\multicolumn{12}{l}{ {\footnotesize Form auto-generated by the CMCF Laboratory Information Management System {% now "j F Y H:i" %} } } \\
+\end{tabular}
+{% endwith %}
+\end{center}
+
+
+
+
 \end{document}
