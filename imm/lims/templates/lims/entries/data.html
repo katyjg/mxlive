@@ -38,24 +38,24 @@
     <p>Parameters</p>
 	<ul>
 		<li><strong>Beamline:</strong> {{ data.beamline }}</li>
+		<li><strong>Detector type:</strong> {{ data.detector }}</li>
 	    {% if data.experiment %}
 	    <li><strong>Experiment:</strong><a href="{% url lims-experiment-detail data.experiment.pk %}">{{ data.experiment.name }}</a></li>
 	    {% endif %}		
 		{% if data.crystal %}
 		<li><strong>Crystal:</strong><a href="{% url lims-crystal-detail data.crystal.pk %}"> {{ data.crystal.name }}</a></li>
-		{% endif %}		
-		{% for result in data.result_set.all %}
+		{% endif %}	
+	
+		{% for result in data.result_set.all|slice:":1" %}
 			<li><strong>Result:</strong> <a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|floatformat:2 }})</a></li>
 		{% endfor %}
 		<li><strong>Resolution Limit:</strong> {{ data.resolution|floatformat:2 }} &#8491;</li>
 		<li><strong>Frame set:</strong> {{ data.frame_sets }}</li>
 		<li><strong>Wavelength:</strong> {{ data.wavelength }} &#8491;</li>
-		<li><strong>Beam X:</strong>	{{ data.beam_x }}</li>
-		<li><strong>Beam Y:</strong> {{ data.beam_y }}</li>
+		<li><strong>Beam X, Y:</strong>	{{ data.beam_x }}, {{ data.beam_y }}</li>
 		<li><strong>Pixel Size:</strong> {{ data.pixel_size }} mm</li>
 		<li><strong>Two Theta:</strong> {{ data.two_theta }} deg</li>
 		<li><strong>Exposure time:</strong> {{ data.exposure_time }} sec</li>
-		<li><strong>Detector type:</strong> {{ data.detector }}</li>
 		<li id="framename" class="separator">Current: </li>
 		<li id="oscstart">Osc. Start: </li>
 		<li id="oscend">Osc. End: </li> 
