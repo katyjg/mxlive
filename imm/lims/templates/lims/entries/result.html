@@ -58,8 +58,12 @@
     <div id="summary-notes" class="tablenotes">
         <div id="result-links">
             <ul>
+            {% if object.crystal %}
                 <li>Crystal: &nbsp;<a href={% url lims-crystal-detail object.crystal.id %}>{{object.crystal}}</a></li>
+            {% endif %}            
+            {% if object.experiment %}
                 <li>Experiment: &nbsp;<a href={% url lims-experiment-detail object.experiment.id %}>{{object.experiment.name}}</a></li>
+            {% endif %}
                 <li>Dataset: &nbsp;<a class="modal" href={% url lims-data-detail object.data.id %}>{{object.data}}</a></li>
             </ul>
         </div>
