@@ -2,7 +2,7 @@ table { border-collapse: collapse;  empty-cells: show;}
 #content-title h2 {
     font-size: 1.6em;
     font-weight: bold;
-    padding-right: 24px;
+    padding-right: 1em;
     line-height: 60px;
     display: block;
     float: left;
@@ -216,7 +216,7 @@ div.clearall { clear:both; }
    display: table-cell;
    vertical-align: middle;
    line-height: 12px;
-   padding-left: 2em;
+   padding-left: 0.6em;
 }
 
 ul.toolbar {
