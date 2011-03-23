@@ -12,7 +12,7 @@
             "active": true, 
             "allowed_hosts": "127.0.0.1/32"
         }
-    },
+    }, 
     {
         "pk": 2, 
         "model": "apikey.apikey", 
@@ -25,6 +25,34 @@
             "key": "4A8285AB-9E5F-476E-B17B-92BEB299A985", 
             "active": true, 
             "allowed_hosts": "10.52.0.0/16"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "apikey.apikey", 
+        "fields": {
+            "allowed_methods": "add_report, add_dataset, get_onsite_samples", 
+            "created": "2011-03-23 16:17:35", 
+            "client_name": "MXDC 08B1-1", 
+            "modified": "2011-03-23 16:17:35", 
+            "client_email": "", 
+            "key": "3B7FF046-2726-4195-AC8A-9AE09B207765", 
+            "active": true, 
+            "allowed_hosts": "10.52.7.0/22"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "apikey.apikey", 
+        "fields": {
+            "allowed_methods": "add_report, add_dataset, get_onsite_samples", 
+            "created": "2011-03-23 16:19:17", 
+            "client_name": "MXDC 08ID-1", 
+            "modified": "2011-03-23 16:19:17", 
+            "client_email": "", 
+            "key": "DE5C410E-6D59-4DE8-AFFC-3FF5F367359E", 
+            "active": true, 
+            "allowed_hosts": "10.52.28.0/22"
         }
     }
 ]
