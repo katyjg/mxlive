@@ -7,7 +7,7 @@
         class="link-row modal {{ row_state }} {{ type|lower }}"        
         href="{{handler}}{{object.pk}}/"
         {% if object.staff_comments %}
-        title="{{object.staff_comments|default:''|restructuredtext}}"
+        title="{{object.staff_comments|default:''"
         {% else %}
         title="Show dataset frames"
         {% endif %}
