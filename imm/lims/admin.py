@@ -34,7 +34,7 @@ class ExperimentAdmin(VersionAdmin):
     search_fields = ['comments','name']
     list_filter = ['modified','status']
     list_display = ('identity','name','kind','status','plan','num_crystals')
-    ordering = ('-priority', '-created')
+    ordering = ('-modified', '-priority')
     list_per_page = ITEMS_PER_PAGE   
 admin.site.register(Experiment, ExperimentAdmin)
 

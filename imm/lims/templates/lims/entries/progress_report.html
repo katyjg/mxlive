@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load score_colors %}
+{% load progress_extras %}
 
 {% block headline %}
 <h2><span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
@@ -12,9 +13,9 @@
             <a href="javascript:window.print();">Print</a>
         </li>
         <li class="toolbar-separator"></li>
-        <li class="back-tool" title="Show the shipment details">
-            <a href="{% url lims-shipment-detail object.pk %}">
-                Shipment Details
+        <li class="back-tool" title="Show the {{object|get_obj_type }} details">
+            <a href="{{ handler|object_url }}">
+                {{ object|get_obj_type }} Details
             </a>
         </li>
         <li class="help-tool" title="Show user guide">
@@ -31,7 +32,6 @@
 <div id="content" class="col-12">
 
 {% with object as shipment %}   
-{% load progress_extras %}
 <div class="object-list">
     <h3>Crystals</h3>
     <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">

@@ -834,6 +834,9 @@ class Experiment(LimsBaseClass):
                 errors.append("%i crystals have not arrived on-site." % diff)
         return errors
 
+    def is_processing(self):
+        return self.crystal_set.filter(Q(pk__in=self.project.data_set.values('crystal')) | Q(pk__in=self.project.result_set.values('crystal'))).exists()
+
     def is_reviewable(self):
         return self.status != Experiment.STATES.REVIEWED
     
