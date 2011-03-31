@@ -1,18 +1,19 @@
 {% load truncate_filters %}
 
+{% if news_links %}
 <ul id="news">
 <li class="title">News...</li>
-{% for link in links %}
-    {% if link.category == 0 %}
-        <li><a rel='#news-modal' class="modal-{{ link.get_frame_type_display }} {% ifequal link.get_frame_type_display 'flash' %}swf{% endif %}" href='{% if link.url %}{{ link.url }}{% else %}/{{ link.document }}{% endif %}'>{{ link.description|truncate_chars:60 }}</a></li>
-    {% endif %}
+{% for link in news_links %}
+        <li><a class="modal-{{ link.get_frame_type_display }}" href='{% if link.url %}{{ link.url }}{% else %}/{{ link.document }}{% endif %}'>{{ link.description|truncate_chars:60 }}</a></li>
 {% endfor %}
 </ul>
+{% endif %}
+{% if doc_links %}
 <ul id="help">
-<li class="title">How to...</li>
-{% for link in links %}
-    {% if link.category == 1 %}
-        <li><a rel='#howto-modal' class="modal-{{ link.get_frame_type_display }} {% ifequal link.get_frame_type_display 'flash' %}swf{% endif %}" href='{% if link.url %}{{ link.url }}{% else %}/{{ link.document }}{% endif %}'>{{ link.description|truncate_chars:60 }}</a></li>
-    {% endif %}
+<li class="title">Documentation ...</li>
+{% for link in doc_links %}
+        <li><a class="modal-{{ link.get_frame_type_display }} swf" href='{% if link.url %}{{ link.url }}{% else %}/{{ link.document }}{% endif %}'>{{ link.description|truncate_chars:60 }}</a></li>
 {% endfor %}
 </ul>
+{% endif %}
+

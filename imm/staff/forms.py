@@ -140,7 +140,7 @@ class LinkForm(objforms.forms.OrderedForm):
     description = objforms.widgets.SmallTextField(required=True)
     category = forms.ChoiceField(choices=Link.CATEGORY.get_choices(), widget=objforms.widgets.LeftHalfSelect, required=False)
     frame_type = forms.ChoiceField(choices=Link.TYPE.get_choices(), widget=objforms.widgets.RightHalfSelect, required=False)
-    url = forms.URLField(widget=objforms.widgets.LargeInput, label='External Web site', required=False)
+    url = forms.CharField(widget=objforms.widgets.LargeInput, label='Absolute or Relative address', required=False)
     document = forms.Field(widget=objforms.widgets.LargeFileInput, required=False)
 
     class Meta:

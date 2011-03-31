@@ -793,7 +793,7 @@ class Experiment(LimsBaseClass):
     staff_priority = models.IntegerField(default=0)
     
     class Meta:
-        verbose_name = 'experiment request'
+        verbose_name = 'Experiment request'
     
     def identity(self):
         return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))    
