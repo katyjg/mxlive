@@ -615,6 +615,9 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
         obj = request.manager.get(pk=id)
     except:
         raise Http404
+
+    if not obj.is_editable():
+        raise Http404
     
     form_info = {
         'title': request.GET.get('title', 'Edit %s' % model._meta.verbose_name),
@@ -800,7 +803,10 @@ def delete_object(request, id, model, form, template='objforms/form_base.html'):
         obj = request.manager.get(pk=id)
     except:
         raise Http404
-    
+
+    if not obj.is_deletable():
+        raise Http404    
+
     form_info = {
         'title': 'Delete %s?' % obj.__unicode__(),
         'sub_title': 'The %s (%s) will be deleted' % ( model._meta.verbose_name, obj.__unicode__()),
@@ -889,8 +895,13 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
         'target': 'entry-scratchpad',
         'save_label': save_label
     }
-    if action == 'archive':
+    if action == 'archive' and obj.is_closable():
         form_info['message'] = 'Are you sure you want to archive %s "%s"?  ' % (model.__name__, obj.__unicode__())
+    elif action == 'send' and obj.is_sendable(): pass
+    elif action == 'load' and obj.is_loadable(): pass
+    elif action == 'unload' and obj.is_unloadable(): pass 
+    elif action == 'return' and obj.is_returnable(): pass
+    else: raise Http404
 
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
