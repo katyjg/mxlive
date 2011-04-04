@@ -2323,11 +2323,21 @@ td.new {
     background:url("/img/new-recent.png") no-repeat center 3px;
 }
 
-#news li, #help li {
+.help li {
     padding: 0.2em 0;
     line-height: 100%;
 }
-
+.help {
+    margin-bottom: 1em;
+}
+.help a {
+    background: url(/img/bullet.png) center left no-repeat;
+    padding-left: 16px;
+    line-height: 16px;
+}
+.help a.swf {
+    background: url(/img/video-icon.png) center left no-repeat;
+}   
 
 #feedback-list li {
     padding: 0.5em 0;
@@ -2353,10 +2363,6 @@ td.new {
 
 #feedback-list span.highlight {
     color: #777;
-}
-
-#news {
-    margin-bottom: 1em;
 }
 
 #no-javascript {

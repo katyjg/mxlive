@@ -613,11 +613,6 @@ div.runlist.droppable {
     height: 125px;
     width: 100px;
 }
-a.swf {
-    background: url(/img/video-icon.png) center left no-repeat;
-    padding-left: 16px;
-    line-height: 16px;
-}   
 
 .ui-draggable-dragging {
     opacity: 0.5;
