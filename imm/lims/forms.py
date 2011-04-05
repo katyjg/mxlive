@@ -426,5 +426,14 @@ class FeedbackForm(objforms.forms.OrderedForm):
         model = Feedback
         fields = ('project','contact_name','contact','category','message')
 
+class CommentsForm(objforms.forms.OrderedForm):
+    comments = objforms.widgets.CommentField(required=False, 
+            help_text="Comments entered here will be visible to staff at the CMCF. You can use Restructured Text markup for formatting.")
+
+    class Meta:
+        fields = ('comments',)
+
+    def is_valid(self):
+        return True
 
     

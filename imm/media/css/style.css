@@ -459,39 +459,7 @@ img
 {
 	margin:10px 0;
 }
-li.Uni-Puck {
-    background: url('/img/container-uni-puck-sm.png') no-repeat 5px center;
-}
-li.Cassette {
-    background: url('/img/container-cassette-sm.png') no-repeat 5px center;
-}
-li.Cane {
-    background: url('/img/container-cane-sm.png') no-repeat 5px center;
-}
 
-
-td.Cane {
-    background: #f7f7f7;
-    height: 50px;
-    width: 15px;
-    padding-left: 10px;
-}
-table.cane-detail td.occupied {
-    background: #bee0bb !important;
-}
-td.Cassette {
-    height: 50px;
-    width: 58px;
-    background: url('/img/circle_grey.png') no-repeat center center;
-    text-align: center;
-}
-td.Cassette.occupied {
-    background: url('/img/circle_green.png') no-repeat center center;
-}
-th.Cassette {
-    text-align: center;
-    background: none;
-}
 a.remove, a.receive {
     background: url('/img/small-remove-icon.png') no-repeat center center;
     width: 8px;
@@ -509,209 +477,6 @@ a.delete {
     display: inline;
     padding: 8px;
     float: right;
-}
-
-div#unipuck {
-    background: url('/img/unipuck.png') no-repeat center center;
-    width: 300px;
-    height: 300px;
-    float: right;
-}
-div#unipuck p{
-    background: none;   
-    position: relative;
-    width: 50px;
-    height: 50px;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-    opacity: 0.8;
-    line-height: 50px;
-}
-div#unipuck .occupied {
-    background: url('/img/circle_green.png') no-repeat center center;   
-}
-.object-list.uni-puck-detail {
-    float: left;
-    width: 350px;
-}
-.object-list.cassette-detail {
-    width: 690px;
-}
-.object-list.cane-detail {
-    float: left;
-    width: 600px;
-}
-
-.object-list input.checkbox, .object-list input.radio {
-    display: inline;
-    margin: 3px 4px;
-}
-
-table.cane-detail {
-    float: right;
-    margin-right: 20px;
-    border-collapse: separate;
-    border: 1px solid #ccc;
-}
-table.cane-detail td {
-    border: 1px dotted #bbb;
-}
-
-.dewar-detail ul, .runlist-detail ul
-{
-	background:#f7f7f7;
-}
-.runlist-detail div.runlist-column1 ul 
-{
-    background: #ccc;
-}
-.runlist-detail div.runlist-column1 li
-{
-    border-right: 1px solid #999;
-}
-.runlist-detail li.empty
-{
-    background: #fff;
-}
-
-.runlist-detail li.lims-droppable-active {
-    border-top: none;    
-}
-
-.runlist-detail li.lims-droppable-hover {
-    border-style:solid;
-    order-width:1px;
-    border-color:#BB88D3;
-    background-color: #bb88d3;
-    opacity: 0.8;
-    border-top: none;
-}
-
-.dewar-detail ul {
-    margin-bottom: 5px;
-}
-
-.dewar-detail li
-{
-    padding-left: 35px;
-    line-height: 45px;
-	border-bottom:1px solid #ccc;
-}
-.runlist-detail li
-{
-    padding-left: 10px;
-    line-height: 35px;
-    border-bottom: 1px solid #bbb;
-    min-height: 35px;
-}
-.runlist-column1
-{
-    width: 30px; 
-    min-height: 120px; 
-    float: left;
-}
-.dewar-detail img {
-    float: left;
-    margin-right: 10px;
-    max-height: 40px;
-}
-.runlist-column2
-{
-    width: 175px;
-    height: 120px;
-    float: left;
-}
-.runlist-column2 ul li, .runlist-cassette ul li {
-    padding-left: 35px;
-}
-
-.dewar-detail, .runlist-detail
-{
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-	border:1px solid #999;
-	margin-bottom:10px;
-    width: 205px;
-    min-height: 150px;
-    float: left;
-    margin-right: 20px;
-    margin-top: 10px;
-}
-.runlist-detail {
-    margin-right: 35px;
-}
-#right.runlist-detail {
-    margin-right: 0px;
-}
-.runlist-detail ul li.Uni-Puck:hover {
-    background: url('/img/container-uni-puck-sm.png') no-repeat 5px center;
-}
-.dewar-detail li a
-{
-    display: inline;
-    line-height: 45px;
-    height: 45px;
-    width: 60%;
-}
-.runlist-cassette li a, .runlist-detail li a
-{
-    display: inline;
-    line-height: 35px;
-    height: 35px;
-}
-.dewar-detail li a.remove, .runlist-detail li a.remove
-{
-    display: inline;
-    float: right;
-    width: 24px;
-    padding: 0;
-}
-
-.runlist-cassette ul, .runlist-cassette li a.remove {
-    height: 144px;
-}
-.runlist-cassette ul li {
-    line-height: 144px;
-}
-
-.runlist-detail div.title {
-    height: 20px;
-}
-.dewar-detail div.title p {
-    background:url(/img/dewar-sm.png) no-repeat scroll 3px center;
-    font-weight: bold;
-    line-height: 32px; 
-    height: 32px;
-    margin: 0;
-    padding: 0;
-    padding-left: 36px;
-    text-align: center;
-}
-
-.dewar-detail div.title a.dewar-title {
-    float: left;
-    height: 32px;
-    line-height: 32px;
-    width: 80%;
-    color: #fff;
-}
-
-.dewar-detail div.title a.remove {
-    float: right;
-    height: 32px;
-    line-height: 32px;
-    padding: 0;
-    width: 15%;
-    color: #fff;
-}
-
-.dewar-detail div.title, #sidebar .widget h3, .runlist-detail div.title
-{
-	margin:0;
-	color:#FFF;
-	background:#999;
 }
 
 p.list-empty 
@@ -773,6 +538,11 @@ td.list-empty {
     content: ' (drag me)';
     white-space: nowrap;
     color: green;
+}
+
+td.normal {
+    white-space: normal !important;
+    text-align: left !important;
 }
 
 #sidebar .widget a.action

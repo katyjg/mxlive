@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from django.utils import dateformat
 import subprocess
 import tempfile
 import os
@@ -659,12 +660,12 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
        
 @login_required
 @transaction.commit_on_success
-def staff_comments(request, id, model, form, template='objforms/form_base.html'):
+def staff_comments(request, id, model, form, template='objforms/form_base.html', user='staff'):
     try:
         obj = model.objects.get(pk=id)
     except:
         raise Http404
-    
+
     form_info = {
         'title': 'Add a note to this %s' % model._meta.verbose_name,
         'sub_title': obj.identity(),
@@ -672,15 +673,22 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html')
         'target': 'entry-scratchpad',
         'save_label': 'Save'
     }
-
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
         if frm.is_valid():
-            form_info['message'] = 'comments added to %s (%s) by staff' % ( model._meta.verbose_name, obj)
-            frm.save()
+            if user == 'staff':
+                author = ' by staff'
+                frm.save()
+            elif user == 'user' and request.POST.get('comments', None):
+                author = ''
+                if not obj.comments: obj.comments = ''
+                obj.comments = obj.comments + '\n\n%s - %s' % \
+                    (dateformat.format(datetime.now(), 'Y-m-d P'), request.POST.get('comments'))
+                obj.save()
+            form_info['message'] = 'comments added to %s (%s)%s' % ( model._meta.verbose_name, obj, author)
             request.user.message_set.create(message = form_info['message'])
             ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, 
-                'comments added to %s by staff' % ( model._meta.verbose_name,))            
+                'comments added to %s%s' % ( model._meta.verbose_name, author))            
             return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
         else:
             return render_to_response(template, {

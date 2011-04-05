@@ -60,28 +60,32 @@
 
 {% block sidebar %}
 	{% if not user.is_superuser %}
-        <div id="cocktails" class="widget droppable-remove parent-stop" data="{% url lims-cocktail-basic-list %}">
-	        <div class="widget-title">
-	            <span>Cocktails</span>
-                <a href="{% url lims-cocktail-new %}" class="modal-form add-action" title="Add New Cocktail">
-                    <img src="/img/small-add-icon.png" />
-                </a>
-	        </div>
-            <ul>
-                <p class="list-empty">( Not loaded )</p>
-            </ul>
-        </div>
-        <div id="crystalforms" class="widget droppable droppable-remove parent-stop" accept="crystal_form" data="{% url lims-crystalform-basic-list %}">
-	        <div class="widget-title">
-	            <span>Crystal Forms</span>
-                <a href="{% url lims-crystalform-new %}" class="modal-form add-action" title="Add Crystal Form" >
-                    <img src="/img/small-add-icon.png" />
-                </a>
-	        </div>
-            <ul>
-                <p class="list-empty">( Not loaded )</p>
-            </ul>
-        </div>
+        {% if object.is_editable %}
+            <div id="cocktails" class="widget droppable-remove parent-stop" data="{% url lims-cocktail-basic-list %}">
+	            <div class="widget-title">
+	                <span>Cocktails</span>
+                    <a href="{% url lims-cocktail-new %}" class="modal-form add-action" title="Add New Cocktail">
+                        <img src="/img/small-add-icon.png" />
+                    </a>
+	            </div>
+                <ul>
+                    <p class="list-empty">( Not loaded )</p>
+                </ul>
+            </div>
+            <div id="crystalforms" class="widget droppable droppable-remove parent-stop" accept="crystal_form" data="{% url lims-crystalform-basic-list %}">
+	            <div class="widget-title">
+	                <span>Crystal Forms</span>
+                    <a href="{% url lims-crystalform-new %}" class="modal-form add-action" title="Add Crystal Form" >
+                        <img src="/img/small-add-icon.png" />
+                    </a>
+	            </div>
+                <ul>
+                    <p class="list-empty">( Not loaded )</p>
+                </ul>
+            </div>
+        {% else %}
+            {% include "lims/entries/comments_form.html" %}
+        {% endif %}
     {% else %}
         {% include "staff/entries/comments_form.html" %}
     {% endif %}

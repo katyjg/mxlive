@@ -18,13 +18,13 @@ _URL_META = {
     },
     'samples': {
         'crystal':  {'model': Crystal, 'form': SampleForm, 'delete_form': LimsBasicForm},
-        'cocktail': {'model': Cocktail, 'form': CocktailForm, 'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True}, 
-        'crystalform': {'model': CrystalForm, 'form': CrystalFormForm,'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True},  
+        'cocktail': {'model': Cocktail, 'form': CocktailForm, 'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True, 'comments': False}, 
+        'crystalform': {'model': CrystalForm, 'form': CrystalFormForm,'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True, 'comments': False},  
     },
     'experiment': {
         'request':  {'model': Experiment, 'form': ExperimentForm},       
-        'dataset':  {'model': Data, 'add': False, 'list_link': False, 'list_add': False, 'list_modal': True},       
-        'report':   {'model': Result, 'add': False, 'list_add': False},         
+        'dataset':  {'model': Data, 'add': False, 'list_link': False, 'list_add': False, 'list_modal': True, 'comments': False},       
+        'report':   {'model': Result, 'add': False, 'list_add': False, 'comments': False},         
     },
 }
 
@@ -104,6 +104,16 @@ for section, subsection in _URL_META.items():
                                    'action': 'archive',
                                    },
                  'lims-%s-close' % params.get('model').__name__.lower()))
+
+        # Add Comments 
+        if params.get('comments', True):
+            _dynamic_patterns.append(
+                (r'%s/%s/(?P<id>\d+)/comments/add/$' % (section, key),
+                 'staff_comments', {'model': params.get('model'),
+                                    'form': CommentsForm,
+                                    'user': 'user',
+                                   },
+                 'lims-comments-%s-add'% params.get('model').__name__.lower()))        
 
 urlpatterns = patterns('imm.lims.views',
     (r'^$', 'show_project', {}, 'project-home'),

@@ -1,25 +1,6 @@
-<div class="object-list {{object.json_dict.type|lower}}-detail">
-    <h3>Container Details</h3>
-    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
-        <thead>
-            <tr class="header">
-             	<th>Status</th>
-                <th>Dewar</th>
-                <th>Shipment</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr class="{% cycle 'odd' 'even' %}">
-                <td>{{ object.get_status_display }}</td>
-                <td>{% if object.dewar %}
-                    <a href="{% url lims-dewar-detail object.dewar.pk %}">{{ object.dewar }}</a>
-                {% endif %}</td>
-                <td>{% if object.dewar.shipment %}
-                    <a href="{% url lims-shipment-detail object.dewar.shipment.pk %}">{{ object.dewar.shipment }}</a>
-                {% endif %}</td>
-        </tbody>
-    </table>
+{% load markup %}
 
+<div class="object-list {{object.json_dict.type|lower}}-detail">
     <h3>Crystals in {{object.json_dict.type|lower}} &ldquo;{{object.name}}&rdquo;</h3>
     <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
         <thead>
