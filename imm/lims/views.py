@@ -1211,8 +1211,7 @@ def add_result(request, report_info):
         #new_obj.save(force_update=force_update)
         new_obj.save()
 
-        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, "New analysis Report uploade
-d from beamline")
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, "New analysis Report uploaded from beamline")
         return {'result_id': new_obj.pk}
     except Exception, e:
         print "exception", e
