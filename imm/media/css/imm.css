@@ -91,6 +91,7 @@ div.entrycomment {
 	-webkit-border-radius:5px;
 	-moz-border-radius:5px;
 	border-radius:5px;
+    padding-top: 10px;
 }
 
 
@@ -98,6 +99,10 @@ div.entrycomment h3 {
     color: #a38db6;
     border-bottom: 1px dotted #a38db6;
     margin-bottom: 0.5em;
+    font-size: 97%;
+}
+div.entrycomment.container {
+    margin-top: 1em;
 }
 
 div.entrycomment span.left-pointer {
@@ -109,13 +114,22 @@ div.entrycomment span.left-pointer {
 
 }
 
-div.entrycomment .user {
+div.entrycomment span.up-pointer {
+    margin-top: -40px;
+    padding-top: 24px;
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    rotation: 90deg;
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+}
+
+div.entrycomment .user, div.user {
     font-size: 90%;
     line-height: 1.1em;
     color: #000;
 }
 
-div.entrycomment .staff {
+div.entrycomment .staff, div.staff {
     font-size: 90%;
     line-height: 1.1em;
     color: #747e80;
@@ -134,7 +148,7 @@ div.entrycomment ul li {
 
 .entrysummary { 
     margin-bottom: 0.5em;
-    width: 300px;
+    width: 295px;
     float: left;
     clear: left;
 }
@@ -613,11 +627,6 @@ div.runlist.droppable {
     height: 125px;
     width: 100px;
 }
-a.swf {
-    background: url(/img/video-icon.png) center left no-repeat;
-    padding-left: 16px;
-    line-height: 16px;
-}   
 
 .ui-draggable-dragging {
     opacity: 0.5;
@@ -690,14 +699,259 @@ a.swf {
 #shiftzoomimg_ttip {
     z-index: 1003;
 }
+li.Uni-Puck {
+    background: url('/img/container-uni-puck-sm.png') no-repeat 5px center;
+}
+li.Cassette {
+    background: url('/img/container-cassette-sm.png') no-repeat 5px center;
+}
+li.Cane {
+    background: url('/img/container-cane-sm.png') no-repeat 5px center;
+}
+
+td.Cane {
+    background: #f7f7f7;
+    height: 50px;
+    width: 15px;
+    padding-left: 10px;
+}
+table.cane-detail td.occupied {
+    background: #bee0bb !important;
+}
+td.Cassette {
+    height: 31px;
+    width: 33px;
+    background: url('/img/circle_grey-30.png') no-repeat center center;
+    text-align: center;
+    font-size: 85%;
+}
+td.Cassette.occupied {
+    background: url('/img/circle_green-30.png') no-repeat center center;
+}
+th.Cassette {
+    text-align: center;
+    background: none;
+}
+div#unipuck {
+    background: url('/img/unipuck-sm.png') no-repeat center center;
+    width: 250px;
+    height: 250px;
+    float: right;
+    margin-right: 2em;
+}
+div#unipuck p{
+    background: none;   
+    position: relative;
+    width: 40px;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    opacity: 0.8;
+    line-height: 40px;
+}
+div#unipuck .occupied {
+    background: url('/img/circle_green-40.png') no-repeat center center;   
+}
+.object-list.uni-puck-detail {
+    float: left;
+    width: 374px;
+}
+table.cassette-detail {
+    float: right;
+    clear: right;
+}
+.object-list.cassette-detail, .object-list.uni-puck-detail {
+    width: 690px;
+}
+
+.object-list.cane-detail {
+    float: left;
+    width: 600px;
+}
+
+.object-list input.checkbox, .object-list input.radio {
+    display: inline;
+    margin: 3px 4px;
+}
+
+table.cane-detail {
+    float: right;
+    margin-right: 20px;
+    border-collapse: separate;
+    border: 1px solid #ccc;
+}
+table.cane-detail td {
+    border: 1px dotted #bbb;
+}
+
+.dewar-detail ul, .runlist-detail ul
+{
+	background:#f7f7f7;
+}
+.runlist-detail div.runlist-column1 ul 
+{
+    background: #ccc;
+}
+.runlist-detail div.runlist-column1 li
+{
+    border-right: 1px solid #999;
+}
+.runlist-detail li.empty
+{
+    background: #fff;
+}
+
+.runlist-detail li.lims-droppable-active {
+    border-top: none;    
+}
+
+.runlist-detail li.lims-droppable-hover {
+    border-style:solid;
+    order-width:1px;
+    border-color:#BB88D3;
+    background-color: #bb88d3;
+    opacity: 0.8;
+    border-top: none;
+}
+
+.dewar-detail ul {
+    margin-bottom: 5px;
+}
+
+.dewar-detail li
+{
+    padding-left: 35px;
+    line-height: 45px;
+	border-bottom:1px solid #ccc;
+}
+.runlist-detail li
+{
+    padding-left: 10px;
+    line-height: 35px;
+    border-bottom: 1px solid #bbb;
+    min-height: 35px;
+}
+.runlist-column1
+{
+    width: 30px; 
+    min-height: 120px; 
+    float: left;
+}
+.dewar-detail img {
+    float: left;
+    margin-right: 10px;
+    max-height: 40px;
+}
+.runlist-column2
+{
+    width: 175px;
+    height: 120px;
+    float: left;
+}
+.runlist-column2 ul li, .runlist-cassette ul li {
+    padding-left: 35px;
+}
+
+.dewar-detail, .runlist-detail
+{
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+	border:1px solid #999;
+	margin-bottom:10px;
+    width: 205px;
+    min-height: 150px;
+    float: left;
+    margin-right: 20px;
+    margin-top: 10px;
+}
+.runlist-detail {
+    margin-right: 35px;
+}
+#right.runlist-detail {
+    margin-right: 0px;
+}
+.runlist-detail ul li.Uni-Puck:hover {
+    background: url('/img/container-uni-puck-sm.png') no-repeat 5px center;
+}
+.dewar-detail li a
+{
+    display: inline;
+    line-height: 45px;
+    height: 45px;
+    width: 60%;
+}
+.runlist-cassette li a, .runlist-detail li a
+{
+    display: inline;
+    line-height: 35px;
+    height: 35px;
+}
+.dewar-detail li a.remove, .runlist-detail li a.remove
+{
+    display: inline;
+    float: right;
+    width: 24px;
+    padding: 0;
+}
+
+.runlist-cassette ul, .runlist-cassette li a.remove {
+    height: 144px;
+}
+.runlist-cassette ul li {
+    line-height: 144px;
+}
+
+.runlist-detail div.title {
+    height: 20px;
+}
+.dewar-detail div.title p {
+    background:url(/img/dewar-sm.png) no-repeat scroll 3px center;
+    font-weight: bold;
+    line-height: 32px; 
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    padding-left: 36px;
+    text-align: center;
+}
+
+.dewar-detail div.title a.dewar-title {
+    float: left;
+    height: 32px;
+    line-height: 32px;
+    width: 80%;
+    color: #fff;
+}
+
+.dewar-detail div.title a.remove {
+    float: right;
+    height: 32px;
+    line-height: 32px;
+    padding: 0;
+    width: 15%;
+    color: #fff;
+}
+
+.dewar-detail div.title, #sidebar .widget h3, .runlist-detail div.title
+{
+	margin:0;
+	color:#FFF;
+	background:#999;
+}
+
+
  .lims-droppable-hover li {
 	background-color:#c8b9d7 !important;
 }
 .lims-droppable-hover.Cassette, .lims-droppable-active.Cassette, .lims-droppable-active.Uni-Puck, .lims-droppable-hover.Uni-Puck {
     border: none !important;
 }
-td.lims-droppable-hover.Cassette, .lims-droppable-hover.Uni-Puck {
-    background: url('/img/circle_purple.png') no-repeat center center !important;
+td.lims-droppable-hover.Cassette {
+    background: url('/img/circle_purple-30.png') no-repeat center center !important;
+}
+.lims-droppable-hover.Uni-Puck {
+    background: url('/img/circle_purple-40.png') no-repeat center center !important;
 }
 td.lims-droppable-hover.Cane {
     background-color: #c8b9d7;

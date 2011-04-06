@@ -32,6 +32,9 @@
 	<tr valign="top"><th>Shipment:</th><td>
         {% for shipment in object.get_shipments %}<a href="{% url lims-shipment-detail shipment.pk %}">{{shipment.name}} </a>{% endfor %}
     </td></tr>
+    {% if user.is_superuser %}
+    	<tr valign="top"><th>Project:</th><td>{{object.project.name}}</td></tr>
+    {% endif %}
 </table>
 
 {% if object.comments or object.staff_comments or object.experiment_errors %}
@@ -68,14 +71,18 @@
 
 {% block sidebar %}
 	{% if not user.is_superuser %}
-		<div id="crystals" class="widget droppable-remove parent-stop" data="{% url lims-crystal-basic-list %}?orphan_field=experiment">
-		   <div class="widget-title">
-		   <span>Crystals</span><a href="{% url lims-crystal-new %}" class="modal-form add-action" title="Add New Crystal"><img src="/img/small-add-icon.png" /></a>
-		   </div>
-		    <ul>
-                <p class="list-empty">( Not loaded )</p>
-		    </ul>
-		</div>
+        {% if object.is_editable %}
+		    <div id="crystals" class="widget droppable-remove parent-stop" data="{% url lims-crystal-basic-list %}?orphan_field=experiment">
+		       <div class="widget-title">
+		       <span>Crystals</span><a href="{% url lims-crystal-new %}" class="modal-form add-action" title="Add New Crystal"><img src="/img/small-add-icon.png" /></a>
+		       </div>
+		        <ul>
+                    <p class="list-empty">( Not loaded )</p>
+		        </ul>
+		    </div>
+        {% else %}
+            {% include "lims/entries/comments_form.html" %}
+        {% endif %}
     {% else %}
         {% include "staff/entries/comments_form.html" %}
     {% endif %}

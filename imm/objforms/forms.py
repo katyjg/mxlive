@@ -1,7 +1,7 @@
 from django import forms
 from django.db.models import Q
 from django.core.exceptions import FieldError
-
+from lims.models import *
 
 class OrderedForm(forms.ModelForm):
     """
@@ -13,6 +13,13 @@ class OrderedForm(forms.ModelForm):
         super(OrderedForm, self).__init__(*args, **kwargs)
         if self._meta.fields:
             self.fields.keyOrder = self._meta.fields
+            if self._meta.model and hasattr(self._meta.model, 'HELP'):
+                for field in self._meta.fields:
+                    if not self.fields[field].help_text:
+                        try:
+                            self.fields[field].help_text = self._meta.model.HELP[field]
+                        except KeyError:
+                            pass
 
     def restrict_by(self, field_name, value):
         """

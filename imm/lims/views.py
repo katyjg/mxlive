@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from django.utils import dateformat
 import subprocess
 import tempfile
 import os
@@ -615,6 +616,9 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
         obj = request.manager.get(pk=id)
     except:
         raise Http404
+
+    if not obj.is_editable():
+        raise Http404
     
     form_info = {
         'title': request.GET.get('title', 'Edit %s' % model._meta.verbose_name),
@@ -656,12 +660,12 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
        
 @login_required
 @transaction.commit_on_success
-def staff_comments(request, id, model, form, template='objforms/form_base.html'):
+def staff_comments(request, id, model, form, template='objforms/form_base.html', user='staff'):
     try:
         obj = model.objects.get(pk=id)
     except:
         raise Http404
-    
+
     form_info = {
         'title': 'Add a note to this %s' % model._meta.verbose_name,
         'sub_title': obj.identity(),
@@ -669,15 +673,23 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html')
         'target': 'entry-scratchpad',
         'save_label': 'Save'
     }
-
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
+        if not obj.comments: base_comments = ''
+        else: base_comments = obj.comments
         if frm.is_valid():
-            form_info['message'] = 'comments added to %s (%s) by staff' % ( model._meta.verbose_name, obj)
-            frm.save()
+            if user == 'staff':
+                author = ' by staff'
+                frm.save()
+            elif user == 'user' and request.POST.get('comments', None):
+                author = ''
+                obj.comments = base_comments + '\n\n%s - %s' % \
+                    (dateformat.format(datetime.now(), 'Y-m-d P'), request.POST.get('comments'))
+                obj.save()
+            form_info['message'] = 'comments added to %s (%s)%s' % ( model._meta.verbose_name, obj, author)
             request.user.message_set.create(message = form_info['message'])
             ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, 
-                'comments added to %s by staff' % ( model._meta.verbose_name,))            
+                'comments added to %s%s' % ( model._meta.verbose_name, author))            
             return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
         else:
             return render_to_response(template, {
@@ -800,7 +812,10 @@ def delete_object(request, id, model, form, template='objforms/form_base.html'):
         obj = request.manager.get(pk=id)
     except:
         raise Http404
-    
+
+    if not obj.is_deletable():
+        raise Http404    
+
     form_info = {
         'title': 'Delete %s?' % obj.__unicode__(),
         'sub_title': 'The %s (%s) will be deleted' % ( model._meta.verbose_name, obj.__unicode__()),
@@ -889,8 +904,13 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
         'target': 'entry-scratchpad',
         'save_label': save_label
     }
-    if action == 'archive':
+    if action == 'archive' and obj.is_closable():
         form_info['message'] = 'Are you sure you want to archive %s "%s"?  ' % (model.__name__, obj.__unicode__())
+    elif action == 'send' and obj.is_sendable(): pass
+    elif action == 'load' and obj.is_loadable(): pass
+    elif action == 'unload' and obj.is_unloadable(): pass 
+    elif action == 'return' and obj.is_returnable(): pass
+    else: raise Http404
 
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
@@ -1153,22 +1173,51 @@ def add_report(request, report_info):
 
 @jsonrpc_method('lims.add_result')
 @apikey_required
-def add_result(request, res_info):
-    info = {}
+def add_result(request, report_info):
+    print report_info
+    print report_info.keys()
+    # check if project_id is provided if not check if project_name is provided
+    if report_info.get('project_id') is not None:
+        report_owner = Project.objects.get(pk=report_info['project_id'])   
+    elif report_info.get('project_name') is not None:
+        try:
+            report_owner = Project.objects.get(name=report_info['project_name'])
+        except:
+            report_owner = create_project(username=report_info['project_name'])
+        report_info['project_id'] = report_owner.pk
+        del report_info['project_name']
+    else:
+        raise exceptions.InvalidRequestError('Unknown Project')
+          
     # convert unicode to str
-    data_owner = Project.objects.get(pk=res_info['project_id'])
-    for k,v in res_info.items():
+    new_info = {}
+    for k,v in report_info.items():
         if k == 'url':
-            v = create_download_key(v, data_owner.pk)
-        info[smart_str(k)] = v
+            v = create_download_key(v, report_info['project_id'])
+        new_info[str(k)] = v
     try:
-        new_obj = Result(**info)
+        # if id is provided, make sure it is owned by current owner otherwise add new entry
+        # to prevent overwriting other's stuff
+        force_update = False
+        if new_info.get('id') is not None:
+            try:
+                new_obj = report_owner.result_set.get(pk=new_info.get('id'))
+                force_update = True
+                new_info['created'] = datetime.now()
+            except:
+                new_info['id'] = None
+        
+        new_obj = Result(**new_info)
+        #new_obj.save(force_update=force_update)
         new_obj.save()
-        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
-            "New analysis report uploaded from beamline" % new_obj)
+
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, "New analysis Report uploade
+d from beamline")
         return {'result_id': new_obj.pk}
     except Exception, e:
-        raise exceptions.ServerError(e.message)
+        print "exception", e
+        raise exceptions.ServerError(e)
+
 
 @jsonrpc_method('lims.add_strategy')
 @apikey_required

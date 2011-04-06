@@ -18,13 +18,13 @@ _URL_META = {
     },
     'samples': {
         'crystal':  {'model': Crystal, 'form': SampleForm, 'delete_form': LimsBasicForm},
-        'cocktail': {'model': Cocktail, 'form': CocktailForm, 'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True}, 
-        'crystalform': {'model': CrystalForm, 'form': CrystalFormForm,'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True},  
+        'cocktail': {'model': Cocktail, 'form': CocktailForm, 'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True, 'comments': False}, 
+        'crystalform': {'model': CrystalForm, 'form': CrystalFormForm,'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True, 'comments': False},  
     },
     'experiment': {
         'request':  {'model': Experiment, 'form': ExperimentForm},       
-        'dataset':  {'model': Data, 'add': False, 'list_link': False, 'list_add': False, 'list_modal': True},       
-        'report':   {'model': Result, 'add': False, 'list_add': False},         
+        'dataset':  {'model': Data, 'add': False, 'list_link': False, 'list_add': False, 'list_modal': True, 'comments': False},       
+        'report':   {'model': Result, 'add': False, 'list_add': False, 'comments': False},         
     },
 }
 
@@ -105,6 +105,16 @@ for section, subsection in _URL_META.items():
                                    },
                  'lims-%s-close' % params.get('model').__name__.lower()))
 
+        # Add Comments 
+        if params.get('comments', True):
+            _dynamic_patterns.append(
+                (r'%s/%s/(?P<id>\d+)/comments/add/$' % (section, key),
+                 'staff_comments', {'model': params.get('model'),
+                                    'form': CommentsForm,
+                                    'user': 'user',
+                                   },
+                 'lims-comments-%s-add'% params.get('model').__name__.lower()))        
+
 urlpatterns = patterns('imm.lims.views',
     (r'^$', 'show_project', {}, 'project-home'),
     (r'^profile/edit/$', 'edit_profile', {'form': ProjectForm, 'template': 'objforms/form_base.html'}, 'lims-profile-edit'),
@@ -147,6 +157,7 @@ urlpatterns += patterns('imm.lims.views',
     (r'^experiment/request/(?P<id>\d+)/priority/$', 'priority', {'model': Experiment, 'field': 'priority'}, 'lims-experiment-priority'),
     (r'^experiment/request/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/crystal/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Experiment, 'object':Crystal, 'reverse':True}, 'lims-experiment-add-crystal'),
     (r'^experiment/experiment/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/crystal/(?P<obj_id>\d+)/$', 'remove_object', {'source':Experiment, 'object':Crystal, 'reverse':True}, 'lims-experiment-remove-crystal'),
+    (r'^experiment/request/(?P<id>\d+)/progress/$', 'object_detail', {'model': Experiment, 'template' : 'lims/entries/progress_report.html' }, 'lims-experiment-progress'),
 
     # Report images
     (r'^experiment/result/(\d+)/shellstats.png$', 'plot_shell_stats', {}, 'lims-plot-shells'),

@@ -44,6 +44,8 @@
     <span class="left-pointer"></span>
     <h3>Comments</h3>
     <div class="user">{{ object.comments|restructuredtext}}</div>
+    {% if object.staff_comments %}
+    <h3>On-site Comments</h3>
     <div class="staff">{{ object.staff_comments|restructuredtext}}</div>
     	{% if shipment.shipping_errors %}
     	<div class="errors">
@@ -54,6 +56,7 @@
         {% endfor %}
         </div>
     	{% endif  %}
+    {% endif %}
     </div>
 {% endif  %}
 
@@ -86,23 +89,27 @@
 
 {% block sidebar %}
     {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
-        <div id="dewars" class="widget droppable-remove parent-stop" data="{% url lims-dewar-basic-list %}?orphan_field=shipment">
-	       <div class="widget-title">
-	       <span>Dewars</span><a href="{% url lims-dewar-new %}" class="modal-form add-action" title="Add New Dewar"><img src="/img/small-add-icon.png" /></a>
-	       </div>
-            <ul>
-                <p class="list-empty">( Not loaded )</p>
-            </ul>
-        </div>
+        {% if object.is_editable %}
+            <div id="dewars" class="widget droppable-remove parent-stop" data="{% url lims-dewar-basic-list %}?orphan_field=shipment">
+	           <div class="widget-title">
+	           <span>Dewars</span><a href="{% url lims-dewar-new %}" class="modal-form add-action" title="Add New Dewar"><img src="/img/small-add-icon.png" /></a>
+	           </div>
+                <ul>
+                    <p class="list-empty">( Not loaded )</p>
+                </ul>
+            </div>
 
-        <div id="containers" class="widget droppable-remove parent-stop" data="{% url lims-container-basic-list %}?orphan_field=dewar">
-	       <div class="widget-title">
-	       <span>Container</span><a href="{% url lims-container-new %}" class="modal-form add-action" title="Add New Container"><img src="/img/small-add-icon.png" /></a>
-	       </div>
-            <ul>
-                <p class="list-empty">( Not loaded )</p>
-            </ul>
-        </div>
+            <div id="containers" class="widget droppable-remove parent-stop" data="{% url lims-container-basic-list %}?orphan_field=dewar">
+	           <div class="widget-title">
+	           <span>Container</span><a href="{% url lims-container-new %}" class="modal-form add-action" title="Add New Container"><img src="/img/small-add-icon.png" /></a>
+	           </div>
+                <ul>
+                    <p class="list-empty">( Not loaded )</p>
+                </ul>
+            </div>
+        {% else %}
+            {% include "lims/entries/comments_form.html" %}
+        {% endif %}
     {% else %}
         {% include "staff/entries/comments_form.html" %}
     {% endif %}

@@ -13,7 +13,7 @@ from django.forms.util import ErrorList
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
             
 class ProjectForm(objforms.forms.OrderedForm):
-    contact_person = objforms.widgets.LargeCharField(required=True, help_text="Full name of contact person")
+    contact_person = objforms.widgets.LargeCharField(required=True)
     contact_email = forms.EmailField(widget=objforms.widgets.LargeInput, max_length=100, required=True)
     carrier = forms.ModelChoiceField(
         widget=objforms.widgets.LeftHalfSelect,
@@ -50,11 +50,10 @@ class ProjectForm(objforms.forms.OrderedForm):
 class ShipmentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     name = forms.CharField(
-        widget=objforms.widgets.LargeInput,
-        help_text=Shipment.HELP['name']
+        widget=objforms.widgets.LargeInput
         )
     comments = objforms.widgets.CommentField(required=False,
-           help_text='You can use Restructured Text formatting here.')
+           help_text=Crystal.HELP['comments'])
 
     class Meta:
         model = Shipment
@@ -74,8 +73,14 @@ class LimsBasicForm(objforms.forms.OrderedForm):
 class ShipmentUploadForm(forms.Form):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     excel = forms.FileField(widget=objforms.widgets.LargeFileInput)
-    dewar = forms.CharField(widget=objforms.widgets.LargeInput, label='Dewar Name', help_text='A dewar with this name will be created for the contents of the uploaded spreadsheet.', initial='', required=True)
-    shipment = forms.CharField(widget=objforms.widgets.LargeInput, label='Shipment Name', help_text='Provide a name for this shipment.', required=True)    
+    dewar = forms.CharField(widget=objforms.widgets.LargeInput, 
+            label='Dewar Name', 
+            help_text='A dewar with this name will be created for the contents of the uploaded spreadsheet.', 
+            required=True)
+    shipment = forms.CharField(widget=objforms.widgets.LargeInput, 
+            label='Shipment Name', 
+            help_text='Provide a name for this shipment.', 
+            required=True)    
 
     NUM_ERRORS = 3    
 
@@ -161,12 +166,10 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
     carrier = forms.ModelChoiceField(
         queryset=Carrier.objects.all(),
         widget=objforms.widgets.LargeSelect,
-        help_text='Please select the carrier company. To change shipping companies, edit your profile on the Project Home page.',
         required=True, initial=''
         )
     tracking_code = objforms.widgets.LargeCharField(required=False)
-    comments = objforms.widgets.CommentField(required=False,
-           help_text='You can use Restructured Text formatting here.')
+    comments = objforms.widgets.CommentField(required=False)
     
     class Meta:
         model = Shipment
@@ -207,11 +210,9 @@ class DewarForm(objforms.forms.OrderedForm):
         widget=objforms.widgets.LargeSelect,
         required=False
         )
-    name =  objforms.widgets.BarCodeField(
-        help_text=Dewar.HELP['name']
-        )
+    name =  objforms.widgets.BarCodeField()
     comments = objforms.widgets.CommentField(required=False,
-           help_text='You can use Restructured Text formatting here.')
+           help_text=Crystal.HELP['comments'])
 
     class Meta:
         model = Dewar
@@ -220,12 +221,10 @@ class DewarForm(objforms.forms.OrderedForm):
 class ContainerForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     dewar = forms.ModelChoiceField(queryset=Dewar.objects.all(), widget=objforms.widgets.LargeSelect, required=False)
-    name = objforms.widgets.BarCodeField(
-        help_text=Container.HELP['name']
-        )
+    name = objforms.widgets.BarCodeField()
     kind = forms.ChoiceField(choices=Container.TYPE.get_choices(), widget=objforms.widgets.LargeSelect, initial=Container.TYPE.UNI_PUCK)
     comments = objforms.widgets.CommentField(required=False,
-           help_text='You can use Restructured Text formatting here.')
+           help_text=Crystal.HELP['comments'])
     
     def clean_kind(self):
         """ Ensures that the 'kind' of Container cannot be changed when Crystals are associated with it """
@@ -243,37 +242,39 @@ class ContainerForm(objforms.forms.OrderedForm):
 class SampleForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     name = forms.CharField(
-        widget=objforms.widgets.LargeInput,
-        help_text=Crystal.HELP['name']
+        widget=objforms.widgets.LargeInput, help_text=None
         )
-    barcode = objforms.widgets.MatrixCodeField(required=False, help_text=Crystal.HELP['barcode'], label='Code')
+    barcode = objforms.widgets.MatrixCodeField(required=False, label='Code')
     cocktail = forms.ModelChoiceField(
         queryset=Cocktail.objects.all(), 
         widget=objforms.widgets.LargeSelect(attrs={'class': 'field select leftHalf'}),
-        help_text='The mixture of protein, buffer, precipitant or heavy atoms that make up your crystal',
         required=False
         )
+    pin_length = forms.IntegerField(widget=objforms.widgets.RightHalfInput, initial=18, label='Pin Length (mm)' )
     crystal_form = forms.ModelChoiceField(
         queryset=CrystalForm.objects.all(), 
-        widget=objforms.widgets.LargeSelect(attrs={'class': 'field select rightHalf'}),
+        widget=objforms.widgets.LargeSelect(attrs={'class': 'field select leftHalf'}),
         required=False
         )
-    pin_length = forms.IntegerField(widget=objforms.widgets.LeftHalfInput, help_text=Crystal.HELP['pin_length'], initial=18 )
     loop_size = forms.FloatField( widget=objforms.widgets.RightHalfInput, required=False )
     container = forms.ModelChoiceField(
         queryset=Container.objects.all(), 
         widget=objforms.widgets.LargeSelect(attrs={'class': 'field select leftHalf'}),
         required=False,
         )
-    container_location = objforms.widgets.RightHalfCharField(
+    experiment = forms.ModelChoiceField(
+        queryset=Experiment.objects.all(), 
+        widget=objforms.widgets.LargeSelect(attrs={'class': 'field select rightHalf'}),
         required=False,
-        help_text='This field is required only if a container has been selected'
+        )
+    container_location = objforms.widgets.LeftHalfCharField(
+        required=False,
         )
     comments = forms.CharField(
         widget=objforms.widgets.CommentInput, 
         max_length=200, 
         required=False,
-        help_text= Crystal.HELP['comments'])
+        )
    
     def clean(self):
         if self.cleaned_data.has_key('name'):
@@ -299,29 +300,24 @@ class SampleForm(objforms.forms.OrderedForm):
         
     class Meta:
         model = Crystal
-        fields = ('project','name','barcode','cocktail','crystal_form', 'pin_length',
-                    'loop_size','container','container_location','comments')
+        fields = ('project','name','barcode','cocktail', 'pin_length','crystal_form',
+                    'loop_size','container','experiment','container_location','comments')
 
 class ExperimentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     name = objforms.widgets.LargeCharField(required=True)
-    kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES.get_choices(), required=True,
-        help_text="If you select SAD or MAD make sure you provide the absorption edge below, otherwise Se-K will be assumed.")
-    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS.get_choices(), required=True,
-          help_text="Select the plan which describes your instructions for all crystals in this experiment group.")
+    kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES.get_choices(), required=True)
+    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS.get_choices(), required=True)
     resolution = forms.FloatField(label='Desired Resolution', widget=objforms.widgets.LeftHalfInput, required=False )
-    delta_angle = forms.FloatField(widget=objforms.widgets.RightHalfInput, required=False,
-          help_text='If left blank, an appropriate value will be calculated during screening.')
-    multiplicity = forms.FloatField(widget=objforms.widgets.LeftHalfInput, required=False,
-          help_text='Values entered here take precedence over the specified "Angle Range".')
-    total_angle = forms.FloatField(label='Angle Range', widget=objforms.widgets.RightHalfInput, required=False,
-          help_text='The total angle range to collect.')    
+    delta_angle = forms.FloatField(widget=objforms.widgets.RightHalfInput, required=False)
+    multiplicity = forms.FloatField(widget=objforms.widgets.LeftHalfInput, required=False)
+    total_angle = forms.FloatField(label='Angle Range', widget=objforms.widgets.RightHalfInput, required=False)    
     i_sigma = forms.FloatField(label='Desired I/Sigma',widget=objforms.widgets.LeftHalfInput, required=False )
     r_meas = forms.FloatField(label='Desired R-factor', widget=objforms.widgets.RightHalfInput, required=False )
     energy = forms.DecimalField( max_digits=10, decimal_places=4, widget=objforms.widgets.LeftHalfInput, required=False )
     absorption_edge = objforms.widgets.RightHalfCharField(required=False )
     comments = objforms.widgets.CommentField(required=False,
-           help_text='You can use Restructured Text formatting here.')
+           help_text=Crystal.HELP['comments'])
 
     class Meta:
         model = Experiment
@@ -369,7 +365,7 @@ class ExperimentFromStrategyForm(objforms.forms.OrderedForm):
             
 class CocktailForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    name = objforms.widgets.LargeCharField(required=True, label='Constituents', help_text=Cocktail.HELP.get('name'))
+    name = objforms.widgets.LargeCharField(required=True, label='Constituents')
     is_radioactive = objforms.widgets.LeftCheckBoxField(required=False)
     contains_heavy_metals = objforms.widgets.RightCheckBoxField(required=False)
     contains_prions = objforms.widgets.LeftCheckBoxField(required=False)
@@ -391,9 +387,9 @@ class CrystalFormForm(objforms.forms.OrderedForm):
         widget=objforms.widgets.LargeSelect,
         queryset=SpaceGroup.objects.all(), 
         required=False)
-    cell_a = forms.FloatField(label='a', widget=objforms.widgets.LeftThirdInput,required=False, help_text='Dimension of the cell A-axis')
-    cell_b = forms.FloatField(label='b', widget=objforms.widgets.MiddleThirdInput,required=False, help_text='Dimension of the cell B-axis')
-    cell_c = forms.FloatField(label='c', widget=objforms.widgets.RightThirdInput,required=False, help_text='Dimension of the cell C-axis' )
+    cell_a = forms.FloatField(label='a', widget=objforms.widgets.LeftThirdInput,required=False)
+    cell_b = forms.FloatField(label='b', widget=objforms.widgets.MiddleThirdInput,required=False)
+    cell_c = forms.FloatField(label='c', widget=objforms.widgets.RightThirdInput,required=False)
     cell_alpha = forms.FloatField(label='alpha', widget=objforms.widgets.LeftThirdInput,required=False)
     cell_beta = forms.FloatField(label='beta', widget=objforms.widgets.MiddleThirdInput,required=False)
     cell_gamma = forms.FloatField(label='gamma', widget=objforms.widgets.RightThirdInput,required=False)
@@ -408,6 +404,7 @@ class DataForm(forms.ModelForm):
         
 class StrategyRejectForm(objforms.forms.OrderedForm):
     name = objforms.widgets.LargeCharField(widget=forms.HiddenInput, required=False)
+
     class Meta:
         model = Strategy
         fields = ('name',)
@@ -420,11 +417,21 @@ class FeedbackForm(objforms.forms.OrderedForm):
     contact_name = objforms.widgets.LargeCharField(label='Name (optional)', required=False)
     contact = forms.EmailField(widget=objforms.widgets.LargeInput, label="Email Address (optional)", required=False)
     category = forms.ChoiceField(choices=Feedback.TYPE.get_choices(), widget=objforms.widgets.LargeSelect)
-    message = objforms.widgets.LargeTextField(required=True,
-           help_text='You can use Restructured Text formatting to compose your message.')
+    message = objforms.widgets.LargeTextField(required=True)
+
     class Meta:
         model = Feedback
         fields = ('project','contact_name','contact','category','message')
 
+class CommentsForm(objforms.forms.OrderedForm):
+    comments = objforms.widgets.CommentField(required=False, 
+            help_text="Comments entered here will be visible to staff at the CMCF. You can use Restructured Text markup for formatting.")
+
+    class Meta:
+        fields = ('comments',)
+
+    def is_valid(self):
+        super(CommentsForm, self).is_valid()
+        return self.cleaned_data.get('comments', None)
 
     

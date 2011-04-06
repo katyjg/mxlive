@@ -7,7 +7,7 @@ runlist_site = admin.AdminSite()
 
 class RunlistAdmin(admin.ModelAdmin):
     list_filter = ['status','created']
-    list_display = ('id','name', 'beamline', 'status', 'container_list', 'num_containers')
+    list_display = ('id','name', 'beamline', 'container_list', 'num_containers', 'status')
     list_per_page = 10
     ordering = ['-priority', '-created']
 admin.site.register(Runlist, RunlistAdmin)
@@ -20,8 +20,7 @@ admin.site.register(Link, LinkAdmin)
 class ExperimentRunlistAdmin(admin.ModelAdmin):
     search_fields = ['comments','name']
     list_filter = []
-    list_display = ('id','project','name','kind','status','plan','num_crystals')
-#    filter_horizontal = ['crystals']
+    list_display = ('project','id','name','kind','plan','num_crystals','status')
     ordering = ['-staff_priority', '-priority', '-created']
     unsortable = list_display
     list_per_page = 999999
@@ -31,7 +30,7 @@ class ContainerRunlistAdmin(admin.ModelAdmin):
     ordering = ['-staff_priority', '-created']
     search_fields = ['name','code']
     list_filter = ['modified','kind']
-    list_display = ('experiments', 'id', 'name', 'capacity', 'num_crystals')
+    list_display = ('project', 'id', 'name', 'experiments', 'capacity', 'num_crystals', 'status')
     list_per_page = 999999
     unsortable = list_display
 runlist_site.register(Container, ContainerRunlistAdmin)
