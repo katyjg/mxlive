@@ -1173,22 +1173,51 @@ def add_report(request, report_info):
 
 @jsonrpc_method('lims.add_result')
 @apikey_required
-def add_result(request, res_info):
-    info = {}
+def add_result(request, report_info):
+    print report_info
+    print report_info.keys()
+    # check if project_id is provided if not check if project_name is provided
+    if report_info.get('project_id') is not None:
+        report_owner = Project.objects.get(pk=report_info['project_id'])   
+    elif report_info.get('project_name') is not None:
+        try:
+            report_owner = Project.objects.get(name=report_info['project_name'])
+        except:
+            report_owner = create_project(username=report_info['project_name'])
+        report_info['project_id'] = report_owner.pk
+        del report_info['project_name']
+    else:
+        raise exceptions.InvalidRequestError('Unknown Project')
+          
     # convert unicode to str
-    data_owner = Project.objects.get(pk=res_info['project_id'])
-    for k,v in res_info.items():
+    new_info = {}
+    for k,v in report_info.items():
         if k == 'url':
-            v = create_download_key(v, data_owner.pk)
-        info[smart_str(k)] = v
+            v = create_download_key(v, report_info['project_id'])
+        new_info[str(k)] = v
     try:
-        new_obj = Result(**info)
+        # if id is provided, make sure it is owned by current owner otherwise add new entry
+        # to prevent overwriting other's stuff
+        force_update = False
+        if new_info.get('id') is not None:
+            try:
+                new_obj = report_owner.result_set.get(pk=new_info.get('id'))
+                force_update = True
+                new_info['created'] = datetime.now()
+            except:
+                new_info['id'] = None
+        
+        new_obj = Result(**new_info)
+        #new_obj.save(force_update=force_update)
         new_obj.save()
-        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
-            "New analysis report uploaded from beamline" % new_obj)
+
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, "New analysis Report uploade
+d from beamline")
         return {'result_id': new_obj.pk}
     except Exception, e:
-        raise exceptions.ServerError(e.message)
+        print "exception", e
+        raise exceptions.ServerError(e)
+
 
 @jsonrpc_method('lims.add_strategy')
 @apikey_required
