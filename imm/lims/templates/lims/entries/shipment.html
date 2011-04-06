@@ -44,6 +44,8 @@
     <span class="left-pointer"></span>
     <h3>Comments</h3>
     <div class="user">{{ object.comments|restructuredtext}}</div>
+    {% if object.staff_comments %}
+    <h3>On-site Comments</h3>
     <div class="staff">{{ object.staff_comments|restructuredtext}}</div>
     	{% if shipment.shipping_errors %}
     	<div class="errors">
@@ -54,6 +56,7 @@
         {% endfor %}
         </div>
     	{% endif  %}
+    {% endif %}
     </div>
 {% endif  %}
 

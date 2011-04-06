@@ -91,6 +91,7 @@ div.entrycomment {
 	-webkit-border-radius:5px;
 	-moz-border-radius:5px;
 	border-radius:5px;
+    padding-top: 10px;
 }
 
 
@@ -98,6 +99,7 @@ div.entrycomment h3 {
     color: #a38db6;
     border-bottom: 1px dotted #a38db6;
     margin-bottom: 0.5em;
+    font-size: 97%;
 }
 div.entrycomment.container {
     margin-top: 1em;
@@ -113,7 +115,7 @@ div.entrycomment span.left-pointer {
 }
 
 div.entrycomment span.up-pointer {
-    margin-top: -44px;
+    margin-top: -40px;
     padding-top: 24px;
     -moz-transform: rotate(90deg);
     -webkit-transform: rotate(90deg);

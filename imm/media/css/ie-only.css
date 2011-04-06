@@ -40,6 +40,6 @@ input.text, input.search, textarea.field, input.barcode, input.matrixcode
 }
 
 div.entrycomment span.up-pointer {
-    margin-top: -24px;
+    margin-top: -20px;
     padding-top: 0px;
 }

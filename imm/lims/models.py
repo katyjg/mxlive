@@ -153,6 +153,9 @@ class Carrier(models.Model):
         return self.name
         
 class Project(models.Model):
+    HELP = {
+        'contact_person': "Full name of contact person",
+    }
     user = models.ForeignKey(User, unique=True)
     name = models.SlugField('account name')
     contact_person = models.CharField(max_length=200, blank=True, null=True)
@@ -180,6 +183,9 @@ class Project(models.Model):
         
     def __unicode__(self):
         return self.name
+
+    def is_editable(self):
+        return True
 
     class Meta:
         verbose_name = "Project Profile"
@@ -311,7 +317,7 @@ class LoadableBaseClass(LimsBaseClass):
 class Shipment(ObjectBaseClass):
     HELP = {
         'name': "This should be an externally visible label",
-        'comments': "Use this field to jot notes related to this shipment for your own use",
+        'carrier': "Please select the carrier company. To change shipping companies, edit your profile on the Project Home page.",
         'cascade': 'dewars, containers and crystals (along with experiments)',
         'cascade_help': 'All associated dewars will be left without a shipment'
     }
@@ -704,9 +710,14 @@ class Cocktail(LimsBaseClass):
         return 'CT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
 
-    is_editable = True
-    is_deletable = True
-    is_closable = False
+    def is_editable(self):
+        return True
+
+    def is_deletable(self):
+        return True
+
+    def is_closable(self):
+        return False
     
     def delete(self, request=None, cascade=True):
         if not cascade:
@@ -724,7 +735,10 @@ class Cocktail(LimsBaseClass):
 class CrystalForm(LimsBaseClass):
     HELP = {
         'cascade': 'crystals',
-        'cascade_help': 'All associated crystals will be left without a crystal form'
+        'cascade_help': 'All associated crystals will be left without a crystal form',
+        'cell_a': 'Dimension of the cell A-axis',
+        'cell_b': 'Dimension of the cell B-axis',
+        'cell_c': 'Dimension of the cell C-axis',
     }
     space_group = models.ForeignKey(SpaceGroup,null=True, blank=True)
     cell_a = models.FloatField(' a', null=True, blank=True)
@@ -742,9 +756,14 @@ class CrystalForm(LimsBaseClass):
         ordering = ['name','-created']
         verbose_name = 'Crystal Form'
 
-    is_editable = True
-    is_deletable = True
-    is_closable = False
+    def is_editable(self):
+        return True
+
+    def is_deletable(self):
+        return True
+
+    def is_closable(self):
+        return False
     
     def delete(self, request=None, cascade=True):
         if not cascade:
@@ -758,7 +777,12 @@ class Experiment(LimsBaseClass):
     STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.PROCESSING, LimsBaseClass.STATES.COMPLETE, LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ARCHIVED])
     HELP = {
         'cascade': 'crystals',
-        'cascade_help': 'All associated crystals will be left without an experiment'
+        'cascade_help': 'All associated crystals will be left without an experiment',
+        'kind': "If you select SAD or MAD make sure you provide the absorption edge below, otherwise Se-K will be assumed.",
+        'plan': "Select the plan which describes your instructions for all crystals in this experiment group.",
+        'delta_angle': 'If left blank, an appropriate value will be calculated during screening.',
+        'total_angle': 'The total angle range to collect.',
+        'multiplicity': 'Values entered here take precedence over the specified "Angle Range".',
     }
     EXP_TYPES = Enum(
         'Native',   
@@ -920,7 +944,10 @@ class Crystal(LoadableBaseClass):
         'barcode': "If there is a datamatrix code on sample, please scan or input the value here",
         'pin_length': "18 mm pins are standard. Please make sure you discuss other sizes with Beamline staff before sending the sample!",
         'comments': 'You can use restructured text formatting in this field',
-        'cocktail': '',
+        'cocktail': 'The mixture of protein, buffer, precipitant or heavy atoms that make up your crystal',
+        'container_location': 'This field is required only if a container has been selected',
+        'experiment': 'This field is optional here.  Crystals can also be added to an experiment on the experiments page.',
+        'container': 'This field is optional here.  Crystals can also be added to a container on the containers page.',
     }
     EXP_STATES = Enum(
         'Not Required',
@@ -1286,6 +1313,9 @@ class ActivityLog(models.Model):
         return str(self.created)
     
 class Feedback(models.Model):
+    HELP = {
+        'message': 'You can use Restructured Text formatting to compose your message.',
+    }
     TYPE = Enum(
         'Remote Control',
         'LIMS Website',

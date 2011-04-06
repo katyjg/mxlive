@@ -95,7 +95,7 @@ class ResultAdmin(admin.ModelAdmin):
     ordering = ['-created']
     search_fields = ['name','crystal__name','space_group__name']
     list_filter = ['modified','kind']
-    list_display = ('id', 'name', 'data', 'space_group', 'resolution', 'r_meas', 'completeness', 'score')
+    list_display = ('id', 'name', 'data', 'space_group', 'resolution', 'r_meas', 'completeness', 'score', 'kind')
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Result, ResultAdmin)
 
@@ -103,7 +103,7 @@ class DataAdmin(admin.ModelAdmin):
     ordering = ['-created']
     search_fields = ['name','beamline__name']
     list_filter = ['modified', 'kind']
-    list_display = ('id', 'name', 'crystal', 'frame_sets', 'delta_angle', 'total_angle', 'wavelength')
+    list_display = ('id', 'name', 'crystal','frame_sets', 'delta_angle', 'total_angle', 'wavelength', 'kind')
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Data, DataAdmin)
 

@@ -17,9 +17,6 @@
         class="{{ row_state }} {{ type|lower }}"
         {% if object.description %}title="{{object.description}}"{% endif %}
     {% endif %}{% endif %}{% endif %}>
-    {% if request.user.is_superuser %} 
-        <td class="first"></td>
-    {% endif %}
 
     {# should add a check here for maximum size. Don't want something like a long label ruining everything #}
     {% load truncate_filters %}
