@@ -675,14 +675,15 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html',
     }
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
+        if not obj.comments: base_comments = ''
+        else: base_comments = obj.comments
         if frm.is_valid():
             if user == 'staff':
                 author = ' by staff'
                 frm.save()
             elif user == 'user' and request.POST.get('comments', None):
                 author = ''
-                if not obj.comments: obj.comments = ''
-                obj.comments = obj.comments + '\n\n%s - %s' % \
+                obj.comments = base_comments + '\n\n%s - %s' % \
                     (dateformat.format(datetime.now(), 'Y-m-d P'), request.POST.get('comments'))
                 obj.save()
             form_info['message'] = 'comments added to %s (%s)%s' % ( model._meta.verbose_name, obj, author)

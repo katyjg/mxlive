@@ -431,6 +431,7 @@ class CommentsForm(objforms.forms.OrderedForm):
         fields = ('comments',)
 
     def is_valid(self):
-        return True
+        super(CommentsForm, self).is_valid()
+        return self.cleaned_data.get('comments', None)
 
     
