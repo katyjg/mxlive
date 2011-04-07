@@ -13,7 +13,7 @@ from django.conf import settings
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.views.decorators.cache import cache_page
 from django.contrib.contenttypes.models import ContentType
@@ -1282,9 +1282,16 @@ def plot_shell_stats(request, id):
         project = request.user.get_profile()
         result = project.result_set.get(pk=id)
     except:
-        raise Http404
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+
     # extract shell statistics to plot
-    data = result.details['shell_statistics']
+    data = result.details.get('shell_statistics')
+    if data is None:
+        raise Http404
+    
     shell = numpy.array(data['shell'])**-2
     fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
     ax1 = fig.add_subplot(211)
@@ -1334,6 +1341,171 @@ def plot_shell_stats(request, id):
     canvas.print_png(response)
     return response
 
+@login_required
+@cache_page(60*3600)
+def plot_pred_quality(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+
+    data = result.details.get('predicted_quality')
+    if data is None:
+        raise Http404
+    shell = numpy.array(data['shell'])**-2
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(shell, data['completeness'], 'r-')
+    ax1.set_ylabel('completeness (%)', color='r')
+    ax11 = ax1.twinx()
+    ax11.plot(shell, data['r_factor'], 'g-')
+    ax11.legend(loc='center left')
+    ax1.grid(True)
+    ax11.set_ylabel('R-factor (%)', color='g')
+    for tl in ax11.get_yticklabels():
+        tl.set_color('g')
+    for tl in ax1.get_yticklabels():
+        tl.set_color('r')
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax1.set_ylim((0, 105))
+    ax11.set_ylim((0,  max(data['r_factor'])+10))
+
+    ax2 = fig.add_subplot(212, sharex=ax1)
+    ax2.plot(shell, data['i_sigma'], 'm-')
+    ax2.set_xlabel('Resolution Shell')
+    ax2.set_ylabel('I/SigmaI', color='m')
+    ax21 = ax2.twinx()
+    ax21.plot(shell, data['multiplicity'], 'b-')
+    ax2.grid(True)
+    ax21.set_ylabel('Multiplicity', color='b')
+    for tl in ax21.get_yticklabels():
+        tl.set_color('b')
+    for tl in ax2.get_yticklabels():
+        tl.set_color('m')
+    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax2.set_ylim((-1, max(data['i_sigma'])+1))
+    ax21.set_ylim((0, max(data['multiplicity'])+0.5))
+
+    ax1.xaxis.set_major_formatter(ResFormatter())
+    ax1.xaxis.set_minor_formatter(ResFormatter())
+    ax1.xaxis.set_major_locator(ResLocator())
+    ax2.xaxis.set_major_formatter(ResFormatter())
+    ax2.xaxis.set_minor_formatter(ResFormatter())
+    ax2.xaxis.set_major_locator(ResLocator())
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+@login_required
+@cache_page(60*3600)
+def plot_overlap_analysis(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+        
+    data = result.details.get('overlap_analysis')
+    if data is None:
+        raise Http404
+    angle = data.pop('angle')
+    
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.7), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    keys = [(float(k),k) for k in data.keys()]
+    for _,k in sorted(keys):       
+        ax1.plot(angle, data[k], label=k)
+    ax1.set_ylabel('Maximum delta (deg)')
+    ax1.grid(True)
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+
+    ax1.set_xlabel('Oscillation angle (deg)')
+    ax1.legend()
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+
+@login_required
+@cache_page(60*3600)
+def plot_wedge_analysis(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+        
+    data = result.details.get('wedge_analysis')
+    if data is None:
+        raise Http404
+    start_angle = data.pop('start_angle')
+    
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    keys = [(float(k),k) for k in data.keys()]
+    for _,k in sorted(keys):       
+        ax1.plot(start_angle, data[k], label="%s%%" % k)
+    ax1.set_ylabel('Total Oscillation Angle (deg)')
+    ax1.grid(True)
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+
+    ax1.set_xlabel('Starting angle (deg)')
+    ax1.legend()
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+@login_required
+@cache_page(60*3600)
+def plot_exposure_analysis(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+        
+    data = result.details.get('exposure_analysis')
+    if data is None:
+        raise Http404
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.7), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    ax1.plot(data['exposure_time'], data['resolution'])
+    ax1.set_ylabel('Resolution')
+    ax1.grid(True)
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+
+    exposure_time = result.details.get('strategy', {}).get('exposure_time')
+    if exposure_time is not None:
+        ax1.axvline(x=exposure_time, color='r', label='optimal')
+    ax1.set_xlabel('Exposure time (s)')
+    ax1.legend()
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
 
 @login_required
 @cache_page(60*3600)
@@ -1342,9 +1514,14 @@ def plot_error_stats(request, id):
         project = request.user.get_profile()
         result = project.result_set.get(pk=id)
     except:
-        raise Http404
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
 
-    data = result.details['standard_errors'] # extract data to plot
+    data = result.details.get('standard_errors') # extract data to plot
+    if data is None:
+        raise Http404
     shell = numpy.array(data['shell'])**-2    
     fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
     ax1 = fig.add_subplot(211)
@@ -1395,10 +1572,15 @@ def plot_diff_stats(request, id):
         project = request.user.get_profile()
         result = project.result_set.get(pk=id)
     except:
-        raise Http404
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
         
     # extract statistics to plot
-    data = result.details['diff_statistics']
+    data = result.details.get('diff_statistics')
+    if data is None:
+        raise Http404
     fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.66), dpi=PLOT_DPI)
     ax1 = fig.add_subplot(111)
     ax1.plot(data['frame_diff'], data['rd'], 'r-', label="all")
@@ -1425,10 +1607,16 @@ def plot_wilson_stats(request, id):
         project = request.user.get_profile()
         result = project.result_set.get(pk=id)
     except:
-        raise Http404
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
         
     # extract statistics to plot
-    data = result.details['wilson_plot']
+    data = result.details.get('wilson_plot')
+    if data is None:
+        raise Http404
+    
     fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.6), dpi=PLOT_DPI)
     ax1 = fig.add_subplot(111)
     plot_data = zip(data['inv_res_sq'], data['log_i_sigma'])
@@ -1467,9 +1655,15 @@ def plot_frame_stats(request, id):
         project = request.user.get_profile()
         result = project.result_set.get(pk=id)
     except:
-        raise Http404
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+
     # extract statistics to plot
-    data = result.details['frame_statistics']
+    data = result.details.get('frame_statistics')
+    if data is None:
+        raise Http404
     fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
     ax1 = fig.add_subplot(311)
     ax1.plot(data['frame'], data['scale'], 'r-')
@@ -1532,9 +1726,15 @@ def plot_twinning_stats(request, id):
         project = request.user.get_profile()
         result = project.result_set.get(pk=id)
     except:
-        raise Http404
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+
     # extract statistics to plot
-    data = result.details['twinning_l_test']
+    data = result.details.get('twinning_l_test')
+    if data is None:
+        raise Http404
     fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.6), dpi=PLOT_DPI)
     ax1 = fig.add_subplot(111)
     ax1.plot(data['abs_l'], data['observed'], 'b-+', label='observed')
@@ -1570,9 +1770,15 @@ def plot_profiles_stats(request, id):
         project = request.user.get_profile()
         result = project.result_set.get(pk=id)
     except:
-        raise Http404
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+
     # extract statistics to plot
-    profiles = result.details['integration_profiles']
+    profiles = result.details.get('integration_profiles')
+    if profiles is None:
+        raise Http404
     fig = Figure(figsize=(PLOT_WIDTH, PLOT_WIDTH), dpi=PLOT_DPI)
     cmap = cm.get_cmap('gray_r')
     norm = Normalize(None, 100, clip=True)
