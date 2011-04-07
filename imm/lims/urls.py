@@ -160,13 +160,18 @@ urlpatterns += patterns('imm.lims.views',
     (r'^experiment/request/(?P<id>\d+)/progress/$', 'object_detail', {'model': Experiment, 'template' : 'lims/entries/progress_report.html' }, 'lims-experiment-progress'),
 
     # Report images
-    (r'^experiment/result/(\d+)/shellstats.png$', 'plot_shell_stats', {}, 'lims-plot-shells'),
-    (r'^experiment/result/(\d+)/framestats.png$', 'plot_frame_stats', {}, 'lims-plot-frames'),
-    (r'^experiment/result/(\d+)/diffstats.png$', 'plot_diff_stats', {}, 'lims-plot-diffs'),
-    (r'^experiment/result/(\d+)/stderr.png$', 'plot_error_stats', {}, 'lims-plot-stderr'),
-    (r'^experiment/result/(\d+)/profiles.png$', 'plot_profiles_stats', {}, 'lims-plot-profiles'),
-    (r'^experiment/result/(\d+)/wilson.png$', 'plot_wilson_stats', {}, 'lims-plot-wilson'),
-    (r'^experiment/result/(\d+)/twinning.png$', 'plot_twinning_stats', {}, 'lims-plot-twinning'),
+    (r'^experiment/report/(\d+)/shellstats.png$', 'plot_shell_stats', {}, 'lims-plot-shells'),
+    (r'^experiment/report/(\d+)/framestats.png$', 'plot_frame_stats', {}, 'lims-plot-frames'),
+    (r'^experiment/report/(\d+)/diffstats.png$', 'plot_diff_stats', {}, 'lims-plot-diffs'),
+    (r'^experiment/report/(\d+)/stderr.png$', 'plot_error_stats', {}, 'lims-plot-stderr'),
+    (r'^experiment/report/(\d+)/profiles.png$', 'plot_profiles_stats', {}, 'lims-plot-profiles'),
+    (r'^experiment/report/(\d+)/wilson.png$', 'plot_wilson_stats', {}, 'lims-plot-wilson'),
+    (r'^experiment/report/(\d+)/twinning.png$', 'plot_twinning_stats', {}, 'lims-plot-twinning'),
+    (r'^experiment/report/(\d+)/exposure.png$', 'plot_exposure_analysis', {}, 'lims-plot-exposure'),
+    (r'^experiment/report/(\d+)/overlap.png$', 'plot_overlap_analysis', {}, 'lims-plot-overlap'),
+    (r'^experiment/report/(\d+)/quality.png$', 'plot_pred_quality', {}, 'lims-plot-quality'),
+    (r'^experiment/report/(\d+)/wedge.png$', 'plot_wedge_analysis', {}, 'lims-plot-wedge'),
+    
             
 )
 
