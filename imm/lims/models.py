@@ -1318,7 +1318,7 @@ class Feedback(models.Model):
     }
     TYPE = Enum(
         'Remote Control',
-        'LIMS Website',
+        'MxLIVE Website',
         'Other',
     )
     project = models.ForeignKey(Project)

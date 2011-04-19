@@ -9,7 +9,7 @@ User Interface
 Interface regions
 -----------------
 
-The LIMS user interface consists of three main regions, the contents of which depend
+The MxLIVE user interface consists of three main regions, the contents of which depend
 on the type of object being managed, and the usage context. These regions are (from top to bottom):
 
     *The navigation area*
@@ -34,18 +34,18 @@ on the type of object being managed, and the usage context. These regions are (f
 Interface concepts
 ------------------
             
-The LIMS user interface makes use of three main concepts. 
+The MxLIVE user interface makes use of three main concepts. 
 
     *The Dashboard*
         The dashboard serves as the home page of the project. This is the page the user will be presented
         with after they login to the system. The dashboard, or project home, aggregates project-level
         functionality in one place. Here users are presented with an overview of
         their project, recent activity and general help and guides. They can also
-        edit their profile, send feedback about the LIMS to staff, upload shipments from spreadsheets
+        edit their profile, send feedback about the MxLIVE to staff, upload shipments from spreadsheets
         and use the navigation area to access any of the other entities they will like to manage.
     
     *Object Lists*
-        An object list is a table of entries of a specific object type available within the lims. 
+        An object list is a table of entries of a specific object type available within MxLIVE. 
         The object list enables users to view all entries in table format, search through them, 
         sort and order them based on different fields (or columns) and filter them based on status, or 
         other properties such as modification date. It is also possible to add new entries from the object

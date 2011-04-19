@@ -149,9 +149,9 @@ urlpatterns += patterns('imm.lims.views',
     (r'^runlist/(?P<id>\d+)/protocol/$', 'shipment_pdf', {'model': Runlist, 'format' : 'runlist' }, 'staff-runlist-pdf'),
     
     # Report images
-    (r'^experiment/report/(\d+)/shellstats.png$', 'plot_shell_stats', {}, 'staff-plot-shells'),
-    (r'^experiment/report/(\d+)/framestats.png$', 'plot_frame_stats', {}, 'staff-plot-frames'),
-    (r'^experiment/report/(\d+)/diffstats.png$', 'plot_diff_stats', {}, 'staff-plot-diffs'),
+    (r'^experiment/report/(\d+)/shell.png$', 'plot_shell_stats', {}, 'staff-plot-shells'),
+    (r'^experiment/report/(\d+)/frame.png$', 'plot_frame_stats', {}, 'staff-plot-frames'),
+    (r'^experiment/report/(\d+)/diff.png$', 'plot_diff_stats', {}, 'staff-plot-diffs'),
     (r'^experiment/report/(\d+)/stderr.png$', 'plot_error_stats', {}, 'staff-plot-stderr'),
     (r'^experiment/report/(\d+)/profiles.png$', 'plot_profiles_stats', {}, 'staff-plot-profiles'),
     (r'^experiment/report/(\d+)/wilson.png$', 'plot_wilson_stats', {}, 'staff-plot-wilson'),

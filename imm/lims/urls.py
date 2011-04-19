@@ -160,9 +160,9 @@ urlpatterns += patterns('imm.lims.views',
     (r'^experiment/request/(?P<id>\d+)/progress/$', 'object_detail', {'model': Experiment, 'template' : 'lims/entries/progress_report.html' }, 'lims-experiment-progress'),
 
     # Report images
-    (r'^experiment/report/(\d+)/shellstats.png$', 'plot_shell_stats', {}, 'lims-plot-shells'),
-    (r'^experiment/report/(\d+)/framestats.png$', 'plot_frame_stats', {}, 'lims-plot-frames'),
-    (r'^experiment/report/(\d+)/diffstats.png$', 'plot_diff_stats', {}, 'lims-plot-diffs'),
+    (r'^experiment/report/(\d+)/shell.png$', 'plot_shell_stats', {}, 'lims-plot-shells'),
+    (r'^experiment/report/(\d+)/frame.png$', 'plot_frame_stats', {}, 'lims-plot-frames'),
+    (r'^experiment/report/(\d+)/diff.png$', 'plot_diff_stats', {}, 'lims-plot-diffs'),
     (r'^experiment/report/(\d+)/stderr.png$', 'plot_error_stats', {}, 'lims-plot-stderr'),
     (r'^experiment/report/(\d+)/profiles.png$', 'plot_profiles_stats', {}, 'lims-plot-profiles'),
     (r'^experiment/report/(\d+)/wilson.png$', 'plot_wilson_stats', {}, 'lims-plot-wilson'),
