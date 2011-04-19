@@ -152,7 +152,7 @@ class LinkForm(objforms.forms.OrderedForm):
 
 class StaffCommentsForm(objforms.forms.OrderedForm):
     staff_comments = objforms.widgets.CommentField(required=False, 
-            help_text="Comments entered here will be visible on the user's LIMS account. You can use Restructured Text markup for formatting.")
+            help_text="Comments entered here will be visible on the user's MxLIVE account. You can use Restructured Text markup for formatting.")
 
     class Meta:
         fields = ('staff_comments',)
