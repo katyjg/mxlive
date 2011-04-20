@@ -103,9 +103,18 @@
 <table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
     <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
     <tr valign="top"><th>Dewar:</th><td>
-        <a href="{% url lims-dewar-detail object.dewar.pk %}">{{object.dewar.name}} </a></td></tr>
+    {% if object.dewar %}
+        <a href="{% url lims-dewar-detail object.dewar.pk %}">{{object.dewar.name}} </a>
+    {% else %}
+        Not in a dewar.
+    {% endif %}
+    </td></tr>
     <tr valign="top"><th>Shipment:</th><td>
+    {% if object.dewar.shipment %}
         <a href="{% url lims-shipment-detail object.dewar.shipment.pk %}">{{object.dewar.shipment.name}} </a>
+    {% else %}
+        Not in a shipment.
+    {% endif %}
     </td></tr>
     {% if admin %}
     	<tr valign="top"><th>Project:</th><td>{{object.project.name}}</td></tr>
@@ -113,9 +122,10 @@
 </table>
 
 {% if object.comments or object.staff_comments %}
-    <div class="entrycomment {% if object.json_dict.type != 'Cane' %}container{% endif %}">
-        <span class="{% ifnotequal object.json_dict.type 'Cane' %}up-pointer{% endifnotequal %} left-pointer"></span>
+    <div class="entrycomment {% if object.get_kind_display != 'Cane' %}container{% endif %}">
+        <span class="{% if object.get_kind_display == 'Cane' %}left-pointer{% else %}up-pointer{% endif %}"></span>
         <h3>Comments</h3>
+        {{object.get_kind_display}}
         <div class="user">{{ object.comments|default:""|restructuredtext}}</div>
         <div class="staff">{{ object.staff_comments|default:""|restructuredtext}}</div>
     </div>
