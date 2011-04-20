@@ -1377,7 +1377,7 @@ textarea.medium
 
 textarea.large
 {
-	height:20em;
+	height:12em;
 }
 
 input.text,input.file,textarea.textarea,select.select,input.barcode,input.matrixcode,input.search,input.barcode-return
