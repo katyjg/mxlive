@@ -15,6 +15,9 @@ on the type of object being managed, and the usage context. These regions are (f
     *The navigation area*
         This is the top most region of the browser page, which includes information about
         the current user, links for logging out of the system, and the navigation menu.
+
+    .. image:: _static/navigation_area.png
+        :scale: 52 %
     
     *The tool area*
         This is the region just beneath the navigation area. The content of this region 
@@ -23,7 +26,10 @@ on the type of object being managed, and the usage context. These regions are (f
         being inspected. The right of this area usually displays tool icons which permit you to carry out
         specific actions on the currenly displayed object. In some cases, extra tools are displayed in
         the middle region, such as search forms and list filters.
-    
+
+    .. image:: _static/toolbar_area.png
+        :scale: 65 %
+
     *The content area*
         This is where the bulk of the content is displayed. The content will vary
         based on the type of object being managed. The content area itself is usually divided into
