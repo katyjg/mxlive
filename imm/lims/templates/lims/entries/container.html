@@ -125,7 +125,6 @@
     <div class="entrycomment {% if object.get_kind_display != 'Cane' %}container{% endif %}">
         <span class="{% if object.get_kind_display == 'Cane' %}left-pointer{% else %}up-pointer{% endif %}"></span>
         <h3>Comments</h3>
-        {{object.get_kind_display}}
         <div class="user">{{ object.comments|default:""|restructuredtext}}</div>
         <div class="staff">{{ object.staff_comments|default:""|restructuredtext}}</div>
     </div>
