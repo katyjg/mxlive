@@ -28,9 +28,7 @@ To access the login page of MxLIVE, point your browser to::
     https://cmcf.lightsource.ca/
     
 Note that the protocol should be specified as ``https://`` and not ``http://``. The latter will
-take you to our public website, rather than the secure LIMS website.
-
-The first time you access the site, you may be required to accept a certificate exception.
+take you to our public website, rather than the secure MxLIVE website.
 
 In order to login to MxLIVE, you need an account in the beamline LDAP authentication system. 
 This account is the same one you will use to access the beamline computers. If you do not yet
