@@ -110,17 +110,16 @@ div.entrycomment span.left-pointer {
     padding-left: 24px;
     position: absolute;
     height: 40px;
-    background: url(/img/pointer.png) left top no-repeat;
+    background: url(/img/pointer-lt.png) left top no-repeat;
 
 }
 
 div.entrycomment span.up-pointer {
-    margin-top: -40px;
+    margin-top: -20px;
     padding-top: 24px;
-    -moz-transform: rotate(90deg);
-    -webkit-transform: rotate(90deg);
-    rotation: 90deg;
-    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+    position: absolute;
+    width: 20px;
+    background: url(/img/pointer-up.png) left top no-repeat;
 }
 
 div.entrycomment .user, div.user {
