@@ -257,7 +257,8 @@ img
 
 #logo h1
 {
-	font-size:140%;
+	font-size:150%;
+	font-weight: bold;
 	margin-left:72px;
 	line-height: 0.9em;
 }
