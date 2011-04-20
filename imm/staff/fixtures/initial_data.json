@@ -4,7 +4,7 @@
       "model": "staff.link", 
       "fields": {
          "category": 1, 
-         "description": "LIMS Overview", 
+         "description": "MxLIVE Overview", 
          "created": "2011-03-21 13:34:42", 
          "frame_type": 0, 
          "modified": "2011-03-21 13:35:26", 
