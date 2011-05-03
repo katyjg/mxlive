@@ -64,7 +64,6 @@
     
     <div class="object-list">
     <h3>Dewars</h3>
-    <!--img src="/img/dewar.png" style="float:right;clear: right; margin: 0.5em; padding-right: 2em;"/-->
 
     {% with shipment.dewar_set as dewars %}
         {% if dewars.count %}
@@ -84,6 +83,38 @@
 
 {% load experiment_table %}
 {% experiment_table object request.user.is_superuser %}
+
+<div class="clear"></div>
+{% if object.component_set.all %}
+<div class="object-list">
+    <h3>Miscellaneous Items</h3>
+    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">
+        <thead>
+            <tr class="header">
+                <th>Item</th>
+                <th>Description</th>
+                {% if not request.user.is_superuser %}<th>Label</th>{% endif %}
+				{% if object.is_editable %}<th></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+		{% for item in object.component_set.all %}
+			<tr class="{% cycle 'odd' 'even'%} link-row">
+				<td class="modal-form" href="{% url lims-component-edit item.pk %}" title="Edit this item">{{ item.name }}</td>
+				<td class="modal-form" href="{% url lims-component-edit item.pk %}" title="Edit this item">{{ item.description }}</td>
+				{% if not request.user.is_superuser %}<td class="modal-form" href="{% url lims-component-edit item.pk %}" title="Edit this item">
+					{% if item.label %}Yes{% else %}No{% endif %}</td>{% endif %}
+				{% if object.is_editable %}
+					<td class="action">
+						<a class="delete modal-form delete-tool" title="Delete" href="{% url lims-component-delete item.pk %}"></a>
+					</td>
+				{% endif %}
+			</tr>
+		{% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
 
 {% endblock %}
 

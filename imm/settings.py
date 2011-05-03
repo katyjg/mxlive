@@ -27,7 +27,7 @@ DATABASE_ENGINE = 'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysq
 DATABASE_NAME = 'imm'             # Or path to database file if using sqlite3.
 DATABASE_USER = 'imm'             # Not used with sqlite3.
 DATABASE_PASSWORD = 'imm123'         # Not used with sqlite3.
-DATABASE_HOST = 'cmcf-sqldb.cs.clsi.ca'             # Set to empty string for localhost. Not used with sqlite3.
+DATABASE_HOST = 'cmcf-sqldb'             # Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
 
 # Local time zone for this installation. Choices can be found here:
@@ -131,24 +131,10 @@ LOGOUT_URL = '/logout/'
 LOGIN_REDIRECT_URL = '/home/'
 
 # LDAP settings to use the LDAP Authentication backend
-#LDAP_DEBUG = True
-#LDAP_SERVER_URI = 'ldap://ioc1608-301.cs.clsi.ca'
-#LDAP_SEARCHDN = 'dc=cmcf,dc=cls'
-#LDAP_SEARCH_FILTER = 'cn=%s'
-#LDAP_UPDATE_FIELDS = True
-#LDAP_FULL_NAME = 'cn'
-#LDAP_BINDDN = 'ou=people,dc=cmcf,dc=cls'
-#LDAP_BIND_ATTRIBUTE = 'uid'
-
-# LDAP settings to use the LDAP Authentication backend
 LDAP_DEBUG = True
-LDAP_SERVER_URI = 'ldap://srv-dircs-01.cs.clsi.ca'
-LDAP_SEARCHDN = 'CN=Users,CN=Controls2,CN=Zones,CN=Centrify,CN=Program Data,DC=cs,DC=clsi,DC=ca'
 LDAP_SEARCH_FILTER = 'cn=%s'
 LDAP_UPDATE_FIELDS = True
 LDAP_FULL_NAME = 'name'
-LDAP_PREBINDDN = '11-2821@ex.clsi.ca'
-LDAP_PREBINDPW = 'tWw2XkG'
 LDAP_BIND_ATTRIBUTE = 'uid'
 LDAP_GID = 'memberOf'
 LDAP_SU_GIDS = [] # something like ['CN=CLS-Testing,CN=Users,DC=vendasta,DC=com']
