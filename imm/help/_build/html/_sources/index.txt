@@ -16,7 +16,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
    
-   overview.rst
    getting_started.rst
+   overview.rst
    user_interface.rst
+   howto_use.rst
 
