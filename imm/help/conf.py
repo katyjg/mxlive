@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# LIMS documentation build configuration file, created by
+# MxLIVE documentation build configuration file, created by
 # sphinx-quickstart on Fri Feb 25 13:06:33 2011.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -40,7 +40,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'LIMS'
+project = u'MxLIVE'
 copyright = u'2011, Kathryn Janzen, Michel Fodje'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -178,7 +178,7 @@ htmlhelp_basename = 'LIMSdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'LIMS.tex', u'LIMS Documentation',
+  ('index', 'LIMS.tex', u'MxLIVE Documentation',
    u'Kathryn Janzen, Michel Fodje', 'manual'),
 ]
 
@@ -211,6 +211,6 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'lims', u'LIMS Documentation',
+    ('index', 'lims', u'MxLIVE Documentation',
      [u'Kathryn Janzen, Michel Fodje'], 1)
 ]

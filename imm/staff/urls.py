@@ -146,7 +146,20 @@ urlpatterns += patterns('imm.lims.views',
 
     # Runlists
     (r'^runlist/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),
-    (r'^runlist/(?P<id>\d+)/protocol/$', 'shipment_pdf', {'model': Runlist, 'format' : 'runlist' }, 'staff-runlist-pdf'),    
+    (r'^runlist/(?P<id>\d+)/protocol/$', 'shipment_pdf', {'model': Runlist, 'format' : 'runlist' }, 'staff-runlist-pdf'),
+    
+    # Report images
+    (r'^experiment/report/(\d+)/shell.png$', 'plot_shell_stats', {}, 'staff-plot-shells'),
+    (r'^experiment/report/(\d+)/frame.png$', 'plot_frame_stats', {}, 'staff-plot-frames'),
+    (r'^experiment/report/(\d+)/diff.png$', 'plot_diff_stats', {}, 'staff-plot-diffs'),
+    (r'^experiment/report/(\d+)/stderr.png$', 'plot_error_stats', {}, 'staff-plot-stderr'),
+    (r'^experiment/report/(\d+)/profiles.png$', 'plot_profiles_stats', {}, 'staff-plot-profiles'),
+    (r'^experiment/report/(\d+)/wilson.png$', 'plot_wilson_stats', {}, 'staff-plot-wilson'),
+    (r'^experiment/report/(\d+)/twinning.png$', 'plot_twinning_stats', {}, 'staff-plot-twinning'),
+    (r'^experiment/report/(\d+)/exposure.png$', 'plot_exposure_analysis', {}, 'staff-plot-exposure'),
+    (r'^experiment/report/(\d+)/overlap.png$', 'plot_overlap_analysis', {}, 'staff-plot-overlap'),
+    (r'^experiment/report/(\d+)/quality.png$', 'plot_pred_quality', {}, 'staff-plot-quality'),
+    (r'^experiment/report/(\d+)/wedge.png$', 'plot_wedge_analysis', {}, 'staff-plot-wedge'),
 )
 
 urlpatterns += patterns('django.views.generic.simple',

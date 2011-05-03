@@ -73,7 +73,8 @@ def list_entry(context, obj, handler, loop_count):
     Renders an entry for the object ``obj`` in an object list table. If the
     ``context`` contains a ``link=True`` variable, a link will be added to
     the object's detailed page.
-    """ 
+    """
+    
     ol = context.get('ol', None)
     if ol:
         model_admin = ol.model_admin
@@ -131,7 +132,10 @@ def object_fields(obj, model_admin=None):
 
             if isinstance(f.rel, models.ManyToOneRel):
                 if field_val is not None:
-                    result_repr = escape(getattr(obj, f.name))
+                    try:
+                        result_repr = escape(getattr(obj, f.name))
+                    except (AttributeError, ObjectDoesNotExist):
+                        result_repr = ''
                 else:
                     result_repr = ''
             # Dates and times are special: They're formatted in a certain way.
