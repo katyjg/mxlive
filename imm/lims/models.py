@@ -447,7 +447,7 @@ class Shipment(ObjectBaseClass):
 
 class Component(ObjectBaseClass):
     HELP = {
-        'label': 'If this box is checked, an additional label for this item will be generated along with dewar labels.  This is particularly useful if the item is being shipped separately.'
+        'label': 'If this box is checked, an additional label for this item will be printed along with dewar labels.'
     }
     shipment = models.ForeignKey(Shipment)
     description = models.CharField(max_length=100)

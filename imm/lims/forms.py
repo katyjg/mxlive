@@ -208,11 +208,14 @@ class ComponentForm(objforms.forms.OrderedForm):
     shipment = forms.ModelChoiceField(queryset=Shipment.objects.all(), widget=forms.HiddenInput)
     name = objforms.widgets.LargeCharField(required=True)
     description = objforms.widgets.LargeTextField(required=False)
-    label = objforms.widgets.LargeCheckBoxField(required=False)
+    label = objforms.widgets.LargeCheckBoxField(required=False, label="Print Label")
     
     class Meta:
         model = Component
         fields = ('project','shipment','name','label','description',)
+        
+    def clean_name(self):
+        return self.cleaned_data['name']
 
 class DewarForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
