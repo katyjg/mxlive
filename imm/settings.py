@@ -27,7 +27,7 @@ DATABASE_ENGINE = 'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysq
 DATABASE_NAME = 'imm'             # Or path to database file if using sqlite3.
 DATABASE_USER = 'imm'             # Not used with sqlite3.
 DATABASE_PASSWORD = 'imm123'         # Not used with sqlite3.
-DATABASE_HOST = 'cmcf-sqldb'             # Set to empty string for localhost. Not used with sqlite3.
+DATABASE_HOST = '10.52.4.19'             # Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
 
 # Local time zone for this installation. Choices can be found here:
