@@ -353,7 +353,10 @@ class Shipment(ObjectBaseClass):
         return self.status == self.STATES.ON_SITE 
 
     def has_labels(self):
-        return self.status <= self.STATES.SENT and self.num_dewars()  
+        return self.status <= self.STATES.SENT and (self.num_dewars() or self.component_set.filter(label__exact=True))  
+
+    def item_labels(self):
+        return self.component_set.filter(label__exact=True)
 
     def is_processed():
         # if all experiments in shipment are complete, then it is a processed shipment. 
@@ -370,6 +373,9 @@ class Shipment(ObjectBaseClass):
 
     def is_processing(self):
         return self.project.crystal_set.filter(container__dewar__shipment__exact=self).filter(Q(pk__in=self.project.data_set.values('crystal')) | Q(pk__in=self.project.result_set.values('crystal'))).exists()
+ 
+    def add_component(self):
+        return self.status <= self.STATES.SENT
  
     def label_hash(self):
         # use dates of project, shipment, and each shipment within dewar to determine
@@ -438,6 +444,21 @@ class Shipment(ObjectBaseClass):
         for obj in self.dewar_set.all():
             obj.archive(request=request)
         super(Shipment, self).archive(request=request)
+
+class Component(ObjectBaseClass):
+    HELP = {
+        'label': 'If this box is checked, an additional label for this item will be generated along with dewar labels.  This is particularly useful if the item is being shipped separately.'
+    }
+    shipment = models.ForeignKey(Shipment)
+    description = models.CharField(max_length=100)
+    label = models.BooleanField()
+    
+    def identity(self):
+        return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
+    
+    def barcode(self):
+        return "ITM%04d-%04d" % (self.id, self.shipment.id)
         
 class Dewar(ObjectBaseClass):
     HELP = {
@@ -451,7 +472,7 @@ class Dewar(ObjectBaseClass):
     shipment = models.ForeignKey(Shipment, blank=True, null=True)
 
     def identity(self):
-        return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+        return 'CM%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
 
     def barcode(self):
@@ -1347,6 +1368,7 @@ __all__ = [
     'Session',
     'Beamline',
     'Shipment',
+    'Component',
     'Dewar',
     'Container',
     'SpaceGroup',

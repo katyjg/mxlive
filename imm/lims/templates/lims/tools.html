@@ -106,6 +106,13 @@
             </a>
         </li>
         {% endcomment %}
+		{% if object.add_component %}
+			<li class="component-tool" title="Add a special item to this shipment">
+				<a href="{{ handler }}component/" class="action modal-form">
+					Add Item
+				</a>
+			</li>
+		{% endif %}
         {% if object.is_editable %}
             <li class="edit-tool" title="Edit this entry">
                 <a href="{{ handler }}edit/"  class="action modal-form">

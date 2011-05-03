@@ -136,7 +136,10 @@ urlpatterns += patterns('imm.lims.views',
     (r'^shipping/shipment/(?P<src_id>\d+)/dewar/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source': Shipment, 'object': Dewar, 'reverse': True}, 'lims-dewar-remove'),
     (r'^shipping/shipment/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/dewar/(?P<obj_id>\d+)/$', 'remove_object', {'source':Shipment, 'object':Dewar, 'reverse':True}, 'lims-shipment-remove-dewar'),
     (r'^shipping/shipment/(?P<id>\d+)/progress/$', 'object_detail', {'model': Shipment, 'template' : 'lims/entries/progress_report.html' }, 'lims-shipment-progress'),
-    
+    (r'^shipping/shipment/(?P<id>\d+)/component/$', 'create_object', {'model': Component, 'form': ComponentForm, 'template': 'objforms/form_base.html'}, 'lims-component-add'),
+    (r'^shipping/shipment/component/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Component, 'form': ComponentForm, 'template': 'objforms/form_base.html'}, 'lims-component-edit'),
+    (r'^shipping/shipment/component/(?P<id>\d+)/delete/$', 'delete_object', {'model': Component, 'form': LimsBasicForm, 'template': 'objforms/form_base.html'}, 'lims-component-delete'),
+        
     # Dewars
     (r'^shipping/dewar/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Dewar, 'object':Container, 'reverse':True}, 'lims-dewar-add-container'),
     (r'^shipping/dewar/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Dewar, 'object':Container, 'reverse':True}, 'lims-dewar-remove-container'),

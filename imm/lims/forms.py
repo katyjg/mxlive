@@ -203,6 +203,17 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
     def restrict_by(self, field_name, id): 
         pass
 
+class ComponentForm(objforms.forms.OrderedForm):
+    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
+    shipment = forms.ModelChoiceField(queryset=Shipment.objects.all(), widget=forms.HiddenInput)
+    name = objforms.widgets.LargeCharField(required=True)
+    description = objforms.widgets.LargeTextField(required=False)
+    label = objforms.widgets.LargeCheckBoxField(required=False)
+    
+    class Meta:
+        model = Component
+        fields = ('project','shipment','name','label','description',)
+
 class DewarForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     shipment = forms.ModelChoiceField(

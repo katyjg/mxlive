@@ -425,7 +425,7 @@ def object_detail(request, id, model, template):
 @login_required
 @project_optional
 @transaction.commit_on_success
-def create_object(request, model, form, template='lims/forms/new_base.html', action=None, redirect=None, modal_upload=False):
+def create_object(request, model, form, id=None, template='lims/forms/new_base.html', action=None, redirect=None, modal_upload=False):
     """
     A generic view which displays a Form of type ``form`` using the Template
     ``template`` and when submitted will create a new object of type ``model``.
@@ -477,6 +477,8 @@ def create_object(request, model, form, template='lims/forms/new_base.html', act
     else:
         if project:
             initial = {'project': project_pk}
+            if id:
+                initial['shipment'] = id
             initial.update(dict(request.GET.items()))      
             frm = form(initial=initial)
         else:
@@ -846,8 +848,12 @@ def delete_object(request, id, model, form, template='objforms/form_base.html'):
             else:
                 url_prefix = 'lims'
             url_name = "%s-%s-list" % (url_prefix, model.__name__.lower())
+            try:
+                redirect = reverse(url_name)
+            except:
+                redirect = request.META['HTTP_REFERER']
             return render_to_response("lims/redirect.json", {
-            'redirect_to': reverse(url_name),
+            'redirect_to': redirect,
             }, context_instance=RequestContext(request), mimetype="application/json")
         else:
             return render_to_response(template, {
