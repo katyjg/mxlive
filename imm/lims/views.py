@@ -380,7 +380,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
                 exp.save()    
     
         dest.save()
-        message = '%s (%s) added' % (to_add.__class__._meta.verbose_name, display_name)
+        message = '%s (%s) added' % (dest.__class__._meta.verbose_name, display_name)
         ActivityLog.objects.log_activity(request, dest, ActivityLog.TYPE.MODIFY, 
             '%s added to %s (%s)' % (dest._meta.verbose_name, to_add._meta.verbose_name, to_add))
     else:
