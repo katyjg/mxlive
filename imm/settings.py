@@ -13,7 +13,7 @@ if not lib_path in sys.path:
     logging.warn("Adding missing lib as a site")
     
         
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
