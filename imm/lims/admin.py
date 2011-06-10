@@ -9,25 +9,25 @@ staff_site = admin.AdminSite()
 class ShipmentAdmin(VersionAdmin):
     search_fields = ['name', 'comments','status']
     list_filter = ['created','status']
-    list_display = ('identity','name', 'date_shipped', 'carrier', 'num_dewars', 'status')
+    list_display = ('identity','name', 'date_shipped', '_Carrier', 'num_dewars', 'status')
     list_per_page = ITEMS_PER_PAGE    
     ordering = ['-created']
 admin.site.register(Shipment, ShipmentAdmin)
 
 class ShipmentStaffAdmin(ShipmentAdmin):
-    list_display = ('project','identity','name', 'date_shipped', 'carrier', 'num_dewars', 'status')
+    list_display = ('project','identity','name', 'date_shipped', '_Carrier', 'num_dewars', 'status')
 staff_site.register(Shipment, ShipmentStaffAdmin)
 
 class DewarAdmin(VersionAdmin):
     search_fields = ['name', 'comments']
     list_filter = ['modified']
-    list_display = ('identity', 'name', 'shipment', 'modified', 'num_containers', 'status')
+    list_display = ('identity', 'name', '_Shipment', 'modified', 'num_containers', 'status')
     ordering = ['-created']    
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Dewar, DewarAdmin)
 
 class DewarStaffAdmin(DewarAdmin):
-    list_display = ('project', 'identity', 'name', 'shipment', 'modified', 'num_containers', 'status')
+    list_display = ('project', 'identity', 'name', '_Shipment', 'modified', 'num_containers', 'status')
 staff_site.register(Dewar, DewarStaffAdmin)
 
 class ContainerAdmin(VersionAdmin):
@@ -57,9 +57,9 @@ class ExperimentStaffAdmin(ExperimentAdmin):
 staff_site.register(Experiment, ExperimentStaffAdmin)
 
 class CrystalAdmin(VersionAdmin):
-    search_fields = ['name', 'barcode', 'comments']
+    search_fields = ['name', 'barcode', 'comments', 'crystal_form__name', 'cocktail__name']
     list_filter = ['modified','status']
-    list_display = ('identity', 'name', 'cocktail', 'comments', 'container', 'container_location', 'status')       
+    list_display = ('identity', 'name', '_Cocktail', '_Crystal_form', 'comments', '_Container', 'container_location', 'status')       
     ordering = ['-created', '-priority']
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Crystal, CrystalAdmin)
@@ -80,7 +80,7 @@ class CrystalFormAdmin(VersionAdmin):
     ordering = ['-created']
     search_fields = ['name','space_group__name']
     list_filter = ['modified']
-    list_display = ('identity', 'name', 'cell_a', 'cell_b', 'cell_c','cell_alpha', 'cell_beta', 'cell_gamma', 'space_group' )
+    list_display = ('identity', 'name', 'cell_a', 'cell_b', 'cell_c','cell_alpha', 'cell_beta', 'cell_gamma', '_Space_group' )
     list_per_page = ITEMS_PER_PAGE    
 admin.site.register(CrystalForm, CrystalFormAdmin)
 
@@ -103,7 +103,7 @@ class DataAdmin(admin.ModelAdmin):
     ordering = ['-created']
     search_fields = ['name','beamline__name']
     list_filter = ['modified', 'kind']
-    list_display = ('id', 'name', 'crystal','frame_sets', 'delta_angle', 'total_angle', 'wavelength', 'kind')
+    list_display = ('id', 'name', '_Crystal','frame_sets', 'delta_angle', 'total_angle', 'wavelength', 'kind')
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Data, DataAdmin)
 

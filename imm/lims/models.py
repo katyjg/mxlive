@@ -333,6 +333,10 @@ class Shipment(ObjectBaseClass):
         return 'SH%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
     
+    def _Carrier(self):
+        return self.carrier.name
+    _Carrier.admin_order_field = 'carrier__name'
+
     def barcode(self):
         return self.tracking_code or self.name
 
@@ -347,7 +351,8 @@ class Shipment(ObjectBaseClass):
     
     def is_xlsable(self):
         # removed is_sendable check. orphan crystals don't get the default created experiment until sent. 
-        return self.status >= self.STATES.SENT
+        #return self.status >= self.STATES.SENT
+		return not Crystal.objects.filter(container__in=Container.objects.filter(dewar__in=self.dewar_set.all())).filter(experiment__exact=None).exists()
     
     def is_returnable(self):
         return self.status == self.STATES.ON_SITE 
@@ -447,7 +452,8 @@ class Shipment(ObjectBaseClass):
 
 class Component(ObjectBaseClass):
     HELP = {
-        'label': 'If this box is checked, an additional label for this item will be printed along with dewar labels.'
+        'label': 'If this box is checked, an additional label for this item will be printed along with dewar labels.',
+        'name': 'Components can be hard drives, tools, or any other items you are including in your shipment.'
     }
     shipment = models.ForeignKey(Shipment)
     description = models.CharField(max_length=100)
@@ -474,6 +480,10 @@ class Dewar(ObjectBaseClass):
     def identity(self):
         return 'CM%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
+
+    def _Shipment(self):
+        return self.shipment.name
+    _Shipment.admin_order_field = 'shipment__name'
 
     def barcode(self):
         return "CLS%04d-%04d" % (self.id, self.shipment.id)
@@ -773,6 +783,10 @@ class CrystalForm(LimsBaseClass):
         return 'CF%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
     
+    def _Space_group(self):
+        return self.space_group.name
+    _Space_group.admin_order_field = 'space_group__name'
+
     class Meta:
         ordering = ['name','-created']
         verbose_name = 'Crystal Form'
@@ -982,14 +996,14 @@ class Crystal(LoadableBaseClass):
     loop_size = models.FloatField(null=True, blank=True)
     cocktail = models.ForeignKey(Cocktail, null=True, blank=True)
     container = models.ForeignKey(Container, null=True, blank=True)
-    container_location = models.CharField(max_length=10, null=True, blank=True)
+    container_location = models.CharField(max_length=10, null=True, blank=True, verbose_name='port')
     comments = models.TextField(blank=True, null=True)
     collect_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.NOT_REQUIRED)
     screen_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.NOT_REQUIRED)
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
     experiment = models.ForeignKey(Experiment, null=True, blank=True)
-    
+
     class Meta:
         unique_together = (
             ("project", "container", "container_location"),
@@ -998,6 +1012,18 @@ class Crystal(LoadableBaseClass):
     def identity(self):
         return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
+
+    def _Crystal_form(self):
+        return self.crystal_form.name
+    _Crystal_form.admin_order_field = 'crystal_form__name'
+
+    def _Cocktail(self):
+        return self.cocktail.name
+    _Cocktail.admin_order_field = 'cocktail__name'
+
+    def _Container(self):
+        return self.container.name
+    _Container.admin_order_field = 'container__name'
     
     def best_screening(self):
         info = {}
@@ -1118,6 +1144,10 @@ class Data(LimsBaseClass):
     # need a method to determine how many frames are in item
     def num_frames(self):
         return len(self.get_frame_list())          
+
+    def _Crystal(self):
+        return self.crystal.name
+    _Crystal.admin_order_field = 'crystal__name'
 
     def get_frame_list(self):
         frame_numbers = []
