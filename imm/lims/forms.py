@@ -283,6 +283,7 @@ class SampleForm(objforms.forms.OrderedForm):
         )
     container_location = objforms.widgets.LeftHalfCharField(
         required=False,
+		label='Port in Container',
         )
     comments = forms.CharField(
         widget=objforms.widgets.CommentInput, 
