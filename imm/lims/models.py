@@ -350,9 +350,8 @@ class Shipment(ObjectBaseClass):
         return self.is_sendable() or self.status >= self.STATES.SENT
     
     def is_xlsable(self):
-        # removed is_sendable check. orphan crystals don't get the default created experiment until sent. 
-        #return self.status >= self.STATES.SENT
-		return not Crystal.objects.filter(container__in=Container.objects.filter(dewar__in=self.dewar_set.all())).filter(experiment__exact=None).exists()
+        # can general spreadsheet as long as there are no orphan crystals with no experiment)
+        return not Crystal.objects.filter(container__in=Container.objects.filter(dewar__in=self.dewar_set.all())).filter(experiment__exact=None).exists()
     
     def is_returnable(self):
         return self.status == self.STATES.ON_SITE 
