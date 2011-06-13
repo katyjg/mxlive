@@ -552,6 +552,10 @@ class Container(LoadableBaseClass):
         return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
     
+    def _Dewar(self):
+        return self.dewar.name
+    _Dewar.admin_order_field = 'dewar'
+
     def barcode(self):
         return self.name
 

@@ -34,12 +34,12 @@ class ContainerAdmin(VersionAdmin):
     ordering = ['-created']
     search_fields = ['name', 'comments']
     list_filter = ['modified','kind']
-    list_display = ('identity', 'name', 'kind', 'capacity', 'num_crystals', 'status')
+    list_display = ('identity', 'name', '_Dewar', 'kind', 'capacity', 'num_crystals', 'status')
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Container, ContainerAdmin)
 
 class ContainerStaffAdmin(ContainerAdmin):
-    list_display = ('project', 'identity', 'name', 'kind', 'capacity', 'num_crystals', 'status')
+    list_display = ('project', 'identity', 'name', '_Dewar', 'kind', 'capacity', 'num_crystals', 'status')
     ordering = ['-staff_priority', '-created']
 staff_site.register(Container, ContainerStaffAdmin)
     
@@ -65,7 +65,7 @@ class CrystalAdmin(VersionAdmin):
 admin.site.register(Crystal, CrystalAdmin)
 
 class CrystalStaffAdmin(CrystalAdmin):
-    list_display = ('identity', 'name', 'cocktail', 'comments', 'container', 'container_location', 'status')     
+    list_display = ('identity', 'name', '_Cocktail', '_Crystal_form', 'comments', '_Container', 'container_location', 'status')     
     ordering = ['-staff_priority', '-priority', '-created']
 staff_site.register(Crystal, CrystalStaffAdmin)
 
