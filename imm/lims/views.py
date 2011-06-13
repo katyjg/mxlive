@@ -376,8 +376,9 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
             setattr(dest, 'container_location', loc_id)
         if ((destination.__name__ == 'Experiment' and object.__name__ == 'Crystal') or (destination.__name__ == 'Container' and object.__name__ == 'Dewar')):
             for exp in dest.get_experiment_list():
-                exp.priority = 0
-                exp.save()    
+                if exp:
+                    exp.priority = 0
+                    exp.save()    
     
         dest.save()
         message = '%s (%s) added' % (dest.__class__._meta.verbose_name, display_name)
