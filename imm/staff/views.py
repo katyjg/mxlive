@@ -301,7 +301,7 @@ def experiment_basic_object_list(request, runlist_id, model, template='objlist/b
         runlist = None
 
     if runlist:
-        ol.object_list = Experiment.objects.filter(status=Experiment.STATES.ACTIVE).filter(pk__in=Crystal.objects.filter(container__pk__in=Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE)).values('experiment'))
+        ol.object_list = Experiment.objects.filter(status__in=[Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING]).filter(pk__in=Crystal.objects.filter(container__pk__in=Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE)).values('experiment'))
     
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
