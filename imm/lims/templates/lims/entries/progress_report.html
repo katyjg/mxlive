@@ -76,7 +76,7 @@
                     {% if crystal.best_overall %}{% with crystal.best_overall as stat %}
                     <td class="prose">
                         <strong>{{ stat.data.name }} - score {% if stat.report.score %}{{ stat.report.score|color_score:2 }}{% else %}unavailable{% endif %}</strong>
-                        {% if stat.report.kind == 1 %}{% if stat.report %}{% with stat.report as stat %}
+                        {% if stat.report.kind == 1 %}{% with stat.report as stat %}
                             <table class="subtable">
                                 <tr><th>Spacegroup:</th> 
                                     <th>{{ stat.space_group }} {% if crystal.crystal_form %}<em>(expected {{ crystal.crystal_form.space_group }})</em>{% endif %}</th></tr>
@@ -90,7 +90,7 @@
                                     <th>{{ stat.r_meas }} {% if crystal.experiment.r_meas %}<em>(wanted {{ crystal.experiment.r_meas }})</em>{% endif %}</th></tr>
                                 <tr><th>I/Sigma:</th> 
                                     <th>{{ stat.i_sigma }} {% if crystal.experiment.i_sigma %}<em>(wanted {{ crystal.experiment.i_sigma }})</em>{% endif %}</th></tr>
-                            </table>{% endwith %}{% endif %}
+                            </table>{% endwith %}
                         {% else %}{% with stat.data as stat %}
                             <table class="subtable">
                                 <tr><th>Frame Sets:</th> 
@@ -109,7 +109,7 @@
                         {% endwith %}{% endif %}
                     </td>
 
-                    <td class="prose">{{ stat.staff_comments|default:"" }}</td>
+                    <td class="prose">{{ stat.data.staff_comments|default:"" }}</td>
                     {% endwith %}{% else %}<td></td><td></td>{% endif %}
                 </tr>
             {% endfor %}
