@@ -57,7 +57,7 @@
             <tbody>
                 <tr><th colspan=2>Related Entries</th></tr>              
                 <tr><td>Crystal</td><td>{% if object.crystal %}<a href={% url lims-crystal-detail object.crystal.id %}>{{object.crystal}}</a>{% else %} &mdash; {% endif %}</td></tr>   
-                <tr><td>Experiment</td><td>{% if object.crystal %}<a href={% url lims-experiment-detail object.experiment.id %}>{{object.experiment.name}}</a>{% else %} &mdash; {% endif %}</td></tr>     
+                <tr><td>Experiment</td><td>{% if object.experiment %}<a href={% url lims-experiment-detail object.experiment.id %}>{{object.experiment.name}}</a>{% else %} &mdash; {% endif %}</td></tr>     
                 <tr><td>Dataset</td><td>{% if object.data %}<a class="modal" href={% url lims-data-detail object.data.id %}>{{object.data}}</a>{% else %} &mdash; {% endif %}</td></tr>                  
             </tbody>
         </table>
