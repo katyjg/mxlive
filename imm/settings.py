@@ -121,6 +121,8 @@ INSTALLED_APPS = (
     'jsonrpc',
     'reversion',
     'apikey',
+
+    'south',
     
 )
 
