@@ -17,13 +17,13 @@ _URL_META = {
         'container':{'model': Container, 'form': ContainerForm},        
     },
     'samples': {
-        'crystal':  {'model': Crystal, 'form': SampleForm, 'delete_form': LimsBasicForm},
+        'crystal':  {'model': Crystal, 'form': SampleForm},
         'cocktail': {'model': Cocktail, 'form': CocktailForm, 'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True, 'comments': False}, 
         'crystalform': {'model': CrystalForm, 'form': CrystalFormForm,'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True, 'comments': False},  
     },
     'experiment': {
         'request':  {'model': Experiment, 'form': ExperimentForm},       
-        'dataset':  {'model': Data, 'add': False, 'list_link': False, 'list_add': False, 'list_modal': True, 'comments': False},       
+        'dataset':  {'model': Data, 'add': False, 'list_link': False, 'list_add': False, 'list_modal': True, 'comments': False, 'delete': False},       
         'report':   {'model': Result, 'add': False, 'list_add': False, 'comments': False},         
     },
 }
@@ -175,7 +175,9 @@ urlpatterns += patterns('imm.lims.views',
     (r'^experiment/report/(\d+)/quality.png$', 'plot_pred_quality', {}, 'lims-plot-quality'),
     (r'^experiment/report/(\d+)/wedge.png$', 'plot_wedge_analysis', {}, 'lims-plot-wedge'),
     
-            
+    (r'^experiment/dataset/(?P<id>\d+)/trash/$', 'action_object', {'model': Data, 'form': LimsBasicForm, 'template': 'objforms/form_base.html', 'action': 'trash', }, 'lims-data-trash'),           
+    (r'^experiment/report/(?P<id>\d+)/trash/$', 'action_object', {'model': Result, 'form': LimsBasicForm, 'template': 'objforms/form_base.html', 'action': 'trash', }, 'lims-result-trash'),       
+
 )
 
 # redirect the top level pages

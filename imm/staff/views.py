@@ -331,31 +331,39 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
 @login_required
-def crystal_status(request):
+def object_status(request, model):
     pks = map(int, request.POST.getlist('id_list[]'))
     action = int(request.POST.get('action'))
-    experiment = Crystal.objects.get(pk=pks[0]).experiment
-    for crystal in Crystal.objects.filter(pk__in=pks):
-        if action == 1:
-            crystal.change_screen_status(Crystal.EXP_STATES.PENDING) 
-        elif action == 2:
-            crystal.change_collect_status(Crystal.EXP_STATES.PENDING) 
-        elif action == 3:
-            crystal.change_screen_status(Crystal.EXP_STATES.IGNORE) 
-            crystal.change_collect_status(Crystal.EXP_STATES.IGNORE) 
-        elif action == 4:
-            crystal.change_screen_status(Crystal.EXP_STATES.COMPLETED)
-        elif action == 5: 
-            crystal.change_collect_status(Crystal.EXP_STATES.COMPLETED) 
-            
-    if experiment.is_complete():
-        experiment.change_status(Experiment.STATES.COMPLETE)
-    else:
-        if experiment.status == Experiment.STATES.COMPLETE:
-            if experiment.result_set.exists() or experiment.data_set.exists():
-                experiment.change_status(Experiment.STATES.PROCESSING)
-            else:
-                experiment.change_status(Experiment.STATES.ACTIVE)
+    if model is Crystal:
+        experiment = Crystal.objects.get(pk=pks[0]).experiment
+        for crystal in Crystal.objects.filter(pk__in=pks):
+            if action == 1:
+                crystal.change_screen_status(Crystal.EXP_STATES.PENDING) 
+            elif action == 2:
+                crystal.change_collect_status(Crystal.EXP_STATES.PENDING) 
+            elif action == 3:
+                crystal.change_screen_status(Crystal.EXP_STATES.IGNORE) 
+                crystal.change_collect_status(Crystal.EXP_STATES.IGNORE) 
+            elif action == 4:
+                crystal.change_screen_status(Crystal.EXP_STATES.COMPLETED)
+            elif action == 5: 
+                crystal.change_collect_status(Crystal.EXP_STATES.COMPLETED) 
+                
+        if experiment.is_complete():
+            experiment.change_status(Experiment.STATES.COMPLETE)
+        else:
+            if experiment.status == Experiment.STATES.COMPLETE:
+                if experiment.result_set.exists() or experiment.data_set.exists():
+                    experiment.change_status(Experiment.STATES.PROCESSING)
+                else:
+                    experiment.change_status(Experiment.STATES.ACTIVE)
+
+    if model is Data:
+        for data in Data.objects.filter(pk__in=pks):
+            if action == 1:
+                data.toggle_download(True)
+            if action == 2:
+                data.toggle_download(False)
             
     return render_to_response('lims/refresh.html')
 

@@ -65,7 +65,7 @@ class CrystalAdmin(VersionAdmin):
 admin.site.register(Crystal, CrystalAdmin)
 
 class CrystalStaffAdmin(CrystalAdmin):
-    list_display = ('identity', 'name', '_Cocktail', '_Crystal_form', 'comments', '_Container', 'container_location', 'status')     
+    list_display = ('project', 'identity', 'name', '_Cocktail', '_Crystal_form', 'comments', '_Container', 'container_location', 'status')     
     ordering = ['-staff_priority', '-priority', '-created']
 staff_site.register(Crystal, CrystalStaffAdmin)
 
@@ -99,13 +99,25 @@ class ResultAdmin(admin.ModelAdmin):
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Result, ResultAdmin)
 
+class ResultStaffAdmin(ResultAdmin):
+    list_filter = ['modified','kind','status']
+    list_display = ('project','id','name','data','resolution','kind','created','status')
+    ordering = ['-created', 'project']
+staff_site.register(Result, ResultStaffAdmin)
+
 class DataAdmin(admin.ModelAdmin):
     ordering = ['-created']
-    search_fields = ['name','beamline__name']
+    search_fields = ['id','name','beamline__name','delta_angle','crystal__name','frame_sets']
     list_filter = ['modified', 'kind']
-    list_display = ('id', 'name', '_Crystal','frame_sets', 'delta_angle', 'total_angle', 'wavelength', 'kind')
+    list_display = ('id', 'name', '_Crystal','frame_sets', 'delta_angle', 'total_angle', 'wavelength', 'beamline', 'kind','status')
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Data, DataAdmin)
+
+class DataStaffAdmin(DataAdmin):
+    list_filter = ['modified','kind','status']
+    list_display = ('project','id','name','_Crystal','frame_sets','beamline','kind','created','status','download')
+    ordering = ['-created', 'project']
+staff_site.register(Data, DataStaffAdmin)
 
 class StrategyAdmin(admin.ModelAdmin):
     ordering = ['-created']

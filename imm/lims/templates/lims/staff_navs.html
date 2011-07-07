@@ -8,7 +8,13 @@
         <li><a href="{% url staff-container-list %}">Containers</a></li>
     </ul>
 </li>
-<li class='nav-menu {% active request "^/staff/experiment/" %}'><a href="{% url staff-experiment-list %}">Experiments</a></li>
+<li class='nav-menu {% active request "^/staff/experiment/" %}'><a href="{% url staff-experiment-list %}">Experiments</a>
+    <ul class="nav-submenu">
+        <li><a href="{% url staff-experiment-list %}">Experiments</a></li>
+        <li><a href="{% url staff-data-list %}">Datasets</a></li>
+        <li><a href="{% url staff-result-list %}">Reports</a></li>
+    </ul>
+</li>
 <li class='nav-menu {% active request "^/staff/runlist/" %}'><a href="{% url staff-runlist-list %}">Run Lists</a></li>
 </ul>
 

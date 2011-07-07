@@ -290,6 +290,10 @@ ul.toolbar li.help-tool {background-image: url(/img/help-icon.png);}
 ul.toolbar li.review-tool {background-image: url(/img/emblem-success.png);}
 ul.toolbar li.process-tool {background-image: url(/img/process-icon.png);}
 ul.toolbar li.component-tool {background-image: url(/img/drive-harddisk.png);}
+ul.toolbar li.download-tool {background-image: url(/img/download-icon-32.png);}
+ul.toolbar li.trash-tool {background-image: url(/img/trash-icon.png);}
+a.download-tool {background-image: url(/img/download-icon.png); float: right; padding:8px; margin-top: 4px;}
+
 
 /* -- end toolbar -- */
 
@@ -983,8 +987,22 @@ ul.filter-choices ul {
     width: 750px;
 }
 
+#data-viewer .object-tools {
+    height: 36px;
+}
+
+#data-viewer .toolbar li a {
+    padding: 32px 2px 2px 0;
+}
+
+#data-viewer ul.toolbar {
+	height: 34px;
+    margin-top: 0px;
+}
+
 #data-viewer .heading h2 {
-    text-shadow:#FFFFFF 0 1px 1px;    
+    text-shadow:#FFFFFF 0 1px 1px;   
+    float:left; 
 }
 
 #data-viewer .heading h2 span.identity {
@@ -1022,6 +1040,12 @@ ul.filter-choices ul {
 
 .data-image {
     float:left;
+}
+
+#data-viewer img.nofile {
+    background: url('/img/diffract.png') no-repeat;
+    position: absolute;
+    border: 1px solid #ccc;
 }
 
 #data-viewer .image-wrapper {

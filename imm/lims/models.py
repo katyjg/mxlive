@@ -39,6 +39,7 @@ GLOBAL_STATES =   Enum(
         'Complete',
         'Reviewed', 
         'Archived',
+        'Trashed',
     )
 
 class ManagerWrapper(models.Manager):
@@ -187,6 +188,12 @@ class Project(models.Model):
     def is_editable(self):
         return True
 
+    def get_archive_filter(self):
+        if self.show_archives:
+            return {'status__lte': LimsBaseClass.STATES.ARCHIVED}
+        else:
+            return {'status__lt': LimsBaseClass.STATES.ARCHIVED}
+
     class Meta:
         verbose_name = "Project Profile"
 
@@ -213,11 +220,12 @@ class LimsBaseClass(models.Model):
         STATES.ON_SITE: [STATES.RETURNED],
         STATES.LOADED: [STATES.ON_SITE],
         STATES.RETURNED: [STATES.ARCHIVED],
-        STATES.ACTIVE: [STATES.PROCESSING, STATES.REVIEWED],
-        STATES.PROCESSING: [STATES.COMPLETE, STATES.REVIEWED],
-        STATES.COMPLETE: [STATES.PROCESSING, STATES.REVIEWED],
+        STATES.ACTIVE: [STATES.PROCESSING, STATES.COMPLETE, STATES.REVIEWED, STATES.ARCHIVED],
+        STATES.PROCESSING: [STATES.COMPLETE, STATES.REVIEWED, STATES.ARCHIVED],
+        STATES.COMPLETE: [STATES.ACTIVE, STATES.PROCESSING, STATES.REVIEWED, STATES.ARCHIVED],
         STATES.REVIEWED: [STATES.ARCHIVED],
     }
+
     project = models.ForeignKey(Project)
     name = models.CharField(max_length=60)
     staff_comments = models.TextField(blank=True, null=True)
@@ -282,6 +290,12 @@ class LimsBaseClass(models.Model):
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
+    def trash(self, request=None):
+        self.change_status(self.STATES.TRASHED)     
+        message = '%s sent to trash' % (self._meta.verbose_name)
+        if request is not None:
+            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
+
     def change_status(self, status):
         if status == self.status:
             return
@@ -314,11 +328,28 @@ class LoadableBaseClass(LimsBaseClass):
     class Meta:
         abstract = True
 
+class DataBaseClass(LimsBaseClass):
+    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.ARCHIVED, LimsBaseClass.STATES.TRASHED])
+    TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
+    TRANSITIONS[LimsBaseClass.STATES.ACTIVE] = [LimsBaseClass.STATES.TRASHED, LimsBaseClass.STATES.ARCHIVED]
+    TRANSITIONS[LimsBaseClass.STATES.ARCHIVED] = [LimsBaseClass.STATES.TRASHED]
+
+    status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.ACTIVE)
+
+    def is_closable(self):
+        return self.status not in [LimsBaseClass.STATES.ARCHIVED, LimsBaseClass.STATES.TRASHED]
+
+    def is_trashable(self):
+        return True
+
+    class Meta:
+        abstract = True
+
 class Shipment(ObjectBaseClass):
     HELP = {
         'name': "This should be an externally visible label",
         'carrier': "Please select the carrier company. To change shipping companies, edit your profile on the Project Home page.",
-        'cascade': 'dewars, containers and crystals (along with experiments)',
+        'cascade': 'dewars, containers and crystals (along with experiments, datasets and results)',
         'cascade_help': 'All associated dewars will be left without a shipment'
     }
     comments = models.TextField(blank=True, null=True, max_length=200)
@@ -539,7 +570,7 @@ class Container(LoadableBaseClass):
     HELP = {
         'name': "An externally visible label on the container. If there is a barcode on the container, please scan it here",
         'capacity': "The maximum number of samples this container can hold",
-        'cascade': 'crystals (along with experiments)',
+        'cascade': 'crystals (along with experiments, datasets and results)',
         'cascade_help': 'All associated crystals will be left without a container'
     }
     kind = models.IntegerField('type', max_length=1, choices=TYPE.get_choices() )
@@ -814,7 +845,7 @@ class CrystalForm(LimsBaseClass):
 class Experiment(LimsBaseClass):
     STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.PROCESSING, LimsBaseClass.STATES.COMPLETE, LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ARCHIVED])
     HELP = {
-        'cascade': 'crystals',
+        'cascade': 'crystals, datasets and results',
         'cascade_help': 'All associated crystals will be left without an experiment',
         'kind': "If you select SAD or MAD make sure you provide the absorption edge below, otherwise Se-K will be assumed.",
         'plan': "Select the plan which describes your instructions for all crystals in this experiment group.",
@@ -836,8 +867,6 @@ class Experiment(LimsBaseClass):
     )
     TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
     TRANSITIONS[LimsBaseClass.STATES.DRAFT] = [LimsBaseClass.STATES.ACTIVE]
-    TRANSITIONS[LimsBaseClass.STATES.ACTIVE] = [LimsBaseClass.STATES.PROCESSING, LimsBaseClass.STATES.COMPLETE, LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ARCHIVED]   
-    TRANSITIONS[LimsBaseClass.STATES.COMPLETE] = [LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.PROCESSING]
 
     status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
     resolution = models.FloatField('Desired Resolution', null=True, blank=True)
@@ -978,6 +1007,8 @@ class Experiment(LimsBaseClass):
      
 class Crystal(LoadableBaseClass):
     HELP = {
+        'cascade': 'datasets and results',
+        'cascade_help': 'All associated datasets and results will be left without a crystal',
         'name': "Give the sample a name by which you can recognize it. Avoid using spaces or special characters in sample names",
         'barcode': "If there is a datamatrix code on sample, please scan or input the value here",
         'pin_length': "18 mm pins are standard. Please make sure you discuss other sizes with Beamline staff before sending the sample!",
@@ -1028,26 +1059,32 @@ class Crystal(LoadableBaseClass):
         return self.container.name
     _Container.admin_order_field = 'container__name'
     
+    def get_data_set(self):
+        return self.data_set.filter(**self.project.get_archive_filter())
+
+    def get_result_set(self):
+        return self.result_set.filter(**self.project.get_archive_filter())
+
     def best_screening(self):
         info = {}
-        results = self.result_set.filter(kind__exact=Result.RESULT_TYPES.SCREENING).order_by('-score')
+        results = self.get_result_set().filter(kind__exact=Result.RESULT_TYPES.SCREENING).order_by('-score')
         if len(results) > 0:
             info['report'] = results[0]
             info['data'] = info['report'].data
         else:
-            data = self.data_set.filter(kind__exact=Data.DATA_TYPES.SCREENING).order_by('-created')
+            data = self.get_data_set().filter(kind__exact=Data.DATA_TYPES.SCREENING).order_by('-created')
             if len(data) > 0:
                 info['data'] = data[0]
         return info
     
     def best_collection(self):
         info = {}
-        results = self.result_set.filter(kind__exact=Result.RESULT_TYPES.COLLECTION).order_by('-score')
+        results = self.get_result_set().filter(kind__exact=Result.RESULT_TYPES.COLLECTION).order_by('-score')
         if len(results) > 0:
             info['report'] = results[0]
             info['data'] = info['report'].data
         else:
-            data = self.data_set.filter(kind__exact=Data.DATA_TYPES.COLLECTION).order_by('-created')
+            data = self.get_data_set().filter(kind__exact=Data.DATA_TYPES.COLLECTION).order_by('-created')
             if len(data) > 0:
                 info['data'] = data[0]
         return info
@@ -1079,6 +1116,14 @@ class Crystal(LoadableBaseClass):
             if self.experiment:
                 if self.experiment.crystal_set.count() == 1:
                     self.experiment.delete(request=request, cascade=False)
+            obj_list = []
+            for obj in self.data_set.all(): obj_list.append(obj)
+            for obj in self.result_set.all(): obj_list.append(obj)
+            for obj in obj_list:
+                obj.crystal = None
+                obj.save()
+                if cascade:
+                    obj.trash(request=request)
             super(Crystal, self).delete(request=request)
 
     def send(self, request=None):
@@ -1090,8 +1135,13 @@ class Crystal(LoadableBaseClass):
         super(Crystal, self).archive(request=request)
         assert self.experiment
         if self.experiment.crystal_set and self.experiment.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).count() == 0:
-            print "archiving experiment"
             super(Experiment, self.experiment).archive(request=request)
+        for obj in self.data_set.exclude(status__exact=Data.STATES.ARCHIVED):
+            obj.archive(request=request)
+            super(Data, obj).archive(request=request)
+        for obj in self.result_set.exclude(status__exact=Result.STATES.ARCHIVED):
+            obj.archive(request=request)
+            super(Result, obj).archive(request=request)
 
     def change_screen_status(self, status):
         if self.screen_status != status:
@@ -1119,7 +1169,7 @@ class Crystal(LoadableBaseClass):
             'comments': self.comments
         }
         
-class Data(LimsBaseClass):
+class Data(DataBaseClass):
     DATA_TYPES = Enum(
         'Screening',   
         'Collection',
@@ -1143,6 +1193,7 @@ class Data(LimsBaseClass):
     beamline = models.ForeignKey(Beamline)
     url = models.CharField(max_length=200)
     kind = models.IntegerField('Data type',max_length=1, choices=DATA_TYPES.get_choices(), default=DATA_TYPES.SCREENING)
+    download = models.BooleanField(default=False)
     
     # need a method to determine how many frames are in item
     def num_frames(self):
@@ -1151,6 +1202,10 @@ class Data(LimsBaseClass):
     def _Crystal(self):
         return self.crystal.name
     _Crystal.admin_order_field = 'crystal__name'
+
+    def toggle_download(self, state):
+        self.download = state
+        self.save()
 
     def get_frame_list(self):
         frame_numbers = []
@@ -1208,14 +1263,22 @@ class Data(LimsBaseClass):
     def start_angle_for_frame(self, frame):
         return (frame - self.first_frame) * self.delta_angle + self.start_angle 
 
-    def is_closable(self):
-        return True
+    def archive(self, request=None):
+        for obj in self.result_set.all():
+            if obj.status is not GLOBAL_STATES.ARCHIVED:
+                obj.archive(request=request)
+        super(Data, self).archive(request=request)
 
-        
+    def trash(self, request=None):
+        for obj in self.result_set.all():
+            if obj.status is not GLOBAL_STATES.TRASHED:
+                obj.trash(request=request)
+        super(Data, self).trash(request=request)
+
     class Meta:
         verbose_name = 'Dataset'
 
-class Strategy(LimsBaseClass):
+class Strategy(DataBaseClass):
     attenuation = models.FloatField()
     distance = models.FloatField(default=200.0)
     start_angle = models.FloatField(default=0.0)
@@ -1240,7 +1303,7 @@ class Strategy(LimsBaseClass):
     class Meta:
         verbose_name_plural = 'Strategies'
 
-class Result(LimsBaseClass):
+class Result(DataBaseClass):
     RESULT_TYPES = Enum(
         'Screening',   
         'Collection',
@@ -1278,11 +1341,19 @@ class Result(LimsBaseClass):
         return 'RT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
 
+    def archive(self, request=None):
+        super(Result, self).archive(request=request)
+        self.data.archive(request=request)
+
+    def trash(self, request=None):
+        super(Result, self).trash(request=request)
+        self.data.trash(request=request)
+
     class Meta:
         ordering = ['-score']
         verbose_name = 'Analysis Report'
 
-class ScanResult(LimsBaseClass):
+class ScanResult(DataBaseClass):
     SCAN_TYPES = Enum(
         'MAD Scan',   
         'Excitation Scan',

@@ -51,14 +51,14 @@
                         href="{% url lims-crystal-detail crystal.pk %}">{{ crystal.name }}</a> ({{ crystal.experiment.get_kind_display }})<br>
                         {% if crystal.staff_comments %}<em>Comments:</em> {{crystal.staff_comments }}{% endif %}</td>
 
-                    <td class="prose">{% if crystal.best_overall %}
+                    <td class="prose">
                         <table class="subtable">
                             {% if crystal.best_screening %}<tr><td>Screening:</td> 
                                 <td>{% for data in crystal|get_data_set:0 %}
                                     <a href="{% url lims-data-detail data.pk %}" 
                                        class="modal {% ifequal data crystal.best_overall.data %}stress{% endifequal %}">
                                         {{ data.name }}{% if data.score_label %}({{ data.score_label|color_score:2}}){% endif %}
-                                    </a> {% endfor %}
+                                    </a><br> {% endfor %}
                                 </td>
                             </tr>{% endif %}
 
@@ -67,11 +67,11 @@
                                     <a href="{% url lims-data-detail data.pk %}" 
                                        class="modal {% ifequal data crystal.best_overall.data %}stress{% endifequal %}">
                                         {{ data.name }}{% if crystal.experiment.get_kind_display == 'MAD' %}({{ data.energy|floatformat:2}}keV){% endif %}
-                                    </a> {% endfor %}
+                                    </a><br> {% endfor %}
                                 </td>
                             </tr>{% endif %}
                         </table>
-                    {% endif %}</td>                
+                    </td>                
 
                     {% if crystal.best_overall %}{% with crystal.best_overall as stat %}
                     <td class="prose">

@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
@@ -12,6 +12,7 @@ import os
 from download.models import SecurePath
 from download.frameconverter import create_png
 from download.maketarball import create_tar
+from lims.models import Data
 
 KEY_RE = re.compile('^[a-f0-9]{40}$')
 CACHE_DIR = getattr(settings, 'DOWNLOAD_CACHE_DIR', '/tmp')
@@ -44,7 +45,7 @@ def get_download_path(key):
 def send_raw_file(request, full_path, attachment=False):
     """Send a file using mod_xsendfile or similar functionality. 
     Use django's static serve option for development servers"""
-    
+
     if not os.path.exists(full_path):
         raise Http404
     
@@ -113,7 +114,8 @@ def send_png(request, key, path, brightness):
     # make sure only owner and staff can get their files
     if not request.user.is_staff:
         if request.user.get_profile() != obj.owner:
-            raise Http404
+            return HttpResponseRedirect('/img/image-not-found.png')
+            #raise Http404
 
 
     img_file = os.path.join(obj.path, '%s.img' % path)
@@ -123,23 +125,29 @@ def send_png(request, key, path, brightness):
         try:
             create_png(img_file, png_file, BRIGHTNESS_VALUES[brightness])
         except OSError:
-            raise Http404        
+            return HttpResponseRedirect('/img/image-not-found.png')
+            #raise Http404        
     return send_raw_file(request, png_file, attachment=False)
 
 @login_required
-def send_archive(request, key, path):
+def send_archive(request, key, path, data_dir=False): #Add base parameter and another url
 
     obj = get_object_or_404(SecurePath, key=key)
     # make sure only owner and staff can get their files
     if not request.user.is_staff:
         if request.user.get_profile() != obj.owner:
             raise Http404
-            
-    dir_name = os.path.join(obj.path, path)
+    if data_dir:
+        # make sure downloading is enabled for this dataset
+        data = get_object_or_404(Data, url=key, name=path, download=True)
+    
+    dir_name = obj.path
+    #dir_name = os.path.join(obj.path, path)
     tar_file = os.path.join(CACHE_DIR, obj.key, '%s.tar.gz' % (path,))
     if not os.path.exists(tar_file):
         try:
-            create_tar(dir_name, tar_file)
+            create_tar(dir_name, tar_file, data_dir=data_dir)
         except OSError:
             raise Http404        
     return send_raw_file(request, tar_file, attachment=True)   
+

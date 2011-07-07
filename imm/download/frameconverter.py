@@ -80,8 +80,11 @@ def create_png(filename, output, brightness, resolution=(1024,1024)):
     # generate png in output using filename as input with specified brightness
     # and resolution. default resolution is 1024x1024
     # creates a directory for output if none exists
-    
-    img_info = _read_marccd_image(filename, brightness, resolution)
+
+    try:   
+        img_info = _read_marccd_image(filename, brightness, resolution)
+    except:
+        raise OSError
     dir_name = os.path.dirname(output)
     if not os.path.exists(dir_name) and dir_name != '':
         os.makedirs(dir_name)
