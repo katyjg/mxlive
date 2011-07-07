@@ -99,6 +99,13 @@
                 </a>
             </li>
         {% endif %}
+        {% if object.is_trashable %}
+            <li class="trash-tool" title="Trash this entry">
+                <a href="{{handler}}trash/" class="action modal-form">
+                    Trash
+                </a>
+            </li>
+        {% endif %}
         {% comment %}
         <li class="clone-tool" title="Create a new entry using this one as a template">
             <a href="{{ handler }}../new/?clone={{object.id}}" class="action modal-form">

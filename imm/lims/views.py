@@ -133,6 +133,10 @@ MANAGER_FILTERS = {
     (Crystal, False) : {'status__in': [Crystal.STATES.DRAFT, Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
     (Experiment, True) : {'status__in': [Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.COMPLETE, Experiment.STATES.REVIEWED]},
     (Experiment, False) : {'status__in': [Experiment.STATES.DRAFT, Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.COMPLETE, Experiment.STATES.REVIEWED]},
+    (Data, True) : {'status__in': [Data.STATES.ACTIVE, Data.STATES.ARCHIVED, Data.STATES.TRASHED]},
+    (Data, False) : {'status__in': [Data.STATES.ACTIVE]},
+    (Result, True) : {'status__in': [Result.STATES.ACTIVE, Result.STATES.ARCHIVED, Result.STATES.TRASHED]},
+    (Result, False) : {'status__in': [Result.STATES.ACTIVE]},
 }
 
 # models.Manager ordering is overridden by admin.ModelAdmin.ordering in the ObjectList
@@ -165,6 +169,8 @@ def manager_required(function):
                     manager = FilterManagerWrapper(manager, pk__exact=project.pk)
             except Project.DoesNotExist:
                 raise Http404
+        if model in [Data, Result] and not request.user.is_superuser:
+            manager = FilterManagerWrapper(manager, status__lte=Data.STATES.ARCHIVED)
         if MANAGER_FILTERS.has_key((model, request.user.is_superuser)):
             if request.user.is_superuser or not project.show_archives:
                 manager = FilterManagerWrapper(manager,**MANAGER_FILTERS[(model, request.user.is_superuser)])
@@ -917,6 +923,8 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
     elif action == 'load' and obj.is_loadable(): pass
     elif action == 'unload' and obj.is_unloadable(): pass 
     elif action == 'return' and obj.is_returnable(): pass
+    elif action == 'trash' and obj.is_trashable(): 
+        form_info['message'] = 'Are you sure you want to trash %s "%s"?  ' % (model._meta.verbose_name, obj.__unicode__())
     else: raise Http404
 
     if request.method == 'POST':
@@ -933,10 +941,16 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
                 if action == 'return': obj.returned(request=request)
                 if action == 'archive': 
                     obj.archive(request=request)
-                    if not obj.project.show_archives:
+                    if not obj.project.show_archives and model.__name__ is not 'Data':
                         request.user.message_set.create(message = form_info['message'])
                         url_name = "lims-%s-list" % (model.__name__.lower())   
-                        return render_to_response("lims/redirect.json", {'redirect_to': reverse(url_name),}, context_instance=RequestContext(request), mimetype="application/json")      
+                        return render_to_response("lims/redirect.json", {'redirect_to': reverse(url_name),}, context_instance=RequestContext(request), mimetype="application/json")  
+                if action == 'trash': 
+                    obj.trash(request=request)    
+                    if model.__name__ is not 'Data':
+                        request.user.message_set.create(message = form_info['message'])
+                        url_name = "lims-%s-list" % (model.__name__.lower())   
+                        return render_to_response("lims/redirect.json", {'redirect_to': reverse(url_name),}, context_instance=RequestContext(request), mimetype="application/json")
             return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
         else:
             return render_to_response('lims/refresh.html', context_instance=RequestContext(request))

@@ -12,6 +12,8 @@ from django.utils.safestring import mark_safe
 from django.utils.datastructures import MultiValueDict
 
 from imm.lims.models import Data
+from imm.download.views import get_download_path
+import os    
 
 register = Library()
 
@@ -21,3 +23,8 @@ import logging
 def image_url(data, frame, brightness=None):
     ret_val = data.generate_image_url(frame, brightness)
     return ret_val
+
+@register.filter("is_downloadable")
+def is_downloadable(data, frame):
+    path = "%s/%s_%03d.img" % (get_download_path(data.url), data.name, frame)
+    return os.path.exists(path)

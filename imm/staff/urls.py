@@ -27,7 +27,7 @@ _URL_META = {
     },
     'experiment': {
         'request':  {'model': Experiment},       
-        'dataset':  {'model': Data},       
+        'dataset':  {'model': Data, 'list_template': 'staff/lists/dataset_list.html'},       
         'report':   {'model': Result},         
     },
     '': {
@@ -121,7 +121,8 @@ urlpatterns = patterns('imm.staff.views',
     (r'^shipping/dewar/receive/$', 'receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-dewar-receive'),
 
     # Experiments
-    (r'^experiment/crystal/action/$', 'crystal_status', {}, 'staff-crystal-status'),
+    (r'^experiment/crystal/action/$', 'object_status', {'model': Crystal}, 'staff-crystal-status'),
+    (r'^experiment/dataset/action/$', 'object_status', {'model': Data}, 'staff-dataset-status'),
     (r'^experiment/(?P<id>\d+)/review/$', 'staff_action_object', {'model': Experiment, 'form': LimsBasicForm, 'template': 'objforms/form_base.html', 'action': 'review'}, 'staff-experiment-complete'),
 
     # Runlists
