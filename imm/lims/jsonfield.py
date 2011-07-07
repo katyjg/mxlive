@@ -36,3 +36,5 @@ class JSONField(models.TextField):
 
         return super(JSONField, self).get_db_prep_save(value)
 
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules([], ["^imm\.lims\.jsonfield\.JSONField"])
