@@ -61,8 +61,8 @@ def staff_home(request):
                 'on_site': Dewar.objects.filter(status__exact=Dewar.STATES.ON_SITE).count(),
                 },
         'experiments': {
-                'active': Experiment.objects.filter(status__exact=Experiment.STATES.ACTIVE).count(),
-                'processing': Experiment.objects.filter(status__exact=Experiment.STATES.PROCESSING).count(),
+                'active': Experiment.objects.filter(status__exact=Experiment.STATES.ACTIVE).filter(pk__in=Crystal.objects.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).values('experiment')).count(),
+                'processing': Experiment.objects.filter(status__exact=Experiment.STATES.PROCESSING).filter(pk__in=Crystal.objects.filter(status__exact=Crystal.STATES.ON_SITE).values('experiment')).count(),
                 },
         'crystals': {
                 'on_site': Crystal.objects.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).count(),

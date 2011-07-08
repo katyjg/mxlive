@@ -1105,7 +1105,7 @@ class Crystal(LoadableBaseClass):
         """
         assert self.experiment
         if self.status == Crystal.STATES.ON_SITE:
-            if self.experiment.plan != Experiment.EXP_PLANS.JUST_COLLECT:
+            if self.experiment.plan not in [Experiment.EXP_PLANS.JUST_COLLECT, Experiment.EXP_PLANS.COLLECT_FIRST_GOOD]:
                 self.change_screen_status(Crystal.EXP_STATES.PENDING)
                 if self.experiment.plan != Experiment.EXP_PLANS.SCREEN_AND_COLLECT:
                     return
@@ -1265,13 +1265,13 @@ class Data(DataBaseClass):
 
     def archive(self, request=None):
         for obj in self.result_set.all():
-            if obj.status is not GLOBAL_STATES.ARCHIVED:
+            if obj.status not in [GLOBAL_STATES.ARCHIVED, GLOBAL_STATES.TRASHED]:
                 obj.archive(request=request)
         super(Data, self).archive(request=request)
 
     def trash(self, request=None):
         for obj in self.result_set.all():
-            if obj.status is not GLOBAL_STATES.TRASHED:
+            if obj.status not in [GLOBAL_STATES.TRASHED]:
                 obj.trash(request=request)
         super(Data, self).trash(request=request)
 
