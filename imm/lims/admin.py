@@ -107,7 +107,7 @@ staff_site.register(Result, ResultStaffAdmin)
 
 class DataAdmin(admin.ModelAdmin):
     ordering = ['-created']
-    search_fields = ['id','name','beamline__name','delta_angle','crystal__name','frame_sets']
+    search_fields = ['id','name','beamline__name','delta_angle','crystal__name','frame_sets','project__name']
     list_filter = ['modified', 'kind']
     list_display = ('id', 'name', '_Crystal','frame_sets', 'delta_angle', 'total_angle', 'wavelength', 'beamline', 'kind','status')
     list_per_page = ITEMS_PER_PAGE
