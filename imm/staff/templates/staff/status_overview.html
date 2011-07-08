@@ -17,7 +17,7 @@
     <tr><td class="incoming" title="Out-going items">Returned</td>
     <td class="links">
         {% if statistics.shipments.incoming %}
-        <p>({{statistics.shipments.incoming}})<br/><a href="{% url staff-shipment-list %}?status__exact=1">Shipment{{statistics.shipments.incoming|pluralize}}</a></p>
+        <p>({{statistics.shipments.incoming}})<br/><a href="{% url staff-shipment-list %}?status__exact=4">Shipment{{statistics.shipments.incoming|pluralize}}</a></p>
         {% else %}<p class="nothing">No<br/>Shipments</p>{% endif %}
     </td> 
     <td class="links">

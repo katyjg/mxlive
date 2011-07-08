@@ -20,7 +20,7 @@ staff_site.register(Shipment, ShipmentStaffAdmin)
 
 class DewarAdmin(VersionAdmin):
     search_fields = ['name', 'comments']
-    list_filter = ['modified']
+    list_filter = ['modified','status']
     list_display = ('identity', 'name', '_Shipment', 'modified', 'num_containers', 'status')
     ordering = ['-created']    
     list_per_page = ITEMS_PER_PAGE

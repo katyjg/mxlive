@@ -131,7 +131,7 @@ MANAGER_FILTERS = {
     (Container, False) : {'status__in': [Container.STATES.DRAFT, Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED, Container.STATES.RETURNED]},
     (Crystal, True) : {'status__in': [Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
     (Crystal, False) : {'status__in': [Crystal.STATES.DRAFT, Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
-    (Experiment, True) : {'status__in': [Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.COMPLETE, Experiment.STATES.REVIEWED]},
+    (Experiment, True) : {'status__in': [Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.COMPLETE, Experiment.STATES.REVIEWED], 'pk__in': Crystal.objects.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).values('experiment')},
     (Experiment, False) : {'status__in': [Experiment.STATES.DRAFT, Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.COMPLETE, Experiment.STATES.REVIEWED]},
     (Data, True) : {'status__in': [Data.STATES.ACTIVE, Data.STATES.ARCHIVED, Data.STATES.TRASHED]},
     (Data, False) : {'status__in': [Data.STATES.ACTIVE]},
@@ -231,7 +231,7 @@ def show_project(request):
                 'on_site': project.dewar_set.filter(status__exact=Dewar.STATES.ON_SITE).count(),
                 },
         'experiments': {
-                'active': project.experiment_set.filter(status__exact=Experiment.STATES.ACTIVE).count(),
+                'active': project.experiment_set.filter(status__exact=Experiment.STATES.ACTIVE).filter(pk__in=Crystal.objects.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).values('experiment')).count(),
                 'processing': project.experiment_set.filter(status__exact=Experiment.STATES.PROCESSING).count(),
                 },
         'crystals': {
@@ -241,12 +241,12 @@ def show_project(request):
                 },
         'reports':{
                 'total': project.result_set.all().count(),
-                'new': project.result_set.filter(modified__gte=recent_start).count(),
+                'new': project.result_set.filter(modified__gte=recent_start).filter(**project.get_archive_filter()).count(),
                 'start_date': recent_start,                
                 },
         'datasets':{
                 'total': project.data_set.all().count(),
-                'new': project.data_set.filter(modified__gte=recent_start).count(),
+                'new': project.data_set.filter(modified__gte=recent_start).filter(**project.get_archive_filter()).count(),
                 'start_date': recent_start,
         },                
     }
