@@ -66,15 +66,15 @@
             <tbody>
             {% if ol.object_list %}
                 {% for object in ol.object_list %}
-                    <tr class="{% cycle 'odd' 'even' %} link-row">
+                    <tr class="{% cycle 'odd' 'even' %} link-row" title="{% if object.staff_comments %}{{ object.staff_comments }}{% else %}View {{ object.name }}{% endif %}">
                         <td><input type="checkbox" class="checkbox" name="data_chk" value="{{object.pk}}"></td>
                         <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.project }}</td>
                         <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.id  }}</td>
-                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.name }}</td>
-                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.crystal }}</td>
-                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.frame_sets|truncate_chars:10 }}</td>
+                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.name|truncate_chars:10 }}</td>
+                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.crystal.name|truncate_chars:10 }}</td>
+                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.frame_sets|truncate_chars:7 }}</td>
                         <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.beamline }}</td>
-                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.get_kind_display }}</td>
+                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{% ifequal object.get_kind_display 'Collection' %}Collect{% else %}Screen{% endifequal %}</td>
                         <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.created|date:"M d/y" }}</td>
                         <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.get_status_display }}</td>
                         <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.download }}</td>
