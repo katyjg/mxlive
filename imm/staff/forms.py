@@ -68,7 +68,6 @@ class DewarReceiveForm(objforms.forms.OrderedForm):
                 self._errors['barcode'] = self._errors.get('barcode', ErrorList())
                 self._errors['barcode'].append('Invalid barcode format.')
             raise forms.ValidationError('Invalid barcode. Please scan in the correct barcode.')
-        print cleaned_data, self.is_valid(), self.errors
         return cleaned_data
    
 class ShipmentReturnForm(objforms.forms.OrderedForm):
@@ -89,6 +88,9 @@ class ShipmentReturnForm(objforms.forms.OrderedForm):
         """ Returns a warning message to display in the form - accessed in objforms/plain.py """
         shipment = self.instance
         if shipment:
+            container_list = shipment.project.container_set.filter(dewar__shipment__exact=shipment.pk, status__exact=Container.STATES.LOADED)
+            if container_list.count():
+                return 'There are containers still loaded in the %s automounter.' % container_list[0].runlist_set.all()[0].beamline
             for experiment in shipment.project.experiment_set.filter(pk__in=shipment.project.crystal_set.filter(container__dewar__shipment__exact=shipment.pk).values('experiment')):
                 if experiment.status != Experiment.STATES.REVIEWED:
                     return 'Experiment "%s" has not been reviewed. Click "Cancel" to review Experiments.' % experiment.name

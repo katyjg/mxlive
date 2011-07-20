@@ -215,7 +215,8 @@ class LimsWorkbook(object):
                row_values[EXPERIMENT_CELL_C] or \
                row_values[EXPERIMENT_CELL_ALPHA] or \
                row_values[EXPERIMENT_CELL_BETA] or \
-               row_values[EXPERIMENT_CELL_GAMMA]:
+               row_values[EXPERIMENT_CELL_GAMMA] or \
+               row_values[EXPERIMENT_SPACE_GROUP]:
 
                 old_cf = self.project.crystalform_set.all()
                 if row_values[EXPERIMENT_CELL_A]: old_cf = old_cf.filter(cell_a__exact=row_values[EXPERIMENT_CELL_A])
