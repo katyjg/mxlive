@@ -992,7 +992,11 @@ def shipment_pdf(request, id, model, format):
         tex_file = os.path.join(work_dir, '%s.tex' % prefix)
         # render and output the LaTeX into temap_file
         if format == 'protocol' or format == 'runlist':
-            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': request.project, 'group': group, 'shipment' : obj, 'experiments': experiments, 'containers': containers })
+            if format == 'protocol':
+                project = obj.project
+            else:
+                project = request.project
+            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'group': group, 'shipment' : obj, 'experiments': experiments, 'containers': containers })
         elif format == 'label':
             tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': obj.project, 'shipment' : obj})
         elif format == 'return_label':
