@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load zip %}
+{% load split_char %}
 {% block headline %}
 <h2 class="process"> Data Processing Report - &ldquo;{{object.name}}&rdquo;</h2>
 {% endblock %}
@@ -69,7 +70,7 @@
             <tbody>
                 <tr><th colspan=2>Downloads</th></tr>              
                 <tr><td>Output Files</td>
-                    <td>{% for file in object.details.output_files %}<a href="/download/files/{{ object.url }}/{{ file }}" title="Download {{ file }}">{{ file }}</a>{% if forloop.last %}{% else %}, {% endif %}{% endfor %}</td></tr>   
+                    <td>{% for file in object.details.output_files %}{% with file|split_char:"/" as filename %}<a href="/download/files/{{ object.url }}/{{ filename }}" title="Download {{ filename }}">{{ filename }}</a>{% if forloop.last %}{% else %}, {% endif %}{% endwith %}{% endfor %}</td></tr>   
                 <tr><td>Input Files</td>
                     <td>
                     {% with "XDS.INP" as file %}<a href="/download/files/{{ object.url }}/{{ file }}" title="Download {{ file }}">{{ file }}</a>{% endwith %}, 
