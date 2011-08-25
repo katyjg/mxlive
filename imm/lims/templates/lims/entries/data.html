@@ -3,7 +3,7 @@
 {% load image_url %}
 
 {% with object as data %}
-<script type="text/javascript" src="/js/shiftzoom/shiftzoom.js"></script>
+<script type="text/javascript" src="/js/jquery.diffviewer.js"></script>
 <script type="text/javascript">
 	jQuery(document).ready(function() {
         // initialize browser and add classes to body tag
@@ -43,8 +43,7 @@
 <div class="data-image">
     <div id="data-image-loading"><div></div></div>
     <div class="image-wrapper">
-	<!-- making assumption that data.url will be filled, with the key, and it's data name -->
-	<img id="shiftzoomimg" src="{% image_url data 1 'nm' %}" onLoad="shiftzoom.add(this);" class="shiftzoom loading" width="512" height="512">
+        <div id="diffviewer" class="viewer"></div>
 	</div>
     <!-- image navigation -->
     <div class="image-nav">
@@ -81,7 +80,7 @@
 		<li><strong>Wavelength:</strong> {{ data.wavelength }} &#8491;</li>
 		<li><strong>Beam X, Y:</strong>	{{ data.beam_x }}, {{ data.beam_y }}</li>
 		<li><strong>Pixel Size:</strong> {{ data.pixel_size }} mm</li>
-		<li><strong>Two Theta:</strong> {{ data.two_theta }} deg</li>
+		<li><strong>Two Theta:</strong> {{ data.two_theta|floatformat:1}} deg</li>
 		<li><strong>Exposure time:</strong> {{ data.exposure_time }} sec</li>
 		<li id="framename" class="separator">Current: </li>
 		<li id="oscstart">Osc. Start: </li>
@@ -106,16 +105,13 @@
 	var $current_frame_to_display = 1;
 	var $current_brightness_to_display = 'nm';
 	var $expanded_frame_set = {{ data.get_frame_list }};
-    shiftzoom.defaultPercentcoords = true;
-    shiftzoom.defaultShowcoords = true;
-    shiftzoom.defaultPixelcoords = false;
     dataViewer.setPars({{data.wavelength}}, {{data.resolution}});
 	function changeBrightness(brightness) {
 		if (brightness == $current_brightness_to_display) {
 			return;
 		}
 		$current_brightness_to_display = brightness;
-		shiftzoom.source(document.getElementById('shiftzoomimg'), makeCorrectUrl(), true);
+        jQuery("#diffviewer").data('viewer').loadImage(makeCorrectUrl());
 	};
 
 	function makeCorrectUrl() {
@@ -146,6 +142,23 @@
 		$current_brightness_to_display = "nm";
 		updateFrameDetails();
 		$expanded_frame_set = {{ data.get_frame_list }};
+        jQuery("#diffviewer").diffviewer({
+            src: "{% image_url data 1 'nm' %}", 
+            //update_on_resize: false,
+            zoom: 50,
+            zoom_min: 50,
+            onStartLoad: function() {
+                dataViewer.showActivity();
+            },
+            onFinishLoad: function() {
+                $("#diffviewer").data('viewer').setCoords(-500,-500);
+                dataViewer.hideActivity();
+            },
+            resFunc: function(r) {
+                return dataViewer.calcRes(r);
+            }
+        });
+
 	});
 	
 	function updateFrameDetails() {
@@ -167,9 +180,7 @@
 		if ((index != -1) && (index < $expanded_frame_set.length -1)) {
 			index++;
 			$current_frame_to_display = $expanded_frame_set[index];
-		
-			shiftzoom.source(document.getElementById('shiftzoomimg'), makeCorrectUrl(), true);
-		
+            jQuery("#diffviewer").data('viewer').loadImage(makeCorrectUrl());
 			updateFrameDetails();
 		}
 		return;
@@ -181,9 +192,7 @@
 		if ((index != -1) && (index > 0)) {
 			index--;
 			$current_frame_to_display = $expanded_frame_set[index];
-		
-			shiftzoom.source(document.getElementById('shiftzoomimg'), makeCorrectUrl(), true);
-		
+            jQuery("#diffviewer").data('viewer').loadImage(makeCorrectUrl());
 			updateFrameDetails();
 		}
 		return;
@@ -193,9 +202,7 @@
 		index = $expanded_frame_set.indexOf(frame);
 		if (index != -1) {
 			$current_frame_to_display = $expanded_frame_set[index];
-
-			shiftzoom.source(document.getElementById('shiftzoomimg'), makeCorrectUrl(), true);
-
+            jQuery("#diffviewer").data('viewer').loadImage(makeCorrectUrl());
 			updateFrameDetails();
 		}
 		return;

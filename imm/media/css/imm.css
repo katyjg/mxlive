@@ -1,3 +1,7 @@
+/* diffraction viewer stuff */
+@import url("/css/jquery.diffviewer.css");
+
+
 table { border-collapse: collapse;  empty-cells: show;}
 #content-title h2 {
     font-size: 1.6em;
@@ -701,9 +705,7 @@ div.runlist.droppable {
     background: url(/img/dewar-hover.png) no-repeat center center !important;
     border: none;
 }
-#shiftzoomimg_ttip {
-    z-index: 1003;
-}
+
 li.Uni-Puck {
     background: url('/img/container-uni-puck-sm.png') no-repeat 5px center;
 }
@@ -1049,8 +1051,7 @@ ul.filter-choices ul {
 }
 
 #data-viewer .image-wrapper {
-    border: 1px solid #ccc !important;
-    margin-bottom: 5px;
+    overflow: hidden;
 }
 
 #data-viewer .image-nav {
@@ -1103,4 +1104,13 @@ ul.filter-choices ul {
     position: absolute;
     top: 0;
     width: 40px;
+}
+
+
+#data-viewer .viewer {
+    width: 512px;
+    height: 512px;
+    border: 1px solid #bbb;
+    position: relative;
+    margin-bottom: 5px;
 }
