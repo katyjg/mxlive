@@ -1450,7 +1450,8 @@ def plot_overlap_analysis(request, id):
     ax1 = fig.add_subplot(111)
     keys = [(float(k),k) for k in data.keys()]
     for _,k in sorted(keys):       
-        ax1.plot(angle, data[k], label=k)
+        if len(data[k]) is len(angle):
+            ax1.plot(angle, data[k], label=k)
     ax1.set_ylabel('Maximum delta (deg)')
     ax1.grid(True)
     ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
@@ -1655,16 +1656,19 @@ def plot_wilson_stats(request, id):
     ax1.xaxis.set_major_locator(ResLocator())
     
     # set font parameters for the ouput table
-    wilson_line = result.details['wilson_line']
-    wilson_scale = result.details['wilson_scale']
-    fontpar = {}
-    fontpar["family"]="monospace"
-    fontpar["size"]=9
-    info =  "Estimated B: %0.3f\n" % wilson_line[0]
-    info += "sigma a: %8.3f\n" % wilson_line[1]
-    info += "sigma b: %8.3f\n" % wilson_line[2]
-    info += "Scale factor: %0.3f\n" % wilson_scale    
-    fig.text(0.55,0.65, info, fontdict=fontpar, color='k')
+    try:
+        wilson_line = result.details['wilson_line']
+        wilson_scale = result.details['wilson_scale']
+        fontpar = {}
+        fontpar["family"]="monospace"
+        fontpar["size"]=9
+        info =  "Estimated B: %0.3f\n" % wilson_line[0]
+        info += "sigma a: %8.3f\n" % wilson_line[1]
+        info += "sigma b: %8.3f\n" % wilson_line[2]
+        info += "Scale factor: %0.3f\n" % wilson_scale    
+        fig.text(0.55,0.65, info, fontdict=fontpar, color='k')
+    except:
+        pass
 
     # make and return png image
     canvas = FigureCanvas(fig)
