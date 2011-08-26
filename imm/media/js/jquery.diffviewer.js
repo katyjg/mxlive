@@ -201,7 +201,7 @@
                 removeAttr("src").
                 removeAttr("width").
                 removeAttr("height").
-                css({ top: 0, left: 0 }).
+                css({ top: 0, left: 0, display: "none" }).
                 load(function(){
                     me.image_loaded = true;
                     me.img_object.display_width = me.img_object.orig_width = this.width;
@@ -224,7 +224,7 @@
                     }
                 
                 //src attribute is after setting load event, or it won't work
-            }).attr("src",src);
+            }).attr("src", src);
             this.overview_img.attr("src", src);
         },
                   
@@ -428,6 +428,7 @@
             
             this.img_object.object.attr("width",new_width)
                              .attr("height",new_height);
+            this.img_object.object.css({ display: "block" });
             this.img_object.display_width = new_width;
             this.img_object.display_height = new_height;
                                
