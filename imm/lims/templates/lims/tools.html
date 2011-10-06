@@ -36,7 +36,7 @@
         {% endif %}
         {% if object.is_receivable %}
             <li class="receive-tool">
-                <a href="{% url staff-dewar-receive %}?name={{object.name}}"  class="action modal-form">
+                <a href="{% url staff-dewar-receive object.pk %}?name={{object.name}}"  class="action modal-form">
                     Receive
                 </a>
             </li>

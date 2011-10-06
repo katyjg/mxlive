@@ -12,7 +12,7 @@
             <a class="dewar-title" href="{% url lims-dewar-detail dewar.id %}" title="{{ dewar.name }}">{{ dewar.name|truncate_chars:15 }}</a>
             {% if admin %}{% if dewar.is_receivable %}
             <a class="receive modal-form"
-               href="{% url staff-dewar-receive %}?name={{dewar.name}}"
+               href="{% url staff-dewar-receive dewar.pk %}?name={{dewar.name}}"
                title="Receive this dewar">&nbsp;</a>{% endif %}{% endif %}
             {% if dewar.shipment.is_editable %}
             <a class="remove"

@@ -86,7 +86,7 @@ def staff_home(request):
     
 @admin_login_required
 @transaction.commit_on_success
-def receive_shipment(request, model, form, template='objforms/form_base.html', action=None):
+def receive_shipment(request, id, model, form, template='objforms/form_base.html', action=None):
     """
     """
     save_label = None
@@ -116,7 +116,15 @@ def receive_shipment(request, model, form, template='objforms/form_base.html', a
             'form' : frm, 
             }, context_instance=RequestContext(request))
     else:
-        frm = form(initial=dict(request.GET.items()))
+        try:
+            obj = model.objects.get(pk=id)
+            init_dict = {'barcode': 'CLS%04i-%04i' % (obj.pk, obj.shipment.pk)}
+            if not obj.storage_location:
+                init_dict['storage_location'] = 'CMCF 1608.7'
+        except:
+            obj = None
+            init_dict = dict(request.GET.items())
+        frm = form(instance=obj, initial=init_dict)
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm, 
