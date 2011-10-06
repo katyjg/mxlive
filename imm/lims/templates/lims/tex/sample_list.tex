@@ -83,12 +83,12 @@
 \multicolumn{2}{c|}{ {{ exp.name|texsafe|default:"" }} }&
 {{ exp.get_kind_display|texsafe|default:"" }}&
 {{ exp.get_plan_display|texsafe|default:"" }}&
-{{ exp.absorption_edge|texsafe|default:"" }}&
+{% if exp.absorption_edge %}{{ exp.absorption_edge|texsafe|default:"" }}{% endif %}&
 {% if exp.energy %}{{ exp.energy|texsafe|default:"" }}{% endif %}&
 {% if exp.total_angle %}{{ exp.total_angle|texsafe|default:"" }}{% endif %}&
 {% if exp.delta_angle %}{{ exp.delta_angle|texsafe|default:"" }}{% endif %}&
 {% if exp.resolution %}{{ exp.resolution|texsafe|default:"" }}{% endif %}&
-{{ exp.comments|texsafe|default:"" }}\nopagebreak \\ \cline{2-11} \nopagebreak
+{% if exp.comments %}{{ exp.comments|texsafe|default:"" }}{% endif %}\nopagebreak \\ \cline{2-11} \nopagebreak
 
  & \multicolumn{2}{c}{\cellcolor[gray]{.92}Crystal} & 
 \multicolumn{1}{c}{\cellcolor[gray]{.92}Pr.} & 
