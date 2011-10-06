@@ -297,7 +297,7 @@ ul.toolbar li.component-tool {background-image: url(/img/drive-harddisk.png);}
 ul.toolbar li.download-tool {background-image: url(/img/download-icon-32.png); cursor: pointer;}
 ul.toolbar li.trash-tool {background-image: url(/img/trash-icon.png);}
 a.download-tool {background-image: url(/img/download-icon.png); float: right; padding:8px; margin-top: 4px;}
-
+a.receive-tool {background-image: url(/img/receive-icon-sm.png); padding: 3px 10px}
 
 /* -- end toolbar -- */
 
