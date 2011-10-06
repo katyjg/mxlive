@@ -97,8 +97,10 @@ div.entrycomment {
 	border-radius:5px;
     padding-top: 10px;
 }
-
-
+div.sidebar-comment {
+	float: None;
+	margin-bottom: 10px;
+}
 div.entrycomment h3 {
     color: #a38db6;
     border-bottom: 1px dotted #a38db6;
@@ -155,6 +157,9 @@ div.entrycomment ul li {
     float: left;
     clear: left;
 }
+.sidebar-summary {
+	width: 100%
+}	
 .entrysummary th {
     text-align: left;
     font-weight: bold;

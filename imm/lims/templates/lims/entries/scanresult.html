@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load zip %}
+{% load markup %}
+{% block headline %}
+<h2 class="process"><span class="identity">{{ object.identity }}</span> {{ object.get_kind_display }} - &ldquo;{{object.name}}&rdquo;</h2>
+{% endblock %}
+{% block object-tools %}
+<div class="object-tools">
+    {% include "lims/tools.html" %}
+    <ul class="toolbar">
+        <li class="print-tool" >
+            <a href="javascript:window.print();">Print</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+{% block content %}
+<!--div class="data-image"-->
+    {% ifequal object.kind 1 %}
+    <img src="{% url lims-plot-xrf object.id %}" />
+    {% else %}
+        <img src="{% url lims-plot-xanes object.id %}" />
+    {% endifequal %}
+<!--/div-->
+{% endblock %}
+
+{% block sidebar %}
+<div class="meta-data">
+<table class="entrysummary sidebar-summary" cellpadding="2" cellspacing="0" border="0" width="100%">
+    <tr valign="top"><th>Status:</th><td>{{ object.get_status_display }}</td></tr>
+    <tr valign="top"><th>Beamline:</th><td>{{ object.beamline }}</td></tr>
+    <tr valign="top"><th>Created:</th><td>{{ object.created|date:"dMY-H:i" }}</td></tr>
+    <tr valign="top"><th>Edge:</th><td>{{ object.edge }}</td></tr>
+    <tr valign="top"><th>Energy:</th><td>{{ object.energy }}</td></tr>
+    <tr valign="top"><th NOWRAP>Exposure Time:</th><td>{% if object.exposure_time %}{{ object.exposure_time }}s{% endif %}</td></tr>
+    <tr valign="top"><th>Attenuation:</th><td>{% if object.attenuation %}{{ object.attenuation }}%{% endif %}</td></tr>
+    {% if object.crystal %}
+        <tr valign="top"><th>Crystal:</th><td><a href="{% url lims-crystal-detail object.crystal.pk %}">{{object.crystal}}</a></td></tr>
+    {% else %}
+        <tr valign="top"><th>Crystal:</th><td>None</td></tr>
+    {% endif %}
+    {% if object.experiment %}
+        <tr valign="top"><th>Experiment:</th><td><a href="{% url lims-experiment-detail object.experiment.pk %}">{{object.experiment}}</a></td></tr>
+    {% else %}
+        <tr valign="top"><th>Experiment:</th><td>None</td></tr>
+    {% endif %}
+</table>
+</div>
+<div class="clear" ></div>
+
+{% if object.comments or object.staff_comments %}
+    <div class="entrycomment sidebar-comment">
+    <span class="left-pointer"></span>
+    <h3>Comments</h3>
+    <div class="staff">{{ object.staff_comments|default:""|restructuredtext}}</div>
+    </div>
+{% endif %}
+<!--/div-->
+    {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
+        <div class="clear"></div>
+        {% include "lims/individual_history.html" %}
+    {% else %}
+        {% include "staff/entries/comments_form.html" %}
+    {% endif %}
+
+
+{% endblock %}

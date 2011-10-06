@@ -1364,6 +1364,12 @@ class ScanResult(DataBaseClass):
     details = JSONField()
     kind = models.IntegerField('Scan type',max_length=1, choices=SCAN_TYPES.get_choices())
     
+    energy = models.FloatField(null=True, blank=True)
+    exposure_time = models.FloatField(null=True, blank=True)
+    attenuation = models.FloatField(null=True, blank=True)
+    beamline = models.ForeignKey(Beamline)
+    
+    
     def identity(self):
         return 'SC%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
