@@ -978,11 +978,13 @@ def shipment_pdf(request, id, model, format):
         containers = obj.project.container_set.filter(dewar__in=obj.dewar_set.all())
         experiments = obj.project.experiment_set.filter(pk__in=obj.project.crystal_set.filter(container__dewar__shipment__exact=obj.pk).values('experiment')).order_by('priority').reverse()
         group = None
+        num_crystals = obj.project.crystal_set.filter(container__pk__in=containers).count()
 
     if format == 'runlist':
         containers = obj.containers.all()
         experiments = Experiment.objects.filter(pk__in=Crystal.objects.filter(container__in=obj.containers.all()).values('experiment')).order_by('priority').reverse()
         group = Project.objects.filter(pk__in=obj.containers.all().values('project'))
+        num_crystals = obj.project.crystal_set.filter(container__pk__in=containers).count()
 
     work_dir = create_cache_dir(obj.label_hash())
     prefix = "%s-%s" % (obj.label_hash(), format)
@@ -996,7 +998,7 @@ def shipment_pdf(request, id, model, format):
                 project = obj.project
             else:
                 project = request.project
-            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'group': group, 'shipment' : obj, 'experiments': experiments, 'containers': containers })
+            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'group': group, 'shipment' : obj, 'experiments': experiments, 'containers': containers, 'num_crystals': num_crystals })
         elif format == 'label':
             tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': obj.project, 'shipment' : obj})
         elif format == 'return_label':
