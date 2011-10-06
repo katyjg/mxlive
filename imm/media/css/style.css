@@ -806,6 +806,30 @@ div.object-list h3
     font-weight: bold;
 }
 
+div.object-list td h3
+{
+	background: none repeat scroll 0 0 #EEEEEE;
+}
+
+div.object-list td.title
+{
+	background-color: #EEEEEE;
+}
+
+div.object-list td.stable h3 
+{
+	text-align: left;
+}
+div.object-list td.blank
+{
+	border-bottom: None;
+	width: 6px;
+}
+div.object-list td.stable 
+{  
+	vertical-align: top;
+	border-bottom: None;
+}
 div.object-list .table-notes
 {
     padding: 1em;

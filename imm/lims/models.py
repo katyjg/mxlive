@@ -1064,6 +1064,9 @@ class Crystal(LoadableBaseClass):
 
     def get_result_set(self):
         return self.result_set.filter(**self.project.get_archive_filter())
+    
+    def get_scanresult_set(self):
+        return self.scanresult_set.filter(**self.project.get_archive_filter())
 
     def best_screening(self):
         info = {}
@@ -1363,6 +1366,12 @@ class ScanResult(DataBaseClass):
     edge = models.CharField(max_length=20)
     details = JSONField()
     kind = models.IntegerField('Scan type',max_length=1, choices=SCAN_TYPES.get_choices())
+    
+    energy = models.FloatField(null=True, blank=True)
+    exposure_time = models.FloatField(null=True, blank=True)
+    attenuation = models.FloatField(null=True, blank=True)
+    beamline = models.ForeignKey(Beamline)
+    
     
     def identity(self):
         return 'SC%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))

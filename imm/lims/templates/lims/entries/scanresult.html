@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load zip %}
+{% load markup %}
+{% load converter %}
+
+{% block headline %}
+<h2 class="process"><span class="identity">{{ object.identity }}</span> {{ object.get_kind_display }} - &ldquo;{{object.name}}&rdquo;</h2>
+{% endblock %}
+
+{% block object-tools %}
+<div class="object-tools">
+    {% include "lims/tools.html" %}
+    <ul class="toolbar">
+        <li class="print-tool" >
+            <a href="javascript:window.print();">Print</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    {% ifequal object.kind 1 %}
+        <img src="{% url lims-plot-xrf object.id %}" />
+    {% else %}
+        <img src="{% url lims-plot-xanes object.id %}" />
+    {% endifequal %}
+    <div class="object-list">
+        {% ifequal object.kind 1 %}<h3>Output Log</h3>
+        {% else %}<h3>Selected Energies for 3-Wavelength MAD data and corresponding anomalous scattering factors.</h3>
+        {% endifequal %}
+        <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">
+            <thead>
+	            <tr class="header">
+                    {% ifequal object.kind 1 %}
+	                    <th>Identity</th>
+	                    <th>Position</th>
+	                    <th>Height</th>
+	                    <th>FWHM</th>  
+	                {% else %}
+		                <th width="20%"></th>
+		                <th width="20%">Wavelength (&#8491;)</th>
+		                <th width="20%">Energy (keV)</th>
+		                <th width="20%">f'</th>
+		                <th width="20%">f''</th>
+		            {% endifequal %}
+	            </tr>
+	        </thead>
+	        <tbody>
+	            {% ifequal object.kind 1 %}
+		            {% for data in object.details.peaks %}
+			            <tr class="{% cycle 'odd' 'even' %}">
+			               <td>{{ data.4 }}</td>
+			               <td>{{ data.0|floatformat:3 }}</td>
+			               <td>{{ data.1 }}</td>
+			               <td>{{ data.2|floatformat:3 }}</td>
+			            </tr>
+		            {% endfor %}
+	            {% else %}
+		            {% for data in object.details.energies %}
+			            <tr class="odd">
+			               <td>{{ data.0|capfirst }}</td>
+			               <td>{{ data.1|energy_to_wavelength|floatformat:4 }}</td>
+			               <td>{{ data.1|floatformat:5 }}</td>
+			               <td>{{ data.2 }}</td>
+			               <td>{{ data.3 }}</td>
+			            </tr>
+	               {% endfor %}
+	            {% endifequal %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block sidebar %}
+<div class="meta-data">
+<table class="entrysummary sidebar-summary" cellpadding="2" cellspacing="0" border="0" width="100%">
+    <tr valign="top"><th>Status:</th><td>{{ object.get_status_display }}</td></tr>
+    <tr valign="top"><th>Beamline:</th><td>{{ object.beamline }}</td></tr>
+    <tr valign="top"><th>Created:</th><td>{{ object.created|date:"dMY-H:i" }}</td></tr>
+    <tr valign="top"><th>Edge:</th><td>{{ object.edge }}</td></tr>
+    <tr valign="top"><th>Energy:</th><td>{{ object.energy }}</td></tr>
+    <tr valign="top"><th NOWRAP>Exposure Time:</th><td>{% if object.exposure_time %}{{ object.exposure_time }}s{% endif %}</td></tr>
+    <tr valign="top"><th>Attenuation:</th><td>{% if object.attenuation %}{{ object.attenuation }}%{% endif %}</td></tr>
+    {% if object.crystal %}
+        <tr valign="top"><th>Crystal:</th><td><a href="{% url lims-crystal-detail object.crystal.pk %}">{{object.crystal}}</a></td></tr>
+    {% else %}
+        <tr valign="top"><th>Crystal:</th><td>None</td></tr>
+    {% endif %}
+    {% if object.experiment %}
+        <tr valign="top"><th>Experiment:</th><td><a href="{% url lims-experiment-detail object.experiment.pk %}">{{object.experiment}}</a></td></tr>
+    {% else %}
+        <tr valign="top"><th>Experiment:</th><td>None</td></tr>
+    {% endif %}
+</table>
+</div>
+<div class="clear" ></div>
+
+{% if object.comments or object.staff_comments %}
+    <div class="entrycomment sidebar-comment">
+    <span class="left-pointer"></span>
+    <h3>Comments</h3>
+    <div class="staff">{{ object.staff_comments|default:""|restructuredtext}}</div>
+    </div>
+{% endif %}
+<!--/div-->
+    {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
+        <div class="clear"></div>
+        {% include "lims/individual_history.html" %}
+    {% else %}
+        {% include "staff/entries/comments_form.html" %}
+    {% endif %}
+
+
+{% endblock %}

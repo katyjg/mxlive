@@ -1,52 +1,82 @@
 {% load score_colors %}
+{% load truncate_filters %}
 
 <div class="object-list crystal-data-table">
+<table width="100%">
+<td class="stable">
 <h3>Datasets</h3>
 <table cellspacing="0" cellpadding="2" border="0" width="100%">
     <thead>
         <tr class="header">
             <th>Dataset</th>
-      		<th>Frame sets</th>
-            <th>Delta Angle</th>
-            <th>Wavelength</th>
+            <th>Frames</th>
+            <th>Delta</th>
+            <th>Energy</th>
         </tr>
     </thead>
     <tbody>
     {% for data in object.get_data_set %}
         <tr class="{% cycle 'odd' 'even'%}">
-        	<td><a href="{% url lims-data-detail data.pk %}" class="modal" >{{ data.name }}</a></td>
-        	<td>{{ data.num_frames }}</td>
-        	<td>{{ data.delta_angle }}</td>
-        	<td>{{ data.wavelength }}</td>
+            <td><a href="{% url lims-data-detail data.pk %}" class="modal" >{{ data.name }}</a></td>
+            <td>{{ data.num_frames }}</td>
+            <td>{{ data.delta_angle }}</td>
+            <td>{{ data.energy|floatformat:3 }}</td>
     {% empty %}
-        <tr><td colspan="20" align="center" class="list-empty">(No datasets collected for this crystal)</td></tr>
+        <tr><td colspan="20" align="center" class="list-empty">(No datasets collected)</td></tr>
     {% endfor %}
     </tbody>
 </table>
-</div>
-
-<div class="object-list crystal-report-table">
+</td>
+<td class="blank"></td>
+<td class="stable">
 <h3>Reports</h3>
 <table cellspacing="0" cellpadding="2" border="0" width="100%">
     <thead>
         <tr class="header">
             <th>Report</th>
-      		<th>Type</th>
-            <th>Resolution</th>
-            <th>Completeness</th>
+            <th>Type</th>
+            <th>Res</th>
+            <th>Complete (%)</th>
         </tr>
     </thead>
     <tbody>
         {% for result in object.get_result_set %}
         <!-- "odd" if loop_count % 2 == 1 else "even" -->
             <tr class="{% cycle 'odd' 'even'%}">
-            	<td><a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|color_score:2 }})</a></td>
-            	<td>{% if result.kind == 0 %}Screening{% else %}{% if result.kind == 1 %}Collection{% endif %}{% endif %}</td>
-            	<td>{{ result.resolution }}</td>
-            	<td>{{ result.completeness }}</td>
+                <td><a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|color_score:2 }})</a></td>
+                <td>{% if result.kind == 0 %}Screen{% else %}{% if result.kind == 1 %}Collect{% endif %}{% endif %}</td>
+                <td>{{ result.resolution }}</td>
+                <td>{{ result.completeness }}</td>
         {% empty %}
-            <tr><td colspan="20" align="center" class="list-empty">(No reports available for this crystal)</td></tr>        
-       	{% endfor %}
+            <tr><td colspan="20" align="center" class="list-empty">(No reports available)</td></tr>        
+        {% endfor %}
     </tbody>
 </table>
+</td>
+{% if object.get_scanresult_set %}
+<td class="blank"></td>
+<td class="stable">
+<h3>Scans</h3>
+<table cellspacing="0" cellpadding="2" border="0" width="100%">
+    <thead>
+        <tr class="header">
+            <th>Scan</th>
+            <th>Type</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for scan in object.get_scanresult_set %}
+        <!-- "odd" if loop_count % 2 == 1 else "even" -->
+            <tr class="{% cycle 'odd' 'even'%}" title="{{ scan.name }}">
+                <td><a href="{% url lims-scanresult-detail scan.pk %}">{{ scan.name|truncate_chars:10 }}</a></td>
+                <td>{% ifequal scan.kind 1 %}Excitation{% else %}MAD{% endifequal %}</td>
+        {% empty %}
+            <tr><td colspan="20" align="center" class="list-empty">(No scans available)</td></tr>        
+        {% endfor %}
+    </tbody>
+</table>
+</td>
+{% endif %}
+</table>
 </div>
+

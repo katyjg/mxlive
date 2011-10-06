@@ -248,7 +248,12 @@ def show_project(request):
                 'total': project.data_set.all().count(),
                 'new': project.data_set.filter(modified__gte=recent_start).filter(**project.get_archive_filter()).count(),
                 'start_date': recent_start,
-        },                
+                },        
+        'scanresults':{
+                'total': project.scanresult_set.all().count(),
+                'new': project.scanresult_set.filter(modified__gte=recent_start).filter(**project.get_archive_filter()).count(),
+                'start_date': recent_start,
+                },              
     }
     
     return render_to_response('lims/project.html', {
@@ -684,8 +689,11 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html',
     }
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
-        if not obj.comments: base_comments = ''
-        else: base_comments = obj.comments
+        try:
+            if not obj.comments: base_comments = ''
+            else: base_comments = obj.comments
+        except:
+            base_comments = ''
         if frm.is_valid():
             if user == 'staff':
                 author = ' by staff'
@@ -1195,6 +1203,68 @@ def add_report(request, report_info):
     except Exception, e:
         raise exceptions.ServerError(e.message)
 
+@jsonrpc_method('lims.add_scan')
+@apikey_required
+def add_scan(request, scan_info):
+    # check if project_id is provided if not check if project_name is provided
+    if scan_info.get('project_id') is not None:
+        scan_owner = Project.objects.get(pk=scan_info['project_id'])   
+    elif scan_info.get('project_name') is not None:
+        try:
+            scan_owner = Project.objects.get(name=scan_info['project_name'])
+        except:
+            scan_owner = create_project(username=scan_info['project_name'])
+        scan_info['project_id'] = scan_owner.pk
+        del scan_info['project_name']
+    else:
+        raise exceptions.InvalidRequestError('Unknown Project')
+
+    # check if beamline_id is provided if not check if beamline_name is provided
+    if scan_info.get('beamline_id') is None:
+        if scan_info.get('beamline_name') is not None:
+            try:
+                beamline = Beamline.objects.get(name=scan_info['beamline_name'])
+                del scan_info['beamline_name']
+                scan_info['beamline_id'] = beamline.pk
+            except Beamline.DoesNotExist:
+                raise exceptions.InvalidRequestError('Unknown Beamline')
+
+    # convert unicode to str
+    new_info = {}
+    for k,v in scan_info.items():
+        new_info[str(k)] = v
+    try:
+        # if id is provided, make sure it is owned by current owner otherwise add new entry
+        # to prevent overwriting other's stuff
+        force_update = False
+        if new_info.get('id') is not None:
+            try:
+                new_obj = scan_owner.scan_result_set.get(pk=new_info.get('id'))
+                force_update = True
+                new_info['created'] = datetime.now()
+            except:
+                new_info['id'] = None
+        new_obj = ScanResult(**new_info) 
+        try:
+            new_obj.experiment = new_obj.crystal.experiment
+        except:
+            pass
+        new_obj.save(force_update=force_update)
+        
+        print "new_obj", new_obj, type(new_obj.details), new_obj.details.keys()
+        for k in new_obj.details.keys():
+            try:
+                print "this", k, new_obj.details[k].keys()
+            except:
+                print k
+        
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, "New scan uploaded from beamline")
+        return {'scan_id': new_obj.pk}
+    except Exception, e:
+        print e.message
+        raise exceptions.ServerError(e.message)
+    
+    
 
 @jsonrpc_method('lims.add_result')
 @apikey_required
@@ -1299,6 +1369,125 @@ PLOT_WIDTH = 8
 PLOT_HEIGHT = 7 
 PLOT_DPI = 75
 IMG_WIDTH = int(round(PLOT_WIDTH * PLOT_DPI))
+
+@login_required
+@cache_page(60*3600)
+def plot_xrf_scan(request, id):
+    try:
+        project = request.user.get_profile()
+        scan = project.scanresult_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            scan = get_object_or_404(ScanResult, pk=id)
+        else:
+            raise Http404
+
+    data = scan.details
+    if data is None:
+        raise Http404
+    
+    x = numpy.array(data['energy'])
+    y = numpy.array(data['counts'])
+    ypadding = (y.max() - y.min())/8.0  # pad 1/8 of range to either side
+    
+    fig = Figure(figsize=(PLOT_WIDTH*1.1, PLOT_HEIGHT*0.9), dpi=PLOT_DPI)
+    fig.subplots_adjust(left=0.1, right=0.95, top=0.95, bottom=0.1)
+    ax1 = fig.add_subplot(111)
+    ax1.set_title('X-Ray Fluorescence')
+    ax1.set_ylabel('Fluorescence')
+    ax1.set_xlabel('Energy (keV)')
+    ax1.plot(x, y, 'b-', lw=1, markersize=3, markerfacecolor='w', markeredgewidth=1)
+    ax1.grid(True)
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    #only update limits if they are wider than current limits
+    curr_ymin, curr_ymax = ax1.get_ylim()
+    ymin = (curr_ymin+ypadding < y.min()) and curr_ymin  or (y.min() - ypadding)
+    ymax = (curr_ymax-ypadding > y.max()) and curr_ymax  or (y.max() + ypadding)
+    ax1.set_ylim((ymin, ymax))
+    ax1.set_xlim((x.min(), x.max()))
+
+    peaks = data['peaks']
+    if peaks is None:
+        return
+    tick_size = max(y)/50.0
+    for peak in peaks:
+        if len(peak)> 4:
+            el, pk = peak[4].split('-')
+            lbl = '%s-%s' % (el, pk)
+            lbls = ', '.join(peak[4:])
+        else:
+            lbl = '?'
+            lbls = ''
+        ax1.plot([peak[0], peak[0]], [peak[1]+tick_size,peak[1]+tick_size*2], 'm-')
+        ax1.text(peak[0], 
+                 peak[1]+tick_size*4.2,
+                 lbl,
+                 horizontalalignment='center', 
+                 color='black', size=12)
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+@login_required
+@cache_page(60*3600)
+def plot_xanes_scan(request, id):
+    try:
+        project = request.user.get_profile()
+        scan = project.scanresult_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            scan = get_object_or_404(ScanResult, pk=id)
+        else:
+            raise Http404
+
+    data = scan.details
+    if data is None:
+        raise Http404
+    
+    x = data['data']['energy']
+    y = data['data']['counts']
+    x11 = data['efs']['energy']
+    fpp = data['efs']['fpp']
+    fp = data['efs']['fp']
+            
+    fig = Figure(figsize=(PLOT_WIDTH*1.1, PLOT_HEIGHT*0.9), dpi=PLOT_DPI)
+    fig.subplots_adjust(left=0.1, right=0.9, top=0.95, bottom=0.1)
+    ax1 = fig.add_subplot(111)
+    ax1.plot(x, y, 'b')   
+    
+    ax11 = ax1.twinx()
+    ax11.plot(x11, fpp, 'r')
+    ax11.plot(x11, fp, 'g')
+
+    ax1.set_title("%s Edge Scan" % scan.edge)
+    ax1.set_xlabel("Energy (keV)")
+    ax1.set_ylabel("Fluorescence Counts")
+    ax11.set_ylabel("Anomalous scattering factors (f', f'')")
+
+    ypadding = (max(y) - min(y))/8.0  # pad 1/8 of range to either side
+    curr_ymin, curr_ymax = ax1.get_ylim()
+    ymin = (curr_ymin+ypadding < min(y)) and curr_ymin  or (min(y) - ypadding)
+    ymax = (curr_ymax-ypadding > max(y)) and curr_ymax  or (max(y) + ypadding)
+
+    y1padding = (min(fp) < 0) and (abs(min(fp)) + max(fpp))/50.0 or (max(fpp) - min(fp))/50.0
+    y1min = min(fp) - y1padding
+    y1max = max(fpp) + y1padding
+    
+    ax1.set_ylim(ymin, ymax)
+    ax1.set_xlim(min(data['data']['energy']), max(data['data']['energy']))
+    ax11.set_ylim(y1min, y1max)
+
+    for p in data['energies']:
+        ax1.axvline( p[1], color='m', linestyle=':', linewidth=1)
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+    
+
 
 @login_required
 @cache_page(60*3600)
