@@ -122,12 +122,13 @@ def project_optional(function):
             return function(request, *args, **kwargs)
     return project_optional_wrapper
 
+# True = Staff; False = Users
 MANAGER_FILTERS = {
     (Shipment, True) : {'status__in': [Shipment.STATES.SENT, Shipment.STATES.ON_SITE, Shipment.STATES.RETURNED], 'pk__in': Shipment.objects.exclude(modified__lte=datetime.now() - timedelta(days=7), status__exact=Shipment.STATES.RETURNED).values('pk')},
     (Shipment, False) : {'status__in': [Shipment.STATES.DRAFT, Shipment.STATES.SENT, Shipment.STATES.ON_SITE, Shipment.STATES.RETURNED]},
-    (Dewar, True) : {'status__in': [Dewar.STATES.SENT, Dewar.STATES.ON_SITE, Dewar.STATES.RETURNED]},
+    (Dewar, True) : {'status__in': [Dewar.STATES.SENT, Dewar.STATES.ON_SITE, Dewar.STATES.RETURNED], 'pk__in': Dewar.objects.exclude(modified__lte=datetime.now() - timedelta(days=7), status__exact=Dewar.STATES.RETURNED).values('pk')},
     (Dewar, False) : {'status__in': [Dewar.STATES.DRAFT, Dewar.STATES.SENT, Dewar.STATES.ON_SITE, Dewar.STATES.RETURNED]},
-    (Container, True) : {'status__in': [Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED, Container.STATES.RETURNED]},
+    (Container, True) : {'status__in': [Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED, Container.STATES.RETURNED], 'pk__in': Container.objects.exclude(modified__lte=datetime.now() - timedelta(days=7), status__exact=Container.STATES.RETURNED).values('pk')},
     (Container, False) : {'status__in': [Container.STATES.DRAFT, Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED, Container.STATES.RETURNED]},
     (Crystal, True) : {'status__in': [Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
     (Crystal, False) : {'status__in': [Crystal.STATES.DRAFT, Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},

@@ -115,7 +115,7 @@ admin.site.register(Data, DataAdmin)
 
 class DataStaffAdmin(DataAdmin):
     list_filter = ['modified','kind','status']
-    list_display = ('project','id','name','_Crystal','frame_sets','beamline','kind','created','status','download')
+    list_display = ('project','id','name','_Crystal','beamline','kind','created','status','download')
     ordering = ['-created', 'project']
 staff_site.register(Data, DataStaffAdmin)
 
