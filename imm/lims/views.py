@@ -1251,13 +1251,6 @@ def add_scan(request, scan_info):
             pass
         new_obj.save(force_update=force_update)
         
-        print "new_obj", new_obj, type(new_obj.details), new_obj.details.keys()
-        for k in new_obj.details.keys():
-            try:
-                print "this", k, new_obj.details[k].keys()
-            except:
-                print k
-        
         ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, "New scan uploaded from beamline")
         return {'scan_id': new_obj.pk}
     except Exception, e:
@@ -1388,6 +1381,7 @@ def plot_xrf_scan(request, id):
     
     x = numpy.array(data['energy'])
     y = numpy.array(data['counts'])
+    yc = numpy.array(data['fit'])
     ypadding = (y.max() - y.min())/8.0  # pad 1/8 of range to either side
     
     fig = Figure(figsize=(PLOT_WIDTH*1.1, PLOT_HEIGHT*0.9), dpi=PLOT_DPI)
@@ -1396,8 +1390,10 @@ def plot_xrf_scan(request, id):
     ax1.set_title('X-Ray Fluorescence')
     ax1.set_ylabel('Fluorescence')
     ax1.set_xlabel('Energy (keV)')
-    ax1.plot(x, y, 'b-', lw=1, markersize=3, markerfacecolor='w', markeredgewidth=1)
+    ax1.plot(x, y, 'b-', lw=1, markersize=3, markerfacecolor='w', markeredgewidth=1, label='Exp')
+    ax1.plot(x, yc, 'k:', lw=1, markersize=3, markerfacecolor='w', markeredgewidth=1, label='Fit')
     ax1.grid(True)
+    ax1.legend()
     ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
     #only update limits if they are wider than current limits
     curr_ymin, curr_ymax = ax1.get_ylim()
@@ -1410,6 +1406,14 @@ def plot_xrf_scan(request, id):
     if peaks is None:
         return
     tick_size = max(y)/50.0
+    element_list = [(v[0], k) for k,v in peaks.items()]
+    element_list.sort()
+    element_list.reverse()
+
+    for prob, el in element_list:
+        print prob, el
+    '''
+    #ORIGINAL STUFF
     for peak in peaks:
         if len(peak)> 4:
             el, pk = peak[4].split('-')
@@ -1424,6 +1428,7 @@ def plot_xrf_scan(request, id):
                  lbl,
                  horizontalalignment='center', 
                  color='black', size=12)
+    '''
 
     canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')

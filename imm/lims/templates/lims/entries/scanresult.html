@@ -33,9 +33,9 @@
 	            <tr class="header">
                     {% ifequal object.kind 1 %}
 	                    <th>Identity</th>
-	                    <th>Position</th>
-	                    <th>Height</th>
-	                    <th>FWHM</th>  
+	                    <th>Reliability (%)</th>
+                        <th>Edge</th>
+                        <th>Position (keV)</th>
 	                {% else %}
 		                <th width="20%"></th>
 		                <th width="20%">Wavelength (&#8491;)</th>
@@ -47,15 +47,15 @@
 	        </thead>
 	        <tbody>
 	            {% ifequal object.kind 1 %}
-		            {% for data in object.details.peaks %}
-			            <tr class="{% cycle 'odd' 'even' %}">
-			               <td>{{ data.4 }}</td>
-			               <td>{{ data.0|floatformat:3 }}</td>
-			               <td>{{ data.1 }}</td>
-			               <td>{{ data.2|floatformat:3 }}</td>
-			            </tr>
-		            {% endfor %}
-	            {% else %}
+	                {% for data in object.details.peaks.items %}
+	                    <tr class="{% cycle 'odd' 'even' %}">
+	                        <td>{{ data.0 }}</td>
+	                        <td>{{ data.1.0|floatformat:1 }}</td>
+	                        <td>{% for edge in data.1.1 %}{{ edge.0 }}{% if not forloop.last %}<br> {% endif %}{% endfor %}</td>
+	                        <td>{% for edge in data.1.1 %}{{ edge.1 }}{% if not forloop.last %}<br> {% endif %}{% endfor %}</td>
+	                    </tr>
+                    {% endfor %}
+                {% else %}
 		            {% for data in object.details.energies %}
 			            <tr class="odd">
 			               <td>{{ data.0|capfirst }}</td>
@@ -65,7 +65,7 @@
 			               <td>{{ data.3 }}</td>
 			            </tr>
 	               {% endfor %}
-	            {% endifequal %}
+                {% endifequal %}
             </tbody>
         </table>
     </div>

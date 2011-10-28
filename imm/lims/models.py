@@ -20,7 +20,7 @@ from django.db.models.signals import pre_delete
 from django.db.models.signals import pre_save
 from django.db.models.signals import post_delete
 from django.core.exceptions import ObjectDoesNotExist
-from lims.filterspecs import WeeklyFilterSpec
+from filterspecs import WeeklyFilterSpec
 
 IDENTITY_FORMAT = '-%y%m'
 RESUMBITTED_LABEL = 'Resubmitted_'
@@ -393,7 +393,7 @@ class Shipment(ObjectBaseClass):
     def item_labels(self):
         return self.component_set.filter(label__exact=True)
 
-    def is_processed():
+    def is_processed(self):
         # if all experiments in shipment are complete, then it is a processed shipment. 
         experiment_list = Experiment.objects.filter(shipment__get_container_list=self)
         for dewar in self.dewar_set.all():
@@ -629,14 +629,14 @@ class Container(LoadableBaseClass):
         for crystal in self.crystal_set.all():
             for crys_experiment in crystal.experiment_set.all():
                 if crys_experiment == experiment:
-                    return true
-        return false
+                    return True
+        return False
     
     def contains_experiments(self, experiment_list):
         for experiment in experiment_list:
             if self.contains_experiment(experiment):
-                return true
-        return false
+                return True
+        return False
     
     def update_priority(self):
         """ Updates the Container's priority/staff_priority to max(Experiment priorities)
@@ -1246,7 +1246,7 @@ class Data(DataBaseClass):
                 frame_numbers.extend(range(v[0],v[1]+1))
             elif len(v) == 1:
                 frame_numbers.extend(v)
-                  # check that frame is in frame_numbers
+                # check that frame is in frame_numbers
          
         image_url = settings.IMAGE_PREPEND or ''
         if frame in frame_numbers:
