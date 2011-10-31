@@ -2,6 +2,7 @@
 {% load zip %}
 {% load markup %}
 {% load converter %}
+{% load sorted_list %}
 
 {% block headline %}
 <h2 class="process"><span class="identity">{{ object.identity }}</span> {{ object.get_kind_display }} - &ldquo;{{object.name}}&rdquo;</h2>
@@ -47,12 +48,14 @@
 	        </thead>
 	        <tbody>
 	            {% ifequal object.kind 1 %}
-	                {% for data in object.details.peaks.items %}
-	                    <tr class="{% cycle 'odd' 'even' %}">
-	                        <td>{{ data.0 }}</td>
-	                        <td>{{ data.1.0|floatformat:1 }}</td>
-	                        <td>{% for edge in data.1.1 %}{{ edge.0 }}{% if not forloop.last %}<br> {% endif %}{% endfor %}</td>
-	                        <td>{% for edge in data.1.1 %}{{ edge.1 }}{% if not forloop.last %}<br> {% endif %}{% endfor %}</td>
+	                {% for data in object.details.peaks|sorted_list:1 reversed %}
+	                    <tr class="{% cycle 'odd' 'even' %}" {% for line in object.summarize_lines %}{% ifequal data.0 line.0 %}style="color:{{line.2}};"{% endifequal %}{% endfor %}>
+	                        <td>{{ data.0 }}{{ color }}</td>
+	                        <td>{{ data.1.0|floatformat:2 }}</td>
+	                        {% with data.1.1|sorted_list:1 as edges %}
+	                        <td>{% for edge in edges %}{{ edge.0 }}{% if not forloop.last %}<br> {% endif %}{% endfor %}</td>
+	                        <td>{% for edge in edges %}{{ edge.1 }}{% if not forloop.last %}<br> {% endif %}{% endfor %}</td>
+	                        {% endwith %}
 	                    </tr>
                     {% endfor %}
                 {% else %}

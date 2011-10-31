@@ -1357,6 +1357,10 @@ class Result(DataBaseClass):
         verbose_name = 'Analysis Report'
 
 class ScanResult(DataBaseClass):
+    XRF_COLOR_LIST = ['#800080','#FF0000','#008000',
+                  '#FF00FF','#800000','#808000',
+                  '#008080','#00FF00','#000080',
+                  '#00FFFF','#0000FF','#000000']
     SCAN_TYPES = Enum(
         'MAD Scan',   
         'Excitation Scan',
@@ -1372,10 +1376,50 @@ class ScanResult(DataBaseClass):
     attenuation = models.FloatField(null=True, blank=True)
     beamline = models.ForeignKey(Beamline)
     
-    
     def identity(self):
         return 'SC%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
+    
+    def summarize_lines(self):
+        name_dict = {
+            'L1M2,3,L2M4': 'L1,2M',
+            'L1M3,L2M4': 'L1,2M',       
+            'L1M,L2M4': 'L1,2M',
+        }
+        peaks = self.details['peaks']
+        if peaks is None:
+            return
+        data = peaks.items()
+        line_data = []
+        for el in data:
+            if el[1][0] > 5: line_data.append(el)
+            
+        def join(a,b):
+            if a==b:
+                return [a]
+            if abs(b[1]-a[1]) < 0.200:
+                if a[0][:-1] == b[0][:-1]:
+                    nm = b[0][:-1]
+                else:
+                    nm = '%s,%s' % (a[0], b[0])
+                nm = name_dict.get(nm, nm)
+                ht =  (a[2] + b[2])
+                pos = (a[1]*a[2] + b[1]*b[2])/ht
+                return [(nm, round(pos,4), round(ht,2))]
+            else:
+                return [a, b]
+            
+        new_lines = []
+        for entry in line_data:
+            new_data = [entry[1][1][0]]
+            for edge in entry[1][1]:
+                old = new_data[-1]
+                _new = join(old, edge)
+                new_data.remove(old)
+                new_data.extend(_new)
+            new_lines.append((entry[0], new_data, self.XRF_COLOR_LIST[line_data.index(entry)]))
+        
+        return new_lines
     
 class ActivityLogManager(models.Manager):
     def log_activity(self, request, obj, action_type, description=''):

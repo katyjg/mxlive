@@ -1410,25 +1410,14 @@ def plot_xrf_scan(request, id):
     element_list.sort()
     element_list.reverse()
 
-    for prob, el in element_list:
-        print prob, el
-    '''
-    #ORIGINAL STUFF
-    for peak in peaks:
-        if len(peak)> 4:
-            el, pk = peak[4].split('-')
-            lbl = '%s-%s' % (el, pk)
-            lbls = ', '.join(peak[4:])
-        else:
-            lbl = '?'
-            lbls = ''
-        ax1.plot([peak[0], peak[0]], [peak[1]+tick_size,peak[1]+tick_size*2], 'm-')
-        ax1.text(peak[0], 
-                 peak[1]+tick_size*4.2,
-                 lbl,
-                 horizontalalignment='center', 
-                 color='black', size=12)
-    '''
+    new_lines = scan.summarize_lines()
+    for line in new_lines:
+        base = line[0]
+        for edge in line[1]:
+            ax1.plot([edge[1], edge[1]], [0, edge[2]*0.95], '%s' % line[2])
+            ax1.text(edge[1], -0.5, "%s-%s" % (base, edge[0]), rotation=90, 
+                     horizontalalignment='center', verticalalignment='top', 
+                     color=line[2], size=11)
 
     canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')
