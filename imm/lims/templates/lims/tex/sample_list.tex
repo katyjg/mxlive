@@ -9,6 +9,7 @@
 \usepackage[margin=0.5in]{geometry}
 \usepackage{parskip}
 \usepackage{longtable}
+\usepackage{amssymb}
 \usepackage[utf8]{inputenc}
 \addtolength{\fboxsep}{0.2cm}
 \renewcommand{\arraystretch}{1.2}
@@ -29,7 +30,7 @@
 \hspace{-0.25in}
 
 {% if project %}
-\section*{Project: {{ project.user.username|texsafe|default:"" }} }
+\section*{Project: {{ project.user.username|texsafe|default:"" }} \hfill {{ containers|length }} Containers with {{ num_crystals }} Crystals ({{experiments|length}} Experiments)}
 {% if project.address %}
 \begin{center}
 {\bf Investigator: }{{ project.name|texsafe|default:"" }} \hfill  {{ project.department|texsafe|default:"" }} \\
@@ -53,14 +54,14 @@
 {% endif %}
 
 \section*{Sample List By Experiment}
-\begin{longtable}{|p{.015\textwidth}|p{.12\textwidth}|p{.035\textwidth}|p{.12\textwidth}|p{.04\textwidth}|p{.04\textwidth}|p{.04\textwidth}|p{.03\textwidth}|p{.03\textwidth}|p{0.26\textwidth}|}
+\begin{longtable}{|p{.015\textwidth}|p{.005\textwidth}|p{.11\textwidth}|p{.035\textwidth}|p{.12\textwidth}|p{.04\textwidth}|p{.04\textwidth}|p{.04\textwidth}|p{.03\textwidth}|p{.03\textwidth}|p{0.26\textwidth}|}
 
 \hline
-\rowcolor[gray]{.8} \multicolumn{4}{|c|}{\cellcolor[gray]{.8}Experiment Parameters} & 
+\rowcolor[gray]{.8} \multicolumn{5}{|c|}{\cellcolor[gray]{.8}Experiment Parameters} & 
 \multicolumn{5}{c|}{\cellcolor[gray]{.8}Desired Values} & \\ 
 
 \multicolumn{1}{|c|}{\cellcolor[gray]{.9}Pr.} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Group} & 
+\multicolumn{2}{c|}{\cellcolor[gray]{.9}Group} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Type} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Plan} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Edge} & 
@@ -71,43 +72,45 @@
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Comments} \\ \hline
 \endfirsthead
 
-\multicolumn{10}{|r|}{Continued on next page...} \\ 
+\multicolumn{11}{|r|}{Continued on next page...} \\ 
 \endfoot
 
-\multicolumn{10}{|c|}{} \\ \hline
+\multicolumn{11}{|c|}{} \\ \hline
 \endlastfoot
 
 {% for exp in experiments %}
 {{ exp.priority|texsafe|default:"" }}& 
-{{ exp.name|texsafe|default:"" }}&
+\multicolumn{2}{c|}{ {{ exp.name|texsafe|default:"" }} }&
 {{ exp.get_kind_display|texsafe|default:"" }}&
 {{ exp.get_plan_display|texsafe|default:"" }}&
-{{ exp.absorption_edge|texsafe|default:"" }}&
-{{ exp.energy|texsafe|default:"" }}&
-{{ exp.total_angle|texsafe|default:"" }}&
-{{ exp.delta_angle|texsafe|default:"" }}&
-{{ exp.resolution|texsafe|default:"" }}&
-{{ exp.comments|texsafe|default:"" }}\nopagebreak \\ \cline{2-10} \nopagebreak
+{% if exp.absorption_edge %}{{ exp.absorption_edge|texsafe|default:"" }}{% endif %}&
+{% if exp.energy %}{{ exp.energy|texsafe|default:"" }}{% endif %}&
+{% if exp.total_angle %}{{ exp.total_angle|texsafe|default:"" }}{% endif %}&
+{% if exp.delta_angle %}{{ exp.delta_angle|texsafe|default:"" }}{% endif %}&
+{% if exp.resolution %}{{ exp.resolution|texsafe|default:"" }}{% endif %}&
+{% if exp.comments %}{{ exp.comments|texsafe|default:"" }}{% endif %}\nopagebreak \\ \cline{2-11} \nopagebreak
 
- & \multicolumn{1}{c}{\cellcolor[gray]{.92}Crystal} & 
+ & \multicolumn{2}{c}{\cellcolor[gray]{.92}Crystal} & 
 \multicolumn{1}{c}{\cellcolor[gray]{.92}Pr.} & 
 {% if not project %}\multicolumn{1}{c}{\cellcolor[gray]{.92}Location} &
 {% else %}\multicolumn{1}{c}{\cellcolor[gray]{.92}Container} &  {% endif %}
 \multicolumn{3}{l}{\cellcolor[gray]{.92} Unit Cell} & 
 \multicolumn{2}{c}{\cellcolor[gray]{.92}Spacegroup} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.92}Comments} \\ \cline{2-10}
+\multicolumn{1}{c|}{\cellcolor[gray]{.92}Comments} \\ \cline{2-11}
 
-{% for xtal in exp.crystal_set.all|prioritize %} \multicolumn{1}{|c|}{}& 
-\cellcolor[gray]{0.98} {{ xtal.name|texsafe|default:"" }}&
-\cellcolor[gray]{0.98} {{ xtal.priority|texsafe|default:"" }}&
+%\cellcolor[gray]{0.98}
+{% for xtal in exp.crystal_set.all|prioritize %} \multicolumn{1}{|c|}{} & 
+\multicolumn{1}{c}{\cellcolor[gray]{0.98} \hspace{-0.013\textwidth} $\Box$ } & 
+\cellcolor[gray]{0.98} {{ xtal.name|texsafe|default:"" }} &
+\cellcolor[gray]{0.98} {{ xtal.priority|texsafe|default:"" }} &
 {% comment %}{% if not project %}\cellcolor[gray]{0.98} {{ shipment|runlist_position:xtal.container }}{{ xtal.container_location|texsafe|default:"" }}&
 {% else %}\cellcolor[gray]{0.98} {{ xtal.container|texsafe|default:"" }} ({{ xtal.container_location|texsafe|default:"" }}{% ifequal xtal.container 'Cane' %} from bottom{% endifequal %})&{% endif %}{% endcomment %}\cellcolor[gray]{0.98} {{ xtal.container|texsafe|default:"" }} ({{ xtal.container_location|texsafe|default:"" }}{% ifequal xtal.container 'Cane' %} from bottom{% endifequal %})&
 \multicolumn{3}{l|}{\cellcolor[gray]{0.98} {% if xtal.crystal_form %}{{ xtal.crystal_form.cell_a|texsafe|default:"" }},{{ xtal.crystal_form.cell_b|texsafe|default:"" }}, {{ xtal.crystal_form.cell_c|texsafe|default:"" }} } & {% else %} } & {% endif %}  
 \multicolumn{2}{c|}{\cellcolor[gray]{0.98}{{ xtal.crystal_form.space_group|texsafe|default:"" }} }&
-\cellcolor[gray]{0.98} {{ xtal.comments|texsafe|default:"" }} \\  {% endfor %} \cline{2-10}
+\cellcolor[gray]{0.98} {{ xtal.comments|texsafe|default:"" }} \\  {% endfor %} \cline{2-11}
 
 {% if forloop.last %}{% else %}{% comment %}
-\multicolumn{10}{c}{} \\
+\multicolumn{11}{c}{} \\
 \multicolumn{1}{|c|}{\cellcolor[gray]{.9}Pr.} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Group} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Type} & 
@@ -118,50 +121,10 @@
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Delta} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Res.} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Comments} \\  \hline {% endcomment %}
-\multicolumn{10}{|c|}{} \\ \hline
+\multicolumn{11}{|c|}{} \\ \hline
 {% endif %}
 
 {% endfor %}
-\end{longtable}
-
-\newpage
-
-\section*{Sample List By Container}
-
-\begin{longtable}{|p{0.5cm}|p{1.2cm}|p{.5cm}|p{1.2cm}|p{2cm}|p{0.45cm}|p{1cm}|p{2.2cm}|p{1.8cm}|p{3.5cm}|}
-
-\hline
-\rowcolor[gray]{.85} Exp Pr. & Container & Loc & Crystal & Group & Req. Res. & Exp Type & Unit Cell & Spacegroup & Special Instructions \\ \hline
-\endfirsthead
-
-\rowcolor[gray]{.85} Exp Pr. & Container & Loc & Crystal & Group & Req. Res. & Exp Type & Unit Cell & Spacegroup & Special Instructions \\ \hline
-\endhead
-
-\multicolumn{10}{|r|}{Continued on next page...} \\ 
-\endfoot
-
-\endlastfoot
-
-\hline
-
-{% for con in containers %}
-{% for exp in experiments %}
-{% for xtal in con.crystal_set.all|prioritize %}{% ifequal xtal.experiment exp %} {{ xtal.experiment.priority|texsafe|default:"" }} & 
-{{ xtal.container|texsafe|default:"" }} &
-{{ xtal.container_location|texsafe|default:"" }} &
-{{ xtal.name|texsafe|default:"" }} &
-{{ xtal.experiment|texsafe|default:"" }} &
-{% if xtal.experiment.resolution %}{{ xtal.experiment.resolution|texsafe|default:"" }}{% endif %} &
-{{ xtal.experiment.get_kind_display|texsafe|default:"" }} &
-{% if xtal.crystal_form %}{{ xtal.crystal_form.cell_a|texsafe|default:"" }}, {{ xtal.crystal_form.cell_b|texsafe|default:"" }}, {{ xtal.crystal_form.cell_c|texsafe|default:"" }} & {% else %} & {% endif %}  
-{{ xtal.crystal_form.space_group|texsafe|default:"" }} & 
-{% comment %}{{ xtal.comments|texsafe|default:"" }}{% endcomment %} \\ \nopagebreak
-{% endifequal %}{% endfor %}{% endfor %}
-{% if forloop.last %}{% else %} & & & & & & & & & \\{% endif %}
-
-{% endfor %}
-\hline
-
 \end{longtable}
 
     

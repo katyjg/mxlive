@@ -122,12 +122,13 @@ def project_optional(function):
             return function(request, *args, **kwargs)
     return project_optional_wrapper
 
+# True = Staff; False = Users
 MANAGER_FILTERS = {
     (Shipment, True) : {'status__in': [Shipment.STATES.SENT, Shipment.STATES.ON_SITE, Shipment.STATES.RETURNED], 'pk__in': Shipment.objects.exclude(modified__lte=datetime.now() - timedelta(days=7), status__exact=Shipment.STATES.RETURNED).values('pk')},
     (Shipment, False) : {'status__in': [Shipment.STATES.DRAFT, Shipment.STATES.SENT, Shipment.STATES.ON_SITE, Shipment.STATES.RETURNED]},
-    (Dewar, True) : {'status__in': [Dewar.STATES.SENT, Dewar.STATES.ON_SITE, Dewar.STATES.RETURNED]},
+    (Dewar, True) : {'status__in': [Dewar.STATES.SENT, Dewar.STATES.ON_SITE, Dewar.STATES.RETURNED], 'pk__in': Dewar.objects.exclude(modified__lte=datetime.now() - timedelta(days=7), status__exact=Dewar.STATES.RETURNED).values('pk')},
     (Dewar, False) : {'status__in': [Dewar.STATES.DRAFT, Dewar.STATES.SENT, Dewar.STATES.ON_SITE, Dewar.STATES.RETURNED]},
-    (Container, True) : {'status__in': [Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED, Container.STATES.RETURNED]},
+    (Container, True) : {'status__in': [Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED, Container.STATES.RETURNED], 'pk__in': Container.objects.exclude(modified__lte=datetime.now() - timedelta(days=7), status__exact=Container.STATES.RETURNED).values('pk')},
     (Container, False) : {'status__in': [Container.STATES.DRAFT, Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED, Container.STATES.RETURNED]},
     (Crystal, True) : {'status__in': [Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
     (Crystal, False) : {'status__in': [Crystal.STATES.DRAFT, Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
@@ -986,11 +987,13 @@ def shipment_pdf(request, id, model, format):
         containers = obj.project.container_set.filter(dewar__in=obj.dewar_set.all())
         experiments = obj.project.experiment_set.filter(pk__in=obj.project.crystal_set.filter(container__dewar__shipment__exact=obj.pk).values('experiment')).order_by('priority').reverse()
         group = None
+        num_crystals = obj.project.crystal_set.filter(container__pk__in=containers).count()
 
     if format == 'runlist':
         containers = obj.containers.all()
         experiments = Experiment.objects.filter(pk__in=Crystal.objects.filter(container__in=obj.containers.all()).values('experiment')).order_by('priority').reverse()
         group = Project.objects.filter(pk__in=obj.containers.all().values('project'))
+        num_crystals = obj.project.crystal_set.filter(container__pk__in=containers).count()
 
     work_dir = create_cache_dir(obj.label_hash())
     prefix = "%s-%s" % (obj.label_hash(), format)
@@ -1004,7 +1007,7 @@ def shipment_pdf(request, id, model, format):
                 project = obj.project
             else:
                 project = request.project
-            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'group': group, 'shipment' : obj, 'experiments': experiments, 'containers': containers })
+            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'group': group, 'shipment' : obj, 'experiments': experiments, 'containers': containers, 'num_crystals': num_crystals })
         elif format == 'label':
             tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': obj.project, 'shipment' : obj})
         elif format == 'return_label':
