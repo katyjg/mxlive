@@ -24,7 +24,8 @@ _URL_META = {
     'experiment': {
         'request':  {'model': Experiment, 'form': ExperimentForm},       
         'dataset':  {'model': Data, 'add': False, 'list_link': False, 'list_add': False, 'list_modal': True, 'comments': False, 'delete': False},       
-        'report':   {'model': Result, 'add': False, 'list_add': False, 'comments': False},         
+        'report':   {'model': Result, 'add': False, 'list_add': False, 'comments': False},   
+        'scan':     {'model': ScanResult, 'add': False, 'list_add': False},      
     },
 }
 
@@ -174,6 +175,10 @@ urlpatterns += patterns('imm.lims.views',
     (r'^experiment/report/(\d+)/overlap.png$', 'plot_overlap_analysis', {}, 'lims-plot-overlap'),
     (r'^experiment/report/(\d+)/quality.png$', 'plot_pred_quality', {}, 'lims-plot-quality'),
     (r'^experiment/report/(\d+)/wedge.png$', 'plot_wedge_analysis', {}, 'lims-plot-wedge'),
+    
+    # Scan images
+    (r'^experiment/scan/(\d+)/xrfscan.png$', 'plot_xrf_scan', {}, 'lims-plot-xrf'),
+    (r'^experiment/scan/(\d+)/xanesscan.png$', 'plot_xanes_scan', {}, 'lims-plot-xanes'),
     
     (r'^experiment/dataset/(?P<id>\d+)/trash/$', 'action_object', {'model': Data, 'form': LimsBasicForm, 'template': 'objforms/form_base.html', 'action': 'trash', }, 'lims-data-trash'),           
     (r'^experiment/report/(?P<id>\d+)/trash/$', 'action_object', {'model': Result, 'form': LimsBasicForm, 'template': 'objforms/form_base.html', 'action': 'trash', }, 'lims-result-trash'),       

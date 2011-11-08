@@ -105,6 +105,20 @@ class ResultStaffAdmin(ResultAdmin):
     ordering = ['-created', 'project']
 staff_site.register(Result, ResultStaffAdmin)
 
+class ScanResultAdmin(admin.ModelAdmin):
+    ordering = ['-created']
+    search_fields = ['name','crystal__name']
+    list_filter = ['modified','kind']
+    list_display = ('id', 'name', 'crystal', 'edge', 'kind', 'created')
+    list_per_page = ITEMS_PER_PAGE
+admin.site.register(ScanResult, ScanResultAdmin)
+
+class ScanResultStaffAdmin(ResultAdmin):
+    list_filter = ['modified','kind','status']
+    list_display = ('project','id','name','crystal','edge','kind','created','status')
+    ordering = ['-created', 'project']
+staff_site.register(ScanResult, ScanResultStaffAdmin)
+
 class DataAdmin(admin.ModelAdmin):
     ordering = ['-created']
     search_fields = ['id','name','beamline__name','delta_angle','crystal__name','frame_sets','project__name']

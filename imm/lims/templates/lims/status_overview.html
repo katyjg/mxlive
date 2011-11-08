@@ -56,6 +56,10 @@
         <p>({{statistics.reports.new}})<br/><a href="{% url lims-result-list %}?modified__gte={{statistics.reports.start_date|date:'Y-m-d'}}">Report{{statistics.reports.new|pluralize}}</a></p>
         {% else %}<p class="nothing">No<br/>Reports</p>{% endif %}
     </td>
-    <td>&nbsp;</td>
+    <td class="links">
+        {% if statistics.scanresults.new %}
+        <p>({{statistics.scanresults.new}})<br/><a href="{% url lims-scanresult-list %}?modified__gte={{statistics.scanresults.start_date|date:'Y-m-d'}}">Scan{{statistics.scanresults.new|pluralize}}</a></p>
+        {% else %}<p class="nothing">No<br/>Scans</p>{% endif %}
+    </td>
     </tr>
 </table>

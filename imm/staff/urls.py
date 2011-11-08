@@ -28,7 +28,8 @@ _URL_META = {
     'experiment': {
         'request':  {'model': Experiment},       
         'dataset':  {'model': Data, 'list_template': 'staff/lists/dataset_list.html'},       
-        'report':   {'model': Result},         
+        'report':   {'model': Result},     
+        'scan':     {'model': ScanResult},    
     },
     '': {
         'feedback': {'model': Feedback, 'template': 'lims/feedback_item.html', 'list_link': False, 'list_modal': True},
@@ -161,6 +162,10 @@ urlpatterns += patterns('imm.lims.views',
     (r'^experiment/report/(\d+)/overlap.png$', 'plot_overlap_analysis', {}, 'staff-plot-overlap'),
     (r'^experiment/report/(\d+)/quality.png$', 'plot_pred_quality', {}, 'staff-plot-quality'),
     (r'^experiment/report/(\d+)/wedge.png$', 'plot_wedge_analysis', {}, 'staff-plot-wedge'),
+    
+    # Scan images
+    (r'^experiment/scan/(\d+)/xrfscan.png$', 'plot_xrf_scan', {}, 'staff-plot-xrf'),
+    (r'^experiment/scan/(\d+)/xanesscan.png$', 'plot_xanes_scan', {}, 'staff-plot-xanes'),
 )
 
 urlpatterns += patterns('django.views.generic.simple',

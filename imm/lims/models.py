@@ -20,7 +20,7 @@ from django.db.models.signals import pre_delete
 from django.db.models.signals import pre_save
 from django.db.models.signals import post_delete
 from django.core.exceptions import ObjectDoesNotExist
-from lims.filterspecs import WeeklyFilterSpec
+from filterspecs import WeeklyFilterSpec
 
 IDENTITY_FORMAT = '-%y%m'
 RESUMBITTED_LABEL = 'Resubmitted_'
@@ -393,7 +393,7 @@ class Shipment(ObjectBaseClass):
     def item_labels(self):
         return self.component_set.filter(label__exact=True)
 
-    def is_processed():
+    def is_processed(self):
         # if all experiments in shipment are complete, then it is a processed shipment. 
         experiment_list = Experiment.objects.filter(shipment__get_container_list=self)
         for dewar in self.dewar_set.all():
@@ -629,14 +629,14 @@ class Container(LoadableBaseClass):
         for crystal in self.crystal_set.all():
             for crys_experiment in crystal.experiment_set.all():
                 if crys_experiment == experiment:
-                    return true
-        return false
+                    return True
+        return False
     
     def contains_experiments(self, experiment_list):
         for experiment in experiment_list:
             if self.contains_experiment(experiment):
-                return true
-        return false
+                return True
+        return False
     
     def update_priority(self):
         """ Updates the Container's priority/staff_priority to max(Experiment priorities)
@@ -1064,6 +1064,9 @@ class Crystal(LoadableBaseClass):
 
     def get_result_set(self):
         return self.result_set.filter(**self.project.get_archive_filter())
+    
+    def get_scanresult_set(self):
+        return self.scanresult_set.filter(**self.project.get_archive_filter())
 
     def best_screening(self):
         info = {}
@@ -1243,7 +1246,7 @@ class Data(DataBaseClass):
                 frame_numbers.extend(range(v[0],v[1]+1))
             elif len(v) == 1:
                 frame_numbers.extend(v)
-                  # check that frame is in frame_numbers
+                # check that frame is in frame_numbers
          
         image_url = settings.IMAGE_PREPEND or ''
         if frame in frame_numbers:
@@ -1354,6 +1357,10 @@ class Result(DataBaseClass):
         verbose_name = 'Analysis Report'
 
 class ScanResult(DataBaseClass):
+    XRF_COLOR_LIST = ['#800080','#FF0000','#008000',
+                  '#FF00FF','#800000','#808000',
+                  '#008080','#00FF00','#000080',
+                  '#00FFFF','#0000FF','#000000']
     SCAN_TYPES = Enum(
         'MAD Scan',   
         'Excitation Scan',
@@ -1364,9 +1371,55 @@ class ScanResult(DataBaseClass):
     details = JSONField()
     kind = models.IntegerField('Scan type',max_length=1, choices=SCAN_TYPES.get_choices())
     
+    energy = models.FloatField(null=True, blank=True)
+    exposure_time = models.FloatField(null=True, blank=True)
+    attenuation = models.FloatField(null=True, blank=True)
+    beamline = models.ForeignKey(Beamline)
+    
     def identity(self):
         return 'SC%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
+    
+    def summarize_lines(self):
+        name_dict = {
+            'L1M2,3,L2M4': 'L1,2M',
+            'L1M3,L2M4': 'L1,2M',       
+            'L1M,L2M4': 'L1,2M',
+        }
+        peaks = self.details['peaks']
+        if peaks is None:
+            return
+        data = peaks.items()
+        line_data = []
+        for el in data:
+            if el[1][0] > 5: line_data.append(el)
+            
+        def join(a,b):
+            if a==b:
+                return [a]
+            if abs(b[1]-a[1]) < 0.200:
+                if a[0][:-1] == b[0][:-1]:
+                    nm = b[0][:-1]
+                else:
+                    nm = '%s,%s' % (a[0], b[0])
+                nm = name_dict.get(nm, nm)
+                ht =  (a[2] + b[2])
+                pos = (a[1]*a[2] + b[1]*b[2])/ht
+                return [(nm, round(pos,4), round(ht,2))]
+            else:
+                return [a, b]
+            
+        new_lines = []
+        for entry in line_data:
+            new_data = [entry[1][1][0]]
+            for edge in entry[1][1]:
+                old = new_data[-1]
+                _new = join(old, edge)
+                new_data.remove(old)
+                new_data.extend(_new)
+            new_lines.append((entry[0], new_data, self.XRF_COLOR_LIST[line_data.index(entry)]))
+        
+        return new_lines
     
 class ActivityLogManager(models.Manager):
     def log_activity(self, request, obj, action_type, description=''):

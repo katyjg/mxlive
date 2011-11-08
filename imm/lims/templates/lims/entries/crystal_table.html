@@ -1,5 +1,6 @@
 {% load humanize %}
 {% load score_colors %}
+{% load truncate_filters %}
 
 <div class="object-list">
 <h3> Crystals</h3>
@@ -36,6 +37,7 @@
                 <th> Score</th>
                 <th>Full Dataset*</th>
                 <th> Score</th>
+                <th>Scans</th>
             </tr>
         </thead>
         <tbody>
@@ -90,6 +92,17 @@
 	            	    {% else %}
 	            	        &mdash;
                         {% endif %}
+	            	</td>
+	            	<td>
+	            	    {% if crystal.get_scanresult_set %}
+             	        {% for scan in crystal.get_scanresult_set %}
+             	            {% if forloop.first %}
+             	            <a href="{% url lims-scanresult-detail scan.pk %}" title='Go to {{ scan.get_kind_display }} "{{ scan.name }}"'>{{ scan.name|truncate_chars:10 }}</a>
+             	            {% else %}{% if forloop.last %}
+             	            <a href="{% url lims-crystal-detail crystal.pk %}" title="See all results for this crystal">[more]</a>
+             	            {% endif %}{% endif %}
+             	        {% endfor %}
+             	        {% else %}&mdash;{% endif %}
 	            	</td>
 	            </tr>
             {% endfor %}
