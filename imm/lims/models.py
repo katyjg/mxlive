@@ -393,7 +393,7 @@ class Shipment(ObjectBaseClass):
     def item_labels(self):
         return self.component_set.filter(label__exact=True)
 
-    def is_processed(self):
+    def is_processed():
         # if all experiments in shipment are complete, then it is a processed shipment. 
         experiment_list = Experiment.objects.filter(shipment__get_container_list=self)
         for dewar in self.dewar_set.all():
