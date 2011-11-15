@@ -19,7 +19,7 @@ from imm.staff.forms import *
 _URL_META = {
     'shipping': {
         'shipment': {'model': Shipment},        
-        'dewar':    {'model': Dewar},        
+        'dewar':    {'model': Dewar, 'list_template': 'staff/lists/dewar_list.html'},        
         'container':{'model': Container},        
     },
     'samples': {
@@ -119,7 +119,7 @@ urlpatterns = patterns('imm.staff.views',
     (r'^$', 'staff_home', {}, 'staff-home'),
 
     # Dewars 
-    (r'^shipping/dewar/receive/$', 'receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-dewar-receive'),
+    (r'^shipping/dewar/receive/(?P<id>\d+)$', 'receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-dewar-receive'),
 
     # Experiments
     (r'^experiment/crystal/action/$', 'object_status', {'model': Crystal}, 'staff-crystal-status'),

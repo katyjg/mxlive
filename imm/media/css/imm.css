@@ -302,7 +302,7 @@ ul.toolbar li.component-tool {background-image: url(/img/drive-harddisk.png);}
 ul.toolbar li.download-tool {background-image: url(/img/download-icon-32.png); cursor: pointer;}
 ul.toolbar li.trash-tool {background-image: url(/img/trash-icon.png);}
 a.download-tool {background-image: url(/img/download-icon.png); float: right; padding:8px; margin-top: 4px;}
-
+a.receive-tool {background-image: url(/img/receive-icon-sm.png); padding: 3px 10px}
 
 /* -- end toolbar -- */
 
@@ -605,10 +605,11 @@ div.help {
 
 .crystal-data-table, .crystal-report-table {
     float: left;
-    width: 49%;
+    width: 100%;
 }
 .crystal-report-table {
-    float: right;
+    //float: right;
+    //margin-left: 10px;
 }
 div.crystal.droppable, div.experiment.droppable, div.shipment.droppable, div.dewar-img.droppable, div.runlist.droppable {
   float: right;

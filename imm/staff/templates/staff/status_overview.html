@@ -2,9 +2,9 @@
     <tr><th colspan="10">Status Overview</th></tr>
     <tr><td class="outgoing" title="In-coming items">Sent items</td>
     <td class="links">
-        {% if statistics.shipments.outgoing %}
-        <p>({{statistics.shipments.outgoing}})<br/><a href="{% url staff-shipment-list %}?status__exact=1">Shipment{{statistics.shipments.outgoing|pluralize}}</a></p>
-        {% else %}<p class="nothing">No<br/>Shipments</p>{% endif %}
+        {% if statistics.dewars.outgoing %}
+        <p>({{statistics.dewars.outgoing}})<br/><a href="{% url staff-dewar-list %}?status__exact=1">Dewar{{statistics.dewars.outgoing|pluralize}}</a></p>
+        {% else %}<p class="nothing">No<br/>Dewars</p>{% endif %}
     </td>
     <td class="links">
         {% if statistics.crystals.outgoing %}

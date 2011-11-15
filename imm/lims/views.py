@@ -122,12 +122,13 @@ def project_optional(function):
             return function(request, *args, **kwargs)
     return project_optional_wrapper
 
+# True = Staff; False = Users
 MANAGER_FILTERS = {
     (Shipment, True) : {'status__in': [Shipment.STATES.SENT, Shipment.STATES.ON_SITE, Shipment.STATES.RETURNED], 'pk__in': Shipment.objects.exclude(modified__lte=datetime.now() - timedelta(days=7), status__exact=Shipment.STATES.RETURNED).values('pk')},
     (Shipment, False) : {'status__in': [Shipment.STATES.DRAFT, Shipment.STATES.SENT, Shipment.STATES.ON_SITE, Shipment.STATES.RETURNED]},
-    (Dewar, True) : {'status__in': [Dewar.STATES.SENT, Dewar.STATES.ON_SITE, Dewar.STATES.RETURNED]},
+    (Dewar, True) : {'status__in': [Dewar.STATES.SENT, Dewar.STATES.ON_SITE, Dewar.STATES.RETURNED], 'pk__in': Dewar.objects.exclude(modified__lte=datetime.now() - timedelta(days=7), status__exact=Dewar.STATES.RETURNED).values('pk')},
     (Dewar, False) : {'status__in': [Dewar.STATES.DRAFT, Dewar.STATES.SENT, Dewar.STATES.ON_SITE, Dewar.STATES.RETURNED]},
-    (Container, True) : {'status__in': [Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED, Container.STATES.RETURNED]},
+    (Container, True) : {'status__in': [Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED, Container.STATES.RETURNED], 'pk__in': Container.objects.exclude(modified__lte=datetime.now() - timedelta(days=7), status__exact=Container.STATES.RETURNED).values('pk')},
     (Container, False) : {'status__in': [Container.STATES.DRAFT, Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED, Container.STATES.RETURNED]},
     (Crystal, True) : {'status__in': [Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
     (Crystal, False) : {'status__in': [Crystal.STATES.DRAFT, Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
@@ -248,7 +249,12 @@ def show_project(request):
                 'total': project.data_set.all().count(),
                 'new': project.data_set.filter(modified__gte=recent_start).filter(**project.get_archive_filter()).count(),
                 'start_date': recent_start,
-        },                
+                },        
+        'scanresults':{
+                'total': project.scanresult_set.all().count(),
+                'new': project.scanresult_set.filter(modified__gte=recent_start).filter(**project.get_archive_filter()).count(),
+                'start_date': recent_start,
+                },              
     }
     
     return render_to_response('lims/project.html', {
@@ -981,11 +987,13 @@ def shipment_pdf(request, id, model, format):
         containers = obj.project.container_set.filter(dewar__in=obj.dewar_set.all())
         experiments = obj.project.experiment_set.filter(pk__in=obj.project.crystal_set.filter(container__dewar__shipment__exact=obj.pk).values('experiment')).order_by('priority').reverse()
         group = None
+        num_crystals = obj.project.crystal_set.filter(container__pk__in=containers).count()
 
     if format == 'runlist':
         containers = obj.containers.all()
         experiments = Experiment.objects.filter(pk__in=Crystal.objects.filter(container__in=obj.containers.all()).values('experiment')).order_by('priority').reverse()
         group = Project.objects.filter(pk__in=obj.containers.all().values('project'))
+        num_crystals = obj.project.crystal_set.filter(container__pk__in=containers).count()
 
     work_dir = create_cache_dir(obj.label_hash())
     prefix = "%s-%s" % (obj.label_hash(), format)
@@ -999,7 +1007,7 @@ def shipment_pdf(request, id, model, format):
                 project = obj.project
             else:
                 project = request.project
-            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'group': group, 'shipment' : obj, 'experiments': experiments, 'containers': containers })
+            tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'group': group, 'shipment' : obj, 'experiments': experiments, 'containers': containers, 'num_crystals': num_crystals })
         elif format == 'label':
             tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': obj.project, 'shipment' : obj})
         elif format == 'return_label':
@@ -1246,13 +1254,6 @@ def add_scan(request, scan_info):
             pass
         new_obj.save(force_update=force_update)
         
-        print "new_obj", new_obj, type(new_obj.details), new_obj.details.keys()
-        for k in new_obj.details.keys():
-            try:
-                print "this", k, new_obj.details[k].keys()
-            except:
-                print k
-        
         ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, "New scan uploaded from beamline")
         return {'scan_id': new_obj.pk}
     except Exception, e:
@@ -1383,16 +1384,19 @@ def plot_xrf_scan(request, id):
     
     x = numpy.array(data['energy'])
     y = numpy.array(data['counts'])
+    yc = numpy.array(data['fit'])
     ypadding = (y.max() - y.min())/8.0  # pad 1/8 of range to either side
     
-    fig = Figure(figsize=(PLOT_WIDTH*1.1, PLOT_HEIGHT), dpi=PLOT_DPI)
+    fig = Figure(figsize=(PLOT_WIDTH*1.1, PLOT_HEIGHT*0.9), dpi=PLOT_DPI)
     fig.subplots_adjust(left=0.1, right=0.95, top=0.95, bottom=0.1)
     ax1 = fig.add_subplot(111)
     ax1.set_title('X-Ray Fluorescence')
     ax1.set_ylabel('Fluorescence')
     ax1.set_xlabel('Energy (keV)')
-    ax1.plot(x, y, 'b-', lw=1, markersize=3, markerfacecolor='w', markeredgewidth=1)
+    ax1.plot(x, y, 'b-', lw=1, markersize=3, markerfacecolor='w', markeredgewidth=1, label='Exp')
+    ax1.plot(x, yc, 'k:', lw=1, markersize=3, markerfacecolor='w', markeredgewidth=1, label='Fit')
     ax1.grid(True)
+    ax1.legend()
     ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
     #only update limits if they are wider than current limits
     curr_ymin, curr_ymax = ax1.get_ylim()
@@ -1405,20 +1409,18 @@ def plot_xrf_scan(request, id):
     if peaks is None:
         return
     tick_size = max(y)/50.0
-    for peak in peaks:
-        if len(peak)> 4:
-            el, pk = peak[4].split('-')
-            lbl = '%s-%s' % (el, pk)
-            lbls = ', '.join(peak[4:])
-        else:
-            lbl = '?'
-            lbls = ''
-        ax1.plot([peak[0], peak[0]], [peak[1]+tick_size,peak[1]+tick_size*2], 'm-')
-        ax1.text(peak[0], 
-                 peak[1]+tick_size*2.2,
-                 lbl,
-                 horizontalalignment='center', 
-                 color='black', size=12)
+    element_list = [(v[0], k) for k,v in peaks.items()]
+    element_list.sort()
+    element_list.reverse()
+
+    new_lines = scan.summarize_lines()
+    for line in new_lines:
+        base = line[0]
+        for edge in line[1]:
+            ax1.plot([edge[1], edge[1]], [0, edge[2]*0.95], '%s' % line[2])
+            ax1.text(edge[1], -0.5, "%s-%s" % (base, edge[0]), rotation=90, 
+                     horizontalalignment='center', verticalalignment='top', 
+                     color=line[2], size=11)
 
     canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')
@@ -1440,10 +1442,6 @@ def plot_xanes_scan(request, id):
     data = scan.details
     if data is None:
         raise Http404
-    infl = data['energies']['infl'][1]
-    peak = numpy.array(data['energies']['peak'][1])
-    remo = numpy.array(data['energies']['remo'][1])
-    info = 'filler text'
     
     x = data['data']['energy']
     y = data['data']['counts']
@@ -1451,11 +1449,11 @@ def plot_xanes_scan(request, id):
     fpp = data['efs']['fpp']
     fp = data['efs']['fp']
             
-    fig = Figure(figsize=(PLOT_WIDTH*1.1, PLOT_HEIGHT), dpi=PLOT_DPI)
+    fig = Figure(figsize=(PLOT_WIDTH*1.1, PLOT_HEIGHT*0.9), dpi=PLOT_DPI)
     fig.subplots_adjust(left=0.1, right=0.9, top=0.95, bottom=0.1)
-    fig.text(0.14, 0.7, info, color='b')
     ax1 = fig.add_subplot(111)
     ax1.plot(x, y, 'b')   
+    
     ax11 = ax1.twinx()
     ax11.plot(x11, fpp, 'r')
     ax11.plot(x11, fp, 'g')
@@ -1464,19 +1462,22 @@ def plot_xanes_scan(request, id):
     ax1.set_xlabel("Energy (keV)")
     ax1.set_ylabel("Fluorescence Counts")
     ax11.set_ylabel("Anomalous scattering factors (f', f'')")
-    #ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
-    #ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
 
     ypadding = (max(y) - min(y))/8.0  # pad 1/8 of range to either side
     curr_ymin, curr_ymax = ax1.get_ylim()
     ymin = (curr_ymin+ypadding < min(y)) and curr_ymin  or (min(y) - ypadding)
     ymax = (curr_ymax-ypadding > max(y)) and curr_ymax  or (max(y) + ypadding)
+
+    y1padding = (min(fp) < 0) and (abs(min(fp)) + max(fpp))/50.0 or (max(fpp) - min(fp))/50.0
+    y1min = min(fp) - y1padding
+    y1max = max(fpp) + y1padding
+    
     ax1.set_ylim(ymin, ymax)
     ax1.set_xlim(min(data['data']['energy']), max(data['data']['energy']))
-    ax11.set_ylim(min(fp), max(fpp))
-    #ax1.xaxis.set_major_formatter(ResFormatter())
-    #ax1.xaxis.set_minor_formatter(ResFormatter())
-    #ax1.xaxis.set_major_locator(ResLocator())
+    ax11.set_ylim(y1min, y1max)
+
+    for p in data['energies']:
+        ax1.axvline( p[1], color='m', linestyle=':', linewidth=1)
 
     canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')

@@ -1,9 +1,13 @@
 {% extends "base.html" %}
 {% load zip %}
 {% load markup %}
+{% load converter %}
+{% load sorted_list %}
+
 {% block headline %}
 <h2 class="process"><span class="identity">{{ object.identity }}</span> {{ object.get_kind_display }} - &ldquo;{{object.name}}&rdquo;</h2>
 {% endblock %}
+
 {% block object-tools %}
 <div class="object-tools">
     {% include "lims/tools.html" %}
@@ -14,14 +18,60 @@
     </ul>
 </div>
 {% endblock %}
+
 {% block content %}
-<!--div class="data-image"-->
     {% ifequal object.kind 1 %}
-    <img src="{% url lims-plot-xrf object.id %}" />
+        <img src="{% url lims-plot-xrf object.id %}" />
     {% else %}
         <img src="{% url lims-plot-xanes object.id %}" />
     {% endifequal %}
-<!--/div-->
+    <div class="object-list">
+        {% ifequal object.kind 1 %}<h3>Output Log</h3>
+        {% else %}<h3>Selected Energies for 3-Wavelength MAD data and corresponding anomalous scattering factors.</h3>
+        {% endifequal %}
+        <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">
+            <thead>
+	            <tr class="header">
+                    {% ifequal object.kind 1 %}
+	                    <th>Identity</th>
+	                    <th>Reliability (%)</th>
+                        <th>Edge</th>
+                        <th>Position (keV)</th>
+	                {% else %}
+		                <th width="20%"></th>
+		                <th width="20%">Wavelength (&#8491;)</th>
+		                <th width="20%">Energy (keV)</th>
+		                <th width="20%">f'</th>
+		                <th width="20%">f''</th>
+		            {% endifequal %}
+	            </tr>
+	        </thead>
+	        <tbody>
+	            {% ifequal object.kind 1 %}
+	                {% for data in object.details.peaks|sorted_list:1 reversed %}
+	                    <tr class="{% cycle 'odd' 'even' %}" {% for line in object.summarize_lines %}{% ifequal data.0 line.0 %}style="color:{{line.2}};"{% endifequal %}{% endfor %}>
+	                        <td>{{ data.0 }}{{ color }}</td>
+	                        <td>{{ data.1.0|floatformat:2 }}</td>
+	                        {% with data.1.1|sorted_list:1 as edges %}
+	                        <td>{% for edge in edges %}{{ edge.0 }}{% if not forloop.last %}<br> {% endif %}{% endfor %}</td>
+	                        <td>{% for edge in edges %}{{ edge.1 }}{% if not forloop.last %}<br> {% endif %}{% endfor %}</td>
+	                        {% endwith %}
+	                    </tr>
+                    {% endfor %}
+                {% else %}
+		            {% for data in object.details.energies %}
+			            <tr class="odd">
+			               <td>{{ data.0|capfirst }}</td>
+			               <td>{{ data.1|energy_to_wavelength|floatformat:4 }}</td>
+			               <td>{{ data.1|floatformat:5 }}</td>
+			               <td>{{ data.2 }}</td>
+			               <td>{{ data.3 }}</td>
+			            </tr>
+	               {% endfor %}
+                {% endifequal %}
+            </tbody>
+        </table>
+    </div>
 {% endblock %}
 
 {% block sidebar %}

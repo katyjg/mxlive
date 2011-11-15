@@ -12,7 +12,7 @@ def texsafe(value):
     [ "\\xc5", 'A'],       #'\\AA'
     [ "\\xf6", 'o']        #'\\"{o}'
     ]
-    for char in ['\\', '^', '~']: # these mess up things
+    for char in ['\\', '^', '~', '%']: # these mess up things
         value = value.replace(char, '')
     for char in ['$','_', '{', '}']: # these can be escaped properly
         value = value.replace(char, '\\' + char)
