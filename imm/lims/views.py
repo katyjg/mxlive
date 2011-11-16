@@ -1398,12 +1398,6 @@ def plot_xrf_scan(request, id):
     ax1.grid(True)
     ax1.legend()
     ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
-    #only update limits if they are wider than current limits
-    curr_ymin, curr_ymax = ax1.get_ylim()
-    ymin = (curr_ymin+ypadding < y.min()) and curr_ymin  or (y.min() - ypadding)
-    ymax = (curr_ymax-ypadding > y.max()) and curr_ymax  or (y.max() + ypadding)
-    ax1.set_ylim((ymin, ymax))
-    ax1.set_xlim((x.min(), x.max()))
 
     peaks = data['peaks']
     if peaks is None:
@@ -1421,6 +1415,12 @@ def plot_xrf_scan(request, id):
             ax1.text(edge[1], -0.5, "%s-%s" % (base, edge[0]), rotation=90, 
                      horizontalalignment='center', verticalalignment='top', 
                      color=line[2], size=11)
+
+    # set limits on axes
+    alims = ax1.axis()
+    _offset = 0.1 * alims[3]
+    ax1.set_xlim((x.min(), x.max()))
+    ax1.set_ylim((alims[2]-1.5*_offset, alims[3]+_offset))
 
     canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')
