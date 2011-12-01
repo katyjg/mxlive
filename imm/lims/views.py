@@ -31,7 +31,7 @@ from django import forms
 
 from imm.objlist.views import ObjectList
 from imm.lims.models import *
-from imm.staff.models import Runlist, Link
+from imm.staff.models import *
 from imm.lims.forms import DataForm
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
 from imm.download.views import create_download_key, create_cache_dir, send_raw_file
@@ -138,6 +138,7 @@ MANAGER_FILTERS = {
     (Data, False) : {'status__in': [Data.STATES.ACTIVE]},
     (Result, True) : {'status__in': [Result.STATES.ACTIVE, Result.STATES.ARCHIVED, Result.STATES.TRASHED]},
     (Result, False) : {'status__in': [Result.STATES.ACTIVE]},
+    (Runlist, True) : {'status__in': [Runlist.STATES.PENDING, Runlist.STATES.LOADED, Runlist.STATES.UNLOADED]},
 }
 
 # models.Manager ordering is overridden by admin.ModelAdmin.ordering in the ObjectList
