@@ -406,7 +406,9 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
             else:
                 form.warning_message = None
         if action == 'load':
-            form_info['message'] = 'You are verifying that this runlist has been loaded into the automounter.'
+            form_info['message'] = 'Verify that this runlist has been loaded into the automounter.'
+        if action == 'unload':
+            form_info['message'] = 'Verify that the runlist has been unloaded from the automounter.'
 
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
@@ -414,7 +416,11 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
             if action:
                 if action == 'review': obj.review(request=request)
                 if action == 'load': obj.load(request=request)
-                if action == 'unload': obj.unload(request=request)
+                if action == 'unload': 
+                    obj.unload(request=request)
+                    request.user.message_set.create(message = 'Runlist (%s) unloaded from %s automounter' % (obj.name, obj.beamline))
+                    url_name = "staff-%s-list" % (model.__name__.lower()) 
+                    return render_to_response("lims/redirect.json", {'redirect_to': reverse(url_name),}, context_instance=RequestContext(request), mimetype="application/json")   
             return render_to_response('lims/refresh.html')
         else:
             return render_to_response(template, {
