@@ -1,9 +1,11 @@
+{% load truncate_filters %}
+
 <li class="{% if container %}occupied {{ container.get_kind_display }}{% else %}empty automounter droppable droppable-add{% endif %}"   
     {% if object.is_editable %}{% if container %}
     {% else %}accept="container" 
     parent="{{ object.id }}"{% endif %}{% else %} accept=""{% endif %}
     automounter_location="{{ letter }}">
-    <a {% if container %}href="{% url staff-container-detail container.pk %}" title="Go to Container {{container.name }}"{% endif %}>{{ container.name }}</a>
+    <a {% if container %}href="{% url staff-container-detail container.pk %}" title="Go to Container {{container.name }}"{% endif %}>{{ container.name|truncate_chars:20 }}</a>
     {% if container %}
         <a class="remove"
            rel="{% url staff-runlist-remove-container object.pk container.pk %}"
