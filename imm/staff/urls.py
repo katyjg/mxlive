@@ -117,6 +117,9 @@ for section, subsection in _URL_META.items():
 #Special Staff Cases
 urlpatterns = patterns('imm.staff.views',
     (r'^$', 'staff_home', {}, 'staff-home'),
+    (r'^statistics$', 'staff_stats', {}, 'staff-stats-current'),
+    (r'^statistics/(?P<month>\w+-\w+)/$', 'staff_stats', {}, 'staff-stats-other'),
+    
 
     # Dewars 
     (r'^shipping/dewar/receive/(?P<id>\d+)$', 'receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-dewar-receive'),

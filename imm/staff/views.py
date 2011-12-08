@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+import calendar
 import logging
 import subprocess
 import tempfile
@@ -82,6 +83,45 @@ def staff_home(request):
         'feedback': Feedback.objects.all()[:5],
         'statistics': statistics,
         'handler': request.path,
+        }, context_instance=RequestContext(request))
+    
+@admin_login_required
+def staff_stats(request, month=None):
+    today = datetime.today()
+    mon = today.month
+    if month:
+        mon = int(month.split('-')[1])
+        today = datetime(year=int(month.split('-')[0]), month=mon, day=today.day)
+        
+    first_day = (today - timedelta(days=(today.day-1))) - timedelta(days=(today - timedelta(days=(today.day-1))).weekday())
+    current_date = (datetime.today().strftime('%Y-%m-%d') == today.strftime('%Y-%m-%d')) and today.day or 0
+
+    dates = []
+    data = []
+    i = 0
+    while (first_day+timedelta(days=i*7)).month is today.month or i == 0:
+        for j in range(7):
+            this_day = first_day + timedelta(days=(j + i*7))
+            dates.append([this_day.day,this_day.month])
+            filter_today = datetime(this_day.year, this_day.month, this_day.day)
+            filter_tomorrow = filter_today + timedelta(days=1)
+            data = Data.objects.filter(created__gt=filter_today).filter(created__lt=filter_tomorrow)
+            dates[-1].append(data)
+        i += 1
+
+    first_day = first_day.month == mon and first_day - timedelta(days=1) or first_day
+    prev_month = first_day.strftime('%Y-%m')
+    if (first_day + timedelta(days=(j+(i)*7))).month is month:
+        j += 1
+    next_month = (first_day + timedelta(days=(j+(i)*7))).strftime('%Y-%m')
+
+    return render_to_response('lims/statistics.html', {
+        'month': [mon, today.strftime('%B')],
+        'year': today.year,
+        'current_date': current_date,
+        'dates': dates,
+        'next_month': next_month,
+        'prev_month': prev_month,
         }, context_instance=RequestContext(request))
     
 @admin_login_required

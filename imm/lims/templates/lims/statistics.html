@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% load stats_extras %}
+
+{% block headline %}
+<h2>Usage Statistics - {{month.1}} {{ year }}</h2>
+{% endblock %}
+
+{% block content-override %}
+
+<div class="object-list">
+<div class="list-tools">
+
+        <h3 class="current">        <a class="prev" href='{% url staff-stats-other month=prev_month %}' title="Previous Month">
+            <img src="/img/prev.png" alt="Previous Month">
+        </a><a class="current" href='{% url staff-stats-current %}'>Back to Current Month</a>
+        <a class="next" href='{% url staff-stats-other month=next_month %}' title="Next Month">
+            <img src="/img/next.png" alt="Next Month">
+        </a></h3>
+</div>
+<h3>{{month.1}} {{ year}}</h3>
+<table id="calendar">
+    <thead>
+        <tr>
+		    <th></th>
+		    <th class="weekday">Monday</th>
+		    <th class="weekday">Tuesday</th>
+		    <th class="weekday">Wednesday</th>
+		    <th class="weekday">Thursday</th>
+		    <th class="weekday">Friday</th>
+		    <th class="weekday">Saturday</th>
+		    <th class="weekday">Sunday</th>
+        </tr>
+    </thead>
+    <tbody>
+	<tr>
+	    <td><table class="headercol">
+	        <tr><td class="date"></td></tr>
+	        <tr><td class="blabel">ID-1</td></tr>
+	        <tr><td class="blabel">B1-1</td></tr>
+        </table></td>
+	    {% for day in dates %}
+	    <td class="stat-date {% ifequal month.0 day.1 %}current-month{% endifequal %} {% ifequal current_date day.0 %}today{% endifequal %}">
+	        <table>
+	            <tr><td class="date">
+	                {{day.0}}
+	            </td></tr>
+	            {% with day.2|format_data:'08ID1' as data %}
+	            <tr><td class="stats">
+	                {% for item in data %}
+	                    {{ item.0 }}-{{ item.1 }}
+	                    {% ifequal item.2 item.3 %}
+	                        (at {{ item.2 }})
+	                    {%else %} 
+	                        ({{item.2 }} to {{ item.3 }})
+	                    {% endifequal %}
+	                    <br>
+	                {% endfor %}
+	            </td></tr>
+	            {% endwith %}
+	            {% with day.2|format_data:'08B1-1' as data %}
+	            <tr><td class="stats">
+	                {% for item in data %}
+	                    {{ item.0 }} ({{ item.1 }}
+	                    {% ifequal item.2 item.3 %}
+	                        at {{ item.2 }})
+	                    {%else %} 
+	                        {{item.2 }} to {{ item.3 }})
+	                    {% endifequal %}
+	                    <br>
+	                {% endfor %}
+	            </td></tr>
+	            {% endwith %}
+	        </table>
+	    </td>
+        {% if forloop.counter|divisibleby:"7" %}{% if not forloop.last %}
+    </tr><tr>
+	    <td><table class="headercol">
+	        <tr><td class="date"></td></tr>
+	        <tr><td class="blabel">ID-1</td></tr>
+	        <tr><td class="blabel">B1-1</td></tr>
+	    </table></td>
+        {% endif %}{% endif %}
+    {% endfor %}
+    </tr>
+    </tbody>
+</table>
+
+{% endblock %}
