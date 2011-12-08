@@ -27,3 +27,7 @@ def format_data(data, beamline):
                                  data[i].created.strftime("%H:%M"), 
                                  data[i].created.strftime("%H:%M")])      
     return projects or ''
+
+@register.filter("bl_name")
+def bl_name(name):
+    return name.replace('08','')
