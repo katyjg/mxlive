@@ -301,8 +301,10 @@ ul.toolbar li.process-tool {background-image: url(/img/process-icon.png);}
 ul.toolbar li.component-tool {background-image: url(/img/drive-harddisk.png);}
 ul.toolbar li.download-tool {background-image: url(/img/download-icon-32.png); cursor: pointer;}
 ul.toolbar li.trash-tool {background-image: url(/img/trash-icon.png);}
+ul.toolbar li.stats-tool {background-image: url(/img/calendar-icon.png);}
 a.download-tool {background-image: url(/img/download-icon.png); float: right; padding:8px; margin-top: 4px;}
 a.receive-tool {background-image: url(/img/receive-icon-sm.png); padding: 3px 10px}
+
 
 /* -- end toolbar -- */
 
@@ -1119,4 +1121,59 @@ ul.filter-choices ul {
     border: 1px solid #bbb;
     position: relative;
     margin-bottom: 5px;
+}
+table#calendar {
+	width: 100%;
+}
+#calendar th.weekday {
+	width: 14%;
+}
+.prev {
+	float: left;
+}
+.next {
+	float: right;
+}
+h3.current {
+	text-align: center;
+	font-weight: normal !important;
+}
+#calendar td.stat-date, #calendar td {
+	border: 1px solid #DEDEDE;
+	padding: 0;
+}
+#calendar td.current-month table td{
+	background-color: #f8f8f8;
+}
+#calendar table {
+	width: 100%;
+    border: none;
+}
+#calendar table td {
+	border: none;
+}
+td.date {
+    height: 22px !important;
+    padding-right: 10px !important;
+    text-align: right !important;
+}
+td.stats {
+	padding: 0px 10px !important;
+	text-align: left !important;
+}
+td.stats, td.blabel {
+	height: 40px !important;
+    border-top: 1px dotted #E0E0E0 !important;
+}
+td.blabel {
+	text-align: center;
+	-webkit-transform: rotate(-90deg); 
+	-moz-transform: rotate(-90deg);    
+	filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+}
+td.today table td {
+	background-color: #f0f0f0 !important;
+}
+table.headercol, table.headercol td {
+	background-color: #F0F0F0 !important;
 }
