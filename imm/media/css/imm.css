@@ -1124,6 +1124,7 @@ ul.filter-choices ul {
 }
 table#calendar {
 	width: 100%;
+	border-bottom: 1px solid #DEDEDE;
 }
 #calendar th.weekday {
 	width: 14%;
@@ -1144,38 +1145,31 @@ h3.current {
 	padding: 0;
 	white-space: normal;
 }
-#calendar td.current-month table td, #calendar td.current-month{
+#calendar td.current-month {
 	background-color: #f8f8f8;
-}
-#calendar table {
-	width: 100%;
-    border: none;
-}
-#calendar table td {
-	border: none;
 }
 td.date {
     height: 22px !important;
     padding-right: 10px !important;
     text-align: right !important;
+    border-bottom: none !important;
 }
 td.stats {
+	border-bottom: none !important;
+	border-left: none !important;
 	padding: 0px 10px !important;
 	text-align: left !important;
-}
-td.stats, td.blabel {
-	height: 50px !important;
+    height: 50px !important;
     border-top: 1px dotted #E0E0E0 !important;
 }
-td.blabel {
-	text-align: center;
-	-webkit-transform: rotate(-90deg); 
-	-moz-transform: rotate(-90deg);    
-	filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+td.blabel span{
+    -webkit-transform: rotate(-90deg); 
+    -moz-transform: rotate(-90deg);    
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
 }
-td.today table td {
+td.today {
 	background-color: #f0f0f0 !important;
 }
-table.headercol, table.headercol td, td.header {
+td.header {
 	background-color: #F0F0F0 !important;
 }

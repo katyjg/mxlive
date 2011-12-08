@@ -98,16 +98,21 @@ def staff_stats(request, month=None):
 
     dates = []
     data = []
+    week = []
     i = 0
     while (first_day+timedelta(days=i*7)).month is today.month or i == 0:
+        week = []
         for j in range(7):
             this_day = first_day + timedelta(days=(j + i*7))
-            dates.append([this_day.day,this_day.month])
+            #dates.append([this_day.day,this_day.month])
+            #week.append([this_day.day,this_day.month])
             filter_today = datetime(this_day.year, this_day.month, this_day.day)
             filter_tomorrow = filter_today + timedelta(days=1)
             data = Data.objects.filter(created__gt=filter_today).filter(created__lt=filter_tomorrow)
-            dates[-1].append(data)
+            #dates[-1].append(data)
+            week.append([this_day.day,this_day.month,data])
         i += 1
+        dates.append(week)
 
     first_day = first_day.month == mon and first_day - timedelta(days=1) or first_day
     prev_month = first_day.strftime('%Y-%m')
@@ -122,6 +127,7 @@ def staff_stats(request, month=None):
         'dates': dates,
         'next_month': next_month,
         'prev_month': prev_month,
+        'display': ['', '08ID-1', '08B1-1']
         }, context_instance=RequestContext(request))
     
 @admin_login_required

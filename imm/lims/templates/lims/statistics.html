@@ -33,31 +33,52 @@
         </tr>
     </thead>
     <tbody>
-	<tr>
-	    <td class="header"><table class="headercol">
-	        <tr><td class="date"></td></tr>
-	        <tr><td class="blabel">ID-1</td></tr>
-	        <tr><td class="blabel">B1-1</td></tr>
-        </table></td>
+        {% for week in dates %}
+            {% for name in display %}
+            <tr><td class="{% if name %}blabel header{% else %}date header{% endif %}"><span>{{ name|bl_name }}</span></td>
+            {% if not name %}
+                {% for day in week %}
+                <td class="date
+                    {% ifequal month.0 day.1 %}current-month{% endifequal %} 
+                    {% ifequal current_date day.0 %}today{% endifequal %}">{{day.0}}</td>
+                {% endfor %}
+            {% else %}
+                {% for day in week %}
+                <td class="stats
+                    {% ifequal month.0 day.1 %}current-month{% endifequal %} 
+                    {% ifequal current_date day.0 %}today{% endifequal %}">
+                {% with day.2|format_data:name as data %}
+                    {% for item in data %}
+                        <b>{{ item.0 }}</b>({{ item.1 }})-{% ifequal item.2 item.3 %}({{ item.2 }}){%else %} 
+                            ({{item.2 }}-{{ item.3 }})
+                        {% endifequal %}
+                        <br>
+                    {% endfor %}
+                {% endwith %}</td>
+                {% endfor %}
+            {% endif %}
+            </tr>
+                
+        {% endfor %}
+        {% endfor %}
+        
+        {% comment %}
 	    {% for day in dates %}
 	    <td class="stat-date {% ifequal month.0 day.1 %}current-month{% endifequal %} {% ifequal current_date day.0 %}today{% endifequal %}">
 	        <table>
 	            <tr><td class="date">
 	                {{day.0}}
 	            </td></tr>
-	            {% with day.2|format_data:'08ID-1' as data %}
-	            <tr><td class="stats">
-	                {% for item in data %}
-	                    {{ item.0 }}-{{ item.1 }}
-	                    {% ifequal item.2 item.3 %}
-	                        (at {{ item.2 }})
-	                    {%else %} 
-	                        ({{item.2 }} to {{ item.3 }})
-	                    {% endifequal %}
-	                    <br>
-	                {% endfor %}
-	            </td></tr>
-	            {% endwith %}
+                {% with day.2|format_data:'08ID-1' as data %}
+                <tr><td class="stats">
+                    {% for item in data %}
+                        <b>{{ item.0 }}</b>({{ item.1 }})-{% ifequal item.2 item.3 %}({{ item.2 }}){%else %} 
+                            ({{item.2 }}-{{ item.3 }})
+                        {% endifequal %}
+                        <br>
+                    {% endfor %}
+                </td></tr>
+                {% endwith %}
 	            {% with day.2|format_data:'08B1-1' as data %}
 	            <tr><td class="stats">
 	                {% for item in data %}
@@ -78,7 +99,7 @@
 	        <tr><td class="blabel">B1-1</td></tr>
 	    </table></td>
         {% endif %}{% endif %}
-    {% endfor %}
+    {% endfor %}{% endcomment %}
     </tr>
     </tbody>
 </table>
