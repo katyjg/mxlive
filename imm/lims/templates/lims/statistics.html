@@ -45,7 +45,7 @@
 	            <tr><td class="date">
 	                {{day.0}}
 	            </td></tr>
-	            {% with day.2|format_data:'08ID1' as data %}
+	            {% with day.2|format_data:'08ID-1' as data %}
 	            <tr><td class="stats">
 	                {% for item in data %}
 	                    {{ item.0 }}-{{ item.1 }}
