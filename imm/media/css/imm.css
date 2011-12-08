@@ -1127,6 +1127,7 @@ table#calendar {
 }
 #calendar th.weekday {
 	width: 14%;
+	max-width: 14%;
 }
 .prev {
 	float: left;
@@ -1141,8 +1142,9 @@ h3.current {
 #calendar td.stat-date, #calendar td {
 	border: 1px solid #DEDEDE;
 	padding: 0;
+	white-space: normal;
 }
-#calendar td.current-month table td{
+#calendar td.current-month table td, #calendar td.current-month{
 	background-color: #f8f8f8;
 }
 #calendar table {
@@ -1162,7 +1164,7 @@ td.stats {
 	text-align: left !important;
 }
 td.stats, td.blabel {
-	height: 40px !important;
+	height: 50px !important;
     border-top: 1px dotted #E0E0E0 !important;
 }
 td.blabel {
@@ -1174,6 +1176,6 @@ td.blabel {
 td.today table td {
 	background-color: #f0f0f0 !important;
 }
-table.headercol, table.headercol td {
+table.headercol, table.headercol td, td.header {
 	background-color: #F0F0F0 !important;
 }
