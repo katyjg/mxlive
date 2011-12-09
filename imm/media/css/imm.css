@@ -1161,6 +1161,7 @@ td.stats {
 	text-align: left !important;
     height: 50px !important;
     border-top: 1px dotted #E0E0E0 !important;
+    font-size: 8pt;
 }
 td.blabel span{
     -webkit-transform: rotate(-90deg); 
@@ -1172,4 +1173,22 @@ td.today {
 }
 td.header {
 	background-color: #F0F0F0 !important;
+}
+table.statistics {
+	width: auto;
+}
+table.statistics th {
+	white-space: nowrap;
+}
+table.statistics th.heading {
+    padding: 6px 5px;
+    display: table-cell;
+}
+table.statistics th.subheading {
+	padding-left: 10px;
+	color: #888888;
+	margin-bottom: 5px;
+}
+table.statistics .info {
+	text-align: center;
 }
