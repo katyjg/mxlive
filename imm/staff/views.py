@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta, date
-import calendar
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 import logging
 import subprocess
 import tempfile
@@ -97,22 +97,20 @@ def staff_stats(request, month=None):
     current_date = (datetime.today().strftime('%Y-%m-%d') == today.strftime('%Y-%m-%d')) and today.day or 0
 
     dates = []
-    data = []
     week = []
     i = 0
     while (first_day+timedelta(days=i*7)).month is today.month or i == 0:
         week = []
         for j in range(7):
             this_day = first_day + timedelta(days=(j + i*7))
-            #dates.append([this_day.day,this_day.month])
-            #week.append([this_day.day,this_day.month])
             filter_today = datetime(this_day.year, this_day.month, this_day.day)
             filter_tomorrow = filter_today + timedelta(days=1)
             data = Data.objects.filter(created__gt=filter_today).filter(created__lt=filter_tomorrow)
-            #dates[-1].append(data)
             week.append([this_day.day,this_day.month,data])
         i += 1
         dates.append(week)
+
+    all_data = Data.objects.filter(created__gt=datetime(today.year, mon, 1)).filter(created__lt=datetime(today.year, mon, 1)+relativedelta(months=+1))
 
     first_day = first_day.month == mon and first_day - timedelta(days=1) or first_day
     prev_month = first_day.strftime('%Y-%m')
@@ -121,10 +119,10 @@ def staff_stats(request, month=None):
     next_month = (first_day + timedelta(days=(j+(i)*7))).strftime('%Y-%m')
 
     return render_to_response('lims/statistics.html', {
-        'month': [mon, today.strftime('%B')],
-        'year': today.year,
+        'month': [mon, today.strftime('%B'), today.year],
         'current_date': current_date,
         'dates': dates,
+        'data': all_data,
         'next_month': next_month,
         'prev_month': prev_month,
         'display': ['', '08ID-1', '08B1-1']
