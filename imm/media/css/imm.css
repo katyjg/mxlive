@@ -1140,13 +1140,15 @@ h3.current {
 	text-align: center;
 	font-weight: normal !important;
 }
-#calendar td.stat-date, #calendar td {
+#calendar td {
 	border: 1px solid #DEDEDE;
 	padding: 0;
 	white-space: normal;
+	color: #777;
 }
 #calendar td.current-month {
 	background-color: #f8f8f8;
+	color: #000;
 }
 td.date {
     height: 22px !important;
@@ -1164,6 +1166,7 @@ td.stats {
     font-size: 8pt;
 }
 td.blabel span{
+	color: #000;
     -webkit-transform: rotate(-90deg); 
     -moz-transform: rotate(-90deg);    
     filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
