@@ -126,7 +126,7 @@ def staff_stats(request, month=None):
             start_time = datetime(today.year, mon, 1)
             num_shifts = 0
             while start_time < end_time:
-                if bl_data.filter(created__gt=start_time).filter(created__lt=start_time+one_shift).exists():
+                if bl_data.filter(project__name__exact=project.name).filter(created__gt=start_time).filter(created__lt=start_time+one_shift).exists():
                     num_shifts += 1
                 start_time += one_shift
             user_stat[-1].append([num_shifts])
