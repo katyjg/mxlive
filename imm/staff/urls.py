@@ -117,8 +117,9 @@ for section, subsection in _URL_META.items():
 #Special Staff Cases
 urlpatterns = patterns('imm.staff.views',
     (r'^$', 'staff_home', {}, 'staff-home'),
-    (r'^statistics$', 'staff_stats', {}, 'staff-stats-current'),
-    (r'^statistics/(?P<month>\w+-\w+)/$', 'staff_stats', {}, 'staff-stats-other'),
+    (r'^statistics$', 'staff_calendar', {}, 'staff-calendar-now'),
+    (r'^statistics/(?P<month>\w+-\w+)/$', 'staff_calendar', {}, 'staff-calendar-any'),
+    (r'^statistics/extras/(?P<year>\w+)-(?P<month>\w+)/$', 'staff_statistics', {}, 'staff-statistics'),
     
 
     # Dewars 

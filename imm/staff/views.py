@@ -86,21 +86,31 @@ def staff_home(request):
         }, context_instance=RequestContext(request))
     
 @admin_login_required
-def staff_stats(request, month=None):
+def staff_statistics(request, year, month):
+    display = ['08ID-1', '08B1-1']   
+    start_time = datetime(int(year), int(month), 1)
+    end_time = start_time + relativedelta(months=+1)
+    all_data = Data.objects.filter(beamline__name__in=display).filter(created__gt=start_time).filter(created__lt=end_time)
+    return render_to_response('lims/statistics.html', {
+        'month': [int(month), int(year)],
+        'data': all_data,
+        'display': display,
+        }, context_instance=RequestContext(request))    
+    
+@admin_login_required
+def staff_calendar(request, month=None):
     mon = month and int(month.split('-')[1]) or datetime.today().month
     today = month and datetime(year=int(month.split('-')[0]), month=mon, day=datetime.today().day) or datetime.today()
-        
-    first_day = (today - timedelta(days=(today.day-1))) - timedelta(days=(today - timedelta(days=(today.day-1))).weekday())
+    prev_month = (datetime(today.year, mon, 1) + relativedelta(months=-1)).strftime('%Y-%m')
+    next_month = (datetime(today.year, mon, 1) + relativedelta(months=+1)).strftime('%Y-%m')
+
+    display = ['08ID-1', '08B1-1']
     current_date = (datetime.today().strftime('%Y-%m-%d') == today.strftime('%Y-%m-%d')) and today.day or 0
-    one_shift = timedelta(hours=8)
-    start_time = datetime(today.year, mon, 1)
-    end_time = start_time + relativedelta(months=+1)
-    prev_month = (start_time + relativedelta(months=-1)).strftime('%Y-%m')
-    next_month = end_time.strftime('%Y-%m')
 
     dates = []
     week = []
     i = 0
+    first_day = (today - timedelta(days=(today.day-1))) - timedelta(days=(today - timedelta(days=(today.day-1))).weekday())
     while (first_day+timedelta(days=i*7)).month is today.month or i == 0:
         week = []
         for j in range(7):
@@ -112,33 +122,11 @@ def staff_stats(request, month=None):
         i += 1
         dates.append(week)
 
-    all_data = Data.objects.filter(created__gt=start_time).filter(created__lt=end_time)
-
-    display = ['08ID-1', '08B1-1']
-    user_stat = [['Totals', [0], [0]]]
-    
-    for j, name in enumerate(display):
-        user_stat[0][j+1].append([all_data.filter(kind__exact=i).filter(beamline__name__exact=name).count() for i in range(len(display))]) 
-    for project in Project.objects.filter(pk__in=all_data.values('project').distinct()):
-        user_stat.append([project])
-        for name in display:
-            bl_data = all_data.filter(beamline__name__exact=name)
-            start_time = datetime(today.year, mon, 1)
-            num_shifts = 0
-            while start_time < end_time:
-                if bl_data.filter(project__name__exact=project.name).filter(created__gt=start_time).filter(created__lt=start_time+one_shift).exists():
-                    num_shifts += 1
-                start_time += one_shift
-            user_stat[-1].append([num_shifts])
-            user_stat[-1][-1].append([bl_data.filter(project__name__exact=project).filter(kind__exact=i).count() for i in range(len(display))])
-            
-    return render_to_response('lims/statistics.html', {
+    return render_to_response('lims/calendar.html', {
         'month': [mon, today.strftime('%B'), today.year, prev_month, next_month],
         'current_date': current_date,
-        'dates': dates,
-        'data': all_data,
         'display': display,
-        'stat': user_stat
+        'dates': dates,
         }, context_instance=RequestContext(request))
     
 @admin_login_required

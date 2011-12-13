@@ -1,111 +1,35 @@
-{% extends "base.html" %}
-
 {% load stats_extras %}
 
-{% block headline %}
-<h2>Usage Statistics - {{month.1}} {{ month.2 }}</h2>
-{% endblock %}
-
-{% block content %}
-
-<div class="object-list">
-	<div class="list-tools">
-	    <h3 class="current">
-	        <a class="prev" href='{% url staff-stats-other month=month.3 %}' title="Previous Month">
-	            <img src="/img/prev.png" alt="Previous Month"></a>
-	        <a class="current" href='{% url staff-stats-current %}'>
-	            Back to Current Month</a>
-	        <a class="next" href='{% url staff-stats-other month=month.4 %}' title="Next Month">
-	            <img src="/img/next.png" alt="Next Month"></a>
-	    </h3>
-	</div>
-
-    <h3>{{month.1}} {{ month.2 }}</h3>
-
-<table id="calendar">
-    <thead>
-        <tr>
-		    <th></th>
-		    <th class="weekday">Monday</th>
-		    <th class="weekday">Tuesday</th>
-		    <th class="weekday">Wednesday</th>
-		    <th class="weekday">Thursday</th>
-		    <th class="weekday">Friday</th>
-		    <th class="weekday">Saturday</th>
-		    <th class="weekday">Sunday</th>
-        </tr>
-    </thead>
+<table class="entrysummary statistics">
     <tbody>
-        {% for week in dates %}
-            {% for name in display %}
-	            {% if forloop.first %}
-	            <tr>
-	                <td class="date header"></td>
-	                {% for day in week %}
-	                <td class="date
-	                    {% ifequal month.0 day.1 %}current-month{% endifequal %} 
-	                    {% ifequal current_date day.0 %}today{% endifequal %}">{{day.0}}</td>
-	                {% endfor %}
-	            </tr>
-	            {% endif %}
-	            <tr>
-	                <td class="blabel header">
-	                    <span>{{ name|bl_name }}</span></td>
-	                {% for day in week %}
-	                <td class="stats
-	                    {% ifequal month.0 day.1 %}current-month{% endifequal %} 
-	                    {% ifequal current_date day.0 %}today{% endifequal %}">
-		                {% with day.2|format_data:name as data %}
-		                    {% for item in data %}
-		                        <b>{{ item.0 }}</b>({{ item.1 }})- 
-		                            {% ifequal item.2 item.3 %}
-		                                ({{ item.2 }})
-		                            {%else %} 
-		                                ({{item.2 }}-{{ item.3 }})
-		                            {% endifequal %}
-		                        <br>
-		                    {% endfor %}
-		                {% endwith %}</td>
-	                {% endfor %}
-	            </tr>
-            {% endfor %}
-        {% endfor %}
+    {% for user in data|user_project %}
+        {% if forloop.first %}
+            <tr><th class="heading">Totals</th>
+                {% for name in display %}<th class="heading info">{{ name|bl_name }}</th>{% endfor %}
+            </tr>
+            <tr><th class="subheading">Shifts Used:</th>
+                {% for name in display %}<td class="info">{{ data|by_bl:name|num_shifts:month }}</td>{% endfor %}
+            </tr>
+            <tr><th class="subheading">Screening:</th>
+            {% for name in display %}<td class="info">{{ data|by_project:user.name|by_bl:name|by_kind:0 }}</td>{% endfor %}
+            </tr>
+            <tr><th class="subheading">Collection:</th>
+            {% for name in display %}<td class="info">{{ data|by_project:user.name|by_bl:name|by_kind:1 }}</td>{% endfor %}
+            </tr>                
+        {% endif %}
+        <tr><th class="heading" colspan=3></th></tr>
+        <tr>
+            <th class="heading">{{ user.name }} shifts</th>
+            {% for name in display %}<th class="heading info">{{ data|by_project:user.name|by_bl:name|num_shifts:month }}</th>{% endfor %}
+        </tr>
+        <tr>
+            <th class="subheading">Screening:</th>
+            {% for name in display %}<td class="info">{{ data|by_project:user.name|by_bl:name|by_kind:0 }}</td>{% endfor %}
+        </tr>
+        <tr>
+            <th class="subheading">Collection:</th>
+            {% for name in display %}<td class="info">{{ data|by_project:user.name|by_bl:name|by_kind:1 }}</td>{% endfor %}
+        </tr>
+    {% endfor %}
     </tbody>
 </table>
-</div>
-
-{% endblock %}
-
-{% block sidebar %}
-<h2>{{ month.1 }} {{ month.2 }} Usage</h2>
-
-<table class="entrysummary statistics">
-	<tbody>
-	    {% for user in stat %}
- 	        {% if not forloop.first %}
-		        <tr><th class="heading" colspan=3></th></tr>
-		        <tr>
-		            <th class="heading">{{ user.0 }} shifts</th>
-		            <th class="heading info">{{ user.1.0 }}</th>
-		            <th class="heading info">{{ user.2.0 }}</th>
-		        </tr>
-	        {% else %}
-	            <tr><th class="heading">{{ user.0 }}</th>
-	               {% for name in display %}<th class="heading info">{{ name|bl_name }}</th>{% endfor %}
-                </tr>
-            {% endif %}
-	        <tr>
-	            <th class="subheading">Screening:</th>
-	            <td class="info">{{ user.1.1.0 }}</td>
-	            <td class="info">{{ user.2.1.0 }}</td>
-	        </tr>
-	        <tr>
-	            <th class="subheading">Collection:</th>
-	            <td class="info">{{ user.1.1.1 }}</td>
-	            <td class="info">{{ user.2.1.1 }}</td>
-	        </tr>
-	    {% endfor %}
-	</tbody>
-</table>
-
-{% endblock %}
