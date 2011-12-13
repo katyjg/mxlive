@@ -8,7 +8,7 @@
 {% block object-tools %}
     <div class="object-tools">
         <ul class="toolbar">
-            <li class="stats-tool"><a href='{% url staff-stats-current %}' title="View Usage Statistics">Statistics</a></li>
+            <li class="stats-tool"><a href='{% url staff-calendar-now %}' title="View Usage Statistics">Statistics</a></li>
             <li class="receive-tool"><a class="modal-form"  href="{% url staff-dewar-receive 0 %}" title="Receive a Shipment">Receive Dewar</a></li>
             <li class="help-tool"><a href='{% url staff-link-list %}' title="Edit News and HowTo sections">Help Info</a></li>
         </ul>

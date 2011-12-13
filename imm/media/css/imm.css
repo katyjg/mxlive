@@ -1195,3 +1195,10 @@ table.statistics th.subheading {
 table.statistics .info {
 	text-align: center;
 }
+#sidebar .widget.statistics ul {
+	overflow-y: visible;
+	max-height: 9999px;
+}
+#sidebar .widget.statistics {
+	background-image: -moz-linear-gradient(center top, #d8eee3, #fbfdfc);
+}

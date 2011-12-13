@@ -32,3 +32,34 @@ def format_data(data, beamline):
 def bl_name(name):
     return name.replace('08','')
 
+@register.filter("by_kind")
+def by_kind(data, kind):
+    return data.filter(kind__exact=kind).count()
+
+@register.filter("user_project")
+def user_project(data):
+    return Project.objects.filter(pk__in=data.values('project')).order_by('name')
+
+@register.filter("by_project")
+def by_project(data, project):
+    try:
+        return data.filter(project__exact=project)
+    except ValueError:
+        return data
+
+@register.filter("by_bl")
+def by_bl(data, beamline):
+    return data.filter(beamline__name__exact=beamline)
+
+@register.filter("num_shifts")
+def num_shifts(data, month):
+    one_shift = timedelta(hours=8)
+    start_time = datetime(month[1], month[0], 1)
+    next_month = start_time + relativedelta(months=+1)
+    num_shifts = 0
+    while start_time < next_month:
+        if data.filter(created__gt=start_time).filter(created__lt=start_time+one_shift).exists():
+            num_shifts += 1
+        start_time += one_shift
+    return num_shifts
+
