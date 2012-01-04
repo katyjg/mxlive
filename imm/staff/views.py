@@ -117,7 +117,7 @@ def staff_calendar(request, month=None):
             this_day = first_day + timedelta(days=(j + i*7))
             filter_today = datetime(this_day.year, this_day.month, this_day.day)
             filter_tomorrow = filter_today + timedelta(days=1)
-            data = Data.objects.filter(created__gt=filter_today).filter(created__lt=filter_tomorrow)
+            data = Data.objects.filter(created__gt=filter_today).filter(created__lt=filter_tomorrow).order_by('created')
             week.append([this_day.day,this_day.month,data])
         i += 1
         dates.append(week)

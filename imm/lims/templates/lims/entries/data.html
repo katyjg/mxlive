@@ -209,6 +209,7 @@
 	}
 
     function getArchive(url) {
+        jQuery.jGrowl("Please wait while a tar file is created for your dataset.  Depending on the number of images, this may take awhile.", { life: 10000 });
         jQuery.fancybox.showActivity();
         jQuery.get( url, function() {
             window.location = url;

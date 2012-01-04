@@ -43,7 +43,7 @@ def user_project(data):
 @register.filter("by_project")
 def by_project(data, project):
     try:
-        return data.filter(project__exact=project)
+        return data.filter(project__name__exact=project)
     except ValueError:
         return data
 

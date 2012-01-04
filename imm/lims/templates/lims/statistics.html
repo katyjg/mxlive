@@ -2,21 +2,21 @@
 
 <table class="entrysummary statistics">
     <tbody>
+        <tr><th class="heading">Totals</th>
+            {% for name in display %}<th class="heading info">{{ name|bl_name }}</th>{% endfor %}
+        </tr>
+        <tr><th class="subheading">Shifts Used:</th>
+            {% for name in display %}<td class="info">{{ data|by_bl:name|num_shifts:month }}</td>{% endfor %}
+        </tr>
+        <tr><th class="subheading">Screening:</th>
+        {% for name in display %}<td class="info">{{ data|by_bl:name|by_kind:0 }}</td>{% endfor %}
+        </tr>
+        <tr><th class="subheading">Collection:</th>
+        {% for name in display %}<td class="info">{{ data|by_bl:name|by_kind:1 }}</td>{% endfor %}
+        </tr>                
+    {% if data %}
     {% for user in data|user_project %}
-        {% if forloop.first %}
-            <tr><th class="heading">Totals</th>
-                {% for name in display %}<th class="heading info">{{ name|bl_name }}</th>{% endfor %}
-            </tr>
-            <tr><th class="subheading">Shifts Used:</th>
-                {% for name in display %}<td class="info">{{ data|by_bl:name|num_shifts:month }}</td>{% endfor %}
-            </tr>
-            <tr><th class="subheading">Screening:</th>
-            {% for name in display %}<td class="info">{{ data|by_project:user.name|by_bl:name|by_kind:0 }}</td>{% endfor %}
-            </tr>
-            <tr><th class="subheading">Collection:</th>
-            {% for name in display %}<td class="info">{{ data|by_project:user.name|by_bl:name|by_kind:1 }}</td>{% endfor %}
-            </tr>                
-        {% endif %}
+
         <tr><th class="heading" colspan=3></th></tr>
         <tr>
             <th class="heading">{{ user.name }} shifts</th>
@@ -31,5 +31,6 @@
             {% for name in display %}<td class="info">{{ data|by_project:user.name|by_bl:name|by_kind:1 }}</td>{% endfor %}
         </tr>
     {% endfor %}
+    {% endif %}
     </tbody>
 </table>
