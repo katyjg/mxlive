@@ -95,8 +95,8 @@ class LimsWorkbook(object):
         try:
             self.book = xlrd.open_workbook(self.xls)
         except xlrd.XLRDError:
-            self.errors.append('Invalid Excel spreadsheet.')
-            return
+            self.errors.append('Invalid Excel spreadsheet. Review documentation "Specifying Sample Information".')
+            raise xlrd.XLRDError
         
         self.experiments_sheet = self.book.sheet_by_name(EXPERIMENT_SHEET_NAME)
         self.crystals_sheet = self.book.sheet_by_name(CRYSTAL_SHEET_NAME)
@@ -143,12 +143,12 @@ class LimsWorkbook(object):
                     if row_values[CRYSTAL_CONTAINER]:
                         container.name = str(row_values[CRYSTAL_CONTAINER])
                     else:
-                        self.errors.append(CRYSTAL_CONTAINER_ERROR % (row_values[CRYSTAL_CONTAINER], row_num))
+                        self.errors.append(CRYSTAL_CONTAINER_ERROR % (row_values[CRYSTAL_CONTAINER], row_num+1))
                     
                     if row_values[CRYSTAL_CONTAINER_KIND]:
                         container.kind = Container.TYPE.get_value_by_name(row_values[CRYSTAL_CONTAINER_KIND]) # validated by Excel
                     else:
-                        self.errors.append(CRYSTAL_CONTAINER_KIND_ERROR % (row_values[CRYSTAL_CONTAINER_KIND], row_num))
+                        self.errors.append(CRYSTAL_CONTAINER_KIND_ERROR % (row_values[CRYSTAL_CONTAINER_KIND], row_num+1))
                         
                     containers[container.name] = container
                     
@@ -159,10 +159,9 @@ class LimsWorkbook(object):
                     if row_values[CRYSTAL_CONTAINER_KIND]:
                         kind = Container.TYPE.get_value_by_name(row_values[CRYSTAL_CONTAINER_KIND]) # validated by Excel
                         if kind != container.kind:
-                            self.errors.append(CRYSTAL_CONTAINER_KIND_ERROR % (row_values[CRYSTAL_CONTAINER_KIND], row_num))
+                            self.errors.append(CRYSTAL_CONTAINER_KIND_ERROR % (row_values[CRYSTAL_CONTAINER_KIND], row_num+1))
                     else:
-                        self.errors.append(CRYSTAL_CONTAINER_KIND_ERROR % (row_values[CRYSTAL_CONTAINER_KIND], row_num))
-                    
+                        self.errors.append(CRYSTAL_CONTAINER_KIND_ERROR % (row_values[CRYSTAL_CONTAINER_KIND], row_num+1))
         return containers
     
     def _get_cocktails(self):
@@ -199,7 +198,7 @@ class LimsWorkbook(object):
                     space_group = SpaceGroup.objects.get(name=row_values[EXPERIMENT_SPACE_GROUP])
                     space_groups[row_values[EXPERIMENT_NAME]] = space_group
                 except SpaceGroup.DoesNotExist:
-                    self.errors.append(EXPERIMENT_SPACE_GROUP_ERROR % (row_values[EXPERIMENT_SPACE_GROUP], row_num))
+                    self.errors.append(EXPERIMENT_SPACE_GROUP_ERROR % (row_values[EXPERIMENT_SPACE_GROUP], row_num+1))
         return space_groups
     
     def _get_crystal_forms(self):
@@ -279,21 +278,23 @@ class LimsWorkbook(object):
             row_values = self.experiments_sheet.row_values(row_num)
             experiment = Experiment()
             experiment.project = self.project
-            
             if row_values[EXPERIMENT_NAME]:
                 experiment.name = row_values[EXPERIMENT_NAME]
 
             else:
-                self.errors.append(EXPERIMENT_NAME_ERROR % (row_values[EXPERIMENT_NAME], row_num))
+                self.errors.append(EXPERIMENT_NAME_ERROR % (row_values[EXPERIMENT_NAME], row_num+1))
                 
             if row_values[EXPERIMENT_KIND]:
                 experiment.kind = Experiment.EXP_TYPES.get_value_by_name(row_values[EXPERIMENT_KIND]) # validated by Excel
             else:
                 # default to Native
                 experiment.kind = Experiment.EXP_TYPES.NATIVE
-                
+             
             if row_values[EXPERIMENT_PLAN]:
-                experiment.plan = Experiment.EXP_PLANS.get_value_by_name(row_values[EXPERIMENT_PLAN]) # validated by Excel
+                try:
+                    experiment.plan = Experiment.EXP_PLANS.get_value_by_name(row_values[EXPERIMENT_PLAN]) # validated by Excel
+                except:
+                    self.errors.append(EXPERIMENT_PLAN_ERROR % (row_values[EXPERIMENT_PLAN], row_num+1))
             else:
                 # no experiment plan provided default to just collect
                 experiment.plan = Experiment.EXP_PLANS.SCREEN_AND_COLLECT
@@ -349,7 +350,7 @@ class LimsWorkbook(object):
             if row_values[CRYSTAL_NAME]:
                 crystal.name = row_values[CRYSTAL_NAME]
             else:
-                self.errors.append(CRYSTAL_NAME_ERROR % (row_values[CRYSTAL_NAME], row_num))
+                self.errors.append(CRYSTAL_NAME_ERROR % (row_values[CRYSTAL_NAME], row_num+1))
                 
             if row_values[CRYSTAL_BARCODE]:
                 crystal.barcode = row_values[CRYSTAL_BARCODE]
@@ -360,12 +361,12 @@ class LimsWorkbook(object):
                 # patch the reference - it will be put in the Experiment in .save()
                 crystal.experiment = self.experiments[row_values[CRYSTAL_EXPERIMENT]]
             else:
-                self.errors.append(CRYSTAL_EXPERIMENT_ERROR % (row_values[CRYSTAL_EXPERIMENT], row_num))
+                self.errors.append(CRYSTAL_EXPERIMENT_ERROR % (row_values[CRYSTAL_EXPERIMENT], row_num+1))
                 
             if row_values[CRYSTAL_CONTAINER] and str(row_values[CRYSTAL_CONTAINER]) in self.containers:
                 crystal.container = self.containers[str(row_values[CRYSTAL_CONTAINER])]
             else:
-                self.errors.append(CRYSTAL_CONTAINER_ERROR % (str(row_values[CRYSTAL_CONTAINER]), row_num))
+                self.errors.append(CRYSTAL_CONTAINER_ERROR % (str(row_values[CRYSTAL_CONTAINER]), row_num+1))
                 
             if row_values[CRYSTAL_CONTAINER_LOCATION]:
                 # xlrd is doing some auto-conversion to floats regardless of the Excel field type
@@ -374,12 +375,12 @@ class LimsWorkbook(object):
                 except ValueError:
                     crystal.container_location = row_values[CRYSTAL_CONTAINER_LOCATION]
             else:
-                self.errors.append(CRYSTAL_CONTAINER_LOCATION_ERROR % (row_values[CRYSTAL_CONTAINER_LOCATION], row_num))
+                self.errors.append(CRYSTAL_CONTAINER_LOCATION_ERROR % (row_values[CRYSTAL_CONTAINER_LOCATION], row_num+1))
                 
             # sanity check on container_location
             if crystal.container:
                 if not crystal.container.location_is_valid(crystal.container_location):
-                    self.errors.append(CRYSTAL_CONTAINER_LOCATION_ERROR % (row_values[CRYSTAL_CONTAINER_LOCATION], row_num))
+                    self.errors.append(CRYSTAL_CONTAINER_LOCATION_ERROR % (row_values[CRYSTAL_CONTAINER_LOCATION], row_num+1))
                 
             if row_values[CRYSTAL_COCKTAIL] and row_values[CRYSTAL_COCKTAIL] in self.cocktails:
                 crystal.cocktail = self.cocktails[row_values[CRYSTAL_COCKTAIL]]
@@ -397,8 +398,8 @@ class LimsWorkbook(object):
         """
         try:
             self._read_xls()
-        except xlrd.XLRDError:
-            self.errors.append('Spreadsheet invalid')
+        except:
+            return not bool(self.errors)
 
         temp_errors = list()
         crystal_doubles = str()
