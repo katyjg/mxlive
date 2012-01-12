@@ -1130,10 +1130,10 @@ table#calendar {
 	width: 14%;
 	max-width: 14%;
 }
-.prev {
+a.prev {
 	float: left;
 }
-.next {
+a.next {
 	float: right;
 }
 h3.current {
