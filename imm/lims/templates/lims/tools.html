@@ -60,6 +60,13 @@
                 </a>
             </li>
         {% endif %}
+        {% if object.is_deletable %}
+            <li class="delete-tool" title="Delete this entry">
+                <a href="{{ handler }}delete/"  class="action modal-form">
+                    Delete
+                </a>
+            </li>
+        {% endif %}
     {# USER TOOLS #}
     {% else %}
         {% if object.is_processing %}

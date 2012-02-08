@@ -28,7 +28,7 @@
      rel="{% url lims-dewar-detail dewar.id %}">
         {% for container in containers %}
             <li class="{{ container.json_dict.type}}">
-                <a href="{% url lims-container-detail container.id %}">{{ container.name }}</a>
+                <a href="{% url lims-container-detail container.id %}">{{ container.name|truncate_chars:20 }}</a>
                 {% if dewar.shipment.is_editable %}
                 <a class="remove"
                    rel="{% url lims-dewar-remove-container dewar.pk container.id %}"

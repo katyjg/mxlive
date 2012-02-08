@@ -115,7 +115,7 @@ class Runlist(StaffBaseClass):
         return self.experiments.all()
     
     def container_list(self):
-        containers = [c.label for c in self.containers.all()]
+        containers = [c.name for c in self.containers.all()]
         if len(containers) > 5:
             containers = containers[:5] + ['...']
         return ', '.join(containers)
@@ -125,6 +125,9 @@ class Runlist(StaffBaseClass):
     
     def is_editable(self):
         return self.status == self.STATES.PENDING
+    
+    def is_deletable(self):
+        return not self.status == self.STATES.LOADED
     
     def is_loadable(self):
         return self.status == self.STATES.PENDING and self.containers.exists()

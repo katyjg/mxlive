@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 import logging
 import subprocess
 import tempfile
@@ -82,6 +83,50 @@ def staff_home(request):
         'feedback': Feedback.objects.all()[:5],
         'statistics': statistics,
         'handler': request.path,
+        }, context_instance=RequestContext(request))
+    
+@admin_login_required
+def staff_statistics(request, year, month):
+    display = ['08ID-1', '08B1-1']   
+    start_time = datetime(int(year), int(month), 1)
+    end_time = start_time + relativedelta(months=+1)
+    all_data = Data.objects.filter(beamline__name__in=display).filter(created__gt=start_time).filter(created__lt=end_time)
+    return render_to_response('lims/statistics.html', {
+        'month': [int(month), int(year)],
+        'data': all_data,
+        'display': display,
+        }, context_instance=RequestContext(request))    
+    
+@admin_login_required
+def staff_calendar(request, month=None):
+    mon = month and int(month.split('-')[1]) or datetime.today().month
+    today = month and datetime(year=int(month.split('-')[0]), month=mon, day=datetime.today().day) or datetime.today()
+    prev_month = (datetime(today.year, mon, 1) + relativedelta(months=-1)).strftime('%Y-%m')
+    next_month = (datetime(today.year, mon, 1) + relativedelta(months=+1)).strftime('%Y-%m')
+
+    display = ['08ID-1', '08B1-1']
+    current_date = (datetime.today().strftime('%Y-%m-%d') == today.strftime('%Y-%m-%d')) and today.day or 0
+
+    dates = []
+    week = []
+    i = 0
+    first_day = (today - timedelta(days=(today.day-1))) - timedelta(days=(today - timedelta(days=(today.day-1))).weekday())
+    while (first_day+timedelta(days=i*7)).month is today.month or i == 0:
+        week = []
+        for j in range(7):
+            this_day = first_day + timedelta(days=(j + i*7))
+            filter_today = datetime(this_day.year, this_day.month, this_day.day)
+            filter_tomorrow = filter_today + timedelta(days=1)
+            data = Data.objects.filter(created__gt=filter_today).filter(created__lt=filter_tomorrow).order_by('created')
+            week.append([this_day.day,this_day.month,data])
+        i += 1
+        dates.append(week)
+
+    return render_to_response('lims/calendar.html', {
+        'month': [mon, today.strftime('%B'), today.year, prev_month, next_month],
+        'current_date': current_date,
+        'display': display,
+        'dates': dates,
         }, context_instance=RequestContext(request))
     
 @admin_login_required
@@ -406,7 +451,9 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
             else:
                 form.warning_message = None
         if action == 'load':
-            form_info['message'] = 'You are verifying that this runlist has been loaded into the automounter.'
+            form_info['message'] = 'Verify that this runlist has been loaded into the automounter.'
+        if action == 'unload':
+            form_info['message'] = 'Verify that the runlist has been unloaded from the automounter.'
 
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
@@ -414,7 +461,11 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
             if action:
                 if action == 'review': obj.review(request=request)
                 if action == 'load': obj.load(request=request)
-                if action == 'unload': obj.unload(request=request)
+                if action == 'unload': 
+                    obj.unload(request=request)
+                    request.user.message_set.create(message = 'Runlist (%s) unloaded from %s automounter' % (obj.name, obj.beamline))
+                    url_name = "staff-%s-list" % (model.__name__.lower()) 
+                    return render_to_response("lims/redirect.json", {'redirect_to': reverse(url_name),}, context_instance=RequestContext(request), mimetype="application/json")   
             return render_to_response('lims/refresh.html')
         else:
             return render_to_response(template, {
