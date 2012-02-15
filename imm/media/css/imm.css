@@ -1023,7 +1023,7 @@ ul.filter-choices ul {
 }
 
 
-#data-viewer .meta-data {
+#data-viewer .meta-data, #data-viewer .frame-list {
     float: right;
     clear: right;
     width: 224px;
@@ -1031,19 +1031,21 @@ ul.filter-choices ul {
     background: #fff;
 }
 
-#data-viewer .frame-list {
+#data-viewer .xtal-snapshot {
     float: right;
     clear: right;
     width: 224px;
     margin: 0 0 0 7px;
 }
-#data-viewer .frame-list p,  #data-viewer .meta-data p{
+#data-viewer .xtal-snapshot img {
+	width: 224px;
+}
+#data-viewer .frame-list p,  #data-viewer .meta-data p, #data-viewer .xtal-snapshot p{
     background: none repeat scroll 0 0 #747E80;
     display: block;
     clear: both;
     color: #F7F3E8;
     font-weight: bold;
-    height: 20px;
     margin: 0;
     padding: 3px;
 }

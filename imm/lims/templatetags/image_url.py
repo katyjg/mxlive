@@ -13,7 +13,7 @@ from django.utils.datastructures import MultiValueDict
 
 from imm.lims.models import Data
 from imm.download.views import get_download_path
-import os    
+import os   
 
 register = Library()
 
@@ -28,3 +28,13 @@ def image_url(data, frame, brightness=None):
 def is_downloadable(data, frame):
     path = "%s/%s_%03d.img" % (get_download_path(data.url), data.name, frame)
     return os.path.exists(path)
+
+@register.filter("second_view")
+def second_view(angle):
+    return angle < 270 and angle + 90 or angle - 270
+
+@register.filter("images_exist")
+def images_exist(data):
+    path1 = "%s/%s-pic_%s.png" % (get_download_path(data.url), data.name, data.start_angle)
+    path2 = "%s/%s-pic_%s.png" % (get_download_path(data.url), data.name, second_view(data.start_angle))
+    return os.path.exists(path1) and os.path.exists(path2)
