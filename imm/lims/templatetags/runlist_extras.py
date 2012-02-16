@@ -50,7 +50,7 @@ def automounter_position(context, object, side, spot, letter):
 
 @register.inclusion_tag('staff/entries/experiment_table.html', takes_context=True)
 def experiment_table(context, object, admin):
-    experiments = Experiment.objects.filter(pk__in=Crystal.objects.filter(container__pk__in=object.containers.all()).values('experiment')).order_by('-priority')
+    experiments = Experiment.objects.filter(pk__in=Crystal.objects.filter(container__pk__in=object.containers.all()).values('experiment')).order_by('priority')
     return { 'experiments': experiments,
               'admin': admin,
               'object': object
@@ -66,7 +66,7 @@ def runlist_position(runlist, container):
 
 @register.filter("prioritize")
 def prioritize(object_list):
-    return object_list.order_by('priority').reverse()
+    return object_list.order_by('priority')
     
     
 

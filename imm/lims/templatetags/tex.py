@@ -14,7 +14,7 @@ def texsafe(value):
     ]
     for char in ['\\', '^', '~', '%']: # these mess up things
         value = value.replace(char, '')
-    for char in ['$','_', '{', '}']: # these can be escaped properly
+    for char in ['$','_', '{', '}', '<', '>']: # these can be escaped properly
         value = value.replace(char, '\\' + char)
     for char, new_char in special:
         value = eval(repr(value).replace(char, new_char))

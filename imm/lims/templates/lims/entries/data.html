@@ -76,21 +76,19 @@
 			<li><strong>Result:</strong> <a href="{% url lims-result-detail result.pk %}">{{ result.name }} ({{ result.score|floatformat:2 }})</a></li>
 		{% endfor %}
 		<li><strong>Resolution Limit:</strong> {{ data.resolution|floatformat:2 }} &#8491;</li>
-		<li><strong>Frame set:</strong> {{ data.frame_sets }}</li>
 		<li><strong>Wavelength:</strong> {{ data.wavelength }} &#8491;</li>
 		<li><strong>Beam X, Y:</strong>	{{ data.beam_x }}, {{ data.beam_y }}</li>
 		<li><strong>Pixel Size:</strong> {{ data.pixel_size }} mm</li>
 		<li><strong>Two Theta:</strong> {{ data.two_theta|floatformat:1}} deg</li>
 		<li><strong>Exposure time:</strong> {{ data.exposure_time }} sec</li>
 		<li id="framename" class="separator">Current: </li>
-		<li id="oscstart">Osc. Start: </li>
-		<li id="oscend">Osc. End: </li> 
+		<li>Osc: <var id="oscstart"></var> to <var id="oscend"></var></li>
 	</ul>
 </div>
 
 <div class="frame-list">
-    <p>Frames</p>
-	<ul>
+    <p>Frames {{ data.frame_sets }}</p>
+	<ul {% if data|images_exist %}style="height: {% if data.crystal %}5.7em{% else %}8.3em{% endif %};"{% endif %}>
 	{% for frame_id in data.get_frame_list %}
 		<li><a onclick="toFrame({{frame_id}});">{{data.name}}_{{ frame_id|stringformat:"03d" }}</a>&nbsp;
         {% if not request.user.is_superuser %}{% if data|is_downloadable:frame_id %}
@@ -100,6 +98,15 @@
 	{% endfor %}
 	</ul>
 </div>
+{% if data|images_exist %}
+	<div class="xtal-snapshot">
+	    <p>Crystal at <text id="snapshot-angle">{{data.start_angle}} deg</text></p>
+	    <img id="xtal-pic" 
+	         cur="{{data.start_angle}}" next="{{ data.start_angle|second_view }}" 
+	         src="/download/files/{{data.url}}/{{data.name}}-pic_{{data.start_angle}}.png" 
+	         title="Click for {{data.start_angle|second_view}} deg" />
+	</div>
+{% endif %}
 <div>
 <script type="text/javascript">
 	var $current_frame_to_display = 1;
@@ -158,7 +165,16 @@
                 return dataViewer.calcRes(r);
             }
         });
-
+        jQuery("#xtal-pic").click(function() {
+            var $cur = jQuery(this).attr("cur");
+            var $new = jQuery(this).attr("next");
+            new_url = "/download/files/{{data.url}}/{{data.name}}-pic_"+$new+".png";
+            jQuery(this).attr("src", new_url);
+            jQuery(this).attr("cur", $new);
+            jQuery(this).attr("next", $cur);
+            jQuery("#snapshot-angle").text($new + " deg");
+            jQuery(this).attr("title", 'Click for '+$cur+' deg');
+        });
 	});
 	
 	function updateFrameDetails() {
@@ -167,10 +183,10 @@
 		element.text("Current: " + generateFrameName($current_frame_to_display));
 		
 		osc = ($current_frame_to_display - {{data.first_frame}}) * {{data.delta_angle}} + {{data.start_angle}};
-		jQuery('#oscstart').text("Osc. Start: " + osc + " deg");
+		jQuery('#oscstart').text(osc + " deg");
 		
 		osc = osc + {{data.delta_angle}};
-		jQuery('#oscend').text("Osc. End: " + osc + " deg");
+		jQuery('#oscend').text(osc + " deg");
 		
 	}	
 	

@@ -52,7 +52,7 @@ def crystal_table(context, crystals, admin, experiment):
 @register.inclusion_tag('lims/entries/crystal_priority_table.html', takes_context=True)
 def crystal_priority_table(context, crystals, admin, experiment):
     # want crystals sorted by priority to be the whole crystal set.
-    return { 'crystals': crystals.order_by('priority').reverse(),
+    return { 'crystals': crystals.order_by('priority'),
             'admin': admin,
             'experiment': experiment
             }
