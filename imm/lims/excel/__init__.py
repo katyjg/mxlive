@@ -318,6 +318,9 @@ class LimsWorkbook(object):
             if row_values[EXPERIMENT_I_SIGMA]:
                 experiment.i_sigma = row_values[EXPERIMENT_I_SIGMA]
                 
+            if row_values[EXPERIMENT_PRIORITY]:
+                experiment.priority = row_values[EXPERIMENT_PRIORITY]
+                
             if row_values[EXPERIMENT_RESOLUTION]:
                 experiment.resolution = row_values[EXPERIMENT_RESOLUTION]
                 
@@ -388,6 +391,9 @@ class LimsWorkbook(object):
             if row_values[CRYSTAL_COMMENTS]:
                 crystal.comments = row_values[CRYSTAL_COMMENTS]
                 
+            if row_values[CRYSTAL_PRIORITY]:
+                crystal.priority = row_values[CRYSTAL_PRIORITY]
+                
             crystals[crystal.name] = crystal
         return crystals
     
@@ -451,6 +457,7 @@ class LimsWorkbook(object):
         self.dewar.save()
         self.log_activity(self.dewar, request)
         for experiment in self.experiments.values():
+            experiment.priority = experiment.priority
             experiment.save()
             # manage the CrystalForm/SpaceGroup relationship
             if self.crystal_forms.has_key(experiment.name):
@@ -472,6 +479,7 @@ class LimsWorkbook(object):
             crystal.cocktail = crystal.cocktail # force the fk reln
             crystal.crystal_form = crystal.crystal_form
             crystal.experiment = crystal.experiment
+            crystal.priority = crystal.priority
             crystal.save()
             self.log_activity(crystal, request)
             
@@ -538,8 +546,8 @@ class LimsWorkbookExport(object):
             if experiment.plan != None:
                 row.write(EXPERIMENT_PLAN, Experiment.EXP_PLANS[experiment.plan])
                 
-#            if experiment.priority:
-#                row.write(EXPERIMENT_PRIORITY, experiment.priority
+            if experiment.priority:
+                row.write(EXPERIMENT_PRIORITY, experiment.priority)
 
             if experiment.absorption_edge:
                 row.write(EXPERIMENT_ABSORPTION_EDGE, experiment.absorption_edge)
@@ -615,8 +623,8 @@ class LimsWorkbookExport(object):
             if crystal.container_location:
                 row.write(CRYSTAL_CONTAINER_LOCATION, crystal.container_location)
                 
-#            if crystal.priority:
-#                row.write(CRYSTAL_PRIORITY, crystal.priority)
+            if crystal.priority:
+                row.write(CRYSTAL_PRIORITY, crystal.priority)
 
             if crystal.cocktail and crystal.cocktail.name:
                 row.write(CRYSTAL_COCKTAIL, crystal.cocktail.name)

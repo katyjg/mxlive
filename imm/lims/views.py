@@ -580,7 +580,6 @@ def basic_object_list(request, model, template='objlist/basic_object_list.html')
 def priority(request, id,  model, field):
     if request.method == 'POST':
         pks = map(int, request.POST.getlist('id_list[]'))
-        pks.reverse()
         _priorities_changed = False
         for obj in model.objects.filter(pk__in=pks).all():
             new_priority = pks.index(obj.pk) + 1
@@ -986,7 +985,7 @@ def shipment_pdf(request, id, model, format):
 
     if format == 'protocol':
         containers = obj.project.container_set.filter(dewar__in=obj.dewar_set.all())
-        experiments = obj.project.experiment_set.filter(pk__in=obj.project.crystal_set.filter(container__dewar__shipment__exact=obj.pk).values('experiment')).order_by('priority').reverse()
+        experiments = obj.project.experiment_set.filter(pk__in=obj.project.crystal_set.filter(container__dewar__shipment__exact=obj.pk).values('experiment')).order_by('priority')
         group = None
         num_crystals = obj.project.crystal_set.filter(container__pk__in=containers).count()
 
