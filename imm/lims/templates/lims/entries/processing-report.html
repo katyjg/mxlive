@@ -2,7 +2,7 @@
 {% load zip %}
 {% load split_char %}
 {% block headline %}
-<h2 class="process"> Data Processing Report - &ldquo;{{object.name}}&rdquo;</h2>
+<h2 class="process">{% if object.details.anomalous %}Anomalous {% endif %}Data Processing Report - &ldquo;{{object.name}}&rdquo;</h2>
 {% endblock %}
 {% block object-tools %}
 <div class="object-tools">

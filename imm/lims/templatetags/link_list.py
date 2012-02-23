@@ -9,5 +9,5 @@ register = Library()
 def link_list(context):
     return { 'object': object,
             'news_links': Link.objects.filter(category=0)[:10],
-            'doc_links': Link.objects.filter(category=1)[:10]
+            'doc_links': Link.objects.filter(category=1).order_by('frame_type','description')[:10]
             }
