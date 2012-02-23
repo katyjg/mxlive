@@ -9,7 +9,7 @@
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js"></script>
     <script type="text/javascript" src="/js/jquery.easing-1.3.pack.js"></script>
-	<script type="text/javascript" src="/js/jquery.mousewheel-3.0.4.pack.js"></script>
+	<script type="text/javascript" src="/js/jquery.mousewheel-3.0.6.pack.js"></script>
     <script type="text/javascript" src="/js/jquery.jgrowl_minimized.js"></script>
     <script type="text/javascript" src="/js/jquery.form.js"></script>
     <script type="text/javascript" src="/js/jquery.tablednd_0_5.js"></script>
@@ -124,6 +124,7 @@
             <a href="http://cmcf.lightsource.ca">CMCF Home</a>
             |
             <a href="http://cmcf.lightsource.ca/contact-us/">Contact</a>
+            </p>
         {% endblock %}
     </div><!-- end footer -->
 {% block script %}
@@ -189,7 +190,7 @@
             jQuery(".droppable").droppable({
                 accept: function( jQuery_draggable ) {
                 <!-- need to modify this to allow for multiple acceptable drop items -->
-                <!-- field of is() with . doesn't seem to work. 
+                <!-- field of is() with . doesn't seem to work. -->
                 	<!-- split attr on space -->
                 	accept_str = jQuery(this).attr("accept");
                 	split_str = accept_str.split(" ");

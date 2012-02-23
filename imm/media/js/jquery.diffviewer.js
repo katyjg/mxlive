@@ -625,10 +625,10 @@
             this.overview_object = $("<div>").addClass("diffviewer_overview_img").addClass("diffviewer_common").
             click(function(e){return me.thumb_click(e)}).
             appendTo(this.container);
-            this.overview_img.appendTo(this.overview_object)
+            this.overview_img.appendTo(this.overview_object);
             
-            this.overview_box = $("<div>").addClass("diffviewer_overview_box").addClass("diffviewer_common")
-            this.overview_box.appendTo(this.overview_object)
+            this.overview_box = $("<div>").addClass("diffviewer_overview_box").addClass("diffviewer_common");
+            this.overview_box.appendTo(this.overview_object);
             
             this.zoom_object = $("<div>").addClass("diffviewer_zoom_status").addClass("diffviewer_common").
             appendTo(this.container);
