@@ -8,3 +8,4 @@
 .settings
 *.db
 settings_local.py
+imm/VERSION
