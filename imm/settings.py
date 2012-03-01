@@ -16,6 +16,12 @@ if not lib_path in sys.path:
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
+_version_file = os.path.join(os.path.dirname(__file__), 'VERSION')
+if os.path.exists(_version_file):
+    VERSION = (file(_version_file)).readline().strip()
+else:
+    VERSION = '- Development -'
+
 ADMINS = (
     ('Kathryn Janzen', 'kathryn.janzen@lightsource.ca'),
 )
