@@ -159,6 +159,12 @@ $.widget( "ui.diffviewer", $.ui.mouse, {
 **/
         update_on_resize: true,
         /**
+        * function is called to calculate resolution
+        **/
+        resFunc:  function(a) {
+            return a;
+        },
+        /**
 * event is triggered when zoom value is changed
 * @param int new zoom value
 * @return boolean if false zoom action is aborted
@@ -502,7 +508,7 @@ $.widget( "ui.diffviewer", $.ui.mouse, {
         /*** MxLIVE: Change this function ***/
         var img_offset = this.img_object.object().offset();
         var $x = util.descaleValue(e.pageX - img_offset.left, this.current_zoom);
-        var $y = util.descaleValue(e.pageX - img_offset.left, this.current_zoom);
+        var $y = util.descaleValue(e.pageY - img_offset.top, this.current_zoom);
 
         return { x : $x, y : $y };
         /************************************/
@@ -780,6 +786,7 @@ $.widget( "ui.diffviewer", $.ui.mouse, {
     update_pos: function(e)
     {
         var coords = this._getMouseCoords(e);
+        console.log(coords);
 		x=2.0* Math.abs((Math.min(Math.max(coords.x,0.0),this.img_object.orig_width())/this.img_object.orig_width())-0.5);
 		y=2.0* Math.abs((Math.min(Math.max(coords.y,0.0),this.img_object.orig_height())/this.img_object.orig_height())-0.5);
 		z=this.options.resFunc.call(this, Math.sqrt(x*x+y*y));
