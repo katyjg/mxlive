@@ -786,7 +786,6 @@ $.widget( "ui.diffviewer", $.ui.mouse, {
     update_pos: function(e)
     {
         var coords = this._getMouseCoords(e);
-        console.log(coords);
 		x=2.0* Math.abs((Math.min(Math.max(coords.x,0.0),this.img_object.orig_width())/this.img_object.orig_width())-0.5);
 		y=2.0* Math.abs((Math.min(Math.max(coords.y,0.0),this.img_object.orig_height())/this.img_object.orig_height())-0.5);
 		z=this.options.resFunc.call(this, Math.sqrt(x*x+y*y));
