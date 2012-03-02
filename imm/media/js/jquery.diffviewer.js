@@ -218,6 +218,7 @@ $.widget( "ui.diffviewer", $.ui.mouse, {
         //drag variables
         this.dx = 0;
         this.dy = 0;
+        this.dragged = false; /*** MxLIVE: thumb dragging ***/
 
         /* object containing actual information about image
 * @img_object.object - jquery img object
@@ -308,6 +309,9 @@ $.widget( "ui.diffviewer", $.ui.mouse, {
         css({ position: "absolute", bottom:"0px", left: "0px", width :"128px", width: "128px"});
         this.overview_object = $("<div>").addClass("diffviewer_overview_img").addClass("diffviewer_common").
         click(function(e){return me.thumb_click(e)}).
+        mousedown(function(e){return me.thumb_drag_start(e)}).
+        mousemove(function(e){return me.thumb_drag(e)}).
+        mouseup(function(e){return me.thumb_drag_end(e)}).
         appendTo(this.container);
         this.overview_img.appendTo(this.overview_object);
         this.overview_box = $("<div>").addClass("diffviewer_overview_box").addClass("diffviewer_common");
@@ -595,7 +599,7 @@ $.widget( "ui.diffviewer", $.ui.mouse, {
             next_zoom /= this.options.zoom_delta;
         }
 
-        this.set_zoom(next_zoom);
+        this.set_zoom(next_zoom, true);
     },
 
     /**
@@ -771,6 +775,40 @@ $.widget( "ui.diffviewer", $.ui.mouse, {
         this._trigger('onClick', 0, this._getMouseCoords(e));
     },
 
+    /*** MxLIVE: callback for handling mousdown event to start dragging image ***/
+    thumb_drag_start: function(e)
+    {
+        /* start drag event*/
+        this.dragged = true;
+        this.container.addClass("diffviewer_drag_cursor");
+
+        return false;
+    },
+    
+    /*** MxLIVE: callback for handling mousmove event to drag thumbnail image ***/
+    thumb_drag: function(e)
+    {
+        if(this.dragged){
+            this.options.onDrag && 
+                    this.options.onDrag.call(this,this._getMouseCoords(e));
+                    
+            var x, y, offsets =  this.overview_img.offset();
+            x = (e.pageX - offsets.left) * this.img_object.display_width()/128 - this.options.width/2;
+            y = (e.pageY - offsets.top) * this.img_object.display_height()/128- this.options.height/2;
+
+            this.setCoords(-x,-y);
+            return false;
+        }
+    },
+    
+    /*** MxLIVE: callback for handling stop thumbnail drag ***/
+    thumb_drag_end: function(e)
+    {
+        this.container.removeClass("diffviewer_drag_cursor");
+        this.dragged=false;
+        
+    },
+
     /*** MxLIVE: callback for clicking within overview ***/
     thumb_click: function(e)
     {
@@ -780,7 +818,6 @@ $.widget( "ui.diffviewer", $.ui.mouse, {
         this.setCoords(-x,-y);
         return false;
     },
-    /******************************************************/
 
     /*** MxLIVE: update image position ***/
     update_pos: function(e)
@@ -793,7 +830,6 @@ $.widget( "ui.diffviewer", $.ui.mouse, {
 		this.zoom_object.html('<span>Res: '+z+' &#8491;</span>'); 
 		return true;          
     },
-    /**************************************/
 
     /**
 * create zoom buttons info box
@@ -815,7 +851,7 @@ $.widget( "ui.diffviewer", $.ui.mouse, {
                     .appendTo(this.container);
 
         this.zoom_object = $("<div>").addClass("diffviewer_zoom_status diffviewer_common")
-                                    .appendTo(this.container);
+                                    .appendTo(this.container);  
 
         /*** MxLIVE: not needed
         $("<div>", { 'class': "diffviewer_rotate_left diffviewer_common diffviewer_button"})
