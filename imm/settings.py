@@ -22,6 +22,8 @@ if os.path.exists(_version_file):
 else:
     VERSION = '- Development -'
 
+SERVER_EMAIL = 'cmcf-web@no-reply.ca'
+EMAIL_SUBJECT_PREFIX = 'MxLIVE:'
 ADMINS = (
     ('Kathryn Janzen', 'kathryn.janzen@lightsource.ca'),
 )

@@ -405,29 +405,35 @@ class LimsWorkbook(object):
         try:
             self._read_xls()
         except:
-            return not bool(self.errors)
+            return False
 
-        temp_errors = list()
-        crystal_doubles = str()
-        for crystal in self.crystals.values():
-            if self.project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).filter(name=crystal).exists():
-                crystal_doubles += str(crystal) + ', '
-        if crystal_doubles:
-            if len(crystal_doubles.split(',')) > 5:
-                crystal_doubles = ','.join(crystal_doubles.split(',')[:5]) + '...'
-            temp_errors.append('Un-archived crystals (%s) already exist.' % crystal_doubles)
-
-        container_doubles = str()
-        for container in self.containers.values():
-            if self.project.container_set.exclude(status__exact=Container.STATES.ARCHIVED).filter(name__exact=container).exists():
-                container_doubles += str(container) + ', '
-        if container_doubles:
-            if len(container_doubles.split(',')) > 5:
-                container_doubles = ','.join(container_doubles.split(',')[:5]) + '...'
-            temp_errors.append('Un-archived containers (%s) already exist.' % container_doubles)
-
-        for err in temp_errors:
-            if err not in self.errors: self.errors.append(err)
+        try:
+            temp_errors = list()
+            crystal_doubles = str()
+            for crystal in self.crystals.values():
+                if self.project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).filter(name=crystal).exists():
+                    crystal_doubles += str(crystal) + ', '
+            if crystal_doubles:
+                if len(crystal_doubles.split(',')) > 5:
+                    crystal_doubles = ','.join(crystal_doubles.split(',')[:5]) + '...'
+                temp_errors.append('Un-archived crystals (%s) already exist.' % crystal_doubles)
+    
+            container_doubles = str()
+            for container in self.containers.values():
+                if self.project.container_set.exclude(status__exact=Container.STATES.ARCHIVED).filter(name__exact=container).exists():
+                    container_doubles += str(container) + ', '
+            if container_doubles:
+                if len(container_doubles.split(',')) > 5:
+                    container_doubles = ','.join(container_doubles.split(',')[:5]) + '...'
+                temp_errors.append('Un-archived containers (%s) already exist.' % container_doubles)
+    
+            for err in temp_errors:
+                if err not in self.errors: self.errors.append(err)
+        except:
+            try: 
+                self.errors.index("Invalid Excel Spreadsheet.  Review documentation about specifying sample information at http://cmcf.lightsource.ca/user-guide/preparing-samples.")
+            except ValueError:
+                self.errors.append("Invalid Excel Spreadsheet.  Review documentation about specifying sample information at http://cmcf.lightsource.ca/user-guide/preparing-samples.")
 
         return not bool(self.errors)
     
@@ -498,7 +504,7 @@ class LimsWorkbook(object):
                     crystal.crystal_form.name = crystal.crystal_form.identity()
                     crystal.crystal_form.save()
                     crystal.save()
-                       
+
         return self.errors
         
 class LimsWorkbookExport(object):
