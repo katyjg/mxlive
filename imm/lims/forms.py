@@ -322,7 +322,7 @@ class ExperimentForm(objforms.forms.OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     name = objforms.widgets.LargeCharField(required=True)
     kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES.get_choices(), required=True)
-    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS.get_choices(), required=True)
+    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS.get_choices(), required=True, initial=Experiment.EXP_PLANS.COLLECT_FIRST_GOOD)
     resolution = forms.FloatField(label='Desired Resolution', widget=objforms.widgets.LeftHalfInput, required=False )
     delta_angle = forms.FloatField(widget=objforms.widgets.RightHalfInput, required=False)
     multiplicity = forms.FloatField(widget=objforms.widgets.LeftHalfInput, required=False)

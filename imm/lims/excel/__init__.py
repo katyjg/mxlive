@@ -44,6 +44,7 @@ EXPERIMENT_RESOLUTION = 10
 EXPERIMENT_RESOLUTION_ERROR = 'Invalid Experiment resolution "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_RESOLUTION] + '$%d.'
 EXPERIMENT_SPACE_GROUP = 11
 EXPERIMENT_SPACE_GROUP_ERROR = 'Invalid Experiment space group "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_RESOLUTION] + '$%d.'
+EXPERIMENT_DUPLICATE_ERROR = 'Multiple groups named "%s"'
 EXPERIMENT_CELL_A = 12
 EXPERIMENT_CELL_B = 13
 EXPERIMENT_CELL_C = 14
@@ -65,6 +66,7 @@ CRYSTAL_CONTAINER_KIND = 4
 CRYSTAL_CONTAINER_KIND_ERROR = 'Invalid Container kind "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_CONTAINER_KIND] + '$%d.'
 CRYSTAL_CONTAINER_LOCATION = 5
 CRYSTAL_CONTAINER_LOCATION_ERROR = 'Invalid Container location "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_CONTAINER_LOCATION] + '$%d.'
+CRYSTAL_DUPLICATE_ERROR = 'Multiple crystals named "%s"'
 CRYSTAL_PRIORITY = 6
 CRYSTAL_COCKTAIL = 7
 CRYSTAL_COMMENTS = 8
@@ -180,7 +182,7 @@ class LimsWorkbook(object):
                         cocktail = Cocktail()
                         cocktail.project = self.project
                         if row_values[CRYSTAL_COCKTAIL]:
-                            cocktail.name = row_values[CRYSTAL_COCKTAIL]
+                            cocktail.name = str(row_values[CRYSTAL_COCKTAIL])
                     cocktails[cocktail.name] = cocktail
 
         return cocktails
@@ -279,8 +281,7 @@ class LimsWorkbook(object):
             experiment = Experiment()
             experiment.project = self.project
             if row_values[EXPERIMENT_NAME]:
-                experiment.name = row_values[EXPERIMENT_NAME]
-
+                experiment.name = str(row_values[EXPERIMENT_NAME])
             else:
                 self.errors.append(EXPERIMENT_NAME_ERROR % (row_values[EXPERIMENT_NAME], row_num+1))
                 
@@ -324,7 +325,10 @@ class LimsWorkbook(object):
             if row_values[EXPERIMENT_RESOLUTION]:
                 experiment.resolution = row_values[EXPERIMENT_RESOLUTION]
                 
-            experiments[row_values[EXPERIMENT_NAME]] = experiment
+            if experiments.has_key(experiment.name):
+                self.errors.append(EXPERIMENT_DUPLICATE_ERROR % (experiment.name))
+            else:
+                experiments[experiment.name] = experiment
 
         for key, experiment in experiments.items():
             appended = False
@@ -351,7 +355,7 @@ class LimsWorkbook(object):
             crystal.project = self.project
             
             if row_values[CRYSTAL_NAME]:
-                crystal.name = row_values[CRYSTAL_NAME]
+                crystal.name = str(row_values[CRYSTAL_NAME])
             else:
                 self.errors.append(CRYSTAL_NAME_ERROR % (row_values[CRYSTAL_NAME], row_num+1))
                 
@@ -394,7 +398,10 @@ class LimsWorkbook(object):
             if row_values[CRYSTAL_PRIORITY]:
                 crystal.priority = row_values[CRYSTAL_PRIORITY]
                 
-            crystals[crystal.name] = crystal
+            if crystals.has_key(crystal.name):
+                self.errors.append(CRYSTAL_DUPLICATE_ERROR % (crystal.name))
+            else:
+                crystals[crystal.name] = crystal
         return crystals
     
     def is_valid(self):
