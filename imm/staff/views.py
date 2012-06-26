@@ -381,6 +381,8 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
 
     if runlist and experiment:
         ol.object_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).filter(pk__in=(experiment.crystal_set.all().values('container'))).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE)
+    elif runlist:
+        ol.object_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE)
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
 @login_required

@@ -1,0 +1,12 @@
+{% load truncate_filters %}
+{% for object in ol.object_list %}
+    {# object.name or object.label will be displayed, as no models have both a name and a label #}   
+    {# had a href in the below code. This directed to the style-less page, so it was removed. #}
+    {# should likely point to an ajax style popup #} 
+        <li id="{{object.id}}" class="draggable-link-parent {{ type }}" rel="{{ handler }}{{object.pk}}" ondragstart="setupDragAndDrop()">
+            <a {% if object.is_editable %} href="{{ handler }}{{object.pk}}/edit/" class="{{ type }} action modal-form"
+               {% else %} class="{{ type}}"{% endif %}>
+               {{object.project.name|truncate_chars:8}} - {{ object.name }}
+            </a>
+        </li>
+{% endfor %}

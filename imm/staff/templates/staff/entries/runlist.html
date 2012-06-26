@@ -69,8 +69,10 @@
                 <p class="list-empty">( Not loaded )</p>
             </ul>
         </div>
-        <div id="containers" class="widget droppable-remove parent-stop">
-	       <div class="widget-title"><span class="container-widget-title">Containers</span></div>
+        <div id="containers" class="widget droppable-remove parent-stop" data="{% url staff-container-basic-list object.pk 0%}">
+	       <div class="widget-title">
+	        <a class="back-tool runlist-experiment" id="0" exp="All Containers" title="Show All On-site Containers">&nbsp;</a>
+	        <span class="container-widget-title">All Containers</span></div>
             <ul>
                 <p class="list-empty">( No containers )</p>
             </ul>
