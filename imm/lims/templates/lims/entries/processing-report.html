@@ -40,7 +40,11 @@
                 <tr><td>Mosaicity</td><td>{{object.mosaicity}}</td></tr>
                 <tr><td>I/Sigma(I)</td><td>{{object.i_sigma}}</td></tr>
                 <tr><td>R-meas<sup class="footnote">[4]</sup></td><td>{{object.r_meas}}</td></tr>
+                {% if object.cc_half %}
+                <tr><td>CC(&frac12;)<sup class="footnote">[5]</sup></td><td>{{object.cc_half}}</td></tr>
+                {% else %}
                 <tr><td>R-mrgd-F<sup class="footnote">[5]</sup></td><td>{{object.r_mrgd}}</td></tr>
+                {% endif %}
                 <tr><td>Spot deviation</td><td>{{object.sigma_spot}}</td></tr>
                 <tr><td>Spindle deviation</td><td>{{object.sigma_angle}}</td></tr>
                 {% ifnotequal object.ice_rings -1 %}
@@ -103,7 +107,11 @@
             <dt>[4] -<dt>
             <dd>Redundancy independent R-factor. (see Diederichs & Karplus, 1997, Nature Struct. Biol. 4, 269-275.)</dd>
             <dt>[5] -<dt>
+            {% if object.cc_half %}
+            <dd>Percentage correlation between intensities from random half-datasets. (see Karplus & Diederichs (2012), Science. 336 (6084): 1030-1033)</dd>
+            {% else %}
             <dd>Quality of amplitudes. (see Diederichs & Karplus, 1997, Nature Struct. Biol. 4, 269-275.)</dd>
+            {% endif %}
         </dl>
         </div>
     </div>
@@ -191,6 +199,57 @@
     
     <h3>Statistics of final reflections by shell</h3>
     <img src="shell.png" />
+    {% if object.cc_half %}
+    <table class="rtable full">
+        <thead>
+            <tr>
+                <th scope="col">Shell</th>
+                <th scope="col">Completeness</th>
+                <th scope="col">R<sub>meas</sub></th>
+                <th scope="col">CC<sub>&frac12;</sub></th>
+                <th scope="col">I/sigma(I)<sup class="footnote">[1]</sup></th>
+                <th scope="col">Sig<sub>ano</sub><sup class="footnote">[2]</sup></th>
+                <th scope="col">CC<sub>ano</sub><sup class="footnote">[3]</sup></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% with object.details.shell_statistics as stats %}
+        {% zip stats.shell  stats.completeness  stats.r_meas stats.cc_half stats.i_sigma stats.sig_ano stats.cor_ano as tbl %}
+        {% for rows in tbl %}
+            <tr>
+            {% for col in rows %}
+                <td>{{col|floatformat:"2"}}</td>
+            {% endfor %}
+            </tr>
+        {% endfor %}
+        {% endwith %}
+        </tbody>
+        <tfoot>
+        <tr><td colspan=4></td></tr>
+        </tfoot>
+    </table>
+    <div class="tablenotes">
+        <h3>Notes</h3>
+        <dl class="note-list">
+            <dt>[1] -<dt>
+            <dd>
+                Mean of intensity/Sigma(I) of unique reflections
+                (after merging symmetry-related observations). Where Sigma(I) is
+                the standard deviation of reflection intensity I estimated from sample statistics.
+            </dd>
+            <dt>[2] -<dt>
+            <dd>
+                mean anomalous difference in units of its estimated standard
+                deviation (|F(+)-F(-)|/Sigma). F(+), F(-) are structure factor estimates
+                obtained from the merged intensity observations in each parity class.
+            </dd>
+            <dt>[3] -<dt>
+            <dd>
+                Percentage of correlation between random half-sets of anomalous intensity differences.
+            </dd>
+        </dl>
+    </div>    
+    {% else %}
     <table class="rtable full">
         <thead>
             <tr>
@@ -235,6 +294,7 @@
             </dd>
         </dl>
     </div>
+    {% endif %}
 
     <div class="clear spacer"></div>
     <h3>Statistics of final reflections by frame number and frame number difference</h3>

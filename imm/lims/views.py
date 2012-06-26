@@ -1341,13 +1341,13 @@ import matplotlib.cm as cm
 
 # Adjust rc parameters
 rcParams['legend.loc'] = 'best'
-rcParams['legend.fontsize'] = 12
+rcParams['legend.fontsize'] = 10
 rcParams['legend.isaxes'] = False
 rcParams['figure.facecolor'] = 'white'
 rcParams['figure.edgecolor'] = 'white'
-rcParams['mathtext.fontset'] = 'stix'
-rcParams['mathtext.fallback_to_cm'] = True
-rcParams['font.size'] = 14
+#rcParams['mathtext.fontset'] = 'stix'
+#rcParams['mathtext.fallback_to_cm'] = True
+#rcParams['font.size'] = 14
 rcParams['font.family'] = 'serif'
 rcParams['font.serif'] = 'Gentium Basic'
 
@@ -1363,9 +1363,14 @@ class ResLocator(Locator):
         locs = numpy.linspace(0.0156, 1, 30 )
         return locs
 
+def get_min_max(a, dev=0.1):
+    mn, mx = min(a), max(a)
+    dev = (mx-mn)*dev
+    return mn-dev, mx+dev
+
 
 PLOT_WIDTH = 8
-PLOT_HEIGHT = 7 
+PLOT_HEIGHT = 6 
 PLOT_DPI = 75
 IMG_WIDTH = int(round(PLOT_WIDTH * PLOT_DPI))
 
@@ -1505,7 +1510,13 @@ def plot_shell_stats(request, id):
     data = result.details.get('shell_statistics')
     if data is None:
         raise Http404
-    
+    # Allow for either cc_half or r_mrgdf
+    if "cc_half" in data:
+        extra_k = "cc_half"
+        extra_l = "CC(1/2)"
+    else:
+        extra_k = "r_mrgdf"
+        extra_l = "R-mrgd-F"
     shell = numpy.array(data['shell'])**-2
     fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
     ax1 = fig.add_subplot(211)
@@ -1513,7 +1524,7 @@ def plot_shell_stats(request, id):
     ax1.set_ylabel('completeness (%)', color='r')
     ax11 = ax1.twinx()
     ax11.plot(shell, data['r_meas'], 'g-', label='R-meas')
-    ax11.plot(shell, data['r_mrgdf'], 'g:+', label='R-mrgd-F')
+    ax11.plot(shell, data['cc_half'], 'g:+', label='CC(1/2)')
     ax11.legend(loc='center left')
     ax1.grid(True)
     ax11.set_ylabel('R-factors (%)', color='g')
@@ -1523,7 +1534,7 @@ def plot_shell_stats(request, id):
         tl.set_color('r')
     ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
     ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
-    ax1.set_ylim((0, 105))
+    ax1.set_ylim(0, 105)
     ax11.set_ylim((0, 105))
 
     ax2 = fig.add_subplot(212, sharex=ax1)
@@ -1540,8 +1551,8 @@ def plot_shell_stats(request, id):
         tl.set_color('m')
     ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
     ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
-    ax2.set_ylim((-5, max(data['i_sigma'])+5))
-    ax21.set_ylim((0, max(data['sig_ano'])+1))
+    ax2.set_ylim(0, get_min_max(data['i_sigma'], 0.1)[1])
+    ax21.set_ylim(0, get_min_max(data['sig_ano'], 0.1)[1])
 
     ax1.xaxis.set_major_formatter(ResFormatter())
     ax1.xaxis.set_minor_formatter(ResFormatter())
@@ -1587,7 +1598,7 @@ def plot_pred_quality(request, id):
     ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
     ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
     ax1.set_ylim((0, 105))
-    ax11.set_ylim((0,  max(data['r_factor'])+10))
+    ax11.set_ylim(0,  get_min_max(data['r_factor'], 0.1)[1])
 
     ax2 = fig.add_subplot(212, sharex=ax1)
     ax2.plot(shell, data['i_sigma'], 'm-')
@@ -1603,8 +1614,8 @@ def plot_pred_quality(request, id):
         tl.set_color('m')
     ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
     ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
-    ax2.set_ylim((-1, max(data['i_sigma'])+1))
-    ax21.set_ylim((0, max(data['multiplicity'])+0.5))
+    ax2.set_ylim(get_min_max(data['i_sigma'], 0.1))
+    ax21.set_ylim(get_min_max(data['multiplicity'],0.1))
 
     ax1.xaxis.set_major_formatter(ResFormatter())
     ax1.xaxis.set_minor_formatter(ResFormatter())
@@ -1741,10 +1752,10 @@ def plot_error_stats(request, id):
     fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
     ax1 = fig.add_subplot(211)
     ax1.plot(shell, data['chi_sq'], 'r-')
-    ax1.set_ylabel(r'$\chi^{2}$', color='r')
+    ax1.set_ylabel('Chi^2', color='r')
     ax11 = ax1.twinx()
     ax11.plot(shell, data['i_sigma'], 'b-')
-    ax11.set_ylabel(r'I/Sigma', color='b')
+    ax11.set_ylabel('I/Sigma', color='b')
     ax1.grid(True)
     for tl in ax11.get_yticklabels():
         tl.set_color('b')
@@ -1752,8 +1763,8 @@ def plot_error_stats(request, id):
         tl.set_color('r')
     ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
     ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
-    ax1.set_ylim((0, 3))
-    #ax11.set_ylim((0, 105))
+    ax1.set_ylim(get_min_max(data['chi_sq'], 0.2))
+    ax11.set_ylim(0, get_min_max(data['i_sigma'], 0.1)[1])
 
     ax2 = fig.add_subplot(212, sharex=ax1)
     ax2.plot(shell, data['r_obs'], 'g-', label='R-observed')
@@ -1763,7 +1774,7 @@ def plot_error_stats(request, id):
     ax2.legend(loc='best')
     ax2.grid(True)
     ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
-    ax2.set_ylim((0,105))
+    ax2.set_ylim(0, get_min_max(data['r_obs'], 0.1)[1])
 
     ax1.xaxis.set_major_formatter(ResFormatter())
     ax1.xaxis.set_minor_formatter(ResFormatter())
@@ -1773,7 +1784,6 @@ def plot_error_stats(request, id):
     ax2.xaxis.set_minor_formatter(ResFormatter())
     ax2.xaxis.set_major_locator(ResLocator())
 
-    # make and return png image
     canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')
     canvas.print_png(response)
@@ -1832,34 +1842,32 @@ def plot_wilson_stats(request, id):
     if data is None:
         raise Http404
     
-    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.6), dpi=PLOT_DPI)
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.7), dpi=PLOT_DPI)
     ax1 = fig.add_subplot(111)
     plot_data = zip(data['inv_res_sq'], data['log_i_sigma'])
     plot_data.sort()
     plot_data = numpy.array(plot_data)
     ax1.plot(plot_data[:,0], plot_data[:,1], 'r-+')
     ax1.set_xlabel('Resolution')
-    ax1.set_ylabel(r'$ln\left(\frac{<I>}{\sigma(f)^2}\right)$')
+    ax1.set_ylabel('ln(<I>/Sigma(f)^2)')
     ax1.grid(True)
     ax1.xaxis.set_major_formatter(ResFormatter())
     ax1.xaxis.set_major_locator(ResLocator())
     
     # set font parameters for the ouput table
-    try:
-        wilson_line = result.details['wilson_line']
-        wilson_scale = result.details['wilson_scale']
+    wilson_line = results['details'].get('wilson_line')
+    wilson_scale = results['details'].get('wilson_scale')
+    if wilson_line is not None:
         fontpar = {}
         fontpar["family"]="monospace"
         fontpar["size"]=9
         info =  "Estimated B: %0.3f\n" % wilson_line[0]
         info += "sigma a: %8.3f\n" % wilson_line[1]
         info += "sigma b: %8.3f\n" % wilson_line[2]
-        info += "Scale factor: %0.3f\n" % wilson_scale    
+        if wilson_scale is not None:
+            info += "Scale factor: %0.3f\n" % wilson_scale    
         fig.text(0.55,0.65, info, fontdict=fontpar, color='k')
-    except:
-        pass
 
-    # make and return png image
     canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')
     canvas.print_png(response)
@@ -1896,13 +1904,13 @@ def plot_frame_stats(request, id):
         tl.set_color('r')
     ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
     ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
-    ax1.set_ylim((min(data['scale'])-0.2, max(data['scale'])+0.2))
-    ax11.set_ylim((min(data['mosaicity'])-0.01, max(data['mosaicity'])+0.01))
+    ax1.set_ylim(get_min_max(data['scale'], 0.2))
+    ax11.set_ylim(get_min_max(data['mosaicity'], 0.2))
 
     ax2 = fig.add_subplot(312, sharex=ax1)
     ax2.plot(data['frame'], data['divergence'], 'm-')
     ax2.set_ylabel('Divergence', color='m')
-    ax2.set_ylim((min(data['divergence'])-0.02, max(data['divergence'])+0.02))
+    ax2.set_ylim(get_min_max(data['divergence'], 0.2))
     ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.3f'))
     ax2.grid(True)
     if data.get('frame_no') is not None:
