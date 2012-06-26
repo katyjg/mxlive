@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load stats_extras %}
+{% load truncate_filters %}
 
 {% block headline %}
 <h2>Usage Statistics - {{month.1}} {{ month.2 }}</h2>
@@ -57,7 +58,7 @@
 	                    {% ifequal current_date day.0 %}today{% endifequal %}">
 		                {% with day.2|format_data:name as data %}
 		                    {% for item in data %}
-		                        <b>{{ item.0 }}</b>({{ item.1 }})- 
+		                        <b>{{ item.0|truncate_chars:8 }}</b>({{ item.1 }})- 
 		                            {% ifequal item.2 item.3 %}
 		                                ({{ item.2 }})
 		                            {%else %} 

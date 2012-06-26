@@ -1,7 +1,7 @@
 from django import template
 from django.template import Library
 from django.shortcuts import render_to_response
-
+from django.db.models import *
 
 from lims.models import Container, Experiment, Crystal
 
@@ -67,6 +67,11 @@ def runlist_position(runlist, container):
 @register.filter("prioritize")
 def prioritize(object_list):
     return object_list.order_by('priority')
-    
+  
+@register.filter('prioritize_and_sort')
+def prioritize_and_sort(object_list):
+    if object_list[0].container.get_kind_display() == 'Cassette':
+        return object_list.order_by('priority','container','container_location')
+    return object_list.annotate(port=Sum('container_location')).order_by('priority','container','port')
     
 

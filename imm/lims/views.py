@@ -993,7 +993,10 @@ def shipment_pdf(request, id, model, format):
         containers = obj.containers.all()
         experiments = Experiment.objects.filter(pk__in=Crystal.objects.filter(container__in=obj.containers.all()).values('experiment')).order_by('priority').reverse()
         group = Project.objects.filter(pk__in=obj.containers.all().values('project'))
-        num_crystals = obj.project.crystal_set.filter(container__pk__in=containers).count()
+        try:
+            num_crystals = obj.project.crystal_set.filter(container__pk__in=containers).count()
+        except:
+            num_crystals = 12
 
     work_dir = create_cache_dir(obj.label_hash())
     prefix = "%s-%s" % (obj.label_hash(), format)

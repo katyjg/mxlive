@@ -21,7 +21,7 @@
 % double spacing     : 1.6
 \setmainfont{Gentium Basic}
 \begin{document}
-
+{% if project.address and project.city and project.province %}
 \begin{minipage}{\textwidth}
 {% include "lims/tex/cmcf_logo.tex" %}
 \end{minipage}
@@ -54,12 +54,12 @@
                 \vskip\fboxsep
                 {\bf 
                 \begin{tabular}{ll}
-                    {\Large To: } & {\Large {{ project.contact_person|texsafe|default:"" }} } \\
-	                 {% if project.department %}& {\Large {{ project.department|texsafe|default:"" }} } \\{% endif %}
-	                 & {\Large {{ project.organisation|texsafe|default:"" }} } \\
-	                 & {\Large {{ project.address|texsafe|default:"" }} } \\
-	                 & {\Large {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}\ \ {{project.postal_code|texsafe|default:"" }} } \\
-	                 & {\Large {{ project.country|texsafe|default:"" }} } \\
+                    {\large To: } & {\large {{ project.contact_person|texsafe|default:"" }} } \\
+	                 {% if project.department %}& {\large {{ project.department|texsafe|default:"" }} } \\{% endif %}
+	                 & {\large {{ project.organisation|texsafe|default:"" }} } \\
+	                 & {\large {{ project.address|texsafe|default:"" }} } \\
+	                 & {\large {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}\ \ {{project.postal_code|texsafe|default:"" }} } \\
+	                 & {\large {{ project.country|texsafe|default:"" }} } \\
 	                 & Phone: {{ project.contact_phone|texsafe|default:"" }} \\
 	                 {% if project.contact_fax %}& Fax: {{ project.contact_fax|texsafe|default:"" }} \\{% endif %}
                 \end{tabular}
@@ -96,9 +96,9 @@
         \end{boxedminipage}
     \end{center}
     {% endfor %}
-
-%%%%%%%%%%%%%%%%CLSI Shipping Order Form%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
+{% endif %}
+%%%%%%%%%%%%%%%%CLSI Shipping Order Form%%%%%%%%%%%%%%%%%%%%%%%%
 \renewcommand{\arraystretch}{1.1} 
 \newgeometry{left=0.55in, right=0.55in, top=0.25in, bottom=0.25in}
 \thispagestyle{empty}
@@ -121,31 +121,31 @@
 
 \multicolumn{1}{l}{ {\bf Date:} } & \multicolumn{11}{l}{ {% now "jS F Y" %} } \\ \hline 
 \multicolumn{6}{|l|}{ Shipper's Name } & \multicolumn{6}{l|}{ Ship To (Consignee) } \\ 
-\multicolumn{6}{|c|}{\multirow{2}{*}{ {\bf }}} & \multicolumn{6}{c|}{\multirow{2}{*}{ {\bf {{ project.contact_person }}}}} \\ 
+\multicolumn{6}{|c|}{\multirow{2}{*}{ {\bf }}} & \multicolumn{6}{c|}{\multirow{2}{*}{ {\bf {{ project.contact_person|texsafe|cut:"None"|default:"" }}}}} \\ 
 \multicolumn{6}{|l|}{} & \multicolumn{6}{l|}{} \\ \hline
 
-\multicolumn{6}{|l|}{ CLSI Department \hfill {\bf CMCF }} & \multicolumn{6}{l|}{ Address: } \\ \cline{1-6}
-\multicolumn{6}{|l|}{ Address: } & \multicolumn{6}{c|}{\multirow{2}{*}{ {\bf {{ project.address }}}}} \\
-\multicolumn{6}{|c|}{ {\bf 101 Perimeter Road, University of Saskatchewan }} & \multicolumn{6}{l|}{} \\ \hline
+\multicolumn{6}{|l|}{ CLSI Department \hfill {\bf CMCF }} & \multicolumn{6}{l|}{ Address: {\bf {{ project.department|texsafe|cut:"None"|default:"" }}} } \\ \cline{1-6}
+\multicolumn{6}{|l|}{ Address: } & \multicolumn{6}{c|}{ {\bf {{ project.organisation|texsafe|cut:"None"|default:"" }}}} \\
+\multicolumn{6}{|c|}{ {\bf 101 Perimeter Road, University of Saskatchewan }} & \multicolumn{6}{c|}{ {\bf {{ project.address|texsafe|cut:"None"|default:"" }}}} \\ \hline
 
 \multicolumn{6}{|l|}{ City / Province / State:} & \multicolumn{6}{l|}{ City / Province / State:} \\
-\multicolumn{6}{|c|}{ {\bf Saskatoon, Saskatchewan Canada }} & \multicolumn{6}{c|}{ {\bf {{ project.city }}, {{ project.province }} {{ project.country }}}} \\ \hline
+\multicolumn{6}{|c|}{ {\bf Saskatoon, Saskatchewan Canada }} & \multicolumn{6}{c|}{ {\bf {{ project.city|texsafe|cut:"None"|default:"" }}{% if project.city and project.province %},{% endif %} {{ project.province|texsafe|cut:"None"|default:"" }} {{ project.country|texsafe|cut:"None"|default:"" }}}} \\ \hline
 
 \multicolumn{6}{|l|}{ Postal Code: } & \multicolumn{6}{l|}{ Postal Code: } \\
-\multicolumn{6}{|c|}{ {\bf S7N 0X4 }} & \multicolumn{6}{c|}{ {\bf {{ project.postal_code }}}} \\ \hline
+\multicolumn{6}{|c|}{ {\bf S7N 0X4 }} & \multicolumn{6}{c|}{ {\bf {{ project.postal_code|texsafe|cut:"None"|default:"" }}}} \\ \hline
 
 \multicolumn{6}{|l|}{ Phone \# } & \multicolumn{6}{l|}{ Phone \#: } \\
-\multicolumn{6}{|c|}{ {\bf  }} & \multicolumn{6}{c|}{ {\bf {{ project.contact_phone }}}} \\ \hline
+\multicolumn{6}{|c|}{ {\bf  }} & \multicolumn{6}{c|}{ {\bf {{ project.contact_phone|texsafe|cut:"None"|default:"" }}}} \\ \hline
 
 \multicolumn{1}{|l}{ \multirow{5}{*}{}} & 
 \multicolumn{4}{l}{ $\Box$ Warranty Repair } & \multicolumn{1}{l|}{ $\Box$ Return To Vendor } & 
 \multicolumn{6}{l|}{ Fax \# } \\
-\multicolumn{1}{|l}{} & \multicolumn{4}{c}{} & \multicolumn{1}{l|}{} & \multicolumn{6}{c|}{ {\bf {{ project.contact_fax }}}} \\ \cline{7-12}
+\multicolumn{1}{|l}{} & \multicolumn{4}{c}{} & \multicolumn{1}{l|}{} & \multicolumn{6}{c|}{ {\bf {{ project.contact_fax|texsafe|cut:"None"|default:"" }}}} \\ \cline{7-12}
 
 \multicolumn{1}{|l}{ \multirow{5}{*}{}} & 
 \multicolumn{4}{l}{ $\Box$ Loan } & \multicolumn{1}{l|}{ $\Box$ Return of Loan } & 
 \multicolumn{6}{l|}{ {\bf Consignee's Courier Account \# }} \\
-\multicolumn{1}{|l}{} & \multicolumn{4}{c}{} & \multicolumn{1}{l|}{} & \multicolumn{6}{c|}{ {\bf {{ project.account_number }} ({{ project.carrier }}) }} \\ \cline{7-12}
+\multicolumn{1}{|l}{} & \multicolumn{4}{c}{} & \multicolumn{1}{l|}{} & \multicolumn{6}{c|}{ {\bf {{ project.account_number|texsafe|cut:"None"|default:"" }} {% if project.carrier %}({{ project.carrier }}){% endif %} }} \\ \cline{7-12}
 
 \multicolumn{1}{|l}{ \multirow{5}{*}{}} & 
 \multicolumn{4}{l}{ $\Box$ Chargeable Repair } & \multicolumn{1}{l|}{} & 

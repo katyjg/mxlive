@@ -1042,6 +1042,7 @@ class Crystal(LoadableBaseClass):
         unique_together = (
             ("project", "container", "container_location"),
         )
+        ordering = ['priority','container','container_location']
 
     def identity(self):
         return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))

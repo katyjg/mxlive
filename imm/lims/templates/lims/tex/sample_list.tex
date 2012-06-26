@@ -1,24 +1,23 @@
 {% load tex %}
 {% load runlist_extras %}
-
 \documentclass[letterpaper,6pt]{report}
 \usepackage{pst-barcode}
 \usepackage{xcolor,colortbl}
 \usepackage{boxedminipage}
 \usepackage{fontspec}
-\usepackage[margin=0.5in]{geometry}
+\usepackage[margin=0.4in]{geometry}
 \usepackage{parskip}
 \usepackage{longtable}
 \usepackage{amssymb}
 \usepackage[utf8]{inputenc}
-\addtolength{\fboxsep}{0.2cm}
+\addtolength{\fboxsep}{0.4cm}
 \renewcommand{\arraystretch}{1.2}
 %------------------------------------------------------------
 % Appearance Control
 %------------------------------------------------------------
 % normal line spacing: 1.0
 % double spacing     : 1.6
-\textheight 9.5in
+\textheight 9.8in
 \setmainfont{Gentium Basic}
 \begin{document}
 \iffalse
@@ -29,32 +28,29 @@
 \footnotesize
 \hspace{-0.25in}
 
-{% if project %}
-\section*{Project: {{ project.user.username|texsafe|default:"" }} \hfill {{ containers|length }} Containers with {{ num_crystals }} Crystals ({{experiments|length}} Experiments)}
-{% if project.address %}
-\begin{center}
-{\bf Investigator: }{{ project.name|texsafe|default:"" }} \hfill  {{ project.department|texsafe|default:"" }} \\
-\hfill {{ project.organisation|texsafe|default:"" }} \\
-{\bf FedEx Account: }{{ project.account_number|texsafe|default:"" }} \hfill {{ project.address|texsafe|default:"" }} \\
-{\bf Phone: }{{ project.contact_phone|texsafe|default:"" }} \hfill {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}   {{ project.postal_code|texsafe|default:"" }} \\
-{\bf Fax: }{{ project.contact_fax|texsafe|default:"" }} \hfill {{ project.country|texsafe|default:"" }} \\ 
-\end{center}
-{% endif %}
-{% endif %}
-
-{% if group %}
-\section*{Projects Represented}
+{% if group %}\section*{Projects Represented in Runlist "{{ shipment.name }}" }
 \begin{center}
 {% for pro in group %}
-{\bf Investigator: }{{ pro.name|texsafe|default:"" }} \hfill  {{ pro.organisation|texsafe|default:"" }} \\
-{\bf Phone: }{{ pro.contact_phone|texsafe|default:"" }} \hfill {{ pro.department|texsafe|default:"" }} \\ 
+{\bf Investigator: }{{ pro.name|texsafe|cut:"None"|default:"No Project?" }} \hfill  {{ pro.organisation|texsafe|cut:"None"|default:"Organisation and department" }} \\
+{\bf Phone: }{{ pro.contact_phone|texsafe|cut:"None"|default:"Not Listed" }} \hfill {{ pro.department|texsafe|cut:"None"|default:"are not available." }} \\ 
 \vspace{0.1in}
 {% endfor %}
 \end{center}
-{% endif %}
-
+{% else %}
+{% regroup containers|dictsort:"kind" by get_kind_display as kind_list %}
+\section*{Mail-In Collection Information - {{project.name}} \hfill Shipping Information}
+\begin{center}
+{\bf Containers: }{{containers|length}} ({% for k in kind_list%}{{k.list|length}} {{k.grouper}}{%ifnotequal k.list|length 1%}s{%endifnotequal%}{%if forloop.last %}{%else%}; {% endif %}{%endfor %}) \hfill  {{ project.department|texsafe|cut:"None"|default:"The user's shipping" }} \\
+{\bf Crystals: }{{num_crystals}} \hfill {{ project.organisation|texsafe|cut:"None"|default:"address and account" }} \\
+{\bf Experiments: }{{experiments|length}} \hfill {{ project.address|texsafe|cut:"None"|default:"number are not" }} \\
+\hfill {{ project.city|texsafe|cut:"None"|default:"available" }}, {{ project.province|texsafe|cut:"None"|default:"and must be" }}   {{ project.postal_code|texsafe|cut:"None"|default:"" }}\\
+{\bf Username: }{{ project.name|texsafe|default:"" }} \hfill {{ project.country|texsafe|cut:"None"|default:"obtained manually." }} \\  
+{\bf Password: }\underline{\hspace*{1.0in}} \hfill Phone: {{ project.contact_phone|texsafe|cut:"None"|default:"Not Listed" }} {% if project.contact_fax %}(Fax: {{ project.contact_fax|texsafe|default:"" }}){% endif %}\\ 
+{% if project.account_number %}\hfill {\bf {% if project.carrier %}{{ project.carrier }} {% endif %}Account#: {{ project.account_number|texsafe|default:"" }} } \\{% endif %}
+\end{center}{% endif %}
 \section*{Sample List By Experiment}
-\begin{longtable}{|p{.015\textwidth}|p{.005\textwidth}|p{.11\textwidth}|p{.035\textwidth}|p{.12\textwidth}|p{.04\textwidth}|p{.04\textwidth}|p{.04\textwidth}|p{.03\textwidth}|p{.03\textwidth}|p{0.26\textwidth}|}
+% priority - checkbox - names - type/priority - plan/container - edge - energy - total - delta - resolution - comments
+\begin{longtable}{|p{.015\textwidth}|p{.005\textwidth}|p{.15\textwidth}|p{.032\textwidth}|p{.12\textwidth}|p{.03\textwidth}|p{.04\textwidth}|p{.04\textwidth}|p{.03\textwidth}|p{.03\textwidth}|p{0.26\textwidth}|}
 
 \hline
 \rowcolor[gray]{.8} \multicolumn{5}{|c|}{\cellcolor[gray]{.8}Experiment Parameters} & 
@@ -65,10 +61,10 @@
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Type} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Plan} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Edge} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Energy} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Tot.Angle} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Delta} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Res.} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}E(KeV)} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Tot($^{\circ}$)} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}\Delta($^{\circ}$)} & 
+\multicolumn{1}{c|}{\cellcolor[gray]{.9}Res.(\AA)} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.9}Comments} \\ \hline
 \endfirsthead
 
@@ -92,40 +88,27 @@
 
  & \multicolumn{2}{c}{\cellcolor[gray]{.92}Crystal} & 
 \multicolumn{1}{c}{\cellcolor[gray]{.92}Pr.} & 
-{% if not project %}\multicolumn{1}{c}{\cellcolor[gray]{.92}Location} &
+{% if not group %}\multicolumn{1}{c}{\cellcolor[gray]{.92}Location} &
 {% else %}\multicolumn{1}{c}{\cellcolor[gray]{.92}Container} &  {% endif %}
-\multicolumn{3}{l}{\cellcolor[gray]{.92} Unit Cell} & 
+\multicolumn{3}{l}{\cellcolor[gray]{.92} Unit Cell (\AA,\AA,\AA)} & 
 \multicolumn{2}{c}{\cellcolor[gray]{.92}Spacegroup} & 
 \multicolumn{1}{c|}{\cellcolor[gray]{.92}Comments} \\ \cline{2-11}
 
 %\cellcolor[gray]{0.98}
-{% for xtal in exp.crystal_set.all|prioritize %} \multicolumn{1}{|c|}{} & 
+{% for xtal in exp.crystal_set.all|prioritize_and_sort %} \multicolumn{1}{|c|}{} & 
 \multicolumn{1}{c}{\cellcolor[gray]{0.98} \hspace{-0.013\textwidth} $\Box$ } & 
 \cellcolor[gray]{0.98} {{ xtal.name|texsafe|default:"" }} &
 \cellcolor[gray]{0.98} {{ xtal.priority|texsafe|default:"" }} &
-{% comment %}{% if not project %}\cellcolor[gray]{0.98} {{ shipment|runlist_position:xtal.container }}{{ xtal.container_location|texsafe|default:"" }}&
-{% else %}\cellcolor[gray]{0.98} {{ xtal.container|texsafe|default:"" }} ({{ xtal.container_location|texsafe|default:"" }}{% ifequal xtal.container 'Cane' %} from bottom{% endifequal %})&{% endif %}{% endcomment %}\cellcolor[gray]{0.98} {{ xtal.container|texsafe|default:"" }} ({{ xtal.container_location|texsafe|default:"" }}{% ifequal xtal.container 'Cane' %} from bottom{% endifequal %})&
+\cellcolor[gray]{0.98} {{ xtal.container|texsafe|default:"" }} ({{ xtal.container_location|texsafe|default:"" }}{% ifequal xtal.container 'Cane' %} from bottom{% endifequal %})&
 \multicolumn{3}{l|}{\cellcolor[gray]{0.98} {% if xtal.crystal_form %}{{ xtal.crystal_form.cell_a|texsafe|default:"" }},{{ xtal.crystal_form.cell_b|texsafe|default:"" }}, {{ xtal.crystal_form.cell_c|texsafe|default:"" }} } & {% else %} } & {% endif %}  
 \multicolumn{2}{c|}{\cellcolor[gray]{0.98}{{ xtal.crystal_form.space_group|texsafe|default:"" }} }&
 \cellcolor[gray]{0.98} {{ xtal.comments|texsafe|default:"" }} \\  {% endfor %} \cline{2-11}
 
-{% if forloop.last %}{% else %}{% comment %}
-\multicolumn{11}{c}{} \\
-\multicolumn{1}{|c|}{\cellcolor[gray]{.9}Pr.} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Group} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Type} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Plan} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Edge} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Energy} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Tot.Angle} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Delta} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Res.} & 
-\multicolumn{1}{c|}{\cellcolor[gray]{.9}Comments} \\  \hline {% endcomment %}
+{% if forloop.last %}{% else %}
 \multicolumn{11}{|c|}{} \\ \hline
 {% endif %}
 
 {% endfor %}
 \end{longtable}
-
     
 \end{document}
