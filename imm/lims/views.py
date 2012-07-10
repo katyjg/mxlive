@@ -1855,8 +1855,8 @@ def plot_wilson_stats(request, id):
     ax1.xaxis.set_major_locator(ResLocator())
     
     # set font parameters for the ouput table
-    wilson_line = results['details'].get('wilson_line')
-    wilson_scale = results['details'].get('wilson_scale')
+    wilson_line = result.details.get('wilson_line')
+    wilson_scale = result.details.get('wilson_scale')
     if wilson_line is not None:
         fontpar = {}
         fontpar["family"]="monospace"
