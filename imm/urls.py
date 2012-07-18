@@ -22,8 +22,10 @@ urlpatterns = patterns('',
     (r'^staff/', include('imm.staff.urls')),
     # lims urls
     (r'^lims/',  include('imm.lims.urls')),
-    
+    # download urls
     (r'^download/', include('imm.download.urls')),
+    # stats urls, if using the stats application
+    (r'^stats/', include('imm.stats.urls')),
     
     (r'^home/',  'imm.lims.views.home'),
     (r'^login/$',  login_view, {'template_name': 'login.html'}),

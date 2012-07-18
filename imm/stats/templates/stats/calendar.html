@@ -12,11 +12,11 @@
 <div class="object-list">
 	<div class="list-tools">
 	    <h3 class="current">
-	        <a class="prev" href='{% url staff-calendar-any month=month.3 %}' title="Previous Month">
+	        <a class="prev" href='{% url stats-calendar-any month=month.3 %}' title="Previous Month">
 	            <img src="/img/prev.png" alt="Previous Month"></a>
-	        <a class="current" href='{% url staff-calendar-now %}'>
+	        <a class="current" href='{% url stats-calendar-now %}'>
 	            Back to Current Month</a>
-	        <a class="next" href='{% url staff-calendar-any month=month.4 %}' title="Next Month">
+	        <a class="next" href='{% url stats-calendar-any month=month.4 %}' title="Next Month">
 	            <img src="/img/next.png" alt="Next Month"></a>
 	    </h3>
 	</div>
@@ -77,7 +77,8 @@
 {% endblock %}
 
 {% block sidebar %}
-<div class="widget statistics" style="height:auto;" data="{% url staff-statistics month.2 month.0 %}">
+<div class="statistics"><h3 class="current"><a href="{% url stats-yearly month.2 %}">View {{month.2}} Statistics</a></h3></div>
+<div class="widget statistics" style="height:auto;" data="{% url stats-monthly month.2 month.0 %}">
     <div class="widget-title"><span>{{ month.1 }} {{ month.2 }} Usage</span></div>
     <ul><p class="list-empty"> ( Data not loaded ) </p></ul>
 </div>

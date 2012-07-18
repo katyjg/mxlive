@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
+import calendar
 import logging
 import subprocess
 import tempfile
@@ -36,6 +37,10 @@ from imm.lims.models import *
 from imm.staff.models import Runlist
 from imm.objlist.views import ObjectList
 from imm.lims.models import Container, Experiment, Shipment, Crystal
+
+#sys.path.append(os.path.join('/var/website/cmcf-website/cmcf'))
+#from scheduler.models import Visit, Stat, WebStatus
+#from scheduler.models import Beamline as CMCFBeamline
 
 ACTIVITY_LOG_LENGTH  = 10 
 
@@ -83,50 +88,6 @@ def staff_home(request):
         'feedback': Feedback.objects.all()[:5],
         'statistics': statistics,
         'handler': request.path,
-        }, context_instance=RequestContext(request))
-    
-@admin_login_required
-def staff_statistics(request, year, month):
-    display = ['08ID-1', '08B1-1']   
-    start_time = datetime(int(year), int(month), 1)
-    end_time = start_time + relativedelta(months=+1)
-    all_data = Data.objects.filter(beamline__name__in=display).filter(created__gt=start_time).filter(created__lt=end_time)
-    return render_to_response('lims/statistics.html', {
-        'month': [int(month), int(year)],
-        'data': all_data,
-        'display': display,
-        }, context_instance=RequestContext(request))    
-    
-@admin_login_required
-def staff_calendar(request, month=None):
-    mon = month and int(month.split('-')[1]) or datetime.today().month
-    today = month and datetime(year=int(month.split('-')[0]), month=mon, day=datetime.today().day) or datetime.today()
-    prev_month = (datetime(today.year, mon, 1) + relativedelta(months=-1)).strftime('%Y-%m')
-    next_month = (datetime(today.year, mon, 1) + relativedelta(months=+1)).strftime('%Y-%m')
-
-    display = ['08ID-1', '08B1-1']
-    current_date = (datetime.today().strftime('%Y-%m-%d') == today.strftime('%Y-%m-%d')) and today.day or 0
-
-    dates = []
-    week = []
-    i = 0
-    first_day = (today - timedelta(days=(today.day-1))) - timedelta(days=(today - timedelta(days=(today.day-1))).weekday())
-    while (first_day+timedelta(days=i*7)).month is today.month or i == 0:
-        week = []
-        for j in range(7):
-            this_day = first_day + timedelta(days=(j + i*7))
-            filter_today = datetime(this_day.year, this_day.month, this_day.day)
-            filter_tomorrow = filter_today + timedelta(days=1)
-            data = Data.objects.filter(created__gt=filter_today).filter(created__lt=filter_tomorrow).order_by('created')
-            week.append([this_day.day,this_day.month,data])
-        i += 1
-        dates.append(week)
-
-    return render_to_response('lims/calendar.html', {
-        'month': [mon, today.strftime('%B'), today.year, prev_month, next_month],
-        'current_date': current_date,
-        'display': display,
-        'dates': dates,
         }, context_instance=RequestContext(request))
     
 @admin_login_required
@@ -556,5 +517,5 @@ def get_active_runlist(request, info):
             raise ServerError("Expected only one runlist. Found many.")
     else:
           raise InvalidRequestError("A valid beamline name must be provided.")  
-    
-        
+
+

@@ -31,12 +31,24 @@ ADMIN_MESSAGE_USERNAME = None
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
-DATABASE_NAME = 'imm'             # Or path to database file if using sqlite3.
-DATABASE_USER = 'imm'             # Not used with sqlite3.
-DATABASE_PASSWORD = 'imm123'         # Not used with sqlite3.
-DATABASE_HOST = '10.52.4.19'             # Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
+DATABASES = {
+    'default': {
+        'NAME': 'imm',
+        'ENGINE': 'mysql',
+        'USER': 'imm',
+        'PASSWORD': 'imm123',
+        'HOST': '10.52.4.19',
+        'PORT': '',
+        },
+    'cmcf-web': {
+        'NAME': 'website',
+        'ENGINE': 'mysql',
+        'USER': 'cmcfweb',
+        'PASSWORD': 'cmcfweb123',
+        'HOST': '10.52.4.19',
+        'PORT': '',
+        }
+    }
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -126,6 +138,7 @@ INSTALLED_APPS = (
     'imm.objforms',
     'imm.remote',
     'imm.download',
+    'imm.stats',
     'jsonrpc',
     'reversion',
     'apikey',

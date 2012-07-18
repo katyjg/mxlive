@@ -63,3 +63,9 @@ def num_shifts(data, month):
         start_time += one_shift
     return num_shifts
 
+@register.filter("sum_index")
+def sum_index(list, i):
+    total = 0
+    for v in list:
+        total += v[i]
+    return total

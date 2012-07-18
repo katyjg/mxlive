@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% load stats_extras %}
+
+{% block headline %}
+    <h2>CMCF Beamline Stats</h2>
+{% endblock %}
+
+{% block content-override %}
+
+<div id="result-page">   
+  <div class="list-tools">
+    <h3 class="current">
+      <a class="prev" href='{% url stats-yearly years.2 %}' title="Previous Year">
+        <img src="/img/prev.png" alt="Previous Year"></a>
+      <a class="current" href='{% url stats-yearly years.0 %}'>
+        Back to {{ years.0 }} Statistics</a>
+      <a class="next" href='{% url stats-yearly years.1 %}' title="Next Year">
+        <img src="/img/next.png" alt="Next Year"></a>
+    </h3>
+  </div>
+  <h3>{{ year }} Beamline "N" Shift Usage {% ifequal year years.0 %}(up to today){% endifequal %}</h3>
+  <img src="usage.png" />
+  
+  
+<h3>{{ year}} CMCF Users by Location* - <a id="plottype" style="cursor: pointer;"></a></h3>
+{% for bl, val in users.items reversed %}
+    <div class="half">
+        <h2><var class="type"></var> Users Groups on {{ bl }}</h2>
+    </div>
+{% endfor %}
+<div id="placeholder-bm" class="placeholder"></div>
+<div id="placeholder-id" class="placeholder"></div>
+
+<h4 id="hover-bm" class="half"></h4>
+<h4 id="hover-id" class="half"></h4>
+  
+{% for bl, val in users.items reversed %}
+    <div class="object-list statistics" style="width:48%; float:left; margin-left:17px">
+        <h3>{{year}} - {{ bl }} User Groups</h3>
+		{% for prov, group in val.items %}{% if group %}
+			<table id="calendar">
+		        <h4>{{ prov }}</h4>
+			    <thead>
+			        <tr>
+			           <th>Proposal</th>
+			           <th>Visits</th>
+			           <th>Shifts<!-- <br>(Sched/Used) --></th>    
+			           <th>Location</th>
+		           </tr>
+			    </thead>
+			    <tbody>
+				    {% for u in group %}
+					    <tr>
+						    <td>{{u.0}}<br>{{u.1}}</td>
+						    <td>{{u.4}}</td>
+						    <td>{{u.5}}<!-- /{{u.6}} --></td>
+						    <td>{{u.3|default_if_none:""}}</td>
+					    </tr>
+					    {% if forloop.last %}
+                            <tr class="summary">
+	                            <td>Total</td>
+	                            <td>{{ group|sum_index:4 }}</td>
+	                            <td>{{ group|sum_index:5}}<!-- /{{ group|sum_index:6}} --> </td>
+	                            <td></td>
+                            </tr>
+                        {% endif %}
+				    {% endfor %}
+			    </tbody>
+		    </table>
+		{% endif %}{% endfor %}
+    </div>
+{% endfor %}
+<div style="clear: both;"></div>
+<p>*These data are based on the {{visits.1}} out of {{visits.0}} this year that were associated with a proposal. </p>
+
+</div>
+
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        function get_shift_data(beamline) {
+            var data = [];
+            {% for bl, provs in totals.items %}
+                var i = 0;
+                bl = String("{{bl}}");
+                if (beamline == '{{bl}}' ) { 
+                    {% for lab, vals in provs.items %}
+                        data[i] = {label: "{{lab}}", data: {{vals.0}} }
+                        i++;
+                    {% endfor %}
+                }
+            {% endfor %}
+            return data;
+        }
+        
+        function get_visit_data(beamline) {
+            var data = [];
+            {% for bl, provs in totals.items %}
+                var i = 0;
+                bl = String("{{bl}}");
+                if (beamline == '{{bl}}' ) { 
+                    {% for lab, vals in provs.items %}
+                        data[i] = {label: "{{lab}}", data: {{vals.1}} }
+                        i++;
+                    {% endfor %}
+                }
+            {% endfor %}
+            return data;
+        }
+        
+        function plot_data(beamline, ph, hfunc, visit) {
+            if (visit) {
+                var data = get_visit_data(beamline=beamline);
+            } else {
+                var data = get_shift_data(beamline=beamline);
+            }
+	        $.plot($(ph), data, {
+	                series: {
+	                  pie: { 
+	                    show: true,
+	                    radius: 1,
+	                    label: { 
+	                        show: true, 
+	                        radius: 2/3,
+	                        formatter: function(label, series){
+	                            return '<div style="font-size:8pt; text-align: center; padding:2px; color: white;">'+label+'<br/>'+Math.round(series.percent)+'%</div>';
+	                        },
+	                        threshold: 0.09
+	                     }
+	                    }
+	                  },
+	                grid: { hoverable: true },
+	                legend: { show: false }
+	             });
+	             
+             $(ph).bind("plothover", hfunc);
+         }
+         
+         function plot_shifts() {
+             jQuery('.type').text('Shifts Allocated to');
+             jQuery('#plottype').attr("title", 'Show Visit Statistics');
+             jQuery('#plottype').text('Shifts');
+             jQuery('#plottype').attr("onclick", 'plot_visits();');
+             plot_data(beamline='08B1-1', ph="#placeholder-bm", hfunc=pieHoverBM, visit=false);
+             plot_data(beamline='08ID-1', ph="#placeholder-id", hfunc=pieHoverID, visit=false);        
+         }
+         
+         function plot_visits() {
+             jQuery('.type').text('Visits from');
+             jQuery('#plottype').attr("title", 'Show Shift Allocation Statistics');
+             jQuery('#plottype').text('Visits');
+             jQuery('#plottype').attr("onclick", 'plot_shifts();');
+             plot_data(beamline='08B1-1', ph="#placeholder-bm", hfunc=pieHoverBM, visit=true);
+             plot_data(beamline='08ID-1', ph="#placeholder-id", hfunc=pieHoverID, visit=true);        
+         }
+         
+        jQuery(document).ready(function() {
+            plot_shifts();
+		});
+		
+	    function pieHoverBM(event, pos, obj)
+	    {
+	        if (!obj)
+	           return;
+            percent = parseFloat(obj.series.percent).toFixed(2);
+            $("#hover-bm").html('<span style="font-weight: bold; color: '+obj.series.color+'">'+obj.series.label+' ('+percent+'%)</span>');
+        } 
+        function pieHoverID(event, pos, obj)
+        {
+            if (!obj)
+               return;
+            percent = parseFloat(obj.series.percent).toFixed(2);
+            $("#hover-id").html('<span style="font-weight: bold; color: '+obj.series.color+'">'+obj.series.label+' ('+percent+'%)</span>');
+        } 
+    </script>
+
+{% endblock %}

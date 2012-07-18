@@ -1124,6 +1124,9 @@ ul.filter-choices ul {
     position: relative;
     margin-bottom: 5px;
 }
+
+/* Styling for optional stats application */
+
 table#calendar {
 	width: 100%;
 	border-bottom: 1px solid #DEDEDE;
@@ -1203,4 +1206,32 @@ table.statistics .info {
 }
 #sidebar .widget.statistics {
 	background-image: -moz-linear-gradient(center top, #d8eee3, #fbfdfc);
+}
+tr.summary td {
+	background-color: #f4f4f4 !important;
+	color: #333 !important;
+}
+div.statistics h4 {
+	font-weight: bold;
+	margin: 10px 0 5px 10px;
+    font-size: 110%;
+}
+div.statistics th {
+	color: #555;
+}
+div.statistics h3 {
+	margin: 5px !important;
+}
+.half {
+	width: 50%;
+	float: left;
+	text-align: center;
+	height: 16px;
+    padding-bottom: 10px;
+}
+.placeholder {
+	width: 400px; 
+	padding: 0px 10px 10px 0px !important; 
+	height: 300px; 
+	float: left;
 }
