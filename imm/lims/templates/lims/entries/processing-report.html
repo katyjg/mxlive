@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% load zip %}
 {% load split_char %}
+{% load list_dir %}
+{% load flot_extras %}
+{% block extrastyle %}
+    <script type="text/javascript" src="/js/imm-reports.flot.js"></script>
+{% endblock %}
 {% block headline %}
 <h2 class="process">{% if object.details.anomalous %}Anomalous {% endif %}Data Processing Report - &ldquo;{{object.name}}&rdquo;</h2>
 {% endblock %}
@@ -80,7 +85,11 @@
                     {% with "XDS.INP" as file %}<a href="/download/files/{{ object.url }}/{{ file }}" title="Download {{ file }}">{{ file }}</a>{% endwith %}, 
                     {% with "XDSCONV.INP" as file %}<a href="/download/files/{{ object.url }}/{{ file }}" title="Download {{ file }}">{{ file }}</a>{% endwith %}, 
                     {% with "XSCALE.INP" as file %}<a href="/download/files/{{ object.url }}/{{ file }}" title="Download {{ file }}">{{ file }}</a>{% endwith %}
-                    </td></tr>     
+                    </td></tr>   
+                <tr><td style="width: 80px; vertical-align: top;">
+                        <a class="more" href="javascript:displayFiles(true)">More...</a>
+                        <a class="less" href="javascript:displayFiles(false)" style="display: none;">Hide</a>
+                    </td><td><p id="all-files"</p></td></tr>  
             </tbody>
         </table>
         <div class="clear spacer"></div>
@@ -185,7 +194,8 @@
     </div><div class="clear spacer pagebreak"></div>
     
     <h3>Standard errors of reflection intensities by resolution</h3>
-    <img src="stderr.png" />
+    <div id="stderr-chi2" class="report-flot" style="height: 225px;"></div>
+    <div id="stderr-rfac" class="report-flot" style="height: 225px;"></div>
     <div class="tablenotes">
         <h3>Notes</h3>
         <dl class="note-list">
@@ -198,7 +208,8 @@
     <div class="clear spacer pagebreak"></div>
     
     <h3>Statistics of final reflections by shell</h3>
-    <img src="shell.png" />
+    <div id="shell-comp" class="report-flot" style="height: 225px;"></div>
+    <div id="shell-isig" class="report-flot" style="height: 225px;"></div>
     {% if object.cc_half %}
     <table class="rtable full">
         <thead>
@@ -298,8 +309,10 @@
 
     <div class="clear spacer"></div>
     <h3>Statistics of final reflections by frame number and frame number difference</h3>
-    <img src="frame.png" />
-    <img src="diff.png" />
+    <div id="frame-1" class="report-flot" style="height: 175px;"></div>
+    <div id="frame-2" class="report-flot" style="height: 175px;"></div>
+    <div id="frame-3" class="report-flot" style="height: 175px;"></div>
+    <div id="diff" class="report-flot" style="height: 300px;"></div>
     <div class="tablenotes">
     <h3>Notes</h3>
         <p>The above plot was calculated by XDSSTAT. See See Diederichs K. (2006) Acta Cryst D62, 96-101.</p>
@@ -311,7 +324,7 @@
 
 
     <h3>Wilson Plot</h3>
-    <img src="wilson.png" />
+    <div id="wilson" class="report-flot" style="height: 400px;"></div>
     <div class="tablenotes">
         <h3>Notes</h3>
         <p>The above clipper-style wilson plot was calculated by CTRUNCATE which is part of the CCP4 Package.</p>
@@ -320,7 +333,7 @@
     <div class="clear spacer"></div>
 
     <h3>L Test for twinning</h3>
-    <img src="twinning.png" />
+    <div id="twinning" class="report-flot" style="height: 400px;"></div>
     <div class="tablenotes">
         <h3>Notes</h3>
         <p>The above plot was calculated by CTRUNCATE which is part of the CCP4 Package.</p>
@@ -332,3 +345,166 @@
 </div>
 <!-- end maincol -->
 {% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+    
+        function displayFiles(display) {
+            var files = '';
+            if(display) {
+	            {% for file in object.url|get_ls:object.details.output_files %}
+	                files = files + '<a href="/download/files/{{ object.url }}/{{ file }}" title="Download {{ file }}">{{file}}</a>';
+	                {% if not forloop.last %}files = files + ', ';{% endif %}
+	            {% endfor %}
+	            var more = "none", less = "";
+	        } else {
+	            var more = "", less = "none";
+	        }
+	            jQuery(".more").css("display", more);
+	            jQuery(".less").css("display", less);
+	            jQuery("#all-files").css("display", less);
+	            jQuery("#all-files").html(files);
+        }
+        jQuery(document).ready(function() {
+            displayFiles(false);
+            var colors = ["#FF0000","#0000FF","#007700","#B300B2","#00CCCC","#CCCC0C"];
+            var shadow = 0, lineWidth=1, yaxes = [], crosshair = {};
+            
+            /**************** Plot Error Stats ********************************/
+            var chi_sq = {{object.details.standard_errors.chi_sq|get_data}};
+            var i_sigma = {{object.details.standard_errors.i_sigma|get_data}};
+            var r_obs = {{object.details.standard_errors.r_obs|get_data}};
+            var r_exp = {{object.details.standard_errors.r_exp|get_data}};
+            var shell_labels = [];
+            {% for r in object.details.standard_errors.shell %}{% if forloop.counter0|divisibleby:"8" %}
+                shell_labels.push([{{forloop.counter0}},{{r|floatformat:2}}]);
+            {% endif %}{% endfor %}
+
+            yaxes = [{ axisLabel: 'Chi\u00B2', color: colors[0], position: "left", labelWidth: 20, reserveSpace: true },
+                     { axisLabel: 'I/Sigma', color: colors[1], position: "right", labelWidth: 20, reserveSpace: true }];
+            plot_data($("#stderr-chi2"), [
+                { data: chi_sq, color: colors[0], yaxis: 1, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
+                { data: i_sigma, color: colors[1], yaxis: 2, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } }
+                ], shell_labels, yaxes, '', [], false);
+
+            yaxes = [{ axisLabel: 'R-factors (%)', position: "left", labelWidth: 20, reserveSpace: true },
+                     { position: "right", labelWidth: 38, reserveSpace: true }];
+            plot_data($("#stderr-rfac"), [
+                { data: r_obs, color: colors[2], yaxis: 1, label: 'R-observed', shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
+                { data: r_exp, color: colors[3], yaxis: 1, label: 'R-expected', shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } }
+                ], shell_labels, yaxes, '', [], false);
+            
+            /**************** Plot Shell Stats ********************************/
+            var completeness = {{object.details.shell_statistics.completeness|get_data}};
+            var r_meas = {{object.details.shell_statistics.r_meas|get_data}};
+            var cc_half = {% if 'r_mrgdf' in object.details.shell_statistics.keys %}{{object.details.shell_statistics.r_mrgdf|get_data}}
+                        {% else %}{{object.details.shell_statistics.cc_half|get_data}}{% endif %};
+            var i_sigma = {{object.details.shell_statistics.i_sigma|get_data}};
+            var sig_ano = {{object.details.shell_statistics.sig_ano|get_data}};
+            var shell_labels = [];
+            {% for r in object.details.shell_statistics.shell %}{% if forloop.counter0|divisibleby:"1" %}
+                shell_labels.push([{{forloop.counter0}},{{r|floatformat:2}}]);
+            {% endif %}{% endfor %}
+            
+            yaxes = [{ axisLabel: 'Completeness (%)', color: colors[0], position: "left", labelWidth: 20, reserveSpace: true, min: 0, max: 100 },
+                     { axisLabel: 'R-factors (%)', position: "right", labelWidth: 20, reserveSpace: true, min: 0, max: 100 }];
+            plot_data($("#shell-comp"), [
+                { data: completeness, color: colors[0], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth }, yaxis: 1 },
+                { data: r_meas, color: colors[1], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth }, yaxis: 2, label: 'R-meas' },
+                { data: cc_half, color: colors[2], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth/2 }, yaxis: 2, label: {% if 'r_mrgdf' in object.details.shell_statistics.keys %}'R-mrgd-F'{% else %}'CC<sub>1/2</sub>'{% endif %} }
+                ], shell_labels, yaxes, '', [], false);
+
+            yaxes = [{ axisLabel: 'I/Sigma(I)', color: colors[3], position: "left", labelWidth: 20, reserveSpace: true, min: 0 },
+                     { axisLabel: 'SigAno', color: colors[4], position: "right", labelWidth: 20, reserveSpace: true, min: 0 }];
+            plot_data($("#shell-isig"), [
+                { data: i_sigma, color: colors[3], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth }, yaxis: 1 },
+                        { data: sig_ano, color: colors[4], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth }, yaxis: 2 }
+                ], shell_labels, yaxes, 'Resolution Shell', [], false);
+
+            /**************** Plot Frame Stats ********************************/
+            var scale = {{object.details.frame_statistics.scale|get_data:object.details.frame_statistics.frame_no}};
+            var mosaicity = {{object.details.frame_statistics.mosaicity|get_data:object.details.frame_statistics.frame_no}};
+            var divergence = {{object.details.frame_statistics.divergence|get_data:object.details.frame_statistics.frame_no}};
+            var i_sigma = {{object.details.frame_statistics.i_sigma|get_data:object.details.frame_statistics.frame_no}};
+            var r_meas = {{object.details.frame_statistics.r_meas|get_data:object.details.frame_statistics.frame_no}};
+            var unique = {{object.details.frame_statistics.unique|get_data:object.details.frame_statistics.frame_no}};
+
+            yaxes = [{ axisLabel: 'Scale Factor', color: colors[0], tickColor: "#dddddd", position: "left", labelWidth: 20, reserveSpace: true },
+                     { axisLabel: 'Mosaicity', color: colors[2], tickColor: "#dddddd", position: "right", labelWidth: 20, reserveSpace: true }];
+            plot_data($("#frame-1"), [
+                { data: scale, color: colors[0], yaxis: 1, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
+                { data: mosaicity, color: colors[2], yaxis: 2, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } }
+                ], null, yaxes, '', [], false);
+
+            yaxes = [{ axisLabel: 'Divergence', color: colors[3], tickColor: "#dddddd", position: "left", labelWidth: 20, reserveSpace: true },
+                     { axisLabel: 'I/Sigma(I)', color: colors[1], tickColor: "#dddddd", position: "right", labelWidth: 20, reserveSpace: true }];
+            plot_data($("#frame-2"), [
+                { data: divergence, color: colors[3], yaxis: 1, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
+                { data: i_sigma, color: colors[1], yaxis: 2, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } }
+                ], null, yaxes, '', [], false);
+
+            yaxes = [{ axisLabel: 'R-meas', color: colors[4], tickColor: "#dddddd", position: "left", labelWidth: 20, reserveSpace: true },
+                     { axisLabel: 'Unique Reflections', color: colors[5], tickColor: "#dddddd", position: "right", labelWidth: 20, reserveSpace: true }];
+            plot_data($("#frame-3"), [
+                { data: r_meas, color: colors[4], yaxis: 1, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
+                { data: unique, color: colors[5], yaxis: 2, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } }
+                ], null, yaxes, 'Frame Number', [], false);     
+
+            /**************** Plot Diff Stats *********************************/
+            var all = {{object.details.diff_statistics.rd|get_data:object.details.diff_statistics.frame_diff}};
+            var friedel = {{object.details.diff_statistics.rd_friedel|get_data:object.details.diff_statistics.frame_diff}};
+            var non_friedel = {{object.details.diff_statistics.rd_non_friedel|get_data:object.details.diff_statistics.frame_diff}};
+            yaxes = [{ axisLabel: 'R<sub>d</sub>', position: "left", labelWidth: 20, reserveSpace: true },{position: "right", labelWidth: 37, reserveSpace: true}];
+            plot_data($("#diff"), [
+                { data: all, color: colors[0], label: "All", shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
+                { data: friedel, color: colors[3], label: "Friedel", shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
+                { data: non_friedel, color: "#000000", label: "Non-Friedel", shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } }
+                ], null, yaxes, 'Frame Difference', [], false);                
+
+            /**************** Plot Wilson***** ********************************/
+            var wilson = [], shell_labels = [];
+            var wilson = {{object.details.wilson_plot.log_i_sigma|get_data}};
+            {% for dat in object.details.wilson_plot.inv_res_sq %}{% if forloop.counter0|divisibleby:"8" %}
+                shell_labels.push([{{forloop.counter0}},{{dat|sq_root|floatformat:2}}]);
+            {% endif %}{% endfor %}
+            yaxes = [{ axisLabel: 'ln(I/Sigma(f)\u00B2)', position: "left", labelWidth: 20, reserveSpace: true }];
+            plot_data($("#wilson"), [
+                { data: wilson, color: colors[0], shadowSize: shadow, points: {show:true, radius: 1}, lines: {show: true, lineWidth: lineWidth } }
+                ], shell_labels, yaxes, 'Resolution', [], false);
+            var stats = '';
+            {% with object.details.wilson_line as wstat %}
+                stats = stats + 'Estimated B: {{wstat.0|floatformat:3}}<br>'
+                stats = stats + 'sigma a: {{wstat.1|floatformat:-3}}<br>'
+                stats = stats + 'sigma b: {{wstat.2|floatformat:3}}<br>';
+            {% endwith %}
+            {% if object.details.wilson_scale %}
+                stats = stats + 'Scale factor: {{object.details.wilson_scale|floatformat:3}}';
+            {% endif %} 
+            $("#wilson").append('<div class="annotate" style="right:100px; top:50px;">'+stats+'</div>');
+
+
+            /**************** Plot Twinning Analysis **************************/
+            var observed = {{object.details.twinning_l_test.observed|get_data:object.details.twinning_l_test.abs_l}};
+            var untwinned = {{object.details.twinning_l_test.untwinned|get_data:object.details.twinning_l_test.abs_l}};
+            var twinned = {{object.details.twinning_l_test.twinned|get_data:object.details.twinning_l_test.abs_l}};
+            yaxes = [{ axisLabel: 'P(L>=1)', position: "left", labelWidth: 20, reserveSpace: true, max: 1 }]
+            plot_data($("#twinning"), [
+                { data: observed, color: colors[0], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
+                { data: untwinned, color: colors[1], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
+                { data: twinned, color: colors[2], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } }
+                ], null, yaxes, '|L|', [], false);
+            var stats = '';
+            {% with object.details.twinning_l_statistic as lstat %}
+                stats = stats + '<a style="color: '+ colors[0]+';">Observed: {{lstat.0|floatformat:3}}</a><br>'
+                stats = stats + '<a style="color: '+ colors[1]+';">Untwinned: {{lstat.1|floatformat:3}}</a><br>'
+                stats = stats + '<a style="color: '+ colors[2]+';">Perfect Twin: {{lstat.2|floatformat:3}}</a>';
+            {% endwith %}
+            $("#twinning").append('<div class="annotate" style="right:100px; top:230px;">'+stats+'</div>');
+        });
+    </script>
+{% endblock %}
+
+
+            
+           
+             

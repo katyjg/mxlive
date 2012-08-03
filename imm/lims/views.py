@@ -407,6 +407,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     
 @login_required
 @manager_required
+#@cache_page(60*3600)
 def object_detail(request, id, model, template):
     """
     A generic view which displays a detailed page for an object of type ``model``
@@ -1393,7 +1394,6 @@ def plot_xrf_scan(request, id):
     x = numpy.array(data['energy'])
     y = numpy.array(data['counts'])
     yc = numpy.array(data['fit'])
-    ypadding = (y.max() - y.min())/8.0  # pad 1/8 of range to either side
     
     fig = Figure(figsize=(PLOT_WIDTH*1.1, PLOT_HEIGHT*0.9), dpi=PLOT_DPI)
     fig.subplots_adjust(left=0.1, right=0.95, top=0.95, bottom=0.1)
@@ -1410,10 +1410,6 @@ def plot_xrf_scan(request, id):
     peaks = data['peaks']
     if peaks is None:
         return
-    tick_size = max(y)/50.0
-    element_list = [(v[0], k) for k,v in peaks.items()]
-    element_list.sort()
-    element_list.reverse()
 
     new_lines = scan.summarize_lines()
     for line in new_lines:
@@ -1524,7 +1520,7 @@ def plot_shell_stats(request, id):
     ax1.set_ylabel('completeness (%)', color='r')
     ax11 = ax1.twinx()
     ax11.plot(shell, data['r_meas'], 'g-', label='R-meas')
-    ax11.plot(shell, data['cc_half'], 'g:+', label='CC(1/2)')
+    ax11.plot(shell, data[extra_k], 'g:+', label=extra_l)
     ax11.legend(loc='center left')
     ax1.grid(True)
     ax11.set_ylabel('R-factors (%)', color='g')
@@ -1966,8 +1962,8 @@ def plot_twinning_stats(request, id):
     ax1.plot(data['abs_l'], data['observed'], 'b-+', label='observed')
     ax1.plot(data['abs_l'], data['untwinned'], 'r-+', label='untwinned')
     ax1.plot(data['abs_l'], data['twinned'], 'm-+', label='twinned')
-    ax1.set_xlabel('$|L|$')
-    ax1.set_ylabel('$P(L>=1)$')
+    ax1.set_xlabel('|L|')
+    ax1.set_ylabel('P(L>=1)')
     ax1.grid(True)
     
     # set font parameters for the ouput table

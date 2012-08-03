@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 {% load zip %}
+{% load flot_extras %}
+
+{% block extrastyle %}
+<script type="text/javascript" src="/js/imm-reports.flot.js"></script>
+{% endblock %}
+
 {% block headline %}
 <h2 class="screen">{% if object.details.anomalous %}Anomalous {% endif %}Crystal Screening Report - &ldquo;{{object.name}}&rdquo;</h2>
 {% endblock %}
@@ -168,7 +174,9 @@
         
     {% if object.details.predicted_quality %}
     <h3>Predicted statistics for suggested strategy by resolution</h3>
-    <img src="quality.png" />
+    <div id="quality-comp" class="report-flot" style="height: 225px;"></div>
+    <div id="quality-isig" class="report-flot" style="height: 225px;"></div>
+    <!-- img src="quality.png" /-->
     <table class="rtable full">
         <thead>
             <tr>
@@ -210,7 +218,8 @@
     {% endif %}
     <div class="clear spacer"></div>
     <h3>Maximum Oscillation width to avoid overlapped spots at different resolutions</h3>
-    <img src="overlap.png" />
+    <div id="overlap" class="report-flot" style="height: 300px;"></div>
+    <!-- img src="overlap.png" /-->
     <div class="tablenotes">
         <h3>Notes</h3>
         <p>The above plot was calculated by BEST. See 
@@ -220,7 +229,8 @@
 
 
     <h3>Minimal oscillation ranges for different percentages of data completeness</h3>
-    <img src="wedge.png" />
+    <div id="wedge" class="report-flot" style="height: 400px;"></div>
+    <!-- img src="wedge.png" /-->
     <div class="tablenotes">
         <h3>Notes</h3>
         <p>The above plot was calculated by BEST. See 
@@ -230,7 +240,8 @@
     <div class="clear spacer"></div>
 
     <h3>Analysis of exposure time required versus resolution attained</h3>
-    <img src="exposure.png" />
+    <div id="exposure" class="report-flot" style="height: 400px;"></div>
+    <!-- img src="exposure.png" /-->
     <div class="tablenotes">
         <h3>Notes</h3>
         <p>The above plot was calculated by BEST. See 
@@ -242,3 +253,102 @@
 </div>
 <!-- end maincol -->
 {% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        jQuery(document).ready(function() {
+            var green="#007700", blue="#0000FF", red="#FF0000", magenta="#B300B2";
+            var shadow = 0, lineWidth=1;
+            var datasets = [], yaxes = [], crosshair = {};
+            
+            /***************** Plot predicted quality *************************/
+            var completeness = [], r_factor = [], i_sigma = [], multiplicity = [], shell_labels = [];
+            {% for data in object.details.predicted_quality.shell %}
+                completeness.push([{{forloop.counter0}},{{object.details.predicted_quality.completeness|get_index:forloop.counter0}}]);
+                r_factor.push([{{forloop.counter0}},{{object.details.predicted_quality.r_factor|get_index:forloop.counter0}}]);
+                i_sigma.push([{{forloop.counter0}},{{object.details.predicted_quality.i_sigma|get_index:forloop.counter0}}]);
+                multiplicity.push([{{forloop.counter0}},{{object.details.predicted_quality.multiplicity|get_index:forloop.counter0}}]);
+                {% if forloop.counter0|divisibleby:"2" %}
+                    shell_labels.push([{{forloop.counter0}},{{data|floatformat:2}}]);
+                {% endif %}
+            {% endfor %}
+            
+            /*** Completeness and R-Factor vs. Resolution Shell ***/
+            datasets = [
+                { data: completeness, color: red, lines: { show: true, lineWidth: lineWidth}, shadowSize: shadow },
+                { data: r_factor, color: green, lines: { show: true, lineWidth: lineWidth}, shadowSize: shadow, yaxis: 2 }                
+            ];
+            yaxes = [{ color: red, position: "left", min: 0, max: 105, labelWidth: 20, reserveSpace: true, axisLabel: 'Completeness (%)' }, 
+                     { color: green, position: "right", labelWidth: 20, reserveSpace: true, axisLabel: 'R-factor(%)' }];
+            plot_data($("#quality-comp"), datasets, shell_labels, yaxes, '');
+
+            /*** I/Sigma(I) and Multiplicity vs. Resolution Shell ***/
+            datasets = [
+                { data: i_sigma, color: magenta, lines: { show: true, lineWidth: lineWidth}, shadowSize: shadow },
+                { data: multiplicity, color: blue, lines: { show: true, lineWidth: lineWidth}, shadowSize: shadow, yaxis: 2 }                
+            ];
+            yaxes = [{ color: magenta, position: "left", labelWidth: 20, reserveSpace: true, axisLabel: "I/Sigma(I)" }, 
+                     { color: blue, position: "right", labelWidth: 20, reserveSpace: true, axisLabel: "Multiplicity" }];
+            plot_data($("#quality-isig"), datasets, shell_labels, yaxes, 'Resolution Shell');
+            
+            /********************* Plot overlap analysis **********************/
+            var overlaps = {}, datasets = [];
+            crosshair = { mode: "y", color: "#333333", lineWidth: lineWidth }
+            yaxes = [{ position: "left", labelWidth: 20, reserveSpace: true, axisLabel: "Maximum Delta (deg)"}];
+            {% for key in object.details.overlap_analysis.keys|sort_items %}{% ifnotequal key "angle" %}
+                overlaps[{{key}}] = [];
+                {% for val in object.details.overlap_analysis.angle %}
+                    overlaps[{{key}}].push([{{val}}, {{object.details.overlap_analysis|get_index:key|get_index:forloop.counter0}}]);                
+                {% endfor %}
+                datasets.push({ data: overlaps[{{key}}], label: {{key}}+' &#xC5;', lines: { show: true, lineWidth: lineWidth*1.5}, shadowSize: shadow });
+            {% endifnotequal %}{% endfor %}
+            
+            plot_data($("#overlap"), datasets, null, yaxes, "Oscillation Angle (deg)", [], crosshair);
+            
+            $("#overlap").append('<div class="annotate" style="right:10px; top:240px;color:#333;"></div>');
+            $("#overlap").bind("plothover", function (event, pos, item) {
+                latestPosition = pos;
+                var update = function() {updateValue(["#overlap .annotate", pos.y.toFixed(2)+' deg']);};
+                if (!updateTimeout)
+                    updateTimeout = setTimeout(update, 50);
+            });
+            
+            /********************* Plot wedge analysis ************************/
+            var wedge = {}, datasets = [];
+            crosshair = { mode: "xy", color: "#333333", lineWidth: lineWidth }
+            yaxes = [{ position: "left", labelWidth: 20, reserveSpace: true, axisLabel: "Total Oscillation Angle (deg)"}];
+            {% for key in object.details.wedge_analysis.keys|sort_items %}{% ifnotequal key "start_angle" %}
+                wedge[{{key}}] = [];
+                {% for val in object.details.wedge_analysis.start_angle %}
+                    wedge[{{key}}].push([{{val}}, {{object.details.wedge_analysis|get_index:key|get_index:forloop.counter0}}]);                
+                {% endfor %}
+                datasets.push({ data: wedge[{{key}}], label: {{key}}+'%', lines: { show: true, lineWidth: lineWidth*1.5}, shadowSize: shadow });
+            {% endifnotequal %}{% endfor %}
+            plot_data($("#wedge"), datasets, null, yaxes, "Starting Angle (deg)", [], crosshair);
+            $("#wedge").append('<div id="start" class="annotate" style="right:20px; top:321px;color:#333; width: 105px;"></div>');
+            $("#wedge").append('<div id="total" class="annotate" style="right:20px; top:339px;color:#333; width:105px;"></div>');
+            $("#wedge").bind("plothover", function (event, pos, item) {
+                latestPosition = pos;
+                var updatex = function() { updateValue(["#wedge #start", 'Start = '+pos.x.toFixed(2)+' deg']); };
+                var updatey = function() { updateValue(["#wedge #total", 'Total = '+pos.y.toFixed(2)+' deg']); };
+                if (!updateTimeout)
+                    updateTimeout = setTimeout(updatex, 50);
+                    updateTimeout = setTimeout(updatey, 50);
+            });
+            
+            /********************* Plot exposure analysis *********************/
+            var exposure = [], datasets = [];
+            yaxes = [{ position: "left", labelWidth: 20, reserveSpace: true, axisLabel: "Resolution" }];
+            {% for val in object.details.exposure_analysis.exposure_time %}
+                exposure.push([{{val}}, {{object.details.exposure_analysis.resolution|get_index:forloop.counter0}}]);
+            {% endfor %}
+            datasets = [{ data: exposure, label: '', color: blue, lines: {show: true, lineWidth: lineWidth}, shadowSize: shadow },
+                        { data: [0,0], label: 'Optimal = {{object.details.strategy.exposure_time}}s', color: red}];
+            var markings = [{ color: red, lineWidth: lineWidth*1.5, 
+                              xaxis: { from: {{object.details.strategy.exposure_time}}, to: {{object.details.strategy.exposure_time}} } }];
+            plot_data($("#exposure"), datasets, null, yaxes, "Exposure Time (s)", markings);
+            
+        });
+    </script>
+{% endblock %}
+            

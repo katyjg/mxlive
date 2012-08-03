@@ -1125,6 +1125,53 @@ ul.filter-choices ul {
     margin-bottom: 5px;
 }
 
+.vert-text {
+	-moz-transform: rotate(270deg);
+	-webkit-transform: rotate(270deg);
+	-o-transform: rotate(270deg);
+	white-space: nowrap;
+	vertical-align: middle;
+	z-index: -1;
+}
+.vert-text div {
+	width: 20px;
+}
+
+.plotlabel {
+    -moz-transform: rotate(270deg);
+    -webkit-transform: rotate(270deg);
+    -o-transform: rotate(270deg);
+    white-space: nowrap;
+    position: absolute;
+    vertical-align: middle;
+    text-align: right;
+    font-size: 10px;
+    width: 50px;
+}	
+
+.annotate {
+	width: 50px;
+	position: absolute;
+	white-space: nowrap;
+    top: 0px;
+    padding-left: 3px;
+    padding-top: 3px;
+}
+
+#choices {
+	float: left;
+	text-align: left;
+	background-color: #eee;
+	padding: 5px;
+	border: 1px solid #eee;
+	border-left: none;
+	margin-top: -34px;
+	height: 354px;
+}
+.report-flot {
+	width: 575px;
+	margin: 0 auto;
+}
 /* Styling for optional stats application */
 
 table#calendar {

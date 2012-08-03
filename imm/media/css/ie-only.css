@@ -43,3 +43,16 @@ div.entrycomment span.up-pointer {
     margin-top: -20px;
     padding-top: 0px;
 }
+
+.plotlabel {
+    -ms-transform: rotate(270deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+    margin-top: -20px;
+    margin-left: 17px;
+}
+
+.vert-text {
+    text-align: left;
+    white-space: normal;
+}
+

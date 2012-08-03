@@ -15,3 +15,24 @@ def multiplied_by(value, rows=0, total=250):
 @register.filter("dewar_price")
 def dewar_price(value, price=200):
     return value*price
+
+@register.filter("sum_index")
+def sum_index(list, i):
+    total = 0
+    for v in list:
+        total += v[i]
+    return total
+
+@register.filter("sum_dict")
+def sum_dict(dict, i):
+    total = 0
+    for k, v in dict.items():
+        total = total + v[i]
+    return total
+
+@register.filter("sum_shifts")
+def sum_shifts(list):
+    num = 0
+    for v in list:
+        num += v.get_num_shifts()
+    return num

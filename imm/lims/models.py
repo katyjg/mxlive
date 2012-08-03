@@ -1394,7 +1394,7 @@ class ScanResult(DataBaseClass):
         data = peaks.items()
         line_data = []
         for el in data:
-            if el[1][0] > 5: line_data.append(el)
+            line_data.append(el)
             
         def join(a,b):
             if a==b:
