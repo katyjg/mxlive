@@ -76,7 +76,7 @@
             <colgroup>
                 <col class="result-labels"/>
             </colgroup>
-            <tbody>
+            <tbody>{% if object.url|get_ls:object.details.output_files %}
                 <tr><th colspan=2>Downloads</th></tr>              
                 <tr><td>Output Files</td>
                     <td>{% for file in object.details.output_files %}{% with file|split_char:"/" as filename %}<a href="/download/files/{{ object.url }}/{{ filename }}" title="Download {{ filename }}">{{ filename }}</a>{% if forloop.last %}{% else %}, {% endif %}{% endwith %}{% endfor %}</td></tr>   
@@ -89,7 +89,8 @@
                 <tr><td style="width: 80px; vertical-align: top;">
                         <a class="more" href="javascript:displayFiles(true)">More...</a>
                         <a class="less" href="javascript:displayFiles(false)" style="display: none;">Hide</a>
-                    </td><td><p id="all-files"</p></td></tr>  
+                    </td><td><p id="all-files"</p></td></tr>{% else %}
+                <tr><th colspan=2>Files Moved - contact CMCF for assistance</th></tr>{% endif %}  
             </tbody>
         </table>
         <div class="clear spacer"></div>
@@ -367,8 +368,11 @@
         }
         jQuery(document).ready(function() {
             displayFiles(false);
-            var colors = ["#FF0000","#0000FF","#007700","#B300B2","#00CCCC","#CCCC0C"];
-            var shadow = 0, lineWidth=1, yaxes = [], crosshair = {};
+            
+            var c = ["#FF0000","#0000FF","#007700","#B300B2","#00CCCC","#CCCC0C"];
+            var lines = { show: true, lineWidth: 1};
+            var laxis = { position: "left", labelWidth: 20, reserveSpace: true, tickColor: "#dddddd" };
+            var raxis = { position: "right", labelWidth: 20, reserveSpace: true, tickColor: "#dddddd" };
             
             /**************** Plot Error Stats ********************************/
             var chi_sq = {{object.details.standard_errors.chi_sq|get_data}};
@@ -380,19 +384,19 @@
                 shell_labels.push([{{forloop.counter0}},{{r|floatformat:2}}]);
             {% endif %}{% endfor %}
 
-            yaxes = [{ axisLabel: 'Chi\u00B2', color: colors[0], position: "left", labelWidth: 20, reserveSpace: true },
-                     { axisLabel: 'I/Sigma', color: colors[1], position: "right", labelWidth: 20, reserveSpace: true }];
             plot_data($("#stderr-chi2"), [
-                { data: chi_sq, color: colors[0], yaxis: 1, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
-                { data: i_sigma, color: colors[1], yaxis: 2, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } }
-                ], shell_labels, yaxes, '', [], false);
+                { data: chi_sq, color: c[0], yaxis: 1, lines: lines },
+                { data: i_sigma, color: c[1], yaxis: 2, lines: lines }
+                ], shell_labels, [
+                    $.extend(laxis, { axisLabel: 'Chi\u00B2', color: c[0] }),
+                    $.extend(raxis, { axisLabel: 'I/Sigma', color: c[1] })], '', [], false);
 
-            yaxes = [{ axisLabel: 'R-factors (%)', position: "left", labelWidth: 20, reserveSpace: true },
-                     { position: "right", labelWidth: 38, reserveSpace: true }];
             plot_data($("#stderr-rfac"), [
-                { data: r_obs, color: colors[2], yaxis: 1, label: 'R-observed', shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
-                { data: r_exp, color: colors[3], yaxis: 1, label: 'R-expected', shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } }
-                ], shell_labels, yaxes, '', [], false);
+                { data: r_obs, color: c[2], yaxis: 1, label: 'R-observed', lines: lines },
+                { data: r_exp, color: c[3], yaxis: 1, label: 'R-expected', lines: lines }
+                ], shell_labels, [
+                    $.extend(laxis, { axisLabel: 'R-factors (%)', color: null }),
+                    { position: "right", labelWidth: 38, reserveSpace: true}], '', [], false);
             
             /**************** Plot Shell Stats ********************************/
             var completeness = {{object.details.shell_statistics.completeness|get_data}};
@@ -406,98 +410,105 @@
                 shell_labels.push([{{forloop.counter0}},{{r|floatformat:2}}]);
             {% endif %}{% endfor %}
             
-            yaxes = [{ axisLabel: 'Completeness (%)', color: colors[0], position: "left", labelWidth: 20, reserveSpace: true, min: 0, max: 100 },
-                     { axisLabel: 'R-factors (%)', position: "right", labelWidth: 20, reserveSpace: true, min: 0, max: 100 }];
             plot_data($("#shell-comp"), [
-                { data: completeness, color: colors[0], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth }, yaxis: 1 },
-                { data: r_meas, color: colors[1], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth }, yaxis: 2, label: 'R-meas' },
-                { data: cc_half, color: colors[2], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth/2 }, yaxis: 2, label: {% if 'r_mrgdf' in object.details.shell_statistics.keys %}'R-mrgd-F'{% else %}'CC<sub>1/2</sub>'{% endif %} }
-                ], shell_labels, yaxes, '', [], false);
+                { data: completeness, color: c[0], lines: lines, yaxis: 1 },
+                { data: r_meas, color: c[1], lines: lines, yaxis: 2, label: 'R-meas' },
+                { data: cc_half, color: c[2], lines: {show: true, lineWidth: 0.5 }, yaxis: 2, label: {% if 'r_mrgdf' in object.details.shell_statistics.keys %}'R-mrgd-F'{% else %}'CC<sub>1/2</sub>'{% endif %} }
+                ], shell_labels, [
+                    $.extend(laxis, { axisLabel: 'Completeness (%)', color: c[0], max: 100 }),
+                    $.extend(raxis, { axisLabel: 'R-factors (%)', color: null, max: 100 })], '', [], false);
+            $.extend(laxis, { max: null });
+            $.extend(raxis, { max: null });
 
-            yaxes = [{ axisLabel: 'I/Sigma(I)', color: colors[3], position: "left", labelWidth: 20, reserveSpace: true, min: 0 },
-                     { axisLabel: 'SigAno', color: colors[4], position: "right", labelWidth: 20, reserveSpace: true, min: 0 }];
             plot_data($("#shell-isig"), [
-                { data: i_sigma, color: colors[3], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth }, yaxis: 1 },
-                        { data: sig_ano, color: colors[4], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth }, yaxis: 2 }
-                ], shell_labels, yaxes, 'Resolution Shell', [], false);
+                { data: i_sigma, color: c[3], lines: lines, yaxis: 1 },
+                        { data: sig_ano, color: c[4], lines: lines, yaxis: 2 }
+                ], shell_labels, [
+                    $.extend(laxis, { axisLabel: 'I/Sigma(I)', color: c[3], min: 0 }),
+                    $.extend(raxis, { axisLabel: 'SigAno', color: c[4] })], 'Resolution Shell', [], false);
+            $.extend(laxis, { min: null });
 
             /**************** Plot Frame Stats ********************************/
-            var scale = {{object.details.frame_statistics.scale|get_data:object.details.frame_statistics.frame_no}};
-            var mosaicity = {{object.details.frame_statistics.mosaicity|get_data:object.details.frame_statistics.frame_no}};
-            var divergence = {{object.details.frame_statistics.divergence|get_data:object.details.frame_statistics.frame_no}};
-            var i_sigma = {{object.details.frame_statistics.i_sigma|get_data:object.details.frame_statistics.frame_no}};
-            var r_meas = {{object.details.frame_statistics.r_meas|get_data:object.details.frame_statistics.frame_no}};
-            var unique = {{object.details.frame_statistics.unique|get_data:object.details.frame_statistics.frame_no}};
-
-            yaxes = [{ axisLabel: 'Scale Factor', color: colors[0], tickColor: "#dddddd", position: "left", labelWidth: 20, reserveSpace: true },
-                     { axisLabel: 'Mosaicity', color: colors[2], tickColor: "#dddddd", position: "right", labelWidth: 20, reserveSpace: true }];
+            {% with object.details.frame_statistics as data %}
+	            var scale = {{data.scale|get_data:data.frame_no}};
+	            var mosaicity = {{data.mosaicity|get_data:data.frame_no}};
+	            var divergence = {{data.divergence|get_data:data.frame_no}};
+	            var i_sigma = {{data.i_sigma|get_data:data.frame_no}};
+	            var r_meas = {{data.r_meas|get_data:data.frame_no}};
+	            var unique = {{data.unique|get_data:data.frame_no}};
+            {% endwith %}
+            
             plot_data($("#frame-1"), [
-                { data: scale, color: colors[0], yaxis: 1, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
-                { data: mosaicity, color: colors[2], yaxis: 2, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } }
-                ], null, yaxes, '', [], false);
+                { data: scale, color: c[0], yaxis: 1, lines: lines },
+                { data: mosaicity, color: c[2], yaxis: 2, lines: lines }
+                ], null, [
+                    $.extend(laxis, { axisLabel: 'Scale Factor', color: c[0] }),
+                    $.extend(raxis, { axisLabel: 'Mosaicity', color: c[2] })], '', [], false);
 
-            yaxes = [{ axisLabel: 'Divergence', color: colors[3], tickColor: "#dddddd", position: "left", labelWidth: 20, reserveSpace: true },
-                     { axisLabel: 'I/Sigma(I)', color: colors[1], tickColor: "#dddddd", position: "right", labelWidth: 20, reserveSpace: true }];
             plot_data($("#frame-2"), [
-                { data: divergence, color: colors[3], yaxis: 1, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
-                { data: i_sigma, color: colors[1], yaxis: 2, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } }
-                ], null, yaxes, '', [], false);
+                { data: divergence, color: c[3], yaxis: 1, lines: lines },
+                { data: i_sigma, color: c[1], yaxis: 2, lines: lines }
+                ], null, [
+                    $.extend(laxis, { axisLabel: 'Divergence', color: c[3] }),
+                    $.extend(raxis, { axisLabel: 'I/Sigma(I)', color: c[1] })], '', [], false);
 
-            yaxes = [{ axisLabel: 'R-meas', color: colors[4], tickColor: "#dddddd", position: "left", labelWidth: 20, reserveSpace: true },
-                     { axisLabel: 'Unique Reflections', color: colors[5], tickColor: "#dddddd", position: "right", labelWidth: 20, reserveSpace: true }];
             plot_data($("#frame-3"), [
-                { data: r_meas, color: colors[4], yaxis: 1, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
-                { data: unique, color: colors[5], yaxis: 2, shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } }
-                ], null, yaxes, 'Frame Number', [], false);     
+                { data: r_meas, color: c[4], yaxis: 1, lines: lines },
+                { data: unique, color: c[5], yaxis: 2, lines: lines }
+                ], null, [
+                    $.extend(laxis, { axisLabel: 'R-meas', color: c[4] }),
+                    $.extend(raxis, { axisLabel: 'Unique Reflections', color: c[5] })], 'Frame Number', [], false);     
 
             /**************** Plot Diff Stats *********************************/
-            var all = {{object.details.diff_statistics.rd|get_data:object.details.diff_statistics.frame_diff}};
-            var friedel = {{object.details.diff_statistics.rd_friedel|get_data:object.details.diff_statistics.frame_diff}};
-            var non_friedel = {{object.details.diff_statistics.rd_non_friedel|get_data:object.details.diff_statistics.frame_diff}};
-            yaxes = [{ axisLabel: 'R<sub>d</sub>', position: "left", labelWidth: 20, reserveSpace: true },{position: "right", labelWidth: 37, reserveSpace: true}];
+            {% with object.details.diff_statistics as data %}
+	            var all = {{data.rd|get_data:data.frame_diff}};
+	            var friedel = {{data.rd_friedel|get_data:data.frame_diff}};
+	            var non_friedel = {{data.rd_non_friedel|get_data:data.frame_diff}};
+            {% endwith %}
             plot_data($("#diff"), [
-                { data: all, color: colors[0], label: "All", shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
-                { data: friedel, color: colors[3], label: "Friedel", shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
-                { data: non_friedel, color: "#000000", label: "Non-Friedel", shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } }
-                ], null, yaxes, 'Frame Difference', [], false);                
+                { data: all, color: c[0], label: "All", lines: lines },
+                { data: friedel, color: c[3], label: "Friedel", lines: lines },
+                { data: non_friedel, color: "#000000", label: "Non-Friedel", lines: lines }
+                ], null, [
+                    $.extend(laxis, { axisLabel: 'R<sub>d</sub>', color: null }),
+                    {position: "right", labelWidth: 38, reserveSpace: true}], 'Frame Difference', [], false);                
 
             /**************** Plot Wilson***** ********************************/
-            var wilson = [], shell_labels = [];
             var wilson = {{object.details.wilson_plot.log_i_sigma|get_data}};
+            var shell_labels = [];
             {% for dat in object.details.wilson_plot.inv_res_sq %}{% if forloop.counter0|divisibleby:"8" %}
                 shell_labels.push([{{forloop.counter0}},{{dat|sq_root|floatformat:2}}]);
             {% endif %}{% endfor %}
-            yaxes = [{ axisLabel: 'ln(I/Sigma(f)\u00B2)', position: "left", labelWidth: 20, reserveSpace: true }];
             plot_data($("#wilson"), [
-                { data: wilson, color: colors[0], shadowSize: shadow, points: {show:true, radius: 1}, lines: {show: true, lineWidth: lineWidth } }
-                ], shell_labels, yaxes, 'Resolution', [], false);
+                { data: wilson, color: c[0], points: {show:true, radius: 1}, lines: lines }
+                ], shell_labels, [$.extend(laxis, { axisLabel: 'ln(I/Sigma(f)\u00B2)', color: null })], 'Resolution', [], false);
+            
             var stats = '';
             {% with object.details.wilson_line as wstat %}
-                stats = stats + 'Estimated B: {{wstat.0|floatformat:3}}<br>'
-                stats = stats + 'sigma a: {{wstat.1|floatformat:-3}}<br>'
-                stats = stats + 'sigma b: {{wstat.2|floatformat:3}}<br>';
-            {% endwith %}
+                stats += 'Estimated B: {{wstat.0|floatformat:3}}<br>'
+                      + 'sigma a: {{wstat.1|floatformat:-3}}<br>'
+                      + 'sigma b: {{wstat.2|floatformat:3}}<br>';{% endwith %}
             {% if object.details.wilson_scale %}
-                stats = stats + 'Scale factor: {{object.details.wilson_scale|floatformat:3}}';
-            {% endif %} 
+                stats += 'Scale factor: {{object.details.wilson_scale|floatformat:3}}';{% endif %} 
             $("#wilson").append('<div class="annotate" style="right:100px; top:50px;">'+stats+'</div>');
 
-
             /**************** Plot Twinning Analysis **************************/
-            var observed = {{object.details.twinning_l_test.observed|get_data:object.details.twinning_l_test.abs_l}};
-            var untwinned = {{object.details.twinning_l_test.untwinned|get_data:object.details.twinning_l_test.abs_l}};
-            var twinned = {{object.details.twinning_l_test.twinned|get_data:object.details.twinning_l_test.abs_l}};
-            yaxes = [{ axisLabel: 'P(L>=1)', position: "left", labelWidth: 20, reserveSpace: true, max: 1 }]
+            {% with object.details.twinning_l_test as data %}
+	            var observed = {{data.observed|get_data:data.abs_l}};
+	            var untwinned = {{data.untwinned|get_data:data.abs_l}};
+	            var twinned = {{data.twinned|get_data:data.abs_l}};
+	        {% endwith %}
             plot_data($("#twinning"), [
-                { data: observed, color: colors[0], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
-                { data: untwinned, color: colors[1], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } },
-                { data: twinned, color: colors[2], shadowSize: shadow, lines: {show: true, lineWidth: lineWidth } }
-                ], null, yaxes, '|L|', [], false);
+                { data: observed, color: c[0], lines: lines },
+                { data: untwinned, color: c[1], lines: lines },
+                { data: twinned, color: c[2], lines: lines }
+                ], null, [$.extend(laxis, { axisLabel: 'P(L>=1)', max: 1 })], '|L|', [], false);
+                
             var stats = '';
             {% with object.details.twinning_l_statistic as lstat %}
-                stats = stats + '<a style="color: '+ colors[0]+';">Observed: {{lstat.0|floatformat:3}}</a><br>'
-                stats = stats + '<a style="color: '+ colors[1]+';">Untwinned: {{lstat.1|floatformat:3}}</a><br>'
-                stats = stats + '<a style="color: '+ colors[2]+';">Perfect Twin: {{lstat.2|floatformat:3}}</a>';
+                stats = stats + '<a style="color: '+ c[0]+';">Observed: {{lstat.0|floatformat:3}}</a><br>'
+                stats = stats + '<a style="color: '+ c[1]+';">Untwinned: {{lstat.1|floatformat:3}}</a><br>'
+                stats = stats + '<a style="color: '+ c[2]+';">Perfect Twin: {{lstat.2|floatformat:3}}</a>';
             {% endwith %}
             $("#twinning").append('<div class="annotate" style="right:100px; top:230px;">'+stats+'</div>');
         });

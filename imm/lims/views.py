@@ -407,7 +407,6 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     
 @login_required
 @manager_required
-#@cache_page(60*3600)
 def object_detail(request, id, model, template):
     """
     A generic view which displays a detailed page for an object of type ``model``

@@ -1,4 +1,5 @@
 function plot_data(ph, data, labels, yaxes, xtitle, markings, crosshair) {
+    for (d in data) { $.extend(data[d], {shadowSize: 0 }); }
     plot = $.plot(ph, data, {
                 series: { lines: { show: true } },
                 crosshair: crosshair,
