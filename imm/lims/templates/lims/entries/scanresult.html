@@ -154,12 +154,9 @@
         }
 
         function plot_xrf(plotpeaks) {
-            var counts = [], fit = [], markings = [];
-            var placeholder = $("#xrf-scan");
-            {% for data in object.details.energy %}
-                counts.push([{{data}},{{object.details.counts|get_index:forloop.counter0}}]);
-                fit.push([{{data}},{{object.details.fit|get_index:forloop.counter0}}]);
-            {% endfor %}
+            var markings = [];
+            var counts = {{object.details.counts|get_data:object.details.energy}};
+            var fit = {{object.details.fit|get_data:object.details.energy}};
             {% for peak in object.summarize_lines %}
                 if(plotpeaks.indexOf("{{peak.0}}") >= 0) {
 	                {% for p in peak.1 %}
@@ -182,27 +179,22 @@
                 if(plotpeaks.indexOf("{{peak.0}}") >= 0) {
                 {% for p in peak.1 %}
                     o = plot.pointOffset({ x: {{p.1}}, y: {{object.details.counts|get_min:6}}/2 });
-                    placeholder.append('<div class="plotlabel" style="left:'+(o.left-25)+'px;top:'+o.top+'px;color:{{peak.2}};">{{peak.0}}-{{p.0}}</div>');
+                    $("#xrf-scan").append('<div class="plotlabel" style="left:'+(o.left-25)+'px;top:'+o.top+'px;color:{{peak.2}};">{{peak.0}}-{{p.0}}</div>');
                 {% endfor %}
                 }
             {% endfor %}
 		}
 		{% else %}
 		function plot_xanes() {
-                var counts = [], fp = [], fpp = [];
-                var markings = [
-                {% for data in object.details.energies %}
+                var markings = [ {% for data in object.details.energies %}
                      { color: '#B300B2', lineWidth: 1, 
                        xaxis: { from: {{ data.1 }}, to: {{ data.1 }} } }
                        {% if not forloop.last %},{% endif %}
-                {% endfor %}]
-                {% for dat in object.details.data.counts %}
-                     counts.push([{{object.details.data.energy|get_index:forloop.counter0}},{{dat}}]);
-                {% endfor %}
-                {% for dat in object.details.efs.energy %}
-                     fp.push([{{dat}},{{object.details.efs.fp|get_index:forloop.counter0}}]);
-                     fpp.push([{{dat}},{{object.details.efs.fpp|get_index:forloop.counter0}}]);         
-                {% endfor %}
+                {% endfor %}];
+                
+                var counts = {{object.details.data.counts|get_data:object.details.data.energy}};
+                var fp = {{object.details.efs.fp|get_data:object.details.efs.energy}};
+                var fpp = {{object.details.efs.fpp|get_data:object.details.efs.energy}};
                 plot = $.plot($("#xanes-scan"),
                      [ { data: fp, label: "f'  = -0.00", color: "#009900", yaxis: 2, lines: { show: true, lineWidth: 1 }, shadowSize: 0 },
                        { data: fpp, label: "f'' = 0.00", color: "#FF0000", yaxis: 2, lines: { show: true, lineWidth: 1 }, shadowSize: 0 },
@@ -215,6 +207,7 @@
                                  alignTicksWithAxis: null, position: "right", axisLabel: "Anomalous Scattering Factors (f',f'')"}],
                        xaxis: {axisLabel: "Energy (keV)"}
                      });
+                     
                 var legends = $("#xanes-scan .legendLabel");
                 legends.each(function () {
                 // fix the widths so they don't jump around

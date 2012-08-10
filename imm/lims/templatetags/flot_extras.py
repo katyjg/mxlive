@@ -18,10 +18,6 @@ def get_xanes_min(data, pad):
 def get_xanes_max(data, pad):
     return max(data['fpp']) + (max(data['fpp'])-min(data['fp']))/pad
 
-@register.filter("get_index")
-def get_index(data, i):
-    return data[i]
-
 @register.filter("sort_items")
 def sort_items(data):
     data.sort()
@@ -36,4 +32,4 @@ def get_data(data, xdata=None):
     
 @register.filter("sq_root")
 def sq_root(x):
-    return (x <= 0.0 and '') or x**(-0.5)
+    return (x > 0.0 and (x**-0.5)) or ''
