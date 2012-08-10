@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 
 from django.conf import settings
 
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.template import loader
 from django.db import transaction
@@ -37,6 +37,8 @@ from imm.lims.models import *
 from imm.staff.models import Runlist
 from imm.objlist.views import ObjectList
 from imm.lims.models import Container, Experiment, Shipment, Crystal
+from imm.download.models import SecurePath
+from imm.download.maketarball import create_tar
 
 #sys.path.append(os.path.join('/var/website/cmcf-website/cmcf'))
 #from scheduler.models import Visit, Stat, WebStatus
@@ -346,6 +348,10 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
         ol.object_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE)
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
+CACHE_DIR = getattr(settings, 'DOWNLOAD_CACHE_DIR', '/tmp')
+
+import threading
+
 @login_required
 def object_status(request, model):
     pks = map(int, request.POST.getlist('id_list[]'))
@@ -375,8 +381,23 @@ def object_status(request, model):
                     experiment.change_status(Experiment.STATES.ACTIVE)
 
     if model is Data:
+        threads = {}
         for data in Data.objects.filter(pk__in=pks):
             if action == 1:
+                path_obj = get_object_or_404(SecurePath, key=data.url)
+                tar_file = os.path.join(CACHE_DIR, path_obj.key, '%s.tar.gz' % (data.name))
+                if not os.path.exists(tar_file):
+                    try:
+                        threads[data.name] = threading.Thread(target=create_tar, 
+                                                              args=[path_obj.path, tar_file],
+                                                              kwargs={'data_dir':True})
+                        threads[data.name].start()
+                        msg = "A tar file is being created for dataset %s.  Depending on the number of images, it may be awhile before it is available to download." % data.name
+                        #create_tar(path_obj.path, tar_file, data_dir=True)
+                        #msg = "Dataset %s ready to download" % data.name
+                        request.user.message_set.create(message = msg)
+                    except OSError:
+                        raise Http404 
                 data.toggle_download(True)
             if action == 2:
                 data.toggle_download(False)

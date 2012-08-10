@@ -48,7 +48,7 @@
 	    	<button  type="submit" style="float:right; margin: 0;" title="Apply action to selected datasets">Apply</button>
 		    <select id="selector" class="select" style="float:right;" name="action">
 			    <option value="default" selected="selected">Select Action</option>
-    			<option name="enable" value="enable">Enable Download</option>
+    			<option name="enable" value="enable" onClick="">Enable Download</option>
     			<option name="disable" value="disable">Disable Download</option>
 	    	</select> 		
 		</div>
@@ -114,6 +114,7 @@
 				loadWidgets();
 			}
 		});
+        jQuery.fancybox.showActivity();
 		document.getElementById('selector').selectedIndex = 0;
 		return false;
 	});

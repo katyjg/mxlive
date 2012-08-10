@@ -141,12 +141,10 @@ def send_archive(request, key, path, data_dir=False): #Add base parameter and an
         # make sure downloading is enabled for this dataset
         data = get_object_or_404(Data, url=key, name=path, download=True)
     
-    dir_name = obj.path
-    #dir_name = os.path.join(obj.path, path)
     tar_file = os.path.join(CACHE_DIR, obj.key, '%s.tar.gz' % (path,))
     if not os.path.exists(tar_file):
         try:
-            create_tar(dir_name, tar_file, data_dir=data_dir)
+            create_tar(obj.path, tar_file, data_dir=data_dir)
         except OSError:
             raise Http404        
     return send_raw_file(request, tar_file, attachment=True)   
