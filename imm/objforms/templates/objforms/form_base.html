@@ -5,7 +5,7 @@
 </div>
 {% if info.message %}
     <div class="info">
-    <p>{{info.sub_title}}.</p>
+    {% if info.sub_title %}<p>{{info.sub_title}}.</p>{% endif %}
     <p>{{info.message}}</p>
     </div>
 {% endif %}

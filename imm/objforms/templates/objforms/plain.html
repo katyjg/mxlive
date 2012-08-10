@@ -10,7 +10,7 @@
 </li>
 {% else %}
 <li class="field">
-    <p class="warning-error error">{{form.warning_message}}</p>
+    <p class="warning-error error">{% autoescape off %}{{form.warning_message|linebreaksbr}}{% endautoescape %}</p>
 </li>
 {% endif %}{% endif %}
 

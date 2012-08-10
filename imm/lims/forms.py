@@ -175,15 +175,6 @@ class ShipmentSendForm(objforms.forms.OrderedForm):
         model = Shipment
         fields = ('project','carrier', 'tracking_code','comments')
         
-    def __init__(self, *args, **kwargs):
-        super(ShipmentSendForm, self).__init__(*args, **kwargs)
-        for pro in Project.objects.all():
-            car = pro.carrier
-        try:
-            self.fields['carrier'].queryset = Carrier.objects.filter(pk=car.pk) 
-        except:
-            self.fields['carrier'].queryset = Carrier.objects.all()
-
     def warning_message(self):
         shipment = self.instance
         if shipment:

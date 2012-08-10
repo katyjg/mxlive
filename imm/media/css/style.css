@@ -1589,6 +1589,13 @@ form .warning
 	color:#800000;
 }
 
+form .warning-error small {
+	line-height: 1em;
+}
+form .warning-error small br{
+	height: 10px;
+}
+
 form li.error label
 {
 	color:#DF0000!important;
@@ -1667,7 +1674,7 @@ form .instruct,form .error
 form .error
 {
 	top:6em;
-	z-index:900;
+	z-index:-1;
 	border:1px solid #e6c3c3;
 	background:#f5d2d2;
 	color:#800000;

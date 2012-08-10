@@ -32,7 +32,7 @@ from django import forms
 from imm.objlist.views import ObjectList
 from imm.lims.models import *
 from imm.staff.models import *
-from imm.lims.forms import DataForm
+from imm.lims.forms import DataForm, ProjectForm
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
 from imm.download.views import create_download_key, create_cache_dir, send_raw_file
 from imm.apikey.views import apikey_required
@@ -593,7 +593,7 @@ def priority(request, id,  model, field):
     
 @login_required
 @transaction.commit_on_success
-def edit_profile(request, form, template='objforms/form_base.html', action=None):
+def edit_profile(request, form, id=None, template='objforms/form_base.html', action_url=None):
     """
     View for editing user profiles
     """
@@ -608,12 +608,13 @@ def edit_profile(request, form, template='objforms/form_base.html', action=None)
         request.manager = Project.objects
     except:
         raise Http404
-    return edit_object_inline(request, obj.pk, model=model, form=form, template=template)
+    if id: action_url = '/lims/shipping/shipment/%s/send/' % id
+    return edit_object_inline(request, obj.pk, model=model, form=form, template=template, action_url=action_url)
     
 @login_required
 @manager_required
 @transaction.commit_on_success
-def edit_object_inline(request, id, model, form, template='objforms/form_base.html', modal_upload=False):
+def edit_object_inline(request, id, model, form, template='objforms/form_base.html', modal_upload=False, action_url=None):
     """
     A generic view which displays a form of type ``form`` using the template 
     ``template``, for editing an object of type ``model``, identified by primary 
@@ -658,6 +659,8 @@ def edit_object_inline(request, id, model, form, template='objforms/form_base.ht
                 '%s edited' % ( model._meta.verbose_name,))         
             if modal_upload:
                 return render_to_response("lims/iframe_refresh.html", context_instance=RequestContext(request))
+            if action_url: 
+                return HttpResponseRedirect(action_url)
             return render_to_response('lims/redirect.html', context_instance=RequestContext(request))
         else:
             return render_to_response(template, {
@@ -917,8 +920,10 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
     if action:
         save_label = action[0].upper() + action[1:]
         if save_label[-1:] == 'e': save_labeled = '%sd' % save_label
+        elif save_label[-1:] == 'd': save_labeled = '%st' % save_label[:-1]
         else: save_labeled = '%sed' % save_label        
 
+    initial = None
     form_info = {
         'title': '%s %s?' % (save_label, obj.__unicode__()),
         'sub_title': 'The %s %s will be %s' % (model.__name__, obj.__unicode__(), save_labeled),
@@ -928,7 +933,27 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
     }
     if action == 'archive' and obj.is_closable():
         form_info['message'] = 'Are you sure you want to archive %s "%s"?  ' % (model.__name__, obj.__unicode__())
-    elif action == 'send' and obj.is_sendable(): pass
+    elif action == 'send' and obj.is_sendable():
+        dewars = obj.dewar_set.all()
+        containers = project.container_set.filter(dewar__in=dewars)
+        conts = ['%d %s%s' % (containers.filter(kind=num).count(), kind, containers.filter(kind=num) > 1 and 's' or '') for num, kind in Container.TYPE if containers.filter(kind=num).count() ]
+        num_crystals = project.crystal_set.filter(container__pk__in=containers).count()
+        form_info['sub_title'] = ''
+        form_info['message'] = '%d Crystals are being sent in %s (%d Dewar%s).' % \
+            (num_crystals, ', '.join(conts), dewars.count(), dewars.count() > 1 and 's' or '') 
+        if project: 
+            initial = {'carrier': Carrier.objects.get(pk=project.carrier.pk)}
+            form_info['update_profile'] = True
+            if project.address and project.city and project.province and project.country and project.postal_code:
+                msg = '<strong>Return samples to:</strong><small>\n%s\n%s%s\n%s\n%s, %s %s\n%s\nPhone: %s\n%s</small>' % (project.contact_person,
+                    project.department and '%s\n' % project.department or '', project.organisation,
+                    project.address, project.city, project.province, project.postal_code, project.country,
+                    project.contact_phone, project.contact_fax and "Fax: %s" % project.contact_fax or '')
+                form.warning_message = msg
+                form.error_message = ''
+            else:
+                form.warning_message = ''
+                form.error_message = ["The address we have for your lab is incomplete. Update your profile for return shipping."]
     elif action == 'load' and obj.is_loadable(): pass
     elif action == 'unload' and obj.is_unloadable(): pass 
     elif action == 'return' and obj.is_returnable(): pass
@@ -937,6 +962,8 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
     else: raise Http404
 
     if request.method == 'POST':
+        if request.POST.has_key('_updateprofile'):
+            return HttpResponseRedirect('/lims/profile/edit/%s/' % obj.pk)
         frm = form(request.POST, instance=obj)
         frm.restrict_by('project', project_pk)
         if frm.is_valid():
@@ -964,7 +991,7 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
         else:
             return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
     else:
-        frm = form(instance=obj, initial=None) 
+        frm = form(instance=obj, initial=initial) 
         frm.restrict_by('project', project_pk)
         if action == 'archive':
             frm.help_text = 'You can access archived objects by editing \n your profile and selecting "Show Archives" '

@@ -13,7 +13,8 @@ def show_form(form, info):
         'target': info.get('target',''),
         'enctype' : info.get('enctype',''),
         'save_label' : info.get('save_label',''),
-        'add_another': info.get('add_another', False)
+        'add_another': info.get('add_another', False),
+        'update_profile': info.get('update_profile', False)
         }
 
 @register.inclusion_tag('objforms/plain.html')
