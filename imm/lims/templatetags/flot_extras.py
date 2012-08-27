@@ -26,7 +26,10 @@ def sort_items(data):
 @register.filter("get_data")
 def get_data(data, xdata=None):
     if xdata:
-        return [[xdata[i], dat] for i, dat in enumerate(data)]
+        try:
+            return [[xdata[i], dat] for i, dat in enumerate(data)]
+        except: 
+            return []
     else:
         return [[i, dat] for i, dat in enumerate(data)]
     

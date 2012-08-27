@@ -76,21 +76,24 @@
             <colgroup>
                 <col class="result-labels"/>
             </colgroup>
-            <tbody>{% if object.url|get_ls:object.details.output_files %}
+            <tbody>
                 <tr><th colspan=2>Downloads</th></tr>              
-                <tr><td>Output Files</td>
-                    <td>{% for file in object.details.output_files %}{% with file|split_char:"/" as filename %}<a href="/download/files/{{ object.url }}/{{ filename }}" title="Download {{ filename }}">{{ filename }}</a>{% if forloop.last %}{% else %}, {% endif %}{% endwith %}{% endfor %}</td></tr>   
-                <tr><td>Input Files</td>
-                    <td>
-                    {% with "XDS.INP" as file %}<a href="/download/files/{{ object.url }}/{{ file }}" title="Download {{ file }}">{{ file }}</a>{% endwith %}, 
-                    {% with "XDSCONV.INP" as file %}<a href="/download/files/{{ object.url }}/{{ file }}" title="Download {{ file }}">{{ file }}</a>{% endwith %}, 
-                    {% with "XSCALE.INP" as file %}<a href="/download/files/{{ object.url }}/{{ file }}" title="Download {{ file }}">{{ file }}</a>{% endwith %}
-                    </td></tr>   
-                <tr><td style="width: 80px; vertical-align: top;">
-                        <a class="more" href="javascript:displayFiles(true)">More...</a>
-                        <a class="less" href="javascript:displayFiles(false)" style="display: none;">Hide</a>
-                    </td><td><p id="all-files"</p></td></tr>{% else %}
-                <tr><th colspan=2>Files Moved - contact CMCF for assistance</th></tr>{% endif %}  
+                {% if object.url|get_ls:object.details.output_files %}
+	                <tr><td>Output Files</td>
+	                    <td>{% for file in object.details.output_files %}{% with file|split_char:"/" as filename %}<a href="/download/files/{{ object.url }}/{{ filename }}" title="Download {{ filename }}">{{ filename }}</a>{% if forloop.last %}{% else %}, {% endif %}{% endwith %}{% endfor %}</td></tr>   
+	                <tr><td>Input Files</td>
+	                    <td>
+	                    {% with "XDS.INP" as file %}<a href="/download/files/{{ object.url }}/{{ file }}" title="Download {{ file }}">{{ file }}</a>{% endwith %}, 
+	                    {% with "XDSCONV.INP" as file %}<a href="/download/files/{{ object.url }}/{{ file }}" title="Download {{ file }}">{{ file }}</a>{% endwith %}, 
+	                    {% with "XSCALE.INP" as file %}<a href="/download/files/{{ object.url }}/{{ file }}" title="Download {{ file }}">{{ file }}</a>{% endwith %}
+	                    </td></tr>   
+	                <tr><td style="width: 80px; vertical-align: top;">
+	                        <a class="more" href="javascript:displayFiles(true)">More...</a>
+	                        <a class="less" href="javascript:displayFiles(false)" style="display: none;">Hide</a>
+	                    </td><td><p id="all-files"</p></td></tr>
+                {% else %}
+                    <tr><td colspan=2>Files Moved - contact CMCF for assistance</th></tr>
+                {% endif %}  
             </tbody>
         </table>
         <div class="clear spacer"></div>
@@ -493,6 +496,7 @@
             $("#wilson").append('<div class="annotate" style="right:100px; top:50px;">'+stats+'</div>');
 
             /**************** Plot Twinning Analysis **************************/
+            {% if object.details.twinning_l_test %}
             {% with object.details.twinning_l_test as data %}
 	            var observed = {{data.observed|get_data:data.abs_l}};
 	            var untwinned = {{data.untwinned|get_data:data.abs_l}};
@@ -511,6 +515,7 @@
                 stats = stats + '<a style="color: '+ c[2]+';">Perfect Twin: {{lstat.2|floatformat:3}}</a>';
             {% endwith %}
             $("#twinning").append('<div class="annotate" style="right:100px; top:230px;">'+stats+'</div>');
+            {% endif %}
         });
     </script>
 {% endblock %}

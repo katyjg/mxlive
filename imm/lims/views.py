@@ -5,8 +5,6 @@ import tempfile
 import os
 import shutil
 import sys
-import xlrd
-from shutil import copyfile
 
 from django.conf import settings
 
@@ -32,14 +30,11 @@ from django import forms
 from imm.objlist.views import ObjectList
 from imm.lims.models import *
 from imm.staff.models import *
-from imm.lims.forms import DataForm, ProjectForm
 from imm.lims.excel import LimsWorkbook, LimsWorkbookExport
 from imm.download.views import create_download_key, create_cache_dir, send_raw_file
 from imm.apikey.views import apikey_required
 from imm.remote.user_api import UserApi
  
-#from imm.remote.user_api import UserApi
-
 try:
     import json
 except:
@@ -913,7 +908,6 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
         obj = model.objects.get(pk=id)
     except:
         raise Http404
-    object_type = model.__name__
 
     save_label = None
     save_labeled = None
@@ -923,7 +917,7 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
         elif save_label[-1:] == 'd': save_labeled = '%st' % save_label[:-1]
         else: save_labeled = '%sed' % save_label        
 
-    initial = None
+    initial = {}
     form_info = {
         'title': '%s %s?' % (save_label, obj.__unicode__()),
         'sub_title': 'The %s %s will be %s' % (model.__name__, obj.__unicode__(), save_labeled),
@@ -942,7 +936,7 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
         form_info['message'] = '%d Crystals are being sent in %s (%d Dewar%s).' % \
             (num_crystals, ', '.join(conts), dewars.count(), dewars.count() > 1 and 's' or '') 
         if project: 
-            initial = {'carrier': Carrier.objects.get(pk=project.carrier.pk)}
+            if project.carrier: initial['carrier'] = Carrier.objects.get(pk=project.carrier.pk)
             form_info['update_profile'] = True
             if project.address and project.city and project.province and project.country and project.postal_code:
                 msg = '<strong>Return samples to:</strong><small>\n%s\n%s%s\n%s\n%s, %s %s\n%s\nPhone: %s\n%s</small>' % (project.contact_person,
@@ -1120,7 +1114,6 @@ def shipment_xls(request, id):
         return response
         
     finally:
-        
         if not settings.DEBUG:
             # remove the tempfiles
             shutil.rmtree(temp_dir)
@@ -1287,57 +1280,8 @@ def add_scan(request, scan_info):
         ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, "New scan uploaded from beamline")
         return {'scan_id': new_obj.pk}
     except Exception, e:
-        print e.message
         raise exceptions.ServerError(e.message)
     
-    
-
-@jsonrpc_method('lims.add_result')
-@apikey_required
-def add_result(request, report_info):
-    print report_info
-    print report_info.keys()
-    # check if project_id is provided if not check if project_name is provided
-    if report_info.get('project_id') is not None:
-        report_owner = Project.objects.get(pk=report_info['project_id'])   
-    elif report_info.get('project_name') is not None:
-        try:
-            report_owner = Project.objects.get(name=report_info['project_name'])
-        except:
-            report_owner = create_project(username=report_info['project_name'])
-        report_info['project_id'] = report_owner.pk
-        del report_info['project_name']
-    else:
-        raise exceptions.InvalidRequestError('Unknown Project')
-          
-    # convert unicode to str
-    new_info = {}
-    for k,v in report_info.items():
-        if k == 'url':
-            v = create_download_key(v, report_info['project_id'])
-        new_info[str(k)] = v
-    try:
-        # if id is provided, make sure it is owned by current owner otherwise add new entry
-        # to prevent overwriting other's stuff
-        force_update = False
-        if new_info.get('id') is not None:
-            try:
-                new_obj = report_owner.result_set.get(pk=new_info.get('id'))
-                force_update = True
-                new_info['created'] = datetime.now()
-            except:
-                new_info['id'] = None
-        
-        new_obj = Result(**new_info)
-        #new_obj.save(force_update=force_update)
-        new_obj.save()
-
-        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, "New analysis Report uploaded from beamline")
-        return {'result_id': new_obj.pk}
-    except Exception, e:
-        print "exception", e
-        raise exceptions.ServerError(e)
-
 
 @jsonrpc_method('lims.add_strategy')
 @apikey_required
@@ -1362,7 +1306,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.ticker import Formatter, FormatStrFormatter, Locator
 from matplotlib.figure import Figure
 from matplotlib import rcParams
-from matplotlib.colors import LogNorm, Normalize
+from matplotlib.colors import Normalize
 import matplotlib.cm as cm
 #from mpl_toolkits.axes_grid import AxesGrid
 

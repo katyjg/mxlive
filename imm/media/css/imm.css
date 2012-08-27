@@ -1277,8 +1277,11 @@ div.statistics h3 {
     padding-bottom: 10px;
 }
 .placeholder {
-	width: 400px; 
+	width: 420px; 
 	padding: 0px 10px 10px 0px !important; 
 	height: 300px; 
 	float: left;
+}
+.nolegend div.legend {
+	display: none;
 }

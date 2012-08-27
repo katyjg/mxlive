@@ -26,8 +26,8 @@
         </div>
     {% endfor %}  
 
-    <div id="pie-08B1-1" class="placeholder"></div>
-    <div id="pie-08ID-1" class="placeholder"></div>
+    <div id="pie-08B1-1" class="placeholder nolegend"></div>
+    <div id="pie-08ID-1" class="placeholder nolegend"></div>
 
 	<h4 id="usage-hover-08B1-1" class="half"></h4>
 	<h4 id="usage-hover-08ID-1" class="half"></h4>
@@ -42,7 +42,7 @@
     <div id="usage-08B1-1" class="placeholder"></div>
     <div id="usage-08ID-1" class="placeholder"></div>
 	{% for bl, shifts in shift_usage.items reversed %}
-	    <div class="object-list statistics" style="width:384px; float:left; margin-left:17px; margin-right:8px;">
+	    <div class="object-list statistics" style="width:47%; float:left; margin-left:17px; margin-right:8px;">
 	            <table id="calendar">
 	                <thead>
 	                    <tr>
@@ -75,8 +75,8 @@
         <h2><var class="type"></var> Users Groups on {{ bl }}</h2>
     </div>
 {% endfor %}
-<div id="placeholder-08B1-1" class="placeholder"></div>
-<div id="placeholder-08ID-1" class="placeholder"></div>
+<div id="placeholder-08B1-1" class="placeholder nolegend"></div>
+<div id="placeholder-08ID-1" class="placeholder nolegend"></div>
 
 <h4 id="hover-08B1-1" class="half"></h4>
 <h4 id="hover-08ID-1" class="half"></h4>
@@ -155,6 +155,10 @@
 {% endblock %}
 
 {% block script %}
+    <script type="text/javascript" src="/js/jquery.flot.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.flot.pie.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.flot.stack.min.js"></script>
+
     <script type="text/javascript">
         jQuery(document).ready(function() {
             jQuery('.type').text('Shifts Allocated to');
@@ -168,7 +172,6 @@
             var datasets = {};
             var data = {};
             var piedata = {};
-            console.log("{{shift_usage_labels}}");
             {% for bl, shifts in shift_usage.items %}
                 piedata['{{bl}}'] = []
                 data['{{bl}}'] = []
@@ -190,26 +193,7 @@
                         xaxes: [{min: -width/2, max: {{ shift_usage_labels|length }}-width }],
                         grid: { borderWidth: 0 }
                 }); 
-/*                
-                series: {
-shadowSize: 10,
-lines: { lineWidth: 6 }
-},
-colors: ["#edc240"],
-xaxes: [{
-mode: "time",
-timeformat: "%H",
-color: "#fff",
-tickSize: [2, "hour"]
-}],
-yaxis: {color: "#ccc"},
-yaxes: [{min: -1, max: 300, autoscaleMargin: 0.1, position: "right", color: "#edc240"}],
-grid: {
-borderWidth: 0,
-minBorderMargin: 8
-} */
-                
-                
+
                 $.plot($("#pie-{{bl}}"), piedata['{{bl}}'], {
                     series: {
                       pie: { 
@@ -225,8 +209,7 @@ minBorderMargin: 8
                          }
                         }
                       },
-                    grid: { hoverable: true },
-                    legend: { show: false }
+                    grid: { hoverable: true }
                  });                
                 jQuery("#usage-{{bl}} div.legend div").css({ opacity: 0.5 });
                 jQuery("#usage-{{bl}} div.legend div + table div").css({ opacity: 1 });
@@ -295,8 +278,7 @@ minBorderMargin: 8
 	                     }
 	                    }
 	                  },
-	                grid: { hoverable: true },
-	                legend: { show: false }
+	                grid: { hoverable: true }
 	             });
 	             
              $("#placeholder-"+beamline).bind("plothover", hfunc);
@@ -332,5 +314,4 @@ minBorderMargin: 8
         } 
         
     </script>
-
 {% endblock %}
