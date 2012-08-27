@@ -1,6 +1,7 @@
 {% load zip %}
 {% load markup %}
 {% load image_url %}
+{% load tar_exists %}
 
 {% with object as data %}
 <script type="text/javascript" src="/js/jquery.diffviewer.js"></script>
@@ -19,7 +20,7 @@
         <div class="object-tools">
             <ul class="toolbar">
             {% if not request.user.is_superuser %}
-                {% if data.download %}
+                {% if data|tar_exists %}
                 <li class="download-tool" title="Download compressed dataset">
                     <a onclick="getArchive('/download/data/{{ data.url }}/{{data.name}}.tar.gz');">Download</a>
                 </li>
@@ -225,7 +226,7 @@
 	}
 
     function getArchive(url) {
-        jQuery.jGrowl("Please wait while a tar file is created for your dataset.  Depending on the number of images, this may take awhile.", { life: 10000 });
+        jQuery.jGrowl("The tar file of your dataset is {{data|get_size}} and it may take {{data|get_size|get_adj}} to complete this download.  Thank you for your patience!", { life: 10000 });
         jQuery.fancybox.showActivity();
         jQuery.get( url, function() {
             window.location = url;

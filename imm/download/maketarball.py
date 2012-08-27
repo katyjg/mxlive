@@ -19,11 +19,12 @@ def create_tar(path, tar_file, data_dir=False):
         if filename is path:
             return False
         return not re.search(data_file_re, filename.split(path)[1])
-
-    tar = tarfile.open(tar_file, "w:gz")
+    
+    tar = tarfile.open('%s-tmp' % tar_file, "w:gz")
     if data_dir:
         tar.add(path, base, exclude=get_data_files)
     else:
         tar.add(path, base)
     tar.close()
+    os.rename('%s-tmp' % tar_file, tar_file)
 
