@@ -393,13 +393,21 @@ def object_status(request, model):
                                                               kwargs={'data_dir':True})
                         threads[data.name].start()
                         msg = "A tar file is being created for dataset %s.  Depending on the number of images, it may be awhile before it is available to download." % data.name
-                        #create_tar(path_obj.path, tar_file, data_dir=True)
-                        #msg = "Dataset %s ready to download" % data.name
                         request.user.message_set.create(message = msg)
                     except OSError:
                         raise Http404 
                 data.toggle_download(True)
             if action == 2:
+                msg = "The tar file has been deleted for dataset %s." % data.name
+                obj = get_object_or_404(SecurePath, key=data.url)
+                file = os.path.join(CACHE_DIR, obj.key, '%s.tar.gz' % data.name)
+                if os.path.exists(file):
+                    os.remove(file)
+                elif os.path.exists('%s-tmp' % file):
+                    os.remove('%s-tmp' % file)
+                else:
+                    msg = "The tar file for dataset %s could not be removed because it does not exist." % data.name
+                request.user.message_set.create(message = msg)
                 data.toggle_download(False)
             
     return render_to_response('lims/refresh.html')

@@ -302,6 +302,7 @@ ul.toolbar li.component-tool {background-image: url(/img/drive-harddisk.png);}
 ul.toolbar li.download-tool {background-image: url(/img/download-icon-32.png); cursor: pointer;}
 ul.toolbar li.trash-tool {background-image: url(/img/trash-icon.png);}
 ul.toolbar li.stats-tool {background-image: url(/img/calendar-icon.png);}
+ul.toolbar li.pie-tool {background-image: url(/img/pie_chart.png);}
 a.download-tool {background-image: url(/img/download-icon.png); float: right; padding:8px; margin-top: 4px;}
 a.receive-tool {background-image: url(/img/receive-icon-sm.png); padding: 3px 10px}
 a.back-tool {float:left; width:16px; padding-right:3px; background: url(/img/refresh-icon.png) no-repeat 0 0; cursor: pointer;}
@@ -1161,12 +1162,11 @@ ul.filter-choices ul {
 #choices {
 	float: left;
 	text-align: left;
-	background-color: #eee;
+	background-color: #fff;
 	padding: 5px;
-	border: 1px solid #eee;
-	border-left: none;
-	margin-top: -34px;
-	height: 354px;
+	border: 1px solid #ddd;
+	margin: 10px auto auto -105px;
+    z-index: 1000;
 }
 .report-flot {
 	width: 575px;

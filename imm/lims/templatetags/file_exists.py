@@ -8,11 +8,11 @@ from imm.download.models import SecurePath
 
 CACHE_DIR = getattr(settings, 'DOWNLOAD_CACHE_DIR', '/tmp')
 
-@register.filter("tar_exists")  
-def tar_exists(data):
+@register.filter("file_exists")  #ext = tar.gz
+def file_exists(data, ext):
     obj = get_object_or_404(SecurePath, key=data.url)
-    tar_file = os.path.join(CACHE_DIR, obj.key, '%s.tar.gz' % data.name)
-    return os.path.exists(tar_file)
+    file = os.path.join(CACHE_DIR, obj.key, '%s.%s' % (data.name, ext))
+    return os.path.exists(file)
 
 @register.filter("get_size")
 def get_size(data):

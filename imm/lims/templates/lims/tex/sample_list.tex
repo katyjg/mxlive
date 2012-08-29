@@ -43,8 +43,8 @@
 {\bf Containers: }{{containers|length}} ({% for k in kind_list%}{{k.list|length}} {{k.grouper}}{%ifnotequal k.list|length 1%}s{%endifnotequal%}{%if forloop.last %}{%else%}; {% endif %}{%endfor %}) \hfill  {{ project.department|texsafe|cut:"None"|default:"The user's shipping" }} \\
 {\bf Crystals: }{{num_crystals}} \hfill {{ project.organisation|texsafe|cut:"None"|default:"address and account" }} \\
 {\bf Experiments: }{{experiments|length}} \hfill {{ project.address|texsafe|cut:"None"|default:"number are not" }} \\
-\hfill {{ project.city|texsafe|cut:"None"|default:"available" }}, {{ project.province|texsafe|cut:"None"|default:"and must be" }}   {{ project.postal_code|texsafe|cut:"None"|default:"" }}\\
-{\bf Username: }{{ project.name|texsafe|default:"" }} \hfill {{ project.country|texsafe|cut:"None"|default:"obtained manually." }} \\  
+\hfill {{ project.city|texsafe|cut:"None"|default:"available, and must be" }}{% if project.city %}, {{ project.province|texsafe|cut:"None"|default:"" }}   {{ project.postal_code|texsafe|cut:"None"|default:"" }}{% endif %}\\
+{\bf Username: }{{ project.name|texsafe|default:"" }} \hfill {% if project.city %}{{ project.country|texsafe|cut:"None"|default:"obtained manually." }}{% else %}obtained manually.{% endif %} \\  
 {\bf Password: }\underline{\hspace*{1.0in}} \hfill Phone: {{ project.contact_phone|texsafe|cut:"None"|default:"Not Listed" }} {% if project.contact_fax %}(Fax: {{ project.contact_fax|texsafe|default:"" }}){% endif %}\\ 
 {% if project.account_number %}\hfill {\bf {% if project.carrier %}{{ project.carrier }} {% endif %}Account#: {{ project.account_number|texsafe|default:"" }} } \\{% endif %}
 \end{center}{% endif %}

@@ -1,7 +1,7 @@
 {% load zip %}
 {% load markup %}
 {% load image_url %}
-{% load tar_exists %}
+{% load file_exists %}
 
 {% with object as data %}
 <script type="text/javascript" src="/js/jquery.diffviewer.js"></script>
@@ -20,7 +20,7 @@
         <div class="object-tools">
             <ul class="toolbar">
             {% if not request.user.is_superuser %}
-                {% if data|tar_exists %}
+                {% if data|file_exists:'tar.gz' %}
                 <li class="download-tool" title="Download compressed dataset">
                     <a onclick="getArchive('/download/data/{{ data.url }}/{{data.name}}.tar.gz');">Download</a>
                 </li>

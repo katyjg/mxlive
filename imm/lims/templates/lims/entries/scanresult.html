@@ -24,18 +24,17 @@
 {% block content %}
     {% ifequal object.kind 1 %}
     <h3 style="text-align: center; margin: 0 auto;">X-Ray Fluorescence</h3>
-        <table style="text-align: center;">
-            <tr><td><div id="xrf-scan" style="width: 600px; height: 405px"></div></td>
-            <td><p id="choices">
-                Show Edges:<br>
-                {% for peak in object.details.peaks|sorted_list:1 reversed %}
-                    {% for line in object.summarize_lines %}{% ifequal peak.0 line.0 %}
-	                    <input id="id{{peak.0}}" type="checkbox" name="{{peak.0}}" {% if peak.1.0 >= 5 %}checked="checked"{% endif %}>
-	                    <label for="id{{peak.0}}" style="color:{{line.2}}">{{peak.0}} ({{peak.1.0|floatformat:1}}%)</label><br>
-                    {% endifequal %}{% endfor %}
-                {% endfor %}
-                </p></td></tr>
-        </table>
+    <div id="xrf-scan" style="width: 700px; height: 405px; float: left; z-index: -1;"></div>
+    <p id="choices">
+	    Show Edges:<br>
+	    {% for peak in object.details.peaks|sorted_list:1 reversed %}
+	        {% for line in object.summarize_lines %}{% ifequal peak.0 line.0 %}
+	            <input id="id{{peak.0}}" type="checkbox" name="{{peak.0}}" {% if peak.1.0 >= 5 %}checked="checked"{% endif %}>
+	            <label for="id{{peak.0}}" style="color:{{line.2}}">{{peak.0}} ({{peak.1.0|floatformat:1}}%)</label><br>
+	        {% endifequal %}{% endfor %}
+	    {% endfor %}
+    </p>
+    <div class="clear" ></div>
         
     {% else %}
     <h3 style="text-align: center; margin: 0 auto;">{{object.edge}} Edge Scan</h3>
@@ -187,6 +186,7 @@
                 [ { data: counts, label: "Exp", color: "#0000FF", lines: { show: true, lineWidth: 1}, shadowSize: 0 },
                   { data: fit, label: "Fit", color: "#B300B2", lines: { show: true, lineWidth: 1 }, shadowSize: 0 } ],
                 { series: { lines: { show: true} },
+                  legend: { position: "nw" },
                   grid: { borderColor: "#eeeeee", borderWidth: 1, markings: markings, minBorderMargin: 0 },
                   yaxes: [{ min: {{object.details.counts|get_min:6}}, max: {{object.details.counts|get_max:48}}, axisLabel: "Fluorescence Counts", labelWidth: 20, reserveSpace: true }],
                   xaxis: { axisLabel: "Energy (keV)" }

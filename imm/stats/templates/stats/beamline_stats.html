@@ -5,6 +5,15 @@
     <h2>CMCF Beamline Stats</h2>
 {% endblock %}
 
+{% block object-tools %}
+    <div class="object-tools">
+        <ul class="toolbar">
+<li class="stats-tool"><a href='{% url stats-calendar-now %}' title="View Usage Statistics">Usage</a></li>
+        </ul>
+        <div class="clear"></div>
+    </div>
+{% endblock %}
+
 {% block content-override %}
 <div id="result-page">   
   <div class="list-tools">
