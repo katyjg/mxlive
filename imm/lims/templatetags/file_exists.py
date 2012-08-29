@@ -1,19 +1,29 @@
 import os
+import time
+
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django import template  
-register = template.Library()  
 
 from imm.download.models import SecurePath
 
+register = template.Library()  
+
 CACHE_DIR = getattr(settings, 'DOWNLOAD_CACHE_DIR', '/tmp')
 
-@register.filter("file_exists")  #ext = tar.gz
+@register.filter("file_exists")  
 def file_exists(data, ext):
     obj = get_object_or_404(SecurePath, key=data.url)
     file = os.path.join(CACHE_DIR, obj.key, '%s.%s' % (data.name, ext))
     return os.path.exists(file)
 
+@register.filter("file_updated")
+def file_updated(data, ext):
+    obj = get_object_or_404(SecurePath, key=data.url)
+    file = os.path.join(CACHE_DIR, obj.key, '%s.%s' % (data.name, ext))
+    return (time.time() - os.path.getmtime(file)) < 120
+    
+    
 @register.filter("get_size")
 def get_size(data):
     try:
