@@ -60,7 +60,7 @@ def staff_home(request):
     statistics = {
         'shipments': {
                 'outgoing': Shipment.objects.filter(status__exact=Shipment.STATES.SENT).count(),
-                'incoming': Shipment.objects.filter(status__exact=Shipment.STATES.RETURNED).count(),
+                'incoming': Shipment.objects.filter(modified__gte=recent_start).filter(status__exact=Shipment.STATES.RETURNED).count(),
                 'on_site': Shipment.objects.filter(status__exact=Shipment.STATES.ON_SITE).count(),
                 },
         'dewars': {
@@ -75,7 +75,7 @@ def staff_home(request):
         'crystals': {
                 'on_site': Crystal.objects.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).count(),
                 'outgoing': Crystal.objects.filter(status__exact=Crystal.STATES.SENT).count(),
-                'incoming': Crystal.objects.filter(status__exact=Crystal.STATES.RETURNED).count(),
+                'incoming': Crystal.objects.filter(modified__gte=recent_start).filter(status__exact=Crystal.STATES.RETURNED).count(),
                 },
         'runlists':{
                 'loaded': Runlist.objects.filter(status__exact=Runlist.STATES.LOADED).count(),

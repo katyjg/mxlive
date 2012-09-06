@@ -105,10 +105,10 @@ def stats_year(request, year):
     for bl in beamlines: vlist[bl.name] = {}
     for v in visits: # Get a list of all visits, sorted by the type of visit
         # Choose which dictionary key to use
-        if v.remote: dkey = 'Remote'
+        if v.maintenance: dkey = 'Maintenance'
+        elif v.remote: dkey = 'Remote'
         elif v.mail_in: dkey = 'Mail-In'
         elif v.purchased: dkey = 'Purchased Access'
-        elif v.maintenance: dkey = 'Maintenance'
         else: dkey = 'Normal'
         if not vlist[v.beamline.name].has_key(dkey): vlist[v.beamline.name][dkey] = []
         # Add entries to vlist for each shift
