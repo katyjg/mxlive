@@ -145,6 +145,7 @@ urlpatterns += patterns('imm.lims.views',
     (r'^shipping/shipment/(?P<id>\d+)/return/$', 'action_object', {'model': Shipment, 'form': ShipmentReturnForm, 'template': 'objforms/form_base.html', 'action' : 'return'}, 'staff-shipment-return'),
     (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'model': Shipment, 'format' : 'return_label' }, 'staff-shipment-label'),    
     (r'^shipping/shipment/(?P<id>\d+)/protocol/$', 'shipment_pdf', {'model': Shipment, 'format' : 'protocol' }, 'staff-shipment-protocol'),    
+    (r'^shipping/shipment/(?P<id>\d+)/progress/$', 'object_detail', {'model': Shipment, 'template' : 'lims/entries/progress_report.html' }, 'lims-shipment-progress'),
 
     # Runlists
     (r'^runlist/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),
@@ -162,6 +163,8 @@ urlpatterns += patterns('imm.lims.views',
     (r'^experiment/report/(\d+)/overlap.png$', 'plot_overlap_analysis', {}, 'staff-plot-overlap'),
     (r'^experiment/report/(\d+)/quality.png$', 'plot_pred_quality', {}, 'staff-plot-quality'),
     (r'^experiment/report/(\d+)/wedge.png$', 'plot_wedge_analysis', {}, 'staff-plot-wedge'),
+    (r'^experiment/request/(?P<id>\d+)/progress/$', 'object_detail', {'model': Experiment, 'template' : 'lims/entries/progress_report.html' }, 'lims-experiment-progress'),
+
     
     # Scan images
     (r'^experiment/scan/(\d+)/xrfscan.png$', 'plot_xrf_scan', {}, 'staff-plot-xrf'),

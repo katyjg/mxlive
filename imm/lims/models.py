@@ -1102,7 +1102,7 @@ class Crystal(LoadableBaseClass):
         return True
 
     def is_complete(self):
-        return self.screen_status != Crystal.EXP_STATES.PENDING and self.collect_status != Crystal.EXP_STATES.PENDING and self.status > Crystal.STATES.DRAFT
+        return (self.screen_status != Crystal.EXP_STATES.PENDING and self.collect_status != Crystal.EXP_STATES.PENDING and self.status > Crystal.STATES.DRAFT) or self.collect_status == Crystal.EXP_STATES.COMPLETED
     
     def setup_experiment(self):
         """ If crystal is on-site, updates the screen_status and collect_status based on its experiment type
@@ -1227,6 +1227,11 @@ class Data(DataBaseClass):
     def score_label(self):
         if len(self.result_set.all()) is 1:
             return self.result_set.all()[0].score
+        return False
+
+    def result(self):
+        if len(self.result_set.all()) is 1:
+            return self.result_set.all()[0]
         return False
 
     def energy(self):

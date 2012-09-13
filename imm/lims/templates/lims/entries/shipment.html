@@ -27,14 +27,20 @@
         {% if shipment.date_shipped %}
         	<tr valign="top"><th>Carrier:</th><td>{{ shipment.carrier }}</td></tr>
         	<tr valign="top"><th>Shipped:</th><td>{{shipment.date_shipped|naturalday}} at {{shipment.date_shipped|date:"H:i T"}}</td></tr>
-        	<tr valign="top"><th NOWRAP>Tracking Code:</th><td>{{ shipment.tracking_code }}</td></tr>
+        	<tr valign="top"><th NOWRAP>Tracking Code:</th>
+        	   <td>{% if shipment.tracking_code %}{% if shipment.carrier %}
+                   <a href="{{ shipment.carrier.url }}{{ shipment.tracking_code }}" title="Track with {{ shipment.carrier }}">{{ shipment.tracking_code }}</a>
+               {% else %}{{ shipment.tracking_code }}{% endif %}{% endif %}</td></tr>
         {% endif %}
         {% if shipment.date_received %}
         	<tr valign="top"><th>Received:</th><td>{{shipment.date_received|naturalday}} at {{shipment.date_received|date:"H:i T"}}</td></tr>
         {% endif %}
         {% if shipment.date_returned %}
         	<tr valign="top"><th>Returned:</th><td>{{shipment.date_returned|naturalday}}</td></tr>
-        	<tr valign="top"><th NOWRAP>Return Code:</th><td>{{ shipment.return_code }}</td></tr>
+        	<tr valign="top"><th NOWRAP>Return Code:</th>
+        	   <td>{% if shipment.return_code %}{% if shipment.carrier %}
+        	       <a href="{{ shipment.carrier.url }}{{ shipment.return_code }}" title="Track with {{ shipment.carrier }}">{{ shipment.return_code }}</a>
+      	       {% else %}{{ shipment.return_code }}{% endif %}{% endif %}</td></tr>
         {% endif %}
         <tr valign="top"><th>Processed:</th><td>{% if shipment.is_processed %}Yes{% else %} No {% endif %}</td></tr>
     </table>

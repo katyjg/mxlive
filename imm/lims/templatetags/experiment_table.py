@@ -34,4 +34,4 @@ def in_shipment(crystals, containers):
 
 @register.filter("arrived_onsite")
 def arrived_onsite(crystals, containers):
-    return crystals.filter(container__in=containers).filter(status__exact=Crystal.STATES.ON_SITE).count()
+    return crystals.filter(container__in=containers).filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).count()

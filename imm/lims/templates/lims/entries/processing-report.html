@@ -329,21 +329,61 @@
 
     <h3>Wilson Plot</h3>
     <div id="wilson" class="report-flot" style="height: 400px;"></div>
-    <div class="tablenotes">
-        <h3>Notes</h3>
-        <p>The above clipper-style wilson plot was calculated by CTRUNCATE which is part of the CCP4 Package.</p>
-        <p>See S. French and K. Wilson, Acta Cryst. A34, 517-525 (1978).</p>
-    </div>
     <div class="clear spacer"></div>
 
     <h3>L Test for twinning</h3>
     <div id="twinning" class="report-flot" style="height: 400px;"></div>
+    <div class="clear spacer"></div>
     <div class="tablenotes">
         <h3>Notes</h3>
-        <p>The above plot was calculated by CTRUNCATE which is part of the CCP4 Package.</p>
-        <p>All data regardless of I/sigma(I) has been included in the L test. Anisotropy correction has been applied before calculating L.</p>
-        <p>See J. E. Padilla and T. O. Yeates, Acta Cryst. D59, 1124-1130 (2003)</p>
+        <p>L-test: See J. E. Padilla and T. O. Yeates, Acta Cryst. D59, 1124-1130 (2003)</p>
+        <p>The above L-Test was calculated using PHENIX.XTRIAGE. The test uses acentric data only.</p>
+        {% if object.details.twinning_l_zscore %}
+        <p>The L-test multivariate Z-score for this dataset is <b>{{object.details.twinning_l_zscore|floatformat:"-3"}}</b>. 
+        The Z-score should be less than 3.5 for good data.</p>
+        {% endif %}                        
     </div>
+    
+    {% if object.details.twin_laws %}
+
+    <h3>Possible twin laws and corresponding twin fractions</h3>
+    <table class="rtable full">
+        <thead>
+            <tr>
+                <th scope="col">Operator</th>
+                <th scope="col">Type</th>
+                <th scope="col">R<sub>obs</sub></th>
+                <th scope="col">Britton fraction</th>
+                <th scope="col">H-test fraction</th>
+                <th scope="col">Max.Likelihood fraction</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in object.details.twin_laws %}
+            <tr>
+            <td>{{row.operator}}</td>
+            <td>{{row.type}}</td>
+            <td>{{row.r_obs|floatformat:"2"}}</td>
+            <td>{{row.britton_alpha|floatformat:"3"}}</td>
+            <td>{{row.H_alpha|floatformat:"3"}}</td>
+            <td>{{row.ML_alpha|floatformat:"3"}}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+        <tr><td colspan=4></td></tr>
+        </tfoot>
+    </table>
+    <div class="clear spacer"></div>
+    <div class="tablenotes">
+        <h3>Notes</h3>
+        <p>The above analysis was calculated using PHENIX.XTRIAGE. See the detailed output in xtriage.log.</p>
+        <p>Twin-law types: PM - Pseudo-merohedral, M - Merohedral</p>                      
+        {% if object.details.twinning_l_zscore < 3.5 %}
+        <p>The intensity statistics appear to be good. A high twin fraction for any of the twin laws above may indicate wrong symmetry.</p>
+        {% endif %}                        
+    </div>
+    {% endif %}
 
 </div>
 </div>
@@ -374,6 +414,7 @@
             
             var c = ["#FF0000","#0000FF","#007700","#B300B2","#00CCCC","#CCCC0C"];
             var lines = { show: true, lineWidth: 1};
+            var points = { show: true, radius: 0.75, fill: true };
             var laxis = { position: "left", labelWidth: 20, reserveSpace: true, tickColor: "#dddddd" };
             var raxis = { position: "right", labelWidth: 20, reserveSpace: true, tickColor: "#dddddd" };
             
@@ -418,7 +459,7 @@
                 { data: r_meas, color: c[1], lines: lines, yaxis: 2, label: 'R-meas' },
                 { data: cc_half, color: c[2], lines: {show: true, lineWidth: 0.5 }, yaxis: 2, label: {% if 'r_mrgdf' in object.details.shell_statistics.keys %}'R-mrgd-F'{% else %}'CC<sub>1/2</sub>'{% endif %} }
                 ], shell_labels, [
-                    $.extend(laxis, { axisLabel: 'Completeness (%)', color: c[0], max: 100 }),
+                    $.extend(laxis, { axisLabel: 'Completeness (%)', color: c[0], min: 0, max: 100 }),
                     $.extend(raxis, { axisLabel: 'R-factors (%)', color: null, max: 100 })], '', [], false);
             $.extend(laxis, { max: null });
             $.extend(raxis, { max: null });
@@ -442,22 +483,22 @@
             {% endwith %}
             
             plot_data($("#frame-1"), [
-                { data: scale, color: c[0], yaxis: 1, lines: lines },
-                { data: mosaicity, color: c[2], yaxis: 2, lines: lines }
+                { data: scale, color: c[0], yaxis: 1, lines: {show: false}, points: points },
+                { data: mosaicity, color: c[2], yaxis: 2, lines: {show: false}, points: points }
                 ], null, [
                     $.extend(laxis, { axisLabel: 'Scale Factor', color: c[0] }),
                     $.extend(raxis, { axisLabel: 'Mosaicity', color: c[2] })], '', [], false);
 
             plot_data($("#frame-2"), [
-                { data: divergence, color: c[3], yaxis: 1, lines: lines },
-                { data: i_sigma, color: c[1], yaxis: 2, lines: lines }
+                { data: divergence, color: c[3], yaxis: 1, lines: {show: false}, points: points },
+                { data: i_sigma, color: c[1], yaxis: 2, lines: {show: false}, points: points }
                 ], null, [
                     $.extend(laxis, { axisLabel: 'Divergence', color: c[3] }),
                     $.extend(raxis, { axisLabel: 'I/Sigma(I)', color: c[1] })], '', [], false);
 
             plot_data($("#frame-3"), [
-                { data: r_meas, color: c[4], yaxis: 1, lines: lines },
-                { data: unique, color: c[5], yaxis: 2, lines: lines }
+                { data: r_meas, color: c[4], yaxis: 1, lines: {show: false}, points: points },
+                { data: unique, color: c[5], yaxis: 2, lines: {show: false}, points: points }
                 ], null, [
                     $.extend(laxis, { axisLabel: 'R-meas', color: c[4] }),
                     $.extend(raxis, { axisLabel: 'Unique Reflections', color: c[5] })], 'Frame Number', [], false);     
@@ -483,7 +524,7 @@
                 shell_labels.push([{{forloop.counter0}},{{dat|sq_root|floatformat:2}}]);
             {% endif %}{% endfor %}
             plot_data($("#wilson"), [
-                { data: wilson, color: c[0], points: {show:true, radius: 1}, lines: lines }
+                { data: wilson, color: c[0], points: points, lines: lines }
                 ], shell_labels, [$.extend(laxis, { axisLabel: 'ln(I/Sigma(f)\u00B2)', color: null })], 'Resolution', [], false);
             
             var stats = '';
@@ -503,16 +544,16 @@
 	            var twinned = {{data.twinned|get_data:data.abs_l}};
 	        {% endwith %}
             plot_data($("#twinning"), [
-                { data: observed, color: c[0], lines: lines },
-                { data: untwinned, color: c[1], lines: lines },
-                { data: twinned, color: c[2], lines: lines }
+                { data: observed, color: c[3], points: points, lines: lines },
+                { data: untwinned, color: c[0], lines: lines },
+                { data: twinned, color: c[1], lines: lines }
                 ], null, [$.extend(laxis, { axisLabel: 'P(L>=1)', max: 1 })], '|L|', [], false);
                 
             var stats = '';
             {% with object.details.twinning_l_statistic as lstat %}
-                stats = stats + '<a style="color: '+ c[0]+';">Observed: {{lstat.0|floatformat:3}}</a><br>'
-                stats = stats + '<a style="color: '+ c[1]+';">Untwinned: {{lstat.1|floatformat:3}}</a><br>'
-                stats = stats + '<a style="color: '+ c[2]+';">Perfect Twin: {{lstat.2|floatformat:3}}</a>';
+                stats = stats + '<a style="color: '+ c[3]+';">Observed: {{lstat.0|floatformat:3}}</a><br>'
+                stats = stats + '<a style="color: '+ c[0]+';">Untwinned: {{lstat.1|floatformat:3}}</a><br>'
+                stats = stats + '<a style="color: '+ c[1]+';">Perfect Twin: {{lstat.2|floatformat:3}}</a>';
             {% endwith %}
             $("#twinning").append('<div class="annotate" style="right:100px; top:230px;">'+stats+'</div>');
             {% endif %}

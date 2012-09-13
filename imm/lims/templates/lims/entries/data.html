@@ -110,7 +110,7 @@
 {% endif %}
 <div>
 <script type="text/javascript">
-	var $current_frame_to_display = 1;
+	var $current_frame_to_display = {{data.first_frame}};
 	var $current_brightness_to_display = 'nm';
 	var $expanded_frame_set = {{ data.get_frame_list }};
     dataViewer.setPars({{data.wavelength}}, {{data.resolution}});
@@ -123,8 +123,8 @@
 	};
 
 	function makeCorrectUrl() {
-		url = '{% image_url data 1 "dk" %}';
-		// remove the 001-dk.png
+		url = '{% image_url data data.first_frame "dk" %}';
+		// remove the ###-dk.png
 		url = url.slice(0, -10);
 		// add the frame number, 3 digits.
 		var number = '' + $current_frame_to_display;
@@ -151,7 +151,7 @@
 		updateFrameDetails();
 		$expanded_frame_set = {{ data.get_frame_list }};
         jQuery("#diffviewer").diffviewer({
-            src: "{% image_url data 1 'nm' %}", 
+            src: "{% image_url data data.first_frame 'nm' %}", 
             //update_on_resize: false,
             zoom: 50,
             zoom_min: 50,
