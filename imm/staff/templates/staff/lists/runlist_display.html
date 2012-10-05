@@ -51,6 +51,7 @@
 		    {% load truncate_filters %}
 	        <td>{{ object.name }}</td>
 	        <td>{{ object.beamline }} </td>
+	        <td>{{ object.modified|date:"d M y" }}</td>
 	        <td>{{ object.get_status_display }}</td>
 	        {% if object.left|length %}
 	           {% for pos in object.left %}

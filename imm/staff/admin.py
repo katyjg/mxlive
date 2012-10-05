@@ -8,9 +8,9 @@ runlist_site = admin.AdminSite()
 class RunlistAdmin(admin.ModelAdmin):
     search_fields = ['name', 'beamline__name', 'containers__name']
     list_filter = ['status','created']
-    list_display = ('name', 'beamline', 'status')
+    list_display = ('name', 'beamline', 'modified', 'status')
     list_per_page = 16
-    ordering = ['status']
+    ordering = ['-modified']
 admin.site.register(Runlist, RunlistAdmin)
 
 class LinkAdmin(admin.ModelAdmin):

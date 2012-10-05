@@ -502,7 +502,7 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
                     for param in ['beamline','comments','left','right','middle']:
                         clone_info[param] = getattr(obj, param)
                     clone = Runlist(**clone_info)
-                    clone.name = date.today().strftime('%y%b%d')
+                    clone.name = 'RL'
                     for project in Project.objects.filter(pk__in=obj.containers.all().values('project')).distinct():
                         clone.name += '-%s' % project.name
                     clone.status = Runlist.STATES.CLOSED
