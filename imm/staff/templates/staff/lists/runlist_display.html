@@ -21,13 +21,13 @@
     <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">
         <thead>
             <tr class="header">
-                {% for header in ol.header_list %}{% ifnotequal header.text 'status' %}
+                {% for header in ol.header_list %}
                     <th{{ header.class_attrib }} >
                         {% if header.sortable %}<a class="header" href="{{ handler }}{{ header.url }}">{% endif %}
                             {{ header.text|capfirst }}
                         {% if header.sortable %}</a>{% endif %}
                     </th>
-                {% endifnotequal %}{% endfor %}
+                {% endfor %}
                 <th colspan=4>Left</th>
                 <th colspan=4>Middle</th>
                 <th colspan=4>Right</th>                
@@ -51,6 +51,7 @@
 		    {% load truncate_filters %}
 	        <td>{{ object.name }}</td>
 	        <td>{{ object.beamline }} </td>
+	        <td>{{ object.get_status_display }}</td>
 	        {% if object.left|length %}
 	           {% for pos in object.left %}
 	               <td {% if pos %}title="{{ pos|get_container_project }}"

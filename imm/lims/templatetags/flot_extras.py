@@ -36,3 +36,14 @@ def get_data(data, xdata=None):
 @register.filter("sq_root")
 def sq_root(x):
     return (x > 0.0 and (x**-0.5)) or ''
+
+@register.filter("get_from_key")
+def get_from_key(data, key):
+    ALT_KEYS = {'frame_no': 'frame',
+               }
+    try:
+        return data[key]
+    except: 
+        return data[ALT_KEYS[key]]
+    finally:
+        return []

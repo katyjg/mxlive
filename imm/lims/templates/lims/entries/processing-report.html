@@ -312,19 +312,24 @@
     {% endif %}
 
     <div class="clear spacer"></div>
-    <h3>Statistics of final reflections by frame number and frame number difference</h3>
-    <div id="frame-1" class="report-flot" style="height: 175px;"></div>
-    <div id="frame-2" class="report-flot" style="height: 175px;"></div>
-    <div id="frame-3" class="report-flot" style="height: 175px;"></div>
-    <div id="diff" class="report-flot" style="height: 300px;"></div>
-    <div class="tablenotes">
-    <h3>Notes</h3>
-        <p>The above plot was calculated by XDSSTAT. See See Diederichs K. (2006) Acta Cryst D62, 96-101.</p>
-        <dl class="note-list">
-        <dt>Divergence - </dt><dd>Estimated Standard Deviation of Beam divergence</dd>
-        <dt>R<sub>d</sub> - </dt><dd>R-factors as a function of frame difference. An increase in R-d with frame difference is suggestive of radiation damage.</dd>
-        </dl>
-    </div>
+
+    {% if object.details.frame_statistics or object.details.diff_statistics %}
+	    <h3>Statistics of final reflections by frame number and frame number difference</h3>
+	    {% with object.details.frame_statistics as data %}
+		    {% if data.scale or data.mosaicity %}<div id="frame-1" class="report-flot" style="height: 175px;"></div>{% endif %}
+		    {% if data.divergence or data.i_sigma %}<div id="frame-2" class="report-flot" style="height: 175px;"></div>{% endif %}
+		    {% if data.unique or data.r_meas %}<div id="frame-3" class="report-flot" style="height: 175px;"></div>{% endif %}
+		    {% if object.details.diff_statistics %}<div id="diff" class="report-flot" style="height: 300px;"></div>{% endif %}
+		    <div class="tablenotes">
+		    <h3>Notes</h3>
+		        <p>The above plot was calculated by XDSSTAT. See See Diederichs K. (2006) Acta Cryst D62, 96-101.</p>
+		        <dl class="note-list">
+		        <dt>Divergence - </dt><dd>Estimated Standard Deviation of Beam divergence</dd>
+		        <dt>R<sub>d</sub> - </dt><dd>R-factors as a function of frame difference. An increase in R-d with frame difference is suggestive of radiation damage.</dd>
+		        </dl>
+		    </div>
+		{% endwith %}
+	{% endif %}
 
 
     <h3>Wilson Plot</h3>
@@ -474,48 +479,56 @@
 
             /**************** Plot Frame Stats ********************************/
             {% with object.details.frame_statistics as data %}
-	            var scale = {{data.scale|get_data:data.frame_no}};
-	            var mosaicity = {{data.mosaicity|get_data:data.frame_no}};
-	            var divergence = {{data.divergence|get_data:data.frame_no}};
-	            var i_sigma = {{data.i_sigma|get_data:data.frame_no}};
-	            var r_meas = {{data.r_meas|get_data:data.frame_no}};
-	            var unique = {{data.unique|get_data:data.frame_no}};
-            {% endwith %}
-            
-            plot_data($("#frame-1"), [
-                { data: scale, color: c[0], yaxis: 1, lines: {show: false}, points: points },
-                { data: mosaicity, color: c[2], yaxis: 2, lines: {show: false}, points: points }
-                ], null, [
-                    $.extend(laxis, { axisLabel: 'Scale Factor', color: c[0] }),
-                    $.extend(raxis, { axisLabel: 'Mosaicity', color: c[2] })], '', [], false);
-
-            plot_data($("#frame-2"), [
-                { data: divergence, color: c[3], yaxis: 1, lines: {show: false}, points: points },
-                { data: i_sigma, color: c[1], yaxis: 2, lines: {show: false}, points: points }
-                ], null, [
-                    $.extend(laxis, { axisLabel: 'Divergence', color: c[3] }),
-                    $.extend(raxis, { axisLabel: 'I/Sigma(I)', color: c[1] })], '', [], false);
-
-            plot_data($("#frame-3"), [
-                { data: r_meas, color: c[4], yaxis: 1, lines: {show: false}, points: points },
-                { data: unique, color: c[5], yaxis: 2, lines: {show: false}, points: points }
-                ], null, [
-                    $.extend(laxis, { axisLabel: 'R-meas', color: c[4] }),
-                    $.extend(raxis, { axisLabel: 'Unique Reflections', color: c[5] })], 'Frame Number', [], false);     
+                {% with data|get_from_key:'frame_no' as frame_no %}
+                    var scale = {{data.scale|get_data:frame_no}};
+                    var mosaicity = {{data.mosaicity|get_data:frame_no}};
+                    var divergence = {{data.divergence|get_data:frame_no}};
+                    var i_sigma = {{data.i_sigma|get_data:frame_no}};
+                    var r_meas = {{data.r_meas|get_data:frame_no}};
+                    var unique = {{data.unique|get_data:frame_no}};
+                {% endwith %}
+                       
+                {% if data.scale or data.mosaicity %}                       
+		            plot_data($("#frame-1"), [
+		                {% if data.scale %}{ data: scale, color: c[0], yaxis: 1, lines: {show: false}, points: points },{% endif %}
+		                {% if data.mosaicity %}{ data: mosaicity, color: c[2], yaxis: 2, lines: {show: false}, points: points }{% endif %}
+		                ], null, [
+		                    $.extend(laxis, { axisLabel: 'Scale Factor', color: c[0] }),
+		                    $.extend(raxis, { axisLabel: 'Mosaicity', color: c[2] })], '', [], false);
+                {% endif %}
+                {% if data.divergence  or data.i_sigma %}	
+		            plot_data($("#frame-2"), [
+		                {% if data.divergence %}{ data: divergence, color: c[3], yaxis: 1, lines: {show: false}, points: points },{% endif %}
+		                {% if data.i_sigma %}{ data: i_sigma, color: c[1], yaxis: 2, lines: {show: false}, points: points }{% endif %}
+		                ], null, [
+		                    $.extend(laxis, { axisLabel: 'Divergence', color: c[3] }),
+		                    $.extend(raxis, { axisLabel: 'I/Sigma(I)', color: c[1] })], '', [], false);
+	            {% endif %}
+	            {% if data.r_meas or data.unique %}
+		            plot_data($("#frame-3"), [
+		                {% if data.r_meas %}{ data: r_meas, color: c[4], yaxis: 1, lines: {show: false}, points: points },{% endif %}
+		                {% if data.unique %}{ data: unique, color: c[5], yaxis: 2, lines: {show: false}, points: points }{% endif %}
+		                ], null, [
+		                    $.extend(laxis, { axisLabel: 'R-meas', color: c[4] }),
+		                    $.extend(raxis, { axisLabel: 'Unique Reflections', color: c[5] })], 'Frame Number', [], false);     
+	           {% endif %}
+           {% endwith %} 
 
             /**************** Plot Diff Stats *********************************/
-            {% with object.details.diff_statistics as data %}
-	            var all = {{data.rd|get_data:data.frame_diff}};
-	            var friedel = {{data.rd_friedel|get_data:data.frame_diff}};
-	            var non_friedel = {{data.rd_non_friedel|get_data:data.frame_diff}};
-            {% endwith %}
-            plot_data($("#diff"), [
-                { data: all, color: c[0], label: "All", lines: lines },
-                { data: friedel, color: c[3], label: "Friedel", lines: lines },
-                { data: non_friedel, color: "#000000", label: "Non-Friedel", lines: lines }
-                ], null, [
-                    $.extend(laxis, { axisLabel: 'R<sub>d</sub>', color: null }),
-                    {position: "right", labelWidth: 38, reserveSpace: true}], 'Frame Difference', [], false);                
+            {% if object.details.diff_statistics %}
+	            {% with object.details.diff_statistics as data %}
+		            var all = {{data.rd|get_data:data.frame_diff}};
+		            var friedel = {{data.rd_friedel|get_data:data.frame_diff}};
+		            var non_friedel = {{data.rd_non_friedel|get_data:data.frame_diff}};
+	            {% endwith %}
+	            plot_data($("#diff"), [
+	                { data: all, color: c[0], label: "All", lines: lines },
+	                { data: friedel, color: c[3], label: "Friedel", lines: lines },
+	                { data: non_friedel, color: "#000000", label: "Non-Friedel", lines: lines }
+	                ], null, [
+	                    $.extend(laxis, { axisLabel: 'R<sub>d</sub>', color: null }),
+	                    {position: "right", labelWidth: 38, reserveSpace: true}], 'Frame Difference', [], false);                
+            {% endif %}
 
             /**************** Plot Wilson***** ********************************/
             var wilson = {{object.details.wilson_plot.log_i_sigma|get_data}};

@@ -421,7 +421,7 @@ def object_detail(request, id, model, template):
         url_prefix = 'lims'
     url_name = "%s-%s-list" % (url_prefix, model.__name__.lower())
     try:
-        list_url = reverse(url_name)
+        list_url = (model == Runlist and reverse(url_name)+'?status__lte=4') or reverse(url_name)
     except:
         list_url = None
     return render_to_response(template, {
