@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load humanize %}
+{% load markup %}
 
 {% block headline %}
 <h2><span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
@@ -16,31 +17,22 @@
 
 {% with object as runlist %}
     
-    <div class="runlist droppable droppable-add" {% if object.is_editable %}accept="experiment" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>    
+    <div class="runlist droppable droppable-add" {% if object.is_editable %}accept="experiment project" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>    
 
     <!-- width set to 70% to give the image space to sit side by side -->
     <table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
-        <tr valign="top"><th>Created:</th><td>{{object.created|naturalday}} at {{object.created|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Modified:</th><td>{{object.modified|naturalday}} at {{object.modified|date:"H:i T"}}</td></tr>
         <tr valign="top"><th>Status:</th><td>{{ object.get_status_display }}</td></tr>
         <tr valign="top"><th>Beamline:</th><td>{{ object.beamline }}</td></tr>
-{% comment %}        <tr valign="top"><th>Projects:</th><td>
-        	{% for experiment in object.experiments.all %}
-        		{{ experiment.project }}  
-        	{% endfor %}
-        </td></tr>
-        <tr valign="top" class="experiment draggable-link-parent droppable droppable-add" accept="experiment"><th>Experiments:</th><td>
-        	{% for experiment in object.experiments.all %}
-        		{{ experiment.name }} 
-        	{% endfor %}
-        </td></tr>{% endcomment %}
+
         
     </table>
+
 {% if object.comments %}
     <div class="entrycomment">
-    <span class="left-pointer"></span>
-    <h3>Comments</h3>
-    <p>{{ object.comments}}</p>
+        <span class="left-pointer"></span>
+        <h3>Comments</h3>
+        <div class="user">{{ object.comments|default:""|restructuredtext}}</div>
     </div>
 {% endif %}
 <div class="clear"></div>
@@ -58,13 +50,12 @@
     <div style="clear: both;"></div>
 {% experiment_table object request.user.is_superuser %}
 
-
 {% endblock %}
 
 {% block sidebar %}
-        <div id="experiments" class="widget droppable-remove parent-stop" data="{% url staff-experiment-basic-list object.pk %}">
-	       <div class="widget-title">
-	       <span>Experiments</span></div>
+        <div id="projects" class="widget droppable-remove parent-stop" data="{% url staff-project-basic-list object.pk %}">
+           <div class="widget-title">
+           <span>Projects</span></div>
             <ul>
                 <p class="list-empty">( Not loaded )</p>
             </ul>
@@ -77,6 +68,7 @@
                 <p class="list-empty">( No containers )</p>
             </ul>
         </div>
+        {% include "staff/entries/comments_form.html" %}
 {% endblock %}
 
 

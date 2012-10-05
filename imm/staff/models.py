@@ -84,7 +84,7 @@ class Runlist(StaffBaseClass):
     )
     TRANSITIONS = {
         STATES.PENDING: [STATES.LOADED],
-        STATES.LOADED: [STATES.UNLOADED],
+        STATES.LOADED: [STATES.PENDING, STATES.UNLOADED],
         STATES.INCOMPLETE: [STATES.COMPLETED],
         STATES.COMPLETED: [STATES.PENDING, STATES.CLOSED],
     }
@@ -107,6 +107,12 @@ class Runlist(StaffBaseClass):
         return 'RL%03d%s' % (self.id, self.created.strftime('-%y%m'))
     identity.admin_order_field = 'pk'
     
+    def class_name(self):
+        return self.__class__.__name__
+    
+    def show_history(self):
+        return True
+    
     def num_containers(self):
         return self.containers.count()
     
@@ -123,11 +129,14 @@ class Runlist(StaffBaseClass):
     def __unicode__(self):
         return self.name
     
+    def is_closed(self):
+        return self.status == self.STATES.CLOSED
+    
     def is_editable(self):
         return self.status == self.STATES.PENDING
     
     def is_deletable(self):
-        return not self.status == self.STATES.LOADED
+        return self.status == self.STATES.CLOSED
     
     def is_loadable(self):
         return self.status == self.STATES.PENDING and self.containers.exists()
@@ -277,50 +286,25 @@ class Runlist(StaffBaseClass):
     
     def remove_container(self, container):
         # need a remove method to iterate through potential lists. 
-        if self.left != None:
-            check_list = self.left
-            if type(check_list) == type(list()):
-                # iterate through the list.
-                if container.pk in check_list:
-                    for i in (i for i,x in enumerate(check_list) if x == container.pk):
-                        self.left[i] = ''
-                        self.save()
-                        return True
-            elif check_list == container.pk:
-                check_list = None
-                self.left = check_list
-                self.save()
-                return True
-        if self.middle != None:
-            check_list = self.middle
-            if type(check_list) == type(list()):
-                # iterate through the list.
-                if container.pk in check_list:
-                    for i in (i for i,x in enumerate(check_list) if x == container.pk):
-                        self.middle[i] = ''
-                        self.save()
-                        return True
-            elif check_list == container.pk:
-                check_list = None
-                self.middle = check_list
-                self.save()
-                return True
-            
-        if self.right != None:
-            check_list = self.right
-            if type(check_list) == type(list()):
-                # iterate through the list.
-                if container.pk in check_list:
-                    for i in (i for i,x in enumerate(check_list) if x == container.pk):
-                        self.right[i] = ''
-                        self.save()
-                        return True
-            elif check_list == container.pk:
-                check_list = None
-                self.right = check_list
-                self.save()
-                return True
-            
+        for pos in ['left','middle','right']:
+            check_list = getattr(self, pos)
+            if check_list != None:
+                if type(check_list) == type(list()):
+                    # iterate through the list.
+                    if container.pk in check_list:
+                        for i in (i for i,x in enumerate(check_list) if x == container.pk):
+                            if pos == 'left': self.left[i] = ''
+                            elif pos == 'middle': self.middle[i] = ''
+                            elif pos == 'right': self.right[i] = ''
+                            set_pos = (getattr(self, pos) != ['']*4 and getattr(self, pos)) or None
+                            setattr(self, pos, set_pos)
+                            self.save()
+                            return True
+                elif check_list == container.pk:
+                    check_list = None
+                    setattr(self, pos, check_list)
+                    self.save()
+                    return True
         return False
     
     def get_position(self, container):
@@ -380,7 +364,7 @@ class Runlist(StaffBaseClass):
     def unload(self, request=None):
         for obj in self.containers.all():
             obj.unload(request)
-        self.change_status(self.STATES.UNLOADED)    
+        self.change_status(self.STATES.PENDING)    
         message = '%s (%s) unloaded from automounter.' % (self.__class__.__name__.upper(), self.name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)

@@ -252,8 +252,8 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     
     if dest.is_editable():
         if destination.__name__ == 'Runlist':
-            if object.__name__ == 'Experiment':
-                container_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).filter(pk__in=Experiment.objects.get(pk=obj_id).crystal_set.values('container')).exclude(pk__in=dest.containers.all()).exclude(kind__exact=Container.TYPE.CANE)
+            if object.__name__ == 'Experiment' or object.__name__ == 'Project':
+                container_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(kind__exact=Container.TYPE.CANE).exclude(pk__in=dest.containers.all()).filter(pk__in=object.objects.get(pk=obj_id).crystal_set.values('container'))
                 for container in container_list:
                     dest.add_container(container)
                     try:
@@ -321,6 +321,25 @@ def experiment_basic_object_list(request, runlist_id, model, template='objlist/b
     
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
+@login_required
+@manager_required
+def project_basic_object_list(request, runlist_id, model, template='objlist/basic_object_list.html'):
+    """
+    Should display name and id for entity, but filter
+    to only display projects with containers with unprocessed crystals available to add to a runlist.
+    """
+    basic_list = list()
+    ol = ObjectList(request, request.manager)
+    try: 
+        runlist = Runlist.objects.get(pk=runlist_id)
+    except:
+        runlist = None
+
+    if runlist:
+        ol.object_list = Project.objects.filter(pk__in=Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE).values('project')).distinct()
+    
+    return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower(), 'runlist': runlist_id }, context_instance=RequestContext(request))
+
 
 @login_required
 @manager_required
@@ -336,6 +355,7 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
     except:
         runlist = None
 
+    '''
     try:
         experiment = Experiment.objects.get(pk=exp_id)
     except:
@@ -344,6 +364,17 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
 
     if runlist and experiment:
         ol.object_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).filter(pk__in=(experiment.crystal_set.all().values('container'))).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE)
+    elif runlist:
+        ol.object_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE)
+    '''
+    try:
+        project = Project.objects.get(pk=exp_id)
+    except:
+        project = None
+        ol.object_list = None
+        
+    if runlist and project:
+        ol.object_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).filter(project__exact=project).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE)
     elif runlist:
         ol.object_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE)
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
@@ -412,6 +443,19 @@ def object_status(request, model):
             
     return render_to_response('lims/refresh.html')
 
+@login_required
+def object_history(request, model, id, template='objlist/generic_list.html'):
+    ol = model.objects.filter(beamline__exact=model.objects.get(pk=id).beamline)
+    log_set = [
+        ContentType.objects.get_for_model(model).pk, 
+    ]
+    logs = ActivityLog.objects.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]
+    return render_to_response(template, {'ol': ol, 
+                                         'handler': request.path,
+                                         'logs': logs},
+        context_instance=RequestContext(request)
+    )
+
 @admin_login_required
 @transaction.commit_on_success
 def staff_action_object(request, id, model, form, template='objforms/form_base.html', action=None):
@@ -445,19 +489,31 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
         if action == 'load':
             form_info['message'] = 'Verify that this runlist has been loaded into the automounter.'
         if action == 'unload':
-            form_info['message'] = 'Verify that the runlist has been unloaded from the automounter.'
+            form_info['message'] = 'Once unloaded, containers can be added or removed from the runlist before it is loaded again.'
 
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
         if request.POST.has_key('_save'):
             if action:
                 if action == 'review': obj.review(request=request)
-                if action == 'load': obj.load(request=request)
+                if action == 'load': 
+                    obj.load(request=request)
+                    clone_info = {}
+                    for param in ['beamline','comments','left','right','middle']:
+                        clone_info[param] = getattr(obj, param)
+                    clone = Runlist(**clone_info)
+                    clone.name = date.today().strftime('%y%b%d')
+                    for project in Project.objects.filter(pk__in=obj.containers.all().values('project')).distinct():
+                        clone.name += '-%s' % project.name
+                    clone.status = Runlist.STATES.CLOSED
+                    clone.save()
+                    clone.containers = obj.containers.all()
+                    clone.save()
                 if action == 'unload': 
                     obj.unload(request=request)
-                    request.user.message_set.create(message = 'Runlist (%s) unloaded from %s automounter' % (obj.name, obj.beamline))
-                    url_name = "staff-%s-list" % (model.__name__.lower()) 
-                    return render_to_response("lims/redirect.json", {'redirect_to': reverse(url_name),}, context_instance=RequestContext(request), mimetype="application/json")   
+                    request.user.message_set.create(message = 'Runlist (%s) unloaded from %s automounter.  Changes can now be made.' % (obj.name, obj.beamline))
+                    #url_name = "staff-%s-list" % (model.__name__.lower()) 
+                    #return render_to_response("lims/redirect.json", {'redirect_to': reverse(url_name),}, context_instance=RequestContext(request), mimetype="application/json")   
             return render_to_response('lims/refresh.html')
         else:
             return render_to_response(template, {

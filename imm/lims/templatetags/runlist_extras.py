@@ -4,6 +4,7 @@ from django.shortcuts import render_to_response
 from django.db.models import *
 
 from lims.models import Container, Experiment, Crystal
+from staff.models import Runlist
 
 register = Library()
 
@@ -74,4 +75,23 @@ def prioritize_and_sort(object_list):
         return object_list.order_by('priority','container','container_location')
     return object_list.annotate(port=Sum('container_location')).order_by('priority','container','port')
     
+@register.filter('num_containers')
+def num_containers(project, pk):
+    runlist = Runlist.objects.get(pk=pk)
+    return Container.objects.filter(project__exact=project).filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE).count()
 
+@register.filter('get_container_type')
+def get_container_type(pk):
+    try:
+        c = Container.objects.get(pk=int(float(pk)))
+        return c.get_kind_display()
+    except:
+        return ''
+
+@register.filter('get_container_project')
+def get_container_project(pk):
+    try:
+        c = Container.objects.get(pk=int(float(pk)))
+        return c.project
+    except: 
+        return ''

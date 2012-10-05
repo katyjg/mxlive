@@ -303,6 +303,7 @@ ul.toolbar li.download-tool {background-image: url(/img/download-icon-32.png); c
 ul.toolbar li.trash-tool {background-image: url(/img/trash-icon.png);}
 ul.toolbar li.stats-tool {background-image: url(/img/calendar-icon.png);}
 ul.toolbar li.pie-tool {background-image: url(/img/pie_chart.png);}
+ul.toolbar li.history-tool {background-image: url(/img/history.png);}
 a.download-tool {background-image: url(/img/download-icon.png); float: right; padding:8px; margin-top: 4px;}
 a.receive-tool {background-image: url(/img/receive-icon-sm.png); padding: 3px 10px}
 a.back-tool {float:left; width:16px; padding-right:3px; background: url(/img/refresh-icon.png) no-repeat 0 0; cursor: pointer;}
@@ -642,8 +643,10 @@ div.dewar-img.droppable {
 }
 div.runlist.droppable {
     background: url(/img/runlist.png) no-repeat center center;
-    height: 125px;
+    height: 60px;
     width: 100px;
+    margin: 0 10px;
+    padding: 12px 0;
 }
 
 .ui-draggable-dragging {
@@ -714,7 +717,22 @@ div.runlist.droppable {
     background: url(/img/dewar-hover.png) no-repeat center center !important;
     border: none;
 }
-
+tr.runlist.loaded td.Uni-Puck  {
+	background: url('/img/container-uni-puck-xsm-green.png') no-repeat center center;
+}
+tr.runlist.loaded td.Cassette  {
+    background: url('/img/container-cassette-xsm-green.png') no-repeat center center;
+}
+tr.runlist.unloaded td.Uni-Puck  {
+    background: url('/img/container-uni-puck-xsm-red.png') no-repeat center center;
+}
+tr.runlist.unloaded td.Cassette  {
+    background: url('/img/container-cassette-xsm-red.png') no-repeat center center;
+}
+tr.runlist td.empty, tr.runlist td.Uni-Puck, tr.runlist td.Cassette {
+	border: 1px solid #ddd;
+	min-width: 16px;
+}
 li.Uni-Puck {
     background: url('/img/container-uni-puck-sm.png') no-repeat 5px center;
 }
@@ -723,6 +741,18 @@ li.Cassette {
 }
 li.Cane {
     background: url('/img/container-cane-sm.png') no-repeat 5px center;
+}
+li.container p.Uni-Puck, li.container p.Cassette {
+	width: 16px;
+	float: right;
+    padding-right: 5px;
+}
+li.container p.Uni-Puck, tr.runlist.closed td.Uni-Puck {
+	background: url('/img/container-uni-puck-xsm.png') no-repeat center center;
+	min-width: 16px;
+}
+li.container p.Cassette, tr.runlist.closed td.Cassette {
+	background: url('/img/container-cassette-xsm.png') no-repeat center center;
 }
 
 td.Cane {

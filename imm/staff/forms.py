@@ -158,5 +158,12 @@ class StaffCommentsForm(objforms.forms.OrderedForm):
 
     class Meta:
         fields = ('staff_comments',)
+        
+class RunlistCommentsForm(objforms.forms.OrderedForm):
+    comments = objforms.widgets.CommentField(required=False, 
+            help_text="Comments entered here will be visible on the user's MxLIVE account. You can use Restructured Text markup for formatting.")
+
+    class Meta:
+        fields = ('comments',)
 
 

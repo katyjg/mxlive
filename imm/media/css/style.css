@@ -836,12 +836,12 @@ div.object-list .table-notes
 }
 tr.even td
 {
-	background-color:#f7f7f7;
+	background-color:#f7f7f7 !important;
 }
 
 tr.odd td
 {
-	background-color:#fff;
+	background-color:#fff !important;
 }
 
 .link-cell

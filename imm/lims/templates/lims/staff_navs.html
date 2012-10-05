@@ -16,6 +16,6 @@
         <li><a href="{% url staff-scanresult-list %}">Scans</a></li>
     </ul>
 </li>
-<li class='nav-menu {% active request "^/staff/runlist/" %}'><a href="{% url staff-runlist-list %}">Run Lists</a></li>
+<li class='nav-menu {% active request "^/staff/runlist/" %}'><a href="{% url staff-runlist-list %}?status__lte=4">Run Lists</a></li>
 </ul>
 

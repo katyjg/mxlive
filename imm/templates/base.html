@@ -172,6 +172,7 @@
         	if (object.hasClass('crystalform')) { return 'crystalform'; }
         	if (object.hasClass('shipment')) { return 'shipment'; }
         	if (object.hasClass('dewar')) { return 'dewar'; }
+        	if (object.hasClass('project')) { return 'project'; }
         	if (object.hasClass('runlist')) { return 'runlist'; }
         	return 'none';
         }
@@ -181,6 +182,12 @@
                 var data = window.location.pathname + "container/basic/"+jQuery(this).attr('id')+"/";
                 jQuery("#containers").attr("data",data);
                 jQuery(".container-widget-title").html(jQuery(this).attr('exp'));
+                loadWidgets();
+            });
+            jQuery(".runlist-project").click(function() {
+                var data = window.location.pathname + "container/basic/"+jQuery(this).attr('id')+"/";
+                jQuery("#containers").attr("data",data);
+                jQuery(".container-widget-title").html(jQuery(this).attr('project'));
                 loadWidgets();
             });
         }

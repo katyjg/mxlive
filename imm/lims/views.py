@@ -133,7 +133,7 @@ MANAGER_FILTERS = {
     (Data, False) : {'status__in': [Data.STATES.ACTIVE]},
     (Result, True) : {'status__in': [Result.STATES.ACTIVE, Result.STATES.ARCHIVED, Result.STATES.TRASHED]},
     (Result, False) : {'status__in': [Result.STATES.ACTIVE]},
-    (Runlist, True) : {'status__in': [Runlist.STATES.PENDING, Runlist.STATES.LOADED, Runlist.STATES.UNLOADED]},
+    (Runlist, True) : {'status__in': [Runlist.STATES.PENDING, Runlist.STATES.LOADED, Runlist.STATES.UNLOADED, Runlist.STATES.CLOSED]},
 }
 
 # models.Manager ordering is overridden by admin.ModelAdmin.ordering in the ObjectList

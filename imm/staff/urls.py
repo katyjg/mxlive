@@ -34,7 +34,8 @@ _URL_META = {
     '': {
         'feedback': {'model': Feedback, 'template': 'lims/feedback_item.html', 'list_link': False, 'list_modal': True},
         'runlist': {'model': Runlist, 'form': RunlistForm, 'template': 'staff/entries/runlist.html', 
-                    'list_add': True, 'add': True, 'edit': True, 'delete': True, 'delete_form': LimsBasicForm},
+                    'list_add': False, 'add': True, 'edit': True, 'delete': True, 'delete_form': LimsBasicForm,
+                    'staff_comments': False, 'runlist_comments': True, 'list_template': 'staff/lists/runlist_list.html'},
         'link': {'model': Link, 'form': LinkForm, 'list_template': 'staff/lists/link_object_list.html', 
                  'detail': False, 'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True, 'delete_form': LimsBasicForm,
                  'list_add': True, 'add': True, 'edit': True, 'delete': True, 'form_template': 'objforms/form_full.html', 'modal_upload': True},
@@ -114,6 +115,15 @@ for section, subsection in _URL_META.items():
                                    },
                  'staff-comments-%s-add'% params.get('model').__name__.lower()))        
 
+        # Add Staff Comments
+        if params.get('staff_comments', True):
+            _dynamic_patterns.append(
+                (r'%s/(?P<id>\d+)/staff_comments/add/$' % (base_url),
+                 'staff_comments', {'model': params.get('model'),
+                                    'form': StaffCommentsForm,
+                                   },
+                 'staff-comments-%s-add'% params.get('model').__name__.lower()))    
+
 #Special Staff Cases
 urlpatterns = patterns('imm.staff.views',
     (r'^$', 'staff_home', {}, 'staff-home'),
@@ -128,11 +138,14 @@ urlpatterns = patterns('imm.staff.views',
 
     # Runlists
     (r'^runlist/(?P<runlist_id>\d+)/container/basic/(?P<exp_id>\d+)/$', 'container_basic_object_list', {'model':Container, 'template': 'staff/lists/basic_container_list.html'}, 'staff-container-basic-list'),
-    (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'experiment_basic_object_list', {'model':Experiment, 'template': 'staff/lists/basic_experiment_list.html'}, 'staff-experiment-basic-list'),   
+    (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'experiment_basic_object_list', {'model':Experiment, 'template': 'staff/lists/basic_experiment_list.html'}, 'staff-experiment-basic-list'),
+    (r'^runlist/(?P<runlist_id>\d+)/project/basic/$', 'project_basic_object_list', {'model':Project, 'template': 'staff/lists/basic_project_list.html'}, 'staff-project-basic-list'),   
     (r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Runlist, 'object':Experiment }, 'staff-runlist-add-experiment'),
+    (r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/project/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Runlist, 'object':Project }, 'staff-runlist-add-project'),
     (r'^runlist/(?P<dest_id>\d+)/widget/.*/container/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'add_existing_object', {'destination':Runlist, 'object':Container }, 'staff-runlist-add-container'),
     (r'^runlist/(?P<id>\d+)/load/$', 'staff_action_object', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'load'}, 'staff-runlist-load'),
     (r'^runlist/(?P<id>\d+)/unload/$', 'staff_action_object', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'unload'}, 'staff-runlist-complete'),
+    (r'^runlist/(?P<id>\d+)/history/$', 'object_history', {'model': Runlist}, 'staff-runlist-history'),
 )
 
 # Dynamic patterns here
@@ -150,6 +163,7 @@ urlpatterns += patterns('imm.lims.views',
     # Runlists
     (r'^runlist/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),
     (r'^runlist/(?P<id>\d+)/protocol/$', 'shipment_pdf', {'model': Runlist, 'format' : 'runlist' }, 'staff-runlist-pdf'),
+    (r'^runlist/(?P<id>\d+)/staff_comments/add/$', 'staff_comments', {'model': Runlist, 'form': RunlistCommentsForm,}, 'staff-comments-runlist-add'),    
     
     # Report images
     (r'^experiment/report/(\d+)/shell.png$', 'plot_shell_stats', {}, 'staff-plot-shells'),
