@@ -115,7 +115,7 @@ admin.site.register(ScanResult, ScanResultAdmin)
 
 class ScanResultStaffAdmin(ResultAdmin):
     list_filter = ['modified','kind','status']
-    search_fields = ['name','project__name','crystal__name']
+    search_fields = ['name','project__name','crystal__name', 'beamline__name']
     list_display = ('project','id','name','crystal','edge','kind','created','status')
     ordering = ['-created', 'project']
 staff_site.register(ScanResult, ScanResultStaffAdmin)
