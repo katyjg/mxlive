@@ -17,6 +17,9 @@
 <div class="crystal droppable droppable-replace" {% if object.is_editable %}accept="crystalform cocktail" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>
 
 <table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
+    {% if request.user.is_superuser %}
+        <tr valign="top"><th>Project:</th><td>{{ object.project }}</td></tr>
+    {% endif %}
     <tr valign="top"><th>Status:</th><td>{{ object.get_status_display }}</td></tr>
 	{% if object.screen_status != 0 %}
 		<tr valign="top"><th NOWRAP>Screen Status:</th><td>{{ object.get_screen_status_display }}</td></tr>

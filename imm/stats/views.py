@@ -78,7 +78,7 @@ def stats_year(request, year):
 
     prov_list = ['Saskatchewan','British Columbia','Alberta','Manitoba','Ontario','Quebec','New Brunswick','Nova Scotia','Prince Edward Island','Newfoundland','Other','No Matching MxLIVE Account']
     labels = ['Normal','Remote','Mail-In','Purchased Access','Maintenance','Unallocated']
-    colors = ['#7DCF7D','#A2DDDD','#CCE3B5','#FFCB94','#dddddd','#bbbbbb']
+    colors = ['#7DCF7D','#A2DDDD','#CCE3B5','#FFCB94','#bbbbbb','#dddddd']
     month_labels = ('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec')
     
     today = ddatetime.date.today()

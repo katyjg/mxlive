@@ -15,7 +15,7 @@
 <div id="data-viewer">
     <div class="heading">
 	    <h2>
-        	<span class="identity">{{data.get_kind_display|capfirst}} Dataset</span> {{ data.name }}
+        	<span class="identity">{{data.get_kind_display|capfirst}} Dataset</span> {% if request.user.is_superuser %}{{ data.project }} - {% endif %}{{ data.name }}
 	    </h2>
         <div class="object-tools">
             <ul class="toolbar">

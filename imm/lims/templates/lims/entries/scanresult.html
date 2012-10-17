@@ -92,6 +92,9 @@
 {% block sidebar %}
 <div class="meta-data">
 <table class="entrysummary sidebar-summary" cellpadding="2" cellspacing="0" border="0" width="100%">
+    {% if request.user.is_superuser %}
+    <tr valign="top"><th>Project:</th><td>{{ object.project }}</td></tr>
+    {% endif %}
     <tr valign="top"><th>Status:</th><td>{{ object.get_status_display }}</td></tr>
     <tr valign="top"><th>Beamline:</th><td>{{ object.beamline }}</td></tr>
     <tr valign="top"><th>Created:</th><td>{{ object.created|date:"dMY-H:i" }}</td></tr>
@@ -215,7 +218,8 @@
                 plot = $.plot($("#xanes-scan"),
                      [ { data: fp, label: "f'  = -0.00", color: "#009900", yaxis: 2, lines: { show: true, lineWidth: 1 }, shadowSize: 0 },
                        { data: fpp, label: "f'' = 0.00", color: "#FF0000", yaxis: 2, lines: { show: true, lineWidth: 1 }, shadowSize: 0 },
-                       { data: counts, label: "", color: "#0000FF", lines: { show: true, lineWidth: 1 }, shadowSize: 0 } ], 
+                       { data: counts, label: "", color: "#0000FF", lines: { show: true, lineWidth: 1 }, shadowSize: 0 },
+                       { data: [], label: "E = 00.000 keV", color: "#ffffff" } ], 
                      { series: { lines: { show: true } },
                        crosshair: { mode: "x", color: "#333333"},
                        grid: { hoverable: true, autoHighlight: false, markings: markings, borderWidth: 1  },
@@ -245,7 +249,12 @@
                          for (j = 0; j < series.data.length; ++j)
                              if (series.data[j][0] > pos.x) break;
                          var y, p1 = series.data[j - 1], p2 = series.data[j]; // now interpolate
-                         if (p1 == null) y = p2[1];
+                         if (p1 == null) { 
+                            if (p2 != null) y = p2[1];
+                            else {
+                                legends.eq(2).text(series.label.replace(/=.*/, "= " + pos.x.toFixed(3) + ' keV'));  
+                            }
+                         }
                          else if (p2 == null) y = p1[1];
                          else y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
                          legends.eq(i).text(series.label.replace(/=.*/, "= " + y.toFixed(2)));

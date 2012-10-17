@@ -286,10 +286,14 @@ def upload_shipment(request, model, form, template='lims/forms/form_base.html'):
             # to the user, rather than a 500 page
             try:
                 frm.save(request) #FIXME ShipmentUpload form.save does not return the model being saved!
-                message = 'Shipment uploaded successfully'
+                message = "Shipment uploaded successfully.  Click 'Send' to alert CMCF staff of your shipment."
                 request.user.message_set.create(message = message)
-                return render_to_response("lims/iframe_refresh.html", context_instance=RequestContext(request))
-
+                obj = Shipment.objects.filter(status__exact=0).get(name__exact=frm.get_shipment())
+                return render_to_response("lims/iframe_refresh.html", {'redirect_to': '/lims/shipping/shipment/%s/' % obj.pk,}, context_instance=RequestContext(request))
+                #redirect = '/lims/shipping/shipment/%s/' % obj.pk
+                #return render_to_response("lims/redirect.json", {
+                #           'redirect_to': redirect,
+                #       }, context_instance=RequestContext(request), mimetype="application/json")
             except IntegrityError:
                 transaction.rollback()
                 frm.add_excel_error('This data has been uploaded already')

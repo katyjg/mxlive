@@ -2,7 +2,9 @@
 <head>
 	<script type="text/javascript">
        // initialize browser and add classes to body tag
-       parent.location.reload();
+       {% if redirect_to %}window.top.location.href="{{redirect_to}}";
+       {% else %}parent.location.reload();
+       {% endif %}
 	</script>
 </head>
 <body>

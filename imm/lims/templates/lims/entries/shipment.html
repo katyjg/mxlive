@@ -17,13 +17,13 @@
 {% with object as shipment %}   
     <div class="shipment droppable droppable-replace" {% if shipment.is_editable %}accept="dewar" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>
     <table class="entrysummary" cellpadding="0" cellspacing="0" border="0">
+        {% if request.user.is_superuser %}
+            <tr valign="top"><th>Project:</th><td>{{ shipment.project }}</td></tr>
+        {% endif %}
         <tr valign="top"><th>Status:</th><td>{{ shipment.get_status_display }}</td></tr>
         {% ifequal shipment.status shipment.STATES.DRAFT %}
             <tr valign="top"><th>Shippable:</th><td>{{shipment.shipping_errors|yesno:"No,Yes"}}</td></tr>
         {% endifequal %}
-        {% if request.user.is_superuser %}
-            <tr valign="top"><th>Project:</th><td>{{ shipment.project }}</td></tr>
-        {% endif %}
         {% if shipment.date_shipped %}
         	<tr valign="top"><th>Carrier:</th><td>{{ shipment.carrier }}</td></tr>
         	<tr valign="top"><th>Shipped:</th><td>{{shipment.date_shipped|naturalday}} at {{shipment.date_shipped|date:"H:i T"}}</td></tr>

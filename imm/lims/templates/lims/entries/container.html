@@ -101,6 +101,9 @@
 {% endifequal %}
 
 <table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
+    {% if request.user.is_superuser %}
+        <tr valign="top"><th>Project:</th><td>{{ object.project }}</td></tr>
+    {% endif %}
     <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
     <tr valign="top"><th>Dewar:</th><td>
     {% if object.dewar %}

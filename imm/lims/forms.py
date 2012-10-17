@@ -117,6 +117,9 @@ class ShipmentUploadForm(forms.Form):
             raise forms.ValidationError('An un-archived shipment already exists with this name')
         return self.cleaned_data['shipment']
 
+    def get_shipment(self):
+        return self.cleaned_data['shipment']
+
     def error_message(self):
         errors = ''
         if not self.workbook.is_valid():
