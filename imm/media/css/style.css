@@ -262,7 +262,10 @@ img
 	margin-left:72px;
 	line-height: 0.9em;
 }
-
+#logo:hover
+{
+    color: #FFF !important;
+}
 #slogan
 {
 	margin:0 0 0 72px;
