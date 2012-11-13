@@ -67,7 +67,7 @@
 	                    {% ifequal month.0 day.1 %}current-month 
 	                    {% ifequal current_date day.0 %}today{% endifequal %}{% endifequal %}
 	                    {% if day.2 %}link-cell modal"
-	                    href="{% url stats-data-list %}?beamline={{bl}}&created__year={{month.2}}&created__month={{month.0}}&created__day={{day.0}}&ot=asc&o=6" 
+	                    href="{% url stats-data-list %}?beamline={{forloop.parentloop.counter}}&created__year={{month.2}}&created__month={{month.0}}&created__day={{day.0}}&ot=asc&o=6" 
 	                    {% else %}"{% endif %}>
 		                {% with day.2|format_data:name as data %}
 		                    {% for item in data %}
