@@ -303,6 +303,7 @@ ul.toolbar li.download-tool {background-image: url(/img/download-icon-32.png); c
 ul.toolbar li.trash-tool {background-image: url(/img/trash-icon.png);}
 ul.toolbar li.stats-tool {background-image: url(/img/calendar-icon.png);}
 ul.toolbar li.pie-tool {background-image: url(/img/pie_chart.png);}
+ul.toolbar li.hist-tool {background-image: url(/img/hist_chart.png);}
 ul.toolbar li.history-tool {background-image: url(/img/history.png);}
 a.download-tool {background-image: url(/img/download-icon.png); float: right; padding:8px; margin-top: 4px;}
 a.receive-tool {background-image: url(/img/receive-icon-sm.png); padding: 3px 10px}
@@ -1299,18 +1300,21 @@ div.statistics th {
 div.statistics h3 {
 	margin: 5px !important;
 }
-.half {
-	width: 50%;
-	float: left;
-	text-align: center;
-	height: 16px;
-    padding-bottom: 10px;
-}
 .placeholder {
-	width: 420px; 
+	width: 100%; 
 	padding: 0px 10px 10px 0px !important; 
 	height: 300px; 
 	float: left;
+}
+.half {
+	height: 200px;
+	width: 50%;
+	padding: 0 0 10px 0 !important;
+}
+.stat h2, .stat h4 {
+    text-align: center;
+    height: 16px;
+    padding-bottom: 10px;	
 }
 .nolegend div.legend {
 	display: none;

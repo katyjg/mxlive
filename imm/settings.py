@@ -22,11 +22,16 @@ if os.path.exists(_version_file):
 else:
     VERSION = '- Development -'
 
+ALERT_FROM_EMAIL = 'cmcf-support@lightsource.ca'
 SERVER_EMAIL = 'cmcf-web@no-reply.ca'
 EMAIL_SUBJECT_PREFIX = 'MxLIVE:'
 ADMINS = (
     ('Kathryn Janzen', 'kathryn.janzen@lightsource.ca'),
 )
+STAFF = (
+    ('kathryn janzen', 'kathryn.janzen@lightsource.ca'),
+)
+
 ADMIN_MESSAGE_USERNAME = None
 
 MANAGERS = ADMINS
@@ -40,7 +45,7 @@ DATABASES = {
         'HOST': '10.52.4.19',
         'PORT': '',
         },
-    'cmcf-web': {
+    'public-web': {
         'NAME': 'website',
         'ENGINE': 'mysql',
         'USER': 'cmcfweb',
@@ -49,6 +54,7 @@ DATABASES = {
         'PORT': '',
         }
     }
+PUBLIC_PATH = '/var/website/cmcf-website/cmcf' # path to django project directory for public-web
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name

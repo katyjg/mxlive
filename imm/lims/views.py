@@ -521,7 +521,7 @@ def create_object(request, model, form, id=None, template='lims/forms/new_base.h
 
 @login_required
 @manager_required
-def object_list(request, model, template='objlist/object_list.html', link=False, modal_link=False, modal_edit=False, modal_upload=False, delete_inline=False, can_add=False, can_prioritize=False):
+def object_list(request, model, template='objlist/object_list.html', link=False, modal_link=False, modal_edit=False, modal_upload=False, delete_inline=False, can_add=False, can_prioritize=False, num_show=None, view_only=False):
     """
     A generic view which displays a list of objects of type ``model`` owned by
     the current users project. The list is displayed using the template
@@ -535,7 +535,7 @@ def object_list(request, model, template='objlist/object_list.html', link=False,
     log_set = [
         ContentType.objects.get_for_model(model).pk, 
     ]
-    ol = ObjectList(request, request.manager)
+    ol = ObjectList(request, request.manager, num_show=num_show)
     if not request.user.is_superuser:
         project = request.user.get_profile()
         logs = project.activitylog_set.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]
@@ -549,6 +549,7 @@ def object_list(request, model, template='objlist/object_list.html', link=False,
                                          'delete_inline': delete_inline,
                                          'can_add': can_add, 
                                          'can_prioritize': can_prioritize,
+                                         'viewonly': view_only,
                                          'handler': request.path,
                                          'logs': logs},                                         
         context_instance=RequestContext(request)

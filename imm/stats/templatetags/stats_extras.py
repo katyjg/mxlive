@@ -2,7 +2,7 @@ from django.template import Library
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
-from lims.models import Data, Project, Result, ScanResult
+from lims.models import Project, Result, ScanResult
 
 register = Library()
 
@@ -26,10 +26,6 @@ def format_data(data, beamline):
                                  data[i].created.strftime("%H:%M"), 
                                  data[i].created.strftime("%H:%M")])      
     return projects or ''
-
-@register.filter("bl_name")
-def bl_name(name):
-    return name.replace('08','')
 
 @register.filter("by_kind")
 def by_kind(data, kind):
@@ -62,3 +58,31 @@ def num_shifts(data, month):
         start_time += one_shift
     return num_shifts
 
+@register.filter("sum_shifts")
+def sum_shifts(list):
+    num = 0
+    for v in list:
+        num += v.get_num_shifts()
+    return num
+
+@register.filter("sum_dict")
+def sum_dict(dict, i):
+    total = 0
+    for k, v in dict.items():
+        total = total + v[i]
+    return total
+
+@register.filter("sum_index")
+def sum_index(list, i):
+    total = 0
+    for v in list:
+        total += v[i]
+    return total
+
+@register.filter("dict_key")
+def dict_key(dict, key):
+    return dict[key]
+
+@register.filter("stripspace")
+def stripspace(str):
+    return str.replace(' ','')

@@ -850,9 +850,9 @@ tr.odd td
 	/*color:#333;*/
 }
 
-.link-row:hover, .link-row:hover td, .redirect:hover
+.link-row:hover, .link-row:hover td, .redirect:hover, .link-cell:hover
 {
-    color: #0066cc;
+    color: #0066cc !important;
 }
 
 .link-row, .redirect
@@ -1005,6 +1005,9 @@ ul.reports li a
 
 #result-page {
  margin: 0 auto; text-align:left; padding:0px 50px;
+}
+#result-page.stat {
+	padding: 0px 0px;
 }
 #result-summary {
     float: left;

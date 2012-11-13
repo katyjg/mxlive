@@ -27,7 +27,7 @@ _URL_META = {
     },
     'experiment': {
         'request':  {'model': Experiment},       
-        'dataset':  {'model': Data, 'list_template': 'staff/lists/dataset_list.html'},       
+        'dataset':  {'model': Data, 'list_template': 'staff/lists/dataset_full_list.html'},       
         'report':   {'model': Result},     
         'scan':     {'model': ScanResult},    
     },

@@ -1,22 +1,22 @@
 from datetime import datetime, timedelta, date
-import datetime as ddatetime
 from dateutil.relativedelta import relativedelta
-import calendar
 import sys, os
+from numpy import histogram, average, std
 
 from imm.lims.views import admin_login_required
-from imm.lims.models import *
+from imm.lims.models import Beamline, Data, Project
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import HttpResponse
-from django.utils.datastructures import SortedDict
+from django.views.decorators.cache import cache_page
+from django.conf import settings
 
-sys.path.append(os.path.join('/var/website/cmcf-website/cmcf'))
-from scheduler.models import Visit, Stat, WebStatus, Proposal
-from scheduler.models import Beamline as CMCFBeamline
+PUBLIC_PATH = getattr(settings, 'PUBLIC_PATH', '/tmp')
+sys.path.append(os.path.join(PUBLIC_PATH))
+from scheduler.models import Visit, Stat, WebStatus
+from scheduler.models import Beamline as PublicBeamline
 
-provinces = {'British Columbia': ['BC','British Columbia'],
+_provinces = {'British Columbia': ['BC','British Columbia'],
              'Alberta': ['AB', 'Alberta'],
              'Saskatchewan': ['SK','Saskatchewan','Sask'],
              'Manitoba': ['MB','Manitoba','Man'],
@@ -29,25 +29,45 @@ provinces = {'British Columbia': ['BC','British Columbia'],
              }
 
 @admin_login_required
+@cache_page(60*3600)
 def stats_month(request, year, month):
-    display = ['08ID-1', '08B1-1']   
+    display = [bl.name for bl in PublicBeamline.objects.using('public-web')]   
     start_time = datetime(int(year), int(month), 1)
     end_time = start_time + relativedelta(months=+1)
     all_data = Data.objects.filter(beamline__name__in=display).filter(created__gt=start_time).filter(created__lt=end_time)
+    all_stats = {}
+    for d in all_data:
+        if not all_stats.has_key(d.project.name):
+            all_stats[d.project.name] =  {}
+            for bl in PublicBeamline.objects.using('public-web'):
+                shifts = []
+                bl_data = all_data.filter(project=d.project).filter(beamline__name=bl.name)
+                for data in bl_data:
+                    if '%s-%s' % (data.created.strftime('%a, %b %d, %Y'), data.created.hour/8) not in shifts:
+                        shifts.append('%s-%s' % (data.created.strftime('%a, %b %d, %Y'), data.created.hour/8))
+                all_stats[d.project.name][bl.name] = {
+                      'shifts': len(shifts),
+                      'Screening': bl_data.filter(kind=Data.DATA_TYPES.SCREENING).count(),
+                      'Collection': bl_data.filter(kind=Data.DATA_TYPES.COLLECTION).count()
+                      }
+                
     return render_to_response('stats/statistics.html', {
         'month': [int(month), int(year)],
-        'data': all_data,
+        'stats': all_stats,
         'display': display,
         }, context_instance=RequestContext(request))    
     
 @admin_login_required
+@cache_page(60*3600)
 def stats_calendar(request, month=None):
     mon = month and int(month.split('-')[1]) or datetime.today().month
     today = month and datetime(year=int(month.split('-')[0]), month=mon, day=datetime.today().day) or datetime.today()
     prev_month = (datetime(today.year, mon, 1) + relativedelta(months=-1)).strftime('%Y-%m')
     next_month = (datetime(today.year, mon, 1) + relativedelta(months=+1)).strftime('%Y-%m')
 
-    display = ['08ID-1', '08B1-1']
+    display = {}
+    for bl in PublicBeamline.objects.using('public-web'):
+        display[bl.name] = bl.pk
     current_date = (datetime.today().strftime('%Y-%m-%d') == today.strftime('%Y-%m-%d')) and today.day or 0
 
     dates = []
@@ -60,7 +80,7 @@ def stats_calendar(request, month=None):
             this_day = first_day + timedelta(days=(j + i*7))
             filter_today = datetime(this_day.year, this_day.month, this_day.day)
             filter_tomorrow = filter_today + timedelta(days=1)
-            data = Data.objects.filter(created__gt=filter_today).filter(created__lt=filter_tomorrow).order_by('created')
+            data = Data.objects.filter(created__gt=filter_today).filter(created__lt=filter_tomorrow).order_by('created').filter(beamline__name__in=display.keys())
             week.append([this_day.day,this_day.month,data])
         i += 1
         dates.append(week)
@@ -72,8 +92,45 @@ def stats_calendar(request, month=None):
         'dates': dates,
         }, context_instance=RequestContext(request))
     
-    
 @admin_login_required
+@cache_page(60*3600)
+def stats_params(request, year=None, cumulative=False):   
+    all_datasets = Data.objects.all()
+    today = date.today()  
+    if year:
+        today = date.today()    
+        start_year = date(int(year), 1, 1)
+        end_year = date(int(year), 12, 31)
+        if today < end_year:
+            end_year = today
+        all_datasets = all_datasets.filter(created__gte=start_year).filter(created__lte=end_year)
+    else: year = today.year
+    beamlines = PublicBeamline.objects.using('public-web')
+    exp_data = {}
+    stat = {}
+    for bl in Beamline.objects.all():
+        if bl.name in [b.name for b in beamlines]:
+            datasets = all_datasets.filter(beamline__exact=bl).filter(kind__exact=Data.DATA_TYPES.COLLECTION)
+            exp_data[bl.name] = {}
+            for type in ['exposure_time','wavelength','delta_angle','resolution']:
+                if type == 'wavelength':
+                    stat[type] = [data.energy() for data in datasets]
+                else:
+                    stat[type] = [data.__dict__[type] for data in datasets]
+                num_bins = 20
+                stat[type] = [x for x in stat[type] if x < ( average(stat[type]) + 3 * std(stat[type])) ]
+                if stat[type]:
+                    exp_data[bl.name][type] = histogram(stat[type], bins=num_bins, range=(min(stat[type]), max(stat[type])))
+                    exp_data[bl.name][type] = [[exp_data[bl.name][type][1][i], exp_data[bl.name][type][0][i]] for i in range(num_bins) ]
+
+    return render_to_response('stats/param_stats.html', {
+        'years': [int(today.year), int(year) +1, int(year) -1, int(year)],
+        'exp_data': exp_data,
+        'cumulative': cumulative,
+        }, context_instance=RequestContext(request))
+
+@admin_login_required
+@cache_page(60*3600)
 def stats_year(request, year):
 
     prov_list = ['Saskatchewan','British Columbia','Alberta','Manitoba','Ontario','Quebec','New Brunswick','Nova Scotia','Prince Edward Island','Newfoundland','Other','No Matching MxLIVE Account']
@@ -81,159 +138,139 @@ def stats_year(request, year):
     colors = ['#7DCF7D','#A2DDDD','#CCE3B5','#FFCB94','#bbbbbb','#dddddd']
     month_labels = ('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec')
     
-    today = ddatetime.date.today()
-    start_year = ddatetime.date(int(year), 1, 1)
-    end_year = ddatetime.date(int(year), 12, 31)
+    today = date.today()
+    start_year = date(int(year), 1, 1)
+    end_year = date(int(year), 12, 31)
     if today < end_year:
         end_year = today
     one_day = timedelta(days=1)
-    one_shift = timedelta(hours=8)
+    year = end_year.year
     
     shift_usage_labels = [[k, month_labels[k]] for k in range(len(month_labels)) if k < int(end_year.month)]
     
     shift_stats = {}
-    shift_stats['users'] = {}
+    shift_usages = {}
+    extra_visit = {}
     
-    all_datasets = Data.objects.filter(created__gte=start_year).filter(created__lte=end_year)
-    beamlines = CMCFBeamline.objects.using('cmcf-web').exclude(name__exact='SIM-1')
-    visits = Visit.objects.using('cmcf-web').filter(start_date__lte=end_year).filter(end_date__gte=start_year)
-    props = Proposal.objects.using('cmcf-web').filter(pk__in=visits.values('proposal').distinct())
-    nstat = Stat.objects.using('cmcf-web').filter(mode__in=['NormalMode']).filter(start_date__lte=end_year, end_date__gte=start_year)
-    nwebstat = WebStatus.objects.using('cmcf-web').filter(date__endswith=str(year))
-    
-    vlist = {}
-    for bl in beamlines: vlist[bl.name] = {}
-    for v in visits: # Get a list of all visits, sorted by the type of visit
-        # Choose which dictionary key to use
-        if v.maintenance: dkey = 'Maintenance'
-        elif v.remote: dkey = 'Remote'
-        elif v.mail_in: dkey = 'Mail-In'
-        elif v.purchased: dkey = 'Purchased Access'
-        else: dkey = 'Normal'
-        if not vlist[v.beamline.name].has_key(dkey): vlist[v.beamline.name][dkey] = []
-        # Add entries to vlist for each shift
-        if v.start_date == v.end_date:
-            for i in range(3):
-                if i >= v.first_shift and i <= v.last_shift: vlist[v.beamline.name][dkey].append([v.start_date, i])
-        else:
-            for i in range(3):
-                if i >= v.first_shift: vlist[v.beamline.name][dkey].append([v.start_date, i])
-            next = v.start_date + one_day
-            while next < v.end_date:
-                for i in range(3): vlist[v.beamline.name][dkey].append([next, i])
-                next += one_day
-            for i in range(3): 
-                if i <= v.last_shift: vlist[v.beamline.name][dkey].append([v.end_date, i])
-    
+    all_visits = Visit.objects.using('public-web').filter(start_date__lte=end_year).filter(end_date__gte=start_year)
+    visits = all_visits.exclude(proposal=None)
+    beamlines = PublicBeamline.objects.using('public-web')
+    nstat = Stat.objects.using('public-web').filter(mode__in=['NormalMode']).filter(start_date__lte=end_year, end_date__gte=start_year)
+    nwebstat = WebStatus.objects.using('public-web').filter(date__endswith=str(year))
+    datasets = Data.objects.filter(created__year=year)
+
+    prod_dates = {}
+    prod_stats = {}
     nlist = []
-    for n in nstat: # Start making a list of all the  normal shifts in the given time frame
+    unused = {}
+    for n in nstat: # Start making a list of all the normal shifts in the given time frame
         if n.start_date == n.end_date:
             for i in range(3):
-                if i >= n.first_shift and i <= n.last_shift: nlist.append([n.start_date,i])
+                if i >= n.first_shift and i <= n.last_shift: 
+                    nlist.append([n.start_date,i,[None, None]])
         else:
             for i in range(3):
-                if i >= n.first_shift: nlist.append([n.start_date,i])
+                if i >= n.first_shift: 
+                    nlist.append([n.start_date,i,[None, None]])
             next = n.start_date + one_day
             while next < n.end_date:
-                for i in range(3): nlist.append([next,i])
+                for i in range(3): 
+                    nlist.append([next,i,[None, None]])
                 next += one_day
             for i in range(3):
-                if i <= n.last_shift: nlist.append([n.end_date,i]) 
+                if i <= n.last_shift: 
+                    nlist.append([n.end_date,i,[None, None]])
     
     next_day = start_year
     while next_day <= end_year: # Add more shifts to the list of normal shifts, from the WebStatus model
         for shift in range(3):
-            if [next_day, shift] not in nlist and nwebstat.filter(date__exact=next_day.strftime('%b/%d/%Y')).exists():
+            if [next_day, shift, [None, None]] not in nlist and nwebstat.filter(date__exact=next_day.strftime('%b/%d/%Y')).exists():
                 ws = nwebstat.get(date__exact=next_day.strftime('%b/%d/%Y'))
                 wslist = [ws.status1, ws.status2, ws.status3]
                 if wslist[shift] and wslist[shift][0] == 'N' and (len(wslist[shift]) == 1 or not wslist[shift][1] == 'S'):
-                    nlist.append([next_day, shift])
+                    nlist.append([next_day, shift,[None, None]])
         next_day += one_day
-
-    months, shift_usage, extra_visits = {}, {}, {}
     
-    for bl in beamlines:
-        stats = {}
-        _projs_checked = []
-        bl_visits = visits.filter(beamline__exact=bl).filter(maintenance=False)
-        extra_visits[bl.name] = [bl_visits.count(), bl_visits.exclude(proposal=None).count(), bl_visits.filter(proposal=None)]
-        for x in props:
-            num_shifts, num_visits, num_used = 0, 0, 0
-            projs = []
-            pi, prov = None, None
-            account_list = x.account and [a for a in x.account.replace(' ','').split(',')] or []
-            if Project.objects.filter(name__in=account_list).exists():
-                projs = Project.objects.filter(name__in=account_list)
-                pi = Project.objects.filter(name__exact=account_list[0]).exists() and Project.objects.get(name__exact=account_list[0]) or None
-            elif Project.objects.filter(user__last_name__exact=str(x.last_name)).filter(user__first_name__startswith=str(x.first_name)[0]).exists():
-                projs = Project.objects.filter(user__last_name__exact=str(x.last_name)).filter(user__first_name__startswith=str(x.first_name)[0])
-                pi = projs[0]
-            if pi:
-                for k, v in provinces.items():
-                    prov = prov == None and str(pi.province) in v and k or prov
-                prov = prov and prov or 'Other'
-            group = pi and pi or x
-            prov = prov and prov or 'No Matching MxLIVE Account'
-            if not stats.has_key(prov): stats[prov] = {}
-            for v in bl_visits.filter(proposal__exact=x):
-                num_visits += 1
-                if v.start_date == v.end_date:
-                    for i in range(3):
-                        if i >= v.first_shift and i <= v.last_shift: num_shifts += 1
-                else:
-                    for i in range(3):
-                        if i >= v.first_shift: num_shifts += 1
-                    next = v.start_date + one_day
-                    while next < v.end_date:
-                        for i in range(3): num_shifts += 1
-                        next += one_day
-                    for i in range(3): 
-                        if i <= v.last_shift: num_shifts += 1
-            if num_visits or num_shifts:
-                if stats[prov].has_key(group):
-                    stats[prov][group][0] += num_visits
-                    stats[prov][group][1] += num_shifts
-                else: stats[prov][group] = [num_visits, num_shifts, num_used]
-            for p in account_list:
-                num_used = 0
-                data = all_datasets.filter(beamline__exact=Beamline.objects.get(name__exact=bl.name)).filter(project__name=p).values('created')
-                if data and p not in _projs_checked:
-                    _projs_checked.append(p)
-                    _shifts_checked = []
-                    for d in data:
-                        first_shift = datetime(d['created'].year, d['created'].month, d['created'].day)
-                        if first_shift not in _shifts_checked:
-                            _shifts_checked.append(first_shift)
-                            for i in range(3):
-                                if data.filter(created__gte=first_shift+(one_shift*i)).filter(created__lte=first_shift+(one_shift*(i+1))).exists():
-                                    num_used += 1
-                if num_used:
-                    if stats[prov].has_key(group):
-                        stats[prov][group][2] += num_used
-                    else: stats[prov][group] = [num_visits, num_shifts, num_used]
-            
-        shift_stats['users'][bl.name] = SortedDict([(k, stats[k]) for k in prov_list if stats.has_key(k)])
-        months[bl.name] = [0]*6
-        for i, type in enumerate(labels):
-            months[bl.name][i] = [0]*end_year.month
-        for ns in nlist:
-            sh = [k for k, v in vlist[bl.name].iteritems() if ns in v]
-            if len(sh) == 1:
-                months[bl.name][labels.index(sh[0])][ns[0].month-1] +=1
-            elif len(sh) == 0:
-                months[bl.name][labels.index('Unallocated')][ns[0].month-1] +=1
-        shift_usage[bl.name] = {}
-        for i, type in enumerate(labels):
-            shift_usage[bl.name][type] = [[], colors[i]]
-            for j, val in enumerate(months[bl.name][i]):
-                shift_usage[bl.name][type][0].append([j, months[bl.name][i][j]])
-
+    for i, bl in enumerate(beamlines):
+        extra_visit[bl.name] = [all_visits.filter(beamline=bl).count(),visits.filter(beamline=bl).count(),all_visits.filter(beamline=bl).filter(proposal=None)] # Visits that don't have a proposal attached
+        shift_stats[bl.name] = {} # How much time users had who visited this year
+        shift_usages[bl.name] = {} # How N shifts were used
+        prod_dates[bl.name] = {} # Productivity stats
+        prod_stats[bl.name] = {} # Productivity stats
+        unused[bl.name] = {'nights': 0, 'days': 0}
+        for prov in prov_list: shift_stats[bl.name][prov] = {}
+        for j, lab in enumerate(labels): 
+            shift_usages[bl.name][lab] = [[[m,0] for m in range(0,end_year.month)], colors[j]]
+            if lab in ['Mail-In','Remote','Purchased Access','Normal']: 
+                prod_stats[bl.name][lab] = [0,0,0,0,0,0]
+                prod_dates[bl.name][lab] = []
+        for n in nlist:
+            for v in all_visits.filter(beamline=bl).filter(start_date__lte=n[0]).filter(end_date__gte=n[0]):
+                if v.get_shifts(n[0])[n[1]] is not None:
+                    n[2][i] = v.get_shifts(n[0], ids=True)[n[1]][1]
+            if n[2][i] is not None:
+                if n[2][i].maintenance: mode = 'Maintenance'
+                elif n[2][i].remote: mode = 'Remote'
+                elif n[2][i].mail_in: mode = 'Mail-In'
+                elif n[2][i].purchased: mode = 'Purchased Access'
+                else: mode = 'Normal'
+                if n[2][i].proposal:
+                    country = None
+                    if Project.objects.filter(name__exact=n[2][i].proposal_account()).exists(): # proposal exists AND there's an MxLIVE project
+                        group_name = Project.objects.get(name__exact=n[2][i].proposal_account()).name 
+                        province = Project.objects.get(name__exact=n[2][i].proposal_account()).province
+                        for prov, vals in _provinces.items(): 
+                            if province in vals: 
+                                province = prov
+                        province = ( province in prov_list and province ) or 'Other'
+                        if province == 'Other': country = Project.objects.get(name__exact=n[2][i].proposal_account()).country
+                    else: # proposal exists, but no MxLIVE account
+                        group_name = n[2][i].proposal_display()
+                        province = 'No Matching MxLIVE Account' 
+                    if not shift_stats[bl.name][province].has_key(group_name): # First appearance of this group
+                        shifts_used = 0
+                        for a in n[2][i].proposal.account_list():
+                            shifts_used += Project.objects.filter(name__exact=a).exists() and Project.objects.get(name__exact=a).shifts_used_by_year(today.year, bl.name) or 0
+                        shift_stats[bl.name][province][group_name] = [[n[2][i]], 0, shifts_used]
+                    elif n[2][i] not in shift_stats[bl.name][province][group_name][0]: # Not first appearance, but new visit
+                        shift_stats[bl.name][province][group_name][0].append(n[2][i])
+                    if not n[2][i].maintenance: shift_stats[bl.name][province][group_name][1] += 1 # Add a scheduled shift
+                    if country and country not in shift_stats[bl.name][province][group_name]: shift_stats[bl.name][province][group_name].append(country)
+            else: 
+                mode = 'Unallocated'
+                if n[1] == 2 or n[0].weekday() in [5,6]: unused[bl.name]['nights'] += 1
+                else: unused[bl.name]['days'] += 1
+            shift_usages[bl.name][mode][0][n[0].month-1][1] += 1
+            if mode in ['Mail-In','Remote','Purchased Access','Normal']:
+                prod_dates[bl.name][mode].append([n[0],n[1]])
+        for prov in prov_list: 
+            for key, val in shift_stats[bl.name][prov].items():
+                shift_stats[bl.name][prov][key][0] = len(val[0])
     
+    # Want [#datasets(full), avg_datasets(full), shutter_time_open, avg_shutter_time, number_shifts_scheduled]
+    for bl, modes in prod_dates.items():
+        for mode, dates in modes.items():
+            for d in dates:
+                prod_stats[bl][mode][4] += 1
+                s = (d[1] < 2 and d[1]+1) or 0 
+                data_date = (s is not 0 and d[0]) or d[0] + one_day
+                for data in datasets.filter(created__month=data_date.month).filter(created__day=data_date.day):
+                    if data.created.hour in range(s*8, s*8+8):
+                        if data.kind == Data.DATA_TYPES.COLLECTION:
+                            prod_stats[bl][mode][0] += 1
+                        prod_stats[bl][mode][2] += data.exposure_time * data.num_frames()
+            if prod_stats[bl][mode][4]:
+                prod_stats[bl][mode][1] = prod_stats[bl][mode][0]/float(prod_stats[bl][mode][4]*8)
+                prod_stats[bl][mode][3] = prod_stats[bl][mode][2]/float(prod_stats[bl][mode][4]*8)
+        
     return render_to_response('stats/beamline_stats.html', {
         'years': [int(today.year), int(year) +1, int(year) -1, int(year)],
-        'users': shift_stats['users'],
-        'visits': extra_visits,
-        'shift_usage': shift_usage,
+        'unused': unused,
+        'users': shift_stats,
+        'visits': extra_visit,
+        'shift_usage': shift_usages,
+        'prod_stats': prod_stats,
         'shift_usage_labels': shift_usage_labels,
         'type_labels': labels,
+        'modes': ['Purchased Access','Normal','Remote','Mail-In'],
         }, context_instance=RequestContext(request))

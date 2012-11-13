@@ -1,55 +1,53 @@
 {% extends "base.html" %}
-{% load math_filters %}
+{% load stats_extras %}
 
 {% block headline %}
-    <h2>CMCF Beamline Stats</h2>
+    <h2>Beamline Stats</h2>
 {% endblock %}
 
 {% block object-tools %}
     <div class="object-tools">
         <ul class="toolbar">
-<li class="stats-tool"><a href='{% url stats-calendar-now %}' title="View Usage Statistics">Usage</a></li>
+            <li class="hist-tool"><a href="{% url stats-params years.0 %}" title="View {{years.0}} Parameter Statistics">Params</a>
+            <li class="stats-tool"><a href='{% url stats-calendar-now %}' title="View Usage Statistics">Usage</a></li>
         </ul>
         <div class="clear"></div>
     </div>
 {% endblock %}
 
 {% block content-override %}
-<div id="result-page">   
+<div id="result-page" class="stat">   
   <div class="list-tools">
     <h3 class="current">
-      <a class="prev" href='{% url stats-yearly years.2 %}' title="Previous Year">
+      <a class="prev" href='{% url stats-shifts years.2 %}' title="Previous Year">
         <img src="/img/prev.png" alt="Previous Year"></a>
-      <a class="current" href='{% url stats-yearly years.0 %}'>
+      <a class="current" href='{% url stats-shifts years.0 %}'>
         Back to {{ years.0 }} Statistics</a>
-      <a class="next" href='{% url stats-yearly years.1 %}' title="Next Year">
+      <a class="next" href='{% url stats-shifts years.1 %}' title="Next Year">
         <img src="/img/next.png" alt="Next Year"></a>
     </h3>
   </div>
+
+<div class="clear"></div>
+
+  <div class="col-12">
   <h3>{{ years.3 }} Beamline "N" Shift Usage {% ifequal years.3 years.0 %}(up to today){% endifequal %}</h3>
   <!-- img src="usage.png" /-->
-
-    {% for bl, val in users.items reversed %}
-        <div class="half">
-            <h2>{{bl}} Beam Usage in {{years.3}} {% ifequal years.3 years.0 %}(so far){% endifequal %}</h2>
+</div>
+    {% for bl in users.keys reversed %}
+        <div class="col-6">
+            <h2>{{bl}} Beam Usage in {{years.3}}</h2>
+            <div id="pie-{{bl}}" class="placeholder nolegend"></div>
+		    <h4 id="usage-hover-{{bl}}"></h4>
         </div>
     {% endfor %}  
-
-    <div id="pie-08B1-1" class="placeholder nolegend"></div>
-    <div id="pie-08ID-1" class="placeholder nolegend"></div>
-
-	<h4 id="usage-hover-08B1-1" class="half"></h4>
-	<h4 id="usage-hover-08ID-1" class="half"></h4>
-
-    <div style="clear:both"></div><br/><br/>
-
-    {% for bl, val in users.items reversed %}
-        <div class="half">
+    <div class="clear"><br><br></div>
+    {% for bl in users.keys reversed %}
+        <div class="col-6">
             <h2>{{bl}} Beam Usage by Month ({{years.3}})</h2>
+            <div id="usage-{{bl}}" class="placeholder"></div>
         </div>
     {% endfor %}  
-    <div id="usage-08B1-1" class="placeholder"></div>
-    <div id="usage-08ID-1" class="placeholder"></div>
 	{% for bl, shifts in shift_usage.items reversed %}
 	    <div class="object-list statistics" style="width:47%; float:left; margin-left:17px; margin-right:8px;">
 	            <table id="calendar">
@@ -72,24 +70,63 @@
 	                {% endfor %}{% endfor %}
 	                </tbody>
 	            </table>
+	            <p>{% with unused|dict_key:bl as unall %}Of unallocated shifts, {{unall|dict_key:'nights'}} are midnight/weekend; {{unall|dict_key:'days'}} are weekday day/evening.{% endwith %}</p>
 	    </div>
 	{% endfor %}
     <div style="clear: both;"></div><br/><br/>
 
-  
-  
-<h3>{{ years.3 }} CMCF Users by Location* - <a id="plotshift" style="cursor: pointer;" title="Show Number of Shifts Allocated per Province">Shifts</a> - <a id="plotvisit" style="cursor: pointer;" title="Show Number of Visits by Province">Visits</a></h3>
-{% for bl, val in users.items reversed %}
-    <div class="half">
+
+<div class="col-12">
+  <h3>{{ years.3 }} Beamline Productivity {% ifequal years.3 years.0 %}(up to today){% endifequal %}</h3>
+</div>
+{% for bl, stats in prod_stats.items reversed %}
+    <div class="col-6">
+        <h2>{{bl}} Productivity in {{ years.3 }}</h2>
+    <div class="object-list statistics">
+            <table id="calendar">
+                <thead>
+                    <tr>
+                       <th rowspan=2 style="padding-left: 0; padding-right: 0; border-right: 1px dotted #cccccc;">Shift Mode</th>
+                       <th colspan=2>Number of Full Datasets *</th>
+                       <th colspan=2>Shutters Open (s) **</th>
+                       <th rowspan=2>Total 8h Shifts Scheduled</th>
+                    </tr>
+                    <tr>
+                       <th>Total</th>
+                       <th>Avg/Hr Scheduled</th>
+                       <th>Total</th>
+                       <th>Avg/Hr Scheduled</th>                       
+                    </tr>
+                </thead>
+                <tbody>
+                {% for mode in modes %}{% with stats|dict_key:mode as data %}
+                       <tr class="{% cycle 'odd' 'even' %}">
+                            <td>{{mode}}</td>
+                            <td>{{data.0}}</td>
+                            <td>{{data.1|floatformat}}</td>
+                            <td>{{data.2|floatformat}}</td>
+                            <td>{{data.3|floatformat}}</td>
+                            <td>{{data.4}}</td>
+                       </tr>
+                {% endwith %}{% endfor %}
+                </tbody>
+            </table>
+        <p>* Full datasets (> 9 images) collected during shifts scheduled in each mode.</p>
+        <p>** Time based on exposure time and number of frames for all datasets uploaded to MxLIVE (> 3 images) during shifts scheduled in each mode.</p>
+    </div>
+</div>
+{% endfor %}
+<div style="clear: both;"></div><br/><br/>
+
+<h3>{{ years.3 }} Users by Location* - <a id="plotshift" style="cursor: pointer;" title="Show Number of Shifts Allocated per Province">Shifts</a> - <a id="plotvisit" style="cursor: pointer;" title="Show Number of Visits by Province">Visits</a></h3>
+{% for bl in users.keys reversed %}
+    <div class="col-6">
         <h2><var class="type"></var> Users Groups on {{ bl }}</h2>
+        <div id="placeholder-{{bl}}" class="placeholder nolegend"></div>
+        <h4 id="hover-{{bl}}"></h4>
     </div>
 {% endfor %}
-<div id="placeholder-08B1-1" class="placeholder nolegend"></div>
-<div id="placeholder-08ID-1" class="placeholder nolegend"></div>
-
-<h4 id="hover-08B1-1" class="half"></h4>
-<h4 id="hover-08ID-1" class="half"></h4>
-  
+    <div class="clear"><br><br></div>
 {% for bl, val in users.items reversed %}
     <div class="object-list statistics" style="width:48%; float:left; margin-left:17px;">
         <h3>{{years.3}} - {{ bl }} User Groups</h3>
@@ -110,8 +147,8 @@
                     <tbody>
 		        {% endif %}	        
 				    <tr>
-					    <td>{% if g.name %}{{ g.name }}{% else %}{{ g.display }}{% endif %}<!-- {{u.0}}<br>{{u.1}} --></td>
-					    {% ifequal prov 'Other' %}<td>{{g.country|default_if_none:""}}</td>{% endifequal %}
+					    <td>{{g}}<!-- {{u.0}}<br>{{u.1}} --></td>
+					    {% ifequal prov 'Other' %}<td>{{u.3}}</td>{% endifequal %}
 					    <td>{{u.0}}<!-- {{u.4}}--></td>
 					    <td>{{u.1}}<!-- {{u.5}}--><!-- /{{u.6}} --></td>
 					    <td>{{u.2}}</td>
@@ -119,8 +156,8 @@
 			    {% if forloop.last %}{% ifnotequal forloop.counter 1 %}
                     <tr class="summary">
                       <td>Total</td>
-                      <td>{{ group|sum_dict:0 }}</td>
                       {% ifequal prov 'Other' %}<td></td>{% endifequal %}
+                      <td>{{ group|sum_dict:0 }}</td>
                       <td>{{ group|sum_dict:1 }}</td>
                       <td>{{ group|sum_dict:2 }}</td>
                     </tr>                
@@ -167,12 +204,28 @@
     <script type="text/javascript" src="/js/jquery.flot.min.js"></script>
     <script type="text/javascript" src="/js/jquery.flot.pie.min.js"></script>
     <script type="text/javascript" src="/js/jquery.flot.stack.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.flot.axislabels.js"></script>
+    <script type="text/javascript" src="/js/jquery.flot.navigate.min.js"></script>
 
     <script type="text/javascript">
+	    var pcolors = {'Saskatchewan': '#D9D98C',
+	                     'BritishColumbia': '#D98C8C',
+	                     'Alberta': '#8CD9B3',
+	                     'Manitoba': '#D0B395',
+	                     'Ontario': '#B38CD9',
+	                     'Quebec': '#8CB3D9',
+	                     'NewBrunswick': '#D98CD9',
+	                     'NovaScotia': '#D9B38C',
+	                     'PrinceEdwardIsland': '#8CD9D9',
+	                     'Newfoundland': '#D98CB3',
+	                     'Other': '#8C8CD9',
+	                     'NoMatchingMxLIVEAccount': '#C7C7C7',
+	                    }
         jQuery(document).ready(function() {
             jQuery('.type').text('Shifts Allocated to');
-            plot_data(beamline='08B1-1', hfunc=pieHoverBM, visit=false);
-            plot_data(beamline='08ID-1', hfunc=pieHoverID, visit=false);  
+            {% for bl in visits.keys %}
+                plot_data(beamline='{{bl}}', hfunc=pieHover, visit=false);
+            {% endfor %}
             var data_labels = [];
             var width = 0.4;
             {% for val in shift_usage_labels %}
@@ -182,8 +235,8 @@
             var data = {};
             var piedata = {};
             {% for bl, shifts in shift_usage.items %}
-                piedata['{{bl}}'] = []
-                data['{{bl}}'] = []
+                piedata['{{bl}}'] = [];
+                data['{{bl}}'] = [];
                 {% for lab in type_labels %}
                     {% for key, val in shifts.items %}{% ifequal lab key %}
                         datasets['{{key}}'] = {label: '{{key}}', data: {{val.0}}, color: '{{val.1}}' };
@@ -195,14 +248,13 @@
                     {   series: { 
                             stack: 0, 
                             lines: {show: false, fill: true, steps: false }, 
-                            bars: { show: true, barWidth: width, fill: 0.9 },
+                            bars: { show: true, barWidth: width, fill: 0.9, lineWidth: 0 },
                             shadowSize: 10,                            
                         },
                         xaxis: { ticks: data_labels },
                         xaxes: [{min: -width/2, max: {{ shift_usage_labels|length }}-width }],
                         grid: { borderWidth: 0 }
                 }); 
-
                 $.plot($("#pie-{{bl}}"), piedata['{{bl}}'], {
                     series: {
                       pie: { 
@@ -222,20 +274,22 @@
                  });                
                 jQuery("#usage-{{bl}} div.legend div").css({ opacity: 0.5 });
                 jQuery("#usage-{{bl}} div.legend div + table div").css({ opacity: 1 });
+                $("#pie-{{bl}}").bind("plothover", { beamline: '{{bl}}' }, usageHover);
             {% endfor %}
-            $("#pie-08B1-1").bind("plothover", usageHoverBM);
-            $("#pie-08ID-1").bind("plothover", usageHoverID);
              $("#plotshift").click(function plot_shifts() {
 	             jQuery('.type').text('Shifts Allocated to');
-	             plot_data(beamline='08B1-1', hfunc=pieHoverBM, visit=false);
-	             plot_data(beamline='08ID-1', hfunc=pieHoverID, visit=false);        
+	             {% for bl in visits.keys %}
+	               plot_data(beamline='{{bl}}', hfunc=pieHover, visit=false);
+	             {% endfor %}        
 	         });
 	         
 	         $("#plotvisit").click(function plot_visits() {
 	             jQuery('.type').text('Visits from');
-	             plot_data(beamline='08B1-1', hfunc=pieHoverBM, visit=true);
-	             plot_data(beamline='08ID-1', hfunc=pieHoverID, visit=true);        
+                 {% for bl in visits.keys %}
+                   plot_data(beamline='{{bl}}', hfunc=pieHover, visit=true);
+                 {% endfor %}  
 	         });
+	         
         });
 
         function get_shift_data(beamline) {
@@ -244,7 +298,7 @@
                 var i = 0;
                 if (beamline == '{{bl}}' ) { 
                     {% for lab, vals in provs.items %}
-                        data[i] = {label: "{{lab}}", data: {{vals|sum_dict:1}} }
+                        data[i] = {label: "{{lab}}", data: {{vals|sum_dict:1}}, color: pcolors.{{lab|stripspace}} }
                         i++;
                     {% endfor %}
                 }
@@ -258,7 +312,7 @@
                 var i = 0;
                 if (beamline == '{{bl}}' ) {
                     {% for lab, vals in provs.items %}
-                        data[i] = {label: "{{lab}}", data: {{vals|sum_dict:0}} }
+                        data[i] = {label: "{{lab}}", data: {{vals|sum_dict:0}}, color: pcolors.{{lab|stripspace}} }
                         i++;
                      {% endfor %}
                  }
@@ -290,37 +344,22 @@
 	                grid: { hoverable: true }
 	             });
 	             
-             $("#placeholder-"+beamline).bind("plothover", hfunc);
+             $("#placeholder-"+beamline).bind("plothover", {beamline: beamline}, hfunc);
          }
          
-	    function pieHoverBM(event, pos, obj)
+	    function pieHover(event, pos, obj)
 	    {
 	        if (!obj)
 	           return;
             percent = parseFloat(obj.series.percent).toFixed(2);
-            $("#hover-08B1-1").html('<span style="font-weight: bold; color: '+obj.series.color+'">'+obj.series.label+' ('+percent+'%)</span>');
+            $("#hover-"+event.data.beamline).html('<span style="font-weight: bold; color: '+obj.series.color+'">'+obj.series.label+' ('+percent+'%)</span>');
         } 
-        function pieHoverID(event, pos, obj)
+        function usageHover(event, pos, obj)
         {
             if (!obj)
                return;
             percent = parseFloat(obj.series.percent).toFixed(2);
-            $("#hover-08ID-1").html('<span style="font-weight: bold; color: '+obj.series.color+'">'+obj.series.label+' ('+percent+'%)</span>');
-        } 
-        function usageHoverBM(event, pos, obj)
-        {
-            if (!obj)
-               return;
-            percent = parseFloat(obj.series.percent).toFixed(2);
-            $("#usage-hover-08B1-1").html('<span style="font-weight: bold; color: '+obj.series.color+'">'+obj.series.label+' ('+percent+'%)</span>');
-        } 
-        function usageHoverID(event, pos, obj)
-        {
-            if (!obj)
-               return;
-            percent = parseFloat(obj.series.percent).toFixed(2);
-            $("#usage-hover-08ID-1").html('<span style="font-weight: bold; color: '+obj.series.color+'">'+obj.series.label+' ('+percent+'%)</span>');
-        } 
-        
+            $("#usage-hover-"+event.data.beamline).html('<span style="font-weight: bold; color: '+obj.series.color+'">'+obj.series.label+' ('+percent+'%)</span>');
+        }         
     </script>
 {% endblock %}

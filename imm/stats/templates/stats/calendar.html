@@ -10,7 +10,8 @@
 {% block object-tools %}
     <div class="object-tools">
         <ul class="toolbar">
-            <li class="pie-tool"><a href="{% url stats-yearly month.2 %}" title="View {{month.2}} Statistics">{{ month.2 }} Stats</a>
+            <li class="pie-tool"><a href="{% url stats-shifts month.2 %}" title="View {{month.2}} Statistics"> Stats</a>
+            <li class="hist-tool"><a href="{% url stats-params month.2 %}" title="View {{month.2}} Parameter Statistics"> Params</a>
         </ul>
         <div class="clear"></div>
     </div>
@@ -47,24 +48,27 @@
     </thead>
     <tbody>
         {% for week in dates %}
-            {% for name in display %}
+            {% for name, bl in display.items %}
 	            {% if forloop.first %}
 	            <tr>
 	                <td class="date header"></td>
 	                {% for day in week %}
 	                <td class="date
-	                    {% ifequal month.0 day.1 %}current-month{% endifequal %} 
-	                    {% ifequal current_date day.0 %}today{% endifequal %}">{{day.0}}</td>
+	                    {% ifequal month.0 day.1 %}current-month 
+	                    {% ifequal current_date day.0 %}today{% endifequal %}{% endifequal %}">{{day.0}}</td>
 	                {% endfor %}
 	            </tr>
 	            {% endif %}
 	            <tr>
 	                <td class="blabel header">
-	                    <span>{{ name|bl_name }}</span></td>
+	                    <span>{{ name }}</span></td>
 	                {% for day in week %}
 	                <td class="stats
-	                    {% ifequal month.0 day.1 %}current-month{% endifequal %} 
-	                    {% ifequal current_date day.0 %}today{% endifequal %}">
+	                    {% ifequal month.0 day.1 %}current-month 
+	                    {% ifequal current_date day.0 %}today{% endifequal %}{% endifequal %}
+	                    {% if day.2 %}link-cell modal"
+	                    href="{% url stats-data-list %}?beamline={{bl}}&created__year={{month.2}}&created__month={{month.0}}&created__day={{day.0}}&ot=asc&o=6" 
+	                    {% else %}"{% endif %}>
 		                {% with day.2|format_data:name as data %}
 		                    {% for item in data %}
 		                        <b>{{ item.0|truncate_chars:8 }}</b>({{ item.1 }})- 

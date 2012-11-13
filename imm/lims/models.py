@@ -194,6 +194,13 @@ class Project(models.Model):
         else:
             return {'status__lt': LimsBaseClass.STATES.ARCHIVED}
 
+    def shifts_used_by_year(self, year, blname):
+        shifts = []
+        for d in self.data_set.filter(created__year=year).filter(beamline=Beamline.objects.get(name=blname)):
+            if [d.created.date(), d.created.hour/8] not in shifts:
+                shifts.append([d.created.date(), d.created.hour/8])
+        return len(shifts)
+
     class Meta:
         verbose_name = "Project Profile"
 
