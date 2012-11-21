@@ -10,6 +10,9 @@
     {% else %}
 	<form id="action_form" method="POST">{% csrf_token %}
         <div class="list-tools">
+            {% if ol.is_paginated %}
+                {% include "objlist/pagination.html" %}
+            {% endif %}
             {% if not ol.all_shown %}
                 Showing {{ol.result_count}} of {{ol.total_count}} total | <a href="?all=1">Show all</a>
             {% endif %}
