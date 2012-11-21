@@ -101,11 +101,10 @@
 </div>
 {% if data|images_exist %}
 	<div class="xtal-snapshot">
-	    <p>Crystal at <var id="snapshot-angle">{{data.start_angle}} deg</var></p>
-	    <img id="xtal-pic" 
-	         cur="{{data.start_angle}}" next="{{ data.start_angle|second_view }}" 
-	         src="/download/files/{{data.url}}/{{data.name}}-pic_{{data.start_angle}}.png" 
-	         title="Click for {{data.start_angle|second_view}} deg" />
+	    <p>Crystal Centering</p>
+	    <img id="xtal-pic"
+	         src="/download/files/{{data.pk}}/snapshot.gif" 
+	         title="Snapshots at {{data.start_angle}} and {{data.start_angle|second_view}} deg" />
 	</div>
 {% endif %}
 <div>
@@ -165,16 +164,6 @@
             resFunc: function(r) {
                 return dataViewer.calcRes(r);
             }
-        });
-        jQuery("#xtal-pic").click(function() {
-            var $cur = jQuery(this).attr("cur");
-            var $new = jQuery(this).attr("next");
-            new_url = "/download/files/{{data.url}}/{{data.name}}-pic_"+$new+".png";
-            jQuery(this).attr("src", new_url);
-            jQuery(this).attr("cur", $new);
-            jQuery(this).attr("next", $cur);
-            jQuery("#snapshot-angle").text($new + " deg");
-            jQuery(this).attr("title", 'Click for '+$cur+' deg');
         });
 	});
 	

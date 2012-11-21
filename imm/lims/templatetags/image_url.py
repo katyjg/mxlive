@@ -37,4 +37,4 @@ def second_view(angle):
 def images_exist(data):
     path1 = "%s/%s-pic_%s.png" % (get_download_path(data.url), data.name, data.start_angle)
     path2 = "%s/%s-pic_%s.png" % (get_download_path(data.url), data.name, second_view(data.start_angle))
-    return os.path.exists(path1) and os.path.exists(path2)
+    return os.path.exists(path1) or os.path.exists(path2)

@@ -8,6 +8,7 @@ import re
 import posixpath
 import urllib
 import os
+import subprocess
 
 from download.models import SecurePath
 from download.frameconverter import create_png
@@ -48,7 +49,7 @@ def send_raw_file(request, full_path, attachment=False):
 
     if not os.path.exists(full_path):
         raise Http404
-    
+   
     if FRONTEND == "xsendfile":
         response = HttpResponse()
         response['X-Sendfile'] = full_path
@@ -62,7 +63,6 @@ def send_raw_file(request, full_path, attachment=False):
         path = os.path.basename(full_path)
         #"Serving file %s in directory %s through django static serve." % (path, dirname)
         response = serve(request, path, dirname)
-        
     elif FRONTEND == "xaccelredirect":
         response = HttpResponse()
         response['X-Accel-Redirect'] = full_path
@@ -128,6 +128,26 @@ def send_png(request, key, path, brightness):
             return HttpResponseRedirect('/img/image-not-found.png')
             #raise Http404        
     return send_raw_file(request, png_file, attachment=False)
+
+@login_required
+def find_file(request, pk, path):
+    data = Data.objects.get(pk=pk)
+    obj = get_object_or_404(SecurePath, key=data.url)
+    if not request.user.is_staff:
+        if request.user.get_profile() != obj.owner:
+            return HttpResponseRedirect('/img/sample-not-found.png')
+
+    if os.path.exists(get_download_path(obj.key)):
+        filename = os.path.join(CACHE_DIR, obj.key, '%s.gif' % path)
+        png_path = "%s/%s-pic_*.png" % (get_download_path(obj.key), data.name)
+	create_cache_dir('%s/%s' % (CACHE_DIR, obj.key))
+        command = 'convert -delay 50 -resize 300x {0} {1}'.format(png_path, filename)
+        try:
+            subprocess.check_call(command.split())
+        except:
+            return HttpResponseRedirect('/img/sample-not-found.png')
+    
+    return send_raw_file(request, filename, attachment=False)
 
 @login_required
 def send_archive(request, key, path, data_dir=False): #Add base parameter and another url

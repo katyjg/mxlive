@@ -265,7 +265,7 @@
                             show: true, 
                             radius: 2/3,
                             formatter: function(label, series){
-                                return '<div style="font-size:8pt; text-align: center; padding:2px; color: #333;">'+label+'<br/>'+Math.round(series.percent)+'%</div>';
+                                return '<div style="font-size:8pt; text-align: center; padding:2px; color: #333;">'+label+'<br/>'+Math.round(series.percent)+'% ('+series.data[0][1]+')</div>';
                             },
                             threshold: 0.05
                          }
@@ -336,7 +336,7 @@
 	                        show: true, 
 	                        radius: 2/3,
 	                        formatter: function(label, series){
-	                            return '<div style="font-size:8pt; text-align: center; padding:2px; color: white;">'+label+'<br/>'+Math.round(series.percent)+'%</div>';
+	                            return '<div style="font-size:8pt; text-align: center; padding:2px; color: white;">'+label+'<br/>'+Math.round(series.percent)+'% ('+series.data[0][1]+')</div>';
 	                        },
 	                        threshold: 0.09
 	                     }
@@ -353,14 +353,14 @@
 	        if (!obj)
 	           return;
             percent = parseFloat(obj.series.percent).toFixed(2);
-            $("#hover-"+event.data.beamline).html('<span style="font-weight: bold; color: '+obj.series.color+'">'+obj.series.label+' ('+percent+'%)</span>');
+            $("#hover-"+event.data.beamline).html('<span style="font-weight: bold; color: '+obj.series.color+'">'+obj.series.label+' ('+percent+'%): '+obj.series.data[0][1]+'</span>');
         } 
         function usageHover(event, pos, obj)
         {
             if (!obj)
                return;
             percent = parseFloat(obj.series.percent).toFixed(2);
-            $("#usage-hover-"+event.data.beamline).html('<span style="font-weight: bold; color: '+obj.series.color+'">'+obj.series.label+' ('+percent+'%)</span>');
+            $("#usage-hover-"+event.data.beamline).html('<span style="font-weight: bold; color: '+obj.series.color+'">'+obj.series.label+' ('+percent+'%): '+obj.series.data[0][1]+' shifts</span>');
         }         
     </script>
 {% endblock %}
