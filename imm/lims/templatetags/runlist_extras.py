@@ -71,7 +71,7 @@ def prioritize(object_list):
   
 @register.filter('prioritize_and_sort')
 def prioritize_and_sort(object_list):
-    if object_list[0].container.get_kind_display() == 'Cassette':
+    if len(object_list) and object_list[0].container.get_kind_display() == 'Cassette':
         return object_list.order_by('priority','container','container_location')
     return object_list.annotate(port=Sum('container_location')).order_by('priority','container','port')
     

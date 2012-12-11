@@ -70,7 +70,9 @@
 	                {% endfor %}{% endfor %}
 	                </tbody>
 	            </table>
-	            <p>{% with unused|dict_key:bl as unall %}Of unallocated shifts, {{unall|dict_key:'nights'}} are midnight/weekend; {{unall|dict_key:'days'}} are weekday day/evening.{% endwith %}</p>
+	            <p>{% with unused|dict_key:bl as unall %}
+	            	Of unallocated shifts, {{unall.nights}} ({% widthratio unall.nights unall.nights|add:unall.days 100 %}%) are midnight/weekend; {{unall.days}} ({% widthratio unall.days unall.nights|add:unall.days 100 %}%) are weekday day/evening.
+            	{% endwith %}</p>
 	    </div>
 	{% endfor %}
     <div style="clear: both;"></div><br/><br/>

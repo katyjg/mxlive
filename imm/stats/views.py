@@ -156,35 +156,39 @@ def stats_year(request, year):
     visits = all_visits.exclude(proposal=None)
     beamlines = PublicBeamline.objects.using('public-web')
     nstat = Stat.objects.using('public-web').filter(mode__in=['NormalMode']).filter(start_date__lte=end_year, end_date__gte=start_year)
+    ostat = Stat.objects.using('public-web').exclude(mode__in=['NormalMode']).filter(start_date__lte=end_year, end_date__gte=start_year)
     nwebstat = WebStatus.objects.using('public-web').filter(date__endswith=str(year))
     datasets = Data.objects.filter(created__year=year)
 
     prod_dates = {}
     prod_stats = {}
     nlist = []
+    olist = []
+    xlist = [nlist, olist]
     unused = {}
-    for n in nstat: # Start making a list of all the normal shifts in the given time frame
-        if n.start_date == n.end_date:
-            for i in range(3):
-                if i >= n.first_shift and i <= n.last_shift: 
-                    nlist.append([n.start_date,i,[None, None]])
-        else:
-            for i in range(3):
-                if i >= n.first_shift: 
-                    nlist.append([n.start_date,i,[None, None]])
-            next = n.start_date + one_day
-            while next < n.end_date:
-                for i in range(3): 
-                    nlist.append([next,i,[None, None]])
-                next += one_day
-            for i in range(3):
-                if i <= n.last_shift: 
-                    nlist.append([n.end_date,i,[None, None]])
-    
+    for x, xstat in enumerate([nstat, ostat]):
+        for n in xstat: # Start making a list of all the normal shifts in the given time frame
+            if n.start_date == n.end_date:
+                for i in range(3):
+                    if i >= n.first_shift and i <= n.last_shift: 
+                        xlist[x].append([n.start_date,i,[None, None]])
+            else:
+                for i in range(3):
+                    if i >= n.first_shift: 
+                        xlist[x].append([n.start_date,i,[None, None]])
+                nextd = n.start_date + one_day
+                while nextd < n.end_date:
+                    for i in range(3): 
+                        xlist[x].append([nextd,i,[None, None]])
+                    nextd += one_day
+                for i in range(3):
+                    if i <= n.last_shift: 
+                        xlist[x].append([n.end_date,i,[None, None]])
+                    
     next_day = start_year
     while next_day <= end_year: # Add more shifts to the list of normal shifts, from the WebStatus model
         for shift in range(3):
-            if [next_day, shift, [None, None]] not in nlist and nwebstat.filter(date__exact=next_day.strftime('%b/%d/%Y')).exists():
+            if [next_day, shift, [None, None]] not in nlist and nwebstat.filter(date__exact=next_day.strftime('%b/%d/%Y')).exists() and [next_day, shift, [None, None]] not in olist:
                 ws = nwebstat.get(date__exact=next_day.strftime('%b/%d/%Y'))
                 wslist = [ws.status1, ws.status2, ws.status3]
                 if wslist[shift] and wslist[shift][0] == 'N' and (len(wslist[shift]) == 1 or not wslist[shift][1] == 'S'):
