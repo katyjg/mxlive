@@ -141,7 +141,7 @@ def find_file(request, pk, path):
         filename = os.path.join(CACHE_DIR, obj.key, '%s.gif' % path)
         png_path = "%s/%s-pic_*.png" % (get_download_path(obj.key), data.name)
 	create_cache_dir('%s/%s' % (CACHE_DIR, obj.key))
-        command = 'convert -delay 50 -resize 300x {0} {1}'.format(png_path, filename)
+        command = 'convert -delay 200 -resize 300x {0} {1}'.format(png_path, filename)
         try:
             subprocess.check_call(command.split())
         except:
