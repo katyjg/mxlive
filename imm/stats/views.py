@@ -174,15 +174,15 @@ def stats_year(request, year):
                         xlist[x].append([n.start_date,i,[None, None]])
             else:
                 for i in range(3):
-                    if i >= n.first_shift: 
+                    if i >= n.first_shift and n.start_date <= end_year: 
                         xlist[x].append([n.start_date,i,[None, None]])
                 nextd = n.start_date + one_day
-                while nextd < n.end_date:
+                while nextd < n.end_date and nextd <= end_year:
                     for i in range(3): 
                         xlist[x].append([nextd,i,[None, None]])
                     nextd += one_day
                 for i in range(3):
-                    if i <= n.last_shift: 
+                    if i <= n.last_shift and n.end_date <= end_year: 
                         xlist[x].append([n.end_date,i,[None, None]])
                     
     next_day = start_year
