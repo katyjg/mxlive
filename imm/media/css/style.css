@@ -862,6 +862,9 @@ tr.odd td
 {
 	cursor:pointer;
 }
+.limit {
+	white-space: normal !important;
+}
 tr.loaded-row td
 {
     background-color: #f4e6ef;

@@ -24,7 +24,7 @@
                         {% else %}
                         <td>(None)</td>
                         {% endif %}
-                        <td class="redirect"
+                        <td class="redirect limit"
                             href="{% url lims-crystal-detail crystal.pk %}">{{ crystal.comments|default:"" }}</td>
                         <td>
                             {% if not admin %}{% if object.is_editable %}

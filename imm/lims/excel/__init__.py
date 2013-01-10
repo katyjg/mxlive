@@ -51,11 +51,14 @@ EXPERIMENT_CELL_C = 14
 EXPERIMENT_CELL_ALPHA = 15
 EXPERIMENT_CELL_BETA = 16
 EXPERIMENT_CELL_GAMMA = 17
+EXPERIMENT_COMMENTS = 18
+EXPERIMENT_COMMENTS_ERROR = 'Strange character found in cell Groups!$' + COLUMN_MAP[EXPERIMENT_COMMENTS] + '$%d.'
 
 CRYSTAL_SHEET_NUM = 0
 CRYSTAL_SHEET_NAME = 'Crystals'
 CRYSTAL_NAME = 0
 CRYSTAL_NAME_ERROR = 'Invalid Crystal name "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_NAME] + '$%d.'
+CRYSTAL_NAME_CHAR_ERROR = 'Strange character found in Crystal name in cell Crystals!$' + COLUMN_MAP[CRYSTAL_NAME] + '$%d.'
 CRYSTAL_BARCODE = 1
 CRYSTAL_BARCODE_ERROR = 'Invalid Crystal barcode "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_BARCODE] + '$%d.'
 CRYSTAL_EXPERIMENT = 2
@@ -70,6 +73,7 @@ CRYSTAL_DUPLICATE_ERROR = 'Multiple crystals named "%s"'
 CRYSTAL_PRIORITY = 6
 CRYSTAL_COCKTAIL = 7
 CRYSTAL_COMMENTS = 8
+CRYSTAL_COMMENTS_ERROR = 'Strange character found in cell Crystals!$' + COLUMN_MAP[CRYSTAL_COMMENTS] + '$%d.'
 
 PLAN_SHEET_NUM = 2
 PLAN_SHEET_NAME = 'Plans'
@@ -148,7 +152,7 @@ class LimsWorkbook(object):
                         self.errors.append(CRYSTAL_CONTAINER_ERROR % (row_values[CRYSTAL_CONTAINER], row_num+1))
                     
                     if row_values[CRYSTAL_CONTAINER_KIND]:
-                        container.kind = Container.TYPE.get_value_by_name(row_values[CRYSTAL_CONTAINER_KIND]) # validated by Excel
+                        container.kind = Container.TYPE.get_value_by_name(str(row_values[CRYSTAL_CONTAINER_KIND]).title()) # validated by Excel
                     else:
                         self.errors.append(CRYSTAL_CONTAINER_KIND_ERROR % (row_values[CRYSTAL_CONTAINER_KIND], row_num+1))
                         
@@ -159,7 +163,7 @@ class LimsWorkbook(object):
                     container = containers[row_values[CRYSTAL_CONTAINER]]
                     
                     if row_values[CRYSTAL_CONTAINER_KIND]:
-                        kind = Container.TYPE.get_value_by_name(row_values[CRYSTAL_CONTAINER_KIND]) # validated by Excel
+                        kind = Container.TYPE.get_value_by_name(str(row_values[CRYSTAL_CONTAINER_KIND]).title()) # validated by Excel
                         if kind != container.kind:
                             self.errors.append(CRYSTAL_CONTAINER_KIND_ERROR % (row_values[CRYSTAL_CONTAINER_KIND], row_num+1))
                     else:
@@ -321,7 +325,7 @@ class LimsWorkbook(object):
                 
             if row_values[EXPERIMENT_PRIORITY]:
                 experiment.priority = row_values[EXPERIMENT_PRIORITY]
-                
+            
             if row_values[EXPERIMENT_RESOLUTION]:
                 experiment.resolution = row_values[EXPERIMENT_RESOLUTION]
                 
@@ -329,6 +333,12 @@ class LimsWorkbook(object):
                 self.errors.append(EXPERIMENT_DUPLICATE_ERROR % (experiment.name))
             else:
                 experiments[experiment.name] = experiment
+
+            if len(row_values) > EXPERIMENT_COMMENTS and row_values[EXPERIMENT_COMMENTS]:
+                try:
+                    experiment.comments = str(row_values[EXPERIMENT_COMMENTS])
+                except:
+                    self.errors.append(EXPERIMENT_COMMENTS_ERROR % (row_num+1))
 
         for key, experiment in experiments.items():
             appended = False
@@ -353,9 +363,11 @@ class LimsWorkbook(object):
             row_values = self.crystals_sheet.row_values(row_num)
             crystal = Crystal()
             crystal.project = self.project
-            
             if row_values[CRYSTAL_NAME]:
-                crystal.name = str(row_values[CRYSTAL_NAME])
+                try:
+                    crystal.name = str(row_values[CRYSTAL_NAME])
+                except:
+                    self.errors.append(CRYSTAL_NAME_CHAR_ERROR % (row_num+1))
             else:
                 self.errors.append(CRYSTAL_NAME_ERROR % (row_values[CRYSTAL_NAME], row_num+1))
                 
@@ -378,7 +390,7 @@ class LimsWorkbook(object):
             if row_values[CRYSTAL_CONTAINER_LOCATION]:
                 # xlrd is doing some auto-conversion to floats regardless of the Excel field type
                 try:
-                    crystal.container_location = str(int(row_values[CRYSTAL_CONTAINER_LOCATION]))
+                    crystal.container_location = type(row_values[CRYSTAL_CONTAINER_LOCATION]) is unicode and str(row_values[CRYSTAL_CONTAINER_LOCATION]).upper() or str(int(row_values[CRYSTAL_CONTAINER_LOCATION]))
                 except ValueError:
                     crystal.container_location = row_values[CRYSTAL_CONTAINER_LOCATION]
             else:
@@ -393,7 +405,10 @@ class LimsWorkbook(object):
                 crystal.cocktail = self.cocktails[row_values[CRYSTAL_COCKTAIL]]
 
             if row_values[CRYSTAL_COMMENTS]:
-                crystal.comments = row_values[CRYSTAL_COMMENTS]
+                try:
+                    crystal.comments = str(row_values[CRYSTAL_COMMENTS])
+                except:
+                    self.errors.append(CRYSTAL_COMMENTS_ERROR % (row_num+1))                
                 
             if row_values[CRYSTAL_PRIORITY]:
                 crystal.priority = row_values[CRYSTAL_PRIORITY]
@@ -417,6 +432,7 @@ class LimsWorkbook(object):
         try:
             temp_errors = list()
             crystal_doubles = str()
+
             for crystal in self.crystals.values():
                 if self.project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).filter(name=crystal).exists():
                     crystal_doubles += str(crystal) + ', '
@@ -424,7 +440,7 @@ class LimsWorkbook(object):
                 if len(crystal_doubles.split(',')) > 5:
                     crystal_doubles = ','.join(crystal_doubles.split(',')[:5]) + '...'
                 temp_errors.append('Un-archived crystals (%s) already exist.' % crystal_doubles)
-    
+
             container_doubles = str()
             for container in self.containers.values():
                 if self.project.container_set.exclude(status__exact=Container.STATES.ARCHIVED).filter(name__exact=container).exists():
@@ -433,7 +449,7 @@ class LimsWorkbook(object):
                 if len(container_doubles.split(',')) > 5:
                     container_doubles = ','.join(container_doubles.split(',')[:5]) + '...'
                 temp_errors.append('Un-archived containers (%s) already exist.' % container_doubles)
-    
+
             for err in temp_errors:
                 if err not in self.errors: self.errors.append(err)
         except:
