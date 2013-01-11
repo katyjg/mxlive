@@ -157,6 +157,7 @@ def stats_year(request, year):
     beamlines = PublicBeamline.objects.using('public-web')
     nstat = Stat.objects.using('public-web').filter(mode__in=['NormalMode']).filter(start_date__lte=end_year, end_date__gte=start_year)
     ostat = Stat.objects.using('public-web').exclude(mode__in=['NormalMode']).filter(start_date__lte=end_year, end_date__gte=start_year)
+    mstat = Stat.objects.using('public-web').filter(mode__in=['FacilityRepair']).filter(start_date__lte=end_year, end_date__gte=start_year)
     nwebstat = WebStatus.objects.using('public-web').filter(date__endswith=str(year))
     datasets = Data.objects.filter(created__year=year)
 
@@ -184,7 +185,7 @@ def stats_year(request, year):
                 for i in range(3):
                     if i <= n.last_shift and n.end_date <= end_year: 
                         xlist[x].append([n.end_date,i,[None, None]])
-                    
+                 
     next_day = start_year
     while next_day <= end_year: # Add more shifts to the list of normal shifts, from the WebStatus model
         for shift in range(3):
@@ -194,7 +195,22 @@ def stats_year(request, year):
                 if wslist[shift] and wslist[shift][0] == 'N' and (len(wslist[shift]) == 1 or not wslist[shift][1] == 'S'):
                     nlist.append([next_day, shift,[None, None]])
         next_day += one_day
-    
+        
+    mshifts = []
+    for m in mstat:
+        if m.start_date == m.end_date:
+            mshifts.extend([[m.start_date,i,[None, None]] if i >= m.first_shift and i <= m.last_shift else None for i in range(3)])
+        else:
+            mshifts.extend([[m.start_date,i,[None, None]] if i >= m.first_shift and m.start_date <= end_year else None for i in range(3)])
+            nextd = m.start_date + one_day
+            while nextd < m.end_date and nextd <= end_year:
+                mshifts.extend([[nextd,i,[None, None]] for i in range(3)])
+                nextd += one_day
+            mshifts.extend([[m.end_date,i,[None, None]] if i <= m.last_shift and m.end_date <= end_year else None for i in range(3)])
+        mshifts = [x for x in mshifts if x != None]
+    for m in mshifts:
+        if nlist.index(m): nlist.pop(nlist.index(m))
+            
     for i, bl in enumerate(beamlines):
         extra_visit[bl.name] = [all_visits.filter(beamline=bl).count(),visits.filter(beamline=bl).count(),all_visits.filter(beamline=bl).filter(proposal=None)] # Visits that don't have a proposal attached
         shift_stats[bl.name] = {} # How much time users had who visited this year
