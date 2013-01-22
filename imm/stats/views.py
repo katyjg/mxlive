@@ -208,8 +208,13 @@ def stats_year(request, year):
                 nextd += one_day
             mshifts.extend([[m.end_date,i,[None, None]] if i <= m.last_shift and m.end_date <= end_year else None for i in range(3)])
         mshifts = [x for x in mshifts if x != None]
+    
+    num_shifts = [len(nlist)]
+    
     for m in mshifts:
-        if nlist.index(m): nlist.pop(nlist.index(m))
+        if m in nlist: nlist.pop(nlist.index(m))
+
+    num_shifts.append(len(nlist))
             
     for i, bl in enumerate(beamlines):
         extra_visit[bl.name] = [all_visits.filter(beamline=bl).count(),visits.filter(beamline=bl).count(),all_visits.filter(beamline=bl).filter(proposal=None)] # Visits that don't have a proposal attached
@@ -293,4 +298,5 @@ def stats_year(request, year):
         'shift_usage_labels': shift_usage_labels,
         'type_labels': labels,
         'modes': ['Purchased Access','Normal','Remote','Mail-In'],
+        'num_shifts': num_shifts,
         }, context_instance=RequestContext(request))
