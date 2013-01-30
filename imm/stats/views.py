@@ -29,7 +29,7 @@ _provinces = {'British Columbia': ['BC','British Columbia'],
              }
 
 @admin_login_required
-@cache_page(60*3600)
+@cache_page(3600)
 def stats_month(request, year, month):
     display = [bl.name for bl in PublicBeamline.objects.using('public-web')]   
     start_time = datetime(int(year), int(month), 1)
@@ -58,7 +58,7 @@ def stats_month(request, year, month):
         }, context_instance=RequestContext(request))    
     
 @admin_login_required
-@cache_page(60*3600)
+@cache_page(3600)
 def stats_calendar(request, month=None):
     mon = month and int(month.split('-')[1]) or datetime.today().month
     today = month and datetime(year=int(month.split('-')[0]), month=mon, day=datetime.today().day) or datetime.today()
@@ -93,7 +93,7 @@ def stats_calendar(request, month=None):
         }, context_instance=RequestContext(request))
     
 @admin_login_required
-@cache_page(60*3600)
+@cache_page(24*3600)
 def stats_params(request, year=None, cumulative=False):   
     all_datasets = Data.objects.all()
     today = date.today()  
@@ -130,7 +130,7 @@ def stats_params(request, year=None, cumulative=False):
         }, context_instance=RequestContext(request))
 
 @admin_login_required
-@cache_page(60*3600)
+@cache_page(24*3600)
 def stats_year(request, year):
 
     prov_list = ['Saskatchewan','British Columbia','Alberta','Manitoba','Ontario','Quebec','New Brunswick','Nova Scotia','Prince Edward Island','Newfoundland','Other','No Matching MxLIVE Account']

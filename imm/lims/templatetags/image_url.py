@@ -35,6 +35,9 @@ def second_view(angle):
 
 @register.filter("images_exist")
 def images_exist(data):
-    path1 = "%s/%s-pic_%s.png" % (get_download_path(data.url), data.name, data.start_angle)
-    path2 = "%s/%s-pic_%s.png" % (get_download_path(data.url), data.name, second_view(data.start_angle))
-    return os.path.exists(path1) or os.path.exists(path2)
+    path1 = "%s/%s-pic_%s.png" % (get_download_path(data.url), data.name, int(data.start_angle))
+    path2 = "%s/%s-pic_%s.png" % (get_download_path(data.url), data.name, second_view(int(data.start_angle)))
+    path11 = "%s/%s-pic_%s.png" % (get_download_path(data.url), data.name, data.start_angle)
+    path21 = "%s/%s-pic_%s.png" % (get_download_path(data.url), data.name, second_view(data.start_angle))
+    return ((os.path.exists(path1) or os.path.exists(path2)) or (os.path.exists(path11) or os.path.exists(path21)))
+    
