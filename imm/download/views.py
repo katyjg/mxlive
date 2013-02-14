@@ -140,12 +140,15 @@ def find_file(request, pk, path):
     if os.path.exists(get_download_path(obj.key)):
         filename = os.path.join(CACHE_DIR, obj.key, '%s.gif' % path)
         png_path = "%s/%s-pic_*.png" % (get_download_path(obj.key), data.name)
-	create_cache_dir('%s/%s' % (CACHE_DIR, obj.key))
+        create_cache_dir('%s/%s' % (CACHE_DIR, obj.key))
         command = 'convert -delay 200 -resize 300x {0} {1}'.format(png_path, filename)
         try:
             subprocess.check_call(command.split())
         except:
-            return HttpResponseRedirect('/img/sample-not-found.png')
+            try:
+                subprocess.check_call(command.replace('_test-pic','-pic').split())
+            except:
+                return HttpResponseRedirect('/img/sample-not-found.png')
     
     return send_raw_file(request, filename, attachment=False)
 
