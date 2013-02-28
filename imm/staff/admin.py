@@ -1,9 +1,18 @@
 from django.contrib import admin
 from imm.staff.models import Runlist, Link
-from imm.lims.models import Experiment
-from imm.lims.models import Container
+from imm.lims.models import Experiment, Container, Crystal
+
+from django import forms
 
 runlist_site = admin.AdminSite()
+
+class RunlistAdminForm(forms.ModelForm):
+    experiments = forms.ModelMultipleChoiceField(
+        queryset=Experiment.objects.filter(status__in=[Experiment.STATES.ACTIVE,Experiment.STATES.PROCESSING]).filter(pk__in=Crystal.objects.filter(status__in=[Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).values('experiment')),
+        required=False)
+
+    class Meta:
+        model = Runlist
 
 class RunlistAdmin(admin.ModelAdmin):
     search_fields = ['name', 'beamline__name', 'containers__name']
@@ -11,6 +20,7 @@ class RunlistAdmin(admin.ModelAdmin):
     list_display = ('name', 'beamline', 'created', 'status')
     list_per_page = 16
     ordering = ['-created']
+    form = RunlistAdminForm
 admin.site.register(Runlist, RunlistAdmin)
 
 class LinkAdmin(admin.ModelAdmin):

@@ -119,17 +119,6 @@ class RunlistForm(objforms.forms.OrderedForm):
         model = Runlist
         fields = ('name', 'beamline', 'comments') #, 'experiments', 'containers')
         
-    def _update(self):
-        cleaned_data = self.cleaned_data
-       # experiments = cleaned_data.get('experiments', [])
-        
-        # containers don't have experiments. Need to go to crystals in container, iterate them, 
-            # and add container once one crystal is in the experiment...
-        #choices = Container.objects.all().filter(crystal.experiment=experiments)
-        
-        #self.fields['containers'].queryset = choices
-        
-        
 class RunlistEmptyForm(objforms.forms.OrderedForm):
     """ Form used to load/complete a Runlist """
     name = forms.CharField(widget=widgets.HiddenInput)

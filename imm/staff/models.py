@@ -96,12 +96,12 @@ class Runlist(StaffBaseClass):
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
     comments = models.TextField(blank=True, null=True)
-    experiments = models.ManyToManyField(Experiment)
+    experiments = models.ManyToManyField(Experiment, blank=True)
     beamline = models.ForeignKey(Beamline, blank=False)
 
-    left = JSONField(null=True)
-    middle = JSONField(null=True)
-    right = JSONField(null=True)
+    left = JSONField(null=True, blank=True)
+    middle = JSONField(null=True, blank=True)
+    right = JSONField(null=True, blank=True)
     
     def identity(self):
         return 'RL%03d%s' % (self.id, self.created.strftime('-%y%m'))
