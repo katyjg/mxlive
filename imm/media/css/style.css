@@ -1015,6 +1015,9 @@ ul.reports li a
 #result-page.stat {
 	padding: 0px 0px;
 }
+.object-list.statistics {
+	border: 1px solid #ccc;
+}
 #result-summary {
     float: left;
     text-align: left;

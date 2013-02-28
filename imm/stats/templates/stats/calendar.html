@@ -71,7 +71,7 @@
 	                    {% else %}"{% endif %}>
 		                {% with day.2|format_data:name as data %}
 		                    {% for item in data %}
-		                        <b>{{ item.0|truncate_chars:8 }}</b>({{ item.1 }})- 
+		                        <b>{{ item.0|truncate_chars:6 }}</b>({{ item.1 }})- 
 		                            {% ifequal item.2 item.3 %}
 		                                ({{ item.2 }})
 		                            {%else %} 
