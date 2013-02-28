@@ -91,7 +91,7 @@ class Runlist(StaffBaseClass):
     HELP = {}
     status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.PENDING)
     name = models.CharField(max_length=600)
-    containers = models.ManyToManyField(Container)
+    containers = models.ManyToManyField(Container, blank=True)
     priority = models.IntegerField(default=0)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified',auto_now=True, editable=False)
