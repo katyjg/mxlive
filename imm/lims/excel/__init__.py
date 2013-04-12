@@ -80,8 +80,8 @@ PLAN_SHEET_NAME = 'Plans'
 
 class LimsWorkbook(object):
     """ A wrapper for an Excel shipment/experiment spreadsheet """
-    
-    def __init__(self, xls, project, dewar_name, shipment_name):
+
+    def __init__(self, xls, project, dewar_name, shipment_name, archive=False):
         """ Reads the xls file into a xlrd.Book wrapper 
         
         @param xls: the filename of an Excel file
@@ -92,6 +92,7 @@ class LimsWorkbook(object):
         self.dewar_name = dewar_name
         self.shipment_name = shipment_name
         self.errors = []
+        self.archive = archive
         
     def _read_xls(self):
         """ Reads the data from the xlrd.Book wrapper """
@@ -435,20 +436,32 @@ class LimsWorkbook(object):
 
             for crystal in self.crystals.values():
                 if self.project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).filter(name=crystal).exists():
-                    crystal_doubles += str(crystal) + ', '
+                    if self.archive:
+                        for xtal in self.project.crystal_set.filter(status__exact=Crystal.STATES.RETURNED).filter(name=crystal):
+                            xtal.container.dewar.shipment.archive()
+                    if self.project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).filter(name=crystal).exists():
+                        crystal_doubles += str(crystal) + ', '
+                        msg = 'Un-archived c'
             if crystal_doubles:
                 if len(crystal_doubles.split(',')) > 5:
                     crystal_doubles = ','.join(crystal_doubles.split(',')[:5]) + '...'
-                temp_errors.append('Un-archived crystals (%s) already exist.' % crystal_doubles)
+                msg = self.archive and 'C' or 'Un-archived c'
+                temp_errors.append('%srystals already exist with names: %s.' % (msg,crystal_doubles))
 
             container_doubles = str()
             for container in self.containers.values():
                 if self.project.container_set.exclude(status__exact=Container.STATES.ARCHIVED).filter(name__exact=container).exists():
-                    container_doubles += str(container) + ', '
+                    if self.archive:
+                        for cont in self.project.container_set.filter(status__exact=Container.STATES.RETURNED).filter(name=container):
+                            cont.dewar.shipment.archive()
+                    if self.project.container_set.exclude(status__exact=Container.STATES.ARCHIVED).filter(name__exact=container).exists():
+                        container_doubles += str(container) + ', '
+                    
             if container_doubles:
                 if len(container_doubles.split(',')) > 5:
                     container_doubles = ','.join(container_doubles.split(',')[:5]) + '...'
-                temp_errors.append('Un-archived containers (%s) already exist.' % container_doubles)
+                msg = self.archive and 'C' or 'Un-archived c'
+                temp_errors.append('%sontainers already exist with names: %s.' % (msg, container_doubles))
 
             for err in temp_errors:
                 if err not in self.errors: self.errors.append(err)

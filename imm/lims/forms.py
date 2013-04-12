@@ -80,7 +80,11 @@ class ShipmentUploadForm(forms.Form):
     shipment = forms.CharField(widget=objforms.widgets.LargeInput, 
             label='Shipment Name', 
             help_text='Provide a name for this shipment.', 
-            required=True)    
+            required=True)   
+    archive = objforms.widgets.LargeCheckBoxField(required=False, 
+            label='Archive old shipments',
+            initial=True,
+            help_text='If crystal or container names are reused from shipments already returned from the CMCF, those shipments will be automatically archived.')
 
     NUM_ERRORS = 3    
 
@@ -97,7 +101,7 @@ class ShipmentUploadForm(forms.Form):
             temp.write(self.files['excel'].read())
             temp.flush()
             try:
-                self.workbook = LimsWorkbook(temp.name, cleaned_data['project'], dewar_name=cleaned_data['dewar'], shipment_name=cleaned_data['shipment'])
+                self.workbook = LimsWorkbook(temp.name, cleaned_data['project'], dewar_name=cleaned_data['dewar'], shipment_name=cleaned_data['shipment'], archive=cleaned_data['archive'])
             except KeyError:
                 del cleaned_data['excel']
                 return cleaned_data
@@ -109,12 +113,12 @@ class ShipmentUploadForm(forms.Form):
     
     def clean_dewar(self):
         if Dewar.objects.filter(project__exact=self.cleaned_data['project'], name__exact=self.cleaned_data['dewar']).exclude(status__exact=Dewar.STATES.ARCHIVED).exists():
-            raise forms.ValidationError('An un-archived dewar already exists with this name')
+            raise forms.ValidationError('A dewar already exists with this name')
         return self.cleaned_data['dewar']
 
     def clean_shipment(self):
         if Shipment.objects.filter(project__exact=self.cleaned_data['project'], name__exact=self.cleaned_data['shipment']).exclude(status__exact=Shipment.STATES.ARCHIVED).exists():
-            raise forms.ValidationError('An un-archived shipment already exists with this name')
+            raise forms.ValidationError('A shipment already exists with this name')
         return self.cleaned_data['shipment']
 
     def get_shipment(self):
