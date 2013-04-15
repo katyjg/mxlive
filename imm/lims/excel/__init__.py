@@ -3,6 +3,7 @@ import xlwt
 import xlutils.copy
 import xlutils.save
 import os
+import re
 import logging
 from django.db import transaction
 
@@ -367,6 +368,8 @@ class LimsWorkbook(object):
             if row_values[CRYSTAL_NAME]:
                 try:
                     crystal.name = str(row_values[CRYSTAL_NAME])
+                    if re.search(r'[^\-_a-zA-Z0-9]', row_values[CRYSTAL_NAME]):
+                        self.errors.append(CRYSTAL_NAME_CHAR_ERROR % (row_num+1))
                 except:
                     self.errors.append(CRYSTAL_NAME_CHAR_ERROR % (row_num+1))
             else:
