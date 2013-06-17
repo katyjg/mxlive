@@ -22,9 +22,11 @@
             {% if not request.user.is_superuser %}
                 {% if data|file_exists:'tar.gz' %}
                 <li class="download-tool" title="Download compressed dataset">
-                    <a onclick="getArchive('/download/data/{{ data.url }}/{{data.name}}.tar.gz');">Download</a>
+                    <a href="/download/data/{{data.url}}/{{data.name}}.tar.gz" onclick="getArchive('/download/data/{{ data.url }}/{{data.name}}.tar.gz');">Download</a>
                 </li>
-                {% endif %}
+                {% else %}{% if object|file_exists:'tar.gz-tmp' %}{% if object|file_updated:'tar.gz-tmp' %}
+                <li class="download-in-progress" title="Archive is being created - check back later"></li>
+                {% endif %}{% endif %}{% endif %}
                 {% if data.is_closable %}
                 <li class="close-tool" title="Archive this dataset">
                     <a href="{% url lims-data-close data.id %}" class="action modal-form">Archive</a>
@@ -217,10 +219,8 @@
     function getArchive(url) {
         jQuery.jGrowl("The tar file of your dataset is {{data|get_size}} and it may take {{data|get_size|get_adj}} to complete this download.  Thank you for your patience!", { life: 10000 });
         jQuery.fancybox.showActivity();
-        jQuery.get( url, function() {
-            window.location = url;
-            jQuery.fancybox.hideActivity();
-            });
+		window.location = url;
+		jQuery.fancybox.hideActivity();
     }
         
 
