@@ -2,7 +2,15 @@ from django.template import Library
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
+from django.contrib.auth.models import User
+
 from lims.models import Project, Result, ScanResult
+
+from django.conf import settings
+import sys, os
+PUBLIC_PATH = getattr(settings, 'PUBLIC_PATH', '/tmp')
+sys.path.append(os.path.join(PUBLIC_PATH))
+from scheduler.models import Visit, Stat, WebStatus, Proposal
 
 register = Library()
 
@@ -86,3 +94,13 @@ def dict_key(dict, key):
 @register.filter("stripspace")
 def stripspace(str):
     return str.replace(' ','')
+
+@register.filter("is_remote")
+def is_remote(user, year):
+    if User.objects.filter(username=user).exists() and Proposal.objects.using('public-web').filter(last_name=User.objects.get(username=user).last_name).exists():
+        visits = Visit.objects.using('public-web').filter(proposal__in=Proposal.objects.using('public-web').filter(last_name=User.objects.get(username=user).last_name))
+        if visits.filter(mail_in=True).exists() or visits.filter(remote=True):
+            return '*'
+    else:
+        return '-'
+    return ''

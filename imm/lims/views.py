@@ -1004,10 +1004,13 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
 @manager_required
 def shipment_pdf(request, id, model, format):
     """ """
-    try:
-        obj = request.manager.get(pk=id)
-    except:
-        raise Http404
+    if model != Project:
+        try:
+            obj = request.manager.get(pk=id)
+        except:
+            raise Http404
+    else:
+        obj = Project.objects.get(pk=id)
 
     if format == 'protocol':
         containers = obj.project.container_set.filter(dewar__in=obj.dewar_set.all())
@@ -1038,9 +1041,12 @@ def shipment_pdf(request, id, model, format):
                 project = request.project
             tex = loader.render_to_string('lims/tex/sample_list.tex', {'project': project, 'group': group, 'shipment' : obj, 'experiments': experiments, 'containers': containers, 'num_crystals': num_crystals })
         elif format == 'label':
-            tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': obj.project, 'shipment' : obj})
+            project = model == Project and obj or obj.project
+            tex = loader.render_to_string('lims/tex/send_labels.tex', {'project': project, 'shipment' : obj})
         elif format == 'return_label':
-            tex = loader.render_to_string('lims/tex/return_labels.tex', {'project': obj.project, 'shipment' : obj})
+            project = model == Project and obj or obj.project
+            obj = model == Shipment and obj or None
+            tex = loader.render_to_string('lims/tex/return_labels.tex', {'project': project, 'shipment' : obj})
         f = open(tex_file, 'w')
         f.write(tex)
         f.close()

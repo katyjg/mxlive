@@ -150,7 +150,7 @@
                     <tbody>
 		        {% endif %}	        
 				    <tr>
-					    <td>{{g}}<!-- {{u.0}}<br>{{u.1}} --></td>
+					    <td>{{g}}{{g|is_remote:2012}}<!-- {{u.0}}<br>{{u.1}} --></td>
 					    {% ifequal prov 'Other' %}<td>{{u.3}}</td>{% endifequal %}
 					    <td>{{u.0}}<!-- {{u.4}}--></td>
 					    <td>{{u.1}}<!-- {{u.5}}--><!-- /{{u.6}} --></td>
@@ -167,6 +167,8 @@
                 {% endifnotequal %}</tbody></table>{% endif %}{% endif %}
 			    {% endfor %}
 		{% endif %}{% endfor %}
+        <p>* User groups who took advantage of remote access services.</p>
+        <p>- User groups for whom the user account and proposal PI are different.</p>
     </div>
     
 {% endfor %}

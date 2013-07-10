@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django import forms
 from django.conf import settings
 
-from lims.models import Data
+from lims.models import Data, Project
 
 import os
 
@@ -18,5 +18,3 @@ urlpatterns = patterns('imm.stats.views',
 urlpatterns += patterns('imm.lims.views',
     (r'^dataset/$', 'object_list', {'model': Data, 'template': 'staff/lists/dataset_list.html', 'num_show': 99, 'view_only': True}, 'stats-data-list'),                        
 )
-
-

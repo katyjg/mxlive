@@ -21,6 +21,7 @@
 % double spacing     : 1.6
 \setmainfont{Gentium Basic}
 \begin{document}
+{% if shipment %}
 {% if project.address and project.city and project.province %}
 \begin{minipage}{\textwidth}
 {% include "lims/tex/cmcf_logo.tex" %}
@@ -97,7 +98,7 @@
     \end{center}
     {% endfor %}
 \newpage
-{% endif %}
+{% endif %}{% endif %}
 %%%%%%%%%%%%%%%%CLSI Shipping Order Form%%%%%%%%%%%%%%%%%%%%%%%%
 \renewcommand{\arraystretch}{1.1} 
 \newgeometry{left=0.55in, right=0.55in, top=0.25in, bottom=0.25in}
@@ -116,7 +117,6 @@
 
 \nopagebreak
 \begin{center}
-{% with shipment.project as project %}
 \begin{tabular}{|l|l|c|c|l|l|c|c|l|c|c|c|}
 
 \multicolumn{1}{l}{ {\bf Date:} } & \multicolumn{11}{l}{ {% now "jS F Y" %} } \\ \hline 
@@ -203,7 +203,6 @@
 \multicolumn{12}{l}{ HSE Signature: } \\ \cline{3-6}
 
 \end{tabular}
-{% endwith %}
 \end{center}
 
 \vspace{0.5cm}

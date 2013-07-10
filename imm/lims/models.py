@@ -201,6 +201,12 @@ class Project(models.Model):
                 shifts.append([d.created.date(), d.created.hour/8])
         return len(shifts)
 
+    def label_hash(self):
+        return self.name
+    
+    def shipment_count(self):
+        return Shipment.objects.filter(project__exact=self).filter(created__year=2013).count()
+    
     class Meta:
         verbose_name = "Project Profile"
 

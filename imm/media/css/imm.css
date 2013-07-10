@@ -303,6 +303,7 @@ ul.toolbar li.download-tool {background-image: url(/img/download-icon-32.png); c
 ul.toolbar li.download-in-progress {background-image: url(/img/download-icon-gray.png);}
 ul.toolbar li.trash-tool {background-image: url(/img/trash-icon.png);}
 ul.toolbar li.stats-tool {background-image: url(/img/calendar-icon.png);}
+ul.toolbar li.users-tool {background-image: url(/img/users.png);}
 ul.toolbar li.pie-tool {background-image: url(/img/pie_chart.png);}
 ul.toolbar li.hist-tool {background-image: url(/img/hist_chart.png);}
 ul.toolbar li.history-tool {background-image: url(/img/history.png);}

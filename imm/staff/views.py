@@ -27,7 +27,7 @@ from django.utils.datastructures import MultiValueDict
 from django.http import Http404
 from django.utils.encoding import smart_str
 
-from imm.lims.views import admin_login_required
+from imm.lims.views import admin_login_required, edit_object_inline
 from imm.lims.views import manager_required
 from imm.lims.views import object_list
 
@@ -442,6 +442,22 @@ def object_status(request, model):
                 data.toggle_download(False)
             
     return render_to_response('lims/refresh.html')
+
+@login_required
+@transaction.commit_on_success
+def edit_profile(request, form, id=None, template='objforms/form_base.html'):
+    """
+    View for editing user profiles
+    """
+    try:
+        model = Project
+        obj = Project.objects.get(pk=id)
+        request.project = obj
+        request.manager = Project.objects
+    except:
+        raise Http404
+    return edit_object_inline(request, obj.pk, model=model, form=form, template=template, action_url='/staff/users')
+
 
 @login_required
 def object_history(request, model, id, template='objlist/generic_list.html'):

@@ -58,6 +58,12 @@ def stats_month(request, year, month):
         }, context_instance=RequestContext(request))    
     
 @admin_login_required
+def stats_profiles(request):
+    return render_to_response('stats/profiles.html', {
+        'projects': Project.objects.all().order_by('name'),
+        }, context_instance=RequestContext(request))    
+    
+@admin_login_required
 @cache_page(3600)
 def stats_calendar(request, month=None):
     mon = month and int(month.split('-')[1]) or datetime.today().month

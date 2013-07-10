@@ -7,7 +7,7 @@ import os
 
 from imm.lims.models import *
 from imm.staff.models import Runlist, Link
-from imm.lims.forms import ExperimentForm, ConfirmDeleteForm, LimsBasicForm
+from imm.lims.forms import ExperimentForm, ConfirmDeleteForm, LimsBasicForm, ProjectForm
 from imm.staff.forms import *
 
 # Define url meta data for object lists detail pages
@@ -127,7 +127,8 @@ for section, subsection in _URL_META.items():
 #Special Staff Cases
 urlpatterns = patterns('imm.staff.views',
     (r'^$', 'staff_home', {}, 'staff-home'),
-
+    (r'^profile/edit/(?P<id>\d+)/$', 'edit_profile', {'form': ProjectForm, 'template': 'objforms/form_base.html'}, 'staff-profile-edit'),
+    
     # Dewars 
     (r'^shipping/dewar/receive/(?P<id>\d+)$', 'receive_shipment', {'model': Dewar, 'form': DewarReceiveForm, 'template': 'objforms/form_base.html', 'action': 'receive'}, 'staff-dewar-receive'),
 
@@ -154,9 +155,12 @@ urlpatterns += patterns('imm.lims.views', *_dynamic_patterns )
 #Special LIMS Cases
 urlpatterns += patterns('imm.lims.views',
 
+    (r'^users/$', 'object_list', {'model': Project, 'template': 'staff/lists/profiles.html'}, 'staff-get-profiles'),
+    
     # Shipments
     (r'^shipping/shipment/(?P<id>\d+)/return/$', 'action_object', {'model': Shipment, 'form': ShipmentReturnForm, 'template': 'objforms/form_base.html', 'action' : 'return'}, 'staff-shipment-return'),
     (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'model': Shipment, 'format' : 'return_label' }, 'staff-shipment-label'),    
+    (r'^shipping/project/(?P<id>\d+)/form/$', 'shipment_pdf', {'model': Project, 'format' : 'return_label' }, 'staff-shipment-form'),
     (r'^shipping/shipment/(?P<id>\d+)/protocol/$', 'shipment_pdf', {'model': Shipment, 'format' : 'protocol' }, 'staff-shipment-protocol'),    
     (r'^shipping/shipment/(?P<id>\d+)/progress/$', 'object_detail', {'model': Shipment, 'template' : 'lims/entries/progress_report.html' }, 'lims-shipment-progress'),
 

@@ -136,6 +136,7 @@ admin.site.register(SpaceGroup, SpaceGroupAdmin)
 class ProjectAdmin(admin.ModelAdmin):
     ordering = ['name']
     search_fields = ['name','city','province','contact_person','department','organisation','country']
+    list_filter = ['modified','carrier']
     list_display = ('name','contact_person','city','province','department','organisation','contact_phone')
 admin.site.register(Project, ProjectAdmin)           
            
