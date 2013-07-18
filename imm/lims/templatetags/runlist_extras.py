@@ -57,6 +57,10 @@ def experiment_table(context, object, admin):
               'object': object
             }
 
+@register.filter("pos_full")
+def pos_full(runlist, side):
+    return runlist.position_full(side[0].upper())
+
 @register.filter("in_runlist")  
 def in_runlist(crystals, containers):  
     return len(crystals.all().filter(container__pk__in=containers.all()))

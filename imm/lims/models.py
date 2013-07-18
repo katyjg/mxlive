@@ -699,6 +699,14 @@ class Container(LoadableBaseClass):
             retval.append((location, xtl))
         return retval
 
+    def loc_and_xtal(self):
+        retval = {}
+        xtalset = self.crystal_set.all()
+        for xtal in xtalset:
+            retval[xtal.container_location] = xtal        
+        return retval
+        
+
     def delete(self, request=None, cascade=True):
         if self.is_deletable:
             if not cascade:

@@ -110,6 +110,14 @@ class Runlist(StaffBaseClass):
     def class_name(self):
         return self.__class__.__name__
     
+    def position_full(self, location):
+        loc_dict = {'L': self.left, 'M': self.middle, 'R': self.right}
+        port_dict = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
+        if len(location) == 1: # cassette
+            return loc_dict[location[0]]
+        elif len(location) == 2: # uni-puck
+            return loc_dict[location[0]][port_dict[location[1]]]
+
     def show_history(self):
         return True
     

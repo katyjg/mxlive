@@ -788,7 +788,32 @@ div#unipuck {
     float: right;
     margin-right: 2em;
 }
-div#unipuck p{
+table.unipuck text {
+    float: none;
+}
+div.unipuck-xsm {
+    background: url('/img/unipuck-xsm.png') no-repeat center center !important;
+    width: 83px !important;
+    height: 83px !important;
+    float: right !important;
+    padding-top: 5px;
+    padding-right: 18px;
+}
+table.unipuck td {
+    vertical-align: top;
+    width: 97px !important;
+    height: 110px !important;
+    margin-right: -10px;
+    border-right: 1px solid #ddd !important;
+    border-bottom: 1px solid #ddd !important;
+}
+
+table.unipuck {
+    width: 205px;
+    height: 231px;
+}
+
+div#unipuck p, div.unipuck-xsm p.occupied-xs, div.unipuck-xsm p.empty-xs, table.cassette td.empty-xs, table.cassette td.occupied-xs{
     background: none;   
     position: relative;
     width: 40px;
@@ -801,6 +826,39 @@ div#unipuck p{
 div#unipuck .occupied {
     background: url('/img/circle_green-40.png') no-repeat center center;   
 }
+div.unipuck-xsm p.occupied-xs, div.unipuck-xsm p.empty-xs, table.cassette td.occupied-xs, table.cassette td.empty-xs {
+    width: 15px !important;
+    line-height: 15px;
+}
+div.unipuck-xsm .occupied-xs, table.cassette td.occupied-xs {
+    background: url('/img/circle_green-15.png') no-repeat center center !important;
+    opacity: 1.0 !important;
+}
+table.cassette td {
+    padding-left: 2px !important;
+    height: 16px;
+} 
+div.unipuck-xsm .empty-xs, table.cassette td.empty-xs {
+    background: url('/img/circle_gray-15.png') no-repeat center center !important;
+}
+
+div.unipuck-xsm .loc-1 { left: 43px; }
+div.unipuck-xsm .loc-2 {  left: 28px; }
+div.unipuck-xsm .loc-3 { left: 34px; }
+div.unipuck-xsm .loc-4 { left: 51px; }
+div.unipuck-xsm .loc-5 {  left: 57px; }
+div.unipuck-xsm .loc-6 { left: 43px; }
+div.unipuck-xsm .loc-7 { left: 25px; }
+div.unipuck-xsm .loc-8 { left: 14px; }
+div.unipuck-xsm .loc-9 { left: 10px; }
+div.unipuck-xsm .loc-10 { left: 18px; }
+div.unipuck-xsm .loc-11 { left: 34px; }
+div.unipuck-xsm .loc-12 {  left: 51px; }
+div.unipuck-xsm .loc-13 { left: 67px; }
+div.unipuck-xsm .loc-14 { left: 75px; }
+div.unipuck-xsm .loc-15 {  left: 72px; }
+div.unipuck-xsm .loc-16 { left: 60px; }
+
 .object-list.uni-puck-detail {
     float: left;
     width: 374px;
@@ -845,16 +903,16 @@ table.cane-detail td {
 {
     border-right: 1px solid #999;
 }
-.runlist-detail li.empty
+.runlist-detail li.empty, runlist-detail td.empty
 {
-    background: #fff;
+    background: none;
 }
 
 .runlist-detail li.lims-droppable-active {
     border-top: none;    
 }
 
-.runlist-detail li.lims-droppable-hover {
+.runlist-detail li.lims-droppable-hover, runlist-detail td.lims-droppable-hover {
     border-style:solid;
     order-width:1px;
     border-color:#BB88D3;
@@ -863,6 +921,18 @@ table.cane-detail td {
     border-top: none;
 }
 
+.runlist-detail td.lims-droppable-hover {
+    background: #bb88d3 !important;
+}
+.runlist-detail td.lims-droppable-active {
+    background: none;
+    border-right: 1px solid #ddd;
+    border-top: none !important;
+    border-left: none !important;
+    border-style:solid;
+    border-width: 1px;
+    border-color:#ddd !important;
+}
 .dewar-detail ul {
     margin-bottom: 5px;
 }
@@ -877,8 +947,8 @@ table.cane-detail td {
 {
     padding-left: 10px;
     line-height: 35px;
-    border-bottom: 1px solid #bbb;
-    min-height: 35px;
+    border-bottom: 1px solid #eee;
+    min-height: 36px;
 }
 .runlist-column1
 {
@@ -893,8 +963,8 @@ table.cane-detail td {
 }
 .runlist-column2
 {
-    width: 175px;
-    height: 120px;
+    width: 205px;
+    //height: 120px;
     float: left;
 }
 .runlist-column2 ul li, .runlist-cassette ul li {
@@ -913,6 +983,9 @@ table.cane-detail td {
     float: left;
     margin-right: 20px;
     margin-top: 10px;
+}
+div.runlist-cassette {
+    min-height: 232px !important;
 }
 .runlist-detail {
     margin-right: 35px;
@@ -936,6 +1009,12 @@ table.cane-detail td {
     line-height: 35px;
     height: 35px;
 }
+.runlist-detail ul.unipuck li, .runlist-detail ul.unipuck li a {
+    height: 26px !important;
+    min-height: 26px !important;
+    line-height: 26px;
+}
+
 .dewar-detail li a.remove, .runlist-detail li a.remove
 {
     display: inline;
@@ -943,12 +1022,26 @@ table.cane-detail td {
     width: 24px;
     padding: 0;
 }
+.runlist-detail li a.remove {
+    width: 12px;
+    padding-right: 4px;
+}
 
 .runlist-cassette ul, .runlist-cassette li a.remove {
-    height: 144px;
+    height: 64px;
 }
 .runlist-cassette ul li {
-    line-height: 144px;
+    line-height: 64px;
+}
+
+.runlist-cassette table {
+    width: 197px;
+    margin-left: 4px;
+    margin-top: 10px;
+}
+.runlist-cassette a {
+    padding-top: 5px;
+    line-height: 15px;
 }
 
 .runlist-detail div.title {

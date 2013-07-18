@@ -1,17 +1,28 @@
 {% load truncate_filters %}
+{% load math_filters %}
+<td {% if not container %}{% if object.is_editable %}class="empty automounter droppable droppable-add"   
+    accept="container" 
+    parent="{{ object.id }}"
+    automounter_location="{{ letter }}"{% endif %}{% endif %}>
+    <ul class="unipuck"><li><text>{{letter.1}}</text>
 
-<li class="{% if container %}occupied {{ container.get_kind_display }}{% else %}{% if object.is_editable %} empty automounter droppable droppable-add{% else %} occupied{% endif %}{% endif %}"   
-    {% if object.is_editable %}{% if container %}
-    {% else %}accept="container" 
-    parent="{{ object.id }}"{% endif %}{% else %} accept=""{% endif %}
-    automounter_location="{{ letter }}">
-    <a {% if container %}href="{% url staff-container-detail container.pk %}" title="Go to Container {{container.name }}"{% endif %}>{{ container.name|truncate_chars:9 }} {% if container %}({{container.project|capfirst|truncate_chars:4}}){% endif %}</a>
+    {% if container %}<a style="font-size:80%;" {% if container %}href="{% url staff-container-detail container.pk %}" title="Go to Container {{container.name }} ({{container.project|capfirst}})"{% endif %}>{{ container.name|truncate_chars:7 }} {% if container %}({{container.project|capfirst|truncate_chars:3}}){% endif %}</a>
     {% if container %}{% if object.is_editable %}
         <a class="remove"
            rel="{% url staff-runlist-remove-container object.pk container.pk %}"
            href="#"
            onclick="remove_item(this);"
            title="Remove container from automounter"></a>
-    {% endif %}{% endif %}
-</li>
+    {% endif %}{% endif %}</li></ul>
+    <div class="unipuck-xsm" title="">
+    {% for loc, crystal in container.loc_and_xtal.items %}
+        <p class="crystal loc-{{loc}} {% if crystal %}occupied{% else %}empty{% endif %}-xs" 
+           {% if crystal %}title="({{loc}}) {{ crystal }}"{% endif %}
+           style="top:{{loc|top_offset:forloop.counter}}px;">
+            &nbsp;
+        </p>
+    {% endfor %}
+    {% endif %}
+    </div>
+</td>
 
