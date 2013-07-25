@@ -27,7 +27,7 @@
 	{% if object.collect_status != 0 %}
 		<tr valign="top"><th NOWRAP>Collect Status:</th><td>{{ object.get_collect_status_display }}</td></tr>
 	{% endif %}
-	<tr valign="top"><th>Barcode:</th><td>{{ object.code }}</td></tr>
+	<tr valign="top"><th>Barcode:</th><td>{{ object.barcode }}</td></tr>
 	<tr valign="top"><th>Loop-size:</th><td>{{ object.loop_size }}</td></tr>
 	<tr valign="top"><th>Pin-length:</th><td>{{ object.pin_length }}</td></tr>
 	<tr valign="top"><th NOWRAP>Crystal Form:</th><td>{{ object.crystal_form }}</td></tr>

@@ -225,7 +225,7 @@ function initModals(){
 	    'scrolling'         : 'no',		
 	    'titleShow'         : false,
 	    'type'              : 'iframe',
-	    'height'			: '50%'
+	    'height'			: '65%'
     });
        
 }

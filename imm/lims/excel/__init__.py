@@ -428,6 +428,8 @@ class LimsWorkbook(object):
         
         @return: True if the spreadsheet has no validation errors, and False otherwise
         """
+        xtal_names = []
+        cont_locs = []
         try:
             self._read_xls()
         except:
@@ -436,8 +438,16 @@ class LimsWorkbook(object):
         try:
             temp_errors = list()
             crystal_doubles = str()
+            xtal_doubles_xls = str()
+            loc_doubles_xls = str()
 
             for crystal in self.crystals.values():
+                if crystal.name in xtal_names:
+                    xtal_doubles_xls += str(crystal.name) + ','
+                xtal_names.append(crystal.name)
+                if (crystal.container, crystal.container_location) in cont_locs:
+                    loc_doubles_xls += '%s (%s),' % (str(crystal.container), str(crystal.container_location)) 
+                cont_locs.append((crystal.container, crystal.container_location))
                 if self.project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).filter(name=crystal).exists():
                     if self.archive:
                         for xtal in self.project.crystal_set.filter(status__exact=Crystal.STATES.RETURNED).filter(name=crystal):
@@ -445,11 +455,23 @@ class LimsWorkbook(object):
                     if self.project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).filter(name=crystal).exists():
                         crystal_doubles += str(crystal) + ', '
                         msg = 'Un-archived c'
+                        
+                
             if crystal_doubles:
                 if len(crystal_doubles.split(',')) > 5:
                     crystal_doubles = ','.join(crystal_doubles.split(',')[:5]) + '...'
                 msg = self.archive and 'C' or 'Un-archived c'
                 temp_errors.append('%srystals already exist with names: %s.' % (msg,crystal_doubles))
+
+            if xtal_doubles_xls:
+                idx = min(5, len(xtal_doubles_xls.split(','))-1)
+                xtal_doubles_xls = ','.join(xtal_doubles_xls.split(',')[:idx]) + (len(xtal_doubles_xls.split(',')) > 5 and '...' or '')
+                temp_errors.append('Multiple crystals in spreadsheet called %s.' % xtal_doubles_xls)
+                
+            if loc_doubles_xls:
+                idx = min(5, len(loc_doubles_xls.split(','))-1)
+                loc_doubles_xls = ','.join(loc_doubles_xls.split(',')[:idx]) + (len(loc_doubles_xls.split(',')) > 5 and '...' or '')
+                temp_errors.append('Multiples crystals specified for container positions %s.' % loc_doubles_xls)
 
             container_doubles = str()
             for container in self.containers.values():
@@ -496,6 +518,7 @@ class LimsWorkbook(object):
         @param request: a django.http.HttpRequest object used for logging ActivityLog entities during upload
         @return: a (possibly empty) list of strings errors that occured while reading the Excel file
         """
+        
         self.shipment.save()
         self.log_activity(self.shipment, request)
         self.dewar.shipment = self.shipment
@@ -543,7 +566,6 @@ class LimsWorkbook(object):
                     crystal.crystal_form.name = crystal.crystal_form.identity()
                     crystal.crystal_form.save()
                     crystal.save()
-
         return self.errors
         
 class LimsWorkbookExport(object):
