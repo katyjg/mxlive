@@ -225,9 +225,10 @@ function initModals(){
 	    'scrolling'         : 'no',		
 	    'titleShow'         : false,
 	    'type'              : 'iframe',
-	    'height'			: '65%'
+	    'autoDimensions'	: true,
+	    'autoScale'			: true
     });
-       
+
 }
     
 function remove_item(element) {
