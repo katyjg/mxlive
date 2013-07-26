@@ -159,6 +159,9 @@
         {% endfor %}
         {% endwith %}
         </tbody>
+        <tfoot>
+        <tr><td colspan=5></td></tr>
+        </tfoot>
     </table>
 
     <h3>Automatic Space-Group Selection</h3>
@@ -243,7 +246,7 @@
         {% endwith %}
         </tbody>
         <tfoot>
-        <tr><td colspan=4></td></tr>
+        <tr><td colspan=7></td></tr>
         </tfoot>
     </table>
     <div class="tablenotes">
@@ -292,7 +295,7 @@
         {% endwith %}
         </tbody>
         <tfoot>
-        <tr><td colspan=4></td></tr>
+        <tr><td colspan=6></td></tr>
         </tfoot>
     </table>
     <div class="tablenotes">
@@ -379,7 +382,7 @@
         {% endfor %}
         </tbody>
         <tfoot>
-        <tr><td colspan=4></td></tr>
+        <tr><td colspan=6></td></tr>
         </tfoot>
     </table>
     <div class="clear spacer"></div>
@@ -534,24 +537,19 @@
             {% endif %}
 
             /**************** Plot Wilson***** ********************************/
-            var wilson = {{object.details.wilson_plot.log_i_sigma|get_data}};
-            var shell_labels = [];
-            {% for dat in object.details.wilson_plot.inv_res_sq %}{% if forloop.counter0|divisibleby:"8" %}
+            
+          	var wilson_obs = {{object.details.wilson_plot.mean_i|get_data}};
+          	var wilson_exp = {{object.details.wilson_plot.expected_i|get_data}};
+          	var shell_labels = [];
+            {% for dat in object.details.wilson_plot.inv_res_sq %}{% if forloop.counter0|divisibleby:"4" %}
                 shell_labels.push([{{forloop.counter0}},{{dat|sq_root|floatformat:2}}]);
             {% endif %}{% endfor %}
             plot_data($("#wilson"), [
-                { data: wilson, color: c[0], points: points, lines: lines }
-                ], shell_labels, [$.extend(laxis, { axisLabel: 'ln(I/Sigma(f)\u00B2)', color: null })], 'Resolution', [], false);
+                { data: wilson_obs, color: c[0], points: points, lines: lines, label: "&lt;I&gt;<sub>observed</sub>" }{% if object.details.wilson_plot.expected_i %},
+                { data: wilson_exp, color: c[1], points: points, lines: lines, label: "&lt;I&gt;<sub>expected</sub>"}{% endif %}
+                ], shell_labels, [
+                	$.extend(laxis, { axisLabel: '&lt;I&gt;', color: null, labelWidth: 38 })], 'Resolution', [], true, legend_pos='ne');
             
-            var stats = '';
-            {% with object.details.wilson_line as wstat %}
-                stats += 'Estimated B: {{wstat.0|floatformat:3}}<br>'
-                      + 'sigma a: {{wstat.1|floatformat:-3}}<br>'
-                      + 'sigma b: {{wstat.2|floatformat:3}}<br>';{% endwith %}
-            {% if object.details.wilson_scale %}
-                stats += 'Scale factor: {{object.details.wilson_scale|floatformat:3}}';{% endif %} 
-            $("#wilson").append('<div class="annotate" style="right:100px; top:50px;">'+stats+'</div>');
-
             /**************** Plot Twinning Analysis **************************/
             {% if object.details.twinning_l_test %}
             {% with object.details.twinning_l_test as data %}

@@ -4,7 +4,7 @@ import sys, os
 from numpy import histogram, average, std
 
 from imm.lims.views import admin_login_required
-from imm.lims.models import Beamline, Data, Project
+from imm.lims.models import Beamline, Data, Project, ScanResult
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -102,6 +102,7 @@ def stats_calendar(request, month=None):
 @cache_page(24*3600)
 def stats_params(request, year=None, cumulative=False):   
     all_datasets = Data.objects.all()
+    all_scans = ScanResult.objects.all()
     today = date.today()  
     if year:
         today = date.today()    
@@ -110,6 +111,7 @@ def stats_params(request, year=None, cumulative=False):
         if today < end_year:
             end_year = today
         all_datasets = all_datasets.filter(created__gte=start_year).filter(created__lte=end_year)
+        all_scans = all_scans.filter(created__gte=start_year).filter(created__lte=end_year)
     else: year = today.year
     beamlines = PublicBeamline.objects.using('public-web')
     exp_data = {}
@@ -117,10 +119,13 @@ def stats_params(request, year=None, cumulative=False):
     for bl in Beamline.objects.all():
         if bl.name in [b.name for b in beamlines]:
             datasets = all_datasets.filter(beamline__exact=bl).filter(kind__exact=Data.DATA_TYPES.COLLECTION)
+            scans = all_scans.filter(beamline__exact=bl)            
             exp_data[bl.name] = {}
-            for type in ['exposure_time','wavelength','delta_angle','resolution']:
+            for type in ['exposure_time','wavelength','delta_angle','resolution','scan_attenuation']:
                 if type == 'wavelength':
                     stat[type] = [data.energy() for data in datasets]
+                elif type == 'scan_attenuation':
+                    stat[type] = [scan.attenuation for scan in scans]
                 else:
                     stat[type] = [data.__dict__[type] for data in datasets]
                 num_bins = 20

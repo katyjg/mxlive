@@ -820,7 +820,6 @@ div#unipuck p, div.unipuck-xsm p.occupied-xs, div.unipuck-xsm p.empty-xs, table.
     text-align: center;
     margin: 0;
     padding: 0;
-    opacity: 0.8;
     line-height: 40px;
 }
 div#unipuck .occupied {
@@ -840,6 +839,9 @@ table.cassette td {
 } 
 div.unipuck-xsm .empty-xs, table.cassette td.empty-xs {
     background: url('/img/circle_gray-15.png') no-repeat center center !important;
+}
+table.cassette td.started, div.unipuck-xsm .started, div#unipuck p.started, table.cane-detail td.started, table.cassette-detail td.started {
+	opacity: 0.75 !important;
 }
 
 div.unipuck-xsm .loc-1 { left: 43px; }

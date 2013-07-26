@@ -16,8 +16,8 @@
     {% endif %}{% endif %}</li></ul>
     <div class="unipuck-xsm" title="">
     {% for loc, crystal in container.loc_and_xtal.items %}
-        <p class="crystal loc-{{loc}} {% if crystal %}occupied{% else %}empty{% endif %}-xs" 
-           {% if crystal %}title="({{loc}}) {{ crystal }}"{% endif %}
+        <p class="crystal loc-{{loc}} {% if crystal %}{% if crystal.is_started %}started{% endif %} occupied{% else %}empty{% endif %}-xs" 
+           {% if crystal %}title="<strong>({{loc}}) {{ crystal }}</strong><br>{{ crystal.is_started }}"{% endif %}
            style="top:{{loc|top_offset:forloop.counter}}px;">
             &nbsp;
         </p>

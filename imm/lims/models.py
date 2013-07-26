@@ -1125,6 +1125,20 @@ class Crystal(LoadableBaseClass):
     def is_complete(self):
         return (self.screen_status != Crystal.EXP_STATES.PENDING and self.collect_status != Crystal.EXP_STATES.PENDING and self.status > Crystal.STATES.DRAFT) or self.collect_status == Crystal.EXP_STATES.COMPLETED
     
+    def is_started(self):
+        msg = str()
+        data = Data.objects.filter(crystal__exact=self)
+        result = Result.objects.filter(crystal__exact=self)
+        scan = ScanResult.objects.filter(crystal__exact=self)
+        types = [Data.DATA_TYPES, Result.RESULT_TYPES, ScanResult.SCAN_TYPES]
+        for i, set in enumerate([data, result, scan]):
+            if set.exists():
+                s0 = set.filter(kind=0).count() and '%i %s' % (set.filter(kind=0).count(), types[i][0]) or ''
+                s1 = set.filter(kind=1).count() and '%i %s' % (set.filter(kind=1).count(), types[i][1]) or ''
+                if s1 or s0:
+                    msg += '%s%s%s %s<br>' % (s0, (s0 and s1) and '/' or '', s1, set[0].__class__.__name__)
+        return msg
+    
     def setup_experiment(self):
         """ If crystal is on-site, updates the screen_status and collect_status based on its experiment type
         """

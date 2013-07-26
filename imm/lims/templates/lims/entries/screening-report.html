@@ -108,6 +108,43 @@
     </div>
 
     <div class="clear spacer"></div>
+	
+	{% if object.details.crystal_alignment %}
+		<h3>Kappa and Phi angles for re-orienting the crystal</h3>
+	    <table class="rtable full">
+	        <thead>
+	            <tr>
+	                <th scope="col">Kappa<sup class="footnote">[*]</sup></th>
+	                <th scope="col">Phi</th>
+	                <th scope="col">Vectors (v1,v2)<sup class="footnote">[*]</sup></th>
+	            </tr>
+	        </thead>
+	        <tbody>
+	        {% with object.details.crystal_alignment as align %}
+	        {% zip align.solutions align.goniometer align.method as tbl %}
+	        {% for rows in tbl %}
+	            <tr>
+	                <td>{{rows.0.0|floatformat:"-1"}}</td>
+	                <td>{{rows.0.1|floatformat:"-1"}}</td>
+	                <td>{{rows.0.2}}</td>
+	            </tr>
+	        {% endfor %}
+	        {% endwith %}
+	        </tbody>
+	    </table>
+	    <div class="tablenotes">
+	        <h3>Notes</h3>
+	            <dl class="note-list">
+	            <dt>[*] -<dt>
+	            <dd>
+	                Alignment is calculated for the goniometer 'CLS MiniKappa'.  The alignment 
+	                method is v1 parallel to omega, v2 perpendicular to the omega-beam plane.
+	            </dd>
+	        </dl>
+	    </div>
+	
+	    <div class="clear spacer"></div>
+	{% endif %}
 
     <h3>Compatible bravais lattice types</h3>
     <table class="rtable full">

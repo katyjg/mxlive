@@ -30,8 +30,8 @@
                 <tr>
                 {% for loc, crystal in cassette.location_and_crystal %}
                     {% if crystal %}
-                        <td class="occupied-xs crystal"
-                            title="({{loc}}) {{ crystal.name }}">&nbsp;</td>
+                        <td class="occupied-xs crystal {% if crystal.is_started %}started{% endif %}"
+                            title="<strong>({{loc}}) {{ crystal }}</strong><br>{{ crystal.is_started }}">&nbsp;</td>
                     {% else %}
                         <td class="empty-xs container" 
                             container_location="{{ loc }}">&nbsp;</td>

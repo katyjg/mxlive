@@ -32,10 +32,11 @@
   {% for bl in exp_data.keys %}
       <div class="col-6">
           <h2>{% if not cumulative %}{{years.3}}{% endif %} Usage Metrics on {{bl}}</h2>
-          <div id="exposure_time-{{bl}}" class="placeholder half"></div>
-          <div id="delta_angle-{{bl}}" class="placeholder half"></div>
+          <div id="exposure_time-{{bl}}" class="placeholder half">hello</div>
+          <div id="delta_angle-{{bl}}" class="placeholder half">world</div>
           <div id="resolution-{{bl}}" class="placeholder half"></div>
           <div id="wavelength-{{bl}}" class="placeholder half"></div>
+          <div id="scan_attenuation-{{bl}}" class="placeholder half"></div>
       </div>
   {% endfor %}  
 </div>
@@ -60,7 +61,9 @@
                     {% ifequal type 'wavelength' %}ytitle = 'Energy (keV)', col = '#FFDD57';{% endifequal %}
                     {% ifequal type 'exposure_time' %}ytitle = 'Exposure Time (s)', col = '#7DCF7D';{% endifequal %}
                     {% ifequal type 'resolution' %}ytitle = 'Max Resolution (A)', col = '#57A8FF';{% endifequal %}
+                    {% ifequal type 'scan_attenuation' %}ytitle = 'Scan Attenuation (%)', col = '#A857FF';{% endifequal %}
                     var max = 0;
+                    var ylabel = {% ifequal type 'scan_attenuation' %}'Number of Scans'{% else %}'Number of Datasets'{% endifequal %};
                     for (var i=0; i < exp_data['{{bl}}']['{{type}}'].length; ++i) {
                         if (exp_data['{{bl}}']['{{type}}'][i][0] > max) max = exp_data['{{bl}}']['{{type}}'][i][0]
                     }
@@ -73,7 +76,7 @@
                             },
                             xaxes: [{min: 0 }],
                             xaxis: { axisLabel: ytitle },
-                            yaxis: { axisLabel: '{% cycle 'Number of Datasets' '' %}' },
+                            yaxis: { axisLabel: {% if forloop.counter0|divisibleby:2 %}ylabel{% else %}''{% endif %} },
                             grid: { borderWidth: 0 },
                             pan: {interactive: true },
                             zoom: {interactive: true },
