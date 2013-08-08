@@ -183,7 +183,7 @@ class LimsWorkbook(object):
             if row_values[CRYSTAL_COCKTAIL]:
                 if row_values[CRYSTAL_COCKTAIL] not in cocktails:
                     if self.project.cocktail_set.filter(name__exact=row_values[CRYSTAL_COCKTAIL]).exists():
-                        cocktail = self.project.cocktail_set.get(name__exact=row_values[CRYSTAL_COCKTAIL]) 
+                        cocktail = self.project.cocktail_set.filter(name__exact=row_values[CRYSTAL_COCKTAIL])[0] 
                     else:
                         cocktail = Cocktail()
                         cocktail.project = self.project
@@ -428,14 +428,14 @@ class LimsWorkbook(object):
         
         @return: True if the spreadsheet has no validation errors, and False otherwise
         """
-        xtal_names = []
-        cont_locs = []
         try:
             self._read_xls()
         except:
             return False
-
+        
         try:
+            xtal_names = []
+            cont_locs = {}
             temp_errors = list()
             crystal_doubles = str()
             xtal_doubles_xls = str()
@@ -445,9 +445,12 @@ class LimsWorkbook(object):
                 if crystal.name in xtal_names:
                     xtal_doubles_xls += str(crystal.name) + ','
                 xtal_names.append(crystal.name)
-                if (crystal.container, crystal.container_location) in cont_locs:
-                    loc_doubles_xls += '%s (%s),' % (str(crystal.container), str(crystal.container_location)) 
-                cont_locs.append((crystal.container, crystal.container_location))
+                if cont_locs.has_key(crystal.container.name):
+                    if crystal.container_location in cont_locs[crystal.container.name]:
+                        loc_doubles_xls += '%s (%s),' % (str(crystal.container.name), str(crystal.container_location)) 
+                    cont_locs[crystal.container.name].append(crystal.container_location)
+                else: 
+                    cont_locs[crystal.container.name] = [crystal.container_location]
                 if self.project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).filter(name=crystal).exists():
                     if self.archive:
                         for xtal in self.project.crystal_set.filter(status__exact=Crystal.STATES.RETURNED).filter(name=crystal):
