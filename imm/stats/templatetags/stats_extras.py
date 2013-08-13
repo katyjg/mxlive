@@ -4,17 +4,15 @@ from dateutil.relativedelta import relativedelta
 
 from django.contrib.auth.models import User
 
-from lims.models import Project, Result, ScanResult
+from lims.models import Project
 
 from django.conf import settings
 import sys, os
 PUBLIC_PATH = getattr(settings, 'PUBLIC_PATH', '/tmp')
 sys.path.append(os.path.join(PUBLIC_PATH))
-from scheduler.models import Visit, Stat, WebStatus, Proposal
+from scheduler.models import Visit, Proposal
 
 register = Library()
-
-import logging
 
 @register.filter("format_data")
 def format_data(data, beamline):
@@ -67,33 +65,33 @@ def num_shifts(data, month):
     return num_shifts
 
 @register.filter("sum_shifts")
-def sum_shifts(list):
+def sum_shifts(lst):
     num = 0
-    for v in list:
+    for v in lst:
         num += v.get_num_shifts()
     return num
 
 @register.filter("sum_dict")
-def sum_dict(dict, i):
+def sum_dict(dct, i):
     total = 0
-    for k, v in dict.items():
+    for v in dct.values():
         total = total + v[i]
     return total
 
 @register.filter("sum_index")
-def sum_index(list, i):
+def sum_index(lst, i):
     total = 0
-    for v in list:
+    for v in lst:
         total += v[i]
     return total
 
 @register.filter("dict_key")
-def dict_key(dict, key):
-    return dict[key]
+def dict_key(dct, key):
+    return dct[key]
 
 @register.filter("stripspace")
-def stripspace(str):
-    return str.replace(' ','')
+def stripspace(txt):
+    return txt.replace(' ','')
 
 @register.filter("is_remote")
 def is_remote(user, year):
@@ -101,6 +99,11 @@ def is_remote(user, year):
         visits = Visit.objects.using('public-web').filter(proposal__in=Proposal.objects.using('public-web').filter(last_name=User.objects.get(username=user).last_name))
         if visits.filter(mail_in=True).exists() or visits.filter(remote=True):
             return '*'
-    else:
-        return '-'
     return ''
+
+@register.filter("is_pi")
+def is_pi(user, year):
+    props = Proposal.objects.using('public-web').filter(expiration__gte=datetime(year,1,1))
+    if User.objects.filter(username=user).exists() and not props.filter(last_name=User.objects.get(username=user).last_name).exists():
+        return props.filter(account__icontains=user).values('last_name','proposal_id')
+    return []

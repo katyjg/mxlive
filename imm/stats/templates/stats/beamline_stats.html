@@ -150,7 +150,9 @@
                     <tbody>
 		        {% endif %}	        
 				    <tr>
-					    <td>{{g}}{{g|is_remote:2012}}<!-- {{u.0}}<br>{{u.1}} --></td>
+					    <td>{{g}}{{g|is_remote:years.3}}{% if g|is_pi:years.3 %}
+					    	<img style="display: inline;" src="/img/info.png" 
+					    		 title="Used permit(s):<br> {% for p in g|is_pi:years.3 %}{% if forloop.first %}{% else %}, <br>{% endif %}{{ p.last_name }} ({{ p.proposal_id }}){% endfor %}">{% endif %}<!-- {{u.0}}<br>{{u.1}} --></td>
 					    {% ifequal prov 'Other' %}<td>{{u.3}}</td>{% endifequal %}
 					    <td>{{u.0}}<!-- {{u.4}}--></td>
 					    <td>{{u.1}}<!-- {{u.5}}--><!-- /{{u.6}} --></td>
