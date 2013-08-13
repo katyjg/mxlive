@@ -94,10 +94,10 @@ def stripspace(txt):
     return txt.replace(' ','')
 
 @register.filter("is_remote")
-def is_remote(user, year):
+def is_remote(user):
     if User.objects.filter(username=user).exists() and Proposal.objects.using('public-web').filter(last_name=User.objects.get(username=user).last_name).exists():
         visits = Visit.objects.using('public-web').filter(proposal__in=Proposal.objects.using('public-web').filter(last_name=User.objects.get(username=user).last_name))
-        if visits.filter(mail_in=True).exists() or visits.filter(remote=True):
+        if visits.filter(mail_in=True).exists() or visits.filter(remote=True).exists():
             return '*'
     return ''
 
