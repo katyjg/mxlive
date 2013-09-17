@@ -45,8 +45,8 @@
 {\bf Experiments: }{{experiments|length}} \hfill {{ project.address|texsafe|cut:"None"|default:"number are not" }} \\
 \hfill {{ project.city|texsafe|cut:"None"|default:"available, and must be" }}{% if project.city %}, {{ project.province|texsafe|cut:"None"|default:"" }}   {{ project.postal_code|texsafe|cut:"None"|default:"" }}{% endif %}\\
 {\bf Username: }{{ project.name|texsafe|default:"" }} \hfill {% if project.city %}{{ project.country|texsafe|cut:"None"|default:"obtained manually." }}{% else %}obtained manually.{% endif %} \\  
-{\bf Password: }\underline{\hspace*{1.0in}} \hfill Phone: {{ project.contact_phone|texsafe|cut:"None"|default:"Not Listed" }} {% if project.contact_fax %}(Fax: {{ project.contact_fax|texsafe|default:"" }}){% endif %}\\ 
-{% if project.account_number %}\hfill {\bf {% if project.carrier %}{{ project.carrier }} {% endif %}Account#: {{ project.account_number|texsafe|default:"" }} } \\{% endif %}
+\hfill Phone: {{ project.contact_phone|texsafe|cut:"None"|default:"Not Listed" }} {% if project.contact_fax %}(Fax: {{ project.contact_fax|texsafe|default:"" }}){% endif %}\\ 
+{\bf Password: }\underline{\hspace*{1.5in}} \hfill {% if project.account_number %}{\bf {% if project.carrier %}{{ project.carrier }} {% endif %}Account#: {{ project.account_number|texsafe|default:"" }} }{% else %}-----{% endif %} \\
 \end{center}{% endif %}
 \section*{Sample List By Experiment}
 % priority - checkbox - names - type/priority - plan/container - edge - energy - total - delta - resolution - comments
