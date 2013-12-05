@@ -3,7 +3,7 @@ import os
 import sys
 import struct
 import pickle
-import Image 
+from PIL import Image 
 import numpy
 from scipy.misc import toimage, fromimage
 
