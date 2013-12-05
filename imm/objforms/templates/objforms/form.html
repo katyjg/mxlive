@@ -18,7 +18,9 @@
 <input id='btn2' type="submit" value="{{ save_label|default:"Save" }}" class="default" name="_save" onclick="jQuery('#btn1').attr('disabled',true);" />
 <input id='btn1' type="submit" value="Update Profile" name="_updateprofile" onclick="jQuery('#btn2').attr('disabled',true);"/>
 {% else %}
+{% if not no_action %}
 <input type="submit" value="{{ save_label|default:"Save" }}" name="_save" class="default" />
+{% endif %}
 {%endif%}{% endif %}
 </li>
 </ul>

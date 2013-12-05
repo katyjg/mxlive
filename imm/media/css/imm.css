@@ -841,7 +841,7 @@ div.unipuck-xsm .empty-xs, table.cassette td.empty-xs {
     background: url('/img/circle_gray-15.png') no-repeat center center !important;
 }
 table.cassette td.started, div.unipuck-xsm .started, div#unipuck p.started, table.cane-detail td.started, table.cassette-detail td.started {
-	opacity: 0.75 !important;
+	opacity: 0.5 !important;
 }
 
 div.unipuck-xsm .loc-1 { left: 43px; }

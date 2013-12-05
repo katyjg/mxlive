@@ -26,25 +26,26 @@ COLUMN_MAP = dict([(index, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[index]) for index in ran
 EXPERIMENT_SHEET_NUM = 1
 EXPERIMENT_SHEET_NAME = 'Groups'
 EXPERIMENT_NAME = 0
-EXPERIMENT_NAME_ERROR = 'Invalid Experiment name "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_NAME] + '$%d.'
+EXPERIMENT_NAME_ERROR = 'Invalid Group/Experiment name "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_NAME] + '$%d.'
 EXPERIMENT_KIND = 1
-EXPERIMENT_KIND_ERROR = 'Invalid Experiment type "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_KIND] + '$%d.'
+EXPERIMENT_KIND_ERROR = 'Invalid Group/Experiment type "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_KIND] + '$%d.'
 EXPERIMENT_PLAN = 2
-EXPERIMENT_PLAN_ERROR = 'Invalid Experiment plan "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_PLAN] + '$%d.'
+EXPERIMENT_PLAN_ERROR = 'Invalid Group/Experiment plan "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_PLAN] + '$%d.'
 EXPERIMENT_PRIORITY = 3
+EXPERIMENT_PRIORITY_ERROR = 'Invalid Priority "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_PRIORITY] + '$%d.'
 EXPERIMENT_ABSORPTION_EDGE = 4
-EXPERIMENT_ABSORPTION_EDGE_ERROR = 'Invalid Experiment absorption edge "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_ABSORPTION_EDGE] + '$%d.'
+EXPERIMENT_ABSORPTION_EDGE_ERROR = 'Invalid Group/Experiment absorption-edge "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_ABSORPTION_EDGE] + '$%d.'
 EXPERIMENT_ENERGY = 5
 EXPERIMENT_TOTAL_ANGLE = 6
 EXPERIMENT_DELTA_ANGLE = 7
 EXPERIMENT_R_MEAS = 8
-EXPERIMENT_R_MEAS_ERROR = 'Invalid Experiment R-factor "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_R_MEAS] + '$%d.'
+EXPERIMENT_R_MEAS_ERROR = 'Invalid Group/Experiment R-factor "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_R_MEAS] + '$%d.'
 EXPERIMENT_I_SIGMA = 9
-EXPERIMENT_I_SIGMA_ERROR = 'Invalid Experiment I/Sigma "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_I_SIGMA] + '$%d.'
+EXPERIMENT_I_SIGMA_ERROR = 'Invalid Group/Experiment I/Sigma "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_I_SIGMA] + '$%d.'
 EXPERIMENT_RESOLUTION = 10
-EXPERIMENT_RESOLUTION_ERROR = 'Invalid Experiment resolution "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_RESOLUTION] + '$%d.'
+EXPERIMENT_RESOLUTION_ERROR = 'Invalid Group/Experiment resolution "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_RESOLUTION] + '$%d.'
 EXPERIMENT_SPACE_GROUP = 11
-EXPERIMENT_SPACE_GROUP_ERROR = 'Invalid Experiment space group "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_RESOLUTION] + '$%d.'
+EXPERIMENT_SPACE_GROUP_ERROR = 'Invalid Group/Experiment space-group "%s" in cell Groups!$' + COLUMN_MAP[EXPERIMENT_RESOLUTION] + '$%d.'
 EXPERIMENT_DUPLICATE_ERROR = 'Multiple groups named "%s"'
 EXPERIMENT_CELL_A = 12
 EXPERIMENT_CELL_B = 13
@@ -63,7 +64,7 @@ CRYSTAL_NAME_CHAR_ERROR = 'Strange character found in Crystal name in cell Cryst
 CRYSTAL_BARCODE = 1
 CRYSTAL_BARCODE_ERROR = 'Invalid Crystal barcode "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_BARCODE] + '$%d.'
 CRYSTAL_EXPERIMENT = 2
-CRYSTAL_EXPERIMENT_ERROR = 'Invalid Group/Experiment name "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_EXPERIMENT] + '$%d.'
+CRYSTAL_EXPERIMENT_ERROR = 'Invalid Crystal group "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_EXPERIMENT] + '$%d.'
 CRYSTAL_CONTAINER = 3
 CRYSTAL_CONTAINER_ERROR = 'Invalid Container name "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_CONTAINER] + '$%d.'
 CRYSTAL_CONTAINER_KIND = 4
@@ -72,6 +73,7 @@ CRYSTAL_CONTAINER_LOCATION = 5
 CRYSTAL_CONTAINER_LOCATION_ERROR = 'Invalid Container location "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_CONTAINER_LOCATION] + '$%d.'
 CRYSTAL_DUPLICATE_ERROR = 'Multiple crystals named "%s"'
 CRYSTAL_PRIORITY = 6
+CRYSTAL_PRIORITY_ERROR = 'Invalid Priority "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_PRIORITY] + '$%d.'
 CRYSTAL_COCKTAIL = 7
 CRYSTAL_COMMENTS = 8
 CRYSTAL_COMMENTS_ERROR = 'Strange character found in cell Crystals!$' + COLUMN_MAP[CRYSTAL_COMMENTS] + '$%d.'
@@ -292,14 +294,17 @@ class LimsWorkbook(object):
                 self.errors.append(EXPERIMENT_NAME_ERROR % (row_values[EXPERIMENT_NAME], row_num+1))
                 
             if row_values[EXPERIMENT_KIND]:
-                experiment.kind = Experiment.EXP_TYPES.get_value_by_name(row_values[EXPERIMENT_KIND]) # validated by Excel
+                try:
+                    experiment.kind = Experiment.EXP_TYPES.get_value_by_name(len(row_values[EXPERIMENT_KIND]) > 3 and row_values[EXPERIMENT_KIND].capitalize() or row_values[EXPERIMENT_KIND]) # validated by Excel
+                except:
+                    self.errors.append(EXPERIMENT_KIND_ERROR % (row_values[EXPERIMENT_KIND], row_num+1))
             else:
                 # default to Native
                 experiment.kind = Experiment.EXP_TYPES.NATIVE
              
             if row_values[EXPERIMENT_PLAN]:
                 try:
-                    experiment.plan = Experiment.EXP_PLANS.get_value_by_name(row_values[EXPERIMENT_PLAN]) # validated by Excel
+                    experiment.plan = Experiment.EXP_PLANS.get_value_by_name(row_values[EXPERIMENT_PLAN].capitalize()) # validated by Excel
                 except:
                     self.errors.append(EXPERIMENT_PLAN_ERROR % (row_values[EXPERIMENT_PLAN], row_num+1))
             else:
@@ -326,7 +331,10 @@ class LimsWorkbook(object):
                 experiment.i_sigma = row_values[EXPERIMENT_I_SIGMA]
                 
             if row_values[EXPERIMENT_PRIORITY]:
-                experiment.priority = row_values[EXPERIMENT_PRIORITY]
+                try:
+                    experiment.priority = int(row_values[EXPERIMENT_PRIORITY])
+                except:
+                    self.errors.append(EXPERIMENT_PRIORITY_ERROR % (row_values[EXPERIMENT_PLAN], row_num+1))
             
             if row_values[EXPERIMENT_RESOLUTION]:
                 experiment.resolution = row_values[EXPERIMENT_RESOLUTION]
@@ -415,7 +423,10 @@ class LimsWorkbook(object):
                     self.errors.append(CRYSTAL_COMMENTS_ERROR % (row_num+1))                
                 
             if row_values[CRYSTAL_PRIORITY]:
-                crystal.priority = row_values[CRYSTAL_PRIORITY]
+                try:
+                    crystal.priority = int(row_values[CRYSTAL_PRIORITY])
+                except:
+                    self.errors.append(CRYSTAL_PRIORITY_ERROR % (row_values[CRYSTAL_PRIORITY], row_num+1))
                 
             if crystals.has_key(crystal.name):
                 self.errors.append(CRYSTAL_DUPLICATE_ERROR % (crystal.name))

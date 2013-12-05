@@ -20,9 +20,10 @@ register = Library()
 @register.inclusion_tag('lims/entries/experiment_table.html', takes_context=True)
 def experiment_table(context, object, admin):
     containers = object.project.container_set.filter(dewar__in=object.dewar_set.all())
-    experiments = object.project.experiment_set.filter(pk__in=object.project.crystal_set.filter(container__dewar__shipment__exact=object.pk).values('experiment')).order_by('priority')
+    experiments = object.project.experiment_set.filter(pk__in=object.project.crystal_set.filter(container__dewar__shipment__exact=object.pk).values('experiment'))
+    list_exps = list(experiments.exclude(priority__isnull=True).exclude(priority__exact=0).order_by('priority')) + list(experiments.exclude(priority__gte=1))
 
-    return { 'experiments': experiments,
+    return { 'experiments': list_exps,
               'containers': containers,
               'admin': admin,
               'object': object

@@ -290,15 +290,15 @@ def upload_shipment(request, model, form, template='lims/forms/form_base.html'):
                 request.user.message_set.create(message = message)
                 obj = Shipment.objects.filter(status__exact=0).get(name__exact=frm.get_shipment())
                 return render_to_response("lims/iframe_refresh.html", {'redirect_to': '/lims/shipping/shipment/%s/' % obj.pk,}, context_instance=RequestContext(request))
-                #redirect = '/lims/shipping/shipment/%s/' % obj.pk
-                #return render_to_response("lims/redirect.json", {
-                #           'redirect_to': redirect,
-                #       }, context_instance=RequestContext(request), mimetype="application/json")
             except IntegrityError:
                 transaction.rollback()
                 frm.add_excel_error('This data has been uploaded already')
                 return render_to_response(template, {'form': frm, 'info': form_info}, context_instance=RequestContext(request))
         else:
+            if frm.error_message():
+                frm.fields = {}
+                form_info['no_action'] = True
+                form_info['message'] = 'Uh-oh!  Please fix the following errors with your spreadsheet, and then try again.'
             return render_to_response(template, {'form': frm, 'info': form_info}, context_instance=RequestContext(request))
     else:
         frm = form(initial={'project': project.pk})
@@ -1014,7 +1014,8 @@ def shipment_pdf(request, id, model, format):
 
     if format == 'protocol':
         containers = obj.project.container_set.filter(dewar__in=obj.dewar_set.all())
-        experiments = obj.project.experiment_set.filter(pk__in=obj.project.crystal_set.filter(container__dewar__shipment__exact=obj.pk).values('experiment')).order_by('priority')
+        all_experiments = obj.project.experiment_set.filter(pk__in=obj.project.crystal_set.filter(container__dewar__shipment__exact=obj.pk).values('experiment'))
+        experiments = list(all_experiments.filter(priority__gte=1).order_by('priority')) + list(all_experiments.exclude(priority__gte=1))
         group = None
         num_crystals = obj.project.crystal_set.filter(container__pk__in=containers).count()
 

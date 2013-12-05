@@ -75,7 +75,7 @@
 \endlastfoot
 
 {% for exp in experiments %}
-{{ exp.priority|texsafe|default:"" }}& 
+{% if exp.priority %}{{ exp.priority|texsafe|default:"" }}{% endif %}& 
 \multicolumn{2}{c|}{ {{ exp.name|texsafe|default:"" }} }&
 {{ exp.get_kind_display|texsafe|default:"" }}&
 {{ exp.get_plan_display|texsafe|default:"" }}&
@@ -98,7 +98,7 @@
 {% for xtal in exp.crystal_set.all|prioritize_and_sort %} \multicolumn{1}{|c|}{} & 
 \multicolumn{1}{c}{\cellcolor[gray]{0.98} \hspace{-0.013\textwidth} $\Box$ } & 
 \cellcolor[gray]{0.98} {{ xtal.name|texsafe|default:"" }} &
-\cellcolor[gray]{0.98} {{ xtal.priority|texsafe|default:"" }} &
+\cellcolor[gray]{0.98} {% if xtal.priority %}{{ xtal.priority|texsafe|default:"" }}{% endif %} &
 \cellcolor[gray]{0.98} {{ xtal.container|texsafe|default:"" }} ({{ xtal.container_location|texsafe|default:"" }}{% ifequal xtal.container 'Cane' %} from bottom{% endifequal %})&
 \multicolumn{3}{l|}{\cellcolor[gray]{0.98} {% if xtal.crystal_form %}{{ xtal.crystal_form.cell_a|texsafe|default:"" }},{{ xtal.crystal_form.cell_b|texsafe|default:"" }}, {{ xtal.crystal_form.cell_c|texsafe|default:"" }} } & {% else %} } & {% endif %}  
 \multicolumn{2}{c|}{\cellcolor[gray]{0.98}{{ xtal.crystal_form.space_group|texsafe|default:"" }} }&

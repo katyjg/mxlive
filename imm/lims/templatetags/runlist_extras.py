@@ -76,8 +76,12 @@ def prioritize(object_list):
 @register.filter('prioritize_and_sort')
 def prioritize_and_sort(object_list):
     if len(object_list) and object_list[0].container.get_kind_display() == 'Cassette':
-        return object_list.order_by('priority','container','container_location')
-    return object_list.annotate(port=Sum('container_location')).order_by('priority','container','port')
+        obj_list = list(object_list.filter(priority__gte=1).order_by('priority','container','container_location')) + \
+                   list(object_list.exclude(priority__gte=1).order_by('priority','container','container_location'))
+    else:
+        obj_list = list(object_list.filter(priority__gte=1).annotate(port=Sum('container_location')).order_by('priority','container','port')) + \
+                   list(object_list.exclude(priority__gte=1).annotate(port=Sum('container_location')).order_by('priority','container','port'))
+    return obj_list
     
 @register.filter('num_containers')
 def num_containers(project, pk):

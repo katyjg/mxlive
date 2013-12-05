@@ -901,8 +901,8 @@ class Experiment(LimsBaseClass):
     absorption_edge = models.CharField(max_length=5, null=True, blank=True)
     plan = models.IntegerField(max_length=1, choices=EXP_PLANS.get_choices(), default=EXP_PLANS.SCREEN_AND_CONFIRM)
     comments = models.TextField(blank=True, null=True)
-    priority = models.IntegerField(default=0)
-    staff_priority = models.IntegerField(default=0)
+    priority = models.IntegerField(blank=True, null=True)
+    staff_priority = models.IntegerField(blank=True, null=True)
     
     class Meta:
         verbose_name = 'Experiment request'
@@ -1055,8 +1055,8 @@ class Crystal(LoadableBaseClass):
     comments = models.TextField(blank=True, null=True)
     collect_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.NOT_REQUIRED)
     screen_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.NOT_REQUIRED)
-    priority = models.IntegerField(default=0)
-    staff_priority = models.IntegerField(default=0)
+    priority = models.IntegerField(null=True, blank=True)
+    staff_priority = models.IntegerField(null=True, blank=True)
     experiment = models.ForeignKey(Experiment, null=True, blank=True)
 
     class Meta:
