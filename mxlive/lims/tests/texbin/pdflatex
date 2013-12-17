@@ -1,0 +1,3 @@
+#!/bin/bash
+echo -n "testing" > `/usr/bin/basename $1 .tex`.pdf
+

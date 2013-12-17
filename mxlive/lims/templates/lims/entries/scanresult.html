@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+{% load zip %}
+{% load markup %}
+{% load converter %}
+{% load sorted_list %}
+{% load math_filters %}
+{% load flot_extras %}
+
+{% block headline %}
+<h2 class="process"><span class="identity">{{ object.identity }}</span> {{ object.get_kind_display }} - &ldquo;{{object.name}}&rdquo;</h2>
+{% endblock %}
+
+{% block object-tools %}
+<div class="object-tools">
+    {% include "lims/tools.html" %}
+    <ul class="toolbar">
+        <li class="print-tool" >
+            <a href="javascript:window.print();">Print</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    {% ifequal object.kind 1 %}
+    <h3 style="text-align: center; margin: 0 auto;">X-Ray Fluorescence</h3>
+    <div id="xrf-scan" style="width: 700px; height: 405px; float: left; z-index: -1;"></div>
+    <p id="choices">
+	    Show Edges:<br>
+	    {% for peak in object.details.peaks|sorted_list:1 reversed %}
+	        {% for line in object.summarize_lines %}{% ifequal peak.0 line.0 %}
+	            <input id="id{{peak.0}}" type="checkbox" name="{{peak.0}}" {% if peak.1.0 >= 5 %}checked="checked"{% endif %}>
+	            <label for="id{{peak.0}}" style="color:{{line.2}}">{{peak.0}} ({{peak.1.0|floatformat:1}}%)</label><br>
+	        {% endifequal %}{% endfor %}
+	    {% endfor %}
+    </p>
+    <div class="clear" ></div>
+        
+    {% else %}
+    <h3 style="text-align: center; margin: 0 auto;">{{object.edge}} Edge Scan</h3>
+    <div id="xanes-scan" style="width: 680px; height: 380px"></div>
+    {% endifequal %}
+    <div class="object-list">
+        {% ifequal object.kind 1 %}<h3>Output Log</h3>
+        {% else %}<h3>Selected Energies for 3-Wavelength MAD data and corresponding anomalous scattering factors.</h3>
+        {% endifequal %}
+        <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">
+            <thead>
+	            <tr class="header">
+                    {% ifequal object.kind 1 %}
+	                    <th>Identity</th>
+	                    <th>Reliability (%)</th>
+                        <th>Edge</th>
+                        <th>Position (keV)</th>
+	                {% else %}
+		                <th width="20%"></th>
+		                <th width="20%">Wavelength (&#8491;)</th>
+		                <th width="20%">Energy (keV)</th>
+		                <th width="20%">f'</th>
+		                <th width="20%">f''</th>
+		            {% endifequal %}
+	            </tr>
+	        </thead>
+	        <tbody>
+	            {% ifequal object.kind 1 %}
+	                {% for data in object.details.peaks|sorted_list:1 reversed %}
+	                    <tr class="{% cycle 'odd' 'even' %}" {% for line in object.summarize_lines %}{% ifequal data.0 line.0 %}style="color:{{line.2}};"{% endifequal %}{% endfor %}>
+	                        <td>{{ data.0 }}{{ color }}</td>
+	                        <td>{{ data.1.0|floatformat:2 }}</td>
+	                        {% with data.1.1|sorted_list:1 as edges %}
+	                        <td>{% for edge in edges %}{{ edge.0 }}{% if not forloop.last %}<br> {% endif %}{% endfor %}</td>
+	                        <td>{% for edge in edges %}{{ edge.1 }}{% if not forloop.last %}<br> {% endif %}{% endfor %}</td>
+	                        {% endwith %}
+	                    </tr>
+                    {% endfor %}
+                {% else %}
+		            {% for data in object.details.energies %}
+			            <tr class="odd">
+			               <td>{{ data.0|capfirst }}</td>
+			               <td>{{ data.1|energy_to_wavelength|floatformat:4 }}</td>
+			               <td>{{ data.1|floatformat:5 }}</td>
+			               <td>{{ data.3 }}</td>
+			               <td>{{ data.2 }}</td>
+			            </tr>
+	               {% endfor %}
+                {% endifequal %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block sidebar %}
+<div class="meta-data">
+<table class="entrysummary sidebar-summary" cellpadding="2" cellspacing="0" border="0" width="100%">
+    {% if request.user.is_superuser %}
+    <tr valign="top"><th>Project:</th><td>{{ object.project }}</td></tr>
+    {% endif %}
+    <tr valign="top"><th>Status:</th><td>{{ object.get_status_display }}</td></tr>
+    <tr valign="top"><th>Beamline:</th><td>{{ object.beamline }}</td></tr>
+    <tr valign="top"><th>Created:</th><td>{{ object.created|date:"dMY-H:i" }}</td></tr>
+    <tr valign="top"><th>Edge:</th><td>{{ object.edge }}</td></tr>
+    <tr valign="top"><th>Energy:</th><td>{{ object.energy }}</td></tr>
+    <tr valign="top"><th NOWRAP>Exposure Time:</th><td>{% if object.exposure_time %}{{ object.exposure_time }}s{% endif %}</td></tr>
+    <tr valign="top"><th>Attenuation:</th><td>{% if object.attenuation %}{{ object.attenuation }}%{% endif %}</td></tr>
+    {% if object.crystal %}
+        <tr valign="top"><th>Crystal:</th><td><a href="{% url "lims-crystal-detail" object.crystal.pk %}">{{object.crystal}}</a></td></tr>
+    {% else %}
+        <tr valign="top"><th>Crystal:</th><td>None</td></tr>
+    {% endif %}
+    {% if object.experiment %}
+        <tr valign="top"><th>Experiment:</th><td><a href="{% url "lims-experiment-detail" object.experiment.pk %}">{{object.experiment}}</a></td></tr>
+    {% else %}
+        <tr valign="top"><th>Experiment:</th><td>None</td></tr>
+    {% endif %}
+</table>
+</div>
+<div class="clear" ></div>
+
+{% if object.comments or object.staff_comments %}
+    <div class="entrycomment sidebar-comment">
+    <span class="left-pointer"></span>
+    <h3>Comments</h3>
+    <div class="staff">{{ object.staff_comments|default:""|restructuredtext}}</div>
+    </div>
+{% endif %}
+<!--/div-->
+    {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
+        <div class="clear"></div>
+        {% include "lims/individual_history.html" %}
+    {% else %}
+        {% include "staff/entries/comments_form.html" %}
+    {% endif %}
+
+
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript" src="/js/jquery.flot.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.flot.pie.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.flot.stack.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.flot.crosshair.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.flot.axislabels.js"></script>
+    <script type="text/javascript" src="/js/jquery.flot.navigate.min.js"></script>
+    <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="/js/excanvas.min.js"></script><![endif]-->
+    <!--[if lte IE 8]><script type="text/javascript">
+        if(!Array.indexOf){
+            Array.prototype.indexOf = function(obj){
+                for(var i=0; i<this.length; i++){
+                    if(this[i]==obj){ return i; }
+                }
+                return -1;
+            }
+        }
+    </script><![endif]-->
+    <script type="text/javascript">
+        jQuery(document).ready(function() {
+			var plot;
+			{% if object.kind %}
+	            $("#choices").find("input").click(plot_by_choice);
+				plot_by_choice();
+			{% else %}
+			    plot_xanes();
+			{% endif %}
+		});
+		{% if object.kind %}
+        
+        function plot_by_choice() {
+            var plotpeaks = [];
+            $("#choices").find("input:checked").each(function () {
+                plotpeaks.push($(this).attr("name"));   
+            });
+            plot_xrf(plotpeaks=plotpeaks);
+        }
+
+        function plot_xrf(plotpeaks) {
+            var markings = [];
+            var counts = {{object.details.counts|get_data:object.details.energy}};
+            var fit = {{object.details.fit|get_data:object.details.energy}};
+            {% for peak in object.summarize_lines %}
+                if(plotpeaks.indexOf("{{peak.0}}") >= 0) {
+	                {% for p in peak.1 %}
+		                markings.push({color: "{{peak.2}}", lineWidth: 1, 
+		                               xaxis: { from: {{p.1}}, to:{{p.1}} },
+		                               yaxis: { from: 0, to: {{p.2}} } });
+	                {% endfor %}
+                }
+            {% endfor %}
+            plot = $.plot($("#xrf-scan"),
+                [ { data: counts, label: "Exp", color: "#0000FF", lines: { show: true, lineWidth: 1}, shadowSize: 0 },
+                  { data: fit, label: "Fit", color: "#B300B2", lines: { show: true, lineWidth: 1 }, shadowSize: 0 } ],
+                { series: { lines: { show: true} },
+                  legend: { position: "nw" },
+                  grid: { borderColor: "#eeeeee", borderWidth: 1, markings: markings, minBorderMargin: 0 },
+                  yaxes: [{ min: {{object.details.counts|get_min:6}}, max: {{object.details.counts|get_max:48}}, axisLabel: "Fluorescence Counts", labelWidth: 20, reserveSpace: true }],
+                  xaxis: { axisLabel: "Energy (keV)" }
+                }
+            );
+            {% for peak in object.summarize_lines %}
+                if(plotpeaks.indexOf("{{peak.0}}") >= 0) {
+                {% for p in peak.1 %}
+                    o = plot.pointOffset({ x: {{p.1}}, y: {{object.details.counts|get_min:6}}/2 });
+                    $("#xrf-scan").append('<div class="plotlabel" style="left:'+(o.left-25)+'px;top:'+o.top+'px;color:{{peak.2}};">{{peak.0}}-{{p.0}}</div>');
+                {% endfor %}
+                }
+            {% endfor %}
+		}
+		{% else %}
+		function plot_xanes() {
+                var markings = [ {% for data in object.details.energies %}
+                     { color: '#B300B2', lineWidth: 1, 
+                       xaxis: { from: {{ data.1 }}, to: {{ data.1 }} } }
+                       {% if not forloop.last %},{% endif %}
+                {% endfor %}];
+                
+                var counts = {{object.details.data.counts|get_data:object.details.data.energy}};
+                var fp = {{object.details.efs.fp|get_data:object.details.efs.energy}};
+                var fpp = {{object.details.efs.fpp|get_data:object.details.efs.energy}};
+                plot = $.plot($("#xanes-scan"),
+                     [ { data: fp, label: "f'  = -0.00", color: "#009900", yaxis: 2, lines: { show: true, lineWidth: 1 }, shadowSize: 0 },
+                       { data: fpp, label: "f'' = 0.00", color: "#FF0000", yaxis: 2, lines: { show: true, lineWidth: 1 }, shadowSize: 0 },
+                       { data: counts, label: "", color: "#0000FF", lines: { show: true, lineWidth: 1 }, shadowSize: 0 },
+                       { data: [], label: "E = 00.000 keV", color: "#ffffff" } ], 
+                     { series: { lines: { show: true } },
+                       crosshair: { mode: "x", color: "#333333"},
+                       grid: { hoverable: true, autoHighlight: false, markings: markings, borderWidth: 1  },
+                       yaxes: [{ color: "#0000FF", min: {{object.details.data.counts|get_min:8 }}, max: {{object.details.data.counts|get_max:8 }}, axisLabel: "Fluorescence Counts" }, 
+                               { min: {{object.details.efs|get_xanes_min:48 }}, max: {{object.details.efs|get_xanes_max:48 }},
+                                 alignTicksWithAxis: null, position: "right", axisLabel: "Anomalous Scattering Factors (f',f'')"}],
+                       xaxis: {axisLabel: "Energy (keV)"}
+                     });
+                     
+                var legends = $("#xanes-scan .legendLabel");
+                legends.each(function () {
+                // fix the widths so they don't jump around
+                     $(this).css('width', $(this).width());
+                });
+                 var updateLegendTimeout = null;
+                 var latestPosition = null;
+                 function updateLegend() {
+                     updateLegendTimeout = null;
+                     var pos = latestPosition;
+                     var axes = plot.getAxes();
+                     if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max ||
+                         pos.y < axes.yaxis.min || pos.y > axes.yaxis.max)
+                         return;
+                     var i, j, dataset = plot.getData();
+                     for (i = 0; i < dataset.length; ++i) {
+                         var series = dataset[i]; // find the nearest points, x-wise
+                         for (j = 0; j < series.data.length; ++j)
+                             if (series.data[j][0] > pos.x) break;
+                         var y, p1 = series.data[j - 1], p2 = series.data[j]; // now interpolate
+                         if (p1 == null) { 
+                            if (p2 != null) y = p2[1];
+                            else {
+                                legends.eq(2).text(series.label.replace(/=.*/, "= " + pos.x.toFixed(3) + ' keV'));  
+                            }
+                         }
+                         else if (p2 == null) y = p1[1];
+                         else y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
+                         legends.eq(i).text(series.label.replace(/=.*/, "= " + y.toFixed(2)));
+                     }
+                 }
+            $("#xanes-scan").bind("plothover", function (event, pos, item) {
+                latestPosition = pos;
+                if (!updateLegendTimeout)
+                    updateLegendTimeout = setTimeout(updateLegend, 50);
+            });
+        } 
+        {% endif %}
+    </script>
+
+{% endblock %}

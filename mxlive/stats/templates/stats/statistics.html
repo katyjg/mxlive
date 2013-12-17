@@ -1,0 +1,22 @@
+{% load stats_extras %}
+
+<table class="entrysummary statistics">
+    <tbody>
+    <tr><th class="heading"></th>{% for name in display %}<th class="heading">{{name}}</th>{% endfor %}</tr>
+	    {% for user, dat in stats.items %}
+		    <tr>
+		        <th class="heading">{{ user }} shifts</th>
+		        {% for name in display %}<th class="heading info">{{ dat|dict_key:name|dict_key:'shifts' }}</th>{% endfor %}
+		    </tr>
+		    <tr>
+		        <th class="subheading">Screening:</th>    
+		        {% for name in display %}<td class="info">{{ dat|dict_key:name|dict_key:'Screening'}}</td>{% endfor %}
+		    </tr>
+		    <tr>
+		        <th class="subheading">Collection:</th>       
+		        {% for name in display %}<td class="info">{{ dat|dict_key:name|dict_key:'Collection' }}</td>{% endfor %}
+		    </tr>
+		    <tr><th class="heading" colspan=3></th></tr>
+	    {% endfor %}
+    </tbody>
+</table>

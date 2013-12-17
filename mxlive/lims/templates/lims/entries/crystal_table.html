@@ -1,0 +1,151 @@
+{% load humanize %}
+{% load score_colors %}
+{% load truncate_filters %}
+
+<div class="object-list">
+<h3> Crystals</h3>
+	{% if admin %}
+	<form id="action_form" method="POST">{% csrf_token %}
+	    <div class="action_form_tools">
+        <button type="button" onclick="jQuery('#action_form input.checkbox').attr('checked',true);">Select All</button>
+        <button type="button" onclick="jQuery('#action_form input.checkbox').attr('checked',false);">Deselect All</button>
+		<button  type="submit" style="float:right; margin: 0;" title="Apply action to selected crystals">Apply</button>
+		<select id="selector" class="select" style="float:right;" name="action">
+			<option value="default" selected="selected">Select Action</option>
+			<option name="rescreen" value="rescreen">Re-Screen</option>
+			<option name="recollect" value="recollect">Re-Collect</option>
+			<option name="ignore" value="ignore">Ignore</option>
+            <option name="screened" value="screened">Mark Screened</option>
+            <option name="collected" value="collected">Mark Collected</option>
+		</select> 		
+		</div>
+	{% endif %}
+
+   <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
+        <thead>
+            <tr class="header">
+            	{% if admin %}
+           			<th style="border-left: 0pt none; width: 0.1em;"></th>
+           		{% endif %}
+                <th>Name</th>
+                {% if admin %}
+                	<th>Collect</th><th>Screen</th>
+                {% else %}
+            		<th>Status</th>
+            	{% endif %}
+                <th>Screening Data*</th>
+                <th> Score</th>
+                <th>Full Dataset*</th>
+                <th> Score</th>
+                <th>Scans</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% if crystals %}
+            {% for crystal in crystals %}
+            <!-- "odd" if loop_count % 2 == 1 else "even" -->
+	            <tr class="{% cycle 'odd' 'even'%}">
+	            	<!-- checkbox for actions, only admin -->
+	            	{% if admin %}
+            			<td><input type="checkbox" class="checkbox" name="crystal_chk" value="{{crystal.pk}}"></td>
+            		{% endif %}
+	            	<td><a href="{% url "lims-crystal-detail" crystal.pk %}">{{ crystal.name }}</a></td>
+	            	{% if admin %}
+	            		<td>
+	            			{% if crystal.collect_status != crystal.EXP_STATES.NOT_REQUIRED %}
+	            				{{ crystal.get_collect_status_display }}
+	            			{% endif %}
+                        </td>
+                        <td>
+	            			{% if crystal.screen_status != crystal.EXP_STATES.NOT_REQUIRED %}
+	            				{{ crystal.get_screen_status_display }}
+	            			{% endif %}
+	            		</td>
+	            	{% else %}
+	            		<td class="redirect"
+                        href="{% url "lims-crystal-detail" crystal.pk %}">{{ crystal.get_status_display }}</td>
+	            	{% endif %}
+	            	<td>
+                        {% if crystal.best_screening.data %}
+                  			<a href="{% url "lims-data-detail" crystal.best_screening.data.pk %}" class="modal" title="View dataset images">{{ crystal.best_screening.data }}</a>
+	            	    {% else %}
+	            	        &mdash;
+                        {% endif %}
+	            	</td>
+	            	<td>
+                        {% if crystal.best_screening.report %}
+	            			<a href="{% url "lims-result-detail" crystal.best_screening.report.pk %}" title="Go to Crystal Screening Report">{{ crystal.best_screening.report.score|color_score:2 }}</a>
+	            	    {% else %}
+	            	        &mdash;
+                        {% endif %}
+	            	</td>
+	            	<td>
+                        {% if crystal.best_collection.data %}
+                 			<a href="{% url "lims-data-detail" crystal.best_collection.data.pk %}" class="modal" title="View dataset images">{{ crystal.best_collection.data }}</a>
+	            	    {% else %}
+	            	        &mdash;
+                        {% endif %}
+	            	</td>
+	            	<td>
+                        {% if crystal.best_collection.report %}
+   	            			<a href="{% url "lims-result-detail" crystal.best_collection.report.pk %}" title="Go to Data Processing Report">{{ crystal.best_collection.report.score|color_score:2 }}</a>
+	            	    {% else %}
+	            	        &mdash;
+                        {% endif %}
+	            	</td>
+	            	<td>
+	            	    {% if crystal.get_scanresult_set %}
+             	        {% for scan in crystal.get_scanresult_set %}
+             	            {% if forloop.first %}
+             	            <a href="{% url "lims-scanresult-detail" scan.pk %}" title='Go to {{ scan.get_kind_display }} "{{ scan.name }}"'>{{ scan.name|truncate_chars:10 }}</a>
+             	            {% else %}{% if forloop.last %}
+             	            <a href="{% url "lims-crystal-detail" crystal.pk %}" title="See all results for this crystal">[more]</a>
+             	            {% endif %}{% endif %}
+             	        {% endfor %}
+             	        {% else %}&mdash;{% endif %}
+	            	</td>
+	            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="20" class="list-empty">
+                    ( No crystals associated with this experiment )
+                </td>
+            </tr>
+        {% endif %}
+        </tbody>
+    </table>
+    <p class="table-notes">* If multiple screening or full collection datasets have been taken for a crystal, only the dataset with the best score is displayed on this table.  To view all datasets collected for a specific crystal, go to the crystal page.</p>
+
+</div>    
+    {% if admin %}
+    	</form>
+    {% endif %}
+
+	<script>
+		jQuery('#action_form').submit(function() {
+			// check what action to do
+			var $action_id = document.getElementById('selector').selectedIndex;
+			var $url = "/staff/experiment/crystal/action/";
+            var data_list = [];
+			jQuery('.checkbox').filter(':checked').each( function() {
+                data_list.push("id_list[]=" + jQuery(this).val());
+			});
+            data_list.push("action=" + $action_id);
+			jQuery.ajax({
+				type: "POST",
+				url: $url,
+                data: data_list.join("&"),
+				success: function() {
+                    window.location.reload();
+				},
+				error: function() {
+					// error, just reload the widget
+					loadWidgets();
+				}
+			});
+			document.getElementById('selector').selectedIndex = 0;
+			return false;
+		});
+
+    </script>

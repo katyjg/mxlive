@@ -1,0 +1,8 @@
+{% load truncate_filters %}
+{% for object in ol.object_list %}
+        <li id="{{object.id}}" class="draggable-link-parent {{ type }}" rel="{{ handler }}{{object.pk}}" ondragstart="setupDragAndDrop()">
+            <a class="{{type}}">
+               {{object.project.name|truncate_chars:8}} - {{ object.name }}<p class="{{ object.get_kind_display}}">&nbsp;</p>
+            </a>
+        </li>
+{% endfor %}

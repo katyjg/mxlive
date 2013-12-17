@@ -1,0 +1,85 @@
+<div class="object-list">
+    <h3>Crystals</h3>
+    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">
+        <thead>
+            <tr class="header">
+                <th style="width:8px;">*</th>
+             	<th>Crystal</th>
+                <th>Status</th>
+                <th>Cocktail</th>
+                <th>Crystal Form</th>
+                <th>Container</th>
+                <th>Dewar</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% if crystals %}
+            {% for crystal in crystals %}{% if crystal.pk %}
+                <tr id="{{ crystal.pk }}" class="{% cycle 'odd' 'even'%}"
+                    rel="{% url "lims-crystal-detail" crystal.pk %}">
+                    <td class="prioritize dragHandle" title="Drag to Prioritize"></td>
+                    <td class="redirect" href="{% url "lims-crystal-detail" crystal.pk %}" title="Go to Crystal {{crystal.name}} : {{crystal.comments|default:""}}">{{ crystal.name }}</td>
+            		<td class="redirect" href="{% url "lims-crystal-detail" crystal.pk %}" title="Go to Crystal {{crystal.name}}">{{ crystal.get_status_display }}</td>
+                    <td>{{ crystal.cocktail }}</td>
+                    <td>{{ crystal.crystal_form }}</td>
+                    {% if crystal.container %}
+                    <td class="redirect" href="{% url "lims-container-detail" crystal.container.pk %}" title="Go to Container {{crystal.container.name}}">{{ crystal.container }} ({{ crystal.container_location }})</td>
+                    {% if crystal.container.dewar %}
+                    <td class="redirect" href="{% url "lims-dewar-detail" crystal.container.dewar.pk %}" title="Go to Dewar {{crystal.container.dewar.name}}">{{ crystal.container.dewar.name }}</td>
+                    {% else %}
+                    <td>None</td>
+                    {% endif %}
+                    {% else %}
+                    <td>None</td>
+                    <td>None</td>
+                    {% endif %}
+	            	{% if crystal.is_editable %}
+            		<td>
+            			<a class="remove" rel="{% url "lims-experiment-remove-crystal" experiment 0 crystal.pk %}" href="#" onclick="remove_item(this);" title="Remove crystal from experiment"><span class="remove"></span></a>
+            		</td>
+            		{% else %}
+            		<td> </td>
+	            	{% endif %}
+                </tr>
+            {% endif %}{% endfor %}
+        {% else %}                
+                <tr><td colspan="20" align="center" class="list-empty">(No crystals associated with this experiment)</td></tr>
+        {% endif %}           
+        </tbody>
+    </table>
+    {% if crystals %}
+        <p class="table-notes">* Drag and drop using the first column of the table to arrange the crystals in this experiment by priority, placing the most important crystal at the top.</p>
+    {% endif %}
+</div>
+
+<script>
+        $(document).ready(function() {
+            // Initialise the table
+            $("#objlist-list-table").tableDnD({
+                onDragClass: "lims-droppable-active",
+                dragHandle: "dragHandle",
+                onDrop: function(table, row) {
+                    var rows = table.tBodies[0].rows;
+                    var dropped_url = jQuery("#"+row.id).attr("rel");
+                    var rowIds = [];
+                    for (var i=0; i<rows.length; i++) {
+                        var jQuery_row = jQuery(rows[i]);
+                        rowIds.push("id_list[]=" + jQuery_row.attr("id"));
+                    }
+                    var parms = rowIds.join("&");
+                    jQuery.fancybox.showActivity();
+                    jQuery.ajax({
+                        type: "POST",
+                        url: dropped_url + "priority/",
+                        data: rowIds.join("&"),
+                        success: function() {
+                            window.location.reload();
+                        }
+                    });
+
+                }
+            });
+        });
+</script>
+

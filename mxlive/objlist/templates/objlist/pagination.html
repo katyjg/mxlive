@@ -1,0 +1,14 @@
+<div class="pagination">
+{% if ol.page_obj.has_previous %}
+    <a href='{{ handler }}{{ol.query_string|default:"?"}}&p={{ ol.page_obj.previous_page_number }}'>Previous Page</a>
+    |
+{% endif %}
+{% if ol.paginator.count %}
+    <b>{{ol.page_obj.start_index}}</b> - <b>{{ol.page_obj.end_index}}</b> of <b>{{ol.paginator.count}}</b> 
+{% endif %}
+{% if ol.page_obj.has_next %}
+    |
+    <a href='{{ handler }}{{ol.query_string|default:"?"}}&p={{ ol.page_obj.next_page_number }}'>Next Page</a>
+{% endif %}
+</div>
+

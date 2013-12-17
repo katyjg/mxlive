@@ -1,0 +1,106 @@
+{% load objlist %}
+{% load truncate_filters %}
+{% load file_exists %}
+
+{% block content %}
+<div class="object-list">
+    {% if viewonly %}
+    <h2 class="{{ol.object_type}}">{{ol.object_list.0.beamline.name }} Datasets from {{ol.object_list.0.created.date }}</h2>
+    <br>
+    {% else %}
+	<form id="action_form" method="POST">{% csrf_token %}
+        <div class="list-tools">
+            {% if ol.is_paginated %}
+                {% include "objlist/pagination.html" %}
+            {% endif %}
+            {% if not ol.all_shown %}
+                Showing {{ol.result_count}} of {{ol.result_count}} total | <a href="?all=1">Show all</a>
+            {% endif %}
+        </div>
+	    <div class="action_form_tools">
+            <button type="button" onclick="jQuery('#action_form input.checkbox').attr('checked',true);">Select All</button>
+            <button type="button" onclick="jQuery('#action_form input.checkbox').attr('checked',false);">Deselect All</button>
+	    	<button  type="submit" style="float:right; margin: 0;" title="Apply action to selected datasets">Apply</button>
+		    <select id="selector" class="select" style="float:right;" name="action">
+			    <option value="default" selected="selected">Select Action</option>
+    			<option name="enable" value="enable" onClick="">Create Archive for Download</option>
+    			<option name="disable" value="disable">Remove Archive</option>
+	    	</select> 		
+		</div>
+    {% endif %}
+        <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">
+            <thead>
+                <tr class="header">
+                    {% if not viewonly %}<th style="border-left: 0pt none; width: 0.1em;"></th>{% endif %}
+                    {% for header in ol.header_list %}<th{{ header.class_attrib }}>
+                       {% if not viewonly %}{% if header.sortable %}<a class="header" href="{{ handler }}{{ header.url }}">{% endif %}{% endif %}
+                       {{ header.text|capfirst }}
+                       {% if not viewonly %}{% if header.sortable %}</a>{% endif %}{% endif %}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+            {% if ol.object_list %}
+                {% for object in ol.object_list %}
+                    <tr class="{% cycle 'odd' 'even' %} link-row" title="{% if object.staff_comments %}{{ object.staff_comments }}{% else %}View {{ object.name }}{% endif %}">
+                        {% if not viewonly %}<td><input type="checkbox" class="checkbox" name="data_chk" value="{{object.pk}}"></td>{% endif %}
+                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.project }}</td>
+                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.id  }}</td>
+                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.name|truncate_chars:10 }}</td>
+                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.crystal.name|truncate_chars:10 }}</td>
+                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.beamline }}</td>
+                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{% ifequal object.get_kind_display 'Collection' %}Collect{% else %}Screen{% endifequal %}</td>
+                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.created|date:"d/m/y-H:i" }}</td>
+                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">{{ object.get_status_display }}</td>
+                        <td class="modal data" href="/lims/experiment/dataset/{{ object.id }}/">
+                            {% if object|file_exists:'tar.gz' %}<img src="/img/check-icon-sm.png" title="Archive is ready for download"/>{% else %}
+                            {% if object|file_exists:'tar.gz-tmp' %}
+                                {% if object|file_updated:'tar.gz-tmp' %}<img src="/img/clock.png" title="Archive is being created - check back later"/>{% else %}
+                                <img src="/img/warning-icon.png" title="There is a problem creating the archive - check that the image files exist and try again"/>{% endif %}{% else %}
+                            <img src="/img/delete-icon-sm.png" title="Archive does not exist"/>{% endif %}{% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="20" class="list-empty">
+                        ( No datasets to show )
+                    </td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+        {% if viewonly %}<p style="min-width: 50em;"></p>
+        {% else %}<p class="table-notes">* Datasets should only be enabled for download based on the specific request of a user.  This feature is not meant for general data transfer.</p>{% endif %}
+    </form>    
+</div>
+
+<script>
+	jQuery('#action_form').submit(function() {
+		// check what action to do
+		var $action_id = document.getElementById('selector').selectedIndex;
+		var $url = "/staff/experiment/dataset/action/";
+        var data_list = [];
+		jQuery('.checkbox').filter(':checked').each( function() {
+            data_list.push("id_list[]=" + jQuery(this).val());
+		});
+        data_list.push("action=" + $action_id);
+		jQuery.ajax({
+			type: "POST",
+			url: $url,
+            data: data_list.join("&"),
+			success: function() {
+                window.location.reload();
+			},
+			error: function() {
+				// error, just reload the widget
+				loadWidgets();
+			}
+		});
+        jQuery.fancybox.showActivity();
+		document.getElementById('selector').selectedIndex = 0;
+		return false;
+	});
+
+</script>
+{% endblock %}

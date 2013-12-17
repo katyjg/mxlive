@@ -1,0 +1,56 @@
+{% load objlist %}
+
+<div class="object-list">
+    <div class="list-tools">
+        {% if ol.multi_page %}
+            {% include "objlist/pagination.html" %}
+        {% endif %}
+        {% if not ol.all_shown %}
+            Showing {{ol.result_count}} of {{ol.result_count}} total | <a href="?all=1">Show all</a>
+        {% endif %}
+        {% if form.errors %}
+            <div class="error">{{form.primary_error_message}}</div>
+        {% endif %}
+        {% if form %}
+            <form method="post">{% csrf_token %}
+        {% endif %}
+    </div>
+
+    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">
+        <thead>
+            <tr class="header">
+                {% for header in ol.header_list %}<th{{ header.class_attrib }}>
+                    {% if header.sortable %}<a class="header" href="{{ handler }}{{ header.url }}">{% endif %}
+                    {% if ol.object_type == 'Cocktail' %}{% if header.text == 'name' %}Constituents{% else %} {{ header.text|capfirst }}{% endif %}{% else %}
+                    {{ header.text|capfirst }}{% endif %}
+                    {% if header.sortable %}</a>{% endif %}</th>
+                {% endfor %}
+                {% if form %}
+                    <th{{ header.class_attrib }}>Select</th>
+                {% endif %}
+                {% if delete_inline %}
+                    <th></th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for object in ol.object_list %}
+            {% list_entry object handler forloop.counter %}
+        {% empty %}               
+            <tr><td colspan="20" class="list-empty">No {{ol.object_type}} to show</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if ol.object_list|length > 20 %}
+    <div class="list-tools">
+        {% if ol.is_paginated %}
+            {% include "objlist/pagination.html" %}
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% if form %}
+    <input style="float: right; margin-top: 5px;" type="submit" value="Refine Runlist >>"></input>
+    </form>
+{% endif %}

@@ -1,0 +1,29 @@
+{% extends 'wp-admin.html' %}
+
+{% block "page-content" %}
+	<div id="headline">
+	    <div class="wrapper">
+	        <h2>Shift Breakdown by Proposal</h2>
+	    </div>
+	</div>
+	
+	<div id="pagebody">
+	    <div id="bodyContent" class="wrapper">
+	    	{% for bl, vals in info.items %}
+	        <div id="schedule" class="col-6">
+                <h2>Beamline {{bl.name}} from {{date.0}} to {{date.1}}</h2>
+	        	{% for entry in vals %}
+	        	<h4 style='margin-bottom:10px;'>{{entry.0.display}}</h4>
+	        	<p style='margin-bottom: 10px;'>{{entry.1|length}} shift(s)</p>
+				<p>{% for a in entry.2 %}{{a}}{% if not forloop.last %}/{% endif %}{% endfor %} Access</p>
+				<ul style="font-family: monospace;">{% for shift in entry.1 %}<li>{{shift}}</li>{% endfor %}</ul>
+				<hr>
+				{% endfor %}
+	        </div>
+	    	{% endfor %}
+	    </div>
+	</div>
+	
+	<!--<br class="clear">-->
+{% endblock %}
+	

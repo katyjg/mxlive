@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load markup %}
+
+{% load container_table %}
+
+{% block headline %}
+<h2><span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
+{% endblock %}
+
+{% block object-tools %}
+<div class="object-tools">
+    {% include "lims/tools.html" %}
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% ifequal object.json_dict.type "Cane" %}
+    <table class="cane-detail" title="Drag and Drop into this region">
+    {% for loc, crystal in object.location_and_crystal reversed %}
+        <tr>
+        {% if crystal %}
+        <td class="occupied crystal {% if crystal.is_started %}started{% endif %} draggable-link-parent {{object.json_dict.type}}" 
+        	title="<strong>{{ crystal.name }} ({{ crystal.identity }})</strong><br>{{ crystal.is_started }}">{{ loc }}</td>
+        {% else %}
+        <tr>
+        <td class="container droppable droppable-add {{object.json_dict.type}}" 
+            {% if object.is_editable %}accept="crystal"{% else %}accept=""{% endif %}
+            parent="{{ object.id }}"
+            rel="{% url "lims-container-detail" object.id %}"
+            container_location="{{ loc }}">{{ loc }}</td>
+        {% endif %}
+        <tr>
+    {% endfor %}
+    </table>
+{% endifequal %}
+
+{% ifequal object.json_dict.type "Cassette" %}
+    <table  class="cassette-detail" title="Drag and Drop into this region">
+    <thead>
+    {% for letter in "ABCDEFGHIJKL" %}
+        <th class="{{object.json_dict.type}}">{{letter}}</th>
+    {% endfor %}
+    </thead>
+    <tr>
+    {% for loc, crystal in object.location_and_crystal %}
+        {% if crystal %}
+            <td class="occupied {% if crystal.is_started %}started{% endif %} crystal draggable-link-parent {{object.json_dict.type}}"
+                title="<strong>{{ crystal.name }} ({{ crystal.identity }})</strong><br>{{ crystal.is_started }}"
+                href="{% url "lims-crystal-detail" crystal.id %}">{{ loc }}</td>
+        {% else %}
+            <td class="container droppable droppable-add {{object.json_dict.type}}" 
+                accept="crystal" 
+                parent="{{ object.id }}"
+                rel="{% url "lims-container-detail" object.id %}"
+                container_location="{{ loc }}">{{ loc }}</td>
+        {% endif %}
+        {% if forloop.counter|divisibleby:"12" %}</tr><tr>{% endif %}
+    {% endfor %}
+    </tr>
+    </table>
+{% endifequal %}
+
+{% ifequal object.json_dict.type "Uni-Puck" %}
+    {% load math_filters %}
+
+    <div id="unipuck"  title="Drag and Drop into this region">
+    {% for loc, crystal in object.location_and_crystal %}
+        <p 
+            {% ifequal loc "1" %}style="top: {{0.3214|multiplied_by:0}}px; left: {{0.5|multiplied_by}}px;"    {% endifequal %}
+            {% ifequal loc "2" %}style="top: {{0.4453|multiplied_by:1}}px; left: {{0.327|multiplied_by}}px;"  {% endifequal %}
+            {% ifequal loc "3" %}style="top: {{0.6429|multiplied_by:2}}px; left: {{0.393|multiplied_by}}px;"  {% endifequal %}
+            {% ifequal loc "4" %}style="top: {{0.6429|multiplied_by:3}}px; left: {{0.607|multiplied_by}}px;"  {% endifequal %}
+            {% ifequal loc "5" %}style="top: {{0.4453|multiplied_by:4}}px; left: {{0.673|multiplied_by}}px;"  {% endifequal %}
+            {% ifequal loc "6" %}style="top: {{0.1071|multiplied_by:5}}px; left: {{0.5|multiplied_by}}px;"    {% endifequal %}
+            {% ifequal loc "7" %}style="top: {{0.1667|multiplied_by:6}}px; left: {{0.286|multiplied_by}}px;"  {% endifequal %}
+            {% ifequal loc "8" %}style="top: {{0.3393|multiplied_by:7}}px; left: {{0.143|multiplied_by}}px;"  {% endifequal %}
+            {% ifequal loc "9" %}style="top: {{0.5595|multiplied_by:8}}px; left: {{0.107|multiplied_by}}px;"  {% endifequal %}
+            {% ifequal loc "10" %}style="top: {{0.7560|multiplied_by:9}}px; left: {{0.202|multiplied_by}}px;" {% endifequal %}
+            {% ifequal loc "11" %}style="top: {{0.875|multiplied_by:10}}px; left: {{0.393|multiplied_by}}px;" {% endifequal %}
+            {% ifequal loc "12" %}style="top: {{0.875|multiplied_by:11}}px; left: {{0.607|multiplied_by}}px;" {% endifequal %}
+            {% ifequal loc "13" %}style="top: {{0.7560|multiplied_by:12}}px; left: {{0.798|multiplied_by}}px;" {% endifequal %}
+            {% ifequal loc "14" %}style="top: {{0.5595|multiplied_by:13}}px; left: {{0.887|multiplied_by}}px;" {% endifequal %}
+            {% ifequal loc "15" %}style="top: {{0.3393|multiplied_by:14}}px; left: {{0.857|multiplied_by}}px;" {% endifequal %}
+            {% ifequal loc "16" %}style="top: {{0.1667|multiplied_by:15}}px; left: {{0.714|multiplied_by}}px;" {% endifequal %}
+            {% if crystal %}
+                   class="occupied {% if crystal.is_started %}started{% endif %} crystal {{object.json_dict.type}}"
+                   title="<strong>{{ crystal.name }} ({{ crystal.identity }})</strong><br>{{ crystal.is_started }}"
+                   href="{% url "lims-crystal-detail" crystal.id %}"
+            {% else %}
+                   class="container droppable droppable-add {{object.json_dict.type}}" 
+                   accept="crystal" 
+                   parent="{{ object.id }}"
+                   rel="{% url "lims-container-detail" object.id %}"
+                   container_location="{{ loc }}"        
+            {% endif %}>
+            {{ loc }}
+        </p>
+    {% endfor %}
+    </div>
+{% endifequal %}
+
+<table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
+    {% if request.user.is_superuser %}
+        <tr valign="top"><th>Project:</th><td>{{ object.project }}</td></tr>
+    {% endif %}
+    <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
+    <tr valign="top"><th>Dewar:</th><td>
+    {% if object.dewar %}
+        <a href="{% url "lims-dewar-detail" object.dewar.pk %}">{{object.dewar.name}} </a>
+    {% else %}
+        Not in a dewar.
+    {% endif %}
+    </td></tr>
+    <tr valign="top"><th>Shipment:</th><td>
+    {% if object.dewar.shipment %}
+        <a href="{% url "lims-shipment-detail" object.dewar.shipment.pk %}">{{object.dewar.shipment.name}} </a>
+    {% else %}
+        Not in a shipment.
+    {% endif %}
+    </td></tr>
+    {% if admin %}
+    	<tr valign="top"><th>Project:</th><td>{{object.project.name}}</td></tr>
+    {% endif %}
+</table>
+
+{% if object.comments or object.staff_comments %}
+    <div class="entrycomment {% if object.get_kind_display != 'Cane' %}container{% endif %}">
+        <span class="{% if object.get_kind_display == 'Cane' %}left-pointer{% else %}up-pointer{% endif %}"></span>
+        <h3>Comments</h3>
+        <div class="user">{{ object.comments|default:""|restructuredtext}}</div>
+        <div class="staff">{{ object.staff_comments|default:""|restructuredtext}}</div>
+    </div>
+{% endif %}
+{% ifnotequal object.json_dict.type "Cane" %}<div class="clear"></div>{% endifnotequal %}
+
+{% container_table object request.user.is_superuser %}
+{% endblock %}
+
+{% block sidebar %}
+	{% if not user.is_superuser %}
+        {% if object.is_editable %}
+		    <div id="crystals" class="widget droppable-remove parent-stop" data="{% url "lims-crystal-basic-list" %}?orphan_field=container">
+		       <div class="widget-title">
+		       <span>Crystals</span><a href="{% url "lims-crystal-new" %}" class="modal-form add-action" title="Add New Crystal" ><img src="/img/small-add-icon.png" /></a>
+		       </div>
+		        <ul>
+                    <p class="list-empty">( Not loaded )</p>
+		        </ul>
+		    </div>
+        {% else %}
+            {% include "lims/entries/comments_form.html" %}
+        {% endif %}
+    {% else %}
+        {% include "staff/entries/comments_form.html" %}
+    {% endif %}
+    {% include "lims/individual_history.html" %}
+{% endblock %}
+
+
