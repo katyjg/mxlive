@@ -144,6 +144,12 @@ DEFAULT_LABORATORY_NAME = 'Canadian Light Source'
 USER_API_HOST = None
 USER_API_CACHE_SECONDS = 60 * 60
 
+RESTRUCTUREDTEXT_FILTER_SETTINGS = {
+    'file_insertion_enabled': 0,
+    'raw_enabled': 0,
+    '_disable_config': 1    
+}
+
 _version_file = os.path.join(BASE_DIR, 'VERSION')
 if os.path.exists(_version_file):
     VERSION = (file(_version_file)).readline().strip()

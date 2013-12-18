@@ -18,6 +18,7 @@ from mxlive.lims.excel import LimsWorkbookExport
 from mxlive.lims.models import *
 from mxlive.objlist.views import ObjectList
 from mxlive.staff.models import *
+from django.utils.encoding import smart_str
 
 import shutil
 import subprocess
@@ -290,7 +291,7 @@ def upload_shipment(request, model, form, template='lims/forms/form_base.html'):
 
 @login_required
 @transaction.commit_on_success
-def add_existing_object(request, dest_id, obj_id, destination, object, src_id=None, loc_id=None, source=None, replace=False, reverse=False):
+def add_existing_object(request, dest_id, obj_id, destination, obj, src_id=None, loc_id=None, source=None, replace=False, reverse=False):
     """
     New add method. Meant for AJAX, so only intended to be POST'd to. This will add an object of type 'object'
     and id 'obj_id' to the object of type 'destination' with the id of 'dest_id'.
@@ -300,7 +301,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     object_type = destination.__name__
     form_info = {
         'title': 'Add Existing %s' % (object_type),
-        'sub_title': 'Select existing %ss to add to %s' % (object_type.lower(), object),
+        'sub_title': 'Select existing %ss to add to %s' % (object_type.lower(), obj),
         'action':  request.path,
         'target': 'entry-scratchpad',
     }
@@ -310,7 +311,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     if reverse:
         # swap obj and destination
         obj_id, dest_id = dest_id, obj_id
-        object, destination = destination, object
+        obj, destination = destination, obj
 
     model = destination;
     manager = model.objects
@@ -323,7 +324,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
         except Project.DoesNotExist:
             raise Http404    
 
-    model = object;
+    model = obj
     obj_manager = model.objects
     request.project = None
     if not request.user.is_superuser:
@@ -346,12 +347,12 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     if reverse:
         display_name = dest.name
         
-    lookup_name = object.__name__.lower()
+    lookup_name = obj.__name__.lower()
     if lookup_name == 'crystalform':
         lookup_name = 'crystal_form'
     
     if dest.is_editable():
-        #if replace == True or dest.(object.__name__.lower()) == None
+        #if replace == True or dest.(obj.__name__.lower()) == None
         try:
             getattr(dest, lookup_name)
             setattr(dest, lookup_name, to_add)
@@ -361,7 +362,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
                 current = getattr(dest, '%ss' % lookup_name)
                 # want destination.objects.add(to_add)
                 current.add(to_add)
-                #setattr(dest, '%ss' % object.__name__.lower(), current_values)
+                #setattr(dest, '%ss' % obj.__name__.lower(), current_values)
             except AttributeError:
                 message = '%s has not been added. No Field (tried %s and %s)' % (display_name, lookup_name, '%ss' % lookup_name)
                 messages.info(request, message)
@@ -369,7 +370,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
                 
         if loc_id:
             setattr(dest, 'container_location', loc_id)
-        if ((destination.__name__ == 'Experiment' and object.__name__ == 'Crystal') or (destination.__name__ == 'Container' and object.__name__ == 'Dewar')):
+        if ((destination.__name__ == 'Experiment' and obj.__name__ == 'Crystal') or (destination.__name__ == 'Container' and obj.__name__ == 'Dewar')):
             for exp in dest.get_experiment_list():
                 if exp:
                     exp.priority = 0
@@ -709,7 +710,7 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html',
 
 @login_required
 @transaction.commit_on_success
-def remove_object(request, src_id, obj_id, source, object, dest_id=None, destination=None, reverse=False):
+def remove_object(request, src_id, obj_id, source, obj, dest_id=None, destination=None, reverse=False):
     """
     New way to remove objects. Expected to be called via AJAX. By default removes object with id obj_id 
     from source with src_id. 
@@ -721,7 +722,7 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
     if reverse:
         # swap obj and destination
         obj_id, src_id = src_id, obj_id
-        object, source = source, object
+        obj, source = source, obj
     
     model = source;
     manager = model.objects
@@ -741,7 +742,7 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
         'target': 'entry-scratchpad'
     }
 
-    model = object;
+    model = obj
     obj_manager = model.objects
     request.project = None
     if not request.user.is_superuser:
@@ -761,23 +762,23 @@ def remove_object(request, src_id, obj_id, source, object, dest_id=None, destina
         display_name = src.name
 
     if src.is_editable():
-        #if replace == True or dest.(object.__name__.lower()) == None
+        #if replace == True or dest.(obj.__name__.lower()) == None
         try:
-            getattr(src, object.__name__.lower())
-            setattr(src, object.__name__.lower(), None)
-            if object.__name__.lower() == "container":
+            getattr(src, obj.__name__.lower())
+            setattr(src, obj.__name__.lower(), None)
+            if obj.__name__.lower() == "container":
                 setattr(src, "container_location", None)
         except AttributeError:
             # attrib didn't exist, append 's' for many field
             try:
-                current = getattr(src, '%ss' % object.__name__.lower())
+                current = getattr(src, '%ss' % obj.__name__.lower())
                 # want destination.objects.add(to_add)
                 current.remove(to_remove)
                 if src.__class__.__name__.lower() == "runlist":
                     src.remove_container(to_remove)
-                #setattr(dest, '%ss' % object.__name__.lower(), current_values)
+                #setattr(dest, '%ss' % obj.__name__.lower(), current_values)
             except AttributeError:
-                message = '%s has not been removed. No Field (tried %s and %s)' % (display_name, object.__name__.lower(), '%ss' % object.__name__.lower())
+                message = '%s has not been removed. No Field (tried %s and %s)' % (display_name, obj.__name__.lower(), '%ss' % obj.__name__.lower())
                 messages.info(request, message)
                 return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
                        
@@ -1014,6 +1015,7 @@ def shipment_pdf(request, id, model, format):
     work_dir = create_cache_dir(obj.label_hash())
     prefix = "%s-%s" % (obj.label_hash(), format)
     pdf_file = os.path.join(work_dir, '%s.pdf' % prefix)
+    print pdf_file
     if not os.path.exists(pdf_file) or settings.DEBUG: # remove the True after testing
         # create a file into which the LaTeX will be written
         tex_file = os.path.join(work_dir, '%s.tex' % prefix)

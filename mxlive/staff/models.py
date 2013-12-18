@@ -1,11 +1,7 @@
 # define models here
-
-from django.conf import settings
-from django.contrib.auth.models import User
 from django.db import models
-from django.utils.encoding import smart_str
+from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
-
 from mxlive.extras.enum import Enum
 from mxlive.extras.jsonfield import JSONField
 from mxlive.lims.models import ActivityLog
@@ -13,8 +9,6 @@ from mxlive.lims.models import Beamline
 from mxlive.lims.models import Container
 from mxlive.lims.models import Crystal
 from mxlive.lims.models import Experiment
-from mxlive.lims.models import IDENTITY_FORMAT
-from mxlive.lims.models import Result
 import hashlib
 import os
 
@@ -315,38 +309,36 @@ class Runlist(StaffBaseClass):
         return False
     
     def get_position(self, container):
-        import logging
         # gets the position of a container in the automounter. Returns none if not in
         # making an array for the postfix letter
         postfix = ['A', 'B', 'C', 'D']
         if self.left != None:
-           check_list = self.left
-           if type(check_list) == type(list()):
-               # iterate through the list.
-               if container.pk in check_list:
-                   # needs to return LA, LB, LC, or LD
-                   return 'L' + postfix[check_list.index(container.pk)]
-           elif check_list == container.pk:
-               return 'L'
+            check_list = self.left
+            if type(check_list) == type(list()):
+                # iterate through the list.
+                if container.pk in check_list:
+                    # needs to return LA, LB, LC, or LD
+                    return 'L' + postfix[check_list.index(container.pk)]
+            elif check_list == container.pk:
+                return 'L'
         
         if self.middle != None:
-           check_list = self.middle
-           if type(check_list) == type(list()):
-               # iterate through the list.
-               if container.pk in check_list:
-                   return 'M' + postfix[check_list.index(container.pk)]
-           elif check_list == container.pk:
-               return 'M'
+            check_list = self.middle
+            if type(check_list) == type(list()):
+                # iterate through the list.
+                if container.pk in check_list:
+                    return 'M' + postfix[check_list.index(container.pk)]
+            elif check_list == container.pk:
+                return 'M'
            
         if self.right != None:
-           check_list = self.right
-           if type(check_list) == type(list()):
-               # iterate through the list.
-               if container.pk in check_list:
-                   return 'R' + postfix[check_list.index(container.pk)]
-           elif check_list == container.pk:
-               return 'R'  
-    
+            check_list = self.right
+            if type(check_list) == type(list()):
+                # iterate through the list.
+                if container.pk in check_list:
+                    return 'R' + postfix[check_list.index(container.pk)]
+            elif check_list == container.pk:
+                return 'R'     
         return None
     
     def reset(self):

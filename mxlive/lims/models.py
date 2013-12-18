@@ -8,7 +8,6 @@ from django.utils import dateformat, timezone
 from mxlive.extras.enum import Enum
 from mxlive.extras.jsonfield import JSONField
 import copy
-import datetime
 import hashlib
 import string
 
@@ -450,7 +449,7 @@ class Shipment(ObjectBaseClass):
         """
         unassociated_crystals = self.project.crystal_set.filter(experiment__isnull=True)
         if unassociated_crystals:
-            exp_name = '%s auto' % dateformat.format(datetime.timezone.now(), 'M jS P')
+            exp_name = '%s auto' % dateformat.format(timezone.now(), 'M jS P')
             experiment = Experiment(project=self.project, name=exp_name)
             experiment.save()
             for unassociated_crystal in unassociated_crystals:
@@ -467,7 +466,7 @@ class Shipment(ObjectBaseClass):
 
     def send(self, request=None):
         if self.is_sendable():
-            self.date_shipped = datetime.timezone.now()
+            self.date_shipped = timezone.now()
             self.setup_default_experiment()
             self.save()
             for obj in self.dewar_set.all():
@@ -476,7 +475,7 @@ class Shipment(ObjectBaseClass):
 
     def returned(self, request=None):
         if self.is_returnable():
-            self.date_returned = datetime.timezone.now()
+            self.date_returned = timezone.now()
             self.save()
             for obj in self.dewar_set.all():
                 obj.returned(request=request)

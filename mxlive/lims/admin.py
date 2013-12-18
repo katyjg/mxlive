@@ -141,7 +141,7 @@ class ProjectAdmin(admin.ModelAdmin):
 admin.site.register(Project, ProjectAdmin)           
            
 class ActivityLogAdmin(admin.ModelAdmin):
-    list_filter = ['created']
+    #list_filter = ['created']
     search_fields = ['description','ip_number', 'content_type__name', 'action_type']
     list_display = ('created', 'action_type','user_description','ip_number','object_repr','description')
     ordering = ('-created',)

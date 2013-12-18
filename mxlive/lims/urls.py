@@ -133,35 +133,35 @@ urlpatterns += patterns('mxlive.lims.views',
     (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'model': Shipment, 'format' : 'label' }, 'lims-shipment-label'),
     (r'^shipping/shipment/(?P<id>\d+)/xls/$', 'shipment_xls', {}, 'lims-shipment-xls'),
     (r'^shipping/shipment/upload/$', 'upload_shipment', {'model': Shipment, 'form': ShipmentUploadForm, 'template': 'objforms/form_full.html'}, 'lims-shipment-upload'),
-    (r'^shipping/shipment/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/dewar/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Shipment, 'object':Dewar, 'reverse':True}, 'lims-shipment-add-dewar'),
-    (r'^shipping/shipment/.*/widget/(?P<src_id>\d+)/dewar/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Dewar, 'object':Container}, 'lims-shipment-add-container'),
-    (r'^shipping/shipment/(?P<src_id>\d+)/dewar/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source': Shipment, 'object': Dewar, 'reverse': True}, 'lims-dewar-remove'),
-    (r'^shipping/shipment/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/dewar/(?P<obj_id>\d+)/$', 'remove_object', {'source':Shipment, 'object':Dewar, 'reverse':True}, 'lims-shipment-remove-dewar'),
+    (r'^shipping/shipment/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/dewar/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Shipment, 'obj':Dewar, 'reverse':True}, 'lims-shipment-add-dewar'),
+    (r'^shipping/shipment/.*/widget/(?P<src_id>\d+)/dewar/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Dewar, 'obj':Container}, 'lims-shipment-add-container'),
+    (r'^shipping/shipment/(?P<src_id>\d+)/dewar/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source': Shipment, 'obj': Dewar, 'reverse': True}, 'lims-dewar-remove'),
+    (r'^shipping/shipment/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/dewar/(?P<obj_id>\d+)/$', 'remove_object', {'source':Shipment, 'obj':Dewar, 'reverse':True}, 'lims-shipment-remove-dewar'),
     (r'^shipping/shipment/(?P<id>\d+)/progress/$', 'object_detail', {'model': Shipment, 'template' : 'lims/entries/progress_report.html' }, 'lims-shipment-progress'),
     (r'^shipping/shipment/(?P<id>\d+)/component/$', 'create_object', {'model': Component, 'form': ComponentForm, 'template': 'objforms/form_base.html'}, 'lims-component-add'),
     (r'^shipping/shipment/component/(?P<id>\d+)/edit/$', 'edit_object_inline', {'model': Component, 'form': ComponentForm, 'template': 'objforms/form_base.html'}, 'lims-component-edit'),
     (r'^shipping/shipment/component/(?P<id>\d+)/delete/$', 'delete_object', {'model': Component, 'form': LimsBasicForm, 'template': 'objforms/form_base.html'}, 'lims-component-delete'),
         
     # Dewars
-    (r'^shipping/dewar/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Dewar, 'object':Container, 'reverse':True}, 'lims-dewar-add-container'),
-    (r'^shipping/dewar/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Dewar, 'object':Container, 'reverse':True}, 'lims-dewar-remove-container'),
-    (r'^shipping/dewar/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'remove_object', {'source':Dewar, 'object':Container, 'reverse':True}, 'lims-shipment-remove-container'),
+    (r'^shipping/dewar/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Dewar, 'obj':Container, 'reverse':True}, 'lims-dewar-add-container'),
+    (r'^shipping/dewar/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Dewar, 'obj':Container, 'reverse':True}, 'lims-dewar-remove-container'),
+    (r'^shipping/dewar/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/container/(?P<obj_id>\d+)/$', 'remove_object', {'source':Dewar, 'obj':Container, 'reverse':True}, 'lims-shipment-remove-container'),
 
     # Containers
-    (r'^shipping/container/(?P<dest_id>\d+)/widget/.*/crystal/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'add_existing_object', {'destination':Container, 'object':Crystal, 'reverse':True}, 'lims-container-add-crystal'),
-    (r'^shipping/container/(?P<src_id>\d+)/crystal/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Container, 'object':Crystal, 'reverse':True}, 'lims-container-remove-crystal'),
+    (r'^shipping/container/(?P<dest_id>\d+)/widget/.*/crystal/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'add_existing_object', {'destination':Container, 'obj':Crystal, 'reverse':True}, 'lims-container-add-crystal'),
+    (r'^shipping/container/(?P<src_id>\d+)/crystal/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Container, 'obj':Crystal, 'reverse':True}, 'lims-container-remove-crystal'),
     
     # Crystals
     (r'^samples/crystal/(?P<id>\d+)/priority/$', 'priority', {'model': Crystal, 'field': 'priority'}, 'lims-crystal-priority'),
-    (r'^samples/crystal/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/cocktail/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Crystal, 'object':Cocktail, 'replace': True}, 'lims-crystal-add-cocktail'),
-    (r'^samples/crystal/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/crystalform/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Crystal, 'object': CrystalForm, 'replace':True}, 'lims-crystal-add-crystalform'),
-    (r'^samples/crystal/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/cocktail/(?P<obj_id>\d+)/$', 'remove_object', {'source':Crystal, 'object':Cocktail}, 'lims-crystal-remove-cocktail'),
-    (r'^samples/crystal/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/cocktail/(?P<obj_id>\d+)/$', 'remove_object', {'source':Crystal, 'object':Cocktail}, 'lims-crystal-remove-cocktail'),
+    (r'^samples/crystal/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/cocktail/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Crystal, 'obj':Cocktail, 'replace': True}, 'lims-crystal-add-cocktail'),
+    (r'^samples/crystal/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/crystalform/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Crystal, 'obj': CrystalForm, 'replace':True}, 'lims-crystal-add-crystalform'),
+    (r'^samples/crystal/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/cocktail/(?P<obj_id>\d+)/$', 'remove_object', {'source':Crystal, 'obj':Cocktail}, 'lims-crystal-remove-cocktail'),
+    (r'^samples/crystal/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/cocktail/(?P<obj_id>\d+)/$', 'remove_object', {'source':Crystal, 'obj':Cocktail}, 'lims-crystal-remove-cocktail'),
 
     # Requests
     (r'^experiment/request/(?P<id>\d+)/priority/$', 'priority', {'model': Experiment, 'field': 'priority'}, 'lims-experiment-priority'),
-    (r'^experiment/request/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/crystal/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Experiment, 'object':Crystal, 'reverse':True}, 'lims-experiment-add-crystal'),
-    (r'^experiment/experiment/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/crystal/(?P<obj_id>\d+)/$', 'remove_object', {'source':Experiment, 'object':Crystal, 'reverse':True}, 'lims-experiment-remove-crystal'),
+    (r'^experiment/request/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/crystal/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Experiment, 'obj':Crystal, 'reverse':True}, 'lims-experiment-add-crystal'),
+    (r'^experiment/experiment/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/crystal/(?P<obj_id>\d+)/$', 'remove_object', {'source':Experiment, 'obj':Crystal, 'reverse':True}, 'lims-experiment-remove-crystal'),
     (r'^experiment/request/(?P<id>\d+)/progress/$', 'object_detail', {'model': Experiment, 'template' : 'lims/entries/progress_report.html' }, 'lims-experiment-progress'),
 
     # Report images

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- CLS build scrip -->
 <project name="cls" default="build" basedir=".">
-    <property name="srcdir" value="imm"/>
+    <property name="srcdir" value="mxlive"/>
     <property name="test.verbosity" value="0"/>
     <property name="test.name" value=""/>
     <property name="test.app.name" value="lims staff remote"/>
@@ -17,7 +17,7 @@
     <target name="test">
         <exec dir="${srcdir}" executable="python" failonerror="true">
             <env key="TEST.NAME" value="${test.name}"/>
-            <arg line="manage.py test ${test.app.name} --settings=settings_test --verbosity=${test.verbosity}" />
+            <arg line="../manage.py test ${test.app.name} --settings=settings_test --verbosity=${test.verbosity}" />
         </exec>
     </target>
     

@@ -1,40 +1,25 @@
 
-from datetime import datetime, timedelta, date
-from dateutil.relativedelta import relativedelta
+from datetime import timedelta
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.db import transaction
-from django.db.models import Q
-from django.http import Http404
-from django.http import Http404, HttpResponseRedirect, HttpResponse
-from django.http import HttpRequest
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
-from django.template import loader
 from django.utils.datastructures import MultiValueDict
-from django.utils.encoding import smart_str
 from django.utils import timezone
-from ..download.maketarball import create_tar
-from ..download.models import SecurePath
-from ..lims.models import *
-from ..lims.models import Container, Experiment, Shipment, Crystal
-from ..lims.views import admin_login_required, edit_object_inline
-from ..lims.views import manager_required
-from ..lims.views import object_list
-from ..objlist.views import ObjectList
+from mxlive.download.maketarball import create_tar
+from mxlive.download.models import SecurePath
+from mxlive.lims.models import *
+from mxlive.lims.views import admin_login_required, edit_object_inline
+from mxlive.lims.views import manager_required
+from mxlive.objlist.views import ObjectList
 from .admin import runlist_site
 from .models import Runlist
-from shutil import copyfile
-import calendar
-import logging
 import os
-import shutil
-import subprocess
-import sys
-import tempfile
-import xlrd
 
 #sys.path.append(os.path.join('/var/website/cmcf-website/cmcf'))
 #from scheduler.models import Visit, Stat, WebStatus
@@ -193,7 +178,7 @@ def runlist_object_list(request, model, form, parent_model=None, link_field=None
    
 @login_required
 @transaction.commit_on_success
-def add_existing_object(request, dest_id, obj_id, destination, object, src_id=None, loc_id=None, source=None, replace=False, reverse=False):
+def add_existing_object(request, dest_id, obj_id, destination, obj, src_id=None, loc_id=None, source=None, replace=False, reverse=False):
     """
     New add method. Meant for AJAX, so only intended to be POST'd to. This will add an object of type 'object'
     and id 'obj_id' to the object of type 'destination' with the id of 'dest_id'.
@@ -203,7 +188,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     object_type = destination.__name__
     form_info = {
         'title': 'Add Existing %s' % (object_type),
-        'sub_title': 'Select existing %ss to add to %s' % (object_type.lower(), object),
+        'sub_title': 'Select existing %ss to add to %s' % (object_type.lower(), obj),
         'action':  request.path,
         'target': 'entry-scratchpad',
     }
@@ -221,7 +206,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
         except Project.DoesNotExist:
             raise Http404    
 
-    model = object;
+    model = obj
     obj_manager = model.objects
     request.project = None
     if not request.user.is_superuser:
@@ -244,12 +229,12 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
     if reverse:
         display_name = dest.name
         
-    lookup_name = object.__name__.lower()
+    lookup_name = obj.__name__.lower()
     
     if dest.is_editable():
         if destination.__name__ == 'Runlist':
-            if object.__name__ == 'Experiment' or object.__name__ == 'Project':
-                container_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(kind__exact=Container.TYPE.CANE).exclude(pk__in=dest.containers.all()).filter(pk__in=object.objects.get(pk=obj_id).crystal_set.values('container'))
+            if obj.__name__ == 'Experiment' or obj.__name__ == 'Project':
+                container_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(kind__exact=Container.TYPE.CANE).exclude(pk__in=dest.containers.all()).filter(pk__in=obj.objects.get(pk=obj_id).crystal_set.values('container'))
                 for container in container_list:
                     dest.add_container(container)
                     try:
@@ -268,7 +253,7 @@ def add_existing_object(request, dest_id, obj_id, destination, object, src_id=No
                     current = getattr(dest, '%ss' % lookup_name)
                     # want destination.objects.add(to_add)
                     current.add(to_add)
-                    #setattr(dest, '%ss' % object.__name__.lower(), current_values)
+                    #setattr(dest, '%ss' % obj.__name__.lower(), current_values)
                 except AttributeError:
                     message = '%s has not been added. No Field (tried %s and %s)' % (display_name, lookup_name, '%ss' % lookup_name)
                     messages.info(request, message)
@@ -305,7 +290,6 @@ def experiment_basic_object_list(request, runlist_id, model, template='objlist/b
     Should display name and id for entity, but filter
     to only display experiments with containers with unprocessed crystals available to add to a runlist.
     """
-    basic_list = list()
     ol = ObjectList(request, request.manager)
     try: 
         runlist = Runlist.objects.get(pk=runlist_id)
@@ -324,7 +308,6 @@ def project_basic_object_list(request, runlist_id, model, template='objlist/basi
     Should display name and id for entity, but filter
     to only display projects with containers with unprocessed crystals available to add to a runlist.
     """
-    basic_list = list()
     ol = ObjectList(request, request.manager)
     try: 
         runlist = Runlist.objects.get(pk=runlist_id)
@@ -344,7 +327,6 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
     Slightly more complex than above. Should display name and id for entity, but filter
     to only display containers with a crystal in the specified experiment.
     """
-    active_containers = None
     ol = ObjectList(request, request.manager)
     try: 
         runlist = Runlist.objects.get(pk=runlist_id)
@@ -427,11 +409,11 @@ def object_status(request, model):
             if action == 2:
                 msg = "The tar file has been deleted for dataset %s." % data.name
                 obj = get_object_or_404(SecurePath, key=data.url)
-                file = os.path.join(CACHE_DIR, obj.key, '%s.tar.gz' % data.name)
-                if os.path.exists(file):
-                    os.remove(file)
-                elif os.path.exists('%s-tmp' % file):
-                    os.remove('%s-tmp' % file)
+                fname = os.path.join(CACHE_DIR, obj.key, '%s.tar.gz' % data.name)
+                if os.path.exists(fname):
+                    os.remove(fname)
+                elif os.path.exists('%s-tmp' % fname):
+                    os.remove('%s-tmp' % fname)
                 else:
                     msg = "The tar file for dataset %s could not be removed because it does not exist." % data.name
                 messages.info(request, msg)
@@ -544,8 +526,7 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
 
 # -------------------------- JSONRPC Methods ----------------------------------------#
 from jsonrpc import jsonrpc_method
-from jsonrpc.exceptions import InvalidRequestError
-from jsonrpc.exceptions import MethodNotFoundError
+from jsonrpc.exceptions import InvalidRequestError, ServerError
 from mxlive.apikey.views import apikey_required
 from django.db import models
 
@@ -613,6 +594,6 @@ def get_active_runlist(request, info):
         except Runlist.MultipleObjectsReturned:
             raise ServerError("Expected only one runlist. Found many.")
     else:
-          raise InvalidRequestError("A valid beamline name must be provided.")  
+        raise InvalidRequestError("A valid beamline name must be provided.")  
 
 

@@ -3,9 +3,11 @@
 *.py[oc]
 *~
 *.cache
+.pydevproject
 .~lock*
 .svn/
 .settings
 *.db
+*.sqlite?
 settings_local.py
-imm/VERSION
+mxlive/VERSION

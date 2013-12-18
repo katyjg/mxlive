@@ -1,13 +1,8 @@
 
-
-from django import forms
-from django.conf import settings
 from django.conf.urls import patterns
-from django.contrib.auth.models import User
 from mxlive.lims.forms import ConfirmDeleteForm, LimsBasicForm, ProjectForm
 from mxlive.lims.models import *
 from mxlive.staff.forms import *
-from mxlive.staff.models import Runlist, Link
 import os
 
 # Define url meta data for object lists detail pages
@@ -141,9 +136,9 @@ urlpatterns = patterns('mxlive.staff.views',
     (r'^runlist/(?P<runlist_id>\d+)/container/basic/(?P<exp_id>\d+)/$', 'container_basic_object_list', {'model':Container, 'template': 'staff/lists/basic_container_list.html'}, 'staff-container-basic-list'),
     (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'experiment_basic_object_list', {'model':Experiment, 'template': 'staff/lists/basic_experiment_list.html'}, 'staff-experiment-basic-list'),
     (r'^runlist/(?P<runlist_id>\d+)/project/basic/$', 'project_basic_object_list', {'model':Project, 'template': 'staff/lists/basic_project_list.html'}, 'staff-project-basic-list'),   
-    (r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Runlist, 'object':Experiment }, 'staff-runlist-add-experiment'),
-    (r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/project/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Runlist, 'object':Project }, 'staff-runlist-add-project'),
-    (r'^runlist/(?P<dest_id>\d+)/widget/.*/container/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'add_existing_object', {'destination':Runlist, 'object':Container }, 'staff-runlist-add-container'),
+    (r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/experiment/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Runlist, 'obj':Experiment }, 'staff-runlist-add-experiment'),
+    (r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/project/(?P<obj_id>\d+)/$', 'add_existing_object', {'destination':Runlist, 'obj':Project }, 'staff-runlist-add-project'),
+    (r'^runlist/(?P<dest_id>\d+)/widget/.*/container/(?P<obj_id>\d+)/loc/(?P<loc_id>\w{1,2})/$', 'add_existing_object', {'destination':Runlist, 'obj':Container }, 'staff-runlist-add-container'),
     (r'^runlist/(?P<id>\d+)/load/$', 'staff_action_object', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'load'}, 'staff-runlist-load'),
     (r'^runlist/(?P<id>\d+)/unload/$', 'staff_action_object', {'model': Runlist, 'form': RunlistEmptyForm, 'template': 'objforms/form_base.html', 'action' : 'unload'}, 'staff-runlist-complete'),
     (r'^runlist/(?P<id>\d+)/history/$', 'object_history', {'model': Runlist}, 'staff-runlist-history'),
@@ -165,7 +160,7 @@ urlpatterns += patterns('mxlive.lims.views',
     (r'^shipping/shipment/(?P<id>\d+)/progress/$', 'object_detail', {'model': Shipment, 'template' : 'lims/entries/progress_report.html' }, 'lims-shipment-progress'),
 
     # Runlists
-    (r'^runlist/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Runlist, 'object':Container }, 'staff-runlist-remove-container'),
+    (r'^runlist/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Runlist, 'obj':Container }, 'staff-runlist-remove-container'),
     (r'^runlist/(?P<id>\d+)/protocol/$', 'shipment_pdf', {'model': Runlist, 'format' : 'runlist' }, 'staff-runlist-pdf'),
     (r'^runlist/(?P<id>\d+)/staff_comments/add/$', 'staff_comments', {'model': Runlist, 'form': RunlistCommentsForm,}, 'staff-comments-runlist-add'),    
     

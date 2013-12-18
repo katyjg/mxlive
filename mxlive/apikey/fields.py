@@ -1,6 +1,4 @@
-from ipaddr import _IPAddrBase, IPAddress, IPNetwork
-
-from django.forms import ValidationError as FormValidationError
+from ipaddr import _IPAddrBase, IPNetwork
 from django.core.exceptions import ValidationError
 from django.forms import fields, widgets
 from django.db import models
@@ -32,7 +30,7 @@ class IPNetworkField(models.Field):
         except Exception, e:
             raise ValidationError(e)
 
-    def get_prep_value(self, value):
+    def get_prep_value(self, value, **kwargs):
         if isinstance(value, _IPAddrBase):
             value = '%s' % value
         return unicode(value)

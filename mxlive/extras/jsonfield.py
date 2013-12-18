@@ -25,7 +25,7 @@ class JSONField(models.TextField):
             pass
         return value
 
-    def get_db_prep_save(self, value):
+    def get_db_prep_save(self, value, **kwargs):
         """Convert our JSON object to a string before we save"""
 
         if value == "":
@@ -34,7 +34,7 @@ class JSONField(models.TextField):
         if isinstance(value, dict) or isinstance(value, list):
             value = json.dumps(value, cls=DjangoJSONEncoder)
 
-        return super(JSONField, self).get_db_prep_save(value)
+        return super(JSONField, self).get_db_prep_save(value, **kwargs)
 
 from south.modelsinspector import add_introspection_rules
 add_introspection_rules([], ["^mxlive..lims\.jsonfield\.JSONField"])

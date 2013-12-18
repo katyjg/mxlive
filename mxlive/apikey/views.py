@@ -1,12 +1,12 @@
 from models import APIKey, APIKeyUsage
 from ipaddr import IPNetwork
-from django.http import Http404, HttpResponseForbidden
 from jsonrpc import exceptions
 
 
 def apikey_required(function):
     """ Decorator that enforces a valid API key """
     def apikey_required_wrapper(request, key, *args, **kwargs):
+        print request, key, args, kwargs
         try:
             client_addr = IPNetwork(request.META['REMOTE_ADDR'])
             api_key = APIKey.objects.get(key=key)
@@ -34,9 +34,8 @@ def apikey_required(function):
                 request.api_user = api_key
                 return function(request, *args, **kwargs)
             else:
-                raise exceptions.InvalidCredentialsError('Permission Denied: Valid API Key required.')
-        except APIKey.DoesNotExist:
-        
-                raise exceptions.InvalidCredentialsError('Permission Denied: Valid API Key required.')
+                raise exceptions.InvalidCredentialsError('Permission Denied: Valid API Key required. [1]')
+        except APIKey.DoesNotExist:       
+                raise exceptions.InvalidCredentialsError('Permission Denied: Valid API Key required. [2]')
     return apikey_required_wrapper
 

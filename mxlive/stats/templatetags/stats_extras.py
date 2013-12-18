@@ -1,16 +1,8 @@
 from django.template import Library
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-
 from django.contrib.auth.models import User
-
-from lims.models import Project
-
-from django.conf import settings
-import sys, os
-PUBLIC_PATH = getattr(settings, 'PUBLIC_PATH', '/tmp')
-sys.path.append(os.path.join(PUBLIC_PATH))
-from scheduler.models import Visit, Proposal
+from mxlive.lims.models import Project
 
 register = Library()
 
