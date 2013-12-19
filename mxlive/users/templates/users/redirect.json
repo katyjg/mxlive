@@ -1,0 +1,3 @@
+{% if redirect_to %}
+{ "url" : "{{redirect_to}}"}
+{% endif %}

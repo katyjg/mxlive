@@ -1,0 +1,380 @@
+{% extends "base.html" %}
+{% load zip %}
+{% load flot_extras %}
+
+{% block extrastyle %}
+<script type="text/javascript" src="/js/imm-reports.flot.js"></script>
+{% endblock %}
+
+{% block headline %}
+<h2 class="screen">{% if object.details.anomalous %}Anomalous {% endif %}Crystal Screening Report - &ldquo;{{object.name}}&rdquo;</h2>
+{% endblock %}
+{% block object-tools %}
+<div class="object-tools">
+    {% include "users/tools.html" %}
+    <ul class="toolbar">
+        <li class="print-tool" >
+            <a href="javascript:window.print();">Print</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+
+{% block content-override %}
+<!-- maincol -->
+<div id="content" class="col-12">
+
+<div id="result-page">   
+    <h3>Predicted Quality and Suggested Strategy</h3>
+    <div id="result-summary">
+        <table id="result-table">
+            <colgroup>
+                <col class="result-labels"/>
+            </colgroup>
+            <tbody>
+                <tr><th colspan=2>Observed Parameters</th></tr>
+                <tr><td>Score<sup class="footnote">[1]</sup></td><td>{{object.score|floatformat:"-2"}}</td></tr>
+                <tr><td>Wavelength (A)</td><td>{{object.wavelength}}</td></tr>
+                <tr><td>Space Group<sup class="footnote">[2]</sup></td><td>{{object.space_group.name}} </td></tr>
+                <tr><td>Unit Cell (A)</td><td>{{object.cell_a|floatformat:"-2"}} {{object.cell_b|floatformat:"-2"}} {{object.cell_c|floatformat:"-2"}}<br/>
+                {{object.cell_alpha|floatformat:"-1"}} {{object.cell_beta|floatformat:"-1"}} {{object.cell_gamma|floatformat:"-1"}}</td></tr>
+                <tr><td>Mosaicity</td><td>{{object.mosaicity}}</td></tr>
+                <tr><td>Spot deviation</td><td>{{object.sigma_spot}}</td></tr>
+                <tr><td>Spindle deviation</td><td>{{object.sigma_angle}}</td></tr>
+                {% ifnotequal object.ice_rings -1 %}
+                <tr><td>Ice Rings</td><td>{{object.ice_rings}}</td></tr>
+                {% endifnotequal %}
+                <tr><th colspan=2>Expected Quality<sup class="footnote">[3]</sup></th></tr>
+                <tr><td>Resolution (A)<sup class="footnote">[4]</sup></td><td>{{object.details.strategy.resolution|floatformat:"-2"}}</td></tr>
+                <tr><td>Multiplicity</td><td>{{object.details.strategy.multiplicity|floatformat:"-1"}}</td></tr>
+                <tr><td>Completeness</td><td>{{object.details.strategy.completeness|floatformat:"-2"}} %</td></tr>
+                <tr><td>I/Sigma(I)</td><td>{{object.details.strategy.i_sigma}}</td></tr>
+                <tr><td>R-factor</td><td>{{object.details.strategy.r_factor}}</td></tr>
+                <tr><td>Fraction overloaded</td><td>{{object.details.strategy.frac_overload}}</td></tr>                
+            </tbody>
+        </table>
+    </div>
+
+    <div id="summary-notes">
+        <table id="result-table">
+            <colgroup>
+                <col class="result-labels"/>
+            </colgroup>
+            <tbody>
+                <tr><th colspan=2>Related Entries</th></tr>  
+                {% if request.user.is_superuser %}
+                    <tr><td>Project</td><td>{{ object.project }}</td></tr>
+                {% endif %}                            
+                <tr><td>Crystal</td><td>{% if object.crystal %}<a href={% url "users-crystal-detail" object.crystal.id %}>{{object.crystal}}</a>{% else %} &mdash; {% endif %}</td></tr>   
+                <tr><td>Experiment</td><td>{% if object.experiment %}<a href={% url "users-experiment-detail" object.experiment.id %}>{{object.experiment.name}}</a>{% else %} &mdash; {% endif %}</td></tr>     
+                <tr><td>Dataset</td><td>{% if object.data %}<a class="modal" href={% url "users-data-detail" object.data.id %}>{{object.data}}</a>{% else %} &mdash; {% endif %}</td></tr>                  
+                <tr><th colspan=2>Data Collection Strategy<sup class="footnote">[3]</sup></th></tr>
+                <tr><td>Attenuation (%)</td><td>{{object.details.strategy.attenuation}}</td></tr>
+                <tr><td>Exposure time (s)</td><td>{{object.details.strategy.exposure_time}}</td></tr>
+                <tr><td>Detector distance (mm)</td><td>{{object.details.strategy.distance}}</td></tr>
+                <tr><td>Start Angle</td><td>{{object.details.strategy.start_angle}}</td></tr>
+                <tr><td>Delta Angle</td><td>{{object.details.strategy.delta_angle}}</td></tr>
+                <tr><td>Total Oscillation Angle</td><td>{{object.details.strategy.total_angle}}</td></tr>
+            </tbody>
+        </table>
+        <div class="clear spacer"></div>
+        <div class="tablenotes">
+        <h3>Notes</h3>
+            <dl class="note-list">
+            <dt>[1] -<dt>
+            <dd>
+                Data Quality Score for comparing similar data sets. Typically, values >
+                0.8 are excellent, > 0.6 are good, > 0.5 are acceptable, > 0.4
+                marginal, and &lt; 0.4 are Barely usable
+            </dd>
+            <dt>[2] -<dt>
+            <dd>
+                This space group was automatically assigned using POINTLESS (see P.R.Evans,
+                Acta Cryst. D62, 72-82, 2005). This procedure is unreliable for incomplete datasets
+                such as those used for screening. Please Inspect the detailed results below.
+            </dd>
+            <dt>[3] -<dt>
+            <dd>
+                Data collection strategy and predicted quality was calculated using BEST. See 
+            A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64.
+            </dd>
+            <dt>[4] -<dt>
+            <dd>
+                {{object.details.strategy.resolution_reasoning}}.
+            </dd>
+        </dl>
+        </div>
+    </div>
+
+    <div class="clear spacer"></div>
+	
+	{% if object.details.crystal_alignment %}
+		<h3>Kappa and Phi angles for re-orienting the crystal</h3>
+	    <table class="rtable full">
+	        <thead>
+	            <tr>
+	                <th scope="col">Kappa<sup class="footnote">[*]</sup></th>
+	                <th scope="col">Phi</th>
+	                <th scope="col">Vectors (v1,v2)<sup class="footnote">[*]</sup></th>
+	            </tr>
+	        </thead>
+	        <tbody>
+	        {% with object.details.crystal_alignment as align %}
+	        {% zip align.solutions align.goniometer align.method as tbl %}
+	        {% for rows in tbl %}
+	            <tr>
+	                <td>{{rows.0.0|floatformat:"-1"}}</td>
+	                <td>{{rows.0.1|floatformat:"-1"}}</td>
+	                <td>{{rows.0.2}}</td>
+	            </tr>
+	        {% endfor %}
+	        {% endwith %}
+	        </tbody>
+	    </table>
+	    <div class="tablenotes">
+	        <h3>Notes</h3>
+	            <dl class="note-list">
+	            <dt>[*] -<dt>
+	            <dd>
+	                Alignment is calculated for the goniometer 'CLS MiniKappa'.  The alignment 
+	                method is v1 parallel to omega, v2 perpendicular to the omega-beam plane.
+	            </dd>
+	        </dl>
+	    </div>
+	
+	    <div class="clear spacer"></div>
+	{% endif %}
+
+    <h3>Compatible bravais lattice types</h3>
+    <table class="rtable full">
+        <thead>
+            <tr>
+                <th scope="col">No.</th>
+                <th scope="col">Lattice type</th>
+                <th scope="col">Cell Parameters</th>
+                <th scope="col">Quality</th>
+                <th scope="col">Cell Volume</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% with object.details.compatible_lattices as lattices %}
+        {% zip lattices.id  lattices.type  lattices.unit_cell lattices.quality lattices.volume as tbl %}
+        {% for rows in tbl %}
+            <tr>
+                <td>{{rows.0}}</td>
+                <td>{{rows.1}}</td>
+                <td>{{rows.2}}</td>
+                <td>{{rows.3}}</td>
+                <td>{{rows.4|floatformat:"-1"}}</td>
+            </tr>
+        {% endfor %}
+        {% endwith %}
+        </tbody>
+    </table>
+
+    <h3>Automatic Space-Group Selection</h3>
+    
+    <table class="rtable full">
+        <thead>
+            <tr>
+                <th scope="col">Selected</th>
+                <th scope="col">Candidates</th>
+                <th scope="col">Space Group No.</th>
+                <th scope="col">Probability</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% with object.details.spacegroup_selection as spacegroups %}
+        {% zip spacegroups.name  spacegroups.space_group  spacegroups.probability as tbl %}
+        {% for rows in tbl %}
+            <tr>
+            <td>
+            {% ifequal forloop.counter 1 %}
+            *
+            {% endifequal %}
+            </td>
+                <td>{{rows.0}}</td>
+                <td>{{rows.1}}</td>
+                <td>{{rows.2|floatformat:"-1"}}</td>
+            </tr>
+        {% endfor %}
+        {% endwith %}
+        </tbody>
+        <tfoot>
+        <tr><td colspan=4></td></tr>
+        </tfoot>
+    </table>
+    <div class="tablenotes">
+        <h3>Notes</h3>
+        <p>The above table contains results from POINTLESS (see Evans, Acta Cryst. D62, 72-82, 2005).</p>
+        <p>Indistinguishable space groups will have similar probabilities. If two or more of the top candidates have the same probability, the one with the fewest symmetry assumptions is chosen. This usually corresponds to the point group,  trying out higher symmetry space groups within the top tier does not require re-indexing the data as they are already in the same setting.</p>
+        <p>For more detailed results, please inspect the output file 'pointless.log'.</p>
+    </div><div class="clear spacer pagebreak"></div>
+        
+    {% if object.details.predicted_quality %}
+    <h3>Predicted statistics for suggested strategy by resolution</h3>
+    <div id="quality-comp" class="report-flot" style="height: 225px;"></div>
+    <div id="quality-isig" class="report-flot" style="height: 225px;"></div>
+    <!-- img src="quality.png" /-->
+    <table class="rtable full">
+        <thead>
+            <tr>
+                <th scope="col">Shell</th>
+                <th scope="col">Completeness</th>
+                <th scope="col">R<sub>factor</sub></th>
+                <th scope="col">I/sigma(I)</th>
+                <th scope="col">Multiplicity</sup></th>
+                <th scope="col">Overload fraction</sup></th>
+            </tr>
+        </thead>
+        <tbody>
+
+        {% with object.details.predicted_quality as stats %}
+        {% zip stats.shell  stats.completeness  stats.r_factor stats.i_sigma stats.multiplicity stats.frac_overload as tbl %}
+        {% for rows in tbl %}
+            <tr>
+            {% for col in rows %}
+                <td>{{col|floatformat:"2"}}</td>
+            {% endfor %}
+            </tr>
+        {% endfor %}
+        {% endwith %}
+        </tbody>
+        <tfoot>
+        <tr><td colspan=6></td></tr>
+        </tfoot>
+    </table>
+    <div class="tablenotes">
+        <h3>Notes</h3>
+        <p>The above plot was calculated by BEST. See 
+        A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64
+        </p>
+        <dl class="note-list">
+        <dt>I/Sigma    - </dt><dd>Mean intensity/Sigma of a reflection in shell</dd>
+        <dt>R-factor - </dt><dd>&Sigma;|I(h,i)-I(h)| / &Sigma;[I(h,i)]</dd>
+        </dl>
+    </div>
+    {% endif %}
+    <div class="clear spacer"></div>
+    <h3>Maximum Oscillation width to avoid overlapped spots at different resolutions</h3>
+    <div id="overlap" class="report-flot" style="height: 300px;"></div>
+    <!-- img src="overlap.png" /-->
+    <div class="tablenotes">
+        <h3>Notes</h3>
+        <p>The above plot was calculated by BEST. See 
+        A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64
+        </p>
+    </div>
+
+
+    <h3>Minimal oscillation ranges for different percentages of data completeness</h3>
+    <div id="wedge" class="report-flot" style="height: 400px;"></div>
+    <!-- img src="wedge.png" /-->
+    <div class="tablenotes">
+        <h3>Notes</h3>
+        <p>The above plot was calculated by BEST. See 
+        A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64
+        </p>
+    </div>
+    <div class="clear spacer"></div>
+
+    <h3>Analysis of exposure time required versus resolution attained</h3>
+    <div id="exposure" class="report-flot" style="height: 400px;"></div>
+    <!-- img src="exposure.png" /-->
+    <div class="tablenotes">
+        <h3>Notes</h3>
+        <p>The above plot was calculated by BEST. See 
+        A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64
+        </p>
+    </div>
+
+</div>
+</div>
+<!-- end maincol -->
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        jQuery(document).ready(function() {
+            var c = ["#FF0000","#0000FF","#007700","#B300B2","#00CCCC","#CCCC0C"];
+            var lines = { show: true, lineWidth: 1};
+            var laxis = { position: "left", labelWidth: 20, reserveSpace: true };
+            var raxis = { position: "right", labelWidth: 20, reserveSpace: true };
+            
+            /***************** Plot predicted quality *************************/
+            var completeness = {{object.details.predicted_quality.completeness|get_data}};
+            var r_factor = {{object.details.predicted_quality.r_factor|get_data}};
+            var i_sigma = {{object.details.predicted_quality.i_sigma|get_data}};
+            var multiplicity = {{object.details.predicted_quality.multiplicity|get_data}};
+            var shell_labels = [];
+            {% for data in object.details.predicted_quality.shell %}{% if forloop.counter0|divisibleby:"2" %}
+                shell_labels.push([{{forloop.counter0}},{{data|floatformat:2}}]);
+            {% endif %}{% endfor %}
+            
+            /*** Completeness and R-Factor vs. Resolution Shell ***/
+            plot_data($("#quality-comp"), [
+                { data: completeness, color: c[0], lines: lines },
+                { data: r_factor, color: c[2], lines: lines, yaxis: 2 }
+                ], shell_labels, [ 
+                    $.extend(laxis, { color: c[0], min: 0, max: 105, axisLabel: 'Completeness (%)' }),
+                    $.extend(raxis,  { color: c[2], axisLabel: 'R-factor(%)' })], '', [], false);
+
+            /*** I/Sigma(I) and Multiplicity vs. Resolution Shell ***/
+            plot_data($("#quality-isig"), [
+                { data: i_sigma, color: c[3], lines: lines },
+                { data: multiplicity, color: c[1], lines: lines, yaxis: 2 }
+                ], shell_labels, [
+                    $.extend(laxis, { color: c[3], axisLabel: 'I/Sigma(I)' }),
+                    $.extend(raxis,  { color: c[1], axisLabel: 'Multiplicity' })], 'Resolution Shell', [], false);
+            $.extend(laxis, { min: null, max: null});
+            
+            /********************* Plot overlap analysis **********************/
+            var overlaps = {}, datasets = [];
+            crosshair = { mode: "y", color: "#333333" }
+            {% for key, val in object.details.overlap_analysis.items|sort_items %}{% ifnotequal key "angle" %}
+                overlaps[{{key}}] = {{ val|get_data:object.details.overlap_analysis.angle }};
+                datasets.push({ data: overlaps[{{key}}], label: {{key}}+' &#xC5;', lines: lines });
+            {% endifnotequal %}{% endfor %}
+            plot_data($("#overlap"), datasets, null, [$.extend(laxis, {color: null, axisLabel: "Maximum Delta (deg)"})], "Oscillation Angle (deg)", [], crosshair);
+            
+            $("#overlap").append('<div class="annotate" style="right:10px; top:240px;color:#333;"></div>');
+            $("#overlap").bind("plothover", function (event, pos, item) {
+                latestPosition = pos;
+                var update = function() {updateValue(["#overlap .annotate", pos.y.toFixed(2)+' deg']);};
+                if (!updateTimeout)
+                    updateTimeout = setTimeout(update, 50);
+            });
+            
+            /********************* Plot wedge analysis ************************/
+            var wedge = {}, datasets = [];
+            crosshair = { mode: "xy", color: "#333333" }
+            {% for key, val in object.details.wedge_analysis.items|sort_items %}{% ifnotequal key "start_angle" %}
+                wedge[{{key}}] = {{val|get_data:object.details.wedge_analysis.start_angle}};                
+                datasets.push({ data: wedge[{{key}}], label: {{key}}+'%', lines: lines });
+            {% endifnotequal %}{% endfor %}
+            plot_data($("#wedge"), datasets, null, [$.extend(laxis, {color: null, axisLabel: "Total Oscillation Angle (deg)"})], "Starting Angle (deg)", [], crosshair);
+            
+            $("#wedge").append('<div id="start" class="annotate" style="right:20px; top:321px;color:#333; width: 105px;"></div>');
+            $("#wedge").append('<div id="total" class="annotate" style="right:20px; top:339px;color:#333; width:105px;"></div>');
+            $("#wedge").bind("plothover", function (event, pos, item) {
+                latestPosition = pos;
+                var updatex = function() { updateValue(["#wedge #start", 'Start = '+pos.x.toFixed(2)+' deg']); };
+                var updatey = function() { updateValue(["#wedge #total", 'Total = '+pos.y.toFixed(2)+' deg']); };
+                if (!updateTimeout)
+                    updateTimeout = setTimeout(updatex, 50);
+                    updateTimeout = setTimeout(updatey, 50);
+            });
+            
+            /********************* Plot exposure analysis *********************/
+            var resolution = {{ object.details.exposure_analysis.resolution|get_data:object.details.exposure_analysis.exposure_time }};
+            var markings = [{ color: c[0], lineWidth: 1.5, 
+                              xaxis: { from: {{object.details.strategy.exposure_time}}, to: {{object.details.strategy.exposure_time}} } }];
+            plot_data($("#exposure"), [
+                { data: resolution, label: '', color: c[1], lines: lines },
+                { data: [0,0], label: 'Optimal = {{object.details.strategy.exposure_time}}s', color: c[0]}
+                ], null, [$.extend(laxis, { color: null, axisLabel: "Resolution" })], "Exposure Time (s)", markings);
+        });
+    </script>
+{% endblock %}
+            

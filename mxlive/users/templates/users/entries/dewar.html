@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load markup %}
+
+{% block headline %}
+<h2><span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
+{% endblock %}
+
+{% block object-tools %}
+<div class="object-tools">
+    {% include "users/tools.html" %}
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% with object as dewar %}
+    <div class="dewar-img droppable droppable-replace" {% if dewar.is_editable %}accept="container" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>
+
+    <table class="entrysummary" cellpadding="2" cellspacing="0" border="0" width="60%">
+        {% if request.user.is_superuser %}
+            <tr valign="top"><th>Project:</th><td>{{ dewar.project }}</td></tr>
+        {% endif %}
+        <tr valign="top"><th>Status:</th><td>{{dewar.get_status_display}}</td></tr>
+        {% ifequal dewar.status dewar.STATES.ON_SITE %}
+            <tr valign="top"><th>Location:</th><td>{{dewar.storage_location|default:"Unknown"}}</td></tr>
+        {% endifequal %}
+        <tr valign="top"><th>Label:</th><td>{{dewar.name}}</td></tr>
+        <tr valign="top"><th>Barcode:</th><td>{{dewar.barcode}}</td></tr>
+        <tr valign="top"><th>Shipment:</th>
+            {% if dewar.shipment %}<td><a href="{% url "users-shipment-detail" dewar.shipment.pk %}">{{dewar.shipment.name}}</a></td>
+            {% else %}<td>None</td>{% endif %}</tr>
+    </table>
+    {% if object.comments or object.staff_comments%}
+    <div class="entrycomment">
+    <span class="left-pointer"></span>
+    <h3>Comments</h3>
+    <div class="user">{{ object.comments|default:""|restructuredtext}}</div>
+    <div class="staff">{{ object.staff_comments|default:""|restructuredtext}}</div>
+    </div>
+    {% endif %}
+    <div class="clear"></div>
+    
+    {% load dewar_table %}
+    {% dewar_table dewar request.user.is_superuser "dewar" %}
+{% endwith %}
+
+{% endblock %}
+
+{% block sidebar %}
+    {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
+        {% if object.is_editable %}
+            <div id="containers" class="widget droppable-remove parent-stop" data="{% url "users-container-basic-list" %}?orphan_field=dewar">
+	           <div class="widget-title">
+	           <span>Container</span><a href="{% url "users-container-new" %}" class="modal-form add-action" title="Add New Container" ><img src="/img/small-add-icon.png" /></a>
+	           </div>
+                <ul>
+                    <p class="list-empty">( Not loaded )</p>
+                </ul>
+            </div>
+        {% else %}
+            {% include "users/entries/comments_form.html" %}
+        {% endif %}
+    {% else %}
+        {% include "staff/entries/comments_form.html" %}
+    {% endif %}
+    {% include "users/individual_history.html" %}
+{% endblock %}
