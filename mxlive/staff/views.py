@@ -11,12 +11,12 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.datastructures import MultiValueDict
 from django.utils import timezone
-from mxlive.download.maketarball import create_tar
-from mxlive.download.models import SecurePath
-from mxlive.lims.models import *
-from mxlive.lims.views import admin_login_required, edit_object_inline
-from mxlive.lims.views import manager_required
-from mxlive.objlist.views import ObjectList
+from download.maketarball import create_tar
+from download.models import SecurePath
+from users.models import *
+from users.views import admin_login_required, edit_object_inline
+from users.views import manager_required
+from objlist.views import ObjectList
 from .admin import runlist_site
 from .models import Runlist
 import os
@@ -66,7 +66,7 @@ def staff_home(request):
     }
     
 
-    return render_to_response('lims/staff.html', {
+    return render_to_response('users/staff.html', {
         'activity_log': ObjectList(request, ActivityLog.objects),
         'feedback': Feedback.objects.all()[:5],
         'statistics': statistics,
@@ -98,7 +98,7 @@ def receive_shipment(request, id, model, form, template='objforms/form_base.html
                     obj.receive(request)
             form_info['message'] = '%s %s successfully received' % ( model.__name__, obj.identity())
             messages.info(request, form_info['message'])           
-            return render_to_response("lims/redirect.html", context_instance=RequestContext(request)) 
+            return render_to_response("users/redirect.html", context_instance=RequestContext(request)) 
         else:
             return render_to_response(template, {
             'info': form_info, 
@@ -243,7 +243,7 @@ def add_existing_object(request, dest_id, obj_id, destination, obj, src_id=None,
                     except AttributeError:
                         message = '%s has not been added. No Field (tried %s and %s)' % (display_name, lookup_name, '%ss' % lookup_name)
                         messages.info(request, message)
-                        return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
+                        return render_to_response('users/refresh.html', context_instance=RequestContext(request))
                 
         if loc_id:
             added = dest.container_to_location(to_add, loc_id)
@@ -257,11 +257,11 @@ def add_existing_object(request, dest_id, obj_id, destination, obj, src_id=None,
                 except AttributeError:
                     message = '%s has not been added. No Field (tried %s and %s)' % (display_name, lookup_name, '%ss' % lookup_name)
                     messages.info(request, message)
-                    return render_to_response('lims/refresh.html', context_instance=RequestContext(request))
+                    return render_to_response('users/refresh.html', context_instance=RequestContext(request))
             else:
                 message = '%s has not been added. Location %s is unavailable.' % (display_name, loc_id)
                 messages.info(request, message)
-                return render_to_response('lims/refresh.html', {
+                return render_to_response('users/refresh.html', {
                     'context': RequestContext(request), 
                     'info': form_info,
                     })
@@ -278,7 +278,7 @@ def add_existing_object(request, dest_id, obj_id, destination, obj, src_id=None,
         message = '%s has not been added, as %s is not editable' % (display_name, dest.name)
 
     messages.info(request, message)
-    return render_to_response('lims/refresh.html', {
+    return render_to_response('users/refresh.html', {
         'context': RequestContext(request), 
         'info': form_info,
         })
@@ -419,7 +419,7 @@ def object_status(request, model):
                 messages.info(request, msg)
                 data.toggle_download(False)
             
-    return render_to_response('lims/refresh.html')
+    return render_to_response('users/refresh.html')
 
 @login_required
 @transaction.commit_on_success
@@ -507,8 +507,8 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
                     obj.unload(request=request)
                     messages.info(request, 'Runlist (%s) unloaded from %s automounter.  Changes can now be made.' % (obj.name, obj.beamline))
                     #url_name = "staff-%s-list" % (model.__name__.lower()) 
-                    #return render_to_response("lims/redirect.json", {'redirect_to': reverse(url_name),}, context_instance=RequestContext(request), mimetype="application/json")   
-            return render_to_response('lims/refresh.html')
+                    #return render_to_response("users/redirect.json", {'redirect_to': reverse(url_name),}, context_instance=RequestContext(request), mimetype="application/json")   
+            return render_to_response('users/refresh.html')
         else:
             return render_to_response(template, {
             'info': form_info, 

@@ -2,7 +2,7 @@ from datetime import datetime, date, timedelta
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from mxlive.extras import enum
+from extras import enum
 import os
 
 def get_storage_path(instance, filename):

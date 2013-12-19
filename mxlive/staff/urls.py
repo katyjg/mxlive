@@ -1,8 +1,8 @@
 
 from django.conf.urls import patterns
-from mxlive.lims.forms import ConfirmDeleteForm, LimsBasicForm, ProjectForm
-from mxlive.lims.models import *
-from mxlive.staff.forms import *
+from users.forms import ConfirmDeleteForm, LimsBasicForm, ProjectForm
+from users.models import *  # @UnusedWildImport
+from .forms import *  # @UnusedWildImport
 import os
 
 # Define url meta data for object lists detail pages
@@ -27,7 +27,7 @@ _URL_META = {
         'scan':     {'model': ScanResult},    
     },
     '': {
-        'feedback': {'model': Feedback, 'template': 'lims/feedback_item.html', 'list_link': False, 'list_modal': True},
+        'feedback': {'model': Feedback, 'template': 'users/feedback_item.html', 'list_link': False, 'list_modal': True},
         'runlist': {'model': Runlist, 'form': RunlistForm, 'template': 'staff/entries/runlist.html', 
                     'list_add': False, 'add': True, 'edit': True, 'delete': True, 'delete_form': LimsBasicForm,
                     'staff_comments': False, 'runlist_comments': True, 'list_template': 'staff/lists/runlist_list.html'},
@@ -65,7 +65,7 @@ for section, subsection in _URL_META.items():
             _dynamic_patterns.append(
                 (r'%s/(?P<id>\d+)/$' % (base_url),
                  'object_detail', {'model': params.get('model'), 
-                                   'template': params.get('template','lims/entries/%s.html' % params.get('model').__name__.lower())},
+                                   'template': params.get('template','users/entries/%s.html' % params.get('model').__name__.lower())},
                  'staff-%s-detail' % params.get('model').__name__.lower()))
 
         # Object add
@@ -145,10 +145,10 @@ urlpatterns = patterns('mxlive.staff.views',
 )
 
 # Dynamic patterns here
-urlpatterns += patterns('mxlive.lims.views', *_dynamic_patterns )
+urlpatterns += patterns('mxlive.users.views', *_dynamic_patterns )
 
 #Special LIMS Cases
-urlpatterns += patterns('mxlive.lims.views',
+urlpatterns += patterns('mxlive.users.views',
 
     (r'^users/$', 'object_list', {'model': Project, 'template': 'staff/lists/profiles.html'}, 'staff-get-profiles'),
     
@@ -157,7 +157,7 @@ urlpatterns += patterns('mxlive.lims.views',
     (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'model': Shipment, 'format' : 'return_label' }, 'staff-shipment-label'),    
     (r'^shipping/project/(?P<id>\d+)/form/$', 'shipment_pdf', {'model': Project, 'format' : 'return_label' }, 'staff-shipment-form'),
     (r'^shipping/shipment/(?P<id>\d+)/protocol/$', 'shipment_pdf', {'model': Shipment, 'format' : 'protocol' }, 'staff-shipment-protocol'),    
-    (r'^shipping/shipment/(?P<id>\d+)/progress/$', 'object_detail', {'model': Shipment, 'template' : 'lims/entries/progress_report.html' }, 'lims-shipment-progress'),
+    (r'^shipping/shipment/(?P<id>\d+)/progress/$', 'object_detail', {'model': Shipment, 'template' : 'users/entries/progress_report.html' }, 'lims-shipment-progress'),
 
     # Runlists
     (r'^runlist/(?P<src_id>\d+)/container/(?P<obj_id>\d+)/remove/$', 'remove_object', {'source':Runlist, 'obj':Container }, 'staff-runlist-remove-container'),
@@ -176,7 +176,7 @@ urlpatterns += patterns('mxlive.lims.views',
     (r'^experiment/report/(\d+)/overlap.png$', 'plot_overlap_analysis', {}, 'staff-plot-overlap'),
     (r'^experiment/report/(\d+)/quality.png$', 'plot_pred_quality', {}, 'staff-plot-quality'),
     (r'^experiment/report/(\d+)/wedge.png$', 'plot_wedge_analysis', {}, 'staff-plot-wedge'),
-    (r'^experiment/request/(?P<id>\d+)/progress/$', 'object_detail', {'model': Experiment, 'template' : 'lims/entries/progress_report.html' }, 'lims-experiment-progress'),
+    (r'^experiment/request/(?P<id>\d+)/progress/$', 'object_detail', {'model': Experiment, 'template' : 'users/entries/progress_report.html' }, 'lims-experiment-progress'),
 
     
     # Scan images

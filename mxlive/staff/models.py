@@ -2,13 +2,9 @@
 from django.db import models
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
-from mxlive.extras.enum import Enum
-from mxlive.extras.jsonfield import JSONField
-from mxlive.lims.models import ActivityLog
-from mxlive.lims.models import Beamline
-from mxlive.lims.models import Container
-from mxlive.lims.models import Crystal
-from mxlive.lims.models import Experiment
+from extras.enum import Enum
+from extras.jsonfield import JSONField
+from users.models import ActivityLog, Beamline, Container, Crystal, Experiment
 import hashlib
 import os
 

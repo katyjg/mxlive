@@ -10,7 +10,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext
 from django.utils.encoding import force_text
 from django.contrib.admin.options import IncorrectLookupParameters
-from mxlive.lims.admin import staff_site
+from users.admin import staff_site
     
 
 class ObjectList(main.ChangeList):

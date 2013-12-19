@@ -5,12 +5,12 @@ from django.conf import settings
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.decorators.cache import cache_page
-from mxlive.lims.models import Beamline, Data, Project, ScanResult
-from mxlive.lims.views import admin_login_required
 from numpy import histogram, average, std
-from mxlive.scheduler.models import Beamline as PublicBeamline
-from mxlive.scheduler.models import Visit, Stat, WebStatus
-import sys, os
+from scheduler.models import Beamline as PublicBeamline
+from scheduler.models import Visit, Stat, WebStatus
+from users.models import Beamline, Data, Project, ScanResult
+from users.views import admin_login_required
+
 
 _provinces = {'British Columbia': ['BC','British Columbia'],
              'Alberta': ['AB', 'Alberta'],

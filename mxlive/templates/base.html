@@ -74,9 +74,9 @@
         <!-- start navigation -->
         {% block nav-main %}
             {% if user.is_superuser %}
-                {%include "lims/staff_navs.html" %}
+                {%include "users/staff_navs.html" %}
             {% else %}
-                {%include "lims/project_navs.html" %}
+                {%include "users/project_navs.html" %}
             {% endif %}
         {% endblock %}
         <!-- end navigation -->
@@ -123,7 +123,7 @@
     <!-- sidebar -->
     <div id="sidebar">
         {% block sidebar %}
-            {% include "lims/activity_log.html" %}
+            {% include "users/activity_log.html" %}
         {% endblock %}
     </div>
     <!-- end sidebar -->   

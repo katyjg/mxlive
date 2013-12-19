@@ -1,7 +1,7 @@
 from django.db import models
 import hashlib
 from django.core.exceptions import ObjectDoesNotExist
-from mxlive.lims.models import Project
+from users.models import Project
 
 
 class SecurePath( models.Model ):

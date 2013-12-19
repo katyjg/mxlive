@@ -33,7 +33,7 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'django.contrib.humanize',
     'django.contrib.databrowse',
-    'imm.lims',
+    'imm.users',
     'imm.staff',
     'imm.objlist',
     'imm.objforms',

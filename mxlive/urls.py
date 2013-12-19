@@ -10,15 +10,15 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     # Examples:
-    url(r'^$', 'mxlive.lims.views.home', name='home'),
+    url(r'^$', 'mxlive.users.views.home', name='home'),
 
     url(r'^admin/', include(admin.site.urls)),
     (r'^staff/', include('mxlive.staff.urls')),
-    (r'^lims/',  include('mxlive.lims.urls')),
+    (r'^users/',  include('mxlive.users.urls')),
     (r'^download/', include('mxlive.download.urls')),
     (r'^stats/', include('mxlive.stats.urls')),
     
-    (r'^home/',  'mxlive.lims.views.home'),
+    (r'^home/',  'mxlive.users.views.home'),
     (r'^login/$',  login_view, {'template_name': 'login.html'}),
     (r'^logout/$', logout_view),
     

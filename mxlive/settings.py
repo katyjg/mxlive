@@ -15,9 +15,11 @@ import site
 import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-EXT_PATH = os.path.join(BASE_DIR, 'lib')
-if not EXT_PATH in sys.path:
-    site.addsitedir(EXT_PATH)
+
+# Add paths
+for _path in [os.path.join(BASE_DIR, 'lib'), os.path.join(BASE_DIR, 'mxlive')]:
+    if not _path in sys.path: site.addsitedir(_path)
+
 SITE_ID = 1
 
 # Quick-start development settings - unsuitable for production
@@ -43,9 +45,8 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'mxlive.extras',
+    'mxlive.users',
     'mxlive.scheduler',
-    'mxlive.lims',
     'mxlive.staff',
     'mxlive.objlist',
     'mxlive.objforms',
@@ -103,7 +104,7 @@ USE_TZ = True
 STATIC_URL = '/media/'
 
 
-AUTH_PROFILE_MODULE = 'lims.Project'
+AUTH_PROFILE_MODULE = 'users.Project'
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
 LOGIN_REDIRECT_URL = '/home/'
