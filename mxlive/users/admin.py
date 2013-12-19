@@ -1,7 +1,7 @@
 from django.contrib import admin
 from reversion.admin import VersionAdmin
 from .models import *  # @UnusedWildImport
-from .filters import WeeklyDateFilter
+from objlist.filters import WeeklyDateFilter
 
 ITEMS_PER_PAGE = 16
 ACTIVITY_ITEMS_PER_PAGE = 6

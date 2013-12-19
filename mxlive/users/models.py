@@ -11,8 +11,6 @@ import copy
 import hashlib
 import string
 
-#from filterspecs import WeeklyFilterSpec
-
 IDENTITY_FORMAT = '-%y%m'
 RESUMBITTED_LABEL = 'Resubmitted_'
 
@@ -1522,7 +1520,6 @@ class ActivityLog(models.Model):
     description = models.TextField(blank=True)
     
     objects = ActivityLogManager()
-    created.weekly_filter = True
     
     class Meta:
         ordering = ('-created',)

@@ -37,6 +37,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
+    'suit',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -151,6 +152,9 @@ RESTRUCTUREDTEXT_FILTER_SETTINGS = {
     '_disable_config': 1    
 }
 
+SUIT_CONFIG = {
+    'ADMIN_NAME': 'MxLIVE Administration'
+}
 _version_file = os.path.join(BASE_DIR, 'VERSION')
 if os.path.exists(_version_file):
     VERSION = (file(_version_file)).readline().strip()

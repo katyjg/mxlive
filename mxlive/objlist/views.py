@@ -10,8 +10,8 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext
 from django.utils.encoding import force_text
 from django.contrib.admin.options import IncorrectLookupParameters
-from users.admin import staff_site
-    
+
+staff_site = admin.AdminSite() 
 
 class ObjectList(main.ChangeList):
     def __init__(self, request, manager, admin_site=None, num_show=None):

@@ -12,26 +12,7 @@ from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import smart_str
 from datetime import datetime, date, timedelta
 from django.utils.translation import ugettext as _
-
-
-def get_filters_for_week(dt, showing=None, field_name='created'):
-    start = dt + timedelta(days=-dt.weekday())
-    end = start + timedelta(days=6)
-    this_dt = timezone.now().date()
-    this_start = this_dt + timedelta(days=-this_dt.weekday())
-       
-    if this_start == start:
-        title = _('This Week')
-    else:
-        title = _('Week of %s' % (dateformat.format(dt, 'M jS')))
-        
-    spec = {'%s__gte' % field_name: str(start), '%s__lte' % field_name: str(end) }
-    if showing is not None:
-        start_showing = showing + timedelta(days=-showing.weekday())
-        if start_showing == start:
-            spec = {}
-    return spec, title
-
+from ..filters import WeeklyDateFilter
 register = Library()
 
 @register.inclusion_tag('objlist/one_filter.html')
@@ -50,10 +31,10 @@ def show_weekly_filter(context, ol, url):
     choices = []
     if ol.has_filters:
         for f in ol.filter_specs:
-            choices = list(f.choices(ol))
-
-    if len(choices) >= 3:
-        return {'weekly_filter': True, 'previous' : choices[0], 'current': choices[1], 'next': choices[2], 'url' : url}
+            if f.__class__.__name__ == 'WeeklyDateFilter':
+                choices = list(f.choices(ol))            
+    if len(choices) >= 4:
+        return {'weekly_filter': True, 'previous' : choices[1], 'current': choices[2], 'next': choices[3], 'url' : url}
     else:
         return {'weekly_filter': False, 'url' : url}
 

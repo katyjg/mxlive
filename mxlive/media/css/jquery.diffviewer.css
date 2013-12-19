@@ -38,7 +38,7 @@
 .diffviewer_zoom_status {
     left: 0px;
     bottom: 0px;
-    font: 11px/19px Ubuntu;
+    font: 11px/19px Lato;
     color: #fff;
     background-color: #333;
     text-align: center;
@@ -51,7 +51,7 @@
     cursor: pointer;
     right: 0px;
     bottom: 0px;
-    font: 11px/19px Ubuntu;
+    font: 11px/19px Lato;
     color: #fff;
     background-color: #333;
     text-align: center;

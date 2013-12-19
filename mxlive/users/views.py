@@ -1,1581 +1,1997 @@
+from datetime import timedelta
 from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.contenttypes import generic
+from django.contrib import messages
+from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
-from django.db.models import Q
+from django.core.urlresolvers import reverse
+from django.db import IntegrityError
+from django.db import transaction
+from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.shortcuts import render_to_response, get_object_or_404
+from django.template import RequestContext
+from django.template import loader
 from django.utils import dateformat, timezone
-from extras.enum import Enum
-from extras.jsonfield import JSONField
-import copy
-import hashlib
-import string
+from django.views.decorators.cache import cache_page
+from apikey.views import apikey_required
+from download.views import create_download_key, create_cache_dir, send_raw_file
+from .excel import LimsWorkbookExport
+from .models import *
+from objlist.views import ObjectList
+from staff.models import *
+from django.utils.encoding import smart_str
 
-IDENTITY_FORMAT = '-%y%m'
-RESUMBITTED_LABEL = 'Resubmitted_'
+import shutil
+import subprocess
+import sys
+import tempfile
 
-User = get_user_model()
+ACTIVITY_LOG_LENGTH  = 6      
 
-def cassette_loc_repr(pos):
-    return "ABCDEFGHIJKL"[pos/8]+str(1+pos%8)
-
-GLOBAL_STATES =   Enum(
-        'Draft', 
-        'Sent', 
-        'On-site',
-        'Loaded', 
-        'Returned',
-        'Active',
-        'Processing',
-        'Complete',
-        'Reviewed', 
-        'Archived',
-        'Trashed',
-    )
-
-class ManagerWrapper(models.Manager):
-    """ This a models.Manager instance that wraps any models.Manager instance and alters the query_set() of
-    the warpper models.Manager instance. All it does it proxy all requests to the wrapped manager EXCEPT
-    for calls to get_query_set() which it alters.
+def get_ldap_user_info(username):
     """
-    def __init__(self, manager):
-        """ The constructor
-        @param manager: a models.Manager instance
-        """
-        self.manager = manager
-        
-    def get_query_set(self):
-        raise NotImplementedError()
-    
-    def __getattr__(self, attr):
-        """ Proxies everything to the wrapped manager """
-        return getattr(self.manager, attr)
-        
-class ExcludeManagerWrapper(ManagerWrapper):
-    """ This a models.Manager instance that wraps any models.Manager instance and .excludes()
-    results from the query_set. All it does it proxy all requests to the wrapped manager EXCEPT
-    for calls to get_query_set() which it alters with the appropriate excludes
+    Get the ldap record for user identified by 'username'.
     """
-    def __init__(self, manager, **excludes):
-        """ The constructor
-        @param manager: a models.Manager instance
-        @param param:  
-        """
-        super(ExcludeManagerWrapper, self).__init__(manager)
-        self.excludes = excludes
-        
-    def get_query_set(self):
-        """ Returns a QuerySet with appropriate .excludes() applied """
-        query_set = self.manager.get_query_set()
-        query_set = query_set.exclude(**self.excludes)
-        return query_set
     
-class FilterManagerWrapper(ManagerWrapper):
-    """ This a models.Manager instance that wraps any models.Manager instance and .filters()
-    results from the query_set. All it does is proxy all requests to the wrapped manager EXCEPT
-    for calls to get_query_set() which it alters with the appropriate filters
+    import ldap
+    l = ldap.initialize(settings.LDAP_SERVER_URI)
+    flt = settings.LDAP_SEARCH_FILTER % username
+    result = l.search_s(settings.LDAP_SEARCHDN,
+                ldap.SCOPE_SUBTREE, flt)
+    if len(result) != 1:
+        raise ValueError("More than one entry found for 'username'")
+    return result[0]
+
+def admin_login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME):
     """
-    def __init__(self, manager, **filters):
-        """ The constructor
-        @param manager: a models.Manager instance
-        @param param:  
-        """
-        super(FilterManagerWrapper, self).__init__(manager)
-        self.filters = filters
-        
-    def get_query_set(self):
-        """ Returns a QuerySet with appropriate .excludes() applied """
-        query_set = self.manager.get_query_set()
-        query_set = query_set.filter(**self.filters)
-        return query_set
-    
-class DistinctManagerWrapper(ManagerWrapper):
-    """ This a models.Manager instance that wraps any models.Manager instance and .distinct()
-    results from the query_set. All it does it proxy all requests to the wrapped manager EXCEPT
-    for calls to get_query_set() which it alters with the appropriate distinct
+    Decorator for views that checks that the user is logged in, redirecting
+    to the log-in page if necessary.
     """
-    def __init__(self, manager):
-        """ The constructor
-        @param manager: a models.Manager instance
-        """
-        super(DistinctManagerWrapper, self).__init__(manager)
+    actual_decorator = user_passes_test(
+        lambda u: u.is_authenticated() and u.is_superuser,
+        redirect_field_name=redirect_field_name
+    )
+    if function:
+        return actual_decorator(function)
+    return actual_decorator
+
+def create_project(user=None, username=None, fetcher=None):
+    if user is None:
+        # find out if we have a user by the same username in LDAP and create a new one.
+        if username is None:
+            raise ValueError('"username" must be provided if "user" is not given.')
+        userinfo = get_ldap_user_info(username)[1]
+        user = User(username=username, password=userinfo['userPassword'][0])
+        user.last_name = userinfo['cn'][0].split()[0]
+        user.first_name  =  userinfo['cn'][0].split()[-1]
+        user.save()
+                   
+    try:
+        project = user.get_profile()
         
-    def get_query_set(self):
-        """ Returns a QuerySet with appropriate .distinct() applied """
-        query_set = self.manager.get_query_set()
-        query_set = query_set.distinct()
-        return query_set
+    except Project.DoesNotExist:
+        project = Project(user=user, name=user.username)
+        project.save()
     
-class OrderByManagerWrapper(ManagerWrapper):
-    """ This a models.Manager instance that wraps any models.Manager instance and .order_by()
-    results from the query_set. All it does it proxy all requests to the wrapped manager EXCEPT
-    for calls to get_query_set() which it alters with the appropriate orderings
-    """
-    def __init__(self, manager, *fields):
-        """ The constructor
-        @param manager: a models.Manager instance
-        @param param:  
-        """
-        super(OrderByManagerWrapper, self).__init__(manager)
-        self.fields = fields
-        
-    def get_query_set(self):
-        """ Returns a QuerySet with appropriate .order_by() applied """
-        query_set = self.manager.get_query_set()
-        query_set = query_set.order_by(*self.fields)
-        return query_set
-
-class Beamline(models.Model):
-    name = models.CharField(max_length=600)
-    energy_lo = models.FloatField(default=4.0)
-    energy_hi = models.FloatField(default=18.5)
-    contact_phone = models.CharField(max_length=60)
-
-    def __unicode__(self):
-        return self.name
-
-class Carrier(models.Model):
-    name = models.CharField(max_length=60)
-    phone_number = models.CharField(max_length=20)
-    fax_number = models.CharField(max_length=20)
-    code_regex = models.CharField(max_length=60)
-    url = models.URLField()
-
-    def __unicode__(self):
-        return self.name
-        
-class Project(models.Model):
-    HELP = {
-        'contact_person': "Full name of contact person",
-    }
-    user = models.ForeignKey(User, unique=True)
-    name = models.SlugField('account name')
-    contact_person = models.CharField(max_length=200, blank=True, null=True)
-    contact_email = models.EmailField(max_length=100, blank=True, null=True)
-    carrier = models.ForeignKey(Carrier, blank=True, null=True)
-    account_number = models.CharField(max_length=50, blank=True, null=True)
-    department = models.CharField(max_length=600, blank=True, null=True)
-    address = models.CharField(max_length=600, blank=True, null=True)
-    city = models.CharField(max_length=180, blank=True, null=True)
-    province = models.CharField(max_length=180, blank=True, null=True)
-    postal_code = models.CharField(max_length=30, blank=True, null=True)
-    country = models.CharField(max_length=180, blank=True, null=True)
-    contact_phone = models.CharField(max_length=60, blank=True, null=True)
-    contact_fax = models.CharField(max_length=60, blank=True, null=True)
-    organisation = models.CharField(max_length=600, blank=True, null=True)
-    show_archives = models.BooleanField(default=False)    
-
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-    updated = models.BooleanField(default=False)    
+    return project
     
-    def identity(self):
-        return 'PR%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-        
-    def __unicode__(self):
-        return self.name
 
-    def is_editable(self):
-        return True
+def project_required(function):
+    """ Decorator that enforces the existence of a mxlive.users.models.Project """
+    def project_required_wrapper(request, *args, **kwargs):
+        try:
+            project = request.user.get_profile()
+            request.project = project
+            return function(request, *args, **kwargs)
+        except Project.DoesNotExist:
+            raise Http404
+    return project_required_wrapper
 
-    def get_archive_filter(self):
-        if self.show_archives:
-            return {'status__lte': LimsBaseClass.STATES.ARCHIVED}
+def project_optional(function):
+    """ Decorator that enforces the existence of a mxlive.users.models.Project """
+    def project_optional_wrapper(request, *args, **kwargs):
+        try:
+            project = request.user.get_profile()
+            request.project = project
+            return function(request, *args, **kwargs)
+        except Project.DoesNotExist:
+            if not request.user.is_staff:
+                raise
+            project=None
+            request.project = project
+            return function(request, *args, **kwargs)
+    return project_optional_wrapper
+
+# True = Staff; False = Users
+MANAGER_FILTERS = {
+    (Shipment, True) : {'status__in': [Shipment.STATES.SENT, Shipment.STATES.ON_SITE, Shipment.STATES.RETURNED], 'pk__in': Shipment.objects.exclude(modified__lte=timezone.now() - timedelta(days=7), status__exact=Shipment.STATES.RETURNED).values('pk')},
+    (Shipment, False) : {'status__in': [Shipment.STATES.DRAFT, Shipment.STATES.SENT, Shipment.STATES.ON_SITE, Shipment.STATES.RETURNED]},
+    (Dewar, True) : {'status__in': [Dewar.STATES.SENT, Dewar.STATES.ON_SITE, Dewar.STATES.RETURNED], 'pk__in': Dewar.objects.exclude(modified__lte=timezone.now() - timedelta(days=7), status__exact=Dewar.STATES.RETURNED).values('pk')},
+    (Dewar, False) : {'status__in': [Dewar.STATES.DRAFT, Dewar.STATES.SENT, Dewar.STATES.ON_SITE, Dewar.STATES.RETURNED]},
+    (Container, True) : {'status__in': [Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED, Container.STATES.RETURNED], 'pk__in': Container.objects.exclude(modified__lte=timezone.now() - timedelta(days=7), status__exact=Container.STATES.RETURNED).values('pk')},
+    (Container, False) : {'status__in': [Container.STATES.DRAFT, Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED, Container.STATES.RETURNED]},
+    (Crystal, True) : {'status__in': [Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
+    (Crystal, False) : {'status__in': [Crystal.STATES.DRAFT, Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
+    (Experiment, True) : {'status__in': [Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.COMPLETE, Experiment.STATES.REVIEWED], 'pk__in': Crystal.objects.filter(status__in=[Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).values('experiment')},
+    (Experiment, False) : {'status__in': [Experiment.STATES.DRAFT, Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.COMPLETE, Experiment.STATES.REVIEWED]},
+    (Data, True) : {'status__in': [Data.STATES.ACTIVE, Data.STATES.ARCHIVED, Data.STATES.TRASHED]},
+    (Data, False) : {'status__in': [Data.STATES.ACTIVE]},
+    (Result, True) : {'status__in': [Result.STATES.ACTIVE, Result.STATES.ARCHIVED, Result.STATES.TRASHED]},
+    (Result, False) : {'status__in': [Result.STATES.ACTIVE]},
+    (Runlist, True) : {'status__in': [Runlist.STATES.PENDING, Runlist.STATES.LOADED, Runlist.STATES.UNLOADED, Runlist.STATES.CLOSED]},
+}
+
+# models.Manager ordering is overridden by admin.ModelAdmin.ordering in the ObjectList
+# framework (when specified). Ensure that admin.py does not conflict with these settings.
+MANAGER_ORDER_BYS = {}
+
+def manager_required(function):
+    """ Decorator that enforces the existence of a model.Manager """
+    def manager_required_wrapper(request, *args, **kwargs):
+        tmp = []
+        for arg in args:
+            try:
+                if issubclass(arg, models.Model):
+                    tmp.append(arg)
+            except TypeError:
+                pass
+        if tmp:
+            model = tmp[0]
         else:
-            return {'status__lt': LimsBaseClass.STATES.ARCHIVED}
-
-    def shifts_used_by_year(self, year, blname):
-        shifts = []
-        for d in self.data_set.filter(created__year=year).filter(beamline=Beamline.objects.get(name=blname)):
-            if [d.created.date(), d.created.hour/8] not in shifts:
-                shifts.append([d.created.date(), d.created.hour/8])
-        return len(shifts)
-
-    def label_hash(self):
-        return self.name
-    
-    def shipment_count(self):
-        return Shipment.objects.filter(project__exact=self).filter(created__year=2013).count()
-    
-    class Meta:
-        verbose_name = "Project Profile"
-
-class Session(models.Model):
-    project = models.ForeignKey(Project)
-    beamline = models.ForeignKey(Beamline)
-    start_time = models.DateTimeField(null=False, blank=False)
-    end_time = models.DateTimeField(null=False, blank=False)
-    comments = models.TextField()
-    
-class LimsBaseClass(models.Model):
-    # STATES/TRANSITIONS define a finite state machine (FSM) for the Shipment (and other 
-    # models.Model instances also defined in this file).
-    #
-    # STATES: an Enum specifying all of the valid states for instances of Shipment.
-    #
-    # TRANSITIONS: a dict specifying valid state transitions. the keys are starting STATES and the 
-    #     values are lists of valid final STATES. 
-
-    STATES = GLOBAL_STATES
-    TRANSITIONS = {
-        STATES.DRAFT: [STATES.SENT],
-        STATES.SENT: [STATES.ON_SITE],
-        STATES.ON_SITE: [STATES.RETURNED],
-        STATES.LOADED: [STATES.ON_SITE],
-        STATES.RETURNED: [STATES.ARCHIVED],
-        STATES.ACTIVE: [STATES.PROCESSING, STATES.COMPLETE, STATES.REVIEWED, STATES.ARCHIVED],
-        STATES.PROCESSING: [STATES.COMPLETE, STATES.REVIEWED, STATES.ARCHIVED],
-        STATES.COMPLETE: [STATES.ACTIVE, STATES.PROCESSING, STATES.REVIEWED, STATES.ARCHIVED],
-        STATES.REVIEWED: [STATES.ARCHIVED],
-    }
-
-    project = models.ForeignKey(Project)
-    name = models.CharField(max_length=60)
-    staff_comments = models.TextField(blank=True, null=True)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified',auto_now=True, editable=False)
-
-    class Meta:
-        abstract = True
-
-    def __unicode__(self):
-        return self.name
-
-    def is_editable(self):
-        return self.status == self.STATES.DRAFT 
-    
-    def is_deletable(self):
-        return self.status == self.STATES.DRAFT 
-
-    def is_closable(self):
-        return self.status == self.STATES.RETURNED 
-
-    def delete(self, request=None, cascade=True):
-        message = '%s deleted' % (self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.DELETE, message)
-        super(LimsBaseClass, self).delete()
-
-    def archive(self, request=None):
-        if self.is_closable():
-            self.change_status(self.STATES.ARCHIVED)
-            message = '%s archived' % (self._meta.verbose_name)
-            if request is not None:
-                ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.ARCHIVE, message)
-
-    def send(self, request=None):
-        self.change_status(self.STATES.SENT)       
-        message = '%s sent to CLS' % (self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
-
-    def receive(self, request=None):
-        self.change_status(self.STATES.ON_SITE) 
-        message = '%s received at CLS' % (self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
-
-    def load(self, request=None):
-        self.change_status(self.STATES.LOADED)    
-        message = '%s loaded into automounter' % (self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
-
-    def unload(self, request=None):
-        self.change_status(self.STATES.ON_SITE)   
-        message = '%s unloaded from automounter' % (self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
-
-    def returned(self, request=None):
-        self.change_status(self.STATES.RETURNED)     
-        message = '%s returned to user' % (self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
-
-    def trash(self, request=None):
-        self.change_status(self.STATES.TRASHED)     
-        message = '%s sent to trash' % (self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
-
-    def change_status(self, status):
-        if status == self.status:
-            return
-        if status not in self.TRANSITIONS[self.status]:
-            raise ValueError("Invalid transition on '%s.%s':  '%s' -> '%s'" % (self.__class__, self.pk, self.STATES[self.status], self.STATES[status]))
-        self.status = status
-        self.save()
-
-    def add_comments(self, message):
-        if self.staff_comments:
-            if string.find(self.staff_comments, message) == -1:
-                self.staff_comments += ' ' + message
-        else:
-            self.staff_comments = message
-        self.save()
-
-class ObjectBaseClass(LimsBaseClass):
-    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.SENT, LimsBaseClass.STATES.ON_SITE, LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.ARCHIVED])
-
-    status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
-    class Meta:
-        abstract = True
-
-class LoadableBaseClass(LimsBaseClass):
-    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.SENT, LimsBaseClass.STATES.ON_SITE, LimsBaseClass.STATES.LOADED, LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.ARCHIVED])
-    TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
-    TRANSITIONS[LimsBaseClass.STATES.ON_SITE] = [LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.LOADED]
-
-    status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)    
-    class Meta:
-        abstract = True
-
-class DataBaseClass(LimsBaseClass):
-    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.ARCHIVED, LimsBaseClass.STATES.TRASHED])
-    TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
-    TRANSITIONS[LimsBaseClass.STATES.ACTIVE] = [LimsBaseClass.STATES.TRASHED, LimsBaseClass.STATES.ARCHIVED]
-    TRANSITIONS[LimsBaseClass.STATES.ARCHIVED] = [LimsBaseClass.STATES.TRASHED]
-
-    status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.ACTIVE)
-
-    def is_closable(self):
-        return self.status not in [LimsBaseClass.STATES.ARCHIVED, LimsBaseClass.STATES.TRASHED]
-
-    def is_trashable(self):
-        return True
-
-    class Meta:
-        abstract = True
-
-class Shipment(ObjectBaseClass):
-    HELP = {
-        'name': "This should be an externally visible label",
-        'carrier': "Please select the carrier company. To change shipping companies, edit your profile on the Project Home page.",
-        'cascade': 'dewars, containers and crystals (along with experiments, datasets and results)',
-        'cascade_help': 'All associated dewars will be left without a shipment'
-    }
-    comments = models.TextField(blank=True, null=True, max_length=200)
-    tracking_code = models.CharField(blank=True, null=True, max_length=60)
-    return_code = models.CharField(blank=True, null=True, max_length=60)
-    date_shipped = models.DateTimeField(null=True, blank=True)
-    date_received = models.DateTimeField(null=True, blank=True)
-    date_returned = models.DateTimeField(null=True, blank=True)
-    carrier = models.ForeignKey(Carrier, null=True, blank=True)
-   
-    def identity(self):
-        return 'SH%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-    
-    def _Carrier(self):
-        return self.carrier.name
-    _Carrier.admin_order_field = 'carrier__name'
-
-    def barcode(self):
-        return self.tracking_code or self.name
-
-    def num_dewars(self):
-        return self.dewar_set.count()
-    
-    def is_sendable(self):
-        return self.status == self.STATES.DRAFT and not self.shipping_errors()
-    
-    def is_pdfable(self):
-        return self.is_sendable() or self.status >= self.STATES.SENT
-    
-    def is_xlsable(self):
-        # can general spreadsheet as long as there are no orphan crystals with no experiment)
-        return not Crystal.objects.filter(container__in=Container.objects.filter(dewar__in=self.dewar_set.all())).filter(experiment__exact=None).exists()
-    
-    def is_returnable(self):
-        return self.status == self.STATES.ON_SITE 
-
-    def has_labels(self):
-        return self.status <= self.STATES.SENT and (self.num_dewars() or self.component_set.filter(label__exact=True))  
-
-    def item_labels(self):
-        return self.component_set.filter(label__exact=True)
-
-    def is_processed():
-        # if all experiments in shipment are complete, then it is a processed shipment. 
-        experiment_list = Experiment.objects.filter(shipment__get_container_list=self)
-        for dewar in self.dewar_set.all():
-            for container in dewar.container_set.all():
-                for experiment in container.get_experiment_list():
-                    if experiment not in experiment_list:
-                        experiment_list.append(experiment)
-        for experiment in experiment_list:
-            if experiment.is_reviewable():
-                return False
-        return True
-
-    def is_processing(self):
-        return self.project.crystal_set.filter(container__dewar__shipment__exact=self).filter(Q(pk__in=self.project.data_set.values('crystal')) | Q(pk__in=self.project.result_set.values('crystal'))).exists()
- 
-    def add_component(self):
-        return self.status <= self.STATES.SENT
- 
-    def label_hash(self):
-        # use dates of project, shipment, and each shipment within dewar to determine
-        # when contents were last changed
-        txt = str(self.project) + str(self.project.modified) + str(self.modified)
-        for dewar in self.dewar_set.all():
-            txt += str(dewar.modified)
-        h = hashlib.new('ripemd160') # no successful collisoin attacks yet
-        h.update(txt)
-        return h.hexdigest()
-    
-    def shipping_errors(self):
-        """ Returns a list of descriptive string error messages indicating the Shipment is not
-            in a 'shippable' state
-        """
-        errors = []
-        if self.num_dewars() == 0:
-            errors.append("no Dewars")
-        for dewar in self.dewar_set.all():
-            if dewar.num_containers() == 0:
-                errors.append("empty Dewar (%s)" % dewar.name)
-            for container in dewar.container_set.all():
-                if container.num_crystals() == 0:
-                    errors.append("empty Container (%s)" % container.name)
-        return errors
-    
-    def setup_default_experiment(self, data=None):
-        """ If there are unassociated Crystals in the project, creates a default Experiment and associates the
-            crystals
-        """
-        unassociated_crystals = self.project.crystal_set.filter(experiment__isnull=True)
-        if unassociated_crystals:
-            exp_name = '%s auto' % dateformat.format(timezone.now(), 'M jS P')
-            experiment = Experiment(project=self.project, name=exp_name)
-            experiment.save()
-            for unassociated_crystal in unassociated_crystals:
-                unassociated_crystal.experiment = experiment
-                unassociated_crystal.save()
-
-    def delete(self, request=None, cascade=True):
-        if self.is_deletable():
-            if not cascade:
-                self.dewar_set.all().update(shipment=None)
-            for obj in self.dewar_set.all():
-                obj.delete(request=request)
-            super(Shipment, self).delete(request=request)
-
-    def send(self, request=None):
-        if self.is_sendable():
-            self.date_shipped = timezone.now()
-            self.setup_default_experiment()
-            self.save()
-            for obj in self.dewar_set.all():
-                obj.send(request=request)
-            super(Shipment, self).send(request=request)
-
-    def returned(self, request=None):
-        if self.is_returnable():
-            self.date_returned = timezone.now()
-            self.save()
-            for obj in self.dewar_set.all():
-                obj.returned(request=request)
-            super(Shipment, self).returned(request=request)
-
-    def archive(self, request=None):
-        for obj in self.dewar_set.all():
-            obj.archive(request=request)
-        super(Shipment, self).archive(request=request)
-
-class Component(ObjectBaseClass):
-    HELP = {
-        'label': 'If this box is checked, an additional label for this item will be printed along with dewar labels.',
-        'name': 'Components can be hard drives, tools, or any other items you are including in your shipment.'
-    }
-    shipment = models.ForeignKey(Shipment)
-    description = models.CharField(max_length=100)
-    label = models.BooleanField()
-    
-    def identity(self):
-        return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-    
-    def barcode(self):
-        return "ITM%04d-%04d" % (self.id, self.shipment.id)
-        
-class Dewar(ObjectBaseClass):
-    HELP = {
-        'name': "An externally visible label on the dewar. If there is a barcode on the dewar, please scan it here",
-        'comments': "Use this field to jot notes related to this shipment for your own use",
-        'cascade': 'containers and crystals (along with experiments)',
-        'cascade_help': 'All associated containers will be left without a dewar'
-    }
-    comments = models.TextField(blank=True, null=True, help_text=HELP['comments'])
-    storage_location = models.CharField(max_length=60, null=True, blank=True)
-    shipment = models.ForeignKey(Shipment, blank=True, null=True)
-
-    def identity(self):
-        return 'CM%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-
-    def _Shipment(self):
-        return self.shipment.name
-    _Shipment.admin_order_field = 'shipment__name'
-
-    def barcode(self):
-        return "CLS%04d-%04d" % (self.id, self.shipment.id)
-
-    def num_containers(self):
-        return self.container_set.count()   
-
-    def is_assigned(self):
-        return self.shipment is not None
-    
-    def is_receivable(self):
-        return self.status == self.STATES.SENT 
-    
-    def delete(self, request=None, cascade=True):
-        if self.is_deletable():
-            if not cascade:
-                self.container_set.all().update(dewar=None)
-            for obj in self.container_set.all():
-                obj.delete(request=request)
-            super(Dewar, self).delete(request=request)
-
-    def send(self, request=None):
-        for obj in self.container_set.all():
-            obj.send(request=request)
-        super(Dewar, self).send(request=request)
-
-    def receive(self, request=None):
-        if self.is_receivable():
-            for obj in self.container_set.all():
-                obj.receive(request=request)
-            super(Dewar, self).receive(request=request)
-            all_dewars_received = True
-            for dewar in self.shipment.dewar_set.all():
-                if dewar.status != Dewar.STATES.ON_SITE: all_dewars_received = False
-            if all_dewars_received:
-                super(Shipment, self.shipment).receive(request=request)
-
-    def returned(self, request=None):
-        for obj in self.container_set.all():
-            obj.returned(request=request)
-        super(Dewar, self).returned(request=request)
-
-    def archive(self, request=None):
-        for obj in self.container_set.all():
-            obj.archive(request=request)
-        super(Dewar, self).archive(request=request)
-
-class Container(LoadableBaseClass):
-    TYPE = Enum(
-        'Cassette', 
-        'Uni-Puck', 
-        'Cane', 
-    )
-    HELP = {
-        'name': "An externally visible label on the container. If there is a barcode on the container, please scan it here",
-        'capacity': "The maximum number of samples this container can hold",
-        'cascade': 'crystals (along with experiments, datasets and results)',
-        'cascade_help': 'All associated crystals will be left without a container'
-    }
-    kind = models.IntegerField('type', max_length=1, choices=TYPE.get_choices() )
-    dewar = models.ForeignKey(Dewar, blank=True, null=True)
-    comments = models.TextField(blank=True, null=True)
-    priority = models.IntegerField(default=0)
-    staff_priority = models.IntegerField(default=0)
-    
-    def identity(self):
-        return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-    
-    def _Dewar(self):
-        return self.dewar.name
-    _Dewar.admin_order_field = 'dewar'
-
-    def barcode(self):
-        return self.name
-
-    def num_crystals(self):
-        return self.crystal_set.count()
-    
-    def is_assigned(self):
-        return self.dewar is not None
-
-    def capacity(self):
-        _cap = {
-            self.TYPE.CASSETTE : 96,
-            self.TYPE.UNI_PUCK : 16,
-            self.TYPE.CANE : 6,
-            None : 0,
-        }
-        return _cap[self.kind]
-
-    def get_form_field(self):
-        return 'container'
-
-    def experiments(self):
-        experiments = set([])
-        for crystal in self.crystal_set.all():
-            for experiment in crystal.experiment_set.all():
-                experiments.add('%s-%s' % (experiment.project.name, experiment.name))
-        return ', '.join(experiments)
-    
-    def get_experiment_list(self):
-        experiments = list()
-        for crystal in self.crystal_set.all():
-            if crystal.experiment not in experiments:
-                experiments.append(crystal.experiment)
-        return experiments
-    
-    def contains_experiment(self, experiment):
-        """
-        Checks if the specified experiment is in the container.
-        """
-        for crystal in self.crystal_set.all():
-            for crys_experiment in crystal.experiment_set.all():
-                if crys_experiment == experiment:
-                    return True
-        return False
-    
-    def contains_experiments(self, experiment_list):
-        for experiment in experiment_list:
-            if self.contains_experiment(experiment):
-                return True
-        return False
-    
-    def update_priority(self):
-        """ Updates the Container's priority/staff_priority to max(Experiment priorities)
-        """
-        for field in ['priority', 'staff_priority']:
-            priority = None
-            for crystal in self.crystal_set.all():
-                if crystal.experiment:
-                    if priority is None:
-                        priority = getattr(crystal.experiment, field)
-                    else:
-                        priority = max(priority, getattr(crystal.experiment, field))
-            if priority is not None:
-                setattr(self, field, priority)
-    
-    def get_location_choices(self):
-        vp = self.valid_locations()
-        return tuple([(a,a) for a in vp])
-            
-    def valid_locations(self):
-        if self.kind == self.TYPE.CASSETTE:
-            all_positions = []
-            for x in range(self.capacity()//12):
-                num = str(1+x%8)
-                position = ["ABCDEFGHIJKL"[y]+str(x+1) for y in range(self.capacity()//8) ]
-                for item in position:
-                    all_positions.append(item)
-        else:
-            all_positions = [ str(x+1) for x in range(self.capacity()) ]
-        return all_positions
-    
-    def location_is_valid(self, loc):
-        return loc in self.valid_locations()
-    
-    def location_is_available(self, loc, id=None):
-        occupied_positions = [xtl.container_location for xtl in self.crystal_set.all().exclude(pk=id) ]
-        return loc not in occupied_positions
-    
-    def location_and_crystal(self):
-        retval = []
-        xtalset = self.crystal_set.all()
-        for location in self.valid_locations():
-            xtl = None
-            for crystal in xtalset:
-                if crystal.container_location == location:
-                    xtl = crystal
-            retval.append((location, xtl))
-        return retval
-
-    def loc_and_xtal(self):
-        retval = {}
-        xtalset = self.crystal_set.all()
-        for xtal in xtalset:
-            retval[xtal.container_location] = xtal        
-        return retval
-        
-
-    def delete(self, request=None, cascade=True):
-        if self.is_deletable:
-            if not cascade:
-                self.crystal_set.all().update(container=None)
-            for obj in self.crystal_set.all():
-                obj.delete(request=request)
-            super(Container, self).delete(request=request)
-
-    def send(self, request=None):
-        for obj in self.crystal_set.all():
-            obj.send(request=request)
-        super(Container, self).send(request=request)
-
-    def receive(self, request=None):
-        for obj in self.crystal_set.all():
-            obj.receive(request=request)
-            obj.setup_experiment()
-        super(Container, self).receive(request=request)
-
-    def load(self, request=None):
-        for obj in self.crystal_set.all(): obj.load(request=request)
-        super(Container, self).load(request=request)
-
-    def unload(self, request=None):
-        for obj in self.crystal_set.all(): obj.unload(request=request)
-        super(Container, self).unload(request=request)  
-
-    def returned(self, request=None):
-        for obj in self.crystal_set.all():
-            obj.returned(request=request)
-        super(Container, self).returned(request=request)
-
-    def archive(self, request=None):
-        for obj in self.crystal_set.all():
-            obj.archive(request=request)
-        super(Container, self).archive(request=request)
-        
-    def json_dict(self):
-        return {
-            'project_id': self.project.pk,
-            'id': self.pk,
-            'name': self.name,
-            'type': Container.TYPE[self.kind],
-            'load_position': '',
-            'comments': self.comments,
-            'crystals': [crystal.pk for crystal in self.crystal_set.all()]
-        }
-
-class SpaceGroup(models.Model):
-    CS_CHOICES = (
-        ('a','triclinic'),
-        ('m','monoclinic'),
-        ('o','orthorombic'),
-        ('t','tetragonal'),
-        ('h','hexagonal'),
-        ('c','cubic'),
-    )
-    
-    LT_CHOICES = (
-        ('P','primitive'),
-        ('C','side-centered'),
-        ('I','body-centered'),
-        ('F','face-centered'),
-        ('R','rhombohedral'),       
-    )
-    
-    name = models.CharField(max_length=20)
-    crystal_system = models.CharField(max_length=1, choices=CS_CHOICES)
-    lattice_type = models.CharField(max_length=1, choices=LT_CHOICES)
-    
-    def __unicode__(self):
-        return self.name
-
-class Cocktail(LimsBaseClass):
-    HELP = {
-        'name': 'Enter a series of keywords here which summarize the constituents of the protein cocktail',
-        'cascade': 'crystals',
-        'cascade_help': 'All associated crystals will be left without a cocktail'
-    }
-    is_radioactive = models.BooleanField()
-    contains_heavy_metals = models.BooleanField()
-    contains_prions = models.BooleanField()
-    contains_viruses = models.BooleanField()
-    description = models.TextField(blank=True, null=True)
-
-    def identity(self):
-        return 'CT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-
-    def is_editable(self):
-        return True
-
-    def is_deletable(self):
-        return True
-
-    def is_closable(self):
-        return False
-    
-    def delete(self, request=None, cascade=True):
-        if not cascade:
-            for obj in self.crystal_set.all():
-                if obj.is_editable():
-                    obj.cocktail = None
-                    obj.save()
-        super(Cocktail, self).delete()
-
-    class Meta:
-        ordering = ['name','-created']
-        verbose_name = "Protein Cocktail"
-        verbose_name_plural = 'Protein Cocktails'
-    
-class CrystalForm(LimsBaseClass):
-    HELP = {
-        'cascade': 'crystals',
-        'cascade_help': 'All associated crystals will be left without a crystal form',
-        'cell_a': 'Dimension of the cell A-axis',
-        'cell_b': 'Dimension of the cell B-axis',
-        'cell_c': 'Dimension of the cell C-axis',
-    }
-    space_group = models.ForeignKey(SpaceGroup,null=True, blank=True)
-    cell_a = models.FloatField(' a', null=True, blank=True)
-    cell_b = models.FloatField(' b', null=True, blank=True)
-    cell_c = models.FloatField(' c',null=True, blank=True)
-    cell_alpha = models.FloatField(' alpha',null=True, blank=True)
-    cell_beta = models.FloatField(' beta',null=True, blank=True)
-    cell_gamma = models.FloatField(' gamma',null=True, blank=True)
-    
-    def identity(self):
-        return 'CF%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-    
-    def _Space_group(self):
-        return self.space_group.name
-    _Space_group.admin_order_field = 'space_group__name'
-
-    class Meta:
-        ordering = ['name','-created']
-        verbose_name = 'Crystal Form'
-
-    def is_editable(self):
-        return True
-
-    def is_deletable(self):
-        return True
-
-    def is_closable(self):
-        return False
-    
-    def delete(self, request=None, cascade=True):
-        if not cascade:
-            for obj in self.crystal_set.all():
-                if obj.is_editable():
-                    obj.crystal_form = None
-                    obj.save()
-        super(CrystalForm, self).delete()
-
-class Experiment(LimsBaseClass):
-    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.PROCESSING, LimsBaseClass.STATES.COMPLETE, LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ARCHIVED])
-    HELP = {
-        'cascade': 'crystals, datasets and results',
-        'cascade_help': 'All associated crystals will be left without an experiment',
-        'kind': "If you select SAD or MAD make sure you provide the absorption edge below, otherwise Se-K will be assumed.",
-        'plan': "Select the plan which describes your instructions for all crystals in this experiment group.",
-        'delta_angle': 'If left blank, an appropriate value will be calculated during screening.',
-        'total_angle': 'The total angle range to collect.',
-        'multiplicity': 'Values entered here take precedence over the specified "Angle Range".',
-    }
-    EXP_TYPES = Enum(
-        'Native',   
-        'MAD',
-        'SAD',
-    )
-    EXP_PLANS = Enum(
-        'Rank and collect best',
-        'Collect first good',
-        'Screen and confirm',
-        'Screen and collect',
-        'Just collect',
-    )
-    TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
-    TRANSITIONS[LimsBaseClass.STATES.DRAFT] = [LimsBaseClass.STATES.ACTIVE]
-
-    status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
-    resolution = models.FloatField('Desired Resolution', null=True, blank=True)
-    delta_angle = models.FloatField(null=True, blank=True)
-    i_sigma = models.FloatField('Desired I/Sigma', null=True, blank=True)
-    r_meas =  models.FloatField('Desired R-factor', null=True, blank=True)
-    multiplicity = models.FloatField(null=True, blank=True)
-    total_angle = models.FloatField('Desired Angle Range', null=True, blank=True)
-    energy = models.DecimalField(null=True, max_digits=10, decimal_places=4, blank=True)
-    kind = models.IntegerField('exp. type',max_length=1, choices=EXP_TYPES.get_choices(), default=EXP_TYPES.NATIVE)
-    absorption_edge = models.CharField(max_length=5, null=True, blank=True)
-    plan = models.IntegerField(max_length=1, choices=EXP_PLANS.get_choices(), default=EXP_PLANS.SCREEN_AND_CONFIRM)
-    comments = models.TextField(blank=True, null=True)
-    priority = models.IntegerField(blank=True, null=True)
-    staff_priority = models.IntegerField(blank=True, null=True)
-    
-    class Meta:
-        verbose_name = 'Experiment request'
-    
-    def identity(self):
-        return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))    
-    identity.admin_order_field = 'pk'
-
-    def accept(self):
-        return "crystal"
-
-    def num_crystals(self):
-        return self.crystal_set.count()
-        
-    def get_form_field(self):
-        return 'experiment'
-
-    def get_shipments(self):
-        return self.project.shipment_set.filter(pk__in=self.crystal_set.values('container__dewar__shipment__pk'))
-
-    def set_strategy_status_resubmitted(self, data=None):
-        strategy = data['strategy']
-        perform_action(strategy, 'resubmit')
-        
-    def best_crystal(self):
-        # need to change to [id, score]
-        if self.plan == Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST:
-            results = self.project.result_set.filter(experiment=self, crystal__in=self.crystal_set.all()).order_by('-score')
-            if results:
-                return [results[0].crystal.pk, results[0].score]
-        
-    def experiment_errors(self):
-        """ Returns a list of descriptive string error messages indicating the Experiment has missing crystals
-        """
-        errors = []
-        if self.crystal_set.count() == 0:
-            errors.append("no Crystals")
-        if self.status == Experiment.STATES.ACTIVE:
-            diff = self.crystal_set.count() - self.crystal_set.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).count()
-            if diff:
-                errors.append("%i crystals have not arrived on-site." % diff)
-        return errors
-
-    def is_processing(self):
-        return self.crystal_set.filter(Q(pk__in=self.project.data_set.values('crystal')) | Q(pk__in=self.project.result_set.values('crystal'))).exists()
-
-    def is_reviewable(self):
-        return self.status != Experiment.STATES.REVIEWED
-    
-    def is_closable(self):
-        return self.crystal_set.all().exists() and not self.crystal_set.exclude(status__in=[Crystal.STATES.RETURNED, Crystal.STATES.ARCHIVED]).exists() and self.status != Experiment.STATES.ARCHIVED
-        
-    def is_complete(self):
-        """
-        Checks experiment type, and depending on type, determines if it's fully completed or not. 
-        Updates Exp Status if considered complete. 
-        """
-        if self.crystal_set.filter(Q(screen_status__exact=Crystal.EXP_STATES.PENDING) | Q(collect_status__exact=Crystal.EXP_STATES.PENDING)).exists():
-            return False
-        if self.plan == Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST or self.plan == Experiment.EXP_PLANS.COLLECT_FIRST_GOOD:
-            # complete if all crystals are "screened" (or "ignored") and at least 1 is "collected"
-            if not self.crystal_set.filter(collect_status__exact=Crystal.EXP_STATES.COMPLETED).exists():
-                if not self.crystal_set.filter(collect_status__exact=Crystal.EXP_STATES.NOT_REQUIRED).exists():
-                    self.add_comments('Unable to collect a dataset for any crystal in this experiment.')
-                    return True
-                return False
-        elif self.plan == Experiment.EXP_PLANS.SCREEN_AND_CONFIRM:
-            # complete if all crystals are "screened" (or "ignored")
-            if not self.crystal_set.exclude(screen_status__exact=Crystal.EXP_STATES.IGNORE).exists():
-                self.add_comments('Unable to screen any crystals in this experiment.')
-        elif self.plan == Experiment.EXP_PLANS.SCREEN_AND_COLLECT or self.plan == Experiment.EXP_PLANS.JUST_COLLECT:
-            # complete if all crystals are "screened" or "collected"
-            if not self.crystal_set.exclude(collect_status__exact=Crystal.EXP_STATES.IGNORE).exists():
-                self.add_comments('Unable to collect a dataset for any crystal in this experiment.')
-        else:
-            # should never get here.
-            raise Exception('Invalid plan')  
-        return True
-        
-    def delete(self, request=None, cascade=True):
-        if self.is_deletable:
-            if not cascade:
-                self.crystal_set.all().update(experiment=None)
-            else: 
-                for obj in self.crystal_set.all():
-                    obj.delete(request=request)
-            super(Experiment, self).delete(request=request)
-
-    def review(self, request=None):
-        super(Experiment, self).change_status(LimsBaseClass.STATES.REVIEWED)
-        message = '%s reviewed' % (self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
-
-    def archive(self, request=None):
-        for obj in self.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED):
-            obj.archive(request=request)
-        super(Experiment, self).archive(request=request)
-        
-    def json_dict(self):
-        """ Returns a json dictionary of the Runlist """
-        json_info = {
-            'project_id': self.project.pk,
-            'project_name': self.project.name,
-            'id': self.pk,
-            'name': self.name,
-            'plan': Experiment.EXP_PLANS[self.plan],
-            'r_meas': self.r_meas,
-            'i_sigma': self.i_sigma,
-            'absorption_edge': self.absorption_edge,
-            'energy': self.energy,
-            'type': Experiment.EXP_TYPES[self.kind],
-            'resolution': self.resolution,
-            'delta_angle': self.delta_angle,
-            'total_angle': self.total_angle,
-            'multiplicity': self.multiplicity,
-            'comments': self.comments,
-            'crystals': [crystal.pk for crystal in self.crystal_set.filter(Q(screen_status__exact=Crystal.EXP_STATES.PENDING) | Q(collect_status__exact=Crystal.EXP_STATES.PENDING))],
-            'best_crystal': self.best_crystal()
-        }
-        return json_info
-        
-     
-class Crystal(LoadableBaseClass):
-    HELP = {
-        'cascade': 'datasets and results',
-        'cascade_help': 'All associated datasets and results will be left without a crystal',
-        'name': "Give the sample a name by which you can recognize it. Avoid using spaces or special characters in sample names",
-        'barcode': "If there is a datamatrix code on sample, please scan or input the value here",
-        'pin_length': "18 mm pins are standard. Please make sure you discuss other sizes with Beamline staff before sending the sample!",
-        'comments': 'You can use restructured text formatting in this field',
-        'cocktail': 'The mixture of protein, buffer, precipitant or heavy atoms that make up your crystal',
-        'container_location': 'This field is required only if a container has been selected',
-        'experiment': 'This field is optional here.  Crystals can also be added to an experiment on the experiments page.',
-        'container': 'This field is optional here.  Crystals can also be added to a container on the containers page.',
-    }
-    EXP_STATES = Enum(
-        'Not Required',
-        'Pending',
-        'Completed',
-        'Ignore',
-    )
-    barcode = models.SlugField(null=True, blank=True)
-    crystal_form = models.ForeignKey(CrystalForm, null=True, blank=True)
-    pin_length = models.IntegerField(max_length=2, default=18)
-    loop_size = models.FloatField(null=True, blank=True)
-    cocktail = models.ForeignKey(Cocktail, null=True, blank=True)
-    container = models.ForeignKey(Container, null=True, blank=True)
-    container_location = models.CharField(max_length=10, null=True, blank=True, verbose_name='port')
-    comments = models.TextField(blank=True, null=True)
-    collect_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.NOT_REQUIRED)
-    screen_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.NOT_REQUIRED)
-    priority = models.IntegerField(null=True, blank=True)
-    staff_priority = models.IntegerField(null=True, blank=True)
-    experiment = models.ForeignKey(Experiment, null=True, blank=True)
-
-    class Meta:
-        unique_together = (
-            ("project", "container", "container_location"),
-        )
-        ordering = ['priority','container','container_location']
-
-    def identity(self):
-        return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-
-    def _Crystal_form(self):
-        return self.crystal_form.name
-    _Crystal_form.admin_order_field = 'crystal_form__name'
-
-    def _Cocktail(self):
-        return self.cocktail.name
-    _Cocktail.admin_order_field = 'cocktail__name'
-
-    def _Container(self):
-        return self.container.name
-    _Container.admin_order_field = 'container__name'
-    
-    def get_data_set(self):
-        return self.data_set.filter(**self.project.get_archive_filter())
-
-    def get_result_set(self):
-        return self.result_set.filter(**self.project.get_archive_filter())
-    
-    def get_scanresult_set(self):
-        return self.scanresult_set.filter(**self.project.get_archive_filter())
-
-    def best_screening(self):
-        info = {}
-        results = self.get_result_set().filter(kind__exact=Result.RESULT_TYPES.SCREENING).order_by('-score')
-        if len(results) > 0:
-            info['report'] = results[0]
-            info['data'] = info['report'].data
-        else:
-            data = self.get_data_set().filter(kind__exact=Data.DATA_TYPES.SCREENING).order_by('-created')
-            if len(data) > 0:
-                info['data'] = data[0]
-        return info
-    
-    def best_collection(self):
-        info = {}
-        results = self.get_result_set().filter(kind__exact=Result.RESULT_TYPES.COLLECTION).order_by('-score')
-        if len(results) > 0:
-            info['report'] = results[0]
-            info['data'] = info['report'].data
-        else:
-            data = self.get_data_set().filter(kind__exact=Data.DATA_TYPES.COLLECTION).order_by('-created')
-            if len(data) > 0:
-                info['data'] = data[0]
-        return info
-
-    def best_overall(self):
-        if 'report' in self.best_collection():
-            return self.best_collection()
-        return self.best_screening()
-
-    def is_clonable(self):
-        return True
-
-    def is_complete(self):
-        return (self.screen_status != Crystal.EXP_STATES.PENDING and self.collect_status != Crystal.EXP_STATES.PENDING and self.status > Crystal.STATES.DRAFT) or self.collect_status == Crystal.EXP_STATES.COMPLETED
-    
-    def is_started(self):
-        msg = str()
-        data = Data.objects.filter(crystal__exact=self)
-        result = Result.objects.filter(crystal__exact=self)
-        scan = ScanResult.objects.filter(crystal__exact=self)
-        types = [Data.DATA_TYPES, Result.RESULT_TYPES, ScanResult.SCAN_TYPES]
-        for i, set in enumerate([data, result, scan]):
-            if set.exists():
-                s0 = set.filter(kind=0).count() and '%i %s' % (set.filter(kind=0).count(), types[i][0]) or ''
-                s1 = set.filter(kind=1).count() and '%i %s' % (set.filter(kind=1).count(), types[i][1]) or ''
-                if s1 or s0:
-                    msg += '%s%s%s %s<br>' % (s0, (s0 and s1) and '/' or '', s1, set[0].__class__.__name__)
-        return msg
-    
-    def setup_experiment(self):
-        """ If crystal is on-site, updates the screen_status and collect_status based on its experiment type
-        """
-        assert self.experiment
-        if self.status == Crystal.STATES.ON_SITE:
-            if self.experiment.plan not in [Experiment.EXP_PLANS.JUST_COLLECT, Experiment.EXP_PLANS.COLLECT_FIRST_GOOD]:
-                self.change_screen_status(Crystal.EXP_STATES.PENDING)
-                if self.experiment.plan != Experiment.EXP_PLANS.SCREEN_AND_COLLECT:
-                    return
-            self.change_collect_status(Crystal.EXP_STATES.PENDING) 
-
-    def delete(self, request=None, cascade=True):
-        if self.is_deletable:
-            if self.experiment:
-                if self.experiment.crystal_set.count() == 1:
-                    self.experiment.delete(request=request, cascade=False)
-            obj_list = []
-            for obj in self.data_set.all(): obj_list.append(obj)
-            for obj in self.result_set.all(): obj_list.append(obj)
-            for obj in obj_list:
-                obj.crystal = None
-                obj.save()
-                if cascade:
-                    obj.trash(request=request)
-            super(Crystal, self).delete(request=request)
-
-    def send(self, request=None):
-        assert self.experiment
-        self.experiment.change_status(Experiment.STATES.ACTIVE)
-        super(Crystal, self).send(request=request)
-
-    def archive(self, request=None):
-        super(Crystal, self).archive(request=request)
-        assert self.experiment
-        if self.experiment.crystal_set and self.experiment.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).count() == 0:
-            super(Experiment, self.experiment).archive(request=request)
-        for obj in self.data_set.exclude(status__exact=Data.STATES.ARCHIVED):
-            obj.archive(request=request)
-            super(Data, obj).archive(request=request)
-        for obj in self.result_set.exclude(status__exact=Result.STATES.ARCHIVED):
-            obj.archive(request=request)
-            super(Result, obj).archive(request=request)
-
-    def change_screen_status(self, status):
-        if self.screen_status != status:
-            self.screen_status = status
-            self.save()
-
-    def change_collect_status(self, status):
-        if self.collect_status != status:
-            self.collect_status = status
-            self.save()
-
-    def json_dict(self):
-        if self.experiment is not None:
-            exp_id = self.experiment.pk
-        else:
-            exp_id = None
-        return {
-            'project_id': self.project.pk,
-            'container_id': self.container.pk,
-            'experiment_id': exp_id,
-            'id': self.pk,
-            'name': self.name,
-            'barcode': self.barcode,
-            'container_location': self.container_location,
-            'comments': self.comments
-        }
-        
-class Data(DataBaseClass):
-    DATA_TYPES = Enum(
-        'Screening',   
-        'Collection',
-    )
-    experiment = models.ForeignKey(Experiment, null=True, blank=True)
-    crystal = models.ForeignKey(Crystal, null=True, blank=True)
-    resolution = models.FloatField()
-    start_angle = models.FloatField()
-    delta_angle = models.FloatField()
-    first_frame = models.IntegerField(default=1)
-    #changed to frame_sets 
-    frame_sets = models.CharField(max_length=200)
-    exposure_time = models.FloatField()
-    two_theta = models.FloatField()
-    wavelength = models.FloatField()
-    detector = models.CharField(max_length=20)
-    detector_size = models.IntegerField()
-    pixel_size = models.FloatField()
-    beam_x = models.FloatField()
-    beam_y = models.FloatField()
-    beamline = models.ForeignKey(Beamline)
-    url = models.CharField(max_length=200)
-    kind = models.IntegerField('Data type',max_length=1, choices=DATA_TYPES.get_choices(), default=DATA_TYPES.SCREENING)
-    download = models.BooleanField(default=False)
-    
-    # need a method to determine how many frames are in item
-    def num_frames(self):
-        return len(self.get_frame_list())          
-
-    def _Crystal(self):
-        return self.crystal.name
-    _Crystal.admin_order_field = 'crystal__name'
-
-    def toggle_download(self, state):
-        self.download = state
-        self.save()
-
-    def get_frame_list(self):
-        frame_numbers = []
-        wlist = [map(int, w.split('-')) for w in self.frame_sets.split(',')]
-        for v in wlist:
-            if len(v) == 2:
-                frame_numbers.extend(range(v[0],v[1]+1))
-            elif len(v) == 1:
-                frame_numbers.extend(v) 
-        return frame_numbers
-
-    def __unicode__(self):
-        return '%s (%d)' % (self.name, self.num_frames())
-    
-    def score_label(self):
-        if len(self.result_set.all()) is 1:
-            return self.result_set.all()[0].score
-        return False
-
-    def result(self):
-        if len(self.result_set.all()) is 1:
-            return self.result_set.all()[0]
-        return False
-
-    def energy(self):
-        if self.wavelength: 
-            return 4.13566733e-15 * 299792458e10 / (self.wavelength * 1000) 
-        return 0
-
-    def total_angle(self):
-        return self.delta_angle * self.num_frames()
-        
-    
-    def generate_image_url(self, frame, brightness=None):
-        # brightness is assumed to be "nm" "dk" or "lt" 
-        frame_numbers = []
-        wlist = [map(int, w.split('-')) for w in self.frame_sets.split(',')]
-        for v in wlist:
-            if len(v) == 2:
-                frame_numbers.extend(range(v[0],v[1]+1))
-            elif len(v) == 1:
-                frame_numbers.extend(v)
-                # check that frame is in frame_numbers
-         
-        image_url = settings.IMAGE_PREPEND or ''
-        if frame in frame_numbers:
-            image_url = image_url + "/download/images/%s/%s_%03d" % (self.url, self.name, frame)
-        
-        # confirm brightness is valid
-        if not (brightness == "nm" or brightness == "lt" or brightness == "dk"):
-            brightness = None
-        
-        if brightness == None:
-            image_url = image_url + ".img"
-        else:
-            image_url = image_url + "-" + brightness + ".png"
-            
-        return image_url   
-    
-    def start_angle_for_frame(self, frame):
-        return (frame - self.first_frame) * self.delta_angle + self.start_angle 
-
-    def archive(self, request=None):
-        for obj in self.result_set.all():
-            if obj.status not in [GLOBAL_STATES.ARCHIVED, GLOBAL_STATES.TRASHED]:
-                obj.archive(request=request)
-        super(Data, self).archive(request=request)
-
-    def trash(self, request=None):
-        for obj in self.result_set.all():
-            if obj.status not in [GLOBAL_STATES.TRASHED]:
-                obj.trash(request=request)
-        super(Data, self).trash(request=request)
-
-    class Meta:
-        verbose_name = 'Dataset'
-
-class Strategy(DataBaseClass):
-    attenuation = models.FloatField()
-    distance = models.FloatField(default=200.0)
-    start_angle = models.FloatField(default=0.0)
-    delta_angle = models.FloatField(default=1.0)
-    total_angle = models.FloatField(default=180.0)
-    exposure_time = models.FloatField(default=1.0)
-    two_theta = models.FloatField(default=0.0)
-    energy = models.FloatField(default=12.658)
-    exp_resolution = models.FloatField('Expected Resolution')
-    exp_completeness = models.FloatField('Expected Completeness')
-    exp_multiplicity = models.FloatField('Expected Multiplicity')
-    exp_i_sigma = models.FloatField('Expected I/Sigma')
-    exp_r_factor =models.FloatField('Expected R-factor')
-
-    def identity(self):
-        return 'ST%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-
-    def is_strategy_type(self):
-        return True
-
-    class Meta:
-        verbose_name_plural = 'Strategies'
-
-class Result(DataBaseClass):
-    RESULT_TYPES = Enum(
-        'Screening',   
-        'Collection',
-    )
-    experiment = models.ForeignKey(Experiment, null=True, blank=True)
-    crystal = models.ForeignKey(Crystal, null=True, blank=True)
-    data = models.ForeignKey(Data)
-    score = models.FloatField()
-    space_group = models.ForeignKey(SpaceGroup)
-    cell_a = models.FloatField('a')
-    cell_b = models.FloatField('b')
-    cell_c = models.FloatField('c')
-    cell_alpha = models.FloatField('alpha')
-    cell_beta = models.FloatField('beta')
-    cell_gamma = models.FloatField('gamma')
-    resolution = models.FloatField()
-    reflections = models.IntegerField()
-    unique = models.IntegerField()
-    multiplicity = models.FloatField()
-    completeness = models.FloatField()
-    mosaicity = models.FloatField()
-    wavelength = models.FloatField(blank=True, null=True)
-    i_sigma = models.FloatField('I/Sigma')
-    r_meas =  models.FloatField('R-meas')
-    r_mrgdf = models.FloatField('R-mrgd-F', blank=True, null=True)
-    cc_half = models.FloatField('CC-1/2', blank=True, null=True)
-    sigma_spot = models.FloatField('Sigma(spot)')
-    sigma_angle = models.FloatField('Sigma(angle)')
-    ice_rings = models.IntegerField()
-    url = models.CharField(max_length=200)
-    kind = models.IntegerField('Result type',max_length=1, choices=RESULT_TYPES.get_choices())
-    details = JSONField()
-    strategy = models.OneToOneField(Strategy, null=True, blank=True)
-    
-    def identity(self):
-        return 'RT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-
-    def archive(self, request=None):
-        super(Result, self).archive(request=request)
-        self.data.archive(request=request)
-
-    def trash(self, request=None):
-        super(Result, self).trash(request=request)
-        self.data.trash(request=request)
-
-    class Meta:
-        ordering = ['-score']
-        verbose_name = 'Analysis Report'
-
-class ScanResult(DataBaseClass):
-    XRF_COLOR_LIST = ['#800080','#FF0000','#008000',
-                  '#FF00FF','#800000','#808000',
-                  '#008080','#00FF00','#000080',
-                  '#00FFFF','#0000FF','#000000',
-                  '#800040','#BD00BD','#00FA00',
-                  '#800000','#FA00FA','#00BD00',
-                  '#008040','#804000','#808000',
-                  '#408000','#400080','#004080',
-                  ]
-    SCAN_TYPES = Enum(
-        'MAD Scan',   
-        'Excitation Scan',
-    )
-    experiment = models.ForeignKey(Experiment, null=True, blank=True)
-    crystal = models.ForeignKey(Crystal, null=True, blank=True)
-    edge = models.CharField(max_length=20)
-    details = JSONField()
-    kind = models.IntegerField('Scan type',max_length=1, choices=SCAN_TYPES.get_choices())
-    
-    energy = models.FloatField(null=True, blank=True)
-    exposure_time = models.FloatField(null=True, blank=True)
-    attenuation = models.FloatField(null=True, blank=True)
-    beamline = models.ForeignKey(Beamline)
-    
-    def identity(self):
-        return 'SC%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-    
-    def summarize_lines(self):
-        name_dict = {
-            'L1M2,3,L2M4': 'L1,2M',
-            'L1M3,L2M4': 'L1,2M',       
-            'L1M,L2M4': 'L1,2M',
-        }
-        peaks = self.details['peaks']
-        if peaks is None:
-            return
-        data = peaks.items()
-        line_data = []
-        for el in data:
-            line_data.append(el)
-            
-        def join(a,b):
-            if a==b:
-                return [a]
-            if abs(b[1]-a[1]) < 0.200:
-                if a[0][:-1] == b[0][:-1]:
-                    nm = b[0][:-1]
-                else:
-                    nm = '%s,%s' % (a[0], b[0])
-                nm = name_dict.get(nm, nm)
-                ht =  (a[2] + b[2])
-                pos = (a[1]*a[2] + b[1]*b[2])/ht
-                return [(nm, round(pos,4), round(ht,2))]
-            else:
-                return [a, b]
-            
-        new_lines = []
-        for entry in line_data:
-            new_data = [entry[1][1][0]]
-            for edge in entry[1][1]:
-                old = new_data[-1]
-                _new = join(old, edge)
-                new_data.remove(old)
-                new_data.extend(_new)
-            new_lines.append((entry[0], new_data, self.XRF_COLOR_LIST[line_data.index(entry)]))
-        
-        return new_lines
-    
-class ActivityLogManager(models.Manager):
-    def log_activity(self, request, obj, action_type, description=''):
-        e = self.model()
-        if obj is None:
+            model = kwargs['model']
+        manager = model.objects
+        request.project = None
+        if not request.user.is_superuser:
             try:
                 project = request.user.get_profile()
-                e.project_id = project.pk
+                request.project = project
+                if model != Project:
+                    manager = FilterManagerWrapper(manager, project__exact=project)
+                else:
+                    manager = FilterManagerWrapper(manager, pk__exact=project.pk)
             except Project.DoesNotExist:
-                project = None
-                
-        else:
-            if getattr(obj, 'project', None) is not None:
-                e.project_id = obj.project.pk
-            elif getattr(request, 'project', None) is not None:
-                e.project_id = request.project.pk
-            elif isinstance(obj, Project):
-                e.project_id = obj.pk
+                raise Http404
+        if model in [Data, Result] and not request.user.is_superuser:
+            manager = FilterManagerWrapper(manager, status__lte=Data.STATES.ARCHIVED)
+        if MANAGER_FILTERS.has_key((model, request.user.is_superuser)):
+            if request.user.is_superuser or not project.show_archives:
+                manager = FilterManagerWrapper(manager,**MANAGER_FILTERS[(model, request.user.is_superuser)])
+        if MANAGER_ORDER_BYS.has_key((model, request.user.is_superuser)):
+            manager = OrderByManagerWrapper(manager,*MANAGER_ORDER_BYS[(model, request.user.is_superuser)])
+        request.manager = manager
+        assert isinstance(request.manager, models.Manager)
+        return function(request, *args, **kwargs)
+    return manager_required_wrapper
 
-            e.object_id = obj.pk
-            e.affected_item = obj
-            e.content_type = ContentType.objects.get_for_model(obj)
+
+def project_assurance(function):
+    """ Decorator that creates a default mxlive.users.models.Project if there isn't one """
+    def project_assurance_wrapper(request, fetcher=None):
         try:
-            e.user = request.user
-            e.user_description = request.user.get_full_name()
-        except:
-            # use api_user if available in request
-            if getattr(request, 'api_user') is not None:
-                e.user_description = request.api_user.client_name
-            else:
-                e.user_description = "System"
-        e.ip_number = request.META['REMOTE_ADDR']
-        e.action_type = action_type
-        e.description = description
-        if obj is not None:
-            e.object_repr = '%s: %s' % (obj.__class__.__name__.upper(), obj)
-        else:
-            e.object_repr = 'N/A'
-        e.save()
+            request.user.get_profile() # test for existence of the project 
+        except Project.DoesNotExist:
+            request.project = create_project(request.user, fetcher=fetcher)
+        return function(request)
+    return project_assurance_wrapper
 
-    def last_login(self, request):
-        logs = self.filter(user__exact=request.user, action_type__exact=ActivityLog.TYPE.LOGIN)
-        if logs.count() > 1:
-            return logs[1]
-        else:
-            return None
+
+@login_required
+def home(request):
+    """ The /home/ page selects and redirects the user to either
+      1. /users/ - for users
+      2. /staff/ - for staff
+    """
+    if request.user.is_superuser:
+        return HttpResponseRedirect(reverse('staff-home'))
+    else:
+        return HttpResponseRedirect(reverse('project-home'))
         
-class ActivityLog(models.Model):
-    TYPE = Enum('Login', 'Logout', 'Task', 'Create', 'Modify', 'Delete', 'Archive')
-    created = models.DateTimeField('Date/Time', auto_now_add=True, editable=False)
-    project = models.ForeignKey(Project, blank=True, null=True)
-    user = models.ForeignKey(User, blank=True, null=True)
-    user_description = models.CharField('User name', max_length=60, blank=True, null=True)
-    ip_number = models.IPAddressField('IP Address')
-    object_id = models.PositiveIntegerField(blank=True, null=True)
-    content_type = models.ForeignKey(ContentType, blank=True, null=True)
-    affected_item = generic.GenericForeignKey('content_type', 'object_id')
-    action_type = models.IntegerField(max_length=1, choices=TYPE.get_choices() )
-    object_repr = models.CharField('Entity', max_length=200, blank=True, null=True)
-    description = models.TextField(blank=True)
+@login_required
+@project_assurance
+@project_required
+def show_project(request):
+    project = request.project
     
-    objects = ActivityLogManager()
-    created.weekly_filter = True
+    # if user has logged in past week, show recent items in past week otherwise
+    # show recent items since last login.
     
-    class Meta:
-        ordering = ('-created',)
-    
-    def __unicode__(self):
-        return str(self.created)
-    
-class Feedback(models.Model):
-    HELP = {
-        'message': 'You can use Restructured Text formatting to compose your message.',
+    recent_start = timezone.now() - timedelta(days=7)
+    last_login = ActivityLog.objects.last_login(request)
+    if last_login is not None:
+        if last_login.created < recent_start:
+            recent_start = last_login.created       
+
+    statistics = {
+        'shipments': {
+                'outgoing': project.shipment_set.filter(status__exact=Shipment.STATES.SENT).count(),
+                'incoming': project.shipment_set.filter(status__exact=Shipment.STATES.RETURNED).count(),
+                'on_site': project.shipment_set.filter(status__exact=Shipment.STATES.ON_SITE).count(),
+                },
+        'dewars': {
+                'outgoing': project.dewar_set.filter(status__exact=Dewar.STATES.SENT).count(),
+                'incoming': project.dewar_set.filter(status__exact=Dewar.STATES.RETURNED).count(),
+                'on_site': project.dewar_set.filter(status__exact=Dewar.STATES.ON_SITE).count(),
+                },
+        'experiments': {
+                'active': project.experiment_set.filter(status__exact=Experiment.STATES.ACTIVE).filter(pk__in=Crystal.objects.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).values('experiment')).count(),
+                'processing': project.experiment_set.filter(status__exact=Experiment.STATES.PROCESSING).count(),
+                },
+        'crystals': {
+                'on_site': project.crystal_set.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).count(),
+                'outgoing': project.crystal_set.filter(status__exact=Crystal.STATES.SENT).count(),
+                'incoming': project.crystal_set.filter(status__exact=Crystal.STATES.RETURNED).count(),
+                },
+        'reports':{
+                'total': project.result_set.all().count(),
+                'new': project.result_set.filter(modified__gte=recent_start).filter(**project.get_archive_filter()).count(),
+                'start_date': recent_start,                
+                },
+        'datasets':{
+                'total': project.data_set.all().count(),
+                'new': project.data_set.filter(modified__gte=recent_start).filter(**project.get_archive_filter()).count(),
+                'start_date': recent_start,
+                },        
+        'scanresults':{
+                'total': project.scanresult_set.all().count(),
+                'new': project.scanresult_set.filter(modified__gte=recent_start).filter(**project.get_archive_filter()).count(),
+                'start_date': recent_start,
+                },              
     }
-    TYPE = Enum(
-        'Remote Control',
-        'MxLIVE Website',
-        'Other',
-    )
-    project = models.ForeignKey(Project)
-    category = models.IntegerField('Category',max_length=1, choices=TYPE.get_choices())
-    contact_name = models.CharField(max_length=100, blank=True, null=True)
-    contact = models.EmailField(max_length=100, blank=True, null=True)
-    message = models.TextField(blank=False)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-
-    def __unicode__(self):
-        if len(self.message) > 23:
-            return "%s:'%s'..." % (self.get_category_display(), self.message[:20])
+    
+    return render_to_response('users/project.html', {
+        'project': project,
+        'statistics': statistics,
+        'activity_log': ObjectList(request, project.activitylog_set),
+        'handler' : request.path,
+        },
+    context_instance=RequestContext(request))
+ 
+@login_required
+@project_required
+@transaction.commit_on_success
+def upload_shipment(request, model, form, template='users/forms/form_base.html'):
+    """A generic view which displays a Form of type ``form`` using the Template
+    ``template`` and when submitted will create new data using the LimsWorkbook
+    class
+    """
+    project = request.project
+    object_type = model.__name__
+    form_info = {
+        'title': 'Upload %s' % object_type,
+        'action':  request.path,
+        'add_another': False,
+        'save_label': 'Upload',
+        'enctype' : 'multipart/form-data',
+    }
+    if request.method == 'POST':
+        frm = form(request.POST, request.FILES)
+        if frm.is_valid():
+            # saving valid data to the database can fail if duplicates are found. in this case
+            # we need to manually rollback the transaction and return a normal rendered form error
+            # to the user, rather than a 500 page
+            try:
+                frm.save(request) #FIXME ShipmentUpload form.save does not return the model being saved!
+                message = "Shipment uploaded successfully.  Click 'Send' to alert CMCF staff of your shipment."
+                messages.info(request, message)
+                obj = Shipment.objects.filter(status__exact=0).get(name__exact=frm.get_shipment())
+                return render_to_response("users/iframe_refresh.html", {'redirect_to': '/users/shipping/shipment/%s/' % obj.pk,}, context_instance=RequestContext(request))
+            except IntegrityError:
+                transaction.rollback()
+                frm.add_excel_error('This data has been uploaded already')
+                return render_to_response(template, {'form': frm, 'info': form_info}, context_instance=RequestContext(request))
         else:
-            return "%s:'%s'" % (self.get_category_display(), self.message)
-  
-    class Meta:
-        verbose_name = 'Feedback comment'
+            if frm.error_message():
+                frm.fields = {}
+                form_info['no_action'] = True
+                form_info['message'] = 'Uh-oh!  Please fix the following errors with your spreadsheet, and then try again.'
+            return render_to_response(template, {'form': frm, 'info': form_info}, context_instance=RequestContext(request))
+    else:
+        frm = form(initial={'project': project.pk})
+        return render_to_response(template, {'form': frm, 'info': form_info}, context_instance=RequestContext(request))
 
-__all__ = [
-    'ExcludeManagerWrapper',
-    'FilterManagerWrapper',
-    'OrderByManagerWrapper',
-    'DistinctManagerWrapper',
-    'Carrier',
-    'Project',
-    'Session',
-    'Beamline',
-    'Shipment',
-    'Component',
-    'Dewar',
-    'Container',
-    'SpaceGroup',
-    'Cocktail',
-    'CrystalForm',
-    'Experiment',
-    'Crystal',
-    'Data',
-    'Strategy',
-    'Result',
-    'ScanResult',
-    'ActivityLog',
-    'Feedback',
-    ]   
 
+@login_required
+@transaction.commit_on_success
+def add_existing_object(request, dest_id, obj_id, destination, obj, src_id=None, loc_id=None, source=None, replace=False, reverse=False):
+    """
+    New add method. Meant for AJAX, so only intended to be POST'd to. This will add an object of type 'object'
+    and id 'obj_id' to the object of type 'destination' with the id of 'dest_id'.
+    Replace means if the field already has an item in it, replace it, else fail
+    Reverse means, due to model layout, you are actually adding destination to object
+    """
+    object_type = destination.__name__
+    form_info = {
+        'title': 'Add Existing %s' % (object_type),
+        'sub_title': 'Select existing %ss to add to %s' % (object_type.lower(), obj),
+        'action':  request.path,
+        'target': 'entry-scratchpad',
+    }
+    if request.method != 'POST':
+        raise Http404
+
+    if reverse:
+        # swap obj and destination
+        obj_id, dest_id = dest_id, obj_id
+        obj, destination = destination, obj
+
+    model = destination;
+    manager = model.objects
+    request.project = None
+    if not request.user.is_superuser:
+        try:
+            project = request.user.get_profile()
+            request.project = project
+            manager = FilterManagerWrapper(manager, project__exact=project)
+        except Project.DoesNotExist:
+            raise Http404    
+
+    model = obj
+    obj_manager = model.objects
+    request.project = None
+    if not request.user.is_superuser:
+        try:
+            project = request.user.get_profile()
+            request.project = project
+            obj_manager = FilterManagerWrapper(obj_manager, project__exact=project)
+        except Project.DoesNotExist:
+            raise Http404    
+
+    #get just the items we want
+    try:
+        dest = manager.get(pk=dest_id)
+        to_add = obj_manager.get(pk=obj_id)
+    except:
+        raise Http404
+
+    # get the display name
+    display_name = to_add.name
+    if reverse:
+        display_name = dest.name
+        
+    lookup_name = obj.__name__.lower()
+    if lookup_name == 'crystalform':
+        lookup_name = 'crystal_form'
+    
+    if dest.is_editable():
+        #if replace == True or dest.(obj.__name__.lower()) == None
+        try:
+            getattr(dest, lookup_name)
+            setattr(dest, lookup_name, to_add)
+        except AttributeError:
+            # attrib didn't exist, append 's' for many field
+            try:
+                current = getattr(dest, '%ss' % lookup_name)
+                # want destination.objects.add(to_add)
+                current.add(to_add)
+                #setattr(dest, '%ss' % obj.__name__.lower(), current_values)
+            except AttributeError:
+                message = '%s has not been added. No Field (tried %s and %s)' % (display_name, lookup_name, '%ss' % lookup_name)
+                messages.info(request, message)
+                return render_to_response('users/refresh.html', context_instance=RequestContext(request))
+                
+        if loc_id:
+            setattr(dest, 'container_location', loc_id)
+        if ((destination.__name__ == 'Experiment' and obj.__name__ == 'Crystal') or (destination.__name__ == 'Container' and obj.__name__ == 'Dewar')):
+            for exp in dest.get_experiment_list():
+                if exp:
+                    exp.priority = 0
+                    exp.save()    
+    
+        dest.save()
+        message = '%s (%s) added' % (dest.__class__._meta.verbose_name, display_name)
+        ActivityLog.objects.log_activity(request, dest, ActivityLog.TYPE.MODIFY, 
+            '%s added to %s (%s)' % (dest._meta.verbose_name, to_add._meta.verbose_name, to_add))
+    else:
+        message = '%s has not been added, as %s is not editable' % (display_name, dest.name)
+
+    messages.info(request, message)
+    return render_to_response('users/refresh.html', {
+        'info': form_info,
+        }, context_instance=RequestContext(request))
+    
+@login_required
+@manager_required
+def object_detail(request, id, model, template):
+    """
+    A generic view which displays a detailed page for an object of type ``model``
+    identified by the primary key ``id`` using the template ``template``. 
+    """
+    try:
+        obj = request.manager.get(pk=id)
+    except:
+        raise Http404
+    cnt_type = ContentType.objects.get_for_model(obj)
+    history = ActivityLog.objects.filter(content_type__pk=cnt_type.id, object_id=obj.id)
+    
+    # determine if there is a list url for this model and pass it in as list_url
+    if request.user.is_staff:
+        url_prefix = 'staff'
+    else:
+        url_prefix = 'users'
+    url_name = "%s-%s-list" % (url_prefix, model.__name__.lower())
+    try:
+        list_url = (model == Runlist and reverse(url_name)+'?status__lte=4') or reverse(url_name)
+    except:
+        list_url = None
+    return render_to_response(template, {
+        'object': obj,
+        'history': history[:ACTIVITY_LOG_LENGTH],
+        'handler' : request.path,
+        'list_url': list_url,
+        }, context_instance=RequestContext(request))
+    
+@login_required
+@project_optional
+@transaction.commit_on_success
+def create_object(request, model, form, id=None, template='users/forms/new_base.html', action=None, redirect=None, modal_upload=False):
+    """
+    A generic view which displays a Form of type ``form`` using the Template
+    ``template`` and when submitted will create a new object of type ``model``.
+    """
+    if request.project:
+        project = request.project
+        project_pk = project.pk
+    else:
+        project = None
+        project_pk = None
+    object_type = model._meta.verbose_name
+
+    form_info = {
+        'title': 'New %s' % object_type,
+        'action':  request.path,
+        'add_another': True, # does not work right now
+    }
+    if modal_upload:
+        form_info['enctype'] = 'multipart/form-data'
+
+    if request.method == 'POST':
+        frm = form(request.POST, request.FILES)
+        frm.restrict_by('project', project_pk)
+        if frm.is_valid():
+            new_obj = frm.save()
+            info_msg = 'New %(name)s (%(obj)s) added' % {'name': smart_str(model._meta.verbose_name), 'obj': smart_str(new_obj)}
+            ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
+                'new %s added' % (smart_str(model._meta.verbose_name),))
+            messages.info(request, info_msg)
+            if request.POST.has_key('_addanother'):
+                initial = {'project': project_pk}
+                initial.update(dict(request.GET.items()))      
+                frm = form(initial=initial)
+                frm.restrict_by('project', project_pk)
+                return render_to_response(template, {
+                    'info': form_info, 
+                    'form': frm, 
+                    }, context_instance=RequestContext(request))
+            else:
+                if modal_upload:
+                    return render_to_response("users/iframe_refresh.html", context_instance=RequestContext(request))
+                # messages are simply passed down to the template via the request context
+                return render_to_response("users/redirect.html", context_instance=RequestContext(request))
+        else:
+            return render_to_response(template, {
+                'info': form_info,
+                'form': frm,
+                }, context_instance=RequestContext(request))
+    else:
+        if project:
+            initial = {'project': project_pk}
+            if id:
+                initial['shipment'] = id
+            initial.update(dict(request.GET.items()))      
+            frm = form(initial=initial)
+        else:
+            frm = form(initial=None)
+
+        frm.restrict_by('project', project_pk)
+        if request.GET.has_key('clone'):
+            clone_id = request.GET['clone']
+            try:
+                manager = getattr(project, model.__name__.lower()+'_set')
+                clone_obj = manager.get(pk=clone_id)
+            except:
+                info_msg = 'Could not clone %(name)s!' % {'name': smart_str(model._meta.verbose_name)}
+                messages.info(request, info_msg)
+            else:
+                for name, field in frm.fields.items():
+                    val = getattr(clone_obj, name)
+                    if hasattr(val, 'pk'):
+                        val = getattr(val, 'pk')
+                    elif hasattr(val, 'all'):
+                        val = [o.pk for o in val.all() ]
+                    field.initial = val
+        return render_to_response(template, {
+            'info': form_info, 
+            'form': frm, 
+            }, context_instance=RequestContext(request))
+
+@login_required
+@manager_required
+def object_list(request, model, template='objlist/object_list.html', link=False, modal_link=False, modal_edit=False, modal_upload=False, delete_inline=False, can_add=False, can_prioritize=False, num_show=None, view_only=False):
+    """
+    A generic view which displays a list of objects of type ``model`` owned by
+    the current users project. The list is displayed using the template
+    `template`. 
+    
+    Keyworded options:
+        - ``link`` (boolean) specifies whether or not to link each item to it's detailed page.
+        - ``can_add`` (boolean) specifies whether or not new entries can be added on the list page.   
+        - 
+    """
+    log_set = [
+        ContentType.objects.get_for_model(model).pk, 
+    ]
+    ol = ObjectList(request, request.manager, num_show=num_show)
+    if not request.user.is_superuser:
+        project = request.user.get_profile()
+        logs = project.activitylog_set.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]
+    else:
+        logs = ActivityLog.objects.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]
+    return render_to_response(template, {'ol': ol, 
+                                         'link': link,
+                                         'modal_link': modal_link,
+                                         'modal_edit': modal_edit,
+                                         'modal_upload': modal_upload,
+                                         'delete_inline': delete_inline,
+                                         'can_add': can_add, 
+                                         'can_prioritize': can_prioritize,
+                                         'viewonly': view_only,
+                                         'handler': request.path,
+                                         'logs': logs},                                         
+        context_instance=RequestContext(request)
+    )
+
+@login_required
+@manager_required    
+def basic_object_list(request, model, template='objlist/basic_object_list.html'):
+    """
+    Request a basic list of objects for which the orphan field specified as a GET parameter is null.
+    The template this uses will be rendered in the sidebar controls.
+    """
+    ol = {}
+    if request.GET.get('orphan_field', None) is not None:
+        params = {'%s__isnull' %  str(request.GET['orphan_field']): True}
+        objects = request.manager.filter(**params)
+    else:
+        objects = request.manager.all()
+    ol['object_list'] = objects
+    handler = request.path
+    # if path has /basic on it, remove that. 
+    if 'basic' in handler:
+        handler = handler[0:-6]
+    return render_to_response(template, {'ol' : ol, 'type' : model.__name__.lower(), 'handler': handler }, context_instance=RequestContext(request))
+
+@login_required
+@transaction.commit_on_success
+def priority(request, id,  model, field):
+    if request.method == 'POST':
+        pks = map(int, request.POST.getlist('id_list[]'))
+        _priorities_changed = False
+        for obj in model.objects.filter(pk__in=pks).all():
+            new_priority = pks.index(obj.pk) + 1
+            if obj.priority != new_priority:
+                obj.priority = new_priority
+                obj.save()
+                _priorities_changed = True
+    if _priorities_changed:
+        messages.info(request, "%s priority updated" % model.__name__)
+    return render_to_response('users/refresh.html', context_instance=RequestContext(request))
+    
+@login_required
+@transaction.commit_on_success
+def edit_profile(request, form, id=None, template='objforms/form_base.html', action_url=None):
+    """
+    View for editing user profiles
+    """
+    if request.GET.get('warning', None) == 'label':
+        form.warning_message = "We don't have your address on file yet.  Please update your profile information before printing off shipping labels."
+    else:
+        form.warning_message = None
+    try:
+        model = Project
+        obj = request.user.get_profile()
+        request.project = obj
+        request.manager = Project.objects
+    except:
+        raise Http404
+    if id: action_url = '/users/shipping/shipment/%s/send/' % id
+    return edit_object_inline(request, obj.pk, model=model, form=form, template=template, action_url=action_url)
+    
+@login_required
+@manager_required
+@transaction.commit_on_success
+def edit_object_inline(request, id, model, form, template='objforms/form_base.html', modal_upload=False, action_url=None):
+    """
+    A generic view which displays a form of type ``form`` using the template 
+    ``template``, for editing an object of type ``model``, identified by primary 
+    key ``id``, which when submitted will update the entry asynchronously through
+    AJAX.
+    """
+    if request.project:
+        project = request.project
+        project_pk = project.pk
+    else:
+        project = None
+        project_pk = None
+
+    try:
+        obj = request.manager.get(pk=id)
+    except:
+        raise Http404
+
+    if not obj.is_editable():
+        raise Http404
+    
+    form_info = {
+        'title': request.GET.get('title', 'Edit %s' % model._meta.verbose_name),
+        'sub_title': obj.identity(),
+        'action':  request.path,
+        'target': 'entry-scratchpad',
+        'save_label': 'Save'
+    }
+
+    if modal_upload:
+        form_info['enctype'] = 'multipart/form-data'
+
+    if request.method == 'POST':
+        frm = form(request.POST, instance=obj)
+        frm.restrict_by('project', project_pk)
+        if frm.is_valid():
+            form_info['message'] = '%s (%s) modified' % ( model._meta.verbose_name, obj)
+            frm.save()
+            messages.info(request, form_info['message'])
+            
+            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, 
+                '%s edited' % ( model._meta.verbose_name,))         
+            if modal_upload:
+                return render_to_response("users/iframe_refresh.html", context_instance=RequestContext(request))
+            if action_url: 
+                return HttpResponseRedirect(action_url)
+            return render_to_response('users/redirect.html', context_instance=RequestContext(request))
+        else:
+            return render_to_response(template, {
+            'info': form_info, 
+            'form' : frm, 
+            }, context_instance=RequestContext(request))
+    else:
+        frm = form(instance=obj, initial=dict(request.GET.items())) # casting to a dict pulls out first list item in each value list
+        frm.restrict_by('project', project_pk)
+        return render_to_response(template, {
+        'info': form_info, 
+        'form' : frm,
+        }, context_instance=RequestContext(request))
+       
+       
+@login_required
+@transaction.commit_on_success
+def staff_comments(request, id, model, form, template='objforms/form_base.html', user='staff'):
+    try:
+        obj = model.objects.get(pk=id)
+    except:
+        raise Http404
+
+    form_info = {
+        'title': 'Add a note to this %s' % model._meta.verbose_name,
+        'sub_title': obj.identity(),
+        'action':  request.path,
+        'target': 'entry-scratchpad',
+        'save_label': 'Save'
+    }
+    if request.method == 'POST':
+        frm = form(request.POST, instance=obj)
+        try:
+            if not obj.comments: base_comments = ''
+            else: base_comments = obj.comments
+        except:
+            base_comments = ''
+        if frm.is_valid():
+            if user == 'staff':
+                author = ' by staff'
+                frm.save()
+            elif user == 'user' and request.POST.get('comments', None):
+                author = ''
+                obj.comments = base_comments + '\n\n%s - %s' % \
+                    (dateformat.format(timezone.now(), 'Y-m-d P'), request.POST.get('comments'))
+                obj.save()
+            form_info['message'] = 'comments added to %s (%s)%s' % ( model._meta.verbose_name, obj, author)
+            messages.info(request, form_info['message'])
+            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, 
+                'comments added to %s%s' % ( model._meta.verbose_name, author))            
+            return render_to_response('users/redirect.html', context_instance=RequestContext(request))
+        else:
+            return render_to_response(template, {
+            'info': form_info, 
+            'form' : frm, 
+            }, context_instance=RequestContext(request))
+    else:
+        frm = form(instance=obj, initial=dict(request.GET.items())) 
+        return render_to_response(template, {
+        'info': form_info, 
+        'form' : frm,
+        }, context_instance=RequestContext(request))
+
+@login_required
+@transaction.commit_on_success
+def remove_object(request, src_id, obj_id, source, obj, dest_id=None, destination=None, reverse=False):
+    """
+    New way to remove objects. Expected to be called via AJAX. By default removes object with id obj_id 
+    from source with src_id. 
+    reverse instead removes source from object. 
+    """
+    if request.method != 'POST':
+        raise Http404
+    
+    if reverse:
+        # swap obj and destination
+        obj_id, src_id = src_id, obj_id
+        obj, source = source, obj
+    
+    model = source;
+    manager = model.objects
+    request.project = None
+    if not request.user.is_superuser:
+        try:
+            project = request.user.get_profile()
+            request.project = project
+            manager = FilterManagerWrapper(manager, project__exact=project)
+        except Project.DoesNotExist:
+            raise Http404    
+
+    form_info = {
+        'title': request.GET.get('title', 'Remove %s' % model.__name__),
+        'sub_title': obj_id,
+        'action':  request.path,
+        'target': 'entry-scratchpad'
+    }
+
+    model = obj
+    obj_manager = model.objects
+    request.project = None
+    if not request.user.is_superuser:
+        try:
+            project = request.user.get_profile()
+            request.project = project
+            obj_manager = FilterManagerWrapper(obj_manager, project__exact=project)
+        except Project.DoesNotExist:
+            raise Http404
+    
+    #get just the items we want
+    src = manager.get(pk=src_id)
+    to_remove = obj_manager.get(pk=obj_id)
+    # get the display name
+    display_name = to_remove.name
+    if reverse:
+        display_name = src.name
+
+    if src.is_editable():
+        #if replace == True or dest.(obj.__name__.lower()) == None
+        try:
+            getattr(src, obj.__name__.lower())
+            setattr(src, obj.__name__.lower(), None)
+            if obj.__name__.lower() == "container":
+                setattr(src, "container_location", None)
+        except AttributeError:
+            # attrib didn't exist, append 's' for many field
+            try:
+                current = getattr(src, '%ss' % obj.__name__.lower())
+                # want destination.objects.add(to_add)
+                current.remove(to_remove)
+                if src.__class__.__name__.lower() == "runlist":
+                    src.remove_container(to_remove)
+                #setattr(dest, '%ss' % obj.__name__.lower(), current_values)
+            except AttributeError:
+                message = '%s has not been removed. No Field (tried %s and %s)' % (display_name, obj.__name__.lower(), '%ss' % obj.__name__.lower())
+                messages.info(request, message)
+                return render_to_response('users/refresh.html', context_instance=RequestContext(request))
+                       
+        src.save()
+        message = '%s removed from %s' % (src, to_remove)
+        ActivityLog.objects.log_activity(request, src, ActivityLog.TYPE.MODIFY, 
+            '%s removed from %s' % (src._meta.verbose_name, to_remove._meta.verbose_name))
+           
+    else:
+        message = '%s has not been removed, as %s is not editable' % (display_name, src.name)
+
+    messages.info(request, message)
+
+    return render_to_response('users/refresh.html', {
+        'info': form_info,
+        }, context_instance=RequestContext(request))
+
+@login_required
+@manager_required
+@transaction.commit_on_success
+def delete_object(request, id, model, form, template='objforms/form_base.html'):
+    """
+    A generic view which displays a form of type ``form`` using the template 
+    ``template``, for deleting an object of type ``model``, identified by primary 
+    key ``id``, which when submitted will delete the entry asynchronously through
+    AJAX.
+    """
+    if request.project:
+        project = request.project
+        project_pk = project.pk
+    else:
+        project = None
+        project_pk = None
+
+    try:
+        obj = request.manager.get(pk=id)
+    except:
+        raise Http404
+
+    if not obj.is_deletable():
+        raise Http404    
+
+    form_info = {
+        'title': 'Delete %s?' % obj.__unicode__(),
+        'sub_title': 'The %s (%s) will be deleted' % ( model._meta.verbose_name, obj.__unicode__()),
+        'action':  request.path,
+        'message': 'Are you sure you want to delete %s "%s"?' % (
+            model.__name__, obj.__unicode__()
+            ),
+        'save_label': 'Delete'
+    }
+    if request.method == 'POST':
+        frm = form(request.POST, instance=obj)
+        frm.restrict_by('project', project_pk)
+        if request.POST.has_key('_save'):
+            form_info['message'] = '%s (%s) deleted' % ( model._meta.verbose_name, obj)
+            cascade = False
+            if request.POST.get('cascade'):
+                cascade = True
+            obj.delete(request=request, cascade=cascade)
+            messages.info(request, form_info['message'])
+            
+            # prepare url to redirect after delete. Always return to list
+            # Since this view is called from Ajax, the client has to interpret the
+            # redirect message and act accordingly
+            # example: JSON {"url" : "/path/to/redirect/to"}
+            
+            if request.user.is_staff:
+                url_prefix = 'staff'
+            else:
+                url_prefix = 'users'
+            url_name = "%s-%s-list" % (url_prefix, model.__name__.lower())
+            try:
+                redirect = reverse(url_name)
+            except:
+                redirect = request.META['HTTP_REFERER']
+            return render_to_response("users/redirect.json", {
+            'redirect_to': redirect,
+            }, context_instance=RequestContext(request), mimetype="application/json")
+        else:
+            return render_to_response(template, {
+            'info': form_info, 
+            'form' : frm, 
+            }, context_instance=RequestContext(request))
+    else:
+        frm = form(instance=obj, initial=None) 
+        if 'cascade' in frm.fields:
+            frm.fields['cascade'].label = 'Delete all %s associated with this %s.' % (obj.HELP.get('cascade','objects'), model.__name__.lower())
+            frm.fields['cascade'].help_text = 'If this box is left unchecked, only the %s will be deleted. %s' % (model.__name__.lower(), obj.HELP.get('cascade_help',''))
+        frm.restrict_by('project', project_pk)
+        return render_to_response(template, {
+        'info': form_info, 
+        'form' : frm, 
+        'save_label': 'Delete',
+        }, context_instance=RequestContext(request))
+
+@login_required
+@project_optional
+@transaction.commit_on_success
+def action_object(request, id, model, form, template="objforms/form_base.html", action=None):
+    """
+    A generic view which displays a confirmation form and if confirmed, will
+    archive the object of type ``model`` identified by primary key ``id``.
+    
+    If supplied, all instances of ``cascade_models`` (which is a list of tuples 
+    of (Model, fk_field)) with a ForeignKey referencing ``model``/``id`` will also
+    be archived.
+    """
+    if request.project:
+        project = request.project
+        project_pk = project.pk
+    else:
+        project = None
+        project_pk = None
+    try:
+        obj = model.objects.get(pk=id)
+    except:
+        raise Http404
+
+    save_label = None
+    save_labeled = None
+    if action:
+        save_label = action[0].upper() + action[1:]
+        if save_label[-1:] == 'e': save_labeled = '%sd' % save_label
+        elif save_label[-1:] == 'd': save_labeled = '%st' % save_label[:-1]
+        else: save_labeled = '%sed' % save_label        
+
+    initial = {}
+    form_info = {
+        'title': '%s %s?' % (save_label, obj.__unicode__()),
+        'sub_title': 'The %s %s will be %s' % (model.__name__, obj.__unicode__(), save_labeled),
+        'action':  request.path,
+        'target': 'entry-scratchpad',
+        'save_label': save_label
+    }
+    if action == 'archive' and obj.is_closable():
+        form_info['message'] = 'Are you sure you want to archive %s "%s"?  ' % (model.__name__, obj.__unicode__())
+    elif action == 'send' and obj.is_sendable():
+        dewars = obj.dewar_set.all()
+        containers = project.container_set.filter(dewar__in=dewars)
+        conts = ['%d %s%s' % (containers.filter(kind=num).count(), kind, containers.filter(kind=num) > 1 and 's' or '') for num, kind in Container.TYPE if containers.filter(kind=num).count() ]
+        num_crystals = project.crystal_set.filter(container__pk__in=containers).count()
+        form_info['sub_title'] = ''
+        form_info['message'] = '%d Crystals are being sent in %s (%d Dewar%s).' % \
+            (num_crystals, ', '.join(conts), dewars.count(), dewars.count() > 1 and 's' or '') 
+        if project: 
+            if project.carrier: initial['carrier'] = Carrier.objects.get(pk=project.carrier.pk)
+            form_info['update_profile'] = True
+            if project.address and project.city and project.province and project.country and project.postal_code:
+                msg = '<strong>Return samples to:</strong><small>\n%s\n%s%s\n%s\n%s, %s %s\n%s\nPhone: %s\n%s</small>' % (project.contact_person,
+                    project.department and '%s\n' % project.department or '', project.organisation,
+                    project.address, project.city, project.province, project.postal_code, project.country,
+                    project.contact_phone, project.contact_fax and "Fax: %s" % project.contact_fax or '')
+                form.warning_message = msg
+                form.error_message = ''
+            else:
+                form.warning_message = ''
+                form.error_message = ["The address we have for your lab is incomplete. Update your profile for return shipping."]
+    elif action == 'load' and obj.is_loadable(): pass
+    elif action == 'unload' and obj.is_unloadable(): pass 
+    elif action == 'return' and obj.is_returnable(): pass
+    elif action == 'trash' and obj.is_trashable(): 
+        form_info['message'] = 'Are you sure you want to trash %s "%s"?  ' % (model._meta.verbose_name, obj.__unicode__())
+    else: raise Http404
+
+    if request.method == 'POST':
+        if request.POST.has_key('_updateprofile'):
+            return HttpResponseRedirect('/users/profile/edit/%s/' % obj.pk)
+        frm = form(request.POST, instance=obj)
+        frm.restrict_by('project', project_pk)
+        if frm.is_valid():
+            form_info['message'] = '%s (%s) modified' % ( model._meta.verbose_name, obj)
+            frm.save()
+            # if an action ('send', 'close') is specified, the perform the action
+            if action:
+                if action == 'send': obj.send(request=request)
+                if action == 'load': obj.load(request=request)
+                if action == 'unload': obj.unload(request=request)
+                if action == 'return': obj.returned(request=request)
+                if action == 'archive': 
+                    obj.archive(request=request)
+                    if not obj.project.show_archives and model.__name__ is not 'Data':
+                        messages.info(request, form_info['message'])
+                        url_name = "users-%s-list" % (model.__name__.lower())   
+                        return render_to_response("users/redirect.json", {'redirect_to': reverse(url_name),}, context_instance=RequestContext(request), mimetype="application/json")  
+                if action == 'trash': 
+                    obj.trash(request=request)    
+                    if model.__name__ is not 'Data':
+                        messages.info(request, form_info['message'])
+                        url_name = "users-%s-list" % (model.__name__.lower())   
+                        return render_to_response("users/redirect.json", {'redirect_to': reverse(url_name),}, context_instance=RequestContext(request), mimetype="application/json")
+            return render_to_response('users/redirect.html', context_instance=RequestContext(request))
+        else:
+            return render_to_response('users/refresh.html', context_instance=RequestContext(request))
+    else:
+        frm = form(instance=obj, initial=initial) 
+        frm.restrict_by('project', project_pk)
+        if action == 'archive':
+            frm.help_text = 'You can access archived objects by editing \n your profile and selecting "Show Archives" '
+        return render_to_response(template, {
+        'info': form_info, 
+        'form' : frm, 
+        'save_label': 'Archive',
+        }, context_instance=RequestContext(request))
+        
+@login_required
+@manager_required
+def shipment_pdf(request, id, model, format):
+    """ """
+    if model != Project:
+        try:
+            obj = request.manager.get(pk=id)
+        except:
+            raise Http404
+    else:
+        obj = Project.objects.get(pk=id)
+
+    if format == 'protocol':
+        containers = obj.project.container_set.filter(dewar__in=obj.dewar_set.all())
+        all_experiments = obj.project.experiment_set.filter(pk__in=obj.project.crystal_set.filter(container__dewar__shipment__exact=obj.pk).values('experiment'))
+        experiments = list(all_experiments.filter(priority__gte=1).order_by('priority')) + list(all_experiments.exclude(priority__gte=1))
+        group = None
+        num_crystals = obj.project.crystal_set.filter(container__pk__in=containers).count()
+
+    if format == 'runlist':
+        containers = obj.containers.all()
+        experiments = Experiment.objects.filter(pk__in=Crystal.objects.filter(container__in=obj.containers.all()).values('experiment')).order_by('priority').reverse()
+        group = Project.objects.filter(pk__in=obj.containers.all().values('project'))
+        try:
+            num_crystals = obj.project.crystal_set.filter(container__pk__in=containers).count()
+        except:
+            num_crystals = 12
+
+    work_dir = create_cache_dir(obj.label_hash())
+    prefix = "%s-%s" % (obj.label_hash(), format)
+    pdf_file = os.path.join(work_dir, '%s.pdf' % prefix)
+    print pdf_file
+    if not os.path.exists(pdf_file) or settings.DEBUG: # remove the True after testing
+        # create a file into which the LaTeX will be written
+        tex_file = os.path.join(work_dir, '%s.tex' % prefix)
+        # render and output the LaTeX into temap_file
+        if format == 'protocol' or format == 'runlist':
+            if format == 'protocol':
+                project = obj.project
+            else:
+                project = request.project
+            tex = loader.render_to_string('users/tex/sample_list.tex', {'project': project, 'group': group, 'shipment' : obj, 'experiments': experiments, 'containers': containers, 'num_crystals': num_crystals })
+        elif format == 'label':
+            project = model == Project and obj or obj.project
+            tex = loader.render_to_string('users/tex/send_labels.tex', {'project': project, 'shipment' : obj})
+        elif format == 'return_label':
+            project = model == Project and obj or obj.project
+            obj = model == Shipment and obj or None
+            tex = loader.render_to_string('users/tex/return_labels.tex', {'project': project, 'shipment' : obj})
+        f = open(tex_file, 'w')
+        f.write(tex)
+        f.close()
+    
+        devnull = file('/dev/null', 'rw')
+        stdout = sys.stdout
+        stderr = sys.stderr
+        if not settings.DEBUG:
+            stdout = devnull
+            stderr = devnull
+        subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], 
+                        cwd=work_dir,
+                        )
+        if format == 'protocol' or format == 'runlist':
+            subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], 
+                            cwd=work_dir,
+                            )
+    
+    return send_raw_file(request, pdf_file, attachment=True)
+        
+@login_required
+@project_required
+def shipment_xls(request, id):
+    """ """
+    project = request.project
+    try:
+        shipment = Shipment.objects.get(id=id)
+    except:
+        raise Http404
+    
+    temp_dir = tempfile.mkdtemp()
+    
+    try:
+    
+        # configure an HttpResponse so that it has the mimetype and attachment name set correctly
+        response = HttpResponse(mimetype='application/xls')
+        filename = ('%s-%s.xls' % (project.name, shipment.name)).replace(' ', '_')
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        
+        # create a temporary directory
+        temp_dir = tempfile.mkdtemp()
+        # create a temporary file into which the .xls will be written
+        temp_file = tempfile.mkstemp(dir=temp_dir, suffix='.xls')[1]
+        
+        # export it
+        # why we use all?
+        #workbook = LimsWorkbookExport(project.experiment_set.all(), project.crystal_set.all())
+        dewars = shipment.dewar_set.all()
+        
+        containers = list()
+        for dewar in dewars:
+            for cont in dewar.container_set.all():
+                containers.append(cont)
+        
+        crystals = list()
+        for cont in containers:
+            for crys in cont.crystal_set.all():
+                crystals.append(crys)
+        
+        ship_experiments = list()
+        for cont in containers:
+            for exp in cont.get_experiment_list():
+                if exp not in ship_experiments:
+                    ship_experiments.append(exp)
+    
+        workbook = LimsWorkbookExport(ship_experiments, crystals)
+        errors = workbook.save(temp_file)
+        
+        # open the resulting .xls and write it out to the response/browser
+        xls_file = open(temp_file)
+        xls = xls_file.read()
+        xls_file.close()
+        response.write(xls)
+        
+        # return the response
+        return response
+        
+    finally:
+        if not settings.DEBUG:
+            # remove the tempfiles
+            shutil.rmtree(temp_dir)
+    
+
+# -------------------------- JSONRPC Methods ----------------------------------------#
+import jsonrpc
+from jsonrpc import jsonrpc_method, exceptions
+
+@jsonrpc_method('lims.add_data')
+@apikey_required
+def add_data(request, data_info):
+    
+    # check if project_id is provided if not check if project_name is provided
+    if data_info.get('project_id') is not None:
+        data_owner = Project.objects.get(pk=data_info['project_id'])   
+    elif data_info.get('project_name') is not None:
+        try:
+            data_owner = Project.objects.get(name=data_info['project_name'])
+        except:
+            data_owner = create_project(username=data_info['project_name'])
+        data_info['project_id'] = data_owner.pk
+        del data_info['project_name']
+    else:
+        raise exceptions.InvalidRequestError('Unknown Project')
+    
+    # check if beamline_id is provided if not check if beamline_name is provided
+    if data_info.get('beamline_id') is None:
+        if data_info.get('beamline_name') is not None:
+            try:
+                beamline = Beamline.objects.get(name=data_info['beamline_name'])
+                del data_info['beamline_name']
+                data_info['beamline_id'] = beamline.pk
+            except Beamline.DoesNotExist:
+                raise exceptions.InvalidRequestError('Unknown Beamline')
+      
+    # convert unicode to str
+    new_info = {}
+    for k,v in data_info.items():
+        if k == 'url':
+            v = create_download_key(v, data_info['project_id'])
+        new_info[str(k)] = v
+    try:
+        # if id is provided, make sure it is owned by current owner otherwise add new entry
+        # to prevent overwriting other's stuff
+        force_update = False
+        if new_info.get('id') is not None:
+            try:
+                new_obj = data_owner.data_set.get(pk=new_info.get('id'))
+                force_update = True
+                new_info['created'] = timezone.now()
+            except:
+                new_info['id'] = None
+        
+        new_obj = Data(**new_info)
+        new_obj.save(force_update=force_update)
+
+        # check type, and change status accordingly
+        if new_obj.crystal is not None:
+            if new_obj.kind == Result.RESULT_TYPES.SCREENING:
+                new_obj.crystal.change_screen_status(Crystal.EXP_STATES.COMPLETED)
+            elif new_obj.kind == Result.RESULT_TYPES.COLLECTION:
+                new_obj.crystal.change_collect_status(Crystal.EXP_STATES.COMPLETED)
+        if new_obj.experiment is not None:
+            if new_obj.experiment.status == Experiment.STATES.ACTIVE:
+                new_obj.experiment.change_status(Experiment.STATES.PROCESSING)
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, "Dataset uploaded from beamline")
+        return {'data_id': new_obj.pk}
+    except Exception, e:
+        raise exceptions.ServerError(e.message)
+
+
+@jsonrpc_method('lims.add_report')
+@apikey_required
+def add_report(request, report_info):
+    
+    # check if project_id is provided if not check if project_name is provided
+    if report_info.get('project_id') is not None:
+        report_owner = Project.objects.get(pk=report_info['project_id'])   
+    elif report_info.get('project_name') is not None:
+        try:
+            report_owner = Project.objects.get(name=report_info['project_name'])
+        except:
+            report_owner = create_project(username=report_info['project_name'])
+        report_info['project_id'] = report_owner.pk
+        del report_info['project_name']
+    else:
+        raise exceptions.InvalidRequestError('Unknown Project')
+          
+    # convert unicode to str
+    new_info = {}
+    for k,v in report_info.items():
+        if k == 'url':
+            v = create_download_key(v, report_info['project_id'])
+        new_info[str(k)] = v
+    try:
+        # if id is provided, make sure it is owned by current owner otherwise add new entry
+        # to prevent overwriting other's stuff
+        force_update = False
+        if new_info.get('id') is not None:
+            try:
+                new_obj = report_owner.result_set.get(pk=new_info.get('id'))
+                force_update = True
+                new_info['created'] = timezone.now()
+            except:
+                new_info['id'] = None
+        
+        new_obj = Result(**new_info)
+        new_obj.save(force_update=force_update)
+
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, "New analysis Report uploaded from beamline")
+        return {'result_id': new_obj.pk}
+    except Exception, e:
+        raise exceptions.ServerError(e.message)
+
+@jsonrpc_method('lims.add_scan')
+@apikey_required
+def add_scan(request, scan_info):
+    # check if project_id is provided if not check if project_name is provided
+    if scan_info.get('project_id') is not None:
+        scan_owner = Project.objects.get(pk=scan_info['project_id'])   
+    elif scan_info.get('project_name') is not None:
+        try:
+            scan_owner = Project.objects.get(name=scan_info['project_name'])
+        except:
+            scan_owner = create_project(username=scan_info['project_name'])
+        scan_info['project_id'] = scan_owner.pk
+        del scan_info['project_name']
+    else:
+        raise exceptions.InvalidRequestError('Unknown Project')
+
+    # check if beamline_id is provided if not check if beamline_name is provided
+    if scan_info.get('beamline_id') is None:
+        if scan_info.get('beamline_name') is not None:
+            try:
+                beamline = Beamline.objects.get(name=scan_info['beamline_name'])
+                del scan_info['beamline_name']
+                scan_info['beamline_id'] = beamline.pk
+            except Beamline.DoesNotExist:
+                raise exceptions.InvalidRequestError('Unknown Beamline')
+
+    # convert unicode to str
+    new_info = {}
+    for k,v in scan_info.items():
+        new_info[str(k)] = v
+    try:
+        # if id is provided, make sure it is owned by current owner otherwise add new entry
+        # to prevent overwriting other's stuff
+        force_update = False
+        if new_info.get('id') is not None:
+            try:
+                new_obj = scan_owner.scan_result_set.get(pk=new_info.get('id'))
+                force_update = True
+                new_info['created'] = timezone.now()
+            except:
+                new_info['id'] = None
+        new_obj = ScanResult(**new_info) 
+        try:
+            new_obj.experiment = new_obj.crystal.experiment
+        except:
+            pass
+        new_obj.save(force_update=force_update)
+        
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, "New scan uploaded from beamline")
+        return {'scan_id': new_obj.pk}
+    except Exception, e:
+        raise exceptions.ServerError(e.message)
+    
+
+@jsonrpc_method('lims.add_strategy')
+@apikey_required
+def add_strategy(request, stg_info):
+    info = {}
+    # convert unicode to str
+    for k,v in stg_info.items():
+        info[smart_str(k)] = v
+    try:
+        new_obj = Strategy(**info)
+        new_obj.save()
+        ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE, 
+           "New strategy uploaded from beamline" % new_obj)
+        return {'strategy_id': new_obj.pk}
+    except Exception, e:
+        raise exceptions.ServerError(e.message)
+       
+
+# -------------------------- PLOTTING ----------------------------------------#
+import numpy
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.ticker import Formatter, FormatStrFormatter, Locator
+from matplotlib.figure import Figure
+from matplotlib import rcParams
+from matplotlib.colors import Normalize
+import matplotlib.cm as cm
+#from mpl_toolkits.axes_grid import AxesGrid
+
+# Adjust rc parameters
+rcParams['legend.loc'] = 'best'
+rcParams['legend.fontsize'] = 10
+rcParams['legend.isaxes'] = False
+rcParams['figure.facecolor'] = 'white'
+rcParams['figure.edgecolor'] = 'white'
+#rcParams['mathtext.fontset'] = 'stix'
+#rcParams['mathtext.fallback_to_cm'] = True
+#rcParams['font.size'] = 14
+rcParams['font.family'] = 'serif'
+rcParams['font.serif'] = 'Gentium Basic'
+
+class ResFormatter(Formatter):
+    def __call__(self, x, pos=None):
+        if x <= 0.0:
+            return u""
+        else:
+            return u"%0.2f" % (x**-0.5)
+
+class ResLocator(Locator):
+    def __call__(self, *args, **kwargs):
+        locs = numpy.linspace(0.0156, 1, 30 )
+        return locs
+
+def get_min_max(a, dev=0.1):
+    mn, mx = min(a), max(a)
+    dev = (mx-mn)*dev
+    return mn-dev, mx+dev
+
+
+PLOT_WIDTH = 8
+PLOT_HEIGHT = 6 
+PLOT_DPI = 75
+IMG_WIDTH = int(round(PLOT_WIDTH * PLOT_DPI))
+
+@login_required
+@cache_page(60*3600)
+def plot_xrf_scan(request, id):
+    try:
+        project = request.user.get_profile()
+        scan = project.scanresult_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            scan = get_object_or_404(ScanResult, pk=id)
+        else:
+            raise Http404
+
+    data = scan.details
+    if data is None:
+        raise Http404
+    
+    x = numpy.array(data['energy'])
+    y = numpy.array(data['counts'])
+    yc = numpy.array(data['fit'])
+    
+    fig = Figure(figsize=(PLOT_WIDTH*1.1, PLOT_HEIGHT*0.9), dpi=PLOT_DPI)
+    fig.subplots_adjust(left=0.1, right=0.95, top=0.95, bottom=0.1)
+    ax1 = fig.add_subplot(111)
+    ax1.set_title('X-Ray Fluorescence')
+    ax1.set_ylabel('Fluorescence')
+    ax1.set_xlabel('Energy (keV)')
+    ax1.plot(x, y, 'b-', lw=1, markersize=3, markerfacecolor='w', markeredgewidth=1, label='Exp')
+    ax1.plot(x, yc, 'k:', lw=1, markersize=3, markerfacecolor='w', markeredgewidth=1, label='Fit')
+    ax1.grid(True)
+    ax1.legend()
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+
+    peaks = data['peaks']
+    if peaks is None:
+        return
+
+    new_lines = scan.summarize_lines()
+    for line in new_lines:
+        base = line[0]
+        for edge in line[1]:
+            ax1.plot([edge[1], edge[1]], [0, edge[2]*0.95], '%s' % line[2])
+            ax1.text(edge[1], -0.5, "%s-%s" % (base, edge[0]), rotation=90, 
+                     horizontalalignment='center', verticalalignment='top', 
+                     color=line[2], size=11)
+
+    # set limits on axes
+    alims = ax1.axis()
+    _offset = 0.1 * alims[3]
+    ax1.set_xlim((x.min(), x.max()))
+    ax1.set_ylim((alims[2]-1.5*_offset, alims[3]+_offset))
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+@login_required
+@cache_page(60*3600)
+def plot_xanes_scan(request, id):
+    try:
+        project = request.user.get_profile()
+        scan = project.scanresult_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            scan = get_object_or_404(ScanResult, pk=id)
+        else:
+            raise Http404
+
+    data = scan.details
+    if data is None:
+        raise Http404
+    
+    x = data['data']['energy']
+    y = data['data']['counts']
+    x11 = data['efs']['energy']
+    fpp = data['efs']['fpp']
+    fp = data['efs']['fp']
+            
+    fig = Figure(figsize=(PLOT_WIDTH*1.1, PLOT_HEIGHT*0.9), dpi=PLOT_DPI)
+    fig.subplots_adjust(left=0.1, right=0.9, top=0.95, bottom=0.1)
+    ax1 = fig.add_subplot(111)
+    ax1.plot(x, y, 'b')   
+    
+    ax11 = ax1.twinx()
+    ax11.plot(x11, fpp, 'r')
+    ax11.plot(x11, fp, 'g')
+
+    ax1.set_title("%s Edge Scan" % scan.edge)
+    ax1.set_xlabel("Energy (keV)")
+    ax1.set_ylabel("Fluorescence Counts")
+    ax11.set_ylabel("Anomalous scattering factors (f', f'')")
+
+    ypadding = (max(y) - min(y))/8.0  # pad 1/8 of range to either side
+    curr_ymin, curr_ymax = ax1.get_ylim()
+    ymin = (curr_ymin+ypadding < min(y)) and curr_ymin  or (min(y) - ypadding)
+    ymax = (curr_ymax-ypadding > max(y)) and curr_ymax  or (max(y) + ypadding)
+
+    y1padding = (min(fp) < 0) and (abs(min(fp)) + max(fpp))/50.0 or (max(fpp) - min(fp))/50.0
+    y1min = min(fp) - y1padding
+    y1max = max(fpp) + y1padding
+    
+    ax1.set_ylim(ymin, ymax)
+    ax1.set_xlim(min(data['data']['energy']), max(data['data']['energy']))
+    ax11.set_ylim(y1min, y1max)
+
+    for p in data['energies']:
+        ax1.axvline( p[1], color='m', linestyle=':', linewidth=1)
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+    
+
+
+@login_required
+@cache_page(60*3600)
+def plot_shell_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+
+    # extract shell statistics to plot
+    data = result.details.get('shell_statistics')
+    if data is None:
+        raise Http404
+    # Allow for either cc_half or r_mrgdf
+    if "cc_half" in data:
+        extra_k = "cc_half"
+        extra_l = "CC(1/2)"
+    else:
+        extra_k = "r_mrgdf"
+        extra_l = "R-mrgd-F"
+    shell = numpy.array(data['shell'])**-2
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(shell, data['completeness'], 'r-')
+    ax1.set_ylabel('completeness (%)', color='r')
+    ax11 = ax1.twinx()
+    ax11.plot(shell, data['r_meas'], 'g-', label='R-meas')
+    ax11.plot(shell, data[extra_k], 'g:+', label=extra_l)
+    ax11.legend(loc='center left')
+    ax1.grid(True)
+    ax11.set_ylabel('R-factors (%)', color='g')
+    for tl in ax11.get_yticklabels():
+        tl.set_color('g')
+    for tl in ax1.get_yticklabels():
+        tl.set_color('r')
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax1.set_ylim(0, 105)
+    ax11.set_ylim((0, 105))
+
+    ax2 = fig.add_subplot(212, sharex=ax1)
+    ax2.plot(shell, data['i_sigma'], 'm-')
+    ax2.set_xlabel('Resolution Shell')
+    ax2.set_ylabel('I/SigmaI', color='m')
+    ax21 = ax2.twinx()
+    ax21.plot(shell, data['sig_ano'], 'b-')
+    ax2.grid(True)
+    ax21.set_ylabel('SigAno', color='b')
+    for tl in ax21.get_yticklabels():
+        tl.set_color('b')
+    for tl in ax2.get_yticklabels():
+        tl.set_color('m')
+    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax2.set_ylim(0, get_min_max(data['i_sigma'], 0.1)[1])
+    ax21.set_ylim(0, get_min_max(data['sig_ano'], 0.1)[1])
+
+    ax1.xaxis.set_major_formatter(ResFormatter())
+    ax1.xaxis.set_minor_formatter(ResFormatter())
+    ax1.xaxis.set_major_locator(ResLocator())
+    ax2.xaxis.set_major_formatter(ResFormatter())
+    ax2.xaxis.set_minor_formatter(ResFormatter())
+    ax2.xaxis.set_major_locator(ResLocator())
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+@login_required
+@cache_page(60*3600)
+def plot_pred_quality(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+
+    data = result.details.get('predicted_quality')
+    if data is None:
+        raise Http404
+    shell = numpy.array(data['shell'])**-2
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(shell, data['completeness'], 'r-')
+    ax1.set_ylabel('completeness (%)', color='r')
+    ax11 = ax1.twinx()
+    ax11.plot(shell, data['r_factor'], 'g-')
+    ax11.legend(loc='center left')
+    ax1.grid(True)
+    ax11.set_ylabel('R-factor (%)', color='g')
+    for tl in ax11.get_yticklabels():
+        tl.set_color('g')
+    for tl in ax1.get_yticklabels():
+        tl.set_color('r')
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax1.set_ylim((0, 105))
+    ax11.set_ylim(0,  get_min_max(data['r_factor'], 0.1)[1])
+
+    ax2 = fig.add_subplot(212, sharex=ax1)
+    ax2.plot(shell, data['i_sigma'], 'm-')
+    ax2.set_xlabel('Resolution Shell')
+    ax2.set_ylabel('I/SigmaI', color='m')
+    ax21 = ax2.twinx()
+    ax21.plot(shell, data['multiplicity'], 'b-')
+    ax2.grid(True)
+    ax21.set_ylabel('Multiplicity', color='b')
+    for tl in ax21.get_yticklabels():
+        tl.set_color('b')
+    for tl in ax2.get_yticklabels():
+        tl.set_color('m')
+    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax2.set_ylim(get_min_max(data['i_sigma'], 0.1))
+    ax21.set_ylim(get_min_max(data['multiplicity'],0.1))
+
+    ax1.xaxis.set_major_formatter(ResFormatter())
+    ax1.xaxis.set_minor_formatter(ResFormatter())
+    ax1.xaxis.set_major_locator(ResLocator())
+    ax2.xaxis.set_major_formatter(ResFormatter())
+    ax2.xaxis.set_minor_formatter(ResFormatter())
+    ax2.xaxis.set_major_locator(ResLocator())
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+@login_required
+@cache_page(60*3600)
+def plot_overlap_analysis(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+        
+    data = result.details.get('overlap_analysis')
+    if data is None:
+        raise Http404
+    angle = data.pop('angle')
+    
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.7), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    keys = [(float(k),k) for k in data.keys()]
+    for _,k in sorted(keys):       
+        if len(data[k]) is len(angle):
+            ax1.plot(angle, data[k], label=k)
+    ax1.set_ylabel('Maximum delta (deg)')
+    ax1.grid(True)
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+
+    ax1.set_xlabel('Oscillation angle (deg)')
+    ax1.legend()
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+
+@login_required
+@cache_page(60*3600)
+def plot_wedge_analysis(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+        
+    data = result.details.get('wedge_analysis')
+    if data is None:
+        raise Http404
+    start_angle = data.pop('start_angle')
+    
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    keys = [(float(k),k) for k in data.keys()]
+    for _,k in sorted(keys):       
+        ax1.plot(start_angle, data[k], label="%s%%" % k)
+    ax1.set_ylabel('Total Oscillation Angle (deg)')
+    ax1.grid(True)
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+
+    ax1.set_xlabel('Starting angle (deg)')
+    ax1.legend()
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+@login_required
+@cache_page(60*3600)
+def plot_exposure_analysis(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+        
+    data = result.details.get('exposure_analysis')
+    if data is None:
+        raise Http404
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.7), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    ax1.plot(data['exposure_time'], data['resolution'])
+    ax1.set_ylabel('Resolution')
+    ax1.grid(True)
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+
+    exposure_time = result.details.get('strategy', {}).get('exposure_time')
+    if exposure_time is not None:
+        ax1.axvline(x=exposure_time, color='r', label='optimal')
+    ax1.set_xlabel('Exposure time (s)')
+    ax1.legend()
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+
+@login_required
+@cache_page(60*3600)
+def plot_error_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+
+    data = result.details.get('standard_errors') # extract data to plot
+    if data is None:
+        raise Http404
+    shell = numpy.array(data['shell'])**-2    
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(shell, data['chi_sq'], 'r-')
+    ax1.set_ylabel('Chi^2', color='r')
+    ax11 = ax1.twinx()
+    ax11.plot(shell, data['i_sigma'], 'b-')
+    ax11.set_ylabel('I/Sigma', color='b')
+    ax1.grid(True)
+    for tl in ax11.get_yticklabels():
+        tl.set_color('b')
+    for tl in ax1.get_yticklabels():
+        tl.set_color('r')
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax1.set_ylim(get_min_max(data['chi_sq'], 0.2))
+    ax11.set_ylim(0, get_min_max(data['i_sigma'], 0.1)[1])
+
+    ax2 = fig.add_subplot(212, sharex=ax1)
+    ax2.plot(shell, data['r_obs'], 'g-', label='R-observed')
+    ax2.plot(shell, data['r_exp'], 'r:', label='R-expected')
+    ax2.set_xlabel('Resolution Shell')
+    ax2.set_ylabel('R-factors (%)')
+    ax2.legend(loc='best')
+    ax2.grid(True)
+    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+    ax2.set_ylim(0, get_min_max(data['r_obs'], 0.1)[1])
+
+    ax1.xaxis.set_major_formatter(ResFormatter())
+    ax1.xaxis.set_minor_formatter(ResFormatter())
+    ax1.xaxis.set_major_locator(ResLocator())
+
+    ax2.xaxis.set_major_formatter(ResFormatter())
+    ax2.xaxis.set_minor_formatter(ResFormatter())
+    ax2.xaxis.set_major_locator(ResLocator())
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+
+@login_required
+@cache_page(60*3600)
+def plot_diff_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+        
+    # extract statistics to plot
+    data = result.details.get('diff_statistics')
+    if data is None:
+        raise Http404
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.66), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    ax1.plot(data['frame_diff'], data['rd'], 'r-', label="all")
+    ax1.set_ylabel('R-d')
+    ax1.grid(True)
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+
+    ax1.plot(data['frame_diff'], data['rd_friedel'], 'm-', label="friedel")
+    ax1.plot(data['frame_diff'], data['rd_non_friedel'], 'k-', label="non_friedel")
+    ax1.set_xlabel('Frame Difference')
+    ax1.legend()
+
+    # make and return png image
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+
+@login_required
+@cache_page(60*3600)
+def plot_wilson_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+        
+    # extract statistics to plot
+    data = result.details.get('wilson_plot')
+    if data is None:
+        raise Http404
+    
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.7), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    plot_data = zip(data['inv_res_sq'], data['log_i_sigma'])
+    plot_data.sort()
+    plot_data = numpy.array(plot_data)
+    ax1.plot(plot_data[:,0], plot_data[:,1], 'r-+')
+    ax1.set_xlabel('Resolution')
+    ax1.set_ylabel('ln(<I>/Sigma(f)^2)')
+    ax1.grid(True)
+    ax1.xaxis.set_major_formatter(ResFormatter())
+    ax1.xaxis.set_major_locator(ResLocator())
+    
+    # set font parameters for the ouput table
+    wilson_line = result.details.get('wilson_line')
+    wilson_scale = result.details.get('wilson_scale')
+    if wilson_line is not None:
+        fontpar = {}
+        fontpar["family"]="monospace"
+        fontpar["size"]=9
+        info =  "Estimated B: %0.3f\n" % wilson_line[0]
+        info += "sigma a: %8.3f\n" % wilson_line[1]
+        info += "sigma b: %8.3f\n" % wilson_line[2]
+        if wilson_scale is not None:
+            info += "Scale factor: %0.3f\n" % wilson_scale    
+        fig.text(0.55,0.65, info, fontdict=fontpar, color='k')
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+
+@login_required
+@cache_page(60*3600)
+def plot_frame_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+
+    # extract statistics to plot
+    data = result.details.get('frame_statistics')
+    if data is None:
+        raise Http404
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(311)
+    ax1.plot(data['frame'], data['scale'], 'r-')
+    ax1.set_ylabel('Scale Factor', color='r')
+    ax11 = ax1.twinx()
+    ax11.plot(data['frame'], data['mosaicity'], 'g-')
+    ax1.grid(True)
+    ax11.set_ylabel('Mosaicity', color='g')
+    for tl in ax11.get_yticklabels():
+        tl.set_color('g')
+    for tl in ax1.get_yticklabels():
+        tl.set_color('r')
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax11.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+    ax1.set_ylim(get_min_max(data['scale'], 0.2))
+    ax11.set_ylim(get_min_max(data['mosaicity'], 0.2))
+
+    ax2 = fig.add_subplot(312, sharex=ax1)
+    ax2.plot(data['frame'], data['divergence'], 'm-')
+    ax2.set_ylabel('Divergence', color='m')
+    ax2.set_ylim(get_min_max(data['divergence'], 0.2))
+    ax2.yaxis.set_major_formatter(FormatStrFormatter('%0.3f'))
+    ax2.grid(True)
+    if data.get('frame_no') is not None:
+        ax21 = ax2.twinx()
+        ax21.plot(data['frame_no'], data['i_sigma'], 'b-')
+
+        ax21.set_ylabel('I/Sigma(I)', color='b')
+        for tl in ax21.get_yticklabels():
+            tl.set_color('b')
+        for tl in ax2.get_yticklabels():
+            tl.set_color('m')
+
+        ax3 = fig.add_subplot(313, sharex=ax1)
+        ax3.plot(data['frame_no'], data['r_meas'], 'k-')
+        ax3.set_xlabel('Frame Number')
+        ax3.set_ylabel('R-meas', color='k')
+        ax31 = ax3.twinx()
+        ax31.plot(data['frame_no'], data['unique'], 'c-')
+        ax3.grid(True)
+        ax31.set_ylabel('Unique Reflections', color='c')
+        for tl in ax31.get_yticklabels():
+            tl.set_color('c')
+        for tl in ax3.get_yticklabels():
+            tl.set_color('k')
+        ax21.yaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+        ax3.yaxis.set_major_formatter(FormatStrFormatter('%0.3f'))
+        ax31.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+
+@login_required
+@cache_page(60*3600)
+def plot_twinning_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+
+    # extract statistics to plot
+    data = result.details.get('twinning_l_test')
+    if data is None:
+        raise Http404
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT * 0.6), dpi=PLOT_DPI)
+    ax1 = fig.add_subplot(111)
+    ax1.plot(data['abs_l'], data['observed'], 'b-+', label='observed')
+    ax1.plot(data['abs_l'], data['untwinned'], 'r-+', label='untwinned')
+    ax1.plot(data['abs_l'], data['twinned'], 'm-+', label='twinned')
+    ax1.set_xlabel('|L|')
+    ax1.set_ylabel('P(L>=1)')
+    ax1.grid(True)
+    
+    # set font parameters for the ouput table
+    l_statistic = result.details.get('twinning_l_statistic')
+    if l_statistic is not None:
+        fontpar = {}
+        fontpar["family"]="monospace"
+        fontpar["size"]=9
+        info =  "Observed:     %0.3f\n" % l_statistic[0]
+        info += "Untwinned:    %0.3f\n" % l_statistic[1]
+        info += "Perfect twin: %0.3f\n" % l_statistic[2]
+        fig.text(0.6,0.2, info, fontdict=fontpar, color='k')
+    ax1.legend()
+    
+
+    # make and return png image
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
+
+@login_required
+@cache_page(60*3600)
+def plot_profiles_stats(request, id):
+    try:
+        project = request.user.get_profile()
+        result = project.result_set.get(pk=id)
+    except:
+        if request.user.is_staff:
+            result = get_object_or_404(Result, pk=id)
+        else:
+            raise Http404
+
+    # extract statistics to plot
+    profiles = result.details.get('integration_profiles')
+    if profiles is None:
+        raise Http404
+    fig = Figure(figsize=(PLOT_WIDTH, PLOT_WIDTH), dpi=PLOT_DPI)
+    cmap = cm.get_cmap('gray_r')
+    norm = Normalize(None, 100, clip=True)
+    grid = AxesGrid(fig, 111,
+                    nrows_ncols = (9,10),
+                    share_all=True,
+                    axes_pad = 0,
+                    label_mode = '1',
+                    cbar_mode=None)
+    for i, profile in enumerate(profiles):
+        grid[i*10].plot([profile['x']],[profile['y']], 'cs', markersize=15)
+        for loc in ['left','top','bottom','right']:
+            grid[i*10].axis[loc].toggle(ticklabels=False, ticks=False)
+        for j,spot in enumerate(profile['spots']):
+            idx = i*10 + j+1
+            _a = numpy.array(spot).reshape((9,9))
+            intpl = 'nearest' #'mitchell'
+            grid[idx].imshow(_a, cmap=cmap, norm=norm, interpolation=intpl)
+            for loc in ['left','top','bottom','right']:
+                grid[idx].axis[loc].toggle(ticklabels=False, ticks=False)
+    
+    # make and return png image
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
