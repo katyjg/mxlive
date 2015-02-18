@@ -164,24 +164,6 @@ urlpatterns += patterns('mxlive.users.views',
     (r'^runlist/(?P<id>\d+)/protocol/$', 'shipment_pdf', {'model': Runlist, 'format' : 'runlist' }, 'staff-runlist-pdf'),
     (r'^runlist/(?P<id>\d+)/staff_comments/add/$', 'staff_comments', {'model': Runlist, 'form': RunlistCommentsForm,}, 'staff-comments-runlist-add'),    
     
-    # Report images
-    (r'^experiment/report/(\d+)/shell.png$', 'plot_shell_stats', {}, 'staff-plot-shells'),
-    (r'^experiment/report/(\d+)/frame.png$', 'plot_frame_stats', {}, 'staff-plot-frames'),
-    (r'^experiment/report/(\d+)/diff.png$', 'plot_diff_stats', {}, 'staff-plot-diffs'),
-    (r'^experiment/report/(\d+)/stderr.png$', 'plot_error_stats', {}, 'staff-plot-stderr'),
-    (r'^experiment/report/(\d+)/profiles.png$', 'plot_profiles_stats', {}, 'staff-plot-profiles'),
-    (r'^experiment/report/(\d+)/wilson.png$', 'plot_wilson_stats', {}, 'staff-plot-wilson'),
-    (r'^experiment/report/(\d+)/twinning.png$', 'plot_twinning_stats', {}, 'staff-plot-twinning'),
-    (r'^experiment/report/(\d+)/exposure.png$', 'plot_exposure_analysis', {}, 'staff-plot-exposure'),
-    (r'^experiment/report/(\d+)/overlap.png$', 'plot_overlap_analysis', {}, 'staff-plot-overlap'),
-    (r'^experiment/report/(\d+)/quality.png$', 'plot_pred_quality', {}, 'staff-plot-quality'),
-    (r'^experiment/report/(\d+)/wedge.png$', 'plot_wedge_analysis', {}, 'staff-plot-wedge'),
-    (r'^experiment/request/(?P<id>\d+)/progress/$', 'object_detail', {'model': Experiment, 'template' : 'users/entries/progress_report.html' }, 'lims-experiment-progress'),
-
-    
-    # Scan images
-    (r'^experiment/scan/(\d+)/xrfscan.png$', 'plot_xrf_scan', {}, 'staff-plot-xrf'),
-    (r'^experiment/scan/(\d+)/xanesscan.png$', 'plot_xanes_scan', {}, 'staff-plot-xanes'),
 )
 
 urlpatterns += patterns('django.shortcuts',

@@ -7,7 +7,7 @@ from django.template import RequestContext
 from django.views.decorators.cache import cache_page
 from numpy import histogram, average, std
 from scheduler.models import Beamline as PublicBeamline
-from scheduler.models import Visit, Stat, WebStatus
+from scheduler.models import Visit, Stat
 from users.models import Beamline, Data, Project, ScanResult
 from users.views import admin_login_required
 
@@ -140,7 +140,7 @@ def stats_params(request, year=None, cumulative=False):
 @cache_page(24*3600)
 def stats_year(request, year):
 
-    prov_list = ['Saskatchewan','British Columbia','Alberta','Manitoba','Ontario','Quebec','New Brunswick','Nova Scotia','Prince Edward Island','Newfoundland','Other','No Matching MxLIVE Account']
+    prov_list = _provinces.keys() + ['Other','No Matching MxLIVE Account']
     labels = ['Normal','Remote','Mail-In','Purchased Access','Maintenance','Unallocated']
     colors = ['#7DCF7D','#A2DDDD','#CCE3B5','#FFCB94','#bbbbbb','#dddddd']
     month_labels = ('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec')
@@ -165,7 +165,6 @@ def stats_year(request, year):
     nstat = Stat.objects.using('public-web').filter(mode__in=['NormalMode']).filter(start_date__lte=end_year, end_date__gte=start_year)
     ostat = Stat.objects.using('public-web').exclude(mode__in=['NormalMode']).filter(start_date__lte=end_year, end_date__gte=start_year)
     mstat = Stat.objects.using('public-web').filter(mode__in=['FacilityRepair']).filter(start_date__lte=end_year, end_date__gte=start_year)
-    nwebstat = WebStatus.objects.using('public-web').filter(date__endswith=str(year))
     datasets = Data.objects.filter(created__year=year)
 
     prod_dates = {}
@@ -193,16 +192,6 @@ def stats_year(request, year):
                     if i <= n.last_shift and n.end_date <= end_year: 
                         xlist[x].append([n.end_date,i,[None, None]])
                  
-    next_day = start_year
-    while next_day <= end_year: # Add more shifts to the list of normal shifts, from the WebStatus model
-        for shift in range(3):
-            if [next_day, shift, [None, None]] not in nlist and nwebstat.filter(date__exact=next_day.strftime('%b/%d/%Y')).exists() and [next_day, shift, [None, None]] not in olist:
-                ws = nwebstat.get(date__exact=next_day.strftime('%b/%d/%Y'))
-                wslist = [ws.status1, ws.status2, ws.status3]
-                if wslist[shift] and wslist[shift][0] == 'N' and (len(wslist[shift]) == 1 or not wslist[shift][1] == 'S'):
-                    nlist.append([next_day, shift,[None, None]])
-        next_day += one_day
-        
     mshifts = []
     for m in mstat:
         if m.start_date == m.end_date:

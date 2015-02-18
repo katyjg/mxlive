@@ -5,8 +5,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
 from django.utils import dateformat, timezone
-from extras.enum import Enum
-from extras.jsonfield import JSONField
+from enum import Enum
+from jsonfield.fields import JSONField
 import copy
 import hashlib
 import string

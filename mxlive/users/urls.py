@@ -164,23 +164,6 @@ urlpatterns += patterns('mxlive.users.views',
     (r'^experiment/experiment/(?P<src_id>\d+)/widget/(?P<dest_id>\d+)/crystal/(?P<obj_id>\d+)/$', 'remove_object', {'source':Experiment, 'obj':Crystal, 'reverse':True}, 'users-experiment-remove-crystal'),
     (r'^experiment/request/(?P<id>\d+)/progress/$', 'object_detail', {'model': Experiment, 'template' : 'users/entries/progress_report.html' }, 'users-experiment-progress'),
 
-    # Report images
-    (r'^experiment/report/(\d+)/shell.png$', 'plot_shell_stats', {}, 'users-plot-shells'),
-    (r'^experiment/report/(\d+)/frame.png$', 'plot_frame_stats', {}, 'users-plot-frames'),
-    (r'^experiment/report/(\d+)/diff.png$', 'plot_diff_stats', {}, 'users-plot-diffs'),
-    (r'^experiment/report/(\d+)/stderr.png$', 'plot_error_stats', {}, 'users-plot-stderr'),
-    (r'^experiment/report/(\d+)/profiles.png$', 'plot_profiles_stats', {}, 'users-plot-profiles'),
-    (r'^experiment/report/(\d+)/wilson.png$', 'plot_wilson_stats', {}, 'users-plot-wilson'),
-    (r'^experiment/report/(\d+)/twinning.png$', 'plot_twinning_stats', {}, 'users-plot-twinning'),
-    (r'^experiment/report/(\d+)/exposure.png$', 'plot_exposure_analysis', {}, 'users-plot-exposure'),
-    (r'^experiment/report/(\d+)/overlap.png$', 'plot_overlap_analysis', {}, 'users-plot-overlap'),
-    (r'^experiment/report/(\d+)/quality.png$', 'plot_pred_quality', {}, 'users-plot-quality'),
-    (r'^experiment/report/(\d+)/wedge.png$', 'plot_wedge_analysis', {}, 'users-plot-wedge'),
-    
-    # Scan images
-    (r'^experiment/scan/(\d+)/xrfscan.png$', 'plot_xrf_scan', {}, 'users-plot-xrf'),
-    (r'^experiment/scan/(\d+)/xanesscan.png$', 'plot_xanes_scan', {}, 'users-plot-xanes'),
-    
     (r'^experiment/dataset/(?P<id>\d+)/trash/$', 'action_object', {'model': Data, 'form': LimsBasicForm, 'template': 'objforms/form_base.html', 'action': 'trash', }, 'users-data-trash'),           
     (r'^experiment/report/(?P<id>\d+)/trash/$', 'action_object', {'model': Result, 'form': LimsBasicForm, 'template': 'objforms/form_base.html', 'action': 'trash', }, 'users-result-trash'),       
 

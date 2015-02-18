@@ -17,8 +17,9 @@ import sys
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 # Add paths
-for _path in [os.path.join(BASE_DIR, 'lib'), os.path.join(BASE_DIR, 'mxlive')]:
+for _path in [os.path.join(BASE_DIR, 'libs'), os.path.join(BASE_DIR, 'mxlive')]:
     if not _path in sys.path: site.addsitedir(_path)
+site.addsitedir(os.path.join(BASE_DIR, '../cmcf-newdjango/website'))
 
 SITE_ID = 1
 
@@ -47,14 +48,12 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'mxlive.users',
-    'mxlive.scheduler',
     'mxlive.staff',
     'mxlive.objlist',
     'mxlive.objforms',
     'mxlive.remote',
     'mxlive.download',
     'mxlive.stats',
-    'mxlive.scheduler',
     'mxlive.apikey',
     'jsonrpc',
     'reversion',
@@ -121,7 +120,8 @@ LDAP_SU_GIDS = [] # something like ['CN=CLS-Testing,CN=Users,DC=vendasta,DC=com'
 
 
 AUTHENTICATION_BACKENDS = (
- 'mxlive.backends.ldapauth.LDAPBackend',
+ #'mxlive.backends.ldapauth.LDAPBackend',
+ 'django_auth_ldap.backend.LDAPBackend',
  'django.contrib.auth.backends.ModelBackend',
 )
 
@@ -166,3 +166,8 @@ try:
 except ImportError:
     import logging
     logging.debug("No settings_local.py, using settings.py only.")
+
+"""
+Before running:
+* create directory referenced by DOWNLOAD_CACHE_DIR
+"""

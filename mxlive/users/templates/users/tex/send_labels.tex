@@ -2,8 +2,9 @@
 \documentclass[letterpaper,10pt]{report}
 \usepackage{pst-barcode}
 \usepackage{xcolor,colortbl}
-\usepackage{boxedminipage}
-\usepackage{fontspec}
+%\usepackage{boxedminipage}
+\usepackage{varwidth}
+%\usepackage{fontspec}
 \usepackage[top=0.5in,bottom=0.5in,left=1in,right=1in,nohead,nofoot]{geometry}
 \usepackage{parskip}
 \usepackage{ncccropbox}
@@ -15,7 +16,7 @@
 %------------------------------------------------------------
 % normal line spacing: 1.0
 % double spacing     : 1.6
-\setmainfont{Gentium Basic}
+%\setmainfont{Gentium}
 \begin{document}
 
 	\begin{minipage}{\textwidth}
@@ -37,11 +38,11 @@
 		\newpage
 
     {% for dewar in shipment.dewar_set.all %}
-        \parbox{\textwidth}{
+        \begin{varwidth}{\textwidth}
         	\begin{center}
             	{\color{purple} {\bf Identification Label {{ forloop.counter }}: Affix this to dewar "{{ dewar.name|texsafe|default:"" }}" } }
-            	\cropbox{
-            		\begin{boxedminipage}{12cm}
+            	\fbox{
+            		\begin{varwidth}{12cm}
             		    \begin{center}
             		        \fbox{
 					            \begin{pspicture}(0.8\textwidth,0.8in)
@@ -59,64 +60,68 @@
 				           	\end{tabular}           
         		       	\end{center}
         		       	\vskip\fboxsep
-        		   	\end{boxedminipage}
+        		   	\end{varwidth}
         	   	}
         	\end{center}
-        }
+        \end{varwidth}
         \vspace{0.6in}
     {% endfor %}
 	\renewcommand{\arraystretch}{1.25}
 	{% for item in shipment.item_labels %}
-		\parbox{\textwidth}{
+		\begin{varwidth}{\textwidth}
 			\begin{center}
     			{\color{blue!10!black!50!green} {\bf Item Label {{ forloop.counter }}: 
 					Affix this to the outside of the box containing item \\ 
 					"{{ item.name|texsafe|default:"" }}" to be shipped to the CLS. } }
-				\vskip\fboxsep
-        		\begin{boxedminipage}{5.3in}
-            		\begin{minipage}{3.5in}
-            	        {\bf 
-            		        \begin{tabular}{ll}
-				                {\Large To: } & {\Large Canadian Light Source Inc. } \\
-				                 & {\Large University of Saskatchewan } \\
-				                 & {\Large 44 Innovation Boulevard } \\
-				                 & {\Large Saskatoon, SK S7N 2V3 } \\
-				                 & {\Large CANADA } \\
-				                 & {\normalsize Shipping Phone: (306) 657-3657 } \\
-				                 & {\normalsize Shipping Fax: (306) 657-3533 } \\
-				            \end{tabular}
-				        }
-                    	\vskip\fboxsep
-                		\colorbox[gray]{0.92}{
-                    		\begin{tabular*}{0.9\textwidth}{@{\extracolsep{\fill}} | p{.3\textwidth} | p{.5\textwidth} |}
-                    			\hline
-						        Shipment name & {{shipment.name}} \\ \hline 
-						        Package Number & {{ forloop.counter}} of {{shipment.dewar_set.count}} \\ \hline
-						        \hline
-						        From: & {\large {{ project.contact_person|texsafe|default:"" }} } \\
-							     {% if project.department %}& {\large {{ project.department|texsafe|default:"" }} } \\{% endif %}
-							     & {\large {{ project.organisation|texsafe|default:"" }} } \\
-							     & {\large {{ project.address|texsafe|default:"" }} } \\
-							     & {\large {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}\ \ {{project.postal_code|texsafe|default:"" }} } \\
-							     & {\large {{ project.country|texsafe|default:"" }} } \\
-							     & Phone: {{ project.contact_phone|texsafe|default:"" }} \\
-							     {% if project.contact_fax %}& Fax: {{ project.contact_fax|texsafe|default:"" }} \\{% endif %}
-						        \hline
-                    		\end{tabular*}
-                		}
-                		\vskip\fboxsep
-            		\end{minipage}
-            		\begin{minipage}{1.5in}
-                		\begin{center}
-							\vspace{-0.1in}
-						    {% include "users/tex/cmcf_logo.tex" %}
-						    \vspace{0.1in}
-						    {% include "users/tex/fragile_sign.tex" %}
-				        \end{center}
-            		\end{minipage}
-        		\end{boxedminipage}
+				\vskip
+                \fbox{
+            		\begin{varwidth}{5.3in}
+                		\begin{minipage}{3.5in}
+                	        {\bf 
+                		        \begin{tabular}{ll}
+				                    {\Large To: } & {\Large Canadian Light Source Inc. } \\
+				                     & {\Large University of Saskatchewan } \\
+				                     & {\Large 44 Innovation Boulevard } \\
+				                     & {\Large Saskatoon, SK S7N 2V3 } \\
+				                     & {\Large CANADA } \\
+				                     & {\normalsize Shipping Phone: (306) 657-3657 } \\
+				                     & {\normalsize Shipping Fax: (306) 657-3533 } \\
+				                \end{tabular}
+				            }
+                        	\vskip\fboxsep
+                    		\colorbox[gray]{0.92}{
+                        		\begin{tabular*}{0.9\textwidth}{@{\extracolsep{\fill}} | p{.3\textwidth} | p{.5\textwidth} |}
+                        			\hline
+						            Shipment name & {{shipment.name}} \\ \hline 
+						            Package Number & {{ forloop.counter}} of {{shipment.dewar_set.count}} \\ \hline
+						            \hline
+						            From: & {\large {{ project.contact_person|texsafe|default:"" }} } \\
+							         {% if project.department %}& {\large {{ project.department|texsafe|default:"" }} } \\{% endif %}
+							         & {\large {{ project.organisation|texsafe|default:"" }} } \\
+							         & {\large {{ project.address|texsafe|default:"" }} } \\
+							         & {\large {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}\ \ {{project.postal_code|texsafe|default:"" }} } \\
+							         & {\large {{ project.country|texsafe|default:"" }} } \\
+							         & Phone: {{ project.contact_phone|texsafe|default:"" }} \\
+							         {% if project.contact_fax %}& Fax: {{ project.contact_fax|texsafe|default:"" }} \\{% endif %}
+						            \hline
+                        		\end{tabular*}
+                    		}
+                    		\vskip\fboxsep
+                		\end{minipage}
+                		\begin{minipage}{1.5in}
+                    		\begin{center}
+							    \vspace{-0.1in}
+                                hello
+						        {% include "users/tex/cmcf_logo.tex" %}
+						        \vspace{0.1in}
+						        world
+                                {% include "users/tex/fragile_sign.tex" %}
+				            \end{center}
+                		\end{minipage}
+            		\end{varwidth}
+                }
 			\end{center}
-		}
+		\end{varwidth}
 		\vspace{0.2in}
 	{% endfor %}
 	\renewcommand{\arraystretch}{1.5}
@@ -126,8 +131,8 @@
 			Affix this to the outside of the dewar transport container \\ 
 			for dewar "{{ dewar.name|texsafe|default:"" }}" to be shipped to the CLS. }}
 	    \begin{center}
-    	    \vspace{0.5in}
-    	    \begin{boxedminipage}{\textwidth}
+            \fbox{
+    	    \begin{varwidth}{\textwidth}
     	        \begin{minipage}{4in}
     	            \fbox{
     	                \begin{pspicture}(0.9\textwidth,0.8in)
@@ -179,7 +184,8 @@
 				        \large{ {\bf Non-Hazardous \\ Frozen Samples In \\ a Dry-Shipper} }
                 	\end{center}
             	\end{minipage}
-        	\end{boxedminipage}
+        	\end{varwidth}
+            }
     	\end{center}
     {% endfor %}
 
