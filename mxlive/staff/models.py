@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from enum import Enum
 from jsonfield.fields import JSONField
-from users.models import ActivityLog, Beamline, Container, Crystal, Experiment
+from lims.models import ActivityLog, Beamline, Container, Crystal, Experiment
 import hashlib
 import os
 

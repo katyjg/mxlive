@@ -3,25 +3,25 @@ import os
 import tempfile
 import random
 
-from mxlive.users.excel import LimsWorkbook
-from mxlive.users.excel import LimsWorkbookExport
+from mxlive.lims.excel import LimsWorkbook
+from mxlive.lims.excel import LimsWorkbookExport
 
-from mxlive.users.tests.test_utils import DjangoTestCase
-from mxlive.users.tests.test_utils import TEST_FILES
+from mxlive.lims.tests.test_utils import DjangoTestCase
+from mxlive.lims.tests.test_utils import TEST_FILES
 
-from mxlive.users.tests import test_utils
+from mxlive.lims.tests import test_utils
 
-from mxlive.users.models import Experiment
-from mxlive.users.models import Dewar
-from mxlive.users.models import Crystal
-from mxlive.users.models import Constituent
-from mxlive.users.models import Cocktail
-from mxlive.users.models import Container
-from mxlive.users.models import Shipment
-from mxlive.users.models import SpaceGroup
-from mxlive.users.models import CrystalForm
-from mxlive.users.models import connectActivityLog
-from mxlive.users.models import disconnectActivityLog
+from mxlive.lims.models import Experiment
+from mxlive.lims.models import Dewar
+from mxlive.lims.models import Crystal
+from mxlive.lims.models import Constituent
+from mxlive.lims.models import Cocktail
+from mxlive.lims.models import Container
+from mxlive.lims.models import Shipment
+from mxlive.lims.models import SpaceGroup
+from mxlive.lims.models import CrystalForm
+from mxlive.lims.models import connectActivityLog
+from mxlive.lims.models import disconnectActivityLog
 
 class LimsWorkbookTest(DjangoTestCase):
     """ Tests for LimsSpreadsheet """

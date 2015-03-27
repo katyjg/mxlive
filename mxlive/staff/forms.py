@@ -4,7 +4,7 @@ from .models import Runlist
 from django import forms
 from django.forms import widgets
 from django.forms.util import ErrorList
-from users.models import Beamline, Carrier, Container, Dewar, Experiment, Shipment
+from lims.models import Beamline, Carrier, Container, Dewar, Experiment, Shipment
 import objforms.forms
 import re
 

@@ -116,7 +116,7 @@ for section, subsection in _URL_META.items():
                                    },
                  'users-comments-%s-add'% params.get('model').__name__.lower()))        
 
-urlpatterns = patterns('mxlive.users.views',
+urlpatterns = patterns('mxlive.lims.views',
     (r'^$', 'show_project', {}, 'project-home'),
     (r'^profile/edit/$', 'edit_profile', {'form': ProjectForm, 'template': 'objforms/form_base.html'}, 'users-profile-edit'),
     (r'^profile/edit/(?P<id>\d+)/$', 'edit_profile', {'form': ProjectForm, 'template': 'objforms/form_base.html'}, 'users-profile-edit-send'),
@@ -124,10 +124,10 @@ urlpatterns = patterns('mxlive.users.views',
 )
 
 # Dynamic patterns here
-urlpatterns += patterns('mxlive.users.views', *_dynamic_patterns )
+urlpatterns += patterns('mxlive.lims.views', *_dynamic_patterns )
 
 # Special cases
-urlpatterns += patterns('mxlive.users.views',
+urlpatterns += patterns('mxlive.lims.views',
     # Shipments
     (r'^shipping/shipment/(?P<id>\d+)/send/$', 'action_object', {'model': Shipment, 'form': ShipmentSendForm, 'template': 'objforms/form_base.html', 'action' : 'send'}, 'users-shipment-send'),
     (r'^shipping/shipment/(?P<id>\d+)/label/$', 'shipment_pdf', {'model': Shipment, 'format' : 'label' }, 'users-shipment-label'),

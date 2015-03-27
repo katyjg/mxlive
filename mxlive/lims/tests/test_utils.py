@@ -14,23 +14,23 @@ from django.db.models.query import QuerySet
 from django.utils.datastructures import MultiValueDict
 
 # DO NOT REMOVE
-import mxlive.users.admin
+import mxlive.lims.admin
 # DO NOT REMOVE
 
-from mxlive.users.models import Beamline
-from mxlive.users.models import Laboratory
-from mxlive.users.models import Project
-from mxlive.users.models import Shipment
-from mxlive.users.models import Dewar
-from mxlive.users.models import Container
-from mxlive.users.models import Crystal
-from mxlive.users.models import Experiment
-from mxlive.users.models import Carrier
-from mxlive.users.models import Strategy
-from mxlive.users.models import Data
-from mxlive.users.models import Result
-from mxlive.users.models import SpaceGroup
-from mxlive.users.models import CrystalForm
+from mxlive.lims.models import Beamline
+from mxlive.lims.models import Laboratory
+from mxlive.lims.models import Project
+from mxlive.lims.models import Shipment
+from mxlive.lims.models import Dewar
+from mxlive.lims.models import Container
+from mxlive.lims.models import Crystal
+from mxlive.lims.models import Experiment
+from mxlive.lims.models import Carrier
+from mxlive.lims.models import Strategy
+from mxlive.lims.models import Data
+from mxlive.lims.models import Result
+from mxlive.lims.models import SpaceGroup
+from mxlive.lims.models import CrystalForm
 
 from mxlive.staff.models import Runlist
 from mxlive.staff.models import AutomounterLayout

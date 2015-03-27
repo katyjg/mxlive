@@ -1,6 +1,6 @@
 from django.contrib import admin
 from models import Runlist, Link
-from users.models import Experiment, Container, Crystal
+from lims.models import Experiment, Container, Crystal
 
 from django import forms
 

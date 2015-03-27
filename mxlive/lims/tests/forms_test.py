@@ -2,20 +2,20 @@
 import unittest
 import os
 
-from mxlive.users.tests.test_utils import DjangoTestCase
-from mxlive.users.tests.test_utils import TEST_FILES
-from mxlive.users.tests.test_utils import create_Crystal
+from mxlive.lims.tests.test_utils import DjangoTestCase
+from mxlive.lims.tests.test_utils import TEST_FILES
+from mxlive.lims.tests.test_utils import create_Crystal
 
-from mxlive.users.forms import ShipmentUploadForm
-from mxlive.users.forms import ShipmentSendForm
-from mxlive.users.forms import ContainerForm
-from mxlive.users.forms import SampleSelectForm
-from mxlive.users.forms import ExperimentFromStrategyForm
+from mxlive.lims.forms import ShipmentUploadForm
+from mxlive.lims.forms import ShipmentSendForm
+from mxlive.lims.forms import ContainerForm
+from mxlive.lims.forms import SampleSelectForm
+from mxlive.lims.forms import ExperimentFromStrategyForm
 
-from mxlive.users.models import Shipment
-from mxlive.users.models import Crystal
-from mxlive.users.models import Container
-from mxlive.users.models import Experiment
+from mxlive.lims.models import Shipment
+from mxlive.lims.models import Crystal
+from mxlive.lims.models import Container
+from mxlive.lims.models import Experiment
 
 class ShipmentSendFormTest(DjangoTestCase):
     """ Tests for ShipmentSendForm class """

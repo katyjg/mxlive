@@ -1,7 +1,7 @@
 
 from django.db.models import *
 from django.template import Library
-from mxlive.users.models import Container, Experiment, Crystal
+from mxlive.lims.models import Container, Experiment, Crystal
 from mxlive.staff.models import Runlist
 
 register = Library()

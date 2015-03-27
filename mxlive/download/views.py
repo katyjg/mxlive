@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.static import serve
-from users.models import Data
+from lims.models import Data
 import os
 import posixpath
 import re

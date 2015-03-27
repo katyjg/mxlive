@@ -1,11 +1,11 @@
 """ Django models tests """
 import unittest
 
-from mxlive.users.tests.test_utils import DjangoTestCase
-from mxlive.users.tests.test_utils import create_Container
-from mxlive.users.tests.test_utils import create_Experiment
+from mxlive.lims.tests.test_utils import DjangoTestCase
+from mxlive.lims.tests.test_utils import create_Container
+from mxlive.lims.tests.test_utils import create_Experiment
 
-from mxlive.users.models import Container
+from mxlive.lims.models import Container
 
 from mxlive.staff.forms import ContainerSelectForm
 from mxlive.staff.forms import ExperimentSelectForm

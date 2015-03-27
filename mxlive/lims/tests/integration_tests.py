@@ -1,6 +1,6 @@
 import os
 
-from mxlive.users.tests.test_utils import DjangoTestCase
+from mxlive.lims.tests.test_utils import DjangoTestCase
 
 from django.test.client import Client
 from django.test.client import encode_file
@@ -11,10 +11,10 @@ from django.core.management.sql import sql_flush
 from django.core.management.color import no_style
 from django.db import connection
 
-from mxlive.users.models import Shipment
-from mxlive.users.models import Project
-from mxlive.users.models import Carrier
-from mxlive.users.models import Dewar
+from mxlive.lims.models import Shipment
+from mxlive.lims.models import Project
+from mxlive.lims.models import Carrier
+from mxlive.lims.models import Dewar
 
 from django.conf import settings
 
@@ -59,7 +59,7 @@ class IntegerationTests(DjangoTestCase):
         
         # these are integration tests, we need TEMPLATE_DIRS/AUTHENTICATION_BACKENDS/...
         settings.TEMPLATE_DIRS = (os.path.join(os.path.dirname(__file__), '..', '..', 'templates').replace('\\','/'),)
-        settings.AUTHENTICATION_BACKENDS = ('mxlive.users.tests.integration_tests.LDAPBackendMock','django.contrib.auth.backends.ModelBackend',)
+        settings.AUTHENTICATION_BACKENDS = ('mxlive.lims.tests.integration_tests.LDAPBackendMock','django.contrib.auth.backends.ModelBackend',)
         settings.LOGIN_REDIRECT_URL = '/home/'
         settings.TEMPLATE_CONTEXT_PROCESSORS = ('django.core.context_processors.request',)
         

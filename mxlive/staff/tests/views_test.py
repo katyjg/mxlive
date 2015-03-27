@@ -1,19 +1,19 @@
 import unittest
 import logging
 
-from mxlive.users.tests.test_utils import DjangoTestCase
-from mxlive.users.tests.test_utils import create_User
-from mxlive.users.tests.test_utils import create_Shipment
-from mxlive.users.tests.test_utils import create_Container
-from mxlive.users.tests.test_utils import create_Crystal
-from mxlive.users.tests.test_utils import create_Runlist
-from mxlive.users.tests.test_utils import create_Experiment
-from mxlive.users.tests.test_utils import create_Data
-from mxlive.users.tests.test_utils import create_Result
-from mxlive.users.tests.test_utils import get_request
-from mxlive.users.tests.test_utils import convert_ObjectList_to_list
+from mxlive.lims.tests.test_utils import DjangoTestCase
+from mxlive.lims.tests.test_utils import create_User
+from mxlive.lims.tests.test_utils import create_Shipment
+from mxlive.lims.tests.test_utils import create_Container
+from mxlive.lims.tests.test_utils import create_Crystal
+from mxlive.lims.tests.test_utils import create_Runlist
+from mxlive.lims.tests.test_utils import create_Experiment
+from mxlive.lims.tests.test_utils import create_Data
+from mxlive.lims.tests.test_utils import create_Result
+from mxlive.lims.tests.test_utils import get_request
+from mxlive.lims.tests.test_utils import convert_ObjectList_to_list
 
-from mxlive.users.views import edit_object_inline
+from mxlive.lims.views import edit_object_inline
 
 from mxlive.staff.views import staff_home
 from mxlive.staff.views import receive_shipment
@@ -21,12 +21,12 @@ from mxlive.staff.views import runlist_object_list
 from mxlive.staff.views import runlist_create_object
 from mxlive.staff.views import detailed_runlist
 
-from mxlive.users.models import Shipment
-from mxlive.users.models import Dewar
-from mxlive.users.models import Container
-from mxlive.users.models import Crystal
-from mxlive.users.models import Experiment
-from mxlive.users.models import perform_action
+from mxlive.lims.models import Shipment
+from mxlive.lims.models import Dewar
+from mxlive.lims.models import Container
+from mxlive.lims.models import Crystal
+from mxlive.lims.models import Experiment
+from mxlive.lims.models import perform_action
 
 from mxlive.staff.models import Runlist
 

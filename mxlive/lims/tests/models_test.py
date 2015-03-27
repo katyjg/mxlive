@@ -4,28 +4,28 @@ import unittest
 from django.db import models
 from django.db import IntegrityError
 
-from mxlive.users.tests.test_utils import create_Beamline
-from mxlive.users.tests.test_utils import create_Laboratory
-from mxlive.users.tests.test_utils import create_Shipment
-from mxlive.users.tests.test_utils import create_Dewar
-from mxlive.users.tests.test_utils import create_Container
-from mxlive.users.tests.test_utils import create_Crystal
-from mxlive.users.tests.test_utils import create_Experiment
-from mxlive.users.tests.test_utils import create_Project
-from mxlive.users.tests.test_utils import create_Strategy
-from mxlive.users.tests.test_utils import DjangoTestCase
+from mxlive.lims.tests.test_utils import create_Beamline
+from mxlive.lims.tests.test_utils import create_Laboratory
+from mxlive.lims.tests.test_utils import create_Shipment
+from mxlive.lims.tests.test_utils import create_Dewar
+from mxlive.lims.tests.test_utils import create_Container
+from mxlive.lims.tests.test_utils import create_Crystal
+from mxlive.lims.tests.test_utils import create_Experiment
+from mxlive.lims.tests.test_utils import create_Project
+from mxlive.lims.tests.test_utils import create_Strategy
+from mxlive.lims.tests.test_utils import DjangoTestCase
 
-from mxlive.users.models import Container
-from mxlive.users.models import Shipment
-from mxlive.users.models import Dewar
-from mxlive.users.models import Crystal
-from mxlive.users.models import Experiment
-from mxlive.users.models import delete
-from mxlive.users.models import ExcludeManagerWrapper
-from mxlive.users.models import FilterManagerWrapper
-from mxlive.users.models import perform_action
-from mxlive.users.models import archive
-from mxlive.users.models import change_status
+from mxlive.lims.models import Container
+from mxlive.lims.models import Shipment
+from mxlive.lims.models import Dewar
+from mxlive.lims.models import Crystal
+from mxlive.lims.models import Experiment
+from mxlive.lims.models import delete
+from mxlive.lims.models import ExcludeManagerWrapper
+from mxlive.lims.models import FilterManagerWrapper
+from mxlive.lims.models import perform_action
+from mxlive.lims.models import archive
+from mxlive.lims.models import change_status
 
 class BeamlineTest(unittest.TestCase):
     """ Tests for BeamLine model """

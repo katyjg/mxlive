@@ -1,7 +1,7 @@
 
 from django.conf.urls import patterns
-from users.forms import ConfirmDeleteForm, LimsBasicForm, ProjectForm
-from users.models import *  # @UnusedWildImport
+from lims.forms import ConfirmDeleteForm, LimsBasicForm, ProjectForm
+from lims.models import *  # @UnusedWildImport
 from .forms import *  # @UnusedWildImport
 import os
 
@@ -145,10 +145,10 @@ urlpatterns = patterns('mxlive.staff.views',
 )
 
 # Dynamic patterns here
-urlpatterns += patterns('mxlive.users.views', *_dynamic_patterns )
+urlpatterns += patterns('mxlive.lims.views', *_dynamic_patterns )
 
 #Special LIMS Cases
-urlpatterns += patterns('mxlive.users.views',
+urlpatterns += patterns('mxlive.lims.views',
 
     (r'^users/$', 'object_list', {'model': Project, 'template': 'staff/lists/profiles.html'}, 'staff-get-profiles'),
     

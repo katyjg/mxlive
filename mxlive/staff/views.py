@@ -13,9 +13,9 @@ from django.utils.datastructures import MultiValueDict
 from django.utils import timezone
 from download.maketarball import create_tar
 from download.models import SecurePath
-from users.models import *
-from users.views import admin_login_required, edit_object_inline
-from users.views import manager_required
+from lims.models import *
+from lims.views import admin_login_required, edit_object_inline
+from lims.views import manager_required
 from objlist.views import ObjectList
 from .admin import runlist_site
 from .models import Runlist

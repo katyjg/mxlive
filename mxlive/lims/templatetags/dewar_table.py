@@ -1,5 +1,5 @@
 from django.template import Library
-from mxlive.users.models import Container
+from mxlive.lims.models import Container
 
 register = Library()
 

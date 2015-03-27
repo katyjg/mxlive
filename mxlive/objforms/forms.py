@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import FieldError
-from users.models import *  # @UnusedWildImport
+from lims.models import *  # @UnusedWildImport
 
 class OrderedForm(forms.ModelForm):
     """

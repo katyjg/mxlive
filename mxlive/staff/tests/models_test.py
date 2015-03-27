@@ -1,15 +1,15 @@
 import unittest
 import logging
 
-from mxlive.users.tests.test_utils import DjangoTestCase
-from mxlive.users.tests.test_utils import create_Runlist
+from mxlive.lims.tests.test_utils import DjangoTestCase
+from mxlive.lims.tests.test_utils import create_Runlist
 
-from mxlive.users.models import Shipment
-from mxlive.users.models import Container
-from mxlive.users.models import Crystal
+from mxlive.lims.models import Shipment
+from mxlive.lims.models import Container
+from mxlive.lims.models import Crystal
 
-from mxlive.users.models import change_status
-from mxlive.users.models import perform_action
+from mxlive.lims.models import change_status
+from mxlive.lims.models import perform_action
 
 from mxlive.staff.models import Runlist
 from mxlive.staff.models import AutomounterLayout

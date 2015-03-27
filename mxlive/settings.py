@@ -47,7 +47,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'mxlive.users',
+    'mxlive.lims',
     'mxlive.staff',
     'mxlive.objlist',
     'mxlive.objforms',
@@ -104,7 +104,7 @@ USE_TZ = True
 STATIC_URL = '/media/'
 
 
-AUTH_PROFILE_MODULE = 'users.Project'
+AUTH_PROFILE_MODULE = 'lims.Project'
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
 LOGIN_REDIRECT_URL = '/home/'

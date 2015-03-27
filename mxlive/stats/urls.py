@@ -1,5 +1,5 @@
 from django.conf.urls import patterns
-from users.models import Data
+from lims.models import Data
 
 
 urlpatterns = patterns('mxlive.stats.views',
@@ -10,6 +10,6 @@ urlpatterns = patterns('mxlive.stats.views',
     (r'^params/(?P<year>\w+)/$', 'stats_params', {}, 'stats-params'),
     (r'^params/$', 'stats_params', {'cumulative': True}, 'stats-params-all'),    
 )
-urlpatterns += patterns('mxlive.users.views',
+urlpatterns += patterns('mxlive.lims.views',
     (r'^dataset/$', 'object_list', {'model': Data, 'template': 'staff/lists/dataset_list.html', 'num_show': 99, 'view_only': True}, 'stats-data-list'),                        
 )

@@ -8,8 +8,8 @@ from django.views.decorators.cache import cache_page
 from numpy import histogram, average, std
 from scheduler.models import Beamline as PublicBeamline
 from scheduler.models import Visit, Stat
-from users.models import Beamline, Data, Project, ScanResult
-from users.views import admin_login_required
+from lims.models import Beamline, Data, Project, ScanResult
+from lims.views import admin_login_required
 
 
 _provinces = {'British Columbia': ['BC','British Columbia'],
