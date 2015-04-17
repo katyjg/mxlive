@@ -19,7 +19,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # Add paths
 for _path in [os.path.join(BASE_DIR, 'libs'), os.path.join(BASE_DIR, 'mxlive')]:
     if not _path in sys.path: site.addsitedir(_path)
-site.addsitedir(os.path.join(BASE_DIR, '../cmcf-newdjango/website'))
+site.addsitedir(os.path.join(BASE_DIR, '../bl-website/website'))
 
 SITE_ID = 1
 
