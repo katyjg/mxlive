@@ -1,0 +1,72 @@
+{% load experiment_table %}
+
+<div class="object-list">
+    <h3>Experiments</h3>
+    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">
+        <thead>
+            <tr class="header">
+                {% if object.get_status_display == 'Draft' %}<th style="width:8px">*</th>{% endif %}
+             	<th>Experiment</th>
+                <th>Type</th>
+                <th>Plan</th>
+                <th>{% if admin %}Crystals On-site{% else %}Num Crystals{% endif %}</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% if experiments %}
+            {% for experiment in experiments %}{% if experiment.pk %}
+                <tr id="{{ experiment.pk }}" class="{% cycle 'odd' 'even'%} link-row"
+                    rel="{% url "users-experiment-detail" experiment.pk %}">
+                    {% if object.get_status_display == 'Draft' %}<td class="prioritize dragHandle" title="Drag to Prioritize"></td>{% endif %}
+                    <td class="redirect" title="Go to Experiment {{experiment.name}}"
+                    href="{% url "users-experiment-detail" experiment.pk %}">{{ experiment.name }}</td>
+                    <td class="redirect" title="Go to Experiment {{experiment.name}}"
+                    href="{% url "users-experiment-detail" experiment.pk %}">{{ experiment.get_kind_display }}</td>
+                    <td class="redirect" title="Go to Experiment {{experiment.name}}"
+                    href="{% url "users-experiment-detail" experiment.pk %}">{{ experiment.get_plan_display }}</td>
+                    <td class="redirect"
+                    href="{% url "users-experiment-detail" experiment.pk %}">{% if admin %}{{ experiment.crystal_set|arrived_onsite:containers}}{% else %}{{ experiment.crystal_set|in_shipment:containers }}{% endif %}/{{ experiment.num_crystals }}</td>
+                    <td class="redirect"
+                    href="{% url "users-experiment-detail" experiment.pk %}">{{ experiment.get_status_display }}</td>
+                </tr>
+            {% endif %}{% endfor %}
+        {% else %}                
+                <tr><td colspan="20" align="center" class="list-empty">(No experiments associated with this shipment)</td></tr>
+        {% endif %}           
+        </tbody>
+    </table>
+    {% if experiments %}{% if object.get_status_display == 'Draft' %}
+        <p class="table-notes">* Drag and drop using the first column of the table to arrange the experiments in this shipment by priority, placing the most important experiment at the top.</p>
+    {% endif %}{% endif %}
+</div>
+
+<script>
+        $(document).ready(function() {
+            // Initialise the table
+            $("#objlist-list-table").tableDnD({
+                onDragClass: "users-droppable-active",
+                dragHandle: "dragHandle",
+                onDrop: function(table, row) {
+                    var rows = table.tBodies[0].rows;
+                    var dropped_url = jQuery("#"+row.id).attr("rel");
+                    var rowIds = [];
+                    for (var i=0; i<rows.length; i++) {
+                        var jQuery_row = jQuery(rows[i]);
+                        rowIds.push("id_list[]=" + jQuery_row.attr("id"));
+                    }
+                    var parms = rowIds.join("&");
+                    jQuery.fancybox.showActivity();
+                    jQuery.ajax({
+                        type: "POST",
+                        url: dropped_url + "priority/",
+                        data: rowIds.join("&"),
+                        success: function() {
+                            window.location.reload();
+                        }
+                    });
+
+                }
+            });
+        });
+</script>

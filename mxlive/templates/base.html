@@ -1,0 +1,324 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta name="robots" content="NONE,NOARCHIVE" />
+    {% load get_version %}
+    <meta name="generator" content="MxLIVE {{ 0|get_version }}" >
+	<title>MxLIVE &middot; Lab Info Management System</title>
+    <link REL="SHORTCUT ICON" HREF="/img/lims.ico">
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.easing-1.3.pack.js"></script>
+	<script type="text/javascript" src="/js/jquery.mousewheel-3.0.6.pack.js"></script>
+    <script type="text/javascript" src="/js/jquery.jgrowl_minimized.js"></script>
+    <script type="text/javascript" src="/js/jquery.form.js"></script>
+    <script type="text/javascript" src="/js/jquery.tablednd_0_5.js"></script>
+	<script type="text/javascript" src="/js/fancybox-1.3.4.clsmin.js"></script>
+    <script type="text/javascript" src="/js/imm.js"></script>
+    
+	<script type="text/javascript">
+		jQuery(document).ready(function() {
+            // initialize browser and add classes to body tag
+		    initBrowser();
+            initModals();
+            initRedirects();
+		});
+	</script>
+    
+    {% block stylesheet %}
+
+        {#<link rel='stylesheet' type='text/css' href='https://fonts.googleapis.com/css?family=Ubuntu:regular,italic,bold,bolditalic' >#}
+        <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700">
+        <link rel="stylesheet" href="/css/imm.css" />
+        <link rel="stylesheet" href="/css/style.css" />
+        <link rel="stylesheet" href="/css/jquery.jgrowl.css" />
+        <link rel="stylesheet" href="/css/jquery.fancybox-1.3.4.css" />
+        <link type="text/css" href="/css/print.css" rel="stylesheet" media="print">
+        <!--[if IE]>
+                <link rel="stylesheet" type="text/css" href="/css/ie-only.css" />
+        <![endif]-->        
+    {% endblock %}
+    {% block extrastyle %}{% endblock %}
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-27757133-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+</head>
+<body class="{% block bodyclass %}{% endblock %}">
+    <div id="main-wrapper">
+    <!-- start banner -->
+    <div id="header"><div id="banner">
+	    <div id="logo" class="redirect" href="/">
+		    <h1>Macromolecular Crystallography</h1>
+		    <p id="slogan">Laboratory Information Virtual Environment.</p>
+	    </div>
+        {% if user.is_authenticated %}
+        <div id="user-tools">
+            Logged-in as <strong>{{user}}</strong> |
+            {% if user.is_superuser %}<a href="/admin/">Site Admin</a> | {% endif %}
+            <a href="/logout/">Log out</a>
+        </div>
+        <!-- start navigation -->
+        {% block nav-main %}
+            {% if user.is_superuser %}
+                {%include "users/staff_navs.html" %}
+            {% else %}
+                {%include "users/project_navs.html" %}
+            {% endif %}
+        {% endblock %}
+        <!-- end navigation -->
+    {% endif %}
+	</div></div>
+    <!-- end banner -->
+
+    <div id="headline">
+	    <div class="wrapper">
+	        <div class="col-12">
+                <div id="content-title">
+                {% block headline %}{% endblock %}
+                </div>
+                {% block object-tools %}{% endblock %}
+            </div>
+	    </div>
+    </div>
+    
+    <div id="container">
+    {% block activity %}{% endblock %}
+    {% if messages %}
+        <script>
+            {% for msg in messages %}
+                jQuery.jGrowl("{{msg|escape|capfirst}}", { life: 4000 });
+            {% endfor %}
+        </script>
+    {% endif %}
+
+    <div id="subcontainer">
+    <noscript>
+    <div id="no-javascript">
+    JavaScript must be enabled for the MxLIVE to function propertly. 
+    However, it seems JavaScript is either disabled or not supported by your browser!
+    </div>
+    </noscript>
+{% block content-override %}
+    <!-- maincol -->
+	<div id="content" class="col-9">
+    {% block content %}
+        {{ content }}
+    {% endblock %}
+    </div>
+    <!-- end maincol -->
+    <!-- sidebar -->
+    <div id="sidebar">
+        {% block sidebar %}
+            {% include "users/activity_log.html" %}
+        {% endblock %}
+    </div>
+    <!-- end sidebar -->   
+{% endblock %}
+    </div><!-- end subcontainer -->
+    </div><!-- end container -->
+    <div class="push"></div>
+    </div><!-- end main-wrapper -->
+    <!-- footer -->
+    <div id="footer">
+        {% block footer %}
+            <p>&copy;2008-11 Canadian Light Source, Inc.&nbsp;
+            |
+            <a href="http://www.lightsource.ca">CLS Home</a> 
+            | 
+            <a href="http://cmcf.lightsource.ca">CMCF Home</a>
+            |
+            <a href="http://cmcf.lightsource.ca/contact-us/">Contact</a>
+            </p>
+        {% endblock %}
+    </div><!-- end footer -->
+{% block script %}
+<script>
+        
+        /* TODO: add generic way to overlay a loading indicator on widgets and datalists. */
+
+        function loadWidgets() {
+            jQuery(".widget").each(function(i, widget) {
+                //console.log("reloading widgets");
+                var $widget = jQuery(widget);
+                $widget.find("ul").load($widget.attr("data"), function() {
+                    initModals();
+                    initRedirects();
+                });
+            });
+        }
+      
+        function getModel(object) {
+        	// widget first, so we know if it's from the sidebar widget area
+        	if (object.hasClass("widget-item")) { return 'widget-item'; }
+        	if (object.hasClass('widget')) { return 'widget'; }
+        	if (object.hasClass('crystal')) { return 'crystal'; }
+        	if (object.hasClass('experiment')) { return 'experiment'; }
+        	if (object.hasClass('container')) { return 'container'; }
+        	if (object.hasClass('cocktail')) { return 'cocktail'; } 
+        	if (object.hasClass('crystalform')) { return 'crystalform'; }
+        	if (object.hasClass('shipment')) { return 'shipment'; }
+        	if (object.hasClass('dewar')) { return 'dewar'; }
+        	if (object.hasClass('project')) { return 'project'; }
+        	if (object.hasClass('runlist')) { return 'runlist'; }
+        	return 'none';
+        }
+
+        function setupRunlist() {
+            jQuery(".runlist-experiment").click(function() {
+                var data = window.location.pathname + "container/basic/"+jQuery(this).attr('id')+"/";
+                jQuery("#containers").attr("data",data);
+                jQuery(".container-widget-title").html(jQuery(this).attr('exp'));
+                loadWidgets();
+            });
+            jQuery(".runlist-project").click(function() {
+                var data = window.location.pathname + "container/basic/"+jQuery(this).attr('id')+"/";
+                jQuery("#containers").attr("data",data);
+                jQuery(".container-widget-title").html(jQuery(this).attr('project'));
+                loadWidgets();
+            });
+        }
+
+        function setupDragAndDrop() {
+            jQuery(".draggable-link-parent").draggable({
+                //helper: 'clone',
+                helper: function( event ) {
+				            return $( "<div class='drag-helper'>"+jQuery(this).html()+"</div>" );
+			            },
+                cursorAt: { cursor: "crosshair", bottom: 5, right: 5 },
+                revert: "invalid",
+                start: function(event, ui){
+                	/* when starting the drag, store it's parent element (drag source) */
+                	if (getModel(jQuery(this)) == 'none') {
+                		var $parent_dom_el = jQuery(this).parents('.parent-stop').first();
+                		jQuery(this).data('parent_dom_el', $parent_dom_el);
+                	}
+                	else {
+                		var $parent_dom_el = jQuery(this);
+                		jQuery(this).data('parent_dom_el', $parent_dom_el);
+                	}
+                }
+            });
+            jQuery(".droppable").droppable({
+                accept: function( jQuery_draggable ) {
+                <!-- need to modify this to allow for multiple acceptable drop items -->
+                <!-- field of is() with . doesn't seem to work. -->
+                	<!-- split attr on space -->
+                	accept_str = jQuery(this).attr("accept");
+                	split_str = accept_str.split(" ");
+                	for (count=0; count<split_str.length; count=count+1)
+                	{
+                		if (jQuery_draggable.hasClass(split_str[count])) {
+                			return true;
+                		}
+                	}
+                    return false;
+                },
+                drop: function( event, ui ) {
+                    jQuery.fancybox.showActivity();
+                	// when dropping, retreive it's parent element (drag source)
+                	var destination = jQuery(this);
+                    current_url = window.location.href
+                    cont_loc = jQuery(this).attr('container_location');
+                    auto_loc = jQuery(this).attr('automounter_location');
+                    base_url = jQuery(this).attr('rel');
+                	if (!destination.hasClass('parent-stop')) {
+               			destination = jQuery(this).parents('.parent-stop').first();
+               		}
+                	
+                    // Location object is dragged to is jQuery(this)
+                    var dragged_obj = ui.draggable;
+                 
+                    if (getModel(dragged_obj) != 'container' || current_url.search("shipping/shipment") == -1) {
+                        base_url = 0
+                    }
+                    //console.log(base_url);
+                    // Object being dragged is ui.draggable
+                    var source = ui.draggable.parents('.parent-stop').first();
+                    
+                    // generate the action url
+                    // something like src/src_id/dest/dest_id/obj/obj_id
+                    // ajax call url if it has droppable attr
+                    // url will map to correct handler (eg: src experiment, dest widget, obj crystal will remove crystal from experiment)
+                    // looks like /experiment/1/Crys_widget/0/crystal/2 (crystal id 2 removed from experiment 1, widget checked to determine remove, 0 unused)
+                    
+                    // call to that URL replaces all of this, add, remove, and replace code...
+                    // makes the logic all in the url space, easy to adjsut behaviour of one operation
+                    // will give a lot of endpoints to maintain / worry about. 
+
+                    var end_url = getModel(source);
+                    if (base_url) {
+                        end_url = base_url + getModel(source)
+                    }
+                    if ((getModel(source) == 'widget') || (getModel(source) == 'none'))
+                    {
+                    	end_url = end_url + '/0/';
+                    }
+                    else {
+                    	end_url = end_url + '/' + source.attr('id') + '/';
+                    }
+                    end_url = end_url + getModel(dragged_obj);
+                    if (getModel(dragged_obj) == 'widget' || getModel(dragged_obj) == 'none')
+                    {
+                    	end_url = end_url + '/0/';
+                    }
+                    else {
+                    	end_url = end_url + '/' + dragged_obj.attr('id') + '/';
+                    }
+                    if (getModel(dragged_obj) == 'crystal' && current_url.search("shipping/container") != -1)
+                    {
+                        end_url = end_url + 'loc/' + cont_loc + '/';
+                    }
+                    if (getModel(dragged_obj) == 'container' && current_url.search("staff/runlist") != -1)
+                    {
+                        end_url = end_url + 'loc/' + auto_loc + '/';
+                    }
+                   
+                    // call out to Ajax to perform the operation
+                    // if this is a staff page we need to add project
+                    jQuery.ajax({
+  		            	type: "POST",
+                		url: end_url,
+                		//data: { items: draggableId, parent: parent, container_location: container_location }, // I think all ignored
+                		dataType: "script",
+                		success: function() {
+                            window.location.reload();
+               		 	},
+               		 	error: function() {
+               		 		// error, just reload the widget
+               		 		loadWidgets();
+               		 	}
+            		});
+
+                    jQuery("tr.expander.loaded").each( function() {
+                        jQuery(this).children("td").load(jQuery(this).prev().attr("rel"), function() {});
+                    });
+                },
+                activeClass: "lims-droppable-active",
+                hoverClass: "lims-droppable-hover",
+                tolerance: "pointer"
+            });
+        }
+
+        jQuery("#sidebar, #content").live("DOMSubtreeModified", function() { setupDragAndDrop();});
+
+        loadWidgets();
+    </script>
+{% endblock %}
+</body>
+</html>
+

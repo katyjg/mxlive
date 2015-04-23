@@ -1,0 +1,37 @@
+{% load objlist %}
+<div class="tiny-list-tools">
+    {% include "objlist/pagination.html" %}
+        <form class="search-object-list" style="display: inline;" action="" method="get">
+        <input class="search field" type="text" size="15" name="q" value="" id="searchbar" />
+        </form>
+{% if not ol.all_shown %}
+    {{ol.result_count}} of {{ol.result_count}} total | <a href="?all=">All</a>
+{% endif %}
+</div>
+
+<div class="object-list">
+{% block tiny-list %}
+{% endblock %}
+</div>
+
+{% show_all_filters ol request.path %}
+
+
+<script>
+    // handle filters and column headings
+    jQuery("a.filter, a.header").click(function() {
+        var $a = jQuery(this);
+        var contentURL = $a.attr("href");
+        $a.parents(".content-list").load(contentURL, function() {});
+        return false;
+    });
+
+    // handle search
+    jQuery(".search-object-list").submit(function() {
+        var $form = jQuery(this);
+        var $input = $form.children(".search");
+        var contentURL = $form.attr("action") + "?" + $input.attr("name") + "=" + escape($input.attr("value"));
+        $form.parents(".content-list").load(contentURL, function() {});
+        return false;
+    });
+</script>

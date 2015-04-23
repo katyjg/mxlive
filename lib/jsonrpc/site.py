@@ -53,7 +53,7 @@ def validate_params(method, D):
   if type(D['params']) == Object:
     keys = method.json_arg_types.keys()
     if len(keys) != len(D['params']):
-      raise InvalidParamsError('Not eough params provided for %s' % method.json_sig)
+      raise InvalidParamsError('Not enough params provided for %s' % method.json_sig)
     for k in keys:
       if not k in D['params']:
         raise InvalidParamsError('%s is not a valid parameter for %s' 
@@ -72,7 +72,7 @@ def validate_params(method, D):
       raise InvalidParamsError('Too many params provided for %s' % method.json_sig)
     else:
       if len(D['params']) != len(arg_types):
-        raise InvalidParamsError('Not enouh params provided for %s' % method.json_sig)
+        raise InvalidParamsError('Not enough params provided for %s' % method.json_sig)
 
 
 class JSONRPCSite(object):
@@ -125,6 +125,10 @@ class JSONRPCSite(object):
                      '1.0': lambda f, r, p: f(r, *p)}
     
     try:
+      # params: An Array or Object, that holds the actual parameter values 
+      # for the invocation of the procedure. Can be omitted if empty.
+      if 'params' not in D:
+         D['params'] = []
       if 'method' not in D or 'params' not in D:
         raise InvalidParamsError('Request requires str:"method" and list:"params"')
       if D['method'] not in self.urls:
@@ -145,8 +149,19 @@ class JSONRPCSite(object):
       method = self.urls[str(D['method'])]
       if getattr(method, 'json_validate', False):
         validate_params(method, D)
+
+      if 'id' in D and D['id'] is not None: # regular request
+        response['id'] = D['id']
+        if version in ('1.1', '2.0') and 'error' in response:
+          response.pop('error')
+      elif is_batch: # notification, not ok in a batch format, but happened anyway
+        raise InvalidRequestError
+
       R = apply_version[version](method, request, D['params'])
-      
+
+      if 'id' not in D or ('id' in D and D['id'] is None): # notification
+        return None, 204
+
       encoder = json_encoder()
       if not sum(map(lambda e: isinstance(R, e), # type of `R` should be one of these or...
          (dict, str, unicode, int, long, list, set, NoneType, bool))):
@@ -155,22 +170,14 @@ class JSONRPCSite(object):
         except TypeError, exc:
           raise TypeError("Return type not supported, for %r" % R)
 
-      if 'id' in D and D['id'] is not None: # regular request
-        response['result'] = R
-        response['id'] = D['id']
-        if version == '1.1' and 'error' in response:
-          response.pop('error')
-      elif is_batch: # notification, not ok in a batch format, but happened anyway
-        raise InvalidRequestError
-      else: # notification
-        return None, 204
-      
+      response['result'] = R
+
       status = 200
     
     except Error, e:
       signals.got_request_exception.send(sender=self.__class__, request=request)
       response['error'] = e.json_rpc_format
-      if version == '1.1' and 'result' in response:
+      if version in ('1.1', '2.0') and 'result' in response:
         response.pop('result')
       status = e.status
     except Exception, e:
@@ -179,8 +186,13 @@ class JSONRPCSite(object):
       other_error = OtherError(e)
       response['error'] = other_error.json_rpc_format
       status = other_error.status
-      if version == '1.1' and 'result' in response:
+      if version in ('1.1', '2.0') and 'result' in response:
         response.pop('result')
+
+    # Exactly one of result or error MUST be specified. It's not
+    # allowed to specify both or none.
+    if version in ('1.1', '2.0') and 'error' in response and not response['error']:
+      response.pop('error')
     
     return response, status
   
@@ -196,12 +208,15 @@ class JSONRPCSite(object):
         valid, D = self.validate_get(request, method)
         if not valid:
           raise InvalidRequestError('The method you are trying to access is '
-                                    'not availble by GET requests')
+                                    'not available by GET requests')
       elif not request.method.lower() == 'post':
         raise RequestPostError
       else:
         try:
-          D = loads(request.raw_post_data)
+          if hasattr(request, "body"):
+              D = loads(request.body)
+          else:
+              D = loads(request.raw_post_data)
         except:
           raise InvalidRequestError
       

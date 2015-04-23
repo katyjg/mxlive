@@ -1,0 +1,684 @@
+[
+    {
+        "pk": 1,
+        "model": "users.beamline",
+        "fields": {
+            "name": "08ID-1",
+            "energy_lo": 6.0,
+            "energy_hi": 18.5,
+            "contact_phone": "306-657-3610"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "users.beamline",
+        "fields": {
+            "name": "08B1-1",
+            "energy_lo": 4.0,
+            "energy_hi": 18.5,
+            "contact_phone": "306-657-3619"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "users.beamline",
+        "fields": {
+            "name": "SIM-1",
+            "energy_lo": 4.0,
+            "energy_hi": 18.5,
+            "contact_phone": "306-657-3758"
+        }
+    },
+    {
+        "pk": 1, 
+        "model": "users.carrier", 
+        "fields": {
+            "phone_number": "800-742-5877", 
+            "code_regex": "^(1Z)", 
+            "url": "http://wwwapps.ups.com/etracking/tracking.cgi?TypeOfInquiryNumber=T&AcceptUPSLicenseAgreement=yes&submit=Track&InquiryNumber1=", 
+            "name": "UPS", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "users.carrier", 
+        "fields": {
+            "phone_number": "866-607-6301", 
+            "code_regex": "(CA)$", 
+            "url": "https://obc.canadapost.ca/emo/basicPin.do?trackingCode=PIN&action=query&language=en&sblid=dcsubmitted&trackingId=", 
+            "name": "Canada Post", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "users.carrier", 
+        "fields": {
+            "phone_number": "800-463-3339", 
+            "code_regex": "^\\d{12,19}$", 
+            "url": "http://www.fedex.com/Tracking?action=track&tracknumbers=", 
+            "name": "FedEx", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "users.carrier", 
+        "fields": {
+            "phone_number": "800-222-1811", 
+            "code_regex": "\\d{20,}", 
+            "url": "http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=", 
+            "name": "USPS", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "users.carrier", 
+        "fields": {
+            "phone_number": "800-225-5345", 
+            "code_regex": "^\\d{10,11}$", 
+            "url": "http://track.dhl-usa.com/TrackByNbr.asp?ShipmentNumber=", 
+            "name": "DHL", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "users.carrier", 
+        "fields": {
+            "phone_number": "888-744-7123", 
+            "code_regex": "*", 
+            "url": "http://shipnow.purolator.com/shiponline/track/purolatortrack.asp?pinno=", 
+            "name": "Purolator", 
+            "fax_number": ""
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "a", 
+            "name": "P1"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "m", 
+            "name": "P2"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "m", 
+            "name": "P2(1)"
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "C", 
+            "crystal_system": "m", 
+            "name": "C2"
+        }
+    }, 
+    {
+        "pk": 207, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "c", 
+            "name": "P432"
+        }
+    }, 
+    {
+        "pk": 151, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P3(1)12"
+        }
+    }, 
+    {
+        "pk": 143, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P3"
+        }
+    }, 
+    {
+        "pk": 16, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "o", 
+            "name": "P222"
+        }
+    }, 
+    {
+        "pk": 17, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "o", 
+            "name": "P222(1)"
+        }
+    }, 
+    {
+        "pk": 18, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "o", 
+            "name": "P2(1)2(1)2"
+        }
+    }, 
+    {
+        "pk": 19, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "o", 
+            "name": "P2(1)2(1)2(1)"
+        }
+    }, 
+    {
+        "pk": 20, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "C", 
+            "crystal_system": "o", 
+            "name": "C222(1)"
+        }
+    }, 
+    {
+        "pk": 21, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "C", 
+            "crystal_system": "o", 
+            "name": "C222"
+        }
+    }, 
+    {
+        "pk": 22, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "F", 
+            "crystal_system": "o", 
+            "name": "F222"
+        }
+    }, 
+    {
+        "pk": 23, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "I", 
+            "crystal_system": "o", 
+            "name": "I222"
+        }
+    }, 
+    {
+        "pk": 24, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "I", 
+            "crystal_system": "o", 
+            "name": "I2(1)2(1)2(1)"
+        }
+    }, 
+    {
+        "pk": 153, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P3(2)12"
+        }
+    }, 
+    {
+        "pk": 154, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P3(2)21"
+        }
+    }, 
+    {
+        "pk": 155, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "R", 
+            "crystal_system": "h", 
+            "name": "R32"
+        }
+    }, 
+    {
+        "pk": 150, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P321"
+        }
+    }, 
+    {
+        "pk": 168, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P6"
+        }
+    }, 
+    {
+        "pk": 169, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P6(1)"
+        }
+    }, 
+    {
+        "pk": 170, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P6(5)"
+        }
+    }, 
+    {
+        "pk": 171, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P6(2)"
+        }
+    }, 
+    {
+        "pk": 172, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P6(4)"
+        }
+    }, 
+    {
+        "pk": 173, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P6(3)"
+        }
+    }, 
+    {
+        "pk": 177, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P622"
+        }
+    }, 
+    {
+        "pk": 178, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P6(1)22"
+        }
+    }, 
+    {
+        "pk": 179, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P6(5)22"
+        }
+    }, 
+    {
+        "pk": 180, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P6(2)22"
+        }
+    }, 
+    {
+        "pk": 181, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P6(4)22"
+        }
+    }, 
+    {
+        "pk": 182, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P6(3)22"
+        }
+    }, 
+    {
+        "pk": 152, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P3(1)21"
+        }
+    }, 
+    {
+        "pk": 196, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "F", 
+            "crystal_system": "c", 
+            "name": "F23"
+        }
+    }, 
+    {
+        "pk": 197, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "I", 
+            "crystal_system": "c", 
+            "name": "I23"
+        }
+    }, 
+    {
+        "pk": 198, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "c", 
+            "name": "P2(1)3"
+        }
+    }, 
+    {
+        "pk": 199, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "I", 
+            "crystal_system": "c", 
+            "name": "I2(1)3"
+        }
+    }, 
+    {
+        "pk": 75, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "t", 
+            "name": "P4"
+        }
+    }, 
+    {
+        "pk": 76, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "t", 
+            "name": "P4(1)"
+        }
+    }, 
+    {
+        "pk": 77, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "t", 
+            "name": "P4(2)"
+        }
+    }, 
+    {
+        "pk": 78, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "t", 
+            "name": "P4(3)"
+        }
+    }, 
+    {
+        "pk": 79, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "I", 
+            "crystal_system": "t", 
+            "name": "I4"
+        }
+    }, 
+    {
+        "pk": 80, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "I", 
+            "crystal_system": "t", 
+            "name": "I4(1)"
+        }
+    }, 
+    {
+        "pk": 209, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "F", 
+            "crystal_system": "c", 
+            "name": "F432"
+        }
+    }, 
+    {
+        "pk": 210, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "F", 
+            "crystal_system": "c", 
+            "name": "F4(1)32"
+        }
+    }, 
+    {
+        "pk": 211, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "I", 
+            "crystal_system": "c", 
+            "name": "I432"
+        }
+    }, 
+    {
+        "pk": 212, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "c", 
+            "name": "P4(3)32"
+        }
+    }, 
+    {
+        "pk": 213, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "c", 
+            "name": "P4(1)32"
+        }
+    }, 
+    {
+        "pk": 214, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "I", 
+            "crystal_system": "c", 
+            "name": "I4(1)32"
+        }
+    }, 
+    {
+        "pk": 89, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "t", 
+            "name": "P422"
+        }
+    }, 
+    {
+        "pk": 90, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "t", 
+            "name": "P42(1)2"
+        }
+    }, 
+    {
+        "pk": 91, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "t", 
+            "name": "P4(1)22"
+        }
+    }, 
+    {
+        "pk": 92, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "t", 
+            "name": "P4(1)2(1)2"
+        }
+    }, 
+    {
+        "pk": 93, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "t", 
+            "name": "P4(2)22"
+        }
+    }, 
+    {
+        "pk": 94, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "t", 
+            "name": "P4(2)2(1)2"
+        }
+    }, 
+    {
+        "pk": 95, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "t", 
+            "name": "P4(3)22"
+        }
+    }, 
+    {
+        "pk": 96, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "t", 
+            "name": "P4(3)2(1)2"
+        }
+    }, 
+    {
+        "pk": 97, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "I", 
+            "crystal_system": "t", 
+            "name": "I422"
+        }
+    }, 
+    {
+        "pk": 98, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "I", 
+            "crystal_system": "t", 
+            "name": "I4(1)22"
+        }
+    }, 
+    {
+        "pk": 195, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "c", 
+            "name": "P23"
+        }
+    }, 
+    {
+        "pk": 145, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P3(2)"
+        }
+    }, 
+    {
+        "pk": 144, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P3(1)"
+        }
+    }, 
+    {
+        "pk": 208, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "c", 
+            "name": "P4(2)32"
+        }
+    }, 
+    {
+        "pk": 146, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "R", 
+            "crystal_system": "h", 
+            "name": "R3"
+        }
+    }, 
+    {
+        "pk": 149, 
+        "model": "users.spacegroup", 
+        "fields": {
+            "lattice_type": "P", 
+            "crystal_system": "h", 
+            "name": "P312"
+        }
+    }
+]
+

@@ -1,0 +1,134 @@
+[
+   {
+      "pk": 1, 
+      "model": "staff.link", 
+      "fields": {
+         "category": 1, 
+         "description": "MxLIVE Overview", 
+         "created": "2011-03-21 13:34:42", 
+         "frame_type": 0, 
+         "modified": "2011-03-21 13:35:26", 
+         "url": "/help/overview.html", 
+         "document": ""
+      }
+   }, 
+   {
+      "pk": 2, 
+      "model": "staff.link", 
+      "fields": {
+         "category": 1, 
+         "description": "Getting Started", 
+         "created": "2011-03-21 13:36:33", 
+         "frame_type": 0, 
+         "modified": "2011-03-21 13:36:33", 
+         "url": "/help/getting_started.html", 
+         "document": ""
+      }
+   }, 
+   {
+      "pk": 3, 
+      "model": "staff.link", 
+      "fields": {
+         "category": 1, 
+         "description": "User interface guide ...", 
+         "created": "2011-03-21 13:37:19", 
+         "frame_type": 0, 
+         "modified": "2011-03-21 13:45:40", 
+         "url": "/help/user_interface.html", 
+         "document": ""
+      }
+   }, 
+   {
+      "pk": 4, 
+      "model": "staff.link", 
+      "fields": {
+         "category": 1, 
+         "description": "Pins, Cassettes, Uni-Pucks", 
+         "created": "2011-03-21 13:47:23", 
+         "frame_type": 0, 
+         "modified": "2011-03-21 13:47:54", 
+         "url": "http://cmcf.lightsource.ca/user-guide/preparing-samples/", 
+         "document": ""
+      }
+   }, 
+   {
+      "pk": 5, 
+      "model": "staff.link", 
+      "fields": {
+         "category": 1, 
+         "description": "Shipping Samples ", 
+         "created": "2011-03-21 13:48:33", 
+         "frame_type": 0, 
+         "modified": "2011-03-21 13:48:33", 
+         "url": "http://cmcf.lightsource.ca/user-guide/shipping-samples/", 
+         "document": ""
+      }
+   }, 
+   {
+      "pk": 6, 
+      "model": "staff.link", 
+      "fields": {
+         "category": 1, 
+         "description": "Preparing Samples for the Automounter", 
+         "created": "2011-03-21 13:49:43", 
+         "frame_type": 0, 
+         "modified": "2011-03-21 13:49:43", 
+         "url": "http://cmcf.lightsource.ca/user-guide/preparing-samples/#preparing-samples-for-the-robot/", 
+         "document": ""
+      }
+   },
+    {
+        "pk": 1, 
+        "model": "staff.runlist", 
+        "fields": {
+            "status": 0, 
+            "right": null, 
+            "name": "CMCF-BM Automounter", 
+            "created": "2012-10-04 08:39:02", 
+            "modified": "2013-12-02 10:03:14", 
+            "comments": "", 
+            "priority": 0, 
+            "middle": null, 
+            "experiments": [], 
+            "beamline": 2, 
+            "containers": [], 
+            "left": null
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "staff.runlist", 
+        "fields": {
+            "status": 0, 
+            "right": null, 
+            "name": "CMCF-ID Automounter", 
+            "created": "2012-10-04 16:21:40", 
+            "modified": "2013-12-17 11:26:09", 
+            "comments": "", 
+            "priority": 0, 
+            "middle": null, 
+            "experiments": [], 
+            "beamline": 1, 
+            "containers": [], 
+            "left": null
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "staff.runlist", 
+        "fields": {
+            "status": 0, 
+            "right": null, 
+            "name": "SIMULATOR", 
+            "created": "2012-10-04 14:49:37", 
+            "modified": "2013-08-07 08:22:04", 
+            "comments": "", 
+            "priority": 0, 
+            "middle": null, 
+            "experiments": [], 
+            "beamline": 3, 
+            "containers": [], 
+            "left": null
+        }
+    }   
+]

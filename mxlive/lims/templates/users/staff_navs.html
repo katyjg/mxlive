@@ -1,0 +1,21 @@
+{% load nav %}
+<ul id="nav">
+<li class='nav-menu {% active request.path "^/(staff/)?$" %}'><a href="/staff/">Staff&nbsp;Home</a></li>
+<li class='nav-menu {% active request.path "^/users/shipping/" %}'><a href="{% url "staff-shipment-list" %}">Shipping</a>
+    <ul class="nav-submenu">
+        <li><a href="{% url "staff-shipment-list" %}">Shipments</a></li>
+        <li><a href="{% url "staff-dewar-list" %}">Dewars</a></li>
+        <li><a href="{% url "staff-container-list" %}">Containers</a></li>
+    </ul>
+</li>
+<li class='nav-menu {% active request.path "^/staff/experiment/" %}'><a href="{% url "staff-experiment-list" %}">Experiments</a>
+    <ul class="nav-submenu">
+        <li><a href="{% url "staff-experiment-list" %}">Experiments</a></li>
+        <li><a href="{% url "staff-data-list" %}">Datasets</a></li>
+        <li><a href="{% url "staff-result-list" %}">Reports</a></li>
+        <li><a href="{% url "staff-scanresult-list" %}">Scans</a></li>
+    </ul>
+</li>
+<li class='nav-menu {% active request.path "^/staff/runlist/" %}'><a href="{% url "staff-runlist-list" %}?status__lte=4">Run Lists</a></li>
+</ul>
+
