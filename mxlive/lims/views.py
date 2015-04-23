@@ -832,7 +832,7 @@ def delete_object(request, id, model, form, template='objforms/form_base.html'):
         'save_label': 'Delete'
     }
     if request.method == 'POST':
-        frm = form(request.POST, instance=obj)
+        frm = form(request.POST)
         frm.restrict_by('project', project_pk)
         if request.POST.has_key('_save'):
             form_info['message'] = '%s (%s) deleted' % ( model._meta.verbose_name, obj)
@@ -865,7 +865,7 @@ def delete_object(request, id, model, form, template='objforms/form_base.html'):
             'form' : frm, 
             }, context_instance=RequestContext(request))
     else:
-        frm = form(instance=obj, initial=None) 
+        frm = form(initial=None) 
         if 'cascade' in frm.fields:
             frm.fields['cascade'].label = 'Delete all %s associated with this %s.' % (obj.HELP.get('cascade','objects'), model.__name__.lower())
             frm.fields['cascade'].help_text = 'If this box is left unchecked, only the %s will be deleted. %s' % (model.__name__.lower(), obj.HELP.get('cascade_help',''))

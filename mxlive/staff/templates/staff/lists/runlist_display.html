@@ -4,7 +4,7 @@
 
 <div class="object-list">
     <div class="list-tools">
-        {% if ol.is_paginated %}
+        {% if ol.multi_page %}
             {% include "objlist/pagination.html" %}
         {% endif %}
         {% if not ol.all_shown %}

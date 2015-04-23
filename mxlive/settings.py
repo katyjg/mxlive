@@ -19,7 +19,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # Add paths
 for _path in [os.path.join(BASE_DIR, 'libs'), os.path.join(BASE_DIR, 'mxlive')]:
     if not _path in sys.path: site.addsitedir(_path)
-site.addsitedir(os.path.join(BASE_DIR, '../bl-website/website'))
+site.addsitedir(os.path.join(BASE_DIR, '../cmcf-newdjango/website'))
 
 SITE_ID = 1
 
@@ -30,7 +30,7 @@ SITE_ID = 1
 SECRET_KEY = 'z)&x^!63wtp82h2^sfl@ny#%e2ryy_a=gcy(4g!%f(!_!v^fi7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ALLOWED_HOSTS = ['*']
@@ -102,7 +102,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/media/'
-
+STATIC_ROOT = 'static/'
 
 AUTH_PROFILE_MODULE = 'lims.Project'
 LOGIN_URL = '/login/'

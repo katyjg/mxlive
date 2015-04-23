@@ -18,7 +18,7 @@
             {% for experiment in experiments %}
                 <tr class="{% cycle 'odd' 'even'%} link-row redirect"
                     title="Go to Experiment {{experiment.name}}"
-                    href="{% url "lims-experiment-detail" experiment.pk %}">
+                    href="{% url "users-experiment-detail" experiment.pk %}">
                     <td>{{ experiment.project.name }}</td>
                     <td>{{ experiment.name }}</td>
                     <td>{{ experiment.get_kind_display }}</td>

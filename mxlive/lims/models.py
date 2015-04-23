@@ -369,7 +369,7 @@ class Shipment(ObjectBaseClass):
     identity.admin_order_field = 'pk'
     
     def _Carrier(self):
-        return self.carrier.name
+        return self.carrier and self.carrier.name or None
     _Carrier.admin_order_field = 'carrier__name'
 
     def barcode(self):
@@ -516,11 +516,11 @@ class Dewar(ObjectBaseClass):
     identity.admin_order_field = 'pk'
 
     def _Shipment(self):
-        return self.shipment.name
+        return self.shipment and self.shipment.name or None
     _Shipment.admin_order_field = 'shipment__name'
 
     def barcode(self):
-        return "CLS%04d-%04d" % (self.id, self.shipment.id)
+        return "CLS%04d-%04d" % (self.id, self.shipment and self.shipment.id or '')
 
     def num_containers(self):
         return self.container_set.count()   
@@ -588,7 +588,7 @@ class Container(LoadableBaseClass):
     identity.admin_order_field = 'pk'
     
     def _Dewar(self):
-        return self.dewar.name
+        return self.dewar and self.dewar.name or None
     _Dewar.admin_order_field = 'dewar'
 
     def barcode(self):
@@ -830,7 +830,7 @@ class CrystalForm(LimsBaseClass):
     identity.admin_order_field = 'pk'
     
     def _Space_group(self):
-        return self.space_group.name
+        return self.space_group and self.space_group.name or None
     _Space_group.admin_order_field = 'space_group__name'
 
     class Meta:
@@ -1061,15 +1061,15 @@ class Crystal(LoadableBaseClass):
     identity.admin_order_field = 'pk'
 
     def _Crystal_form(self):
-        return self.crystal_form.name
+        return self.crystal_form and self.crystal_form.name or None
     _Crystal_form.admin_order_field = 'crystal_form__name'
 
     def _Cocktail(self):
-        return self.cocktail.name
+        return self.cocktail and self.cocktail.name or None
     _Cocktail.admin_order_field = 'cocktail__name'
 
     def _Container(self):
-        return self.container.name
+        return self.container and self.container.name or None
     _Container.admin_order_field = 'container__name'
     
     def get_data_set(self):
@@ -1230,7 +1230,7 @@ class Data(DataBaseClass):
         return len(self.get_frame_list())          
 
     def _Crystal(self):
-        return self.crystal.name
+        return self.crystal and self.crystal.name or None
     _Crystal.admin_order_field = 'crystal__name'
 
     def toggle_download(self, state):
