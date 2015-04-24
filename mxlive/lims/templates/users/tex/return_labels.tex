@@ -1,13 +1,12 @@
 {% load tex %}
 {% load math_filters %}
-\documentclass[letterpaper,10pt]{report}
+\documentclass[letterpaper,6pt]{report}
 \usepackage{pst-barcode}
 \usepackage{xcolor,colortbl}
-%\usepackage{boxedminipage}
 \usepackage{varwidth}
 \usepackage{fontspec}
 \usepackage[top=0.5in,bottom=0.5in,left=1in,right=1in,nohead,nofoot]{geometry}
-\usepackage{parskip}
+%\usepackage{parskip}
 \usepackage{ncccropbox}
 \usepackage{wasysym}
 \usepackage{amssymb}
@@ -45,8 +44,9 @@
     {\color{blue} {\bf Return Label {{ forloop.counter }}: Replace the current label on the outside of a dewar "{{ dewar.name|texsafe|default:"" }}" with this label. } }
     \begin{center}
         \begin{varwidth}{\textwidth}
+	\fbox{
         \begin{minipage}{4in}
-            \fbox{
+            \fbox{ 
                 \begin{pspicture}(0.9\textwidth,0.8in)
                     \psbarcode[transy=1em,transx=0.8in]{^104{{dewar.barcode|texsafe|default:"CLS0000-0000"}}}{includetext height=0.6 guardwhitespace}{code128}
                 \end{pspicture}
@@ -95,6 +95,7 @@
                 \large{ {\bf Non-Hazardous \\ Frozen Samples In \\ a Dry-Shipper} }
                 \end{center}
             \end{minipage}
+	}
         \end{varwidth}
     \end{center}
     {% endfor %}
@@ -206,7 +207,6 @@
 \end{tabular}
 \end{center}
 
-\vspace{0.5cm}
 \begin{center}
 Canadian Light Source $\bullet$ 44 Innovation Boulevard $\bullet$ University of Saskatchewan \\
 Saskatoon Saskatchewan Canada S7N 2V3 $\bullet$ Phone \# 306-657-3657, Fax \# 306-657-3533 

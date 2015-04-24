@@ -1016,7 +1016,7 @@ def shipment_pdf(request, id, model, format):
     work_dir = create_cache_dir(obj.label_hash())
     prefix = "%s-%s" % (obj.label_hash(), format)
     pdf_file = os.path.join(work_dir, '%s.pdf' % prefix)
-    print pdf_file
+
     if not os.path.exists(pdf_file) or settings.DEBUG: # remove the True after testing
         # create a file into which the LaTeX will be written
         tex_file = os.path.join(work_dir, '%s.tex' % prefix)
