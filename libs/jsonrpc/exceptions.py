@@ -1,5 +1,5 @@
 try:
-  from django.utils.translation import gettext as _
+  from django.utils.translation import ugettext_lazy as _
   _("You're lazy...") # this function lazy-loads settings
 except (ImportError, NameError):
   _ = lambda t, *a, **k: t
@@ -30,9 +30,9 @@ class Error(Exception):
     """ return the Exception data in a format for JSON-RPC """
     
     error = {
-        'name': str(self.__class__.__name__),
+        'name': unicode(self.__class__.__name__),
         'code': self.code,
-        'message': "%s: %s" % (str(self.__class__.__name__), str(self.message)),
+        'message': "%s: %s" % (unicode(self.__class__.__name__), unicode(self.message)),
         'data': self.data}
 
     from django.conf import settings
@@ -95,5 +95,5 @@ class InvalidCredentialsError(Error):
 class OtherError(Error):
   """ catchall error """
   code = 500
-  message = _('Error missed by other execeptions')
+  message = _('Error missed by other exceptions')
   status = 500
