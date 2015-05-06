@@ -77,7 +77,7 @@ class ConfirmDeleteForm(forms.Form):
                 if field_name in queryset.model._meta.get_all_field_names(): # some models will not have the field
                     formfield.queryset = queryset.filter(**{'%s__exact' % (field_name): value})
 
-class LimsBasicForm(OrderedForm):
+class LimsBasicForm(forms.Form):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     class Meta:
         fields = ('project',)
@@ -448,7 +448,7 @@ class FeedbackForm(OrderedForm):
         model = Feedback
         fields = ('project','contact_name','contact','category','message')
 
-class CommentsForm(OrderedForm):
+class CommentsForm(forms.Form):
     comments = objforms.widgets.CommentField(required=False, 
             help_text="Comments entered here will be visible to staff at the CMCF. You can use Restructured Text markup for formatting.")
 

@@ -131,14 +131,16 @@ class LinkForm(objforms.forms.OrderedForm):
     def _update(self):
         cleaned_data = self.cleaned_data
 
-class StaffCommentsForm(objforms.forms.OrderedForm):
+#class StaffCommentsForm(objforms.forms.OrderedForm):
+class StaffCommentsForm(forms.Form):
     staff_comments = objforms.widgets.CommentField(required=False, 
             help_text="Comments entered here will be visible on the user's MxLIVE account. You can use Restructured Text markup for formatting.")
 
     class Meta:
         fields = ('staff_comments',)
         
-class RunlistCommentsForm(objforms.forms.OrderedForm):
+#class RunlistCommentsForm(objforms.forms.OrderedForm):
+class RunlistCommentsForm(forms.Form):
     comments = objforms.widgets.CommentField(required=False, 
             help_text="Comments entered here will be visible on the user's MxLIVE account. You can use Restructured Text markup for formatting.")
 

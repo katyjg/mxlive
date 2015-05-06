@@ -677,7 +677,7 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html',
         'save_label': 'Save'
     }
     if request.method == 'POST':
-        frm = form(request.POST, instance=obj)
+        frm = form(request.POST)
         try:
             if not obj.comments: base_comments = ''
             else: base_comments = obj.comments
@@ -686,12 +686,11 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html',
         if frm.is_valid():
             if user == 'staff':
                 author = ' by staff'
-                frm.save()
             elif user == 'user' and request.POST.get('comments', None):
                 author = ''
-                obj.comments = base_comments + '\n\n%s - %s' % \
+            obj.comments = base_comments + '\n\n%s - %s' % \
                     (dateformat.format(timezone.now(), 'Y-m-d P'), request.POST.get('comments'))
-                obj.save()
+            obj.save()
             form_info['message'] = 'comments added to %s (%s)%s' % ( model._meta.verbose_name, obj, author)
             messages.info(request, form_info['message'])
             ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, 
@@ -703,7 +702,7 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html',
             'form' : frm, 
             }, context_instance=RequestContext(request))
     else:
-        frm = form(instance=obj, initial=dict(request.GET.items())) 
+        frm = form(initial=dict(request.GET.items())) 
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm,
@@ -1044,7 +1043,7 @@ def shipment_pdf(request, id, model, format):
         if not settings.DEBUG:
             stdout = devnull
             stderr = devnull
-        sys.path.append('/usr/local/texlive/2014/bin/x86_64-linux/')
+        #sys.path.append('/usr/local/texlive/2014/bin/x86_64-linux/')
         subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], 
                         cwd=work_dir,
                         )
