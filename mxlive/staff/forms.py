@@ -4,7 +4,7 @@ from .models import Runlist
 from django import forms
 from django.forms import widgets
 from django.forms.util import ErrorList
-from lims.models import Beamline, Carrier, Container, Dewar, Experiment, Shipment
+from lims.models import Beamline, Carrier, Container, Dewar, Experiment, Shipment, Project
 import objforms.forms
 import re
 
@@ -131,20 +131,20 @@ class LinkForm(objforms.forms.OrderedForm):
     def _update(self):
         cleaned_data = self.cleaned_data
 
-#class StaffCommentsForm(objforms.forms.OrderedForm):
-class StaffCommentsForm(forms.Form):
+class StaffCommentsForm(objforms.forms.OrderedForm):
     staff_comments = objforms.widgets.CommentField(required=False, 
             help_text="Comments entered here will be visible on the user's MxLIVE account. You can use Restructured Text markup for formatting.")
 
     class Meta:
+        model = Project
         fields = ('staff_comments',)
         
-#class RunlistCommentsForm(objforms.forms.OrderedForm):
-class RunlistCommentsForm(forms.Form):
+class RunlistCommentsForm(objforms.forms.OrderedForm):
     comments = objforms.widgets.CommentField(required=False, 
             help_text="Comments entered here will be visible on the user's MxLIVE account. You can use Restructured Text markup for formatting.")
 
     class Meta:
+        model = Project
         fields = ('comments',)
 
 

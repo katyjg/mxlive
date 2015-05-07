@@ -977,9 +977,9 @@ class Experiment(LimsBaseClass):
         if self.is_deletable:
             if not cascade:
                 self.crystal_set.all().update(experiment=None)
-            else: 
-                for obj in self.crystal_set.all():
-                    obj.delete(request=request)
+            for obj in self.crystal_set.all():
+                obj.experiment = None
+                obj.delete(request=request)
             super(Experiment, self).delete(request=request)
 
     def review(self, request=None):

@@ -677,10 +677,9 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html',
         'save_label': 'Save'
     }
     if request.method == 'POST':
-        frm = form(request.POST)
+        frm = form(request.POST, instance=obj)
         try:
-            if not obj.comments: base_comments = ''
-            else: base_comments = obj.comments
+            base_comments = obj.comments or ''
         except:
             base_comments = ''
         if frm.is_valid():
@@ -688,8 +687,8 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html',
                 author = ' by staff'
             elif user == 'user' and request.POST.get('comments', None):
                 author = ''
-            obj.comments = base_comments + '\n\n%s - %s' % \
-                    (dateformat.format(timezone.now(), 'Y-m-d P'), request.POST.get('comments'))
+                obj.comments = base_comments + '\n\n%s - %s' % \
+                        (dateformat.format(timezone.now(), 'Y-m-d P'), request.POST.get('comments'))
             obj.save()
             form_info['message'] = 'comments added to %s (%s)%s' % ( model._meta.verbose_name, obj, author)
             messages.info(request, form_info['message'])
@@ -702,7 +701,7 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html',
             'form' : frm, 
             }, context_instance=RequestContext(request))
     else:
-        frm = form(initial=dict(request.GET.items())) 
+        frm = form(initial=dict(request.GET.items()),instance=obj) 
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm,

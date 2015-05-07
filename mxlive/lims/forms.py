@@ -9,6 +9,23 @@ from mxlive.objforms.forms import OrderedForm
 import re
 import tempfile
             
+class BaseForm(forms.Form):
+    
+    def restrict_by(self, field_name, value):
+        """
+        Restrict the form such that only items related to the object identified by
+        the primary key `value` through a field specified by `field_name`,
+        are displayed within select boxes.
+    
+        Can also be used to restrict querysets based on some other field, where `field_name`
+        also refers to the field of the foreign key object, like container__status, for example        
+        """
+        for name, formfield in self.fields.items():
+            if name != field_name and hasattr(formfield, 'queryset'):
+                queryset = formfield.queryset
+                if field_name in queryset.model._meta.get_all_field_names(): # some models will not have the field
+                    formfield.queryset = queryset.filter(**{'%s__exact' % (field_name): value})            
+            
 class ProjectForm(OrderedForm):
     contact_person = objforms.widgets.LargeCharField(required=True)
     contact_email = forms.EmailField(widget=objforms.widgets.LargeInput, max_length=100, required=True)
@@ -56,30 +73,16 @@ class ShipmentForm(OrderedForm):
         model = Shipment
         fields = ('project','name','comments',)
         
-class ConfirmDeleteForm(forms.Form):
+class ConfirmDeleteForm(BaseForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     cascade = objforms.widgets.LargeCheckBoxField(required=False, label='Keep all child objects associated with this object.')
     class Meta:
         fields = ('project','cascade')
 
-    def restrict_by(self, field_name, value):
-        """
-        Restrict the form such that only items related to the object identified by
-        the primary key `value` through a field specified by `field_name`,
-        are displayed within select boxes.
-    
-        Can also be used to restrict querysets based on some other field, where `field_name`
-        also refers to the field of the foreign key object, like container__status, for example        
-        """
-        for name, formfield in self.fields.items():
-            if name != field_name and hasattr(formfield, 'queryset'):
-                queryset = formfield.queryset
-                if field_name in queryset.model._meta.get_all_field_names(): # some models will not have the field
-                    formfield.queryset = queryset.filter(**{'%s__exact' % (field_name): value})
-
-class LimsBasicForm(forms.Form):
+class LimsBasicForm(OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     class Meta:
+        model = Project
         fields = ('project',)
         
 class ShipmentUploadForm(forms.Form):
