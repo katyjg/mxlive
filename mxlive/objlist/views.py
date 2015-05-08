@@ -36,7 +36,7 @@ class ObjectList(main.ChangeList):
         self.date_hierarchy = self.model_admin.date_hierarchy
         self.search_fields = self.model_admin.search_fields
         self.list_select_related = self.model_admin.list_select_related
-        self.list_per_page = self.model_admin.list_per_page
+        self.list_per_page = num_show and num_show or self.model_admin.list_per_page
         self.list_max_show_all = self.model_admin.list_max_show_all
         self.model_admin = _model_admin
         self.preserved_filters = self.model_admin.get_preserved_filters(request)

@@ -93,8 +93,8 @@ class ScanResultAdmin(admin.ModelAdmin):
 admin.site.register(ScanResult, ScanResultAdmin)
 
 class ScanResultStaffAdmin(ScanResultAdmin):
-    list_filter = ['modified','kind','status']
-    list_display = ('project','id','name','crystal','edge','kind','created','status')
+    list_filter = ['modified','kind','status','beamline']
+    list_display = ('project','id','name','edge','kind','created','beamline')
     ordering = ['-created', 'project']
 staff_site.register(ScanResult, ScanResultStaffAdmin)
 
@@ -107,7 +107,7 @@ class DataAdmin(admin.ModelAdmin):
 admin.site.register(Data, DataAdmin)
 
 class DataStaffAdmin(DataAdmin):
-    list_filter = ['modified','kind','status']
+    list_filter = ['modified','kind','status','beamline']
     list_display = ('project','id','name','_Crystal','beamline','kind','created','status','download')
     ordering = ['-created', 'project']
 staff_site.register(Data, DataStaffAdmin)
