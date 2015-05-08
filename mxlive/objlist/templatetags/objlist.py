@@ -13,6 +13,7 @@ from django.utils.encoding import smart_str
 from datetime import datetime, date, timedelta
 from django.utils.translation import ugettext as _
 from ..filters import WeeklyDateFilter
+from django.utils.timezone import is_aware, make_naive, get_current_timezone
 register = Library()
 
 @register.inclusion_tag('objlist/one_filter.html')
@@ -141,6 +142,8 @@ def object_fields(obj, model_admin=None):
             # Dates and times are special: They're formatted in a certain way.
             elif isinstance(f, models.DateField) or isinstance(f, models.TimeField):
                 if field_val:
+                    if is_aware(field_val):
+                        field_val = make_naive(field_val, get_current_timezone())
                     (date_format, datetime_format, time_format) = get_format('DATE_FORMAT'), get_format('DATETIME_FORMAT'), get_format('TIME_FORMAT')
                     if isinstance(f, models.DateTimeField):
                         result_repr = capfirst(dateformat.format(field_val, datetime_format))
