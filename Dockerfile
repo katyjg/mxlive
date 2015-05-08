@@ -6,9 +6,9 @@ RUN yum -y install httpd python-django mod_wsgi python-ipaddr python-pillow  pyt
 RUN yum -y install MySQL-python mod_xsendfile && yum clean all
 RUN yum -y install texlive texlive-xetex texlive-xetex-def texlive-collection-xetex texlive-graphics && yum clean all
 RUN yum -y install sil-gentium-basic-fonts && yum clean all
-RUN yum -y install numpy scipy && yum clean all
+RUN yum -y install numpy scipy python-ldap && yum clean all
 
-#EXPOSE 443
+EXPOSE 443
 EXPOSE 80
 
 # Simple startup script to avoid some issues observed with container restart 
