@@ -14,8 +14,8 @@ fi
 if [ ! -f /mxlive/local/.dbinit ]; then
     su -s /bin/bash apache -c "/mxlive/manage.py syncdb --noinput"
     touch /mxlive/local/.dbinit
-else
-    su -s /bin/bash apache -c "/mxlive/manage.py migrate --noinput"
+#else
+#    su -s /bin/bash apache -c "/mxlive/manage.py migrate --noinput"
 fi
 
 exec /usr/sbin/httpd -D FOREGROUND
