@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils import dateformat
 from django.utils.html import escape
 from django.utils.text import capfirst
-from django.utils.formats import get_format
+from django.utils.formats import get_format, localize
 from django.contrib import admin
 from django.conf import settings 
 from django.utils.safestring import mark_safe
@@ -13,6 +13,9 @@ from django.utils.encoding import smart_str
 from datetime import datetime, date, timedelta
 from django.utils.translation import ugettext as _
 from ..filters import WeeklyDateFilter
+from django.template.defaultfilters import date
+from django.utils.timezone import make_aware, is_aware, get_current_timezone, make_naive
+
 register = Library()
 
 @register.inclusion_tag('objlist/one_filter.html')
@@ -140,14 +143,16 @@ def object_fields(obj, model_admin=None):
                     result_repr = ''
             # Dates and times are special: They're formatted in a certain way.
             elif isinstance(f, models.DateField) or isinstance(f, models.TimeField):
-                if field_val:
+                if field_val:                  
+                    if is_aware(field_val):
+                        field_val = make_naive(field_val, get_current_timezone())
                     (date_format, datetime_format, time_format) = get_format('DATE_FORMAT'), get_format('DATETIME_FORMAT'), get_format('TIME_FORMAT')
                     if isinstance(f, models.DateTimeField):
-                        result_repr = capfirst(dateformat.format(field_val, datetime_format))
+                        result_repr = date(field_val, datetime_format)
                     elif isinstance(f, models.TimeField):
-                        result_repr = capfirst(dateformat.time_format(field_val, time_format))
+                        result_repr = date(field_val, time_format)
                     else:
-                        result_repr = capfirst(dateformat.format(field_val, date_format))
+                        result_repr = date(field_val, date_format)
                 else:
                     result_repr = ''
             # Booleans are special: We use images.

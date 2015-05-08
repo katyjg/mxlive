@@ -6,11 +6,11 @@
 rm -rf /run/httpd/* /tmp/httpd*
 
 # check of database exists and initialize it if not
-if [ ! -f /website/local/.dbinit ]; then
-    su -s /bin/bash apache -c "/website/manage.py syncdb --noinput"
-    touch /website/local/.dbinit
+if [ ! -f /mxlive/local/.dbinit ]; then
+    su -s /bin/bash apache -c "/mxlive/manage.py syncdb --noinput"
+    touch /mxlive/local/.dbinit
 else
-    su -s /bin/bash apache -c "/website/manage.py migrate --noinput"
+    su -s /bin/bash apache -c "/mxlive/manage.py migrate --noinput"
 fi
 
 exec /usr/sbin/httpd -D FOREGROUND

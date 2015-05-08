@@ -6,12 +6,7 @@ from django.utils import dateformat, timezone
 def get_week_extent(date_str):
     """Given a date in date_str, return the first and last dates of the week as
     a tuple"""
-    if date_str is None or len(date_str) < 10:
-        dt = timezone.now().date()
-    else:
-        dt = timezone.make_aware(
-                datetime.strptime(date_str[:10],'%Y-%m-%d'),
-                timezone.get_current_timezone())
+    dt = timezone.now().date()
     show_sd = dt + timedelta(days=-dt.weekday())
     show_ed = show_sd + timedelta(days=6)
     return (show_sd, show_ed)
