@@ -1,0 +1,1 @@
+{%if mod%}**{{type}}{{mod.brief_notify}}{%else%}CMCF: Week of {{date}}{%endif%}

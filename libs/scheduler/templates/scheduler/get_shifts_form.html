@@ -1,0 +1,44 @@
+<form method="post" id="inline-form" class="dates" action="javascript:submitDates()">
+{% csrf_token %}
+<ul class="form-body" style="padding: 0 2px;">
+    <li class="field">
+    <div title="Choose the start date for the range of shifts you are interested in.">
+    <label for="id_staff_comments">Start Date</label>
+    </div><input class="date" type="text" id="startpicker" value="{{prev_week}}" />
+    </li>
+    <li class="field">
+    <div title="Choose the end date for the range of shifts you are interested in.">
+    <label for="id_staff_comments">End Date</label>
+    </div>
+    <input class="date" type="text" id="endpicker" value="{{next_week}}"/>
+    </li>
+</ul>
+<ul class="form-buttons">
+<li>
+<input value="Request" name="_save" class="default" type="submit">
+</li>
+</ul>
+</form>
+
+
+<script>
+$(function() {
+	$( "#startpicker" ).datepicker({
+		defaultDate: '{{prev_week}}',
+		altField: '2012-01-01',
+		autoSize: true,
+		dateFormat: "yy-mm-dd"
+	});
+	$( "#endpicker" ).datepicker({
+		currentText: "{{next_week}}",
+		dateFormat: "yy-mm-dd"
+	});
+});
+
+function submitDates() {
+	var start = $("#startpicker").attr('value');
+	var end = $("#endpicker").attr('value');
+	window.location['pathname'] = '{% url "bl.breakdown" %}' + start + '/' + end + '/';
+} 
+</script>
+

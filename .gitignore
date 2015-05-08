@@ -2,12 +2,13 @@
 # Lines that start with '#' are comments.
 *.py[oc]
 *~
+*.bak
 *.cache
-.pydevproject
-.~lock*
-.svn/
-.settings
-*.db
-*.sqlite?
+uploads/
+attachments/
+migrations/
+junk/
+/local/media/
+/static/
+mxlive.db
 settings_local.py
-VERSION
