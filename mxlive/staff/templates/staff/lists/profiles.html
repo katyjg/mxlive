@@ -47,7 +47,6 @@
 		<th>Contact</th>
 		<th>Phone</th>
 		<th>City</th>
-		<th>Courier</th>
 		<th>Shipments this Year</th>
 		<th>Forms</th>
 	<thead>
@@ -57,9 +56,8 @@
     <tr class="{% cycle 'odd' 'even' %} link-row">
     	<td class="modal" href="{% url "staff-profile-edit" user.id %}">{{user.name}}</td>
     	<td class="modal" href="{% url "staff-profile-edit" user.id %}">{{user.contact_person|default_if_none:""}}</td>
-    	<td class="modal" href="{% url "staff-profile-edit" user.id %}">{{user.contact_phone|default_if_none:""}}</td>
+    	<td class="modal" href="{% url "staff-profile-edit" user.id %}">{{user.contact_phone|default_if_none:""|truncatechars:16}}</td>
     	<td class="modal" href="{% url "staff-profile-edit" user.id %}">{{user.city|default_if_none:""}}</td>
-    	<td class="modal" href="{% url "staff-profile-edit" user.id %}">{{user.carrier.name|default_if_none:""}}</td>
     	<td class="modal" href="{% url "staff-profile-edit" user.id %}">{{user.shipment_count|default:""}}</td>
     	<td><a href="{% url "staff-shipment-form" user.pk %}"><img src="/img/pdf-icon-sm.png" title="Get shipping labels for {{user.name}}"/></a></td>
 	</tr>

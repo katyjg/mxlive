@@ -74,13 +74,13 @@ class ResultAdmin(admin.ModelAdmin):
     ordering = ['-created']
     search_fields = ['project__name','name','crystal__name','space_group__name']
     list_filter = ['modified','kind']
-    list_display = ('id', 'name', 'data', 'space_group', 'resolution', 'r_meas', 'completeness', 'score', 'kind')
+    list_display = ('id', 'name', 'frames', 'space_group', 'resolution', 'r_meas', 'completeness', 'score', 'kind')
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Result, ResultAdmin)
 
 class ResultStaffAdmin(ResultAdmin):
     list_filter = ['modified','kind','status']
-    list_display = ('project','id','name','data','resolution','kind','created','status')
+    list_display = ('project','id','name','resolution','kind','frames','created','status')
     ordering = ['-created', 'project']
 staff_site.register(Result, ResultStaffAdmin)
 

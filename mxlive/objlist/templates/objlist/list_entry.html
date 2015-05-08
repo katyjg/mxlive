@@ -19,7 +19,6 @@
     {% endif %}{% endif %}{% endif %}>
 
     {# should add a check here for maximum size. Don't want something like a long label ruining everything #}
-    {% load truncate_filters %}
     
     {% for field in fields %}
  		<td {% if modal_edit %}
@@ -33,7 +32,7 @@
         {% if field|make_list == object.score|make_list %}
             {{ field|floatformat:3 }}
     	{% else %}
-    		{{ field|truncate_chars:22 }}
+    		{{ field|truncatechars:22 }}
     	{% endif %}
     	{% endif %}
         </td>
