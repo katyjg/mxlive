@@ -1208,7 +1208,6 @@ ul.filter-choices ul {
 #data-viewer .meta-data ul {
     background: #fff;
     padding: 5px;
-    font-family: Consolas, Monaco, monospace;
     font-size: 85%;
 }
 #data-viewer .meta-data li.separator {

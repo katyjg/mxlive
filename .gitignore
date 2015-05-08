@@ -9,6 +9,8 @@ attachments/
 migrations/
 junk/
 /local/media/
+/local/certs
+/local/cache
 /static/
 mxlive.db
 settings_local.py

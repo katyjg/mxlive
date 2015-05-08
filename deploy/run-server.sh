@@ -5,7 +5,12 @@
 # if it thinks it is already running.
 rm -rf /run/httpd/* /tmp/httpd*
 
-# check of database exists and initialize it if not
+# check of database exists and initialize it if not also copy custom apache config
+# if one is available
+if [ -f /mxlive/local/mxlive.conf ]; then
+    /bin/cp /mxlive/local/mxlive.conf /etc/httpd/conf.d/
+fi
+
 if [ ! -f /mxlive/local/.dbinit ]; then
     su -s /bin/bash apache -c "/mxlive/manage.py syncdb --noinput"
     touch /mxlive/local/.dbinit

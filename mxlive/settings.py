@@ -103,6 +103,9 @@ CACHES = {
     }
 }
 
+DOWNLOAD_FRONTEND = "xsendfile"
+DOWNLOAD_CACHE_DIR =  os.path.join(BASE_DIR, 'local', 'cache')
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
 

@@ -61,6 +61,7 @@ def send_raw_file(request, full_path, attachment=False):
     elif FRONTEND == "django":
         dirname = os.path.dirname(full_path)
         path = os.path.basename(full_path)
+        print path, dirname
         #"Serving file %s in directory %s through django static serve." % (path, dirname)
         response = serve(request, path, dirname)
     elif FRONTEND == "xaccelredirect":
