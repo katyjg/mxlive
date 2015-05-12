@@ -1,0 +1,27 @@
+{% load objforms %}
+<div id="objform-container">
+<div class="heading">
+    <h2>{{info.title}}</h2>
+</div>
+{% if info.message %}
+    <div class="info">
+    <p>{{info.sub_title}}.</p>
+    <p>{{info.message}}</p>
+    </div>
+{% endif %}
+{% if form.get_message %}
+    <div>{{form.get_message}}</div>
+{% endif %}
+{% if  form.help_text %}
+<p class="instruct"><small>{{form.help_text}}</small></p>
+{% endif %}
+{% if form %}
+{% block form_display %}
+    {% show_form form info %}
+{% endblock %}
+{% endif %}
+</div>
+<script>
+    initForms(); //initialize form and transform any select boxes into multi-select widgets
+</script>
+

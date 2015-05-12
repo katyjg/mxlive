@@ -1,0 +1,17 @@
+<h2><span>Local Contact Legend</span></h2>
+<table class="legend">
+<tr class="row1">
+<th></th>
+<th>Name</th>
+<th>Ext.</th>
+</tr>
+{% for person in contact_list %}
+{% ifequal person.category 0 %}
+<tr>
+<td class="column1">{% for char in person.first_name|make_list %}{% if forloop.first %}{{char}}{% endif %}{% endfor %}{% for char in person.last_name|make_list %}{% if forloop.first %}{{char}}{% endif %}{% endfor %}</td>
+<td class="column1"><a href="/contact-us/#{{person.first_name}}-{{person.last_name}}">{{ person.first_name }} {{ person.last_name }}</a></td>
+<td class="column1">{{ person.phone_number|slice:"-4:" }}</td></tr>
+{% endifequal %}
+{% endfor %}
+
+</table>

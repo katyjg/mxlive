@@ -20,11 +20,11 @@
   <div class="list-tools">
     <h3 class="current">
       <a class="prev" href='{% url "stats-shifts" years.2 %}' title="Previous Year">
-        <img src="/img/prev.png" alt="Previous Year"></a>
+        <img src="/static/img/prev.png" alt="Previous Year"></a>
       <a class="current" href='{% url "stats-shifts" years.0 %}'>
         Back to {{ years.0 }} Statistics</a>
       <a class="next" href='{% url "stats-shifts" years.1 %}' title="Next Year">
-        <img src="/img/next.png" alt="Next Year"></a>
+        <img src="/static/img/next.png" alt="Next Year"></a>
     </h3>
   </div>
 
@@ -151,7 +151,7 @@
 		        {% endif %}	        
 				    <tr>
 					    <td>{{g}}{{g|is_remote}}{% if g|is_pi:years.3 %}
-					    	<img style="display: inline;" src="/img/info.png" 
+					    	<img style="display: inline;" src="/static/img/info.png" 
 					    		 title="Used permit(s):<br> {% for p in g|is_pi:years.3 %}{% if forloop.first %}{% else %}, <br>{% endif %}{{ p.last_name }} ({{ p.proposal_id }}){% endfor %}">{% endif %}<!-- {{u.0}}<br>{{u.1}} --></td>
 					    {% ifequal prov 'Other' %}<td>{{u.3}}</td>{% endifequal %}
 					    <td>{{u.0}}<!-- {{u.4}}--></td>
@@ -208,12 +208,12 @@
 {% endblock %}
 
 {% block script %}
-    <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="/js/excanvas.min.js"></script><![endif]-->
-    <script type="text/javascript" src="/js/jquery.flot.min.js"></script>
-    <script type="text/javascript" src="/js/jquery.flot.pie.min.js"></script>
-    <script type="text/javascript" src="/js/jquery.flot.stack.min.js"></script>
-    <script type="text/javascript" src="/js/jquery.flot.axislabels.js"></script>
-    <script type="text/javascript" src="/js/jquery.flot.navigate.min.js"></script>
+    <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="/static/js/excanvas.min.js"></script><![endif]-->
+    <script type="text/javascript" src="/static/js/jquery.flot.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.flot.pie.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.flot.stack.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.flot.axislabels.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.flot.navigate.min.js"></script>
 
     <script type="text/javascript">
 	    var pcolors = {'Saskatchewan': '#D9D98C',

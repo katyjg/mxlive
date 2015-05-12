@@ -53,11 +53,11 @@
                         <td class="modal data" href="/users/experiment/dataset/{{ object.id }}/">{{ object.created|date:"d/m/y-H:i" }}</td>
                         <td class="modal data" href="/users/experiment/dataset/{{ object.id }}/">{{ object.get_status_display }}</td>
                         <td class="modal data" href="/users/experiment/dataset/{{ object.id }}/">
-                            {% if object|file_exists:'tar.gz' %}<img src="/img/check-icon-sm.png" title="Archive is ready for download"/>{% else %}
+                            {% if object|file_exists:'tar.gz' %}<img src="/static/img/check-icon-sm.png" title="Archive is ready for download"/>{% else %}
                             {% if object|file_exists:'tar.gz-tmp' %}
-                                {% if object|file_updated:'tar.gz-tmp' %}<img src="/img/clock.png" title="Archive is being created - check back later"/>{% else %}
-                                <img src="/img/warning-icon.png" title="There is a problem creating the archive - check that the image files exist and try again"/>{% endif %}{% else %}
-                            <img src="/img/delete-icon-sm.png" title="Archive does not exist"/>{% endif %}{% endif %}
+                                {% if object|file_updated:'tar.gz-tmp' %}<img src="/static/img/clock.png" title="Archive is being created - check back later"/>{% else %}
+                                <img src="/static/img/warning-icon.png" title="There is a problem creating the archive - check that the image files exist and try again"/>{% endif %}{% else %}
+                            <img src="/static/img/delete-icon-sm.png" title="Archive does not exist"/>{% endif %}{% endif %}
                         </td>
                     </tr>
                 {% endfor %}

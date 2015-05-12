@@ -4,7 +4,7 @@
 {% load file_exists %}
 
 {% with object as data %}
-<script type="text/javascript" src="/js/jquery.diffviewer.js"></script>
+<script type="text/javascript" src="/static/js/jquery.diffviewer.js"></script>
 <script type="text/javascript">
 	jQuery(document).ready(function() {
         // initialize browser and add classes to body tag
@@ -91,7 +91,7 @@
 
 <div class="frame-list">
     <p>Frames {{ data.frame_sets }}</p>
-	<ul {% if data|images_exist %}style="height: {% if data.crystal %}5.7em{% else %}8.3em{% endif %};"{% endif %}>
+	<ul {% if data|images_exist %}style="height: {% if data.crystal %}3.7em{% else %}8.3em{% endif %};"{% endif %}>
 	{% for frame_id in data.get_frame_list %}
 		<li><a onclick="toFrame({{frame_id}});">{{data.name}}_{{ frame_id|stringformat:"03d" }}</a>&nbsp;
         {% if not request.user.is_superuser %}{% if data|is_downloadable:frame_id %}
