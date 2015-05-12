@@ -308,7 +308,7 @@ ul.toolbar li.pie-tool {background-image: url(/static/img/pie_chart.png);}
 ul.toolbar li.hist-tool {background-image: url(/static/img/hist_chart.png);}
 ul.toolbar li.history-tool {background-image: url(/static/img/history.png);}
 a.download-tool {background-image: url(/static/img/download-icon.png); float: right; padding:8px; margin-top: 4px;}
-a.receive-tool {background-image: url(/static/img/receive-icon-sm.png); padding: 3px 10px}
+a.receive-tool {background-image: url(/static/img/receive-icon-sm.png); padding: 2px 10px}
 a.back-tool {float:left; width:16px; padding-right:3px; background: url(/static/img/refresh-icon.png) no-repeat 0 0; cursor: pointer;}
 
 /* -- end toolbar -- */
