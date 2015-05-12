@@ -33,9 +33,9 @@ class LargeFileInput(forms.FileInput):
     
     class Media:
         css = {
-            'all': ('/css/fileuploader.css',)
+            'all': ('/static/css/fileuploader.css',)
         }
-        js = ('/js/fileuploader.js',)
+        js = ('/static/js/fileuploader.js',)
 
 class LeftHalfInput(forms.TextInput):
     def __init__(self, *args, **kwargs):

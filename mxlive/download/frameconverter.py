@@ -72,7 +72,7 @@ def _read_marccd_image(filename, gamma_offset = 0.0, resolution=(1024,1024)):
     disp_gamma = gamma * numpy.exp(-gamma_offset + GAMMA_SHIFT)/30.0
     raw_img = raw_img.convert('I')
     lut = stretch(disp_gamma)
-    raw_img = raw_img.point(lut,'L')
+    raw_img = raw_img.point(list(lut),'L')
     raw_img.putpalette(COLORMAPS['gist_yarg'])
     return raw_img.resize(resolution, Image.ANTIALIAS) # slow but nice Image.NEAREST is very fast but ugly
          

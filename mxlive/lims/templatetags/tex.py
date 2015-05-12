@@ -1,5 +1,6 @@
 from django.template.defaultfilters import stringfilter
 from django import template
+from django.conf import settings
 
 register = template.Library()
 
@@ -20,4 +21,6 @@ def texsafe(value):
         value = eval(repr(value).replace(char, new_char))
     return value
 
-
+@register.simple_tag
+def path_to_files():
+    return getattr(settings, "BASE_DIR", "/tmp")

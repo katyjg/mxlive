@@ -30,7 +30,7 @@ def _validate_arg(value, expected):
 
 def _eval_arg_type(arg_type, T=Any, arg=None, sig=None):
   """
-  Returns a type from a snippit of python source. Should normally be
+  Returns a type from a snippet of python source. Should normally be
   something just like 'str' or 'Object'.
   
     arg_type      the source to be evaluated
@@ -118,11 +118,12 @@ def _inject_args(sig, types):
     sig = '%s(%s)' % (sig, ', '.join(types))
   return sig
 
-def jsonrpc_method(name, authenticated=False, safe=False, validate=False,
-                   site=default_site):
+def jsonrpc_method(name, authenticated=False,
+                   authentication_arguments=['username', 'password'],
+                   safe=False, validate=False, site=default_site):
   """
   Wraps a function turns it into a json-rpc method. Adds several attributes
-  to the function speific to the JSON-RPC machinery and adds it to the default
+  to the function specific to the JSON-RPC machinery and adds it to the default
   jsonrpc_site if one isn't provided. You must import the module containing
   these functions in your urls.py.
   
@@ -140,7 +141,7 @@ def jsonrpc_method(name, authenticated=False, safe=False, validate=False,
         and `password` will not be added, and this method will only check 
         against `request.user.is_authenticated`.
 
-        You may pass a callablle to replace `django.contrib.auth.authenticate`
+        You may pass a callable to replace `django.contrib.auth.authenticate`
         as the authentication method. It must return either a User or `None`
         and take the keyword arguments `username` and `password`.
 
@@ -174,11 +175,11 @@ def jsonrpc_method(name, authenticated=False, safe=False, validate=False,
     arg_names = getargspec(func)[0][1:]
     X = {'name': name, 'arg_names': arg_names}
     if authenticated:
-      if authenticated is True:
+      if authenticated is True or callable(authenticated):
         # TODO: this is an assumption
-        X['arg_names'] = ['username', 'password'] + X['arg_names']
+        X['arg_names'] = authentication_arguments + X['arg_names']
         X['name'] = _inject_args(X['name'], ('String', 'String'))
-        from django.contrib.auth import authenticate
+        from django.contrib.auth import authenticate as _authenticate
         from django.contrib.auth.models import User
       else:
         authenticate = authenticated
@@ -191,21 +192,27 @@ def jsonrpc_method(name, authenticated=False, safe=False, validate=False,
             or user is None):
           user = None
           try:
-            creds = args[:2]
-            user = authenticate(username=creds[0], password=creds[1])
+            creds = args[:len(authentication_arguments)]
+            if len(creds) == 0:
+                raise IndexError
+            # Django's authenticate() method takes arguments as dict
+            user = _authenticate(username=creds[0], password=creds[1], *creds[2:])
             if user is not None:
-              args = args[2:]
+              args = args[len(authentication_arguments):]
           except IndexError: 
-            if 'username' in kwargs and 'password' in kwargs:
-              user = authenticate(username=kwargs['username'],
-                                  password=kwargs['password'])
+              auth_kwargs = {}
+              try:
+                for auth_kwarg in authentication_arguments:
+                  auth_kwargs[auth_kwarg] = kwargs[auth_kwarg]
+              except KeyError:
+                raise InvalidParamsError(
+                  'Authenticated methods require at least '
+                  '[%s] or {%s} arguments', authentication_arguments)
+
+              user = _authenticate(**auth_kwargs)
               if user is not None:
-                kwargs.pop('username')
-                kwargs.pop('password')
-            else:
-              raise InvalidParamsError(
-                'Authenticated methods require at least '
-                '[username, password] or {username: password:} arguments')
+                for auth_kwarg in authentication_arguments:
+                  kwargs.pop(auth_kwarg)
           if user is None:
             raise InvalidCredentialsError
           request.user = user

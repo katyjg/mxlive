@@ -777,10 +777,10 @@ class Cocktail(LimsBaseClass):
         'cascade': 'crystals',
         'cascade_help': 'All associated crystals will be left without a cocktail'
     }
-    is_radioactive = models.BooleanField()
-    contains_heavy_metals = models.BooleanField()
-    contains_prions = models.BooleanField()
-    contains_viruses = models.BooleanField()
+    is_radioactive = models.BooleanField(default=False)
+    contains_heavy_metals = models.BooleanField(default=False)
+    contains_prions = models.BooleanField(default=False)
+    contains_viruses = models.BooleanField(default=False)
     description = models.TextField(blank=True, null=True)
 
     def identity(self):
@@ -977,9 +977,9 @@ class Experiment(LimsBaseClass):
         if self.is_deletable:
             if not cascade:
                 self.crystal_set.all().update(experiment=None)
-            else: 
-                for obj in self.crystal_set.all():
-                    obj.delete(request=request)
+            for obj in self.crystal_set.all():
+                obj.experiment = None
+                obj.delete(request=request)
             super(Experiment, self).delete(request=request)
 
     def review(self, request=None):
@@ -1384,6 +1384,9 @@ class Result(DataBaseClass):
     def trash(self, request=None):
         super(Result, self).trash(request=request)
         self.data.trash(request=request)
+
+    def frames(self):
+        return self.data and self.data.num_frames() or ""
 
     class Meta:
         ordering = ['-score']

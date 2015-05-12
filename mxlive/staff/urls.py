@@ -110,15 +110,6 @@ for section, subsection in _URL_META.items():
                                    },
                  'staff-comments-%s-add'% params.get('model').__name__.lower()))        
 
-        # Add Staff Comments
-        if params.get('staff_comments', True):
-            _dynamic_patterns.append(
-                (r'%s/(?P<id>\d+)/staff_comments/add/$' % (base_url),
-                 'staff_comments', {'model': params.get('model'),
-                                    'form': StaffCommentsForm,
-                                   },
-                 'staff-comments-%s-add'% params.get('model').__name__.lower()))    
-
 #Special Staff Cases
 urlpatterns = patterns('mxlive.staff.views',
     (r'^$', 'staff_home', {}, 'staff-home'),

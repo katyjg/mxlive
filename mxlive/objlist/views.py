@@ -11,7 +11,7 @@ from django.utils.translation import ugettext
 from django.utils.encoding import force_text
 from django.contrib.admin.options import IncorrectLookupParameters
 
-staff_site = admin.AdminSite() 
+from mxlive.lims.admin import staff_site
 
 class ObjectList(main.ChangeList):
     def __init__(self, request, manager, admin_site=None, num_show=None):
@@ -20,7 +20,7 @@ class ObjectList(main.ChangeList):
             _model_admin = admin_site._registry[manager.model]           
         elif request.user.is_superuser:
             # use the staff AdminSite if available
-            _model_admin = staff_site._registry.get(manager.model, admin.site._registry[manager.model])           
+            _model_admin = staff_site._registry.get(manager.model, admin.site._registry[manager.model])
         else:
             _model_admin = admin.site._registry[manager.model]
 
@@ -36,7 +36,7 @@ class ObjectList(main.ChangeList):
         self.date_hierarchy = self.model_admin.date_hierarchy
         self.search_fields = self.model_admin.search_fields
         self.list_select_related = self.model_admin.list_select_related
-        self.list_per_page = self.model_admin.list_per_page
+        self.list_per_page = num_show and num_show or self.model_admin.list_per_page
         self.list_max_show_all = self.model_admin.list_max_show_all
         self.model_admin = _model_admin
         self.preserved_filters = self.model_admin.get_preserved_filters(request)

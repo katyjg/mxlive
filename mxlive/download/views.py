@@ -61,6 +61,7 @@ def send_raw_file(request, full_path, attachment=False):
     elif FRONTEND == "django":
         dirname = os.path.dirname(full_path)
         path = os.path.basename(full_path)
+        print path, dirname
         #"Serving file %s in directory %s through django static serve." % (path, dirname)
         response = serve(request, path, dirname)
     elif FRONTEND == "xaccelredirect":
@@ -114,7 +115,7 @@ def send_png(request, key, path, brightness):
     # make sure only owner and staff can get their files
     if not request.user.is_staff:
         if request.user.get_profile() != obj.owner:
-            return HttpResponseRedirect('/img/image-not-found.png')
+            return HttpResponseRedirect('/static/img/image-not-found.png')
             #raise Http404
 
 
@@ -125,7 +126,7 @@ def send_png(request, key, path, brightness):
         try:
             create_png(img_file, png_file, BRIGHTNESS_VALUES[brightness])
         except OSError:
-            return HttpResponseRedirect('/img/image-not-found.png')
+            return HttpResponseRedirect('/static/img/image-not-found.png')
             #raise Http404        
     return send_raw_file(request, png_file, attachment=False)
 
@@ -135,7 +136,7 @@ def find_file(request, pk, path):
     obj = get_object_or_404(SecurePath, key=data.url)
     if not request.user.is_staff:
         if request.user.get_profile() != obj.owner:
-            return HttpResponseRedirect('/img/sample-not-found.png')
+            return HttpResponseRedirect('/static/img/sample-not-found.png')
 
     if os.path.exists(get_download_path(obj.key)):
         filename = os.path.join(CACHE_DIR, obj.key, '%s.gif' % path)
@@ -148,7 +149,7 @@ def find_file(request, pk, path):
             try:
                 subprocess.check_call(command.replace('_test-pic','-pic').split())
             except:
-                return HttpResponseRedirect('/img/sample-not-found.png')
+                return HttpResponseRedirect('/static/img/sample-not-found.png')
     
     return send_raw_file(request, filename, attachment=False)
 

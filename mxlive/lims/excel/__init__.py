@@ -67,6 +67,7 @@ CRYSTAL_DUPLICATE_ERROR = 'Multiple crystals named "%s"'
 CRYSTAL_PRIORITY = 6
 CRYSTAL_PRIORITY_ERROR = 'Invalid Priority "%s" in cell Crystals!$' + COLUMN_MAP[CRYSTAL_PRIORITY] + '$%d.'
 CRYSTAL_COCKTAIL = 7
+CRYSTAL_COCKTAIL_ERROR = 'Strange character found in cocktail at cell Crystals!$' + COLUMN_MAP[CRYSTAL_COCKTAIL] + '$%d.'
 CRYSTAL_COMMENTS = 8
 CRYSTAL_COMMENTS_ERROR = 'Strange character found in cell Crystals!$' + COLUMN_MAP[CRYSTAL_COMMENTS] + '$%d.'
 
@@ -487,7 +488,7 @@ class LimsWorkbook(object):
                             cont.dewar.shipment.archive()
                     if self.project.container_set.exclude(status__exact=Container.STATES.ARCHIVED).filter(name__exact=container).exists():
                         container_doubles += str(container) + ', '
-                    
+            
             if container_doubles:
                 if len(container_doubles.split(',')) > 5:
                     container_doubles = ','.join(container_doubles.split(',')[:5]) + '...'

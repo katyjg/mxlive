@@ -679,19 +679,17 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html',
     if request.method == 'POST':
         frm = form(request.POST, instance=obj)
         try:
-            if not obj.comments: base_comments = ''
-            else: base_comments = obj.comments
+            base_comments = obj.comments or ''
         except:
             base_comments = ''
         if frm.is_valid():
             if user == 'staff':
                 author = ' by staff'
-                frm.save()
             elif user == 'user' and request.POST.get('comments', None):
                 author = ''
                 obj.comments = base_comments + '\n\n%s - %s' % \
-                    (dateformat.format(timezone.now(), 'Y-m-d P'), request.POST.get('comments'))
-                obj.save()
+                        (dateformat.format(timezone.now(), 'Y-m-d P'), request.POST.get('comments'))
+            obj.save()
             form_info['message'] = 'comments added to %s (%s)%s' % ( model._meta.verbose_name, obj, author)
             messages.info(request, form_info['message'])
             ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY, 
@@ -703,7 +701,7 @@ def staff_comments(request, id, model, form, template='objforms/form_base.html',
             'form' : frm, 
             }, context_instance=RequestContext(request))
     else:
-        frm = form(instance=obj, initial=dict(request.GET.items())) 
+        frm = form(initial=dict(request.GET.items()),instance=obj) 
         return render_to_response(template, {
         'info': form_info, 
         'form' : frm,
@@ -1016,10 +1014,11 @@ def shipment_pdf(request, id, model, format):
     work_dir = create_cache_dir(obj.label_hash())
     prefix = "%s-%s" % (obj.label_hash(), format)
     pdf_file = os.path.join(work_dir, '%s.pdf' % prefix)
-    print pdf_file
+
     if not os.path.exists(pdf_file) or settings.DEBUG: # remove the True after testing
         # create a file into which the LaTeX will be written
         tex_file = os.path.join(work_dir, '%s.tex' % prefix)
+        dvi_file = os.path.join(work_dir, '%s.dvi' % prefix)
         # render and output the LaTeX into temap_file
         if format == 'protocol' or format == 'runlist':
             if format == 'protocol':
@@ -1044,14 +1043,9 @@ def shipment_pdf(request, id, model, format):
         if not settings.DEBUG:
             stdout = devnull
             stderr = devnull
-        sys.path.append('/usr/local/texlive/2014/bin/x86_64-linux/')
-        subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], 
-                        cwd=work_dir,
-                        )
+        subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], cwd=work_dir,)
         if format == 'protocol' or format == 'runlist':
-            subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], 
-                            cwd=work_dir,
-                            )
+            subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], cwd=work_dir,)
     
     return send_raw_file(request, pdf_file, attachment=True)
         

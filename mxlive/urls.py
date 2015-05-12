@@ -4,6 +4,7 @@ from django.contrib import admin
 from jsonrpc.site import jsonrpc_site
 from remote.views import mock_user_api
 from views import logout_view, login_view
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 import os
 
 admin.autodiscover()
@@ -29,6 +30,17 @@ urlpatterns = patterns('',
 )
 
 if settings.DEBUG:       
+    urlpatterns += staticfiles_urlpatterns()
+    urlpatterns += patterns('',
+        (r'^media/(?P<path>.*)$', 'django.views.static.serve', {
+            'document_root': settings.MEDIA_ROOT, 
+            }),
+        (r'^help/(?P<path>.*)$', 'django.views.static.serve', {
+            'document_root': os.path.join(os.path.dirname(__file__), 'help/_build/html')
+            }),
+    )
+"""
+if settings.DEBUG:       
     urlpatterns += patterns('',
         (r'^help/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': os.path.join(os.path.dirname(__file__), 'help/_build/html')
@@ -46,3 +58,4 @@ if settings.DEBUG:
             'document_root': os.path.join(os.path.dirname(__file__), 'media/uploads'), 
             }),
     )
+"""
