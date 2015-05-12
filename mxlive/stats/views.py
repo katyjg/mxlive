@@ -5,11 +5,14 @@ from django.conf import settings
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.decorators.cache import cache_page
+from django.utils import timezone
 from numpy import histogram, average, std
 from scheduler.models import Beamline as PublicBeamline
 from scheduler.models import Visit, Stat
 from lims.models import Beamline, Data, Project, ScanResult
 from lims.views import admin_login_required
+
+from collections import OrderedDict
 
 
 _provinces = {'British Columbia': ['BC','British Columbia'],
@@ -23,6 +26,7 @@ _provinces = {'British Columbia': ['BC','British Columbia'],
              'Prince Edward Island': ['PEI','Prince Edward Island'],
              'Newfoundland': ['NL','Newfoundland', 'Nfld'],
              }
+
 
 @admin_login_required
 @cache_page(3600)
@@ -62,35 +66,39 @@ def stats_profiles(request):
 @admin_login_required
 @cache_page(3600)
 def stats_calendar(request, month=None):
-    mon = month and int(month.split('-')[1]) or datetime.today().month
-    today = month and datetime(year=int(month.split('-')[0]), month=mon, day=datetime.today().day) or datetime.today()
-    prev_month = (datetime(today.year, mon, 1) + relativedelta(months=-1)).strftime('%Y-%m')
-    next_month = (datetime(today.year, mon, 1) + relativedelta(months=+1)).strftime('%Y-%m')
+    mon = month and int(month.split('-')[1]) or timezone.now().month
+    yr = month and int(month.split('-')[0]) or timezone.now().year
+    today = timezone.make_aware(datetime.combine(datetime(year=yr, month=mon, day=timezone.now().day), datetime.min.time()), timezone.get_current_timezone())
+    prev_month = (datetime(yr, mon, 1, 0, 0, 0) + relativedelta(months=-1)).strftime('%Y-%m')
+    next_month = (datetime(yr, mon, 1, 0, 0, 0) + relativedelta(months=+1)).strftime('%Y-%m')
 
     display = {}
     for bl in PublicBeamline.objects.using('public-web'):
         display[bl.name] = bl.pk
-    current_date = (datetime.today().strftime('%Y-%m-%d') == today.strftime('%Y-%m-%d')) and today.day or 0
 
     dates = []
-    week = []
     i = 0
     first_day = (today - timedelta(days=(today.day-1))) - timedelta(days=(today - timedelta(days=(today.day-1))).weekday())
+    data = Data.objects.filter(created__gte=first_day).filter(created__lt=(first_day+timedelta(days=42))).filter(beamline__name__in=display.keys())
     while (first_day+timedelta(days=i*7)).month is today.month or i == 0:
-        week = []
+        week = {'dates': [], 'info': {bl:[] for bl in display.keys()}}
         for j in range(7):
             this_day = first_day + timedelta(days=(j + i*7))
-            filter_today = datetime(this_day.year, this_day.month, this_day.day)
-            filter_tomorrow = filter_today + timedelta(days=1)
-            data = Data.objects.filter(created__gt=filter_today).filter(created__lt=filter_tomorrow).order_by('created').filter(beamline__name__in=display.keys())
-            week.append([this_day.day,this_day.month,data])
+            week['dates'].append(this_day)
+            for blname, bl in display.items():
+                ddata = data.filter(created__gte=this_day).filter(created__lt=(this_day + timedelta(days=1))).filter(beamline=bl)
+                users = ddata.values_list('project__user__username',flat=True).distinct()
+                uinfo = []
+                for user in users:
+                    udata = ddata.filter(project__user__username=user).order_by('created')
+                    uinfo.append([user, udata.count(), udata[0].created, udata.latest('created').created])
+                week['info'][blname].append((this_day,uinfo))
         i += 1
         dates.append(week)
 
     return render_to_response('stats/calendar.html', {
-        'month': [mon, today.strftime('%B'), today.year, prev_month, next_month],
-        'current_date': current_date,
-        'display': display,
+        'month': [today, prev_month, next_month],
+        'current_date': timezone.now().date(),
         'dates': dates,
         }, context_instance=RequestContext(request))
     

@@ -18,12 +18,14 @@ def format_data(data, beamline):
                     k = j
             if k is not None:
                 projects[k][1] += 1
-                projects[k][3] = data[i].created.strftime("%H:%M")
+                #projects[k][3] = data[i].created.strftime("%H:%M")
+                projects[k][3] = data[i].created
             else:
                 projects.append([data[i].project.name, 
-                                 1, 
-                                 data[i].created.strftime("%H:%M"), 
-                                 data[i].created.strftime("%H:%M")])      
+                                 1,
+                                 data[i].created,
+                                 data[i].created])#data[i].created.strftime("%H:%M"), 
+                                 #data[i].created.strftime("%H:%M")])      
     return projects or ''
 
 @register.filter("by_kind")
