@@ -11,15 +11,12 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from django.conf import global_settings
 import os
-import site
 import sys
+from iplist import IPAddressList
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
-# Add paths
-for _path in [os.path.join(BASE_DIR, 'libs'), os.path.join(BASE_DIR, 'mxlive')]:
-    if not _path in sys.path: site.addsitedir(_path)
-site.addsitedir(os.path.join(BASE_DIR, '../bl-website/website'))
+PROJECT_DIR = os.path.dirname(__file__)
+BASE_DIR = os.path.dirname(PROJECT_DIR)
+sys.path.extend([PROJECT_DIR, BASE_DIR, os.path.join(BASE_DIR, 'libs'), os.path.join(BASE_DIR, 'local')])
 
 SITE_ID = 1
 
@@ -34,6 +31,23 @@ DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ALLOWED_HOSTS = ['*']
+
+# Specific IP addresses or networks you want to have access to your internal pages
+# such as wiki/admin etc (eg. CLS network)
+INTERNAL_IPS = IPAddressList(
+    '127.0.0.1/32',
+	'10.52.28.0/22', 
+	'10.52.4.0/22', 
+	'10.45.2.0/22',
+	'10.63.240.0/22',
+)
+
+# sets the number of proxies being used locally for the site
+INTERNAL_PROXIES = 1
+
+# Specific urls which should only be accessed from one of the internal IP addresses
+# or networks above
+INTERNAL_URLS = ('^/admin', '^/json', '^/api')
 
 # Application definition
 
@@ -64,13 +78,13 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'middleware.InternalAccessMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
 ROOT_URLCONF = 'mxlive.urls'
-
 WSGI_APPLICATION = 'mxlive.wsgi.application'
 
 
@@ -80,30 +94,37 @@ WSGI_APPLICATION = 'mxlive.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, 'local', 'mxlive.db'),
     }
 }
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+
+DOWNLOAD_FRONTEND = "xsendfile"
+DOWNLOAD_CACHE_DIR =  os.path.join(BASE_DIR, 'local', 'cache')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = 'en'
+TIME_ZONE = 'America/Regina'
 USE_I18N = True
-
 USE_L10N = True
-
-USE_TZ = True
-
+USE_TZ = True 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
-STATIC_URL = '/media/'
-STATIC_ROOT = 'static/'
-
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = (
+    os.path.join(PROJECT_DIR, "static"),
+)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'local/media')
 AUTH_PROFILE_MODULE = 'lims.Project'
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
@@ -120,16 +141,12 @@ LDAP_SU_GIDS = [] # something like ['CN=CLS-Testing,CN=Users,DC=vendasta,DC=com'
 
 
 AUTHENTICATION_BACKENDS = (
- #'mxlive.backends.ldapauth.LDAPBackend',
  'django_auth_ldap.backend.LDAPBackend',
  'django.contrib.auth.backends.ModelBackend',
 )
 
 TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    os.path.join(BASE_DIR,'mxlive', 'templates'),
+    os.path.join(PROJECT_DIR, 'templates')
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS +(
@@ -137,7 +154,6 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS +(
      'django.contrib.messages.context_processors.messages',
 ) 
 
-CACHE_BACKEND = 'locmem://'
 
 # default Laboratory settings (Do not remove)
 DEFAULT_LABORATORY_ID = 0
@@ -164,8 +180,7 @@ else:
 try:
     from settings_local import *
 except ImportError:
-    import logging
-    logging.debug("No settings_local.py, using settings.py only.")
+    pass
 
 """
 Before running:

@@ -1018,6 +1018,7 @@ def shipment_pdf(request, id, model, format):
     if not os.path.exists(pdf_file) or settings.DEBUG: # remove the True after testing
         # create a file into which the LaTeX will be written
         tex_file = os.path.join(work_dir, '%s.tex' % prefix)
+        dvi_file = os.path.join(work_dir, '%s.dvi' % prefix)
         # render and output the LaTeX into temap_file
         if format == 'protocol' or format == 'runlist':
             if format == 'protocol':
@@ -1042,14 +1043,9 @@ def shipment_pdf(request, id, model, format):
         if not settings.DEBUG:
             stdout = devnull
             stderr = devnull
-        #sys.path.append('/usr/local/texlive/2014/bin/x86_64-linux/')
-        subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], 
-                        cwd=work_dir,
-                        )
+        subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], cwd=work_dir,)
         if format == 'protocol' or format == 'runlist':
-            subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], 
-                            cwd=work_dir,
-                            )
+            subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], cwd=work_dir,)
     
     return send_raw_file(request, pdf_file, attachment=True)
         

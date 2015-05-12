@@ -1,0 +1,50 @@
+{% if form.error_message %}
+<li>
+    <p class="warning">{% for error in form.error_message %}{{ error }}<br>{% endfor %}</p>
+</li>
+{% endif %}
+
+{% if form.warning_message %}{% if form.errors %}
+<li>
+    <p class="warning-error warning">{{form.warning_message}}</p>
+</li>
+{% else %}
+<li class="field">
+    <p class="warning-error error">{{form.warning_message}}</p>
+</li>
+{% endif %}{% endif %}
+
+{% if form.errors %}{% if not form.error_message %}{% if not for.warning_message %}
+<li class="field">
+    <p class="error">
+{% else %}
+<li>
+    <p class="error">
+{% endif %}Submitted data is invalid. Please Correct the highlighted errors!</p>
+</li>
+{% endif %}{% endif %}
+
+{% for field in form %}
+    {% if field.is_hidden %}{{field}}{% else %}
+    <li class="{{field.field.widget.attrs.class}}">
+        {% if field.field.widget.is_boolean %}
+            <div class="choice">
+            {{field}}
+            {{field.label_tag}}
+            </div>
+        {% else %}
+            <div>
+            {{field.label_tag}}{% if field.field.required %}<span class="req">*</span>{% endif %}
+            </div>
+            <div>
+            {% if field.field.widget.is_multiselect %}{{field}}{% else %}{{field}}{% endif %}
+            </div>
+        {% endif %}
+        {% if  field.help_text %}
+        <p class="instruct"><small>{{field.help_text}}</small></p>
+        {% endif %}
+        {% if field.errors %}{% if not form.error_message %}<small>{{field.errors}}</small>{% endif %}{% endif %}
+    </li>
+    {% endif %}
+{% endfor %}
+
