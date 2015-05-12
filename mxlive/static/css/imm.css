@@ -1209,6 +1209,7 @@ ul.filter-choices ul {
     background: #fff;
     padding: 5px;
     font-size: 85%;
+    line-height: 1.2em;
 }
 #data-viewer .meta-data li.separator {
     border-top: 1px dotted #ccc;
