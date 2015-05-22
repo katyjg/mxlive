@@ -14,14 +14,15 @@ class PermissionsMiddleware(object):
                 return HttpResponseRedirect(request.path.replace('/staff/', '/users/'))
                 
 INTERNAL_URLS = getattr(settings, 'INTERNAL_URLS', [])
-CLIENT_ADDRESS_INDEX = getattr(settings, 'INTERNAL_PROXIES', 1) + 1
+CLIENT_ADDRESS_INDEX = getattr(settings, 'INTERNAL_PROXIES', 1)
 
 def get_client_address(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR','').split(',')
-    if len(x_forwarded_for) > CLIENT_ADDRESS_INDEX:
+    x_forwarded_for = [v for v in request.META.get('HTTP_X_FORWARDED_FOR','').split(',') if v.strip()]
+    if len(x_forwarded_for) >= CLIENT_ADDRESS_INDEX:
         ip = x_forwarded_for[-CLIENT_ADDRESS_INDEX]
     else:
         ip = request.META.get('REMOTE_ADDR')
+    print "REAL REMOTE IP:", ip
     return ip
 
 
@@ -36,4 +37,3 @@ class InternalAccessMiddleware(object):
                 return 
             else:
                 raise Http404()
-
