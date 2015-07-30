@@ -74,7 +74,7 @@ def stats_calendar(request, month=None):
 
     display = {}
     for bl in PublicBeamline.objects.using('public-web'):
-        display[bl.name] = bl.pk
+        display[bl.name] = Beamline.objects.get(name=bl.name).pk
 
     dates = []
     i = 0

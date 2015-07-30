@@ -5,4 +5,4 @@
 
 # The file should be renamed 'post-merge' and made executable
 
-exec git describe  | sed 's/\.0-/./g' > imm/VERSION
+exec git describe  | sed 's/\.0-/./g' > mxlive/VERSION
