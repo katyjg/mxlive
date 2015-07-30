@@ -62,7 +62,7 @@
 	                    {% ifequal month.0.month item.0.month %}current-month 
 	                    {% ifequal current_date item.0 %}today{% endifequal %}{% endifequal %}
 	                    {% if item.1 %}link-cell modal"
-	                    href="{% url "stats-data-list" %}?beamline={{forloop.parentloop.counter}}&created__gte={{item.0|date:'Y-m-d'}}+00%3A00%3A00%2B00%3A00&created__lte={{item.0|date:'Y-m-d'}}+23%3A59%3A59%2B00%3A00&ot=asc&o=6" 
+	                    href="{% url "stats-data-list" %}?beamline={{bl|bl_pk}}&created__gte={{item.0|date:'Y-m-d'}}+00%3A00%3A00%2B00%3A00&created__lte={{item.0|date:'Y-m-d'}}+23%3A59%3A59%2B00%3A00&ot=asc&o=6" 
 	                    {% else %}"{% endif %}>
 	                    	{% for user in item.1 %}
 		                        <b>{{ user.0|truncatechars:8 }}</b>({{ user.1 }})- 

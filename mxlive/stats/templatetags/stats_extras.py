@@ -2,7 +2,7 @@ from django.template import Library
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
-from mxlive.lims.models import Project
+from mxlive.lims.models import Project, Beamline
 from scheduler.models import Proposal, Visit
 
 register = Library()
@@ -31,6 +31,10 @@ def format_data(data, beamline):
 @register.filter("by_kind")
 def by_kind(data, kind):
     return data.filter(kind__exact=kind).count()
+
+@register.filter("bl_pk")
+def bl_pk(bl):
+    return Beamline.objects.get(name=bl).pk
 
 @register.filter("user_project")
 def user_project(data):
