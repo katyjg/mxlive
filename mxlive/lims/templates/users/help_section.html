@@ -4,7 +4,7 @@
 <ul class="help">
 <li class="title">News...</li>
 {% for link in news_links %}
-        <li><a class="{% ifequal link.get_frame_type_display 'flash' %}swf" target="_blank"{% else %}modal-{{ link.get_frame_type_display }}"{% endifequal %} href='{% if link.url %}{{ link.url }}{% else %}/{{ link.document }}{% endif %}'>{{ link.description|truncate_chars:60 }}</a></li>
+        <li><a class="{% ifequal link.get_frame_type_display 'flash' %}swf" target="_blank"{% else %}{% ifequal link.get_frame_type_display 'link' %}" target="_blank"{% else %}modal-{{ link.get_frame_type_display }}"{% endifequal %}{% endifequal %} href='{% if link.url %}{{ link.url }}{% else %}/{{ link.document }}{% endif %}'>{{ link.description|truncate_chars:60 }}</a></li>
 {% endfor %}
 </ul>
 {% endif %}
@@ -12,7 +12,7 @@
 <ul class="help">
 <li class="title">Documentation ...</li>
 {% for link in doc_links %}
-        <li><a class="{% ifequal link.get_frame_type_display 'flash' %}swf" target="_blank"{% else %}modal-{{ link.get_frame_type_display }}"{% endifequal %} href='{% if link.url %}{{ link.url }}{% else %}/{{ link.document }}{% endif %}'>{{ link.description|truncate_chars:60 }}</a></li>
+        <li><a class="{% ifequal link.get_frame_type_display 'flash' %}swf" target="_blank"{% else %}{% ifequal link.get_frame_type_display 'link' %}" target="_blank"{% else %}modal-{{ link.get_frame_type_display }}"{% endifequal %}{% endifequal %} href='{% if link.url %}{{ link.url }}{% else %}/{{ link.document }}{% endif %}'>{{ link.description|truncate_chars:60 }}</a></li>
 {% endfor %}
 </ul>
 {% endif %}

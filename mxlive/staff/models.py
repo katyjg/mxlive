@@ -37,6 +37,7 @@ class Link(StaffBaseClass):
         'flash',
         'image',
         'inline',
+        'link',
     )
     CATEGORY = Enum(
         'News',
