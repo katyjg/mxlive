@@ -90,6 +90,55 @@
             \end{minipage}
 	}
     \end{center}
+    {% empty %}
+    \begin{center}
+	\fbox{
+        \begin{minipage}{4in}
+                \vspace{0.125in}
+                {\bf 
+                \begin{tabular}{ll}
+                    {\large To: } & {\large {{ project.contact_person|texsafe|default:"" }} } \\
+	                 {% if project.department %}& {\large {{ project.department|texsafe|default:"" }} } \\{% endif %}
+	                 & {\large {{ project.organisation|texsafe|default:"" }} } \\
+	                 & {\large {{ project.address|texsafe|default:"" }} } \\
+	                 & {\large {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}\ \ {{project.postal_code|texsafe|default:"" }} } \\
+	                 & {\large {{ project.country|texsafe|default:"" }} } \\
+	                 & Phone: {{ project.contact_phone|texsafe|default:"" }} \\
+	                 {% if project.contact_fax %}& Fax: {{ project.contact_fax|texsafe|default:"" }} \\{% endif %}
+                \end{tabular}
+                }
+                \vspace{0.125in}
+            \colorbox[gray]{0.92}{
+                \begin{tabular*}{0.9\textwidth}{@{\extracolsep{\fill}} | p{.3\textwidth} | p{.5\textwidth} |}
+                \hline
+                Shipment name &  \\ \hline 
+                Package Number & 1 of 1 \\ \hline
+                \hline
+                From: & {\large Canadian Light Source Inc. } \\
+                 & {\large University of Saskatchewan } \\
+                 & {\large 44 Innovation Boulevard } \\
+                 & {\large Saskatoon, SK S7N 2V3 } \\
+                 & {\large CANADA } \\
+                 & {\normalsize Shipping Phone: (306) 657-3657 } \\
+                 & {\normalsize Shipping Fax: (306) 657-3533 } \\
+                \hline
+                \end{tabular*}
+            }
+            \vskip\fboxsep
+        \end{minipage}
+            \begin{minipage}{1.25in}
+                \begin{center}
+		\includegraphics[width=80pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/cmcf_logo.pdf}
+
+                \vspace{0.2in}
+		\includegraphics[width=75pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/fragile_sign.pdf}
+
+                \vspace{0.2in}
+                \large{ {\bf Non-Hazardous \\ Frozen Samples \\ In Dry-Shipper} }
+                \end{center}
+            \end{minipage}
+	}
+    \end{center}
     {% endfor %}
 \newpage
 {% endif %}{% endif %}
