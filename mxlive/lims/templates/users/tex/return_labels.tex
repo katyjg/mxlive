@@ -21,7 +21,6 @@
 % double spacing     : 1.6
 \setmainfont{Gentium Basic}
 \begin{document}
-{% if shipment %}
 {% if project.address and project.city and project.province %}
 \begin{minipage}{\textwidth}
 \includegraphics[width=114pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/cmcf_logo.pdf}
@@ -39,7 +38,7 @@
     \end{minipage}
 
     \vspace{0.2in}
-    {% for dewar in shipment.dewar_set.all %}
+    {% if shipment %}{% for dewar in shipment.dewar_set.all %}
     {% if not forloop.first %}\newpage{% endif %}
     {\color{blue} {\bf Return Label {{ forloop.counter }}: Replace the current label on the outside of a dewar "{{ dewar.name|texsafe|default:"" }}" with this label. } }
     \begin{center}
@@ -90,7 +89,7 @@
             \end{minipage}
 	}
     \end{center}
-    {% empty %}
+    {% endfor %}{% else %}
     \begin{center}
 	\fbox{
         \begin{minipage}{4in}
@@ -139,9 +138,9 @@
             \end{minipage}
 	}
     \end{center}
-    {% endfor %}
+    {% endif %}
 \newpage
-{% endif %}{% endif %}
+{% endif %}
 
 {% include "users/tex/shipping_form.tex" with project=project %}
 
