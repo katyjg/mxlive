@@ -1282,7 +1282,7 @@ class Data(DataBaseClass):
          
         image_url = settings.IMAGE_PREPEND or ''
         if frame in frame_numbers:
-            image_url = image_url + "/download/images/%s/%s_%03d" % (self.url, self.name, frame)
+            image_url = image_url + "/download/images/%s/%s_%04d" % (self.url, self.name, frame)
         
         # confirm brightness is valid
         if not (brightness == "nm" or brightness == "lt" or brightness == "dk"):
