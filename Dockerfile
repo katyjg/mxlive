@@ -8,14 +8,13 @@ RUN yum -y update && \
   mod_ssl && yum clean all
 
 EXPOSE 443
-EXPOSE 80
 
 # Simple startup script to avoid some issues observed with container restart 
 ADD . /mxlive
 ADD ./local /mxlive/local
 ADD deploy/run-server.sh /run-server.sh
 RUN chmod -v +x /run-server.sh
-RUN /bin/cp /mxlive/deploy/mxlive.conf /etc/httpd/conf.d/ && /bin/rm -f /etc/httpd/conf.d/ssl.conf
+RUN /bin/cp /mxlive/deploy/mxlive.conf /etc/httpd/conf.d/
 RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o /wait-for-it.sh && chmod -v +x /wait-for-it.sh
 
 RUN /mxlive/manage.py collectstatic --noinput

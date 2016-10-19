@@ -1,7 +1,7 @@
 [
     {
         "pk": 1,
-        "model": "users.beamline",
+        "model": "lims.beamline",
         "fields": {
             "name": "08ID-1",
             "energy_lo": 6.0,
@@ -11,7 +11,7 @@
     },
     {
         "pk": 2,
-        "model": "users.beamline",
+        "model": "lims.beamline",
         "fields": {
             "name": "08B1-1",
             "energy_lo": 4.0,
@@ -21,7 +21,7 @@
     },
     {
         "pk": 3,
-        "model": "users.beamline",
+        "model": "lims.beamline",
         "fields": {
             "name": "SIM-1",
             "energy_lo": 4.0,
@@ -31,7 +31,7 @@
     },
     {
         "pk": 1, 
-        "model": "users.carrier", 
+        "model": "lims.carrier", 
         "fields": {
             "phone_number": "800-742-5877", 
             "code_regex": "^(1Z)", 
@@ -42,7 +42,7 @@
     }, 
     {
         "pk": 2, 
-        "model": "users.carrier", 
+        "model": "lims.carrier", 
         "fields": {
             "phone_number": "866-607-6301", 
             "code_regex": "(CA)$", 
@@ -53,7 +53,7 @@
     }, 
     {
         "pk": 3, 
-        "model": "users.carrier", 
+        "model": "lims.carrier", 
         "fields": {
             "phone_number": "800-463-3339", 
             "code_regex": "^\\d{12,19}$", 
@@ -64,7 +64,7 @@
     }, 
     {
         "pk": 4, 
-        "model": "users.carrier", 
+        "model": "lims.carrier", 
         "fields": {
             "phone_number": "800-222-1811", 
             "code_regex": "\\d{20,}", 
@@ -75,7 +75,7 @@
     }, 
     {
         "pk": 5, 
-        "model": "users.carrier", 
+        "model": "lims.carrier", 
         "fields": {
             "phone_number": "800-225-5345", 
             "code_regex": "^\\d{10,11}$", 
@@ -86,7 +86,7 @@
     }, 
     {
         "pk": 6, 
-        "model": "users.carrier", 
+        "model": "lims.carrier", 
         "fields": {
             "phone_number": "888-744-7123", 
             "code_regex": "*", 
@@ -97,7 +97,7 @@
     }, 
     {
         "pk": 1, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "a", 
@@ -106,7 +106,7 @@
     }, 
     {
         "pk": 3, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "m", 
@@ -115,7 +115,7 @@
     }, 
     {
         "pk": 4, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "m", 
@@ -124,7 +124,7 @@
     }, 
     {
         "pk": 5, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "C", 
             "crystal_system": "m", 
@@ -133,7 +133,7 @@
     }, 
     {
         "pk": 207, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "c", 
@@ -142,7 +142,7 @@
     }, 
     {
         "pk": 151, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -151,7 +151,7 @@
     }, 
     {
         "pk": 143, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -160,7 +160,7 @@
     }, 
     {
         "pk": 16, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "o", 
@@ -169,7 +169,7 @@
     }, 
     {
         "pk": 17, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "o", 
@@ -178,7 +178,7 @@
     }, 
     {
         "pk": 18, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "o", 
@@ -187,7 +187,7 @@
     }, 
     {
         "pk": 19, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "o", 
@@ -196,7 +196,7 @@
     }, 
     {
         "pk": 20, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "C", 
             "crystal_system": "o", 
@@ -205,7 +205,7 @@
     }, 
     {
         "pk": 21, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "C", 
             "crystal_system": "o", 
@@ -214,7 +214,7 @@
     }, 
     {
         "pk": 22, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "F", 
             "crystal_system": "o", 
@@ -223,7 +223,7 @@
     }, 
     {
         "pk": 23, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "I", 
             "crystal_system": "o", 
@@ -232,7 +232,7 @@
     }, 
     {
         "pk": 24, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "I", 
             "crystal_system": "o", 
@@ -241,7 +241,7 @@
     }, 
     {
         "pk": 153, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -250,7 +250,7 @@
     }, 
     {
         "pk": 154, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -259,7 +259,7 @@
     }, 
     {
         "pk": 155, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "R", 
             "crystal_system": "h", 
@@ -268,7 +268,7 @@
     }, 
     {
         "pk": 150, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -277,7 +277,7 @@
     }, 
     {
         "pk": 168, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -286,7 +286,7 @@
     }, 
     {
         "pk": 169, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -295,7 +295,7 @@
     }, 
     {
         "pk": 170, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -304,7 +304,7 @@
     }, 
     {
         "pk": 171, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -313,7 +313,7 @@
     }, 
     {
         "pk": 172, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -322,7 +322,7 @@
     }, 
     {
         "pk": 173, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -331,7 +331,7 @@
     }, 
     {
         "pk": 177, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -340,7 +340,7 @@
     }, 
     {
         "pk": 178, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -349,7 +349,7 @@
     }, 
     {
         "pk": 179, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -358,7 +358,7 @@
     }, 
     {
         "pk": 180, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -367,7 +367,7 @@
     }, 
     {
         "pk": 181, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -376,7 +376,7 @@
     }, 
     {
         "pk": 182, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -385,7 +385,7 @@
     }, 
     {
         "pk": 152, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -394,7 +394,7 @@
     }, 
     {
         "pk": 196, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "F", 
             "crystal_system": "c", 
@@ -403,7 +403,7 @@
     }, 
     {
         "pk": 197, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "I", 
             "crystal_system": "c", 
@@ -412,7 +412,7 @@
     }, 
     {
         "pk": 198, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "c", 
@@ -421,7 +421,7 @@
     }, 
     {
         "pk": 199, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "I", 
             "crystal_system": "c", 
@@ -430,7 +430,7 @@
     }, 
     {
         "pk": 75, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "t", 
@@ -439,7 +439,7 @@
     }, 
     {
         "pk": 76, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "t", 
@@ -448,7 +448,7 @@
     }, 
     {
         "pk": 77, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "t", 
@@ -457,7 +457,7 @@
     }, 
     {
         "pk": 78, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "t", 
@@ -466,7 +466,7 @@
     }, 
     {
         "pk": 79, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "I", 
             "crystal_system": "t", 
@@ -475,7 +475,7 @@
     }, 
     {
         "pk": 80, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "I", 
             "crystal_system": "t", 
@@ -484,7 +484,7 @@
     }, 
     {
         "pk": 209, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "F", 
             "crystal_system": "c", 
@@ -493,7 +493,7 @@
     }, 
     {
         "pk": 210, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "F", 
             "crystal_system": "c", 
@@ -502,7 +502,7 @@
     }, 
     {
         "pk": 211, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "I", 
             "crystal_system": "c", 
@@ -511,7 +511,7 @@
     }, 
     {
         "pk": 212, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "c", 
@@ -520,7 +520,7 @@
     }, 
     {
         "pk": 213, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "c", 
@@ -529,7 +529,7 @@
     }, 
     {
         "pk": 214, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "I", 
             "crystal_system": "c", 
@@ -538,7 +538,7 @@
     }, 
     {
         "pk": 89, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "t", 
@@ -547,7 +547,7 @@
     }, 
     {
         "pk": 90, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "t", 
@@ -556,7 +556,7 @@
     }, 
     {
         "pk": 91, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "t", 
@@ -565,7 +565,7 @@
     }, 
     {
         "pk": 92, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "t", 
@@ -574,7 +574,7 @@
     }, 
     {
         "pk": 93, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "t", 
@@ -583,7 +583,7 @@
     }, 
     {
         "pk": 94, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "t", 
@@ -592,7 +592,7 @@
     }, 
     {
         "pk": 95, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "t", 
@@ -601,7 +601,7 @@
     }, 
     {
         "pk": 96, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "t", 
@@ -610,7 +610,7 @@
     }, 
     {
         "pk": 97, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "I", 
             "crystal_system": "t", 
@@ -619,7 +619,7 @@
     }, 
     {
         "pk": 98, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "I", 
             "crystal_system": "t", 
@@ -628,7 +628,7 @@
     }, 
     {
         "pk": 195, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "c", 
@@ -637,7 +637,7 @@
     }, 
     {
         "pk": 145, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -646,7 +646,7 @@
     }, 
     {
         "pk": 144, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
@@ -655,7 +655,7 @@
     }, 
     {
         "pk": 208, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "c", 
@@ -664,7 +664,7 @@
     }, 
     {
         "pk": 146, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "R", 
             "crystal_system": "h", 
@@ -673,7 +673,7 @@
     }, 
     {
         "pk": 149, 
-        "model": "users.spacegroup", 
+        "model": "lims.spacegroup", 
         "fields": {
             "lattice_type": "P", 
             "crystal_system": "h", 
