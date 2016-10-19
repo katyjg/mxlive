@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 from django.conf import global_settings
 import os
 import sys
-from iplist import IPAddressList
 
 PROJECT_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(PROJECT_DIR)
@@ -31,23 +30,6 @@ DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ALLOWED_HOSTS = ['*']
-
-# Specific IP addresses or networks you want to have access to your internal pages
-# such as wiki/admin etc (eg. CLS network)
-INTERNAL_IPS = IPAddressList(
-    '127.0.0.1/32',
-	'10.52.28.0/22', 
-	'10.52.4.0/22', 
-	'10.45.2.0/22',
-	'10.63.240.0/22',
-)
-
-# sets the number of proxies being used locally for the site
-INTERNAL_PROXIES = 1
-
-# Specific urls which should only be accessed from one of the internal IP addresses
-# or networks above
-INTERNAL_URLS = ('^/admin', '^/json', '^/api')
 
 # Application definition
 
@@ -78,7 +60,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'middleware.InternalAccessMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -137,7 +118,7 @@ LDAP_UPDATE_FIELDS = True
 LDAP_FULL_NAME = 'name'
 LDAP_BIND_ATTRIBUTE = 'uid'
 LDAP_GID = 'memberOf'
-LDAP_SU_GIDS = [] # something like ['CN=CLS-Testing,CN=Users,DC=vendasta,DC=com']
+LDAP_SU_GIDS = [] 
 
 
 AUTHENTICATION_BACKENDS = (
