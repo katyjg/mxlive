@@ -250,6 +250,7 @@ img
 	float:left;
 	padding:5px;
 	color:#fff;
+	background-size: contain;
 	text-shadow:#000 0 0 2px;
 
 }
@@ -258,7 +259,7 @@ img
 {
 	font-size:150%;
 	font-weight: bold;
-	margin-left:72px;
+	margin-left:110px;
 	line-height: 0.9em;
 }
 #logo:hover
@@ -267,7 +268,7 @@ img
 }
 #slogan
 {
-	margin:0 0 0 72px;
+	margin:0 0 0 110px;
 	padding:0;
 }
 
