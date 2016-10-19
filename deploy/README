@@ -1,0 +1,9 @@
+After deploying do the following:
+
+1. Run ./manage.py collectstatic (not needed with Docker)
+2. Copy mxlive.crontasks to /etc/cron.d and edit it to make sure the path to
+   manage.py and the interval is meaningful for the deployment (use docker exec with if using Docker)
+3. Put server.key and server.crt into the local/certs directory or run the following command
+   in the directory to generate self signed keys
+
+   openssl req -nodes -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 356 -subj "/C=CA/ST=Saskatchewan/L=Saskatoon/O=CLS/CN=*.example.com"

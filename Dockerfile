@@ -1,12 +1,11 @@
 FROM fedora:21
 MAINTAINER Michel Fodje <michel.fodje@lightsource.ca>
 
-RUN yum -y update && yum clean all
-RUN yum -y install httpd python-django mod_wsgi python-ipaddr python-pillow  python-dateutil python-markdown && yum clean all
-RUN yum -y install MySQL-python mod_xsendfile && yum clean all
-RUN yum -y install texlive texlive-xetex texlive-xetex-def texlive-collection-xetex texlive-graphics && yum clean all
-RUN yum -y install sil-gentium-basic-fonts && yum clean all
-RUN yum -y install numpy scipy python-ldap && yum clean all
+RUN yum -y update && \
+  yum -y install httpd python-django mod_wsgi python-ipaddr python-pillow  python-dateutil python-markdown \
+  MySQL-python mod_xsendfile texlive texlive-xetex texlive-xetex-def texlive-collection-xetex \
+  texlive-graphics sil-gentium-basic-fonts numpy scipy python-ldap python-crypto python-memcached \
+  mod_ssl && yum clean all
 
 EXPOSE 443
 EXPOSE 80
@@ -16,8 +15,11 @@ ADD . /mxlive
 ADD ./local /mxlive/local
 ADD deploy/run-server.sh /run-server.sh
 RUN chmod -v +x /run-server.sh
-RUN /bin/cp /mxlive/deploy/mxlive.conf /etc/httpd/conf.d/
+RUN /bin/cp /mxlive/deploy/mxlive.conf /etc/httpd/conf.d/ && /bin/rm -f /etc/httpd/conf.d/ssl.conf
+RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o /wait-for-it.sh && chmod -v +x /wait-for-it.sh
+
 RUN /mxlive/manage.py collectstatic --noinput
+
 
 VOLUME ["/mxlive/local", "/users"]
 

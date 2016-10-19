@@ -1,3 +1,12 @@
 .git
+build.sh
 LICENSE
-settings_local.p*
+*/*.db
+*/.dbinit
+local/media/pdb
+docs/
+junk/
+local/settings_local.*
+temp/
+*/*/historical-*.json
+*/*/test-*.json
