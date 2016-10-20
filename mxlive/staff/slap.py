@@ -1,5 +1,5 @@
 from django.conf import settings
-
+from django.core.mail import mail_managers
 from ldap import modlist, cidict
 import ldap
 from ldap.controls import SimplePagedResultsControl
@@ -19,12 +19,12 @@ ldap.set_option(ldap.OPT_REFERRALS, 0)
 
 BASE_DN = getattr(settings, 'LDAP_BASE_DN', 'dc=example,dc=com')
 SERVER_URI = getattr(settings, 'AUTH_LDAP_SERVER_URI', 'ldaps://ldap.example.com')
-ADMIN_CN = getattr(settings, 'LDAP_ADMIN_CN', 'cn=Directory Manager')
-ADMIN_SECRET = getattr(settings, 'LDAP_ADMIN_SECRET', 'Admin123')
+MANAGER_CN = getattr(settings, 'LDAP_MANAGER_CN', 'cn=Directory Manager')
+MANAGER_SECRET = getattr(settings, 'LDAP_MANAGER_SECRET', 'Admin123')
 USER_TABLE = getattr(settings, 'LDAP_USER_TABLE', 'ou=People')
 USER_ROOT = getattr(settings, 'LDAP_USER_ROOT', '/home')
 GROUP_TABLE = getattr(settings, 'LDAP_GROUP_TABLE', 'ou=Groups')
-
+EMAIL_NEW_ACCOUNTS = getattr(settings, 'LDAP_SEND_EMAILS', False)
 USER_ATTRIBUTES = ['cn', 'uid', 'uidNumber', 'gidNumber', 'homeDirectory', 'loginShell', 'description', 'gecos']
 
 
@@ -91,8 +91,8 @@ def add_user(info, connection=None):
         con = connection
     else:
         con = ldap.initialize(SERVER_URI, trace_level=0, trace_file=sys.stderr)
-        BIND_DN = ADMIN_CN
-        con.bind_s(BIND_DN, ADMIN_SECRET, ldap.AUTH_SIMPLE)
+        BIND_DN = MANAGER_CN
+        con.bind_s(BIND_DN, MANAGER_SECRET, ldap.AUTH_SIMPLE)
 
     # Generate username here
     users = {user['uid']: int(user['uidNumber']) for user in dir_users(con)}
@@ -115,7 +115,7 @@ def add_user(info, connection=None):
         'loginShell': '/bin/bash',
         'uidNumber': '{}'.format(uidNumber),
         'gidNumber': '{}'.format(gidNumber),
-        'objectclass': ['top', 'account', 'posixAccount', 'shadowAccount'],
+        'objectClass': ['top', 'account', 'posixAccount', 'shadowAccount'],
         'userPassword': info['password'],
     }
 
@@ -129,6 +129,16 @@ def add_user(info, connection=None):
         res = con.add_s(group_dn, modlist.addModlist(group_record))
         res = con.add_s(user_dn, modlist.addModlist(user_record))
         success = True
+        if EMAIL_NEW_ACCOUNTS:
+            mail_managers(
+                u"New Account -  {} {}".format(info['first_name'], info['last_name']),
+                ("A new account has been created \n"
+                "-------------------------------\n"
+                " Full Name: {}{}\n"
+                " Login: {}\n"
+                " Password: {}\n"
+                "-------------------------------\n").format(info['first_name'], info['last_name'], info['username'], info['password'])
+            )
     except ldap.LDAPError as e:
         print e
         success = False
@@ -144,7 +154,7 @@ def del_user(username, connection=None):
         con = connection
     else:
         con = ldap.initialize(SERVER_URI)
-        con.bind_s(ADMIN_CN, ADMIN_SECRET, ldap.AUTH_SIMPLE)
+        con.bind_s(MANAGER_CN, MANAGER_SECRET, ldap.AUTH_SIMPLE)
 
     user_dn = u'uid=%s,%s,%s' % (username, USER_TABLE, BASE_DN)
     group_dn = u'cn=%s,ou=Groups,%s' % (username, BASE_DN)
@@ -172,7 +182,7 @@ def update_user(old_info, new_info, connection=None):
             con = connection
         else:
             con = ldap.initialize(SERVER_URI)
-            con.simple_bind_s(ADMIN_CN, ADMIN_SECRET)
+            con.simple_bind_s(MANAGER_CN, MANAGER_SECRET)
 
         dn = u'uid=%s,%s,%s' % (old_info['username'], USER_TABLE, BASE_DN)
         record = [(ldap.MOD_REPLACE, k, v) for k, v in changed_values.items()]
@@ -209,7 +219,7 @@ def reset_password(username, new_password, connection=None):
         con = connection
     else:
         con = ldap.initialize(SERVER_URI)
-        con.bind_s(ADMIN_CN, ADMIN_SECRET, ldap.AUTH_SIMPLE)
+        con.bind_s(MANAGER_CN, MANAGER_SECRET, ldap.AUTH_SIMPLE)
 
     dn = u'uid=%s,%s,%s' % (username, USER_TABLE, BASE_DN)
     info = [(ldap.MOD_REPLACE, 'userPassword', new_password)]
@@ -231,7 +241,7 @@ def dir_users(connection=None):
         con = connection
     else:
         con = ldap.initialize(SERVER_URI)
-        con.simple_bind_s(ADMIN_CN, ADMIN_SECRET)
+        con.simple_bind_s(MANAGER_CN, MANAGER_SECRET)
     con.protocol_version = 3
     lc = create_controls(PAGESIZE)
 
@@ -261,7 +271,7 @@ def fetch_users(connection=None):
         con = connection
     else:
         con = ldap.initialize(SERVER_URI)
-        con.simple_bind_s(ADMIN_CN, ADMIN_SECRET)
+        con.simple_bind_s(MANAGER_CN, MANAGER_SECRET)
 
     con.protocol_version = 3
     lc = create_controls(PAGESIZE)
@@ -292,7 +302,7 @@ def fetch_user(username, connection=None):
         con = connection
     else:
         con = ldap.initialize(SERVER_URI)
-        con.simple_bind_s(ADMIN_CN, ADMIN_SECRET)
+        con.simple_bind_s(MANAGER_CN, MANAGER_SECRET)
 
     filt = '(objectclass=posixAccount)'
     attrs = USER_ATTRIBUTES
