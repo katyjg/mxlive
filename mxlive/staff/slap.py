@@ -10,12 +10,14 @@ import string
 from distutils.version import StrictVersion
 
 # Check if we're using the Python "ldap" 2.4 or greater API
-LDAP24API = StrictVersion(ldap.__version__) >= StrictVersion('2.4')
-
 PAGESIZE = 1000
-ldap.set_option(ldap.OPT_DEBUG_LEVEL, 0)
-ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, 0)
-ldap.set_option(ldap.OPT_REFERRALS, 0)
+LDAP24API = StrictVersion(ldap.__version__) >= StrictVersion('2.4')
+LDAP_GLOBAL_OPTIONS = getattr(settings, 'AUTH_LDAP_GLOBAL_OPTIONS', {
+    ldap.OPT_X_TLS_REQUIRE_CERT: ldap.OPT_X_TLS_NEVER,
+    ldap.OPT_DEBUG_LEVEL: 0,
+    ldap.OPT_REFERRALS: 0
+})
+
 
 BASE_DN = getattr(settings, 'LDAP_BASE_DN', 'dc=example,dc=com')
 SERVER_URI = getattr(settings, 'AUTH_LDAP_SERVER_URI', 'ldaps://ldap.example.com')
@@ -28,6 +30,8 @@ EMAIL_NEW_ACCOUNTS = getattr(settings, 'LDAP_SEND_EMAILS', False)
 
 USER_ATTRIBUTES = ['cn', 'uid', 'uidNumber', 'gidNumber', 'homeDirectory', 'loginShell', 'description', 'gecos']
 
+for k,v in LDAP_GLOBAL_OPTIONS.items():
+    ldap.set_option(k,v)
 
 def create_controls(pagesize):
     """Create an LDAP control with a page size of "pagesize"."""
@@ -39,6 +43,11 @@ def create_controls(pagesize):
         return SimplePagedResultsControl(ldap.LDAP_CONTROL_PAGE_OID, True,
                                          (pagesize, ''))
 
+def create_connection():
+    con = ldap.initialize(SERVER_URI)
+    con.start_tls_s()
+    con.protocol_version = 3
+    return con
 
 def get_pctrls(serverctrls):
     """Lookup an LDAP paged control object from the returned controls."""
@@ -90,7 +99,7 @@ def add_user(info, connection=None):
     if connection:
         con = connection
     else:
-        con = ldap.initialize(SERVER_URI)
+        con = create_connection()
         BIND_DN = MANAGER_CN
         con.bind_s(BIND_DN, MANAGER_SECRET, ldap.AUTH_SIMPLE)
 
@@ -122,7 +131,7 @@ def add_user(info, connection=None):
     group_dn = u'cn={},{},{}'.format(info['username'], GROUP_TABLE, BASE_DN)
     group_record = {
         'cn': info['username'].encode('utf-8'),
-        'gidNumber': gidNumber,
+        'gidNumber': '{}'.format(gidNumber),
         'memberUid': info['username'].encode('utf-8'),
     }
 
@@ -154,7 +163,7 @@ def add_group_member(group, username, connection=None):
     if connection:
         con = connection
     else:
-        con = ldap.initialize(SERVER_URI)
+        con = create_connection()
         BIND_DN = MANAGER_CN
         con.bind_s(BIND_DN, MANAGER_SECRET, ldap.AUTH_SIMPLE)
     group_dn = u'cn={},{},{}'.format(group, GROUP_TABLE, BASE_DN)
@@ -177,7 +186,7 @@ def get_user_groups(username, connection=None):
     if connection:
         con = connection
     else:
-        con = ldap.initialize(SERVER_URI)
+        con = create_connection()
         BIND_DN = MANAGER_CN
         con.bind_s(BIND_DN, MANAGER_SECRET, ldap.AUTH_SIMPLE)
 
@@ -186,7 +195,7 @@ def del_user(username, connection=None):
     if connection:
         con = connection
     else:
-        con = ldap.initialize(SERVER_URI)
+        con = create_connection()
         con.bind_s(MANAGER_CN, MANAGER_SECRET, ldap.AUTH_SIMPLE)
 
     user_dn = u'uid=%s,%s,%s' % (username, USER_TABLE, BASE_DN)
@@ -214,7 +223,7 @@ def update_user(old_info, new_info, connection=None):
         if connection:
             con = connection
         else:
-            con = ldap.initialize(SERVER_URI)
+            con = create_connection()
             con.simple_bind_s(MANAGER_CN, MANAGER_SECRET)
 
         dn = u'uid=%s,%s,%s' % (old_info['username'], USER_TABLE, BASE_DN)
@@ -235,15 +244,16 @@ def update_user(old_info, new_info, connection=None):
 
 
 def change_password(username, old_password, new_password):
-    con = ldap.initialize(SERVER_URI)
-    bind_dn = u'uid=%s,%s,%s' % (username, USER_TABLE, BASE_DN)
+
     try:
+        con = create_connection()
+        bind_dn = u'uid=%s,%s,%s' % (username, USER_TABLE, BASE_DN)
         con.bind_s(bind_dn, old_password, ldap.AUTH_SIMPLE)
         success = reset_password(username, new_password)
     except ldap.LDAPError as e:
         success = e.message['desc']
-
-    con.unbind_s()
+    else:
+        con.unbind_s()
     return success
 
 
@@ -251,7 +261,7 @@ def reset_password(username, new_password, connection=None):
     if connection:
         con = connection
     else:
-        con = ldap.initialize(SERVER_URI)
+        con = create_connection()
         con.bind_s(MANAGER_CN, MANAGER_SECRET, ldap.AUTH_SIMPLE)
 
     dn = u'uid=%s,%s,%s' % (username, USER_TABLE, BASE_DN)
@@ -273,9 +283,8 @@ def dir_users(connection=None):
     if connection:
         con = connection
     else:
-        con = ldap.initialize(SERVER_URI)
+        con = create_connection()
         con.simple_bind_s(MANAGER_CN, MANAGER_SECRET)
-    con.protocol_version = 3
     lc = create_controls(PAGESIZE)
 
     filt = '(objectclass=posixAccount)'
@@ -303,7 +312,7 @@ def fetch_users(connection=None):
     if connection:
         con = connection
     else:
-        con = ldap.initialize(SERVER_URI)
+        con = create_connection()
         con.simple_bind_s(MANAGER_CN, MANAGER_SECRET)
 
     con.protocol_version = 3
@@ -334,7 +343,7 @@ def fetch_user(username, connection=None):
     if connection:
         con = connection
     else:
-        con = ldap.initialize(SERVER_URI)
+        con = create_connection()
         con.simple_bind_s(MANAGER_CN, MANAGER_SECRET)
 
     filt = '(objectclass=posixAccount)'

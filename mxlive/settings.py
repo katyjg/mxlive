@@ -31,7 +31,7 @@ DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ALLOWED_HOSTS = ['*']
-INTERNAL_URLS = ['^/json']
+INTERNAL_URLS = ['^/json', '^/api']
 INTERNAL_IPS = [
     '127.0.0.1/32',
 ]
@@ -160,7 +160,10 @@ LDAP_USER_ROOT    = "/home"
 LDAP_USER_TABLE   = "ou=People"
 LDAP_GROUP_TABLE    = "ou=Groups"
 AUTH_LDAP_SERVER_URI = 'ldaps://ldap.example.com'
-
+AUTH_LDAP_START_TLS = True
+AUTH_LDAP_GLOBAL_OPTIONS = {
+     ldap.OPT_X_TLS_REQUIRE_CERT: ldap.OPT_X_TLS_NEVER
+}
 _version_file = os.path.join(BASE_DIR, 'VERSION')
 if os.path.exists(_version_file):
     VERSION = (file(_version_file)).readline().strip()
