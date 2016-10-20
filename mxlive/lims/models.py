@@ -1561,8 +1561,12 @@ from django_auth_ldap.backend import populate_user, populate_user_profile
 from django.dispatch import receiver
 
 @receiver(populate_user)
-def populate_user_handler(sender, user, ldap_user):
-    print user, ldap_user
+def populate_user_handler(sender, user, ldap_user, **kwargs):
+    user_uids = set(map(int, ldap_user.attrs.get('gidnumber', [])))
+    admin_uids = set(getattr(settings, 'LDAP_ADMIN_UIDS', []))
+    if user_uids & admin_uids :
+        user.is_superuser = True
+        user.is_staff = True
 
 
 __all__ = [

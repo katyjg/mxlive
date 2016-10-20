@@ -25,6 +25,7 @@ USER_TABLE = getattr(settings, 'LDAP_USER_TABLE', 'ou=People')
 USER_ROOT = getattr(settings, 'LDAP_USER_ROOT', '/home')
 GROUP_TABLE = getattr(settings, 'LDAP_GROUP_TABLE', 'ou=Groups')
 EMAIL_NEW_ACCOUNTS = getattr(settings, 'LDAP_SEND_EMAILS', False)
+
 USER_ATTRIBUTES = ['cn', 'uid', 'uidNumber', 'gidNumber', 'homeDirectory', 'loginShell', 'description', 'gecos']
 
 
@@ -86,11 +87,10 @@ def get_username(name, existing):
 
 
 def add_user(info, connection=None):
-    import sys
     if connection:
         con = connection
     else:
-        con = ldap.initialize(SERVER_URI, trace_level=0, trace_file=sys.stderr)
+        con = ldap.initialize(SERVER_URI)
         BIND_DN = MANAGER_CN
         con.bind_s(BIND_DN, MANAGER_SECRET, ldap.AUTH_SIMPLE)
 
@@ -121,8 +121,9 @@ def add_user(info, connection=None):
 
     group_dn = u'cn={},{},{}'.format(info['username'], GROUP_TABLE, BASE_DN)
     group_record = {
-        'cn': info['username'],
+        'cn': info['username'].encode('utf-8'),
         'gidNumber': gidNumber,
+        'memberUid': info['username'].encode('utf-8'),
     }
 
     try:
@@ -147,6 +148,38 @@ def add_user(info, connection=None):
         con.unbind_s()
 
     return info
+
+
+def add_group_member(group, username, connection=None):
+    if connection:
+        con = connection
+    else:
+        con = ldap.initialize(SERVER_URI)
+        BIND_DN = MANAGER_CN
+        con.bind_s(BIND_DN, MANAGER_SECRET, ldap.AUTH_SIMPLE)
+    group_dn = u'cn={},{},{}'.format(group, GROUP_TABLE, BASE_DN)
+
+    info = [(ldap.MOD_ADD, 'memberUid', username)]
+
+    try:
+        con.modify_s(group_dn, info)
+        success = True
+    except ldap.LDAPError as e:
+        print e
+        success = False
+
+    if not connection:
+        con.unbind_s()
+    return success
+
+
+def get_user_groups(username, connection=None):
+    if connection:
+        con = connection
+    else:
+        con = ldap.initialize(SERVER_URI)
+        BIND_DN = MANAGER_CN
+        con.bind_s(BIND_DN, MANAGER_SECRET, ldap.AUTH_SIMPLE)
 
 
 def del_user(username, connection=None):

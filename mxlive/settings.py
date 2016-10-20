@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 from django.conf import global_settings
 import os
 import sys
+import ldap
 
 PROJECT_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(PROJECT_DIR)
@@ -158,13 +159,7 @@ LDAP_ADMIN_GROUP = "admin"
 LDAP_USER_ROOT    = "/home"
 LDAP_USER_TABLE   = "ou=People"
 LDAP_GROUP_TABLE    = "ou=Groups"
-AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,ou=People,{}".format(LDAP_BASE_DN)
 AUTH_LDAP_SERVER_URI = 'ldaps://ldap.example.com'
-AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    "is_active": "cn=active,ou=django,ou=groups,dc=example,dc=com",
-    "is_staff": "cn=staff,ou=django,ou=groups,dc=example,dc=com",
-    "is_superuser": "cn=superuser,ou=django,ou=groups,dc=example,dc=com"
-}
 
 _version_file = os.path.join(BASE_DIR, 'VERSION')
 if os.path.exists(_version_file):
@@ -177,11 +172,11 @@ try:
 except ImportError:
     pass
 
+from django_auth_ldap.config import LDAPSearch, PosixGroupType
 
+AUTH_LDAP_GROUP_TYPE = PosixGroupType(name_attr='cn')
 AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,{},{}".format(LDAP_USER_TABLE, LDAP_BASE_DN)
-AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    "is_superuser": "cn={},{},{}".format(LDAP_ADMIN_GROUP, LDAP_GROUP_TABLE, LDAP_BASE_DN)
-}
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(LDAP_BASE_DN, ldap.SCOPE_SUBTREE, "(objectClass=posixGroup)")
 
 """
 Before running:

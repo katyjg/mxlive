@@ -7,7 +7,10 @@ export SERVER_NAME=${SERVER_NAME:-$(hostname --fqdn)}
 # if it thinks it is already running.
 rm -rf /run/httpd/* /tmp/httpd*
 
+
+
 if [ ! -f /mxlive/local/.dbinit ]; then
+    ./wait-for-it.sh mxlive-db:3306
     /mxlive/manage.py syncdb --noinput
     touch /mxlive/local/.dbinit
 fi
