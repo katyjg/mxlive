@@ -18,9 +18,9 @@ class DewarForm(objforms.forms.OrderedForm):
 class DewarReceiveForm(objforms.forms.OrderedForm):
     """ Form used to receive a Dewar, based on the Dewar upc code """
     barcode = objforms.widgets.BarCodeReturnField(required=True,
-        help_text='Please scan in the dewar barcode or type it in. The format is "CLSxxxx-xxxx".')
+        help_text='Please scan in the dewar barcode or type it in.')
     storage_location = objforms.widgets.LargeCharField(required=True,
-        help_text='Please briefly describe where the dewar will be stored. For example "CMCF-BM 1608-7".')
+        help_text='Please briefly describe where the dewar will be stored.')
     staff_comments = objforms.widgets.CommentField(required=False)
     
     class Meta:

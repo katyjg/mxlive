@@ -568,8 +568,9 @@ class Dewar(ObjectBaseClass):
 class Container(LoadableBaseClass):
     TYPE = Enum(
         'Cassette', 
-        'Uni-Puck', 
-        'Cane', 
+        'Uni-Puck',
+        'Cane',
+        'SPINE-Puck'
     )
     HELP = {
         'name': "An externally visible label on the container. If there is a barcode on the container, please scan it here",
@@ -605,6 +606,7 @@ class Container(LoadableBaseClass):
             self.TYPE.CASSETTE : 96,
             self.TYPE.UNI_PUCK : 16,
             self.TYPE.CANE : 6,
+            self.TYPE.SPINE_PUCK: 10,
             None : 0,
         }
         return _cap[self.kind]
@@ -1554,6 +1556,14 @@ class Feedback(models.Model):
   
     class Meta:
         verbose_name = 'Feedback comment'
+
+from django_auth_ldap.backend import populate_user, populate_user_profile
+from django.dispatch import receiver
+
+@receiver(populate_user)
+def populate_user_handler(sender, user, ldap_user):
+    print user, ldap_user
+
 
 __all__ = [
     'ExcludeManagerWrapper',

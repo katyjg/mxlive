@@ -111,15 +111,6 @@ LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
 LOGIN_REDIRECT_URL = '/home/'
 
-# LDAP settings to use the LDAP Authentication backend
-LDAP_DEBUG = True
-LDAP_SEARCH_FILTER = 'cn=%s'
-LDAP_UPDATE_FIELDS = True
-LDAP_FULL_NAME = 'name'
-LDAP_BIND_ATTRIBUTE = 'uid'
-LDAP_GID = 'memberOf'
-LDAP_SU_GIDS = []
-
 
 AUTHENTICATION_BACKENDS = (
  'django_auth_ldap.backend.LDAPBackend',
@@ -154,6 +145,22 @@ RESTRUCTUREDTEXT_FILTER_SETTINGS = {
 SUIT_CONFIG = {
     'ADMIN_NAME': 'MxLIVE Administration'
 }
+
+LDAP_BASE_DN      = "dc=example,dc=com"
+LDAP_MANAGER_CN     = "cn=Directory Manager"
+LDAP_MANAGER_SECRET = "Admin123"
+LDAP_ADMIN_GROUP = "admin"
+LDAP_USER_ROOT    = "/home"
+LDAP_USER_TABLE   = "ou=People"
+LDAP_GROUP_TABLE    = "ou=Groups"
+AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,ou=People,{}".format(LDAP_BASE_DN)
+AUTH_LDAP_SERVER_URI = 'ldaps://ldap.example.com'
+AUTH_LDAP_USER_FLAGS_BY_GROUP = {
+    "is_active": "cn=active,ou=django,ou=groups,dc=example,dc=com",
+    "is_staff": "cn=staff,ou=django,ou=groups,dc=example,dc=com",
+    "is_superuser": "cn=superuser,ou=django,ou=groups,dc=example,dc=com"
+}
+
 _version_file = os.path.join(BASE_DIR, 'VERSION')
 if os.path.exists(_version_file):
     VERSION = (file(_version_file)).readline().strip()
@@ -164,6 +171,12 @@ try:
     from settings_local import *
 except ImportError:
     pass
+
+
+AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,{},{}".format(LDAP_USER_TABLE, LDAP_BASE_DN)
+AUTH_LDAP_USER_FLAGS_BY_GROUP = {
+    "is_superuser": "cn={},{},{}".format(LDAP_ADMIN_GROUP, LDAP_GROUP_TABLE, LDAP_BASE_DN)
+}
 
 """
 Before running:

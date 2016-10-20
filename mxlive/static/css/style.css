@@ -1,6 +1,5 @@
 /* The Reset ---------------------------------- */
-html,body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h7
-h6,pre,form,fieldset,input,p,blockquote,table,th,td
+html,body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,p,blockquote,table,th,td
 {
 	margin:0;
 	padding:0;
@@ -10,7 +9,7 @@ fieldset,img,abbr
 	border:0;
 }
 
-address,caption,cite,code,dfn,h1,h2,h3,h4,h5,h6,h7,th,var
+address,caption,cite,code,dfn,h1,h2,h3,h4,h5,h6,th,var
 {
 	font-style:normal;
 	font-weight:400;
@@ -92,7 +91,8 @@ p
 
 h1
 {
-	font:bold 2.2em;
+	font-weight: bold;
+	font-size: 2.2em;
 	padding:8px 0 0;
 	margin:0;
 	letter-spacing:-1px;
@@ -102,7 +102,8 @@ h2
 {
 	margin:0;
 	padding:0;
-	font:bold 1.8em;
+	font-weight: bold;
+	font-size: 1.8em;
 	letter-spacing:-1px;
 }
 
@@ -627,7 +628,7 @@ td.normal {
     float: left;
     margin: 0;
     text-align: left;
-    padding-right 24px;
+    padding-right: 24px;
     height: 23px;
     width: 164px;
 }
@@ -910,7 +911,7 @@ tr.expanded
 
 tr.expanded td.first
 {
-	background:url(/static/img/icon.expanded.png) no-repeat scroll 4px 6px;
+	/*background:url(/static/img/icon_expanded.png) no-repeat scroll 4px 6px;*/
 }
 
 tr.expanded td
@@ -939,7 +940,7 @@ ul.treeview
 
 ul.treeview li a
 {
-	background:url(/static/img/icon.expand.png) no-repeat scroll 0 0 transparent;
+	/*background:url(/static/img/icon.expand.png) no-repeat scroll 0 0 transparent;*/
 	padding-left:20px;
 	height:20px;
 	display:inline-block;
@@ -947,14 +948,14 @@ ul.treeview li a
 
 ul.treeview li a.expanded
 {
-	background:url(/static/img/icon.expanded.png) no-repeat scroll 0 0 transparent;
+	/*background:url(/static/img/icon.expanded.png) no-repeat scroll 0 0 transparent;*/
 }
 
 ul.treeview ul.treeview
 {
 /* this should handle all levels of depth */
 	padding-left:34px;
-	background:url(/static/img/treeview.skeleton.png) repeat-y scroll 0 0 transparent;
+	/*background:url(/static/img/treeview.skeleton.png) repeat-y scroll 0 0 transparent;*/
 }
 
 ul.reports
@@ -967,7 +968,7 @@ ul.reports
 ul.reports li a
 {
 	width:100%;
-	background:url(/static/img/icon.resultset.png) no-repeat scroll left top transparent;
+	/*background:url(/static/img/icon.resultset.png) no-repeat scroll left top transparent;*/
 	display:inline-block;
 	height:20px;
 	padding-left:20px;
@@ -1146,7 +1147,7 @@ ul.reports li a
 /* MODAL POPUP */
 #close_x
 {
-	background:url(/static/img/modal.close.png) no-repeat scroll left top transparent;
+	/*background:url(/static/img/modal.close.png) no-repeat scroll left top transparent;*/
 	display:block;
 	height:23px;
 	overflow:hidden;
@@ -2135,13 +2136,13 @@ p#vtip {
     border: 1px solid #e2c66c; 
     -moz-border-radius: 5px; 
     -webkit-border-radius: 5px; 
-    z-index: 9999
+    z-index: 9999;
     height: 50px;
 }
 p#vtip #vtipArrow { 
     position: absolute; 
     top: -10px; 
-    left: 5px
+    left: 5px;
 }
 
 
