@@ -148,7 +148,7 @@ class Project(models.Model):
     HELP = {
         'contact_person': "Full name of contact person",
     }
-    user = models.ForeignKey(User, unique=True)
+    user = models.OneToOneField(User)
     name = models.SlugField('account name')
     contact_person = models.CharField(max_length=200, blank=True, null=True)
     contact_email = models.EmailField(max_length=100, blank=True, null=True)
@@ -197,9 +197,13 @@ class Project(models.Model):
     
     def shipment_count(self):
         return Shipment.objects.filter(project__exact=self).filter(created__year=2013).count()
+
+    def delete(self, *args, **kwargs):
+        self.user.delete()
+        return super(self.__class__, self).delete(*args, **kwargs)
     
     class Meta:
-        verbose_name = "Project Profile"
+        verbose_name = "Project Account"
 
 class Session(models.Model):
     project = models.ForeignKey(Project)
@@ -570,7 +574,7 @@ class Container(LoadableBaseClass):
         'Cassette', 
         'Uni-Puck',
         'Cane',
-        'SPINE-Puck'
+        'Basket'
     )
     HELP = {
         'name': "An externally visible label on the container. If there is a barcode on the container, please scan it here",
@@ -606,7 +610,7 @@ class Container(LoadableBaseClass):
             self.TYPE.CASSETTE : 96,
             self.TYPE.UNI_PUCK : 16,
             self.TYPE.CANE : 6,
-            self.TYPE.SPINE_PUCK: 10,
+            self.TYPE.BASKET: 10,
             None : 0,
         }
         return _cap[self.kind]
@@ -1558,7 +1562,10 @@ class Feedback(models.Model):
         verbose_name = 'Feedback comment'
 
 from django_auth_ldap.backend import populate_user, populate_user_profile
+from django.db.models.signals import pre_delete, post_delete
 from django.dispatch import receiver
+from staff import slap
+
 
 @receiver(populate_user)
 def populate_user_handler(sender, user, ldap_user, **kwargs):
@@ -1567,6 +1574,17 @@ def populate_user_handler(sender, user, ldap_user, **kwargs):
     if user_uids & admin_uids :
         user.is_superuser = True
         user.is_staff = True
+    if not Project.objects.filter(name=user.username).exists():
+        Project.objects.create(
+            user=user, name=user.username, contact_person=user.get_full_name(),
+        )
+
+
+@receiver(post_delete, sender=Project)
+def on_project_delete(sender, instance, **kwargs):
+    if instance.user.pk:
+        instance.user.delete()
+    slap.del_user(instance.name)
 
 
 __all__ = [

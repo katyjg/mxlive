@@ -23,5 +23,6 @@ temp
 tmp
 /local/media/
 /local/certs
+/local/templates
 /local/cache
 /static/

@@ -107,9 +107,9 @@ def receive_shipment(request, id, model, form, template='objforms/form_base.html
     else:
         try:
             obj = model.objects.get(pk=id)
-            init_dict = {'barcode': 'CLS%04i-%04i' % (obj.pk, obj.shipment.pk)}
+            init_dict = {'barcode': 'SH%04i-%04i' % (obj.pk, obj.shipment.pk)}
             if not obj.storage_location:
-                init_dict['storage_location'] = 'CMCF 1608.7'
+                init_dict['storage_location'] = ''
         except:
             obj = None
             init_dict = dict(request.GET.items())
@@ -234,7 +234,11 @@ def add_existing_object(request, dest_id, obj_id, destination, obj, src_id=None,
     if dest.is_editable():
         if destination.__name__ == 'Runlist':
             if obj.__name__ == 'Experiment' or obj.__name__ == 'Project':
-                container_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(kind__exact=Container.TYPE.CANE).exclude(pk__in=dest.containers.all()).filter(pk__in=obj.objects.get(pk=obj_id).crystal_set.values('container'))
+                container_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(
+                    kind__exact=Container.TYPE.CANE
+                ).exclude(pk__in=dest.containers.all()).filter(
+                    pk__in=obj.objects.get(pk=obj_id).crystal_set.values('container')
+                )
                 for container in container_list:
                     dest.add_container(container)
                     try:
@@ -437,6 +441,7 @@ def edit_profile(request, form, id=None, template='objforms/form_base.html'):
     return edit_object_inline(request, obj.pk, model=model, form=form, template=template, action_url='/staff/users')
 
 
+
 @login_required
 def object_history(request, model, id, template='objlist/generic_list.html'):
     ol = model.objects.filter(beamline__exact=model.objects.get(pk=id).beamline)
@@ -522,6 +527,62 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
         'form' : frm, 
         }, context_instance=RequestContext(request))
 
+
+@admin_login_required
+@transaction.commit_on_success
+def create_project(request, form, template='users/forms/new_base.html'):
+    import slap
+    from django.contrib.auth import get_user_model
+
+    form_info = {
+        'title': 'New Account',
+        'action': request.path,
+    }
+
+    if request.method == 'POST':
+        frm = form(request.POST)
+        if frm.is_valid():
+            data = frm.cleaned_data
+            user_info = {
+                k: data.pop(k, '')
+                for k in ['username', 'password', 'first_name', 'last_name']
+                if k in data
+            }
+            # Make sure user with username does not already exist
+            User = get_user_model()
+            if User.objects.filter(username=user_info.get('username')).exists():
+                user_info.pop('username', '')
+
+            info = slap.add_user(user_info)
+            info['email'] = data.get('contact_email', '')
+            info.pop('password')
+
+            # create local user
+            obj = User.objects.create(**info)
+            data['user'] = obj
+            data['name'] = obj.username
+
+            proj = Project.objects.create(**data)
+
+            info_msg = 'New Account {} added'.format(proj)
+
+            ActivityLog.objects.log_activity(
+                request, obj, ActivityLog.TYPE.CREATE, info_msg
+            )
+            messages.info(request, info_msg)
+            # messages are simply passed down to the template via the request context
+            return render_to_response("users/redirect.html", context_instance=RequestContext(request))
+        else:
+            return render_to_response(template, {
+                'info': form_info,
+                'form': frm,
+            }, context_instance=RequestContext(request))
+    else:
+        frm = form(initial=None)
+        return render_to_response(template, {
+            'info': form_info,
+            'form': frm,
+        }, context_instance=RequestContext(request))
 
 
 # -------------------------- JSONRPC Methods ----------------------------------------#

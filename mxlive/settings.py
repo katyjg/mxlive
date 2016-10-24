@@ -124,7 +124,8 @@ AUTHENTICATION_BACKENDS = (
 )
 
 TEMPLATE_DIRS = (
-    os.path.join(PROJECT_DIR, 'templates')
+    os.path.join(PROJECT_DIR, 'templates'),
+    os.path.join(BASE_DIR, 'local', 'templates')
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS +(
@@ -149,8 +150,24 @@ RESTRUCTUREDTEXT_FILTER_SETTINGS = {
 }
 
 SUIT_CONFIG = {
-    'ADMIN_NAME': 'MxLIVE Administration'
+    'ADMIN_NAME': 'MxLIVE Administration',
+    'CONFIRM_UNSAVED_CHANGES': False,
+    'MENU_ICONS': {
+        'sites': 'icon-leaf',
+        'auth': 'icon-lock',
+    },
+    'MENU': (
+        {'app': 'lims', 'label': 'User Objects', 'icon': 'icon-user'},
+        {'app': 'staff', 'label': 'Staff Objects', 'icon': 'icon-star','models':('post','category')},
+        {'app': 'api', 'label': 'API Keys', 'icon': 'icon-key'},
+        '-',
+        {'app': 'auth', 'label': 'Accounts', 'icon':'icon-lock'},
+        '-',
+        {'label': 'MxLIVE', 'icon':'icon-leaf', 'url': '/'},
+    ),
+    'LIST_PER_PAGE': 25
 }
+
 
 LDAP_BASE_DN      = "dc=example,dc=com"
 LDAP_MANAGER_CN     = "cn=Directory Manager"

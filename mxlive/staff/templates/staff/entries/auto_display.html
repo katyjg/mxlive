@@ -1,4 +1,5 @@
 {% load truncate_filters %}
+{% load runlist_extras %}
 
 <div id="{{ side }}" 
      class="runlist-detail" 
@@ -42,7 +43,7 @@
             </table>
         </div>
     {% else %}
-        {% load runlist_extras %}{% with object|pos_full:side as location %}
+        {% with object|pos_full:side as location %}
         <table class="unipuck">
             <tr>
                 {% automounter_position_display object side 0 'A' %}

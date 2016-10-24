@@ -106,10 +106,10 @@ def add_user(info, connection=None):
     # Generate username here
     users = {user['uid']: int(user['uidNumber']) for user in dir_users(con)}
 
-    if 'username' not in info:
+    if not info.get('username', '').strip():
         info['username'] = get_username(info['last_name'], users.keys())
 
-    if 'password' not in info:
+    if not info.get('password', '').strip():
         info['password'] = nice_pass()
 
     uidNumber = gidNumber = max(users.values()) + 1
@@ -133,6 +133,7 @@ def add_user(info, connection=None):
         'cn': info['username'].encode('utf-8'),
         'gidNumber': '{}'.format(gidNumber),
         'memberUid': info['username'].encode('utf-8'),
+        'objectClass': ['top', 'groupOfUniqueNames', 'posixGroup'],
     }
 
     try:
@@ -144,18 +145,17 @@ def add_user(info, connection=None):
                 u"New Account -  {} {}".format(info['first_name'], info['last_name']),
                 ("A new account has been created \n"
                 "-------------------------------\n"
-                " Full Name: {}{}\n"
+                " Full Name: {} {}\n"
                 " Login: {}\n"
                 " Password: {}\n"
                 "-------------------------------\n").format(info['first_name'], info['last_name'], info['username'], info['password'])
             )
     except ldap.LDAPError as e:
         print e
-        success = False
+        raise
 
     if not connection:
         con.unbind_s()
-
     return info
 
 

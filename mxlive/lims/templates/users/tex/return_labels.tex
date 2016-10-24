@@ -5,12 +5,14 @@
 \usepackage{xcolor,colortbl}
 \usepackage{varwidth}
 \usepackage{fontspec}
-\usepackage[top=0.5in,bottom=0.5in,left=1in,right=1in,nohead,nofoot]{geometry}
+\usepackage[top=0.5in,bottom=0.5in,left=0.5in,right=0.5in,nohead,nofoot]{geometry}
 %\usepackage{parskip}
 \usepackage{ncccropbox}
 \usepackage{wasysym}
 \usepackage{amssymb}
 \usepackage{multirow}
+\usepackage{color}
+
 \addtolength{\fboxsep}{0.2cm}
 \renewcommand{\arraystretch}{1.5}
 %\croplinelength{-0.1in}
@@ -19,7 +21,7 @@
 %------------------------------------------------------------
 % normal line spacing: 1.0
 % double spacing     : 1.6
-\setmainfont{Gentium Basic}
+\setmainfont{Alegreya-Regular}
 \begin{document}
 {% if project.address and project.city and project.province %}
 \begin{minipage}{\textwidth}
@@ -58,7 +60,7 @@
                 \end{tabular}
                 }
                 \vspace{0.125in}
-            \colorbox[gray]{0.92}{
+            \colorbox[gray]{0.7}{
                 \begin{tabular*}{0.9\textwidth}{@{\extracolsep{\fill}} | p{.3\textwidth} | p{.5\textwidth} |}
                 \hline
                 Shipment name & {{shipment.name}} \\ \hline 

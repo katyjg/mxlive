@@ -726,13 +726,19 @@ tr.runlist.loaded td.Uni-Puck  {
 tr.runlist.loaded td.Cassette  {
     background: url('/static/img/container-cassette-xsm-green.png') no-repeat center center;
 }
+tr.runlist.loaded td.Basket  {
+    background: url('/static/img/container-basket-xsm-green.png') no-repeat center center;
+}
 tr.runlist.unloaded td.Uni-Puck  {
     background: url('/static/img/container-uni-puck-xsm-red.png') no-repeat center center;
 }
 tr.runlist.unloaded td.Cassette  {
     background: url('/static/img/container-cassette-xsm-red.png') no-repeat center center;
 }
-tr.runlist td.empty, tr.runlist td.Uni-Puck, tr.runlist td.Cassette {
+tr.runlist.unloaded td.Basket  {
+    background: url('/static/img/container-basket-xsm-red.png') no-repeat center center;
+}
+tr.runlist td.empty, tr.runlist td.Uni-Puck, tr.runlist td.Cassette, tr.runlist td.Basket {
 	border: 1px solid #ddd;
 	min-width: 16px;
 }
@@ -745,7 +751,10 @@ li.Cassette {
 li.Cane {
     background: url('/static/img/container-cane-sm.png') no-repeat 5px center;
 }
-li.container p.Uni-Puck, li.container p.Cassette {
+li.Basket {
+    background: url('/static/img/container-basket-sm.png') no-repeat 5px center;
+}
+li.container p.Uni-Puck, li.container p.Cassette, li.container p.Basket {
 	width: 16px;
 	float: right;
     padding-right: 5px;
@@ -757,6 +766,11 @@ li.container p.Uni-Puck, tr.runlist.closed td.Uni-Puck {
 li.container p.Cassette, tr.runlist.closed td.Cassette {
 	background: url('/static/img/container-cassette-xsm.png') no-repeat center center;
 }
+
+li.container p.Basket, tr.runlist.closed td.Basket {
+	background: url('/static/img/container-basket-xsm.png') no-repeat center center;
+}
+
 
 td.Cane {
     background: #f7f7f7;
@@ -788,7 +802,16 @@ div#unipuck {
     float: right;
     margin-right: 2em;
 }
-table.unipuck text {
+div#basket {
+    background: url('/static/img/basket-sm.png') no-repeat center center;
+    width: 250px;
+    height: 250px;
+    float: right;
+    position: relative;
+    margin-right: 2em;
+}
+
+table.unipuck text, table.basket text {
     float: none;
 }
 div.unipuck-xsm {
@@ -799,7 +822,16 @@ div.unipuck-xsm {
     padding-top: 5px;
     padding-right: 18px;
 }
-table.unipuck td {
+div.basket-xsm {
+    background: url('/static/img/basket-sm.png') no-repeat center center;
+    background-size: contain;
+    width: 83px !important;
+    height: 83px !important;
+    float: right !important;
+    padding-top: 5px;
+    padding-right: 18px;
+}
+table.unipuck td, table.basket td {
     vertical-align: top;
     width: 97px !important;
     height: 110px !important;
@@ -808,12 +840,21 @@ table.unipuck td {
     border-bottom: 1px solid #ddd !important;
 }
 
-table.unipuck {
+table.unipuck, table.basket {
     width: 205px;
     height: 231px;
 }
 
-div#unipuck p, div.unipuck-xsm p.occupied-xs, div.unipuck-xsm p.empty-xs, table.cassette td.empty-xs, table.cassette td.occupied-xs{
+div#unipuck p,
+div.unipuck-xsm p.occupied-xs,
+div.unipuck-xsm p.empty-xs,
+
+div#basket p,
+div.basket-xsm p.occupied-xs,
+div.basket-xsm p.empty-xs,
+
+table.cassette td.empty-xs,
+table.cassette td.occupied-xs {
     background: none;   
     position: relative;
     width: 40px;
@@ -822,14 +863,29 @@ div#unipuck p, div.unipuck-xsm p.occupied-xs, div.unipuck-xsm p.empty-xs, table.
     padding: 0;
     line-height: 40px;
 }
-div#unipuck .occupied {
+
+#basket div.Basket {
+    display: inline-block;
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    background: transparent;
+}
+div#unipuck .occupied,  div#basket .occupied{
     background: url('/static/img/circle_green-40.png') no-repeat center center;   
 }
-div.unipuck-xsm p.occupied-xs, div.unipuck-xsm p.empty-xs, table.cassette td.occupied-xs, table.cassette td.empty-xs {
+div.unipuck-xsm p.occupied-xs,
+div.unipuck-xsm p.empty-xs,
+div.basket-xsm p.occupied-xs,
+div.basket-xsm p.empty-xs,
+table.cassette td.occupied-xs,
+table.cassette td.empty-xs {
     width: 15px !important;
     line-height: 15px;
 }
-div.unipuck-xsm .occupied-xs, table.cassette td.occupied-xs {
+div.unipuck-xsm .occupied-xs, table.cassette td.occupied-xs, div.basket-xsm .occupied-xs {
     background: url('/static/img/circle_green-15.png') no-repeat center center !important;
     opacity: 1.0 !important;
 }
@@ -837,12 +893,29 @@ table.cassette td {
     padding-left: 2px !important;
     height: 16px;
 } 
-div.unipuck-xsm .empty-xs, table.cassette td.empty-xs {
+div.unipuck-xsm .empty-xs, table.cassette td.empty-xs,  div.basket-xsm .empty-xs{
     background: url('/static/img/circle_gray-15.png') no-repeat center center !important;
 }
-table.cassette td.started, div.unipuck-xsm .started, div#unipuck p.started, table.cane-detail td.started, table.cassette-detail td.started {
+table.cassette td.started,
+div.unipuck-xsm .started,
+div#unipuck p.started,
+div.basket-xsm .started,
+div#basket p.started,
+
+table.cane-detail td.started,
+table.cassette-detail td.started {
 	opacity: 0.5 !important;
 }
+div.unipuck-xsm .crystal, div.basket-xsm .crystal {
+    display: inline-block;
+    position: absolute;
+    width: 20px;
+    height: 20px;
+}
+div.unipuck-xsm , div.basket-xsm {
+    position: relative;
+}
+
 
 div.unipuck-xsm .loc-1 { left: 43px; }
 div.unipuck-xsm .loc-2 {  left: 28px; }
@@ -861,7 +934,20 @@ div.unipuck-xsm .loc-14 { left: 75px; }
 div.unipuck-xsm .loc-15 {  left: 72px; }
 div.unipuck-xsm .loc-16 { left: 60px; }
 
-.object-list.uni-puck-detail {
+
+
+div.basket-xsm .loc-1 { left: 22px; top: 5px;}
+div.basket-xsm .loc-2 { left: 10px; top: 18px; }
+div.basket-xsm .loc-3 { left: 6px; top: 37px; }
+div.basket-xsm .loc-4 { left: 15px; top: 56px; }
+div.basket-xsm .loc-5 { left: 31px; top: 66px; }
+div.basket-xsm .loc-6 {  left: 50px; top: 66px;}
+div.basket-xsm .loc-7 { left: 67px; top: 56px;}
+div.basket-xsm .loc-8 { left: 75px; top: 37px;}
+div.basket-xsm .loc-9 {  left: 72px; top: 18px;}
+div.basket-xsm .loc-10 { left: 60px; top: 5px;}
+
+.object-list.uni-puck-detail, .object-list.basket-detail {
     float: left;
     width: 374px;
 }
@@ -869,7 +955,7 @@ table.cassette-detail {
     float: right;
     clear: right;
 }
-.object-list.cassette-detail, .object-list.uni-puck-detail {
+.object-list.cassette-detail, .object-list.uni-puck-detail, .object-list.basket-detail{
     width: 690px;
 }
 
@@ -998,6 +1084,9 @@ div.runlist-cassette {
 .runlist-detail ul li.Uni-Puck:hover {
     background: url('/static/img/container-uni-puck-sm.png') no-repeat 5px center;
 }
+.runlist-detail ul li.Basket:hover {
+    background: url('/static/img/container-basket-sm.png') no-repeat 5px center;
+}
 .dewar-detail li a
 {
     display: inline;
@@ -1012,6 +1101,11 @@ div.runlist-cassette {
     height: 35px;
 }
 .runlist-detail ul.unipuck li, .runlist-detail ul.unipuck li a {
+    height: 26px !important;
+    min-height: 26px !important;
+    line-height: 26px;
+}
+.runlist-detail ul.basket li, .runlist-detail ul.basket li a {
     height: 26px !important;
     min-height: 26px !important;
     line-height: 26px;
@@ -1088,13 +1182,19 @@ div.runlist-cassette {
  .lims-droppable-hover li {
 	background-color:#c8b9d7 !important;
 }
-.lims-droppable-hover.Cassette, .lims-droppable-active.Cassette, .lims-droppable-active.Uni-Puck, .lims-droppable-hover.Uni-Puck {
+.lims-droppable-hover.Cassette, .lims-droppable-active.Cassette,
+.lims-droppable-active.Uni-Puck, .lims-droppable-hover.Uni-Puck,
+.lims-droppable-active.Basket, .lims-droppable-hover.Basket
+{
     border: none !important;
 }
 td.lims-droppable-hover.Cassette {
     background: url('/static/img/circle_purple-30.png') no-repeat center center !important;
 }
 .lims-droppable-hover.Uni-Puck {
+    background: url('/static/img/circle_purple-40.png') no-repeat center center !important;
+}
+.lims-droppable-hover.Basket {
     background: url('/static/img/circle_purple-40.png') no-repeat center center !important;
 }
 td.lims-droppable-hover.Cane {

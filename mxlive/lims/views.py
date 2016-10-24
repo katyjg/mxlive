@@ -989,7 +989,7 @@ def shipment_pdf(request, id, model, format):
     """ """
     if model != Project:
         try:
-            obj = request.manager.get(pk=id)
+            obj = model.objects.get(pk=id)
         except:
             raise Http404
     else:

@@ -194,6 +194,8 @@ class Runlist(StaffBaseClass):
                 port = self.middle
             elif location[0] == "R":
                 port = self.right
+            else:
+                return False
 
             #define the position in the port
             if location[1] == "A":
@@ -204,6 +206,8 @@ class Runlist(StaffBaseClass):
                 position = 2
             elif location[1] == "D":
                 position = 3
+            else:
+                return False
 
             #check if it's empty
             if port != None:
@@ -219,12 +223,53 @@ class Runlist(StaffBaseClass):
             elif location[0] == "M":
                 self.middle = port
             elif location[0] == "R":
-                self.right = port            
+                self.right = port
+            else:
+                return False
+
+            self.save()
+            return True
+        elif container.kind == Container.TYPE.BASKET:
+            # define which port to load into
+            if location[0] == "L":
+                port = self.left
+            elif location[0] == "M":
+                port = self.middle
+            elif location[0] == "R":
+                port = self.right
+            else:
+                return False
+
+            # define the position in the port
+            if location[1] == "A":
+                position = 0
+            elif location[1] == "B":
+                position = 1
+            elif location[1] == "C":
+                position = 2
+            else:
+                return False
+
+
+            # check if it's empty
+            if port != None:
+                if isinstance(port, int):
+                    return False
+            elif port == None:
+                port = [''] * 4
+
+            # make the change
+            port[position] = container.pk
+            if location[0] == "L":
+                self.left = port
+            elif location[0] == "M":
+                self.middle = port
+            elif location[0] == "R":
+                self.right = port
 
             self.save()
             return True
         return False
-
 
     def add_container(self, container):
         # check container type
@@ -276,7 +321,39 @@ class Runlist(StaffBaseClass):
                         self.right = check_list
                         self.save()
                         return True
-            
+        elif container.kind == Container.TYPE.BASKET:
+            check_list = self.left
+            if check_list == None:
+                check_list = [''] * 3
+            if type(check_list) == type(list()):
+                for i in range(3):
+                    if check_list[i] == '':
+                        check_list[i] = container.pk
+                        self.left = check_list
+                        self.save()
+                        return True
+
+            check_list = self.middle
+            if check_list == None:
+                check_list = [''] * 3
+            if type(check_list) == type(list()):
+                for i in range(3):
+                    if check_list[i] == '':
+                        check_list[i] = container.pk
+                        self.middle = check_list
+                        self.save()
+                        return True
+
+            check_list = self.right
+            if check_list == None:
+                check_list = [''] * 3
+            if type(check_list) == type(list()):
+                for i in range(3):
+                    if check_list[i] == '':
+                        check_list[i] = container.pk
+                        self.right = check_list
+                        self.save()
+                        return True
             return False
         else:
             # invalid container
