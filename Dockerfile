@@ -5,13 +5,15 @@ RUN dnf -y update && \
   dnf -y install httpd python-pip mod_wsgi python-ipaddr python-pillow  python-dateutil python-markdown \
   MySQL-python mod_xsendfile texlive texlive-xetex texlive-xetex-def texlive-collection-xetex \
   texlive-graphics sil-gentium-basic-fonts numpy scipy python-ldap python-crypto python-memcached \
-  mod_ssl python-docutils && dnf clean all
+  texlive-pst-barcode texlive-multirow mod_ssl python-docutils unzip && dnf clean all
 
 RUN pip install --upgrade pip &&  pip install 'Django==1.6.11'
 
 EXPOSE 443
 
-# Simple startup script to avoid some issues observed with container restart 
+RUN curl https://www.fontsquirrel.com/fonts/download/alegreya -o /tmp/alegreya.zip && \
+    unzip /tmp/alegreya.zip -d /usr/share/fonts/alegreya && /bin/rm -f /tmp/alegreya.zip
+
 ADD . /mxlive
 ADD ./local /mxlive/local
 ADD deploy/run-server.sh /run-server.sh

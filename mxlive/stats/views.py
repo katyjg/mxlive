@@ -12,8 +12,6 @@ from scheduler.models import Visit, Stat
 from lims.models import Beamline, Data, Project, ScanResult
 from lims.views import admin_login_required
 
-from collections import OrderedDict
-
 
 _provinces = {'British Columbia': ['BC','British Columbia'],
              'Alberta': ['AB', 'Alberta'],
@@ -72,9 +70,7 @@ def stats_calendar(request, month=None):
     prev_month = (datetime(yr, mon, 1, 0, 0, 0) + relativedelta(months=-1)).strftime('%Y-%m')
     next_month = (datetime(yr, mon, 1, 0, 0, 0) + relativedelta(months=+1)).strftime('%Y-%m')
 
-    display = {}
-    for bl in PublicBeamline.objects.using('public-web'):
-        display[bl.name] = Beamline.objects.get(name=bl.name).pk
+    display = {bl.name: bl for bl in Beamline.objects.all()}
 
     dates = []
     i = 0
@@ -114,15 +110,16 @@ def stats_params(request, year=None, cumulative=False):
         end_year = date(int(year), 12, 31)
         if today < end_year:
             end_year = today
-        all_datasets = all_datasets.filter(created__gte=start_year).filter(created__lte=end_year)
-        all_scans = all_scans.filter(created__gte=start_year).filter(created__lte=end_year)
-    else: year = today.year
-    beamlines = PublicBeamline.objects.using('public-web')
+        all_datasets = all_datasets.filter(created__gte=start_year, created__lte=end_year)
+        all_scans = all_scans.filter(created__gte=start_year, created__lte=end_year)
+    else:
+        year = today.year
+    beamlines = Beamline.objects.all() #PublicBeamline.objects.using('public-web')
     exp_data = {}
     stat = {}
     for bl in Beamline.objects.all():
         if bl.name in [b.name for b in beamlines]:
-            datasets = all_datasets.filter(beamline__exact=bl).filter(kind__exact=Data.DATA_TYPES.COLLECTION)
+            datasets = all_datasets.filter(kind__exact=Data.DATA_TYPES.COLLECTION, beamline=bl)
             scans = all_scans.filter(beamline__exact=bl)            
             exp_data[bl.name] = {}
             for type in ['exposure_time','wavelength','delta_angle','resolution','scan_attenuation']:

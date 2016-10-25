@@ -21,7 +21,7 @@
 \setmainfont{Alegreya-Regular}
 \begin{document}
 	\begin{minipage}{\textwidth}
-	    	\includegraphics[width=46pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/cls_logo.pdf}
+	    	\includegraphics[width=46pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/logo-full.pdf}
 	\end{minipage}
 
 	\begin{center}
@@ -47,13 +47,14 @@
 									\vspace{0.125in}
     	                {\bf 
 				            \begin{tabular}{ll}
-				                {\Large To: } & {\Large Canadian Light Source Inc. } \\
-				                 & {\Large University of Saskatchewan } \\
-				                 & {\Large 44 Innovation Boulevard } \\
-				                 & {\Large Saskatoon, SK S7N 2V3 } \\
-				                 & {\Large CANADA } \\
-				                 & {\normalsize Shipping Phone: (306) 657-3657 } \\
-				                 & {\normalsize Shipping Fax: (306) 657-3533 } \\
+                                 {\Large To: } & {\large {{ admin_project.contact_person|texsafe|default:"" }} }
+                                 & {\large {{ admin_project.department|texsafe|default:"" }} } \\
+                                 & {\large {{ admin_project.organisation|texsafe|default:"" }} } \\
+                                 & {\large {{ admin_project.address|texsafe|default:"" }} } \\
+                                 & {\large {{ admin_project.city|texsafe|default:"" }}, {{ admin_project.province|texsafe|default:"" }}\ \ {{admin_project.postal_code|texsafe|default:"" }} } \\
+                                 & {\large {{ admin_project.country|texsafe|default:"" }} } \\
+                                 & {\normalsize Phone: admin_project.contact_phone|texsafe|default:"" } \\
+                                 {% if admin_project.contact_fax %}& {\normalsize Fax: admin_project.contact_fax|texsafe|default:"" } \\{% endif %}
 				            \end{tabular}
 				            \vskip\fboxsep
 				            \vspace{0.125in}
@@ -68,7 +69,7 @@
 					         {% if project.department %}& {\large {{ project.department|texsafe|default:"" }} } \\{% endif %}
 					         & {\large {{ project.organisation|texsafe|default:"" }} } \\
 					         & {\large {{ project.address|texsafe|default:"" }} } \\
-					         & {\large {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}\ \ {{project.postal_code|texsafe|default:"" }} } \\
+					         & {\large {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}\\ {{project.postal_code|texsafe|default:"" }} } \\
 					         & {\large {{ project.country|texsafe|default:"" }} } \\
 					         & Phone: {{ project.contact_phone|texsafe|default:"" }} \\
 					         {% if project.contact_fax %}& Fax: {{ project.contact_fax|texsafe|default:"" }} \\{% endif %}
@@ -79,7 +80,7 @@
             	\end{minipage}
             	\begin{minipage}{1.25in}
                 \begin{center}
-		\includegraphics[width=80pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/cmcf_logo.pdf}
+		\includegraphics[width=80pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/logo.pdf}
 
                 \vspace{0.2in}
 		\includegraphics[width=75pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/fragile_sign.pdf}
@@ -103,13 +104,14 @@
                 		\begin{minipage}{3.5in}
                 	        {\bf 
                 		        \begin{tabular}{ll}
-				                    {\large To: } & {\large Canadian Light Source Inc. } \\
-				                     & {\large University of Saskatchewan } \\
-				                     & {\large 44 Innovation Boulevard } \\
-				                     & {\large Saskatoon, SK S7N 2V3 } \\
-				                     & {\large CANADA } \\
-				                     & {\normalsize Shipping Phone: (306) 657-3657 } \\
-				                     & {\normalsize Shipping Fax: (306) 657-3533 } \\
+	                                 {\Large To: } & {\large {{ admin_project.contact_person|texsafe|default:"" }} }
+                                    & {\large {{ admin_project.department|texsafe|default:"" }} } \\
+                                    & {\large {{ admin_project.organisation|texsafe|default:"" }} } \\
+                                    & {\large {{ admin_project.address|texsafe|default:"" }} } \\
+                                    & {\large {{ admin_project.city|texsafe|default:"" }}, {{ admin_project.province|texsafe|default:"" }} \\ {{admin_project.postal_code|texsafe|default:"" }} } \\
+                                    & {\large {{ admin_project.country|texsafe|default:"" }} } \\
+                                    & Phone: {{ admin_project.contact_phone|texsafe|default:""}} \\
+                                    {% if admin_project.contact_fax %}& {\normalsize Fax: {{admin_project.contact_fax|texsafe|default:""}} } \\{% endif %}
 				                \end{tabular}
 				            }
                         	\vskip\fboxsep
@@ -123,7 +125,7 @@
 							         {% if project.department %}& {\normalsize {{ project.department|texsafe|default:"" }} } \\{% endif %}
 							         & {\normalsize {{ project.organisation|texsafe|default:"" }} } \\
 							         & {\normalsize {{ project.address|texsafe|default:"" }} } \\
-							         & {\normalsize {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}\ \ {{project.postal_code|texsafe|default:"" }} } \\
+							         & {\normalsize {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}\\ {{project.postal_code|texsafe|default:"" }} } \\
 							         & {\normalsize {{ project.country|texsafe|default:"" }} } \\
 							         & Phone: {{ project.contact_phone|texsafe|default:"" }} \\
 							         {% if project.contact_fax %}& Fax: {{ project.contact_fax|texsafe|default:"" }} \\{% endif %}
@@ -135,7 +137,7 @@
                 		\begin{minipage}{1.5in}
                     		\begin{center}
 							    \vspace{-0.1in}
-										\includegraphics[width=80pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/cmcf_logo.pdf}
+										\includegraphics[width=80pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/logo.pdf}
 
 						        \vspace{0.1in}
 										\includegraphics[width=75pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/fragile_sign.pdf}

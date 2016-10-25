@@ -45,7 +45,7 @@ EMAIL_PORT = 25
 EMAIL_HOST = "mail.example.com"
 
 #
-# Uncomment the follwing two lines to enable trusting self-signed certificates
+# Uncomment the following two lines to enable trusting self-signed certificates
 #
 
 #import ssl

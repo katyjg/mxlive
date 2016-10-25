@@ -1,6 +1,7 @@
 from django.conf.urls import patterns
 from lims.forms import ConfirmDeleteForm, LimsBasicForm, ProjectForm, NewUserForm
 from lims.models import *  # @UnusedWildImport
+from staff.models import UserList, Runlist
 from .forms import *  # @UnusedWildImport
 import os
 
@@ -27,15 +28,46 @@ _URL_META = {
     },
     '': {
         'feedback': {'model': Feedback, 'template': 'users/feedback_item.html', 'list_link': False, 'list_modal': True},
-        'runlist': {'model': Runlist, 'form': RunlistForm, 'template': 'staff/entries/runlist.html',
-                    'list_add': False, 'add': True, 'edit': True, 'delete': True, 'delete_form': LimsBasicForm,
-                    'staff_comments': False, 'runlist_comments': True,
-                    'list_template': 'staff/lists/runlist_list.html'},
-        'link': {'model': Link, 'form': LinkForm, 'list_template': 'staff/lists/link_object_list.html',
-                 'detail': False, 'list_link': False, 'list_modal_edit': True, 'list_delete_inline': True,
-                 'delete_form': LimsBasicForm,
-                 'list_add': True, 'add': True, 'edit': True, 'delete': True,
-                 'form_template': 'objforms/form_full.html', 'modal_upload': True},
+        'runlist': {
+            'model': Runlist,
+            'form': RunlistForm,
+            'template': 'staff/entries/runlist.html',
+            'list_add': False,
+            'add': True,
+            'edit': True,
+            'delete': True,
+            'delete_form': LimsBasicForm,
+            'staff_comments': False,
+            'runlist_comments': True,
+            'list_template': 'staff/lists/runlist_list.html'
+        },
+        'userlist': {
+            'model': UserList,
+            'form': UserListForm,
+            'list_template': 'staff/lists/link_object_list.html',
+            'detail': False,
+            'list_modal_edit': True,
+            'list_delete_inline': False,
+            'edit': True,
+            'delete': False,
+            'form_template': 'objforms/form_full.html',
+        },
+        'link': {
+            'model': Link,
+            'form': LinkForm,
+            'list_template': 'staff/lists/link_object_list.html',
+            'detail': False,
+            'list_link': False,
+            'list_modal_edit': True,
+            'list_delete_inline': True,
+            'delete_form': LimsBasicForm,
+            'list_add': True,
+            'add': True,
+            'edit': True,
+            'delete': True,
+            'form_template': 'objforms/form_full.html',
+            'modal_upload': True
+        },
     },
 }
 
@@ -160,6 +192,7 @@ urlpatterns = patterns(
       'action': 'unload'}, 'staff-runlist-complete'),
     (r'^runlist/(?P<id>\d+)/history/$', 'object_history', {'model': Runlist},
      'staff-runlist-history'),
+
 )
 
 # Dynamic patterns here

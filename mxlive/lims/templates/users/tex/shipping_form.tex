@@ -6,7 +6,7 @@
 \thispagestyle{empty}
 
 \begin{minipage}{.2\textwidth}
-\includegraphics[width=170pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/cls_logo.pdf}
+\includegraphics[width=170pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/logo-full.pdf}
 \end{minipage}
 \hfill
 {\bf {\emph {\Large Shipping Order}}}
@@ -21,7 +21,7 @@
 
 \multicolumn{9}{l}{} & \multicolumn{3}{l}{ DATE } \\ \cline{3-8} \cline{10-12}
 \multicolumn{2}{l}{ Shipper's Name: } & \multicolumn{6}{l}{} & \multicolumn{1}{l}{ } & \multicolumn{3}{|c|}{\color{blue} {% now "jS F Y" %} } \\ \cline{3-8}  \cline{10-12}
-\multicolumn{2}{l}{ CLSI Department: } & \multicolumn{6}{c}{\color{blue} \bf CMCF } & \multicolumn{4}{l}{ } \\ \cline{3-8}
+\multicolumn{2}{l}{ CLSI Department: } & \multicolumn{6}{c}{\color{blue} \bf {{admin_project.department|texsafe|cut:"None"|default:""}} } & \multicolumn{4}{l}{ } \\ \cline{3-8}
 \multicolumn{2}{l}{ Department Account \#: } & \multicolumn{6}{l}{ } & \multicolumn{4}{l}{ } \\ \cline{3-8} 
 \multicolumn{2}{l}{ Phone: } & \multicolumn{6}{l}{ } & \multicolumn{4}{l}{ } \\ \cline{3-8} 
 \multicolumn{12}{l}{} \\ \cline{1-3}
