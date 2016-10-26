@@ -29,7 +29,7 @@ _provinces = {'British Columbia': ['BC','British Columbia'],
 @admin_login_required
 @cache_page(3600)
 def stats_month(request, year, month):
-    display = [bl.name for bl in PublicBeamline.objects.using('public-web')]   
+    display = [bl.name for bl in Beamline.objects.all()]
     start_time = datetime(int(year), int(month), 1)
     end_time = start_time + relativedelta(months=+1)
     all_data = Data.objects.filter(beamline__name__in=display).filter(created__gt=start_time).filter(created__lt=end_time)
@@ -37,7 +37,7 @@ def stats_month(request, year, month):
     for d in all_data:
         if not all_stats.has_key(d.project.name):
             all_stats[d.project.name] =  {}
-            for bl in PublicBeamline.objects.using('public-web'):
+            for bl in Beamline.objects.all():
                 shifts = []
                 bl_data = all_data.filter(project=d.project).filter(beamline__name=bl.name)
                 for data in bl_data:
