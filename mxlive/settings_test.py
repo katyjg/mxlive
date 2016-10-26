@@ -9,7 +9,7 @@ lib_path = os.path.join(os.getcwd(), os.pardir, 'lib/')
 if not lib_path in sys.path:
     site.addsitedir(lib_path)
     logging.warn("Adding missing lib as a site")
-    
+
 # use sqlite db for tests
 DATABASE_ENGINE = 'sqlite3'
 CACHE_BACKEND = 'dummy://' # not quite sure why locmem:// does not work

@@ -8,7 +8,6 @@ import forms_test
 # FIXME: something is settings settings.DEBUG=False in the unit tests
 #        this simply re-sets it appropriately
 from django.conf import settings
-import settings_test
 settings.DEBUG = settings_test.DEBUG
 
 # add unit tests for the mxlive.users module here

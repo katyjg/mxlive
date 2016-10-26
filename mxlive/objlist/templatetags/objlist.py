@@ -174,4 +174,4 @@ def object_fields(obj, model_admin=None):
 
 def _boolean_icon(field_val):
     BOOLEAN_MAPPING = {True: 'yes', False: 'no', None: 'unknown'}
-    return mark_safe(u'<img src="%simg/admin/icon-%s.gif" alt="%s" />' % (settings.ADMIN_MEDIA_PREFIX, BOOLEAN_MAPPING[field_val], field_val)) 
+    return mark_safe(u'%s' % (BOOLEAN_MAPPING[field_val]))

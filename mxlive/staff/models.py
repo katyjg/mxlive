@@ -69,17 +69,29 @@ class Link(StaffBaseClass):
         super(Link, self).save(*args, **kwargs)
 
 
-class UserList(models.Model):
+class UserList(StaffBaseClass):
     name = models.CharField(max_length=60, unique=True)
     description = models.TextField(blank=True, null=True)
     address = models.IPAddressField()
-    users = models.ForeignKey("lims.Project", null=True, blank=True)
+    users = models.ManyToManyField("lims.Project", null=True, blank=True)
     active = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified', auto_now_add=True, editable=False)
 
+    def is_deletable(self):
+        return False
+
+    def is_editable(self):
+        return True
+
+    def identity(self):
+        return self.name
+
     def __unicode__(self):
         return str(self.name)
+
+    class Meta:
+        verbose_name = "Access List"
 
 
 class Runlist(StaffBaseClass):

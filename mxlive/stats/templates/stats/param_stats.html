@@ -31,7 +31,7 @@
     </h3>
   </div>
   {% for bl in exp_data.keys %}
-      <div class="col-6">
+      <div class="col-12">
           <h2>{% if not cumulative %}{{years.3}}{% endif %} Usage Metrics on {{bl}}</h2>
           <div id="exposure_time-{{bl}}" class="placeholder half">hello</div>
           <div id="delta_angle-{{bl}}" class="placeholder half">world</div>
@@ -39,6 +39,7 @@
           <div id="wavelength-{{bl}}" class="placeholder half"></div>
           <div id="scan_attenuation-{{bl}}" class="placeholder half"></div>
       </div>
+      <div class="clearall"></div>
   {% endfor %}  
 </div>
 {% endblock %}

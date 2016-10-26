@@ -2,7 +2,7 @@ from django.conf import settings
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from jsonrpc.site import jsonrpc_site
-from remote.views import mock_user_api
+
 from views import logout_view, login_view
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 import os
@@ -26,7 +26,8 @@ urlpatterns = patterns('',
     url(r'^json/browse/$', 'jsonrpc.views.browse', name="jsonrpc_browser"),
     url(r'^json/$', jsonrpc_site.dispatch, name="jsonrpc_mountpoint"),
     (r'^json/(?P<method>[a-zA-Z0-9._]+)/$', jsonrpc_site.dispatch),
-    (r'^api/profile/detail/', mock_user_api),
+    (r'^api/', include('remote.urls')),
+
 )
 
 if settings.DEBUG:       

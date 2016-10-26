@@ -6,7 +6,6 @@ from jsonrpc import exceptions
 def apikey_required(function):
     """ Decorator that enforces a valid API key """
     def apikey_required_wrapper(request, key, *args, **kwargs):
-        print request, key, args, kwargs
         try:
             client_addr = IPNetwork(request.META['REMOTE_ADDR'])
             api_key = APIKey.objects.get(key=key)

@@ -145,11 +145,19 @@ class LinkForm(objforms.forms.OrderedForm):
 
 
 class UserListForm(objforms.forms.OrderedForm):
-    users = forms.ModelMultipleChoiceField(choices=Project.objects.all(), required=False)
+    users = forms.ModelMultipleChoiceField(
+        queryset=Project.objects.all(),
+        widget=objforms.widgets.CustomSelectMultiple,
+        label='Users', required=False
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(UserListForm, self).__init__(*args, **kwargs)
+        self.fields['users'].label = "Users on %s" % format(self.instance)
 
     class Meta:
         model = UserList
-        fields = ('users')
+        fields = ('users',)
 
 
 class StaffCommentsForm(objforms.forms.OrderedForm):

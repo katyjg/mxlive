@@ -44,13 +44,11 @@ _URL_META = {
         'userlist': {
             'model': UserList,
             'form': UserListForm,
-            'list_template': 'staff/lists/link_object_list.html',
-            'detail': False,
+            'list_link': False,
             'list_modal_edit': True,
-            'list_delete_inline': False,
-            'edit': True,
-            'delete': False,
-            'form_template': 'objforms/form_full.html',
+            'list_delete_inline': True,
+            'comments': False,
+            'edit': True
         },
         'link': {
             'model': Link,
@@ -254,3 +252,4 @@ urlpatterns += patterns(
     (r'^link/media/(?P<path>.*)$', 'django.views.static.serve',
      {'document_root': os.path.join('media/')}),
 )
+

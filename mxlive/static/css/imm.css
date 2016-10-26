@@ -304,6 +304,7 @@ ul.toolbar li.download-in-progress {background-image: url(/static/img/download-i
 ul.toolbar li.trash-tool {background-image: url(/static/img/trash-icon.png);}
 ul.toolbar li.stats-tool {background-image: url(/static/img/calendar-icon.png);}
 ul.toolbar li.users-tool {background-image: url(/static/img/users.png);}
+ul.toolbar li.access-tool {background-image: url(/static/img/access.png);}
 ul.toolbar li.pie-tool {background-image: url(/static/img/pie_chart.png);}
 ul.toolbar li.hist-tool {background-image: url(/static/img/hist_chart.png);}
 ul.toolbar li.history-tool {background-image: url(/static/img/history.png);}
@@ -1447,6 +1448,7 @@ td.stats {
 }
 td.blabel span{
 	color: #000;
+    white-space: nowrap;
     -webkit-transform: rotate(-90deg); 
     -moz-transform: rotate(-90deg);    
     filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
