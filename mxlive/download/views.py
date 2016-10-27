@@ -14,6 +14,8 @@ import posixpath
 import re
 import subprocess
 import urllib
+import zipstream
+from django.http import StreamingHttpResponse
 
 KEY_RE = re.compile('^[a-f0-9]{40}$')
 CACHE_DIR = getattr(settings, 'DOWNLOAD_CACHE_DIR', '/tmp')
@@ -49,7 +51,7 @@ def send_raw_file(request, full_path, attachment=False):
 
     if not os.path.exists(full_path):
         raise Http404
-   
+
     if FRONTEND == "xsendfile":
         response = HttpResponse()
         response['X-Sendfile'] = full_path
@@ -58,12 +60,7 @@ def send_raw_file(request, full_path, attachment=False):
         # Unset the Content-Type as to allow for the webserver
         # to determine it.
         response['Content-Type'] = ''
-    elif FRONTEND == "django":
-        dirname = os.path.dirname(full_path)
-        path = os.path.basename(full_path)
-        print path, dirname
-        #"Serving file %s in directory %s through django static serve." % (path, dirname)
-        response = serve(request, path, dirname)
+
     elif FRONTEND == "xaccelredirect":
         response = HttpResponse()
         response['X-Accel-Redirect'] = full_path
@@ -71,8 +68,12 @@ def send_raw_file(request, full_path, attachment=False):
             response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(full_path)
         response['Content-Type'] = ''
         response = HttpResponse()
-        # FIXME: find out how to use wsgi.file_wrapper as a frontend as well
-        
+    else:
+        dirname = os.path.dirname(full_path)
+        path = os.path.basename(full_path)
+        #"Serving file %s in directory %s through django static serve." % (path, dirname)
+        response = serve(request, path, dirname)
+
     return response
 
 @login_required
@@ -154,7 +155,7 @@ def find_file(request, pk, path):
     return send_raw_file(request, filename, attachment=False)
 
 @login_required
-def send_archive(request, key, path, data_dir=False): #Add base parameter and another url
+def send_archive_old(request, key, path, data_dir=False): #Add base parameter and another url
 
     obj = get_object_or_404(SecurePath, key=key)
     # make sure only owner and staff can get their files
@@ -171,5 +172,28 @@ def send_archive(request, key, path, data_dir=False): #Add base parameter and an
             create_tar(obj.path, tar_file, data_dir=data_dir)
         except OSError:
             raise Http404        
-    return send_raw_file(request, tar_file, attachment=True)   
+    return send_raw_file(request, tar_file, attachment=True)
+
+
+@login_required
+def send_archive(request, key, path, data_dir=False):  # Add base parameter and another url
+    obj = get_object_or_404(SecurePath, key=key)
+    # make sure only owner and staff can get their files
+    if not request.user.is_superuser:
+        if not (request.user.get_profile() == obj.owner):
+            raise Http404
+    if data_dir:
+        # make sure downloading is enabled for this dataset
+        get_object_or_404(Data, url=key, name=path, download=True)
+
+    if os.path.exists(obj.path):
+        z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
+        z.write(obj.path, path)
+        response = StreamingHttpResponse(z, mimetype='application/zip')
+        response['Content-Disposition'] = 'attachment; filename={}.zip'.format(path)
+        return response
+    else:
+        raise Http404
+
+
 

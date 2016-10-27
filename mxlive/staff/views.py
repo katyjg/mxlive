@@ -398,29 +398,32 @@ def object_status(request, model):
         for data in Data.objects.filter(pk__in=pks):
             if action == 1:
                 path_obj = get_object_or_404(SecurePath, key=data.url)
-                tar_file = os.path.join(CACHE_DIR, path_obj.key, '%s.tar.gz' % (data.name))
-                if not os.path.exists(tar_file):
-                    try:
-                        threads[data.name] = threading.Thread(target=create_tar, 
-                                                              args=[path_obj.path, tar_file],
-                                                              kwargs={'data_dir':True})
-                        threads[data.name].start()
-                        msg = "A tar file is being created for dataset %s.  Depending on the number of images, it may be awhile before it is available to download." % data.name
-                        messages.info(request, msg)
-                    except OSError:
-                        raise Http404 
+                #tar_file = os.path.join(CACHE_DIR, path_obj.key, '%s.tar.gz' % (data.name))
+                # if not os.path.exists(tar_file):
+                #     try:
+                #         threads[data.name] = threading.Thread(target=create_tar,
+                #                                               args=[path_obj.path, tar_file],
+                #                                               kwargs={'data_dir':True})
+                #         threads[data.name].start()
+                #         msg = "A tar file is being created for dataset %s.  Depending on the number of images, it may be awhile before it is available to download." % data.name
+                #         messages.info(request, msg)
+                #     except OSError:
+                #         raise Http404
+                messages.info(request, "Download enabled for {}".format(path_obj.path))
                 data.toggle_download(True)
             if action == 2:
-                msg = "The tar file has been deleted for dataset %s." % data.name
                 obj = get_object_or_404(SecurePath, key=data.url)
-                fname = os.path.join(CACHE_DIR, obj.key, '%s.tar.gz' % data.name)
-                if os.path.exists(fname):
-                    os.remove(fname)
-                elif os.path.exists('%s-tmp' % fname):
-                    os.remove('%s-tmp' % fname)
-                else:
-                    msg = "The tar file for dataset %s could not be removed because it does not exist." % data.name
-                messages.info(request, msg)
+                # msg = "The tar file has been deleted for dataset %s." % data.name
+                # obj = get_object_or_404(SecurePath, key=data.url)
+                # fname = os.path.join(CACHE_DIR, obj.key, '%s.tar.gz' % data.name)
+                # if os.path.exists(fname):
+                #     os.remove(fname)
+                # elif os.path.exists('%s-tmp' % fname):
+                #     os.remove('%s-tmp' % fname)
+                # else:
+                #     msg = "The tar file for dataset %s could not be removed because it does not exist." % data.name
+                # messages.info(request, msg)
+                messages.info(request, "Download disabled for {}".format(obj.path))
                 data.toggle_download(False)
             
     return render_to_response('users/refresh.html')

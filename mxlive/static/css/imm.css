@@ -1609,7 +1609,7 @@ ul.filter-choices ul {
 }
 
 #data-viewer .object-tools {
-    height: 36px;
+    height: 42px;
 }
 
 #data-viewer .toolbar li a {
@@ -1617,7 +1617,7 @@ ul.filter-choices ul {
 }
 
 #data-viewer ul.toolbar {
-    height: 34px;
+    height: 40px;
     margin-top: 0px;
 }
 

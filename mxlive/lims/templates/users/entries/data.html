@@ -19,14 +19,12 @@
 	    </h2>
         <div class="object-tools">
             <ul class="toolbar">
-            {% if not request.user.is_superuser %}
-                {% if data|file_exists:'tar.gz' %}
-                <li class="download-tool" title="Download compressed dataset">
-                    <a href="/download/data/{{data.url}}/{{data.name}}.tar.gz" onclick="getArchive('/download/data/{{ data.url }}/{{data.name}}.tar.gz');">Download</a>
+                {% if data.download %}
+                <li class="download-tool" title="Download Archive">
+                    <a href="/download/data/{{data.url}}/{{data.name}}.zip" download="{{data.name}}.zip" target="_blank">Download</a>
                 </li>
-                {% else %}{% if object|file_exists:'tar.gz-tmp' %}{% if object|file_updated:'tar.gz-tmp' %}
-                <li class="download-in-progress" title="Archive is being created - check back later"></li>
-                {% endif %}{% endif %}{% endif %}
+                {% endif %}
+            {% if not request.user.is_superuser %}
                 {% if data.is_closable %}
                 <li class="close-tool" title="Archive this dataset">
                     <a href="{% url "users-data-close" data.id %}" class="action modal-form">Archive</a>
@@ -93,7 +91,7 @@
     <p>Frames {{ data.frame_sets }}</p>
 	<ul {% if data|images_exist %}style="height: {% if data.crystal %}3.7em{% else %}8.3em{% endif %};"{% endif %}>
 	{% for frame_id in data.get_frame_list %}
-		<li><a onclick="toFrame({{frame_id}});">{{data.name}}_{{ frame_id|stringformat:"03d" }}</a>&nbsp;
+		<li><a onclick="toFrame({{frame_id}});">{{data.name}}_{{ frame_id|stringformat:"04d" }}</a>&nbsp;
         {% if not request.user.is_superuser %}{% if data|is_downloadable:frame_id %}
         <a class="download-tool" href="{% image_url data frame_id %}" title="Download this image"></a>
         {% endif %}{% endif %}
@@ -135,14 +133,14 @@
 		url = url + number + "-" + $current_brightness_to_display + ".png";
 		return url;
 	}
-	
+
+	function zerofill(number, size) {
+        return (number.toString().length >= size) ? number.toString() :('0'*size+number).slice(-size);
+    }
+
+
 	function generateFrameName(frame) {
-		name = "{{ data.name }}" + "_";
-		number = '' + frame;
-		while (number.length <  3) {
-			number = '0' + number;
-		}
-		name = name + number;
+		name = "{{ data.name }}" + "_" + zerofill(number, 4);
 		return name;
 	}
 	
@@ -217,7 +215,7 @@
 	}
 
     function getArchive(url) {
-        jQuery.jGrowl("The tar file of your dataset is {{data|get_size}} and it may take {{data|get_size|get_adj}} to complete this download.  Thank you for your patience!", { life: 10000 });
+        jQuery.jGrowl("The archive of your dataset is being downloaded and it may take a while to complete this download.  Thank you for your patience!", { life: 10000 });
         jQuery.fancybox.showActivity();
 		window.location = url;
 		jQuery.fancybox.hideActivity();
