@@ -40,7 +40,7 @@ def get_userlist(request, ipnumber=None, *args, **kwargs):
     else:
         client_addr = ipnumber
     print "GETTING CLIENT ADDRESS", client_addr
-    list = UserList.objects.filter(address=client_addr).first()
+    list = UserList.objects.filter(address=client_addr, active=True).first()
     if list:
         return JSONResponse([p.user.username for p in list.users.all()])
     else:
