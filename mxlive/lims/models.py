@@ -350,6 +350,9 @@ class DataBaseClass(LimsBaseClass):
     def is_trashable(self):
         return True
 
+    def update_states(self):
+        return
+
     class Meta:
         abstract = True
 
@@ -1315,6 +1318,17 @@ class Data(DataBaseClass):
             if obj.status not in [GLOBAL_STATES.TRASHED]:
                 obj.trash(request=request)
         super(Data, self).trash(request=request)
+
+    def update_states(self):
+        # check type, and change status accordingly
+        if self.crystal is not None:
+            if self.kind == Result.RESULT_TYPES.SCREENING:
+                self.crystal.change_screen_status(Crystal.EXP_STATES.COMPLETED)
+            elif self.kind == Result.RESULT_TYPES.COLLECTION:
+                self.crystal.change_collect_status(Crystal.EXP_STATES.COMPLETED)
+        if self.experiment is not None:
+            if self.experiment.status == Experiment.STATES.ACTIVE:
+                self.experiment.change_status(Experiment.STATES.PROCESSING)
 
     class Meta:
         verbose_name = 'Dataset'

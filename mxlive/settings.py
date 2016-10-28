@@ -161,6 +161,7 @@ SUIT_CONFIG = {
         {'app': 'api', 'label': 'API Keys', 'icon': 'icon-key'},
         '-',
         {'app': 'auth', 'label': 'Accounts', 'icon':'icon-lock'},
+        {'app': 'apikey', 'label': 'API Access', 'icon':'icon-key'},
         '-',
         {'label': 'MxLIVE', 'icon':'icon-leaf', 'url': '/'},
     ),
@@ -197,7 +198,3 @@ AUTH_LDAP_GROUP_TYPE = PosixGroupType(name_attr='cn')
 AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,{},{}".format(LDAP_USER_TABLE, LDAP_BASE_DN)
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(LDAP_BASE_DN, ldap.SCOPE_SUBTREE, "(objectClass=posixGroup)")
 
-"""
-Before running:
-* create directory referenced by DOWNLOAD_CACHE_DIR
-"""

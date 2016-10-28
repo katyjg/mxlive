@@ -135,13 +135,11 @@
 	}
 
 	function zerofill(number, size) {
-        return (number.toString().length >= size) ? number.toString() :('0'*size+number).slice(-size);
+        return (number.toString().length >= size) ? number.toString() : ('0'.repeat(size) + number).slice(-size);
     }
 
-
 	function generateFrameName(frame) {
-		name = "{{ data.name }}" + "_" + zerofill(number, 4);
-		return name;
+		return "{{ data.name }}" + "_" + zerofill(frame, 4);
 	}
 	
 	jQuery(document).ready( function() {

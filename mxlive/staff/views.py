@@ -594,6 +594,7 @@ from jsonrpc.exceptions import InvalidRequestError, ServerError
 from mxlive.apikey.views import apikey_required
 from django.db import models
 
+
 @jsonrpc_method('lims.get_onsite_samples')
 @apikey_required
 def get_onsite_samples(request, info):
@@ -601,7 +602,7 @@ def get_onsite_samples(request, info):
         project = Project.objects.get(name__exact=info.get('project_name'))
     except Project.DoesNotExist:
         raise InvalidRequestError("Project does not exist.")
-    
+
     cnt_list = project.container_set.filter(
         models.Q(status__exact=Container.STATES.ON_SITE) | 
         models.Q(status__exact=Container.STATES.LOADED))

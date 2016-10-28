@@ -187,9 +187,10 @@ def send_archive(request, key, path, data_dir=False):  # Add base parameter and 
         get_object_or_404(Data, url=key, name=path, download=True)
 
     if os.path.exists(obj.path):
+        print "CREATING ARCHIVE ON THE FLY", obj.path, path
         z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
-        z.write(obj.path, path)
-        response = StreamingHttpResponse(z, mimetype='application/zip')
+        z.write(obj.path +'/', path)
+        response = StreamingHttpResponse(z, content_type='application/zip')
         response['Content-Disposition'] = 'attachment; filename={}.zip'.format(path)
         return response
     else:
