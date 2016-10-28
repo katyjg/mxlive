@@ -11,9 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 class JsonResponse(HttpResponse):
     def __init__(self, obj, safe=False):
-        content = json.dumps(
-            obj, indent=2, cls=serializers.json.DjangoJSONEncoder,
-            ensure_ascii=False)
+        content = json.dumps(obj, indent=2, ensure_ascii=False)
         super(JsonResponse, self).__init__(
             content, content_type='application/json')
 
