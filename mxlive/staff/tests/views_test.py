@@ -38,11 +38,6 @@ from mxlive.staff.forms import RunlistForm
 from django.template import RequestContext
 from django.http import Http404
 
-from django.utils import simplejson
-
-from jsonrpc.exceptions import InvalidRequestError
-from jsonrpc.exceptions import MethodNotFoundError
-
 class StaffHomeTest(DjangoTestCase):
     """ Test the /staff/ view """
     

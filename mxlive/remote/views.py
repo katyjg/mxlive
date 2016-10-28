@@ -5,7 +5,7 @@ from django.http import HttpResponse, Http404
 from django.core import serializers, exceptions
 from mxlive.middleware import get_client_address
 from django.db.models import Q
-from mxlive.apikey.views import require_apikey
+from mxlive.apikey.views import apikey_required
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
@@ -31,7 +31,7 @@ def get_userlist(request, ipnumber=None, *args, **kwargs):
         return JsonResponse([], safe=True)
 
 
-@require_apikey
+@apikey_required
 def get_project_samples(request, *args, **kwargs):
     from lims.models import Project, Container, Crystal, Experiment, Beamline
     from staff.models import Runlist
@@ -80,7 +80,7 @@ def get_project_samples(request, *args, **kwargs):
     return JsonResponse({'containers': containers, 'crystals': crystals, 'experiments': experiments})
 
 
-@require_apikey
+@apikey_required
 def get_active_runlist(request, *args, **kwargs):
     from lims.models import Beamline
     from staff.models import Runlist
@@ -97,7 +97,7 @@ def get_active_runlist(request, *args, **kwargs):
         raise Http404("Beamline does not exist.")
 
 @csrf_exempt
-@require_apikey
+@apikey_required
 def post_data_object(request, *args, **kwargs):
     from lims.models import Project, Beamline, ActivityLog, Crystal
     from lims.views import create_download_key

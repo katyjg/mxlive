@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
-from jsonrpc.site import jsonrpc_site
 
 from views import logout_view, login_view
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
@@ -22,11 +21,6 @@ urlpatterns = patterns('',
     (r'^home/',  'mxlive.lims.views.home'),
     (r'^login/$',  login_view, {'template_name': 'login.html'}),
     (r'^logout/$', logout_view),
-    
-    url(r'^json/browse/$', 'jsonrpc.views.browse', name="jsonrpc_browser"),
-    url(r'^json/$', jsonrpc_site.dispatch, name="jsonrpc_mountpoint"),
-    (r'^json/(?P<method>[a-zA-Z0-9._]+)/$', jsonrpc_site.dispatch),
-
     (r'^api/', include('remote.urls')),
 )
 

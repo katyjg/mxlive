@@ -56,7 +56,6 @@ INSTALLED_APPS = (
     'mxlive.download',
     'mxlive.stats',
     'mxlive.apikey',
-    'jsonrpc',
     'reversion',
     #'south',
 )
