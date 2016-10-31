@@ -34,7 +34,7 @@ class DewarReceiveForm(objforms.forms.OrderedForm):
     def clean(self):
         cleaned_data = self.cleaned_data
         barcode = cleaned_data.get("barcode", "")
-        bc_match = re.match("SH(?P<dewar_id>\d{4})-(?P<shipment_id>\d{4})", barcode)
+        bc_match = re.match("[A-Z]{2,3}(?P<dewar_id>\d{4})-(?P<shipment_id>\d{4})", barcode)
 
         if bc_match:
             dewar_id = int(bc_match.group('dewar_id'))

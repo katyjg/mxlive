@@ -501,11 +501,11 @@ class Component(ObjectBaseClass):
     label = models.BooleanField()
     
     def identity(self):
-        return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+        return 'CM%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
     
     def barcode(self):
-        return "ITM%04d-%04d" % (self.id, self.shipment.id)
+        return "CM%04d-%04d" % (self.id, self.shipment.id)
         
 class Dewar(ObjectBaseClass):
     HELP = {
@@ -519,7 +519,7 @@ class Dewar(ObjectBaseClass):
     shipment = models.ForeignKey(Shipment, blank=True, null=True)
 
     def identity(self):
-        return 'CM%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+        return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
 
     def _Shipment(self):
@@ -527,7 +527,7 @@ class Dewar(ObjectBaseClass):
     _Shipment.admin_order_field = 'shipment__name'
 
     def barcode(self):
-        return "CLS%04d-%04d" % (self.id, self.shipment and self.shipment.id or '')
+        return "DE%04d-%04d" % (self.id, self.shipment and self.shipment.id or '')
 
     def num_containers(self):
         return self.container_set.count()   
