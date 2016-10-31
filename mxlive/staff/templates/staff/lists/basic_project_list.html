@@ -6,7 +6,7 @@
     	    rel="{{ handler }}{{object.pk}}" 
     	    project="{{ object.name|capfirst }}'s Containers"
     	    ondragstart="setupDragAndDrop()" 
-    	    onclick="setupRunlist()">
-    		<a class="{{ type }}">{{ object.name }} - {{ object|num_containers:runlist }} containers</a>
+    	    {# onclick="setupRunlist() #}">
+    		<a class="{{ type }}"  href="{% url 'staff-runlist-detail' id=runlist %}?project={{ object.pk }}">{{ object.name }} - {{ object|num_containers:runlist }} containers</a>
     	</li>
 {% endfor %}

@@ -165,7 +165,7 @@ urlpatterns = patterns(
 
     # Runlists
     (
-        r'^runlist/(?P<runlist_id>\d+)/container/basic/(?P<exp_id>\d+)/$', 'container_basic_object_list',
+        r'^runlist/(?P<runlist_id>\d+)/container/basic/(?P<obj_id>\d+)/$', 'container_basic_object_list',
         {'model': Container, 'template': 'staff/lists/basic_container_list.html'},
         'staff-container-basic-list'),
     (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'experiment_basic_object_list',
@@ -190,7 +190,6 @@ urlpatterns = patterns(
       'action': 'unload'}, 'staff-runlist-complete'),
     (r'^runlist/(?P<id>\d+)/history/$', 'object_history', {'model': Runlist},
      'staff-runlist-history'),
-
 )
 
 # Dynamic patterns here
@@ -238,7 +237,6 @@ urlpatterns += patterns(
      'staff-runlist-pdf'),
     (r'^runlist/(?P<id>\d+)/staff_comments/add/$', 'staff_comments',
      {'model': Runlist, 'form': RunlistCommentsForm, }, 'staff-comments-runlist-add'),
-
 )
 
 urlpatterns += patterns(

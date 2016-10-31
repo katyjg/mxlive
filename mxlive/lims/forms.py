@@ -2,6 +2,7 @@ from django import forms
 from django.forms.util import ErrorList
 from django.utils import dateformat, timezone
 import objforms.widgets
+import uuid
 from .excel import LimsWorkbook
 from .models import *
 from mxlive.objforms.forms import OrderedForm
@@ -141,8 +142,10 @@ class ShipmentUploadForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(ShipmentUploadForm, self).__init__(*args, **kwargs)
-        self.fields['dewar'].initial = "Dewar %s" % dateformat.format(timezone.now(), 'ymd His')
-        self.fields['shipment'].initial = "Shipment %s" % dateformat.format(timezone.now(), 'ymd His')
+        uid = str(uuid.uuid4())[:8]
+        now = timezone.now().strftime('%y%m%d')
+        self.fields['dewar'].initial = "DWR-{}-{}".format(now, uid).upper()
+        self.fields['shipment'].initial = "SHP-{}-{}".format(now, uid).upper()
 
     def clean(self):
         """ Cleans the form globally. This simply delegates validation to the LimsWorkbook. """

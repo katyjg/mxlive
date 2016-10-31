@@ -330,7 +330,7 @@ def upload_shipment(request, model, form, template='users/forms/form_base.html')
             return render_to_response(template, {'form': frm, 'info': form_info},
                                       context_instance=RequestContext(request))
     else:
-        frm = form(initial={'project': project.pk})
+        frm = form(initial={'project': project})
         return render_to_response(template, {'form': frm, 'info': form_info}, context_instance=RequestContext(request))
 
 
@@ -447,6 +447,7 @@ def object_detail(request, id, model, template):
     """
     try:
         obj = request.manager.get(pk=id)
+        project = Project.objects.filter(pk=request.GET.get('project')).first()
     except:
         raise Http404
     cnt_type = ContentType.objects.get_for_model(obj)
@@ -464,6 +465,7 @@ def object_detail(request, id, model, template):
         list_url = None
     return render_to_response(template, {
         'object': obj,
+        'project': project,
         'history': history[:ACTIVITY_LOG_LENGTH],
         'handler': request.path,
         'list_url': list_url,

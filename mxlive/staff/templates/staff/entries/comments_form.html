@@ -6,7 +6,7 @@
     <label for="id_staff_comments">Staff comments</label>
     </div>
     <div title="Add notes for the user here. You can use Restructured Text markup.">
-    <textarea id="id_staff_comments" name="{% ifnotequal object.class_name 'Runlist' %}staff_{% endifnotequal %}comments" class="field textarea large">{% ifnotequal object.class_name 'Runlist' %}{{object.staff_comments|default:''}}{% else %}{{object.comments|default:''}}{% endifnotequal %}</textarea>
+    <textarea id="id_staff_comments" name="{% ifnotequal object.class_name 'Runlist' %}staff_{% endifnotequal %}comments" class="field textarea medium">{% ifnotequal object.class_name 'Runlist' %}{{object.staff_comments|default:''}}{% else %}{{object.comments|default:''}}{% endifnotequal %}</textarea>
     </div>
     </li>
 </ul>

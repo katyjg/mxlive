@@ -107,7 +107,7 @@ def receive_shipment(request, id, model, form, template='objforms/form_base.html
     else:
         try:
             obj = model.objects.get(pk=id)
-            init_dict = {'barcode': 'SH%04i-%04i' % (obj.pk, obj.shipment.pk)}
+            init_dict = {'barcode': obj.barcode()}
             if not obj.storage_location:
                 init_dict['storage_location'] = ''
         except:
@@ -326,7 +326,7 @@ def project_basic_object_list(request, runlist_id, model, template='objlist/basi
 
 @login_required
 @manager_required
-def container_basic_object_list(request, runlist_id, exp_id, model, template='objlist/basic_object_list.html'):
+def container_basic_object_list(request, runlist_id, obj_id, model, template='objlist/basic_object_list.html'):
     """
     Slightly more complex than above. Should display name and id for entity, but filter
     to only display containers with a crystal in the specified experiment.
@@ -339,7 +339,7 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
 
     '''
     try:
-        experiment = Experiment.objects.get(pk=exp_id)
+        experiment = Experiment.objects.get(pk=obj_id)
     except:
         experiment = None
         ol.object_list = None
@@ -350,7 +350,7 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
         ol.object_list = Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE)
     '''
     try:
-        project = Project.objects.get(pk=exp_id)
+        project = Project.objects.get(pk=obj_id)
     except:
         project = None
         ol.object_list = None
@@ -362,8 +362,6 @@ def container_basic_object_list(request, runlist_id, exp_id, model, template='ob
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
 CACHE_DIR = getattr(settings, 'DOWNLOAD_CACHE_DIR', '/tmp')
-
-import threading
 
 @login_required
 def object_status(request, model):
