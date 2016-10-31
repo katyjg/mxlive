@@ -1,7 +1,7 @@
 from django.conf.urls import patterns
 from lims.forms import ConfirmDeleteForm, LimsBasicForm, ProjectForm, NewUserForm
 from lims.models import *  # @UnusedWildImport
-from staff.models import UserList, Runlist
+from staff.models import UserList, Runlist, Adaptor
 from .forms import *  # @UnusedWildImport
 import os
 
@@ -167,7 +167,13 @@ urlpatterns = patterns(
     (
         r'^runlist/(?P<runlist_id>\d+)/container/basic/(?P<obj_id>\d+)/$', 'container_basic_object_list',
         {'model': Container, 'template': 'staff/lists/basic_container_list.html'},
-        'staff-container-basic-list'),
+        'staff-container-basic-list'
+    ),
+    (
+        r'^runlist/(?P<runlist_id>\d+)/adaptor/basic/$', 'adaptor_basic_object_list',
+        {'model': Adaptor, 'template': 'staff/lists/basic_adaptor_list.html'},
+        'staff-adaptor-basic-list'
+    ),
     (r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', 'experiment_basic_object_list',
      {'model': Experiment, 'template': 'staff/lists/basic_experiment_list.html'},
      'staff-experiment-basic-list'),

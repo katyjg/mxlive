@@ -69,11 +69,26 @@
         >
 	       <div class="widget-title">
 	        <a class="back-tool runlist-experiment" id="0" exp="All Containers" title="Show All On-site Containers">&nbsp;</a>
-	        <span class="container-widget-title">All Containers</span></div>
-            <ul style="min-height: 200px;">
+            {% if project %}
+                <span class="container-widget-title">{{ project }}'s Containers</span></div>
+            {% else %}
+	            <span class="container-widget-title">All Containers</span></div>
+            {% endif %}
+            <ul style="min-height: 180px;">
                 <p class="list-empty">( No containers )</p>
             </ul>
         </div>
+
+        <!--div id="adaptors" class="widget droppable-remove parent-stop"
+             data="{% url "staff-adaptor-basic-list" object.pk %}"
+        >
+	       <div class="widget-title">
+	        <a class="back-tool runlist-experiment" id="0" exp="Puck Adaptors" title="Show All Puck Adaptors">&nbsp;</a>
+	        <span class="container-widget-title">Puck Adaptors</span></div>
+            <ul style="min-height: 100px;">
+                <p class="list-empty">( No Adaptors )</p>
+            </ul>
+        </div-->
         {% include "staff/entries/comments_form.html" %}
 {% endblock %}
 

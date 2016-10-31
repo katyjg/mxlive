@@ -2,7 +2,7 @@
 from django.db.models import *
 from django.template import Library
 from mxlive.lims.models import Container, Experiment, Crystal
-from mxlive.staff.models import Runlist
+from mxlive.staff.models import Runlist, Adaptor
 
 register = Library()
 
@@ -83,6 +83,12 @@ def prioritize_and_sort(object_list):
 def num_containers(project, pk):
     runlist = Runlist.objects.get(pk=pk)
     return Container.objects.filter(project__exact=project).filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE).count()
+
+@register.filter('adaptor_containers')
+def adaptor_containers(adaptor):
+    adaptor = Adaptor.objects.get(pk=adaptor)
+    return adaptor.containers.count()
+
 
 @register.filter('get_container_type')
 def get_container_type(pk):

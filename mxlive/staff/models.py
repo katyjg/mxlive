@@ -195,7 +195,28 @@ class Runlist(StaffBaseClass):
         return h.hexdigest()
 
     def container_to_location(self, container, location):
-        if container.kind == Container.TYPE.CASSETTE:
+        if isinstance(container, Adaptor):
+            # define which port to load into
+            ports = {'L': 'left', 'M': 'middle', 'R': 'right'}
+            if location[0] == "L":
+                port = self.left
+            elif location[0] == "M":
+                port = self.middle
+            elif location[0] == "R":
+                port = self.right
+            else:
+                return False
+
+            for loc, port_attr in ports.items():
+                if location[0] != loc: continue
+                port = getattr(self, port_attr)
+                if port is None or port == [''] * 4:
+                    setattr(self, port_attr, container.details)
+                    self.save()
+                    return True
+            return False
+
+        elif container.kind == Container.TYPE.CASSETTE:
             if location[0] == "L":
                 if self.left == None:
                     self.left = container.pk
@@ -482,7 +503,7 @@ class Runlist(StaffBaseClass):
             return
         if status not in self.TRANSITIONS[self.status]:
             raise ValueError("Invalid transition on '%s.%s':  '%s' -> '%s'" % (
-            self.__class__, self.pk, STATES[self.status], STATES[status]))
+            self.__class__, self.pk, self.STATES[self.status], self.STATES[status]))
         self.status = status
         self.save()
 
@@ -522,6 +543,98 @@ class Runlist(StaffBaseClass):
                 'containers': containers,
                 'crystals': crystals,
                 'experiments': experiments}
+
+
+class Adaptor(StaffBaseClass):
+    name = models.CharField(max_length=600)
+    containers = models.ManyToManyField(Container, blank=True)
+    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
+    modified = models.DateTimeField('date modified', auto_now=True, editable=False)
+    comments = models.TextField(blank=True, null=True)
+    details = JSONField(null=True, blank=True, default=["","","",""], editable=False)
+
+    def identity(self):
+        return 'AD%03d%s' % (self.id, self.name)
+    identity.admin_order_field = 'pk'
+
+    def class_name(self):
+        return self.__class__.__name__
+
+    def position_full(self, location):
+        loc_dict = self.details
+        port_dict = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
+        return loc_dict[location[0]][port_dict[location[1]]]
+
+    def show_history(self):
+        return True
+
+    def num_containers(self):
+        return self.containers.count()
+
+    def container_list(self):
+        containers = [c.name for c in self.containers.all()]
+        if len(containers) > 5:
+            containers = containers[:5] + ['...']
+        return ', '.join(containers)
+
+    def __unicode__(self):
+        return self.name
+
+    def container_to_location(self, container, location):
+        if container.kind == Container.TYPE.UNI_PUCK:
+            # check if it's empty
+            if not(isinstance(self.details, list) and len(self.details) == 4):
+                self.details = [""] * 4
+
+            # define the position in the port
+            self.details[{'A':0,'B':1,'C':2,'D':3}[location[0]]] = container.pk
+            self.save()
+            self.containers.add(container)
+            return True
+        else:
+            return False
+
+    def add_container(self, container):
+        # check container type
+        if container.kind ==  Container.TYPE.UNI_PUCK:
+            if not(isinstance(self.details, list) and len(self.details) == 4):
+                self.details = [""] * 4
+
+            for i in range(4):
+                if not self.details[i]:
+                    self.details[i] = container.pk
+                    self.containers.add(container)
+                    self.save()
+                    return True
+            return False
+
+    def remove_container(self, container):
+        # check container type
+        if container.kind ==  Container.TYPE.UNI_PUCK:
+            if not(isinstance(self.details, list) and len(self.details) == 4):
+                self.details = [""] * 4
+
+            for i in range(4):
+                if self.details[i] == container.pk:
+                    self.details[i] = ""
+                    self.containers.remove(container)
+                    self.save()
+                    return True
+            return False
+
+    def get_position(self, container):
+        # gets the position of a container in the adaptor. Returns none if not in
+        # making an array for the postfix letter
+        if container.kind == Container.TYPE.UNI_PUCK:
+            if not (isinstance(self.details, list) and len(self.details) == 4):
+                self.details = [""] * 4
+            return {0:'A',1:'B',2:'C',3:'D'}.get(self.details.index(container.pk))
+
+    def reset(self):
+        # resets the item to blank
+        self.details = [""] * 4
+        self.save()
+        self.containers.clear()
 
 
 def update_automounter(signal, sender, instance, **kwargs):

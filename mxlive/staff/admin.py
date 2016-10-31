@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import Runlist, Link, UserList
+from models import Runlist, Link, UserList, Adaptor
 from lims.models import Experiment, Container, Crystal
 
 from django import forms
@@ -28,6 +28,16 @@ class RunlistAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Runlist, RunlistAdmin)
+
+
+class AdaptorAdmin(admin.ModelAdmin):
+    search_fields = ['name', 'containers__name']
+    list_filter = ['modified', 'created']
+    list_display = ('name', 'created', 'modified')
+    list_per_page = 16
+    ordering = ['-created']
+
+admin.site.register(Adaptor, AdaptorAdmin)
 
 
 class LinkAdmin(admin.ModelAdmin):
@@ -60,6 +70,8 @@ class ContainerRunlistAdmin(admin.ModelAdmin):
 
 
 runlist_site.register(Container, ContainerRunlistAdmin)
+
+
 
 
 class UserListAdmin(admin.ModelAdmin):

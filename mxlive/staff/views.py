@@ -18,7 +18,7 @@ from lims.views import admin_login_required, edit_object_inline
 from lims.views import manager_required
 from objlist.views import ObjectList
 from .admin import runlist_site
-from .models import Runlist
+from .models import Runlist, Adaptor
 import os
 
 #sys.path.append(os.path.join('/var/website/cmcf-website/cmcf'))
@@ -195,7 +195,7 @@ def add_existing_object(request, dest_id, obj_id, destination, obj, src_id=None,
     if request.method != 'POST':
         raise Http404
 
-    model = destination;
+    model = destination
     manager = model.objects
     request.project = None
     if not request.user.is_superuser:
@@ -322,6 +322,26 @@ def project_basic_object_list(request, runlist_id, model, template='objlist/basi
         ol.object_list = Project.objects.filter(pk__in=Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE).values('project')).distinct()
     
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower(), 'runlist': runlist_id }, context_instance=RequestContext(request))
+
+
+@login_required
+@manager_required
+def adaptor_basic_object_list(request, runlist_id, model, template='objlist/basic_object_list.html'):
+    """
+    Should display name and id for entity
+    """
+    ol = ObjectList(request, request.manager)
+    try:
+        runlist = Runlist.objects.get(pk=runlist_id)
+    except:
+        runlist = None
+
+    if runlist:
+        ol.object_list = Adaptor.objects.filter(containers__status__exact=Container.STATES.ON_SITE).exclude(
+                containers__pk__in=runlist.containers.all())
+
+    return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower(), 'runlist': runlist_id},
+                              context_instance=RequestContext(request))
 
 
 @login_required
