@@ -1,17 +1,13 @@
-
-from datetime import datetime
-from django.contrib.contenttypes.models import ContentType
-from django.db import transaction
-from django.utils import dateformat, timezone
-from django.utils.encoding import smart_str
-from ..models import *
-import logging
 import os
 import re
+
+from django.utils import dateformat, timezone
+
 import xlrd
 import xlutils.copy
 import xlutils.save
 import xlwt
+from ..models import *
 
 COLUMN_MAP = dict([(index, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[index]) for index in range(26)])
 

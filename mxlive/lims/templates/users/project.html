@@ -7,7 +7,7 @@
 {% block object-tools %}
     <div class="object-tools">
         <ul class="toolbar">
-            <li class="template-tool"><a href="http://cmcf.lightsource.ca/media/uploads/medialibrary/spreadsheet_blank.xls" title="Download spreadsheet template">Get Template</a>
+            <li class="template-tool"><a href="/static/doc/spreadsheet_blank.xls" title="Download spreadsheet template" download="download" target="_blank">Get Template</a>
             <li class="upload-tool"><a class="modal-upload-form"  href="{% url "users-shipment-upload" %}" title="Upload shipment from spreadsheet">Upload</a>
             <li class="feedback-tool"><a class="modal-form"  href="{% url "users-feedback-new" %}" title="Send us feedback">Feedback</a></li>
             <li class="profile-tool"><a class="modal-form"  href="{% url "users-profile-edit" %}" title="Edit your profile">Profile</a>
