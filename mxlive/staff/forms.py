@@ -146,7 +146,7 @@ class LinkForm(objforms.forms.OrderedForm):
 
 class UserListForm(objforms.forms.OrderedForm):
     users = forms.ModelMultipleChoiceField(
-        queryset=Project.objects.all(),
+        queryset=Project.objects.all().order_by('name'),
         widget=objforms.widgets.CustomSelectMultiple,
         label='Users', required=False
     )
