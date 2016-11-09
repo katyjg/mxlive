@@ -1,0 +1,73 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:  nx-tunnel
+# Required-Start: $local_fs $network $remote_fs
+# Required-Stop: $local_fs $network $remote_fs
+# Default-Start:  3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: SSH Tunnel Connection for NoMachine
+# Description: Manages the port forwarding for tunnelling NoMachine connections for
+# Remote access to virtual desktops.
+### END INIT INFO
+
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+
+# service parameters
+port="2222"
+
+servicename='nx-tunnel'
+pidfile=/var/run/$servicename.pid
+
+start() {
+    echo -n $"Starting Connection: ${servicename}"
+    ssh -f root@cmcf.lightsource.ca  -R $port:localhost:22 -nNT
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$servicename
+    ps aux | grep ssh | grep "$port:localhost" | awk '{print $2}' > $pidfile
+
+}
+
+stop() {
+    echo -n $"Stopping Connection: ${servicename}"
+
+    killproc -p $pidfile
+    RETVAL=$?
+    echo
+    if [ $RETVAL -eq 0 ]; then
+        rm -f /var/lock/subsys/$servicename
+    fi
+}
+
+# See how we were called.
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status -p $pidfile $servicename
+        RETVAL=$?
+        ;;
+    restart)
+        stop
+	sleep 3
+        start
+        ;;
+    condrestart)
+        if [ -f /var/lock/subsys/$servicename ]; then
+            stop
+	    sleep 3
+            start
+        fi
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart}"
+        ;;
+esac
+exit $RETVAL

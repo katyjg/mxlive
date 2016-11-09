@@ -1,3 +1,2 @@
-- django 1.0+ 
+- django 1.6
 - matplotlib-0.99+          http://matplotlib.sourceforge.net/
-- django-jsonrpc-0.5.1+     http://github.com/samuraisam/django-json-rpc

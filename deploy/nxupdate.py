@@ -4,7 +4,7 @@
 # it should be copied to the nomachine server, updated to match the cerverand a cron entry should be created to run the script as often as needed
 #
 
-SERVER_URL = "https://opi2051-002.clsi.ca:9393" # Address of MxLIVE Server
+SERVER_URL = "https://cmcf.lightsource.ca" # Address of MxLIVE Server
 SSL_VERIFY = True   # Set to False to allow self-signed certificates
 
 
@@ -13,7 +13,7 @@ SSL_VERIFY = True   # Set to False to allow self-signed certificates
 import requests
 import socket
 
-NX_TEMPLATE = "# --------- Allowed NX Users on {} ---------\n# This file is generated automatically, do not edit\n\n{}\n"
+NX_TEMPLATE = "# --------- Allowed NX Users on {} ---------\n# This file is generated automatically, do not edit. Use MxLIVE!\n\n{}\n"
 
 
 def fetch_userlist():
