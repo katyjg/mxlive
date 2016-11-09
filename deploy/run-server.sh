@@ -9,9 +9,9 @@ rm -rf /run/httpd/* /tmp/httpd*
 
 # Disable chain cert if no ca.crt file available
 if [ ! -f /mxlive/certs/ca.crt ]; then
-    sed -i 's/     SSLCertificateChainFile/     # SSLCertificateChainFile/' /etc/httpd/conf.d/mxlive.conf
+    sed -i 's/    SSLCertificateChainFile/#   SSLCertificateChainFile/' /etc/httpd/conf.d/mxlive.conf
 else
-    sed -i 's/     # SSLCertificateChainFile/     SSLCertificateChainFile/' /etc/httpd/conf.d/mxlive.conf
+    sed -i 's/#   SSLCertificateChainFile/    SSLCertificateChainFile/' /etc/httpd/conf.d/mxlive.conf
 fi
 
 
