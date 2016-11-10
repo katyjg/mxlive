@@ -5,7 +5,7 @@
 #
 
 SERVER_URL = "https://cmcf.lightsource.ca" # Address of MxLIVE Server
-SSL_VERIFY = True   # Set to False to allow self-signed certificates
+SSL_VERIFY = False   # Set to False to allow self-signed certificates
 
 
 # --------------    DO NOT EDIT BELOW HERE   ------------------ #
@@ -13,11 +13,12 @@ SSL_VERIFY = True   # Set to False to allow self-signed certificates
 import requests
 import socket
 
-NX_TEMPLATE = "# --------- Allowed NX Users on {} ---------\n# This file is generated automatically, do not edit. Use MxLIVE!\n\n{}\n"
+
+NX_TEMPLATE = "# --------- Allowed NX Users on %s ---------\n# This file is generated automatically, do not edit. Use MxLIVE!\n\n%s\n"
 
 
 def fetch_userlist():
-    url = "{}/api/accesslist/".format(SERVER_URL)
+    url = "%s/api/accesslist/" % SERVER_URL
     if not SSL_VERIFY:
         r = requests.get(url, verify=SSL_VERIFY)
     else:
@@ -27,7 +28,7 @@ def fetch_userlist():
         users = r.json()
         hostname = socket.gethostname()
         users_text = "\n".join(users)
-        return NX_TEMPLATE.format(hostname, users_text)
+        return NX_TEMPLATE % (hostname, users_text)
     return ""
 
 if __name__ == "__main__":
