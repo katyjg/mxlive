@@ -368,9 +368,11 @@ class LimsWorkbook(object):
                     if re.search(r'[^\-_a-zA-Z0-9]', row_values[CRYSTAL_NAME]):
                         self.errors.append(CRYSTAL_NAME_CHAR_ERROR % (row_num+1))
                 except:
-                    self.errors.append(CRYSTAL_NAME_CHAR_ERROR % (row_num+1))
+                    #self.errors.append(CRYSTAL_NAME_CHAR_ERROR % (row_num+1))
+                    continue
             else:
-                self.errors.append(CRYSTAL_NAME_ERROR % (row_values[CRYSTAL_NAME], row_num+1))
+                #self.errors.append(CRYSTAL_NAME_ERROR % (row_values[CRYSTAL_NAME], row_num+1))
+                continue
                 
             if row_values[CRYSTAL_BARCODE]:
                 crystal.barcode = row_values[CRYSTAL_BARCODE]
