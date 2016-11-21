@@ -160,6 +160,7 @@ class ShipmentUploadForm(forms.Form):
             except KeyError:
                 del cleaned_data['excel']
                 return cleaned_data
+
             if not self.workbook.is_valid():
                 self._errors['excel'] = self._errors.get('excel', ErrorList())
                 errors = 'Please check the format of your spreadsheet and try to upload again.'

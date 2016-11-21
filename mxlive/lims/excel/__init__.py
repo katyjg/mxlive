@@ -1,6 +1,6 @@
 import os
 import re
-
+import sys
 from django.utils import dateformat, timezone
 
 import xlrd
@@ -67,6 +67,13 @@ CRYSTAL_COCKTAIL_ERROR = 'Strange character found in cocktail at cell Crystals!$
 CRYSTAL_COMMENTS = 8
 CRYSTAL_COMMENTS_ERROR = 'Strange character found in cell Crystals!$' + COLUMN_MAP[CRYSTAL_COMMENTS] + '$%d.'
 
+CONTAINER_TYPES = {
+        'Cassette': 0,
+        'Uni-Puck': 1,
+        'Cane': 2,
+        'Basket': 3,
+        'UniPuck': 1
+}
 PLAN_SHEET_NUM = 2
 PLAN_SHEET_NAME = 'Plans'
 
@@ -85,6 +92,7 @@ class LimsWorkbook(object):
         self.shipment_name = shipment_name
         self.errors = []
         self.archive = archive
+
         
     def _read_xls(self):
         """ Reads the data from the xlrd.Book wrapper """
@@ -145,9 +153,11 @@ class LimsWorkbook(object):
                         self.errors.append(CRYSTAL_CONTAINER_ERROR % (row_values[CRYSTAL_CONTAINER], row_num+1))
                     
                     if row_values[CRYSTAL_CONTAINER_KIND]:
-                        container.kind = Container.TYPE.get_value_by_name(str(row_values[CRYSTAL_CONTAINER_KIND]).title()) # validated by Excel
+                        #container.kind = Container.TYPE.get_value_by_name(str(row_values[CRYSTAL_CONTAINER_KIND]).title()) # validated by Excel
+                        container.kind = CONTAINER_TYPES.get(str(row_values[CRYSTAL_CONTAINER_KIND]), 2) # default to cane
                     else:
                         self.errors.append(CRYSTAL_CONTAINER_KIND_ERROR % (row_values[CRYSTAL_CONTAINER_KIND], row_num+1))
+
                         
                     containers[container.name] = container
                     
@@ -156,7 +166,8 @@ class LimsWorkbook(object):
                     container = containers[row_values[CRYSTAL_CONTAINER]]
                     
                     if row_values[CRYSTAL_CONTAINER_KIND]:
-                        kind = Container.TYPE.get_value_by_name(str(row_values[CRYSTAL_CONTAINER_KIND]).title()) # validated by Excel
+                        #kind = Container.TYPE.get_value_by_name(str(row_values[CRYSTAL_CONTAINER_KIND]).title()) # validated by Excel
+                        kind = CONTAINER_TYPES.get(str(row_values[CRYSTAL_CONTAINER_KIND]), 2)
                         if kind != container.kind:
                             self.errors.append(CRYSTAL_CONTAINER_KIND_ERROR % (row_values[CRYSTAL_CONTAINER_KIND], row_num+1))
                     else:
@@ -360,20 +371,16 @@ class LimsWorkbook(object):
         crystals = {}
         for row_num in range(1, self.crystals_sheet.nrows):
             row_values = self.crystals_sheet.row_values(row_num)
+
+            if not row_values[CRYSTAL_NAME].strip(): continue
+            if not re.match(r'^[a-zA-Z0-9_-]+$', row_values[CRYSTAL_NAME]):
+                self.errors.append(CRYSTAL_NAME_ERROR % (row_values[CRYSTAL_NAME], row_num+1))
+                continue
+
             crystal = Crystal()
             crystal.project = self.project
-            if row_values[CRYSTAL_NAME]:
-                try:
-                    crystal.name = str(row_values[CRYSTAL_NAME])
-                    if re.search(r'[^\-_a-zA-Z0-9]', row_values[CRYSTAL_NAME]):
-                        self.errors.append(CRYSTAL_NAME_CHAR_ERROR % (row_num+1))
-                except:
-                    #self.errors.append(CRYSTAL_NAME_CHAR_ERROR % (row_num+1))
-                    continue
-            else:
-                #self.errors.append(CRYSTAL_NAME_ERROR % (row_values[CRYSTAL_NAME], row_num+1))
-                continue
-                
+            crystal.name = row_values[CRYSTAL_NAME].strip()
+
             if row_values[CRYSTAL_BARCODE]:
                 crystal.barcode = row_values[CRYSTAL_BARCODE]
                 
@@ -496,10 +503,7 @@ class LimsWorkbook(object):
             for err in temp_errors:
                 if err not in self.errors: self.errors.append(err)
         except:
-            try: 
-                self.errors.index("Invalid Excel Spreadsheet.  Review documentation about specifying sample information at http://cmcf.lightsource.ca/user-guide/preparing-samples.")
-            except ValueError:
-                self.errors.append("Invalid Excel Spreadsheet.  Review documentation about specifying sample information at http://cmcf.lightsource.ca/user-guide/preparing-samples.")
+           self.errors.append("Invalid Excel Spreadsheet.  Review documentation about specifying sample information at http://cmcf.lightsource.ca/user-guide/")
 
         return not bool(self.errors)
     
