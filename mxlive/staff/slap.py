@@ -26,6 +26,7 @@ MANAGER_SECRET = getattr(settings, 'LDAP_MANAGER_SECRET', 'Admin123')
 USER_TABLE = getattr(settings, 'LDAP_USER_TABLE', 'ou=People')
 USER_ROOT = getattr(settings, 'LDAP_USER_ROOT', '/home')
 GROUP_TABLE = getattr(settings, 'LDAP_GROUP_TABLE', 'ou=Groups')
+USER_SHELL = getattr(settings, 'LDAP_USER_SHELL', '/bin/bash')
 EMAIL_NEW_ACCOUNTS = getattr(settings, 'LDAP_SEND_EMAILS', False)
 
 USER_ATTRIBUTES = ['cn', 'uid', 'uidNumber', 'gidNumber', 'homeDirectory', 'loginShell', 'description', 'gecos']
@@ -121,7 +122,7 @@ def add_user(info, connection=None):
         'uid': info['username'].encode('utf-8'),
         'gecos': '{} {}'.format(info['first_name'], info['last_name']),
         'homeDirectory': '{}/{}'.format(USER_ROOT, info['username']),
-        'loginShell': '/bin/bash',
+        'loginShell': '{}'.format(USER_SHELL),
         'uidNumber': '{}'.format(uidNumber),
         'gidNumber': '{}'.format(gidNumber),
         'objectClass': ['top', 'account', 'posixAccount', 'shadowAccount'],

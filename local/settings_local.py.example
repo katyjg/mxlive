@@ -4,6 +4,7 @@ LDAP_ADMIN_UIDS      = [1000]
 LDAP_MANAGER_CN     = "cn=Directory Manager"
 LDAP_MANAGER_SECRET = "secret"
 LDAP_USER_ROOT      = "/home"
+LDAP_USER_SHELL     = "/bin/bash"
 LDAP_SEND_EMAILS    = True
 AUTH_LDAP_SERVER_URI = 'ldap://ldap.example.com'
 
