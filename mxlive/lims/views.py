@@ -1072,7 +1072,7 @@ def action_object(request, id, model, form, template="objforms/form_base.html", 
 @manager_required
 def shipment_pdf(request, id, model, format):
     """ """
-    admin_project = Project.objects.filter(user__username=request.user.username).first()
+    admin_project = Project.objects.filter(user__is_superuser=True).first()
     if model != Project:
         try:
             obj = model.objects.get(pk=id)
@@ -1121,13 +1121,12 @@ def shipment_pdf(request, id, model, format):
                                            'num_crystals': num_crystals,
                                            })
         elif format == 'label':
-            admin_project = Project.objects.filter(user__username=request.user.username)
             project = model == Project and obj or obj.project
             tex = loader.render_to_string('users/tex/send_labels.tex', {
                 'project': project, 'shipment': obj, 'admin_project': admin_project
             })
         elif format == 'return_label':
-            project = model == Project and obj or obj.project
+            project = obj if model == Project else obj.project
             obj = model == Shipment and obj or None
             tex = loader.render_to_string('users/tex/return_labels.tex', {
                 'project': project, 'shipment': obj, 'admin_project': admin_project
