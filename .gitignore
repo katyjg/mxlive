@@ -7,7 +7,6 @@
 .pydevproject
 .project
 .~lock*
-_*
 .settings
 .idea
 *.db
