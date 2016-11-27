@@ -97,47 +97,55 @@ def get_active_runlist(request, *args, **kwargs):
 @csrf_exempt
 @apikey_required
 def post_data_object(request, *args, **kwargs):
-    from lims.models import Project, Beamline, ActivityLog, Crystal, Result
+    from lims.models import Project, Beamline, ActivityLog, Crystal, Result, SpaceGroup
     from lims.views import create_download_key
     model = kwargs.get('model')
     if request.method == 'POST':
         info = json.loads(request.body)
 
-        # check if project_id is provided if not check if project_name is provided
+        # check if project is provided
         try:
             project_name = kwargs.get('project')
             owner = Project.objects.get(name=project_name)
-            info['project_id'] = owner.pk
+            info['project'] = owner
         except Project.DoesNotExist:
             raise Http404('Unknown Project')
 
-        # check if beamline_id is provided if not check if beamline_name is provided
+        # check if beamline  is provided
         try:
             beamline_name = kwargs.get('beamline')
             beamline = Beamline.objects.get(name=beamline_name)
-            info['beamline_id'] = beamline.pk
+            info['beamline'] = beamline.pk
         except Beamline.DoesNotExist:
             if model !=  Result:
                 raise Http404('Unknown Beamline')
 
         # Download  key
         if 'url' in info:
-            info['url'] = create_download_key(info['url'], info['project_id'])
+            info['url'] = create_download_key(info['url'], info['project'].pk)
 
         # Check if crystal exists
-        xtal = Crystal.objects.filter(project_id=owner.pk, pk=info.get('crystal_id')).first()
-        if xtal:
-            info['experiment_id'] = xtal.experiment
-        else:
-            info.pop('crystal_id', '')
+        if 'crystal_id' in info:
+            info['crystal'] = Crystal.objects.filter(project=owner, pk=info.pop('crystal_id')).first()
+            if info['crystal']:
+                info['experiment'] = info['crystal'].experiment
+            else:
+                info.pop('crystal')
 
-        # Result does not have beamline_id
+        if 'space_group_id' in info:
+            info['space_group'] = SpaceGroup.objects.filter(pk=info.pop('space_group_id')).first()
+            if not info['space_group']:
+                info.pop('space_group')
+
+        # Result does not have beamline
         if model == Result:
-            info.pop('beamline_id', '')
+            info.pop('beamline', '')
 
         # if id is provided, make sure it is owned by current owner otherwise add new entry
         # to prevent overwriting other's stuff
         obj = model.objects.filter(project=owner, pk=info.get('id')).first()
+        import sys
+        print >>sys.stderr, model, info.keys()
         if not obj:
             info['created'] = timezone.now()
             obj = model.objects.create(**info)
