@@ -151,8 +151,6 @@ def post_data_object(request, *args, **kwargs):
         # if id is provided, make sure it is owned by current owner otherwise add new entry
         # to prevent overwriting other's stuff
         obj = model.objects.filter(project=owner, pk=info.get('id')).first()
-        import sys
-        print >>sys.stderr, model, info.keys()
         if not obj:
             info['created'] = timezone.now()
             obj = model.objects.create(**info)
