@@ -1508,7 +1508,7 @@ class ActivityLogManager(models.Manager):
             e.content_type = ContentType.objects.get_for_model(obj)
         try:
             e.user = request.user
-            e.user_description = request.user.get_full_name()
+            e.user_description = request.user.username
         except:
             # use api_user if available in request
             if getattr(request, 'api_user') is not None:
