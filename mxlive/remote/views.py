@@ -112,12 +112,12 @@ def post_data_object(request, *args, **kwargs):
             raise Http404('Unknown Project')
 
         # check if beamline  is provided
-        try:
-            beamline_name = kwargs.get('beamline')
-            beamline = Beamline.objects.get(name=beamline_name)
-            info['beamline'] = beamline.pk
-        except Beamline.DoesNotExist:
-            if model !=  Result:
+        if model != Result:
+            try:
+                beamline_name = kwargs.get('beamline')
+                beamline = Beamline.objects.get(name=beamline_name)
+                info['beamline'] = beamline.pk
+            except Beamline.DoesNotExist:
                 raise Http404('Unknown Beamline')
 
         # Download  key
@@ -147,10 +147,6 @@ def post_data_object(request, *args, **kwargs):
             info['data'] = SpaceGroup.objects.filter(pk=info.pop('data_id')).first()
             if not info['data']:
                 info.pop('data')
-
-        # Result does not have beamline
-        if model == Result:
-            info.pop('beamline', '')
 
         # if id is provided, make sure it is owned by current owner otherwise add new entry
         # to prevent overwriting other's stuff
