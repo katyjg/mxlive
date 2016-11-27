@@ -167,6 +167,7 @@ SUIT_CONFIG = {
     'LIST_PER_PAGE': 25
 }
 
+RESTRICTED_DOWNLOADS = True
 
 LDAP_BASE_DN      = "dc=example,dc=com"
 LDAP_MANAGER_CN     = "cn=Directory Manager"

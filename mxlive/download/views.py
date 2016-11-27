@@ -19,6 +19,7 @@ from django.http import StreamingHttpResponse
 
 KEY_RE = re.compile('^[a-f0-9]{40}$')
 CACHE_DIR = getattr(settings, 'DOWNLOAD_CACHE_DIR', '/tmp')
+RESTRICTED_DOWNLOADS = getattr(settings, 'RESTRICTED_DOWNLOADS', True)
 BRIGHTNESS_VALUES = getattr(settings, 'DOWNLOAD_BRIGHTNESS_VALUES', {'nm': 0.0, 'dk': -0.5, 'lt': 1.5})
 FRONTEND = getattr(settings, 'DOWNLOAD_FRONTEND', 'xsendfile')
 
@@ -182,7 +183,7 @@ def send_archive(request, key, path, data_dir=False):  # Add base parameter and 
     if not request.user.is_superuser:
         if not (request.user.get_profile() == obj.owner):
             raise Http404
-    if data_dir:
+    if data_dir and RESTRICTED_DOWNLOADS:
         # make sure downloading is enabled for this dataset
         get_object_or_404(Data, url=key, name=path, download=True)
 

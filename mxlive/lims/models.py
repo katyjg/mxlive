@@ -13,7 +13,7 @@ import string
 
 IDENTITY_FORMAT = '-%y%m'
 RESUMBITTED_LABEL = 'Resubmitted_'
-
+RESTRICTED_DOWNLOADS = getattr(settings, 'RESTRICTED_DOWNLOADS', False)
 User = get_user_model()
 
 def cassette_loc_repr(pos):
@@ -1245,6 +1245,9 @@ class Data(DataBaseClass):
     def toggle_download(self, state):
         self.download = state
         self.save()
+
+    def can_download(self):
+        return (not RESTRICTED_DOWNLOADS) or self.download
 
     def get_frame_list(self):
         frame_numbers = []

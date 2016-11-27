@@ -19,7 +19,7 @@
 	    </h2>
         <div class="object-tools">
             <ul class="toolbar">
-                {% if data.download %}
+                {% if data.can_download %}
                 <li class="download-tool" title="Download Archive">
                     <a href="/download/data/{{data.url}}/{{data.name}}.zip" download="{{data.name}}.zip" target="_blank">Download</a>
                 </li>
