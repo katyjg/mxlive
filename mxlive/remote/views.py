@@ -97,7 +97,7 @@ def get_active_runlist(request, *args, **kwargs):
 @csrf_exempt
 @apikey_required
 def post_data_object(request, *args, **kwargs):
-    from lims.models import Project, Beamline, ActivityLog, Crystal, Result, SpaceGroup, Experiment
+    from lims.models import Project, Beamline, ActivityLog, Crystal, Result, SpaceGroup, Experiment, Data
     from lims.views import create_download_key
     model = kwargs.get('model')
     if request.method == 'POST':
@@ -144,7 +144,7 @@ def post_data_object(request, *args, **kwargs):
                 info.pop('space_group')
 
         if 'data_id' in info:
-            info['data'] = SpaceGroup.objects.filter(pk=info.pop('data_id')).first()
+            info['data'] = Data.objects.filter(pk=info.pop('data_id')).first()
             if not info['data']:
                 info.pop('data')
 

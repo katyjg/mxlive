@@ -22,7 +22,8 @@ CACHE_DIR = getattr(settings, 'DOWNLOAD_CACHE_DIR', '/tmp')
 RESTRICTED_DOWNLOADS = getattr(settings, 'RESTRICTED_DOWNLOADS', True)
 BRIGHTNESS_VALUES = getattr(settings, 'DOWNLOAD_BRIGHTNESS_VALUES', {'nm': 0.0, 'dk': -0.5, 'lt': 1.5})
 FRONTEND = getattr(settings, 'DOWNLOAD_FRONTEND', 'xsendfile')
-
+USER_ROOT = getattr(settings, 'LDAP_USER_ROOT', '/users')
+ROOT_RE = re.compile('^{}'.format(USER_ROOT))
 
 def create_cache_dir(key):
     dir_name = os.path.join(CACHE_DIR, key)
@@ -34,7 +35,7 @@ def create_download_key(path, owner_id):
     """Convenience method to create and return a key for a given path"""
 
     obj = SecurePath()
-    obj.path = path
+    obj.path = re.sub(ROOT_RE, "/users", path)
     obj.owner_id = owner_id
     obj.save()
     return obj.key
