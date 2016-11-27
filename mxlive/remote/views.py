@@ -116,7 +116,7 @@ def post_data_object(request, *args, **kwargs):
             try:
                 beamline_name = kwargs.get('beamline')
                 beamline = Beamline.objects.get(name=beamline_name)
-                info['beamline'] = beamline.pk
+                info['beamline'] = beamline
             except Beamline.DoesNotExist:
                 raise Http404('Unknown Beamline')
 
