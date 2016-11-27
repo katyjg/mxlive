@@ -2,12 +2,13 @@ from django.contrib.admin import SimpleListFilter
 from django.utils.translation import ugettext as _
 from datetime import datetime, timedelta
 from django.utils import dateformat, timezone
+from dateutil import parser
 
-def get_week_extent(date_str):
-    """Given a date in date_str, return the first and last dates of the week as
+def get_week_extent(dt):
+    """Given a date return the first and last dates of the week as
     a tuple"""
-    dt = timezone.now().date()
-    show_sd = dt + timedelta(days=-dt.weekday())
+    year, week, day = dt.isocalendar()
+    show_sd = dt + timedelta(days=-day)
     show_ed = show_sd + timedelta(days=6)
     return (show_sd, show_ed)
 
@@ -18,17 +19,14 @@ def get_specs_for_date(date_str):
     previous_week, current_week, next_week. Current_week is not the week of the 
     date in date_str but rather now().    
     """
-    show_sd = get_week_extent(date_str)[0]
-    cur_sd = timezone.now()
-    cur_sd = cur_sd +  timedelta(days=-cur_sd.weekday())
-    nxt_sd = show_sd + timedelta(weeks=+1)
-    prv_sd = show_sd + timedelta(weeks=-1)
-    
-    cur_ed = cur_sd + timedelta(days=6)
-    nxt_ed = nxt_sd + timedelta(days=6)
-    prv_ed = prv_sd + timedelta(days=6)          
-    return ((prv_sd, prv_ed), (cur_sd, cur_ed), (nxt_sd, nxt_ed))
-   
+    current = parser.parse(date_str)
+    if not current:
+        current = timezone.now().date()
+    prev = current + timedelta(days=-7)
+    nxt = current - timedelta(days=7)
+    return get_week_extent(prev), get_week_extent(current), get_week_extent(nxt)
+
+
 class WeeklyDateFilter(SimpleListFilter):
     title = 'Week Created'
     parameter_name = 'weekof'
@@ -38,12 +36,15 @@ class WeeklyDateFilter(SimpleListFilter):
         prev_week, cur_week, next_week = get_specs_for_date(request.GET.get('weekof', None))
         return (
             (prev_week[0].strftime('%Y-%m-%d'), "%s %s" % (_('Week of'), dateformat.format(prev_week[0], 'M jS'))),
-            (cur_week[0].strftime('%Y-%m-%d'), _('This Week')),
+            (prev_week[0].strftime('%Y-%m-%d'), "%s %s" % (_('Week of'), dateformat.format(cur_week[0], 'M jS'))),
             (next_week[0].strftime('%Y-%m-%d'), "%s %s" % (_('Week of'), dateformat.format(next_week[0], 'M jS'))),
         )
     
     def queryset(self, request, queryset):
-        week_start, week_end = get_week_extent(self.value())
+        dt = parser.parse(self.value())
+        if not dt:
+            dt = timezone.now().date()
+        week_start, week_end = get_week_extent(dt)
         qs_str = {'%s__gte' % self.field: week_start,
                   '%s__lte' % self.field: week_end}
         return queryset.filter(**qs_str)
