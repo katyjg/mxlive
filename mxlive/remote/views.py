@@ -97,7 +97,7 @@ def get_active_runlist(request, *args, **kwargs):
 @csrf_exempt
 @apikey_required
 def post_data_object(request, *args, **kwargs):
-    from lims.models import Project, Beamline, ActivityLog, Crystal
+    from lims.models import Project, Beamline, ActivityLog, Crystal, Result
     from lims.views import create_download_key
     model = kwargs.get('model')
     if request.method == 'POST':
@@ -117,7 +117,8 @@ def post_data_object(request, *args, **kwargs):
             beamline = Beamline.objects.get(name=beamline_name)
             info['beamline_id'] = beamline.pk
         except Beamline.DoesNotExist:
-            raise Http404('Unknown Beamline')
+            if model !=  Result:
+                raise Http404('Unknown Beamline')
 
         # Download  key
         if 'url' in info:
@@ -130,9 +131,13 @@ def post_data_object(request, *args, **kwargs):
         else:
             info.pop('crystal_id', '')
 
+        # Result does not have beamline_id
+        if model == Result:
+            info.pop('beamline_id', '')
+
         # if id is provided, make sure it is owned by current owner otherwise add new entry
         # to prevent overwriting other's stuff
-        obj = owner.data_set.filter(pk=info.get('id')).first()
+        obj = model.objects.filter(project=owner, pk=info.get('id')).first()
         if not obj:
             info['created'] = timezone.now()
             obj = model.objects.create(**info)
