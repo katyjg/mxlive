@@ -8,9 +8,9 @@ def get_week_extent(dt):
     """Given a date return the first and last dates of the week as
     a tuple"""
     year, week, day = dt.isocalendar()
-    show_sd = dt + timedelta(days=-day)
-    show_ed = show_sd + timedelta(days=6)
-    return (show_sd, show_ed)
+    sd = dt - timedelta(days=day-1)
+    ed = sd + timedelta(days=6)
+    return (sd, ed)
 
 def get_specs_for_date(date_str):
     """Get the starting and ending dates for the current week, and for the 
@@ -22,8 +22,8 @@ def get_specs_for_date(date_str):
     current = parser.parse(date_str)
     if not current:
         current = timezone.now().date()
-    prev = current + timedelta(days=-7)
-    nxt = current - timedelta(days=7)
+    prev = current - timedelta(days=7)
+    nxt = current + timedelta(days=7)
     return get_week_extent(prev), get_week_extent(current), get_week_extent(nxt)
 
 
