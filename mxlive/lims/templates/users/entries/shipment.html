@@ -42,7 +42,7 @@
         	       <a href="{{ shipment.carrier.url }}{{ shipment.return_code }}" title="Track with {{ shipment.carrier }}">{{ shipment.return_code }}</a>
       	       {% else %}{{ shipment.return_code }}{% endif %}{% endif %}</td></tr>
         {% endif %}
-        <tr valign="top"><th>Processed:</th><td>{% if shipment.is_processed %}Yes{% else %} No {% endif %}</td></tr>
+        <tr valign="top"><th>Processed:</th><td>{#% if shipment.is_processed %}Yes{% else %} No {% endif %#}</td></tr>
     </table>
 
 {% if shipment.comments or shipment.shipping_errors or shipment.staff_comments %}

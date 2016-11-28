@@ -8,7 +8,7 @@ export SERVER_NAME=${SERVER_NAME:-$(hostname --fqdn)}
 rm -rf /run/httpd/* /tmp/httpd*
 
 # Disable chain cert if no ca.crt file available
-if [ ! -f /mxlive/certs/ca.crt ]; then
+if [ ! -f /mxlive/local/certs/ca.crt ]; then
     sed -i 's/    SSLCertificateChainFile/#   SSLCertificateChainFile/' /etc/httpd/conf.d/mxlive.conf
 else
     sed -i 's/#   SSLCertificateChainFile/    SSLCertificateChainFile/' /etc/httpd/conf.d/mxlive.conf
