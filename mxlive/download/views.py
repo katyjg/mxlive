@@ -178,7 +178,7 @@ def send_archive_old(request, key, path, data_dir=False): #Add base parameter an
 
 
 @login_required
-def send_archive(request, key, path, data_dir=False):  # Add base parameter and another url
+def send_archive2(request, key, path, data_dir=False):  # Add base parameter and another url
     obj = get_object_or_404(SecurePath, key=key)
     # make sure only owner and staff can get their files
     if not request.user.is_superuser:
@@ -189,7 +189,7 @@ def send_archive(request, key, path, data_dir=False):  # Add base parameter and 
         get_object_or_404(Data, url=key, name=path, download=True)
 
     if os.path.exists(obj.path):
-        z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
+        z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED, allowZip64=True)
         for root, dirs, files in os.walk(obj.path):
             for filename in files:
                 file_path = os.path.join(root, filename)
@@ -202,4 +202,27 @@ def send_archive(request, key, path, data_dir=False):  # Add base parameter and 
         raise Http404
 
 
+@login_required
+def send_archive(request, key, path, data_dir=False):  # Add base parameter and another url
+    obj = get_object_or_404(SecurePath, key=key)
+    # make sure only owner and staff can get their files
+    if not request.user.is_superuser:
+        if not (request.user.get_profile() == obj.owner):
+            raise Http404
+    if data_dir and RESTRICTED_DOWNLOADS:
+        # make sure downloading is enabled for this dataset
+        get_object_or_404(Data, url=key, name=path, download=True)
+
+    path = obj.path
+    if os.path.exists(path):
+        p = subprocess.Popen(
+            ['tar', '-czf', '-', os.path.basename(path)],
+            cwd=os.path.dirname(path),
+            stdout=subprocess.PIPE
+        )
+        response = StreamingHttpResponse(p.stdout, content_type='application/x-gzip')
+        response['Content-Disposition'] = 'attachment; filename={}.tar.gz'.format(path)
+        return response
+    else:
+        raise Http404
 

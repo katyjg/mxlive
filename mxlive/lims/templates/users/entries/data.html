@@ -21,7 +21,7 @@
             <ul class="toolbar">
                 {% if data.can_download %}
                 <li class="download-tool" title="Download Archive">
-                    <a href="/download/data/{{data.url}}/{{data.name}}.zip" download="{{data.name}}.zip" target="_blank">Download</a>
+                    <a href="/download/data/{{data.url}}/{{data.name}}.tar.gz" download="{{data.name}}.tar.gz" target="_blank">Download</a>
                 </li>
                 {% endif %}
             {% if not request.user.is_superuser %}
