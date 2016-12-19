@@ -213,11 +213,10 @@ def send_archive(request, key, path, data_dir=False):  # Add base parameter and 
         # make sure downloading is enabled for this dataset
         get_object_or_404(Data, url=key, name=path, download=True)
 
-    path = obj.path
-    if os.path.exists(path):
+    if os.path.exists(obj.path):
         p = subprocess.Popen(
-            ['tar', '-czf', '-', os.path.basename(path)],
-            cwd=os.path.dirname(path),
+            ['tar', '-czf', '-', os.path.basename(obj.path)],
+            cwd=os.path.dirname(obj.path),
             stdout=subprocess.PIPE
         )
         response = StreamingHttpResponse(p.stdout, content_type='application/x-gzip')

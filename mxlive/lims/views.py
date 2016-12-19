@@ -623,9 +623,9 @@ def basic_object_list(request, model, template='objlist/basic_object_list.html')
 @login_required
 @transaction.commit_on_success
 def priority(request, id, model, field):
+    _priorities_changed = False
     if request.method == 'POST':
         pks = map(int, request.POST.getlist('id_list[]'))
-        _priorities_changed = False
         for obj in model.objects.filter(pk__in=pks).all():
             new_priority = pks.index(obj.pk) + 1
             if obj.priority != new_priority:

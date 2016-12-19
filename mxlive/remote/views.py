@@ -8,10 +8,18 @@ from django.db.models import Q
 from mxlive.apikey.views import apikey_required
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+import decimal
+
+
+def json_encode_decimal(obj):
+    if isinstance(obj, decimal.Decimal):
+        return str(obj)
+    raise TypeError(repr(obj) + " is not JSON serializable")
+
 
 class JsonResponse(HttpResponse):
     def __init__(self, obj, safe=False):
-        content = json.dumps(obj, indent=2, ensure_ascii=False)
+        content = json.dumps(obj, indent=2, ensure_ascii=False, default=json_encode_decimal)
         super(JsonResponse, self).__init__(
             content, content_type='application/json')
 
