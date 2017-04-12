@@ -123,12 +123,13 @@
 
 	function makeCorrectUrl() {
 		url = '{% image_url data 0 "###" %}';
-
+        console.log(url);
 		// replace numbers 4 digits
 		url = url.replace(/0000/i, zerofill($current_frame_to_display, 4));
-
+        console.log(url);
 		// replace_brightness.
         url = url.replace(/###/i, $current_brightness_to_display);
+        console.log(url);
 		return url;
 	}
 

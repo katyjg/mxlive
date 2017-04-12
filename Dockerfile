@@ -14,6 +14,7 @@ EXPOSE 443
 RUN curl https://www.fontsquirrel.com/fonts/download/alegreya -o /tmp/alegreya.zip && \
     unzip /tmp/alegreya.zip -d /usr/share/fonts/alegreya && /bin/rm -f /tmp/alegreya.zip
 
+RUN dnf -y install CBFlib && dnf clean all
 ADD . /mxlive
 ADD ./local /mxlive/local
 ADD deploy/run-server.sh /run-server.sh

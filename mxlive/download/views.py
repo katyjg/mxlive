@@ -122,13 +122,14 @@ def send_png(request, key, path, brightness):
 
     img_file = os.path.join(obj.path, path)
     png_file = os.path.join(CACHE_DIR, obj.key, '%s-%s.png' % (path, brightness))
-
-    if not os.path.exists(png_file):
-        try:
-            create_png(img_file, png_file, BRIGHTNESS_VALUES[brightness])
-        except OSError:
-            return HttpResponseRedirect('/static/img/image-not-found.png')
-            #raise Http404        
+    if os.path.exists(img_file):
+        if not os.path.exists(png_file):
+            try:
+                 create_png(img_file, png_file, BRIGHTNESS_VALUES[brightness])
+            except OSError:
+                 return HttpResponseRedirect('/static/img/image-not-found.png')
+    else:
+        return HttpResponseRedirect('/static/img/image-not-found.png')
     return send_raw_file(request, png_file, attachment=False)
 
 @login_required
