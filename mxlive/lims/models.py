@@ -1280,7 +1280,9 @@ class Data(DataBaseClass):
     def total_angle(self):
         return self.delta_angle * self.num_frames()
         
-    
+    def file_extension(self):
+        return '.cbf' if 'PILATUS' in self.detector else '.img'
+
     def generate_image_url(self, frame, brightness=None):
         # brightness is assumed to be "nm" "dk" or "lt" 
         frame_numbers = []
@@ -1299,12 +1301,11 @@ class Data(DataBaseClass):
         # confirm brightness is valid
         if not (brightness == "nm" or brightness == "lt" or brightness == "dk"):
             brightness = None
-        
-        if brightness == None:
-            image_url = image_url + ".img"
-        else:
-            image_url = image_url + "-" + brightness + ".png"
-            
+
+        image_url = image_url + self.file_extension()
+        if brightness:
+            image_url = '%s-%s.png' % (image_url, brightness)
+
         return image_url   
     
     def start_angle_for_frame(self, frame):

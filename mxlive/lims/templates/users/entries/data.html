@@ -125,12 +125,12 @@
 		url = '{% image_url data data.get_frame_list.0 "dk" %}';
 		// remove the ###-dk.png
 		url = url.slice(0, -10);
-		// add the frame number, 3 digits.
+		// add the frame number, 4 digits.
 		var number = '' + $current_frame_to_display;
-		while (number.length <  3) {
+		while (number.length <  4) {
 			number = '0' + number;
 		}
-		url = url + number + "-" + $current_brightness_to_display + ".png";
+		url = url + number + '{{ data.file_extension }}' + "-" + $current_brightness_to_display + ".png";
 		return url;
 	}
 

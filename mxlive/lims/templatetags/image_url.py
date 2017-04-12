@@ -12,7 +12,7 @@ def image_url(data, frame, brightness=None):
 
 @register.filter("is_downloadable")
 def is_downloadable(data, frame):
-    path = "%s/%s_%04d.img" % (get_download_path(data.url), data.name, frame)
+    path = "%s/%s_%04d%s" % (get_download_path(data.url), data.name, frame, data.file_extension())
     return os.path.exists(path)
 
 @register.filter("second_view")
