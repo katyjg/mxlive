@@ -119,10 +119,8 @@ def send_png(request, key, path, brightness):
     if not request.user.is_staff:
         if request.user.get_profile() != obj.owner:
             return HttpResponseRedirect('/static/img/image-not-found.png')
-            #raise Http404
 
-
-    img_file = os.path.join(obj.path, '%s.img' % path)
+    img_file = os.path.join(obj.path, path)
     png_file = os.path.join(CACHE_DIR, obj.key, '%s-%s.png' % (path, brightness))
 
     if not os.path.exists(png_file):

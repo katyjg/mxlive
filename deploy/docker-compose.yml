@@ -9,7 +9,7 @@ database:
   restart: always
 
 mail:
-  image: postfix
+  image: catatnight/postfix
   restart: always
   environment:
     maildomain:  mail.mxlive
