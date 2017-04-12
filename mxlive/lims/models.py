@@ -1283,26 +1283,14 @@ class Data(DataBaseClass):
     def file_extension(self):
         return '.cbf' if 'PILATUS' in self.detector else '.img'
 
-    def generate_image_url(self, frame, brightness=None):
-        # brightness is assumed to be "nm" "dk" or "lt" 
-        frame_numbers = []
-        wlist = [map(int, w.split('-')) for w in self.frame_sets.split(',')]
-        for v in wlist:
-            if len(v) == 2:
-                frame_numbers.extend(range(v[0],v[1]+1))
-            elif len(v) == 1:
-                frame_numbers.extend(v)
-                # check that frame is in frame_numbers
-         
+    def generate_image_base(self, frame):
         image_url = settings.IMAGE_PREPEND or ''
-        if frame in frame_numbers:
-            image_url = image_url + "/download/images/%s/%s_%04d" % (self.url, self.name, frame)
-        
-        # confirm brightness is valid
-        if not (brightness == "nm" or brightness == "lt" or brightness == "dk"):
-            brightness = None
+        return image_url + "/download/images/%s/%s_%04d%s" % (self.url, self.name, frame, self.file_extension())
 
-        image_url = image_url + self.file_extension()
+    def generate_image_url(self, frame, brightness=None):
+        # brightness is assumed to be "nm" "dk" or "lt"
+        image_url = self.generate_image_base(frame)
+        
         if brightness:
             image_url = '%s-%s.png' % (image_url, brightness)
 

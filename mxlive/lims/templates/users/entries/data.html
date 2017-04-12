@@ -91,7 +91,7 @@
     <p>Frames {{ data.frame_sets }}</p>
 	<ul {% if data|images_exist %}style="height: {% if data.crystal %}3.7em{% else %}8.3em{% endif %};"{% endif %}>
 	{% for frame_id in data.get_frame_list %}
-		<li><a onclick="toFrame({{frame_id}});">{{data.name}}_{{ frame_id|stringformat:"04d" }}</a>&nbsp;
+		<li><a onclick="toFrame({{ frame_id }});">{{data.name}}_{{ frame_id|stringformat:"04d" }}</a>&nbsp;
         {% if not request.user.is_superuser %}{% if data|is_downloadable:frame_id %}
         <a class="download-tool" href="{% image_url data frame_id %}" title="Download this image"></a>
         {% endif %}{% endif %}
@@ -122,15 +122,13 @@
 	};
 
 	function makeCorrectUrl() {
-		url = '{% image_url data data.get_frame_list.0 "dk" %}';
-		// remove the ###-dk.png
-		url = url.slice(0, -10);
-		// add the frame number, 4 digits.
-		var number = '' + $current_frame_to_display;
-		while (number.length <  4) {
-			number = '0' + number;
-		}
-		url = url + number + '{{ data.file_extension }}' + "-" + $current_brightness_to_display + ".png";
+		url = '{% image_url data 0 "###" %}';
+
+		// replace numbers 4 digits
+		url = url.replace(/0000/i, zerofill($current_frame_to_display, 4));
+
+		// replace_brightness.
+        url = url.replace(/###/i, $current_brightness_to_display);
 		return url;
 	}
 
