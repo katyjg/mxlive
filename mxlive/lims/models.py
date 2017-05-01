@@ -1204,6 +1204,7 @@ class Crystal(LoadableBaseClass):
             'id': self.pk,
             'name': self.name,
             'barcode': self.barcode,
+            'priority': self.priority if self.priority else 1,
             'container_location': self.container_location,
             'comments': self.comments
         }
