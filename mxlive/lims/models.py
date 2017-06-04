@@ -1399,7 +1399,8 @@ class Result(DataBaseClass):
         self.data.trash(request=request)
 
     def frames(self):
-        return self.data and self.data.num_frames() or ""
+        #return self.data and self.data.num_frames() or ""
+        return ""
 
     class Meta:
         ordering = ['-score']

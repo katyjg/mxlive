@@ -71,21 +71,21 @@ class CrystalStaffAdmin(CrystalAdmin):
 staff_site.register(Crystal, CrystalStaffAdmin)
 
 class ResultAdmin(admin.ModelAdmin):
-    ordering = ['-created']
+    ordering = ['-modified']
     search_fields = ['project__name','name','crystal__name','space_group__name']
     list_filter = ['modified','kind']
-    list_display = ('id', 'name', 'frames', 'space_group', 'resolution', 'r_meas', 'completeness', 'score', 'kind')
+    list_display = ('id', 'name', 'space_group', 'resolution', 'r_meas', 'completeness', 'score', 'kind')
     list_per_page = ITEMS_PER_PAGE
 admin.site.register(Result, ResultAdmin)
 
 class ResultStaffAdmin(ResultAdmin):
     list_filter = ['modified','kind','status']
-    list_display = ('project','id','name','resolution','kind','frames','created','status')
+    list_display = ('project','id','name','resolution','kind', 'score','modified')
     ordering = ['-created', 'project']
 staff_site.register(Result, ResultStaffAdmin)
 
 class ScanResultAdmin(admin.ModelAdmin):
-    ordering = ['-created']
+    ordering = ['-modified']
     search_fields = ['project__name','name','crystal__name', 'beamline__name']
     list_filter = ['modified','kind']
     list_display = ('id', 'name', 'crystal', 'edge', 'kind', 'created')
@@ -99,7 +99,7 @@ class ScanResultStaffAdmin(ScanResultAdmin):
 staff_site.register(ScanResult, ScanResultStaffAdmin)
 
 class DataAdmin(admin.ModelAdmin):
-    ordering = ['-created']
+    ordering = ['-modified']
     search_fields = ['id','name','beamline__name','delta_angle','crystal__name','frame_sets','project__name']
     list_filter = ['modified', 'kind']
     list_display = ('id', 'name', '_Crystal','frame_sets', 'delta_angle', 'total_angle', 'wavelength', 'beamline', 'kind')
@@ -108,8 +108,8 @@ admin.site.register(Data, DataAdmin)
 
 class DataStaffAdmin(DataAdmin):
     list_filter = ['modified','kind','status','beamline']
-    list_display = ('project','id','name','_Crystal','beamline','kind','created','status','download')
-    ordering = ['-created', 'project']
+    list_display = ('project','id','name','_Crystal','beamline','kind','modified','status')
+    ordering = ['-modified', 'project']
 staff_site.register(Data, DataStaffAdmin)
 
 class CocktailAdmin(VersionAdmin):
