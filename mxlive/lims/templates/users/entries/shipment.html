@@ -1,96 +1,142 @@
-{% extends "base.html" %}
+{% extends "users/base.html" %}
 {% load humanize %}
 {% load markup %}
 
-{% block headline %}
-<h2><span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
+{% block page_heading %}
+    <h3 class="text-condensed narrow-heading overflow ellipsis">
+        <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
+        <strong class="text-muted">{{ object.identity }}</strong> | {{ object.name }}
+    </h3>
+    <span class="text-muted">
+        {% if object.status == object.STATES.DRAFT %}Created {{ object.created|naturalday }}
+        {% elif object.status == object.STATES.SENT %}Sent {{ object.date_shipped|naturalday }}
+        {% elif object.status == object.STATES.ON_SITE %}Received {% if object.date_received %}{{ object.date_received|naturalday }}{% else %}{{ object.date_shipped|naturalday }}{% endif %}
+        {% else %}Returned {{ object.date_returned|naturalday}}
+        {% endif %}
+    </span>
 {% endblock %}
 
-{% block object-tools %}
-<div class="object-tools">
+{% block object_tools %}
     {% include "users/tools.html" %}
-</div>
 {% endblock %}
 
-{% block content %}
-
-{% with object as shipment %}   
-    <div class="shipment droppable droppable-replace" {% if shipment.is_editable %}accept="dewar" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>
-    <table class="entrysummary" cellpadding="0" cellspacing="0" border="0">
-        {% if request.user.is_superuser %}
-            <tr valign="top"><th>Project:</th><td>{{ shipment.project }}</td></tr>
-        {% endif %}
-        <tr valign="top"><th>Status:</th><td>{{ shipment.get_status_display }}</td></tr>
-        {% ifequal shipment.status shipment.STATES.DRAFT %}
-            <tr valign="top"><th>Shippable:</th><td>{{shipment.shipping_errors|yesno:"No,Yes"}}</td></tr>
-        {% endifequal %}
-        {% if shipment.date_shipped %}
-        	<tr valign="top"><th>Carrier:</th><td>{{ shipment.carrier }}</td></tr>
-        	<tr valign="top"><th>Shipped:</th><td>{{shipment.date_shipped|naturalday}} at {{shipment.date_shipped|date:"H:i T"}}</td></tr>
-        	<tr valign="top"><th NOWRAP>Tracking Code:</th>
-        	   <td>{% if shipment.tracking_code %}{% if shipment.carrier %}
-                   <a href="{{ shipment.carrier.url }}{{ shipment.tracking_code }}" title="Track with {{ shipment.carrier }}">{{ shipment.tracking_code }}</a>
-               {% else %}{{ shipment.tracking_code }}{% endif %}{% endif %}</td></tr>
-        {% endif %}
-        {% if shipment.date_received %}
-        	<tr valign="top"><th>Received:</th><td>{{shipment.date_received|naturalday}} at {{shipment.date_received|date:"H:i T"}}</td></tr>
-        {% endif %}
-        {% if shipment.date_returned %}
-        	<tr valign="top"><th>Returned:</th><td>{{shipment.date_returned|naturalday}}</td></tr>
-        	<tr valign="top"><th NOWRAP>Return Code:</th>
-        	   <td>{% if shipment.return_code %}{% if shipment.carrier %}
-        	       <a href="{{ shipment.carrier.url }}{{ shipment.return_code }}" title="Track with {{ shipment.carrier }}">{{ shipment.return_code }}</a>
-      	       {% else %}{{ shipment.return_code }}{% endif %}{% endif %}</td></tr>
-        {% endif %}
-        <tr valign="top"><th>Processed:</th><td>{#% if shipment.is_processed %}Yes{% else %} No {% endif %#}</td></tr>
-    </table>
-
-{% if shipment.comments or shipment.shipping_errors or shipment.staff_comments %}
-    <div class="entrycomment">
-    <span class="left-pointer"></span>
-    <h3>Comments</h3>
-    <div class="user">{{ object.comments|restructuredtext}}</div>
-    {% if object.staff_comments %}
-    <h3>On-site Comments</h3>
-    <div class="staff">{{ object.staff_comments|restructuredtext}}</div>
-    	{% if shipment.shipping_errors %}
-    	<div class="errors">
-    	{% for error in shipment.shipping_errors %}
-        {% if forloop.counter != 1 %}; 
-        {% endif %}
-        {{error|capfirst}}
-        {% endfor %}
+{% block object_status %}
+    <div class="status-bar">
+        <div class="row">
+            <div class="col-xs-2">
+                <h3 class="no-vmargin">
+                    <span class="label label-{% if object.status == object.STATES.ON_SITE %}info
+                                {% elif object.status == object.STATES.DRAFT %}warning
+                                {% elif object.status == object.STATES.SENT %}success
+                                {% elif object.status == object.STATES.RETURNED and not user.is_superuser %}success
+                                {% else %}default{% endif %}">{{ object.get_status_display }}</span>
+                </h3>
+            </div>
+            {% if user.is_superuser %}
+                <div class="col-xs-1">
+                    <small class="text-muted text-condensed">Project:</small><br>
+                    {{ object.project }}
+                </div>
+            {% endif %}
+            {% if object.status >= object.STATES.ON_SITE %}
+                <div class="col-xs-3">
+                    {% if object.status > object.STATES.ON_SITE %}
+                        <small class="text-muted text-condensed">Dates On-Site:</small><br>
+                        {% if object.date_received %}{{ object.date_received|naturalday }}{% else %}{{ object.date_shipped|naturalday }}{% endif %} - {{ object.date_returned|naturalday }}
+                    {% else %}
+                        <small class="text-muted text-condensed">Current Location:</small><br>
+                        {{ object.storage_location }}
+                    {% endif %}
+                </div>
+            {% endif %}
+            <div class="col-xs-3">
+                {% ifequal object.status object.STATES.DRAFT %}
+                    <small class="text-muted text-condensed">Ready to Ship:</small><br>
+                    {{ object.shipping_errors|yesno:"No,Yes" }}
+                {% else %}
+                    <small class="text-muted text-condensed">Sent:</small><br>
+                    <span class="text-muted">via</span> {{ object.carrier }} {% if object.tracking_code and object.carrier %}
+                        [<a href="{{ object.carrier.url }}{{ object.tracking_code }}" title="Track with {{ object.carrier }}">{{ object.tracking_code }}</a>]
+                    {% endif %}
+                {% endifequal %}
+            </div>
+            {% if object.status >= object.STATES.RETURNED %}
+                <div class="col-xs-3">
+                    {% if object.status < object.STATES.RETURNED %}
+                        <small class="text-muted text-condensed">Ready to Return:</small><br>
+                        {{ object.is_returnable|yesno:"No,Yes" }}
+                    {% else %}
+                        <small class="text-muted text-condensed">Returned:</small><br>
+                        via {{ object.carrier }} {% if object.return_code and object.carrier %}
+                            [<a href="{{ object.carrier.url }}{{ object.return_code }}" title="Track with {{ object.carrier }}">{{ object.return_code }}</a>]
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endif %}
         </div>
-    	{% endif  %}
-    {% endif %}
     </div>
-{% endif  %}
+{% endblock %}
+
+{% block full %}
+
+    {% with object as shipment %}
 
     <div class="clear"></div>
-    
-    <div class="object-list">
-    <h3>Dewars</h3>
+    <div class="col-xs-6">
+        <h3>Containers</h3>
+        {% for container in shipment.container_set.all %}
+            <div class="pull-left text-center">
+                <div class="col-xs-12">{{ container.kind }}
+                    {% ifequal container.json_dict.type "Cane" %}
+                        {% include "users/entries/layout-cane.html" %}
+                    {% endifequal %}
 
-    {% with shipment.dewar_set as dewars %}
-        {% if dewars.count %}
-            {% load dewar_table %}
-            {% for dewar in dewars.all %}
-                {% dewar_table dewar request.user.is_superuser "shipment" %}
+                    {% ifequal container.json_dict.type "Cassette" %}
+                        {% include "users/entries/layout-cassette.html" %}
+                    {% endifequal %}
+
+                    {% ifequal container.json_dict.type "Uni-Puck" %}
+                        {% include "users/entries/layout-unipuck.html" %}
+                    {% endifequal %}
+
+                    {% ifequal container.json_dict.type "Basket" %}
+                        {% include "users/entries/layout-basket.html" %}
+                    {% endifequal %}
+                <br>
+                <a href="{% url "container-detail" pk=container.pk %}">
+                    <strong>{{ container.identity }}</strong> | {{ container.name }}
+                </a>
+                </div>
+            </div>
+        {% endfor %}
+
+    </div>
+
+    <div class="col-xs-6">
+        <h3>Groups</h3>
+        <div class="list-group">
+            {% for group in shipment.groups %}
+                <div class="list-group-item">
+                    <span class="box-tools pull-right">
+                        <a class="pull-right" data-url="{% url "experiment-edit" pk=group.pk %}">
+                            <i class="fa fa-2 fa-fw fa-pencil"></i>
+                            <br><span class="tool-label">Edit</span>
+                        </a>
+                        <a class="pull-right" data-url="#" title="Sample Seat Selection">
+                            <i class="fa fa-2 fa-fw fa-map-pin"></i>
+                            <br><span class="tool-label">Layout</span>
+                        </a>
+                    </span>
+                    <h4 class="list-group-item-heading"><a href="{% url "experiment-detail" pk=group.pk %}"><strong class="text-muted">{{ group.identity }}</strong> | {{ group.name }}</a></h4>
+                    <p class="list-group-item-text">{{ group.crystal_set.count }} sample{{ group.crystal_set.count|pluralize }}</p>
+                    <p class="list-group-item-text">{{ group.crystal_set.count }} samples not assigned a location</p>
+                </div>
             {% endfor %}
-        {% else %}
-            <table width="100%">
-            <tr><td colspan="20" align="center" class="list-empty">(No dewars assigned to this shipment)</td></tr>
-            </table>
-        {% endif %}
-    {% endwith %}
+        </div>
     </div>
-    <div class="clear"></div>
+
 {% endwith %}
-
-{% load experiment_table %}
-{% experiment_table object request.user.is_superuser %}
-
-<div class="clear"></div>
+    <div class="col-xs-12">
 {% if object.component_set.all %}
 <div class="object-list">
     <h3>Miscellaneous Items</h3>
@@ -103,7 +149,7 @@
 				{% if object.is_editable %}<th></th>{% endif %}
             </tr>
         </thead>
-        <tbody>
+        <tbody>{% comment %}
 		{% for item in object.component_set.all %}
 			<tr class="{% cycle 'odd' 'even'%} link-row">
 				<td class="modal-form" href="{% url "users-component-edit" item.pk %}" title="Edit this item">{{ item.name }}</td>
@@ -116,14 +162,38 @@
 					</td>
 				{% endif %}
 			</tr>
-		{% endfor %}
+		{% endfor %}{% endcomment %}
         </tbody>
     </table>
 </div>
+    </div>
 {% endif %}
+
+        {% if shipment.comments or shipment.shipping_errors or shipment.staff_comments %}
+        <div class="entrycomment">
+        <span class="left-pointer"></span>
+        <h3>Comments</h3>
+        <div class="user">{{ object.comments|restructuredtext}}</div>
+        {% if object.staff_comments %}
+        <h3>On-site Comments</h3>
+        <div class="staff">{{ object.staff_comments|restructuredtext}}</div>
+            {% if shipment.shipping_errors %}
+            <div class="errors">
+            {% for error in shipment.shipping_errors %}
+            {% if forloop.counter != 1 %};
+            {% endif %}
+            {{error|capfirst}}
+            {% endfor %}
+            </div>
+            {% endif  %}
+        {% endif %}
+        </div>
+    {% endif  %}
+
 
 {% endblock %}
 
+{% comment %}
 {% block sidebar %}
     {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
         {% if object.is_editable %}
@@ -152,3 +222,4 @@
     {% endif %}
     {% include "users/individual_history.html" %}
 {% endblock %}
+{% endcomment %}

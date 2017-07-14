@@ -2,8 +2,8 @@ from django.template import Library
 
 register = Library()
 
-from mxlive.lims.models import Data
-from mxlive.lims.models import Result
+from lims.models import Data
+from lims.models import Result
 
 @register.inclusion_tag('staff/entries/crystal_detail.html')
 def crystal_detail(experiment, crystal):

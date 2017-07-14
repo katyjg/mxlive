@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-from django.conf import global_settings
+#from django.conf import global_settings
 import os
 import sys
 import ldap
@@ -27,8 +27,7 @@ SITE_ID = 1
 SECRET_KEY = 'z)&x^!63wtp82h2^sfl@ny#%e2ryy_a=gcy(4g!%f(!_!v^fi7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-TEMPLATE_DEBUG = DEBUG
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 INTERNAL_URLS = ['^/json', '^/api']
@@ -37,9 +36,7 @@ INTERNAL_IPS = [
 ]
 
 # Application definition
-
 INSTALLED_APPS = (
-    'suit',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -48,16 +45,16 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'mxlive.lims',
-    'mxlive.staff',
-    'mxlive.objlist',
-    'mxlive.objforms',
-    'mxlive.remote',
-    'mxlive.download',
-    'mxlive.stats',
-    'mxlive.apikey',
+    'lims',
+    'staff',
+    'objlist',
+    'objforms',
+    'remote',
+    'download',
+    'stats',
+    'apikey',
     'reversion',
-    #'south',
+    'crispy_forms',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -70,8 +67,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'mxlive.urls'
-WSGI_APPLICATION = 'mxlive.wsgi.application'
+ROOT_URLCONF = 'urls'
+WSGI_APPLICATION = 'wsgi.application'
+
 
 
 # Database
@@ -81,8 +79,17 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'local', 'mxlive.db'),
+    },
+    'public-web': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'website',
+        'USER': 'root',
+        'PASSWORD': 'manager',
+        'HOST': '127.0.0.1',
+        'PORT': '',
     }
 }
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
@@ -111,10 +118,10 @@ STATICFILES_DIRS = (
 )
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'local/media')
-AUTH_PROFILE_MODULE = 'lims.Project'
+AUTH_USER_MODEL = 'lims.Project'
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
-LOGIN_REDIRECT_URL = '/home/'
+LOGIN_REDIRECT_URL = '/'
 
 
 AUTHENTICATION_BACKENDS = (
@@ -122,16 +129,23 @@ AUTHENTICATION_BACKENDS = (
  'django.contrib.auth.backends.ModelBackend',
 )
 
-TEMPLATE_DIRS = (
-    os.path.join(PROJECT_DIR, 'templates'),
-    os.path.join(BASE_DIR, 'local', 'templates')
-)
-
-TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS +(
-     'django.core.context_processors.request',
-     'django.contrib.messages.context_processors.messages',
-) 
-
+TEMPLATES =[
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(PROJECT_DIR, 'templates'),
+                 os.path.join(BASE_DIR, 'local', 'templates')],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.request',
+                'django.template.context_processors.debug',
+                'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.static'
+            ]
+        },
+    },
+]
 
 # default Laboratory settings (Do not remove)
 DEFAULT_LABORATORY_ID = 0
@@ -169,14 +183,25 @@ SUIT_CONFIG = {
 
 RESTRICTED_DOWNLOADS = True
 
-LDAP_BASE_DN      = "dc=example,dc=com"
+# LDAP
+LDAP_BASE_DN        = "dc=cmcf,dc=cls"
+LDAP_ADMIN_UIDS      = [2000]
 LDAP_MANAGER_CN     = "cn=Directory Manager"
-LDAP_MANAGER_SECRET = "Admin123"
+LDAP_MANAGER_SECRET = "appl4Str"
+LDAP_USER_ROOT      = "/users"
+LDAP_USER_SHELL     = "/bin/tcsh"
+LDAP_SEND_EMAILS    = True
+AUTH_LDAP_SERVER_URI = 'ldap://vm-cmcfweb-01.clsi.ca'
+
+
+#LDAP_BASE_DN      = "dc=example,dc=com"
+#LDAP_MANAGER_CN     = "cn=Directory Manager"
+#LDAP_MANAGER_SECRET = "Admin123"
 LDAP_ADMIN_GROUP = "admin"
-LDAP_USER_ROOT    = "/home"
+#LDAP_USER_ROOT    = "/home"
 LDAP_USER_TABLE   = "ou=People"
 LDAP_GROUP_TABLE    = "ou=Groups"
-AUTH_LDAP_SERVER_URI = 'ldaps://ldap.example.com'
+#AUTH_LDAP_SERVER_URI = 'ldaps://ldap.example.com'
 AUTH_LDAP_START_TLS = True
 AUTH_LDAP_GLOBAL_OPTIONS = {
      ldap.OPT_X_TLS_REQUIRE_CERT: ldap.OPT_X_TLS_NEVER

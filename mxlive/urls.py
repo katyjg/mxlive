@@ -1,56 +1,39 @@
 from django.conf import settings
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
+from django.conf.urls.static import static
 from django.contrib import admin
 
 from views import logout_view, login_view
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from lims.views import ProjectDetail
 import os
 
 admin.autodiscover()
 
-urlpatterns = patterns('',
-    # Examples:
-    url(r'^$', 'mxlive.lims.views.home', name='home'),
+urlpatterns = [
+    url(r'^$', ProjectDetail.as_view(), {}, 'dashboard'),
 
     url(r'^admin/', include(admin.site.urls)),
-    (r'^staff/', include('mxlive.staff.urls')),
-    (r'^users/',  include('mxlive.lims.urls')),
-    (r'^download/', include('mxlive.download.urls')),
-    (r'^stats/', include('mxlive.stats.urls')),
-    
-    (r'^home/',  'mxlive.lims.views.home'),
-    (r'^login/$',  login_view, {'template_name': 'login.html'}),
-    (r'^logout/$', logout_view),
-    (r'^api/', include('remote.urls')),
-)
+    url(r'^staff/', include('staff.urls')),
+    url(r'^users/',  include('lims.urls')),
+    url(r'^download/', include('download.urls')),
+    url(r'^stats/', include('stats.urls')),
+    url(r'^ajax/', include('lims.ajax_urls')),
+
+    url(r'^login/$',  login_view, {'template_name': 'login.html'}),
+    url(r'^logout/$', logout_view, name='mxlive-logout'),
+    url(r'^api/', include('remote.urls')),
+]
 
 if settings.DEBUG:       
     urlpatterns += staticfiles_urlpatterns()
-    urlpatterns += patterns('',
-        (r'^media/(?P<path>.*)$', 'django.views.static.serve', {
+    urlpatterns += static(r'^media/(?P<path>.*)$', document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(r'^help/(?P<path>.*)$', document_root=os.path.join(os.path.dirname(__file__)))
+    '''urlpatterns += [
+        url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': settings.MEDIA_ROOT, 
             }),
-        (r'^help/(?P<path>.*)$', 'django.views.static.serve', {
+        url(r'^help/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': os.path.join(os.path.dirname(__file__), 'help/_build/html')
             }),
-    )
-"""
-if settings.DEBUG:       
-    urlpatterns += patterns('',
-        (r'^help/(?P<path>.*)$', 'django.views.static.serve', {
-            'document_root': os.path.join(os.path.dirname(__file__), 'help/_build/html')
-            }),
-        (r'^img/(?P<path>.*)$', 'django.views.static.serve', {
-            'document_root': os.path.join(os.path.dirname(__file__), 'media/img'), 
-            }),
-        (r'^js/(?P<path>.*)$', 'django.views.static.serve', {
-            'document_root': os.path.join(os.path.dirname(__file__), 'media/js'), 
-            }),
-        (r'^css/(?P<path>.*)$', 'django.views.static.serve', {
-            'document_root': os.path.join(os.path.dirname(__file__), 'media/css'), 
-            }),
-        (r'^uploads/(?P<path>.*)$', 'django.views.static.serve', {
-            'document_root': os.path.join(os.path.dirname(__file__), 'media/uploads'), 
-            }),
-    )
-"""
+    ]'''

@@ -1,5 +1,5 @@
 import os
-from mxlive.download.views import get_download_path
+from download.views import get_download_path
 
 from django import template  
 register = template.Library()  

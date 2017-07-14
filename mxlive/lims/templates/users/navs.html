@@ -1,0 +1,59 @@
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#live-navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#"> </a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="live-navbar-collapse">
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="{% url "dashboard" %}">Dashboard </a></li>
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Sample Prep <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+                <li><a href="{% url "crystal-list" %}">Crystals</a></li>
+                <li><a href="{% url "experiment-list" %}">Groups</a></li>
+                <li><a href="#">Cocktails</a></li>
+                <li><a href="#">Crystal Forms</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a href="{% url "container-list" %}">Containers</a></li>
+                <li><a href='{% url "shipment-list" %}'>Shipments</a></li>
+            </ul>
+        </li>
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Data & Results <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+                <li><a href="{% url "data-list" %}">Datasets</a></li>
+                <li><a href="{% url "result-list" %}">Reports</a></li>
+                <li><a href="{% url "scanresult-list" %}">Scans</a></li>
+            </ul>
+        </li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right profile-menu hidden-xs">
+         <li class="dropdown pull-right">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                Logged in as <strong>{{ user }}</strong>
+                <i class="ti ti-angle-down"></i>
+            </a>
+            <div class="dropdown-menu">
+                hello world
+                <button type="button" class="btn btn-default">
+                    <a href="{% url 'mxlive-logout' %}"><i class="ti ti ti-power-off fa-fw"></i>&nbsp;Log Out</a>
+                </button>
+            </div>
+            <!--ul class="dropdown-menu">
+                {% comment %}<li><a href="{% url 'edit-my-profile' %}"><i class="ti ti-user fa-fw"></i>&nbsp;Edit profile</a></li>{% endcomment %}
+                <li role="separator" class="divider"></li>
+                <li><a href="{% url 'mxlive-logout' %}"><i class="ti ti ti-power-off fa-fw"></i>&nbsp;Log Out</a></li>
+            </ul-->
+          </li>
+        </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>

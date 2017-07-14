@@ -1,129 +1,51 @@
 from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.contenttypes import generic
+from django.utils.translation import ugettext as _
+#from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
 from django.utils import dateformat, timezone
-from enum import Enum
+from django.contrib.auth.models import AbstractUser
 from jsonfield.fields import JSONField
 import copy
 import hashlib
 import string
+from model_utils import Choices
 
 IDENTITY_FORMAT = '-%y%m'
 RESUMBITTED_LABEL = 'Resubmitted_'
 RESTRICTED_DOWNLOADS = getattr(settings, 'RESTRICTED_DOWNLOADS', False)
-User = get_user_model()
+#User = get_user_model()
 
 def cassette_loc_repr(pos):
     return "ABCDEFGHIJKL"[pos/8]+str(1+pos%8)
 
-GLOBAL_STATES =   Enum(
-        'Draft', 
-        'Sent', 
-        'On-site',
-        'Loaded', 
-        'Returned',
-        'Active',
-        'Processing',
-        'Complete',
-        'Reviewed', 
-        'Archived',
-        'Trashed',
-    )
+DRAFT = 0
+SENT = 1
+ON_SITE = 2
+LOADED = 3
+RETURNED = 4
+ACTIVE = 5
+PROCESSING = 6
+COMPLETE = 7
+REVIEWED = 8
+ARCHIVED = 9
+TRASHED = 10
 
-class ManagerWrapper(models.Manager):
-    """ This a models.Manager instance that wraps any models.Manager instance and alters the query_set() of
-    the warpper models.Manager instance. All it does it proxy all requests to the wrapped manager EXCEPT
-    for calls to get_query_set() which it alters.
-    """
-    def __init__(self, manager):
-        """ The constructor
-        @param manager: a models.Manager instance
-        """
-        self.manager = manager
-        
-    def get_query_set(self):
-        raise NotImplementedError()
-    
-    def __getattr__(self, attr):
-        """ Proxies everything to the wrapped manager """
-        return getattr(self.manager, attr)
-        
-class ExcludeManagerWrapper(ManagerWrapper):
-    """ This a models.Manager instance that wraps any models.Manager instance and .excludes()
-    results from the query_set. All it does it proxy all requests to the wrapped manager EXCEPT
-    for calls to get_query_set() which it alters with the appropriate excludes
-    """
-    def __init__(self, manager, **excludes):
-        """ The constructor
-        @param manager: a models.Manager instance
-        @param param:  
-        """
-        super(ExcludeManagerWrapper, self).__init__(manager)
-        self.excludes = excludes
-        
-    def get_query_set(self):
-        """ Returns a QuerySet with appropriate .excludes() applied """
-        query_set = self.manager.get_query_set()
-        query_set = query_set.exclude(**self.excludes)
-        return query_set
-    
-class FilterManagerWrapper(ManagerWrapper):
-    """ This a models.Manager instance that wraps any models.Manager instance and .filters()
-    results from the query_set. All it does is proxy all requests to the wrapped manager EXCEPT
-    for calls to get_query_set() which it alters with the appropriate filters
-    """
-    def __init__(self, manager, **filters):
-        """ The constructor
-        @param manager: a models.Manager instance
-        @param param:  
-        """
-        super(FilterManagerWrapper, self).__init__(manager)
-        self.filters = filters
-        
-    def get_query_set(self):
-        """ Returns a QuerySet with appropriate .excludes() applied """
-        query_set = self.manager.get_query_set()
-        query_set = query_set.filter(**self.filters)
-        return query_set
-    
-class DistinctManagerWrapper(ManagerWrapper):
-    """ This a models.Manager instance that wraps any models.Manager instance and .distinct()
-    results from the query_set. All it does it proxy all requests to the wrapped manager EXCEPT
-    for calls to get_query_set() which it alters with the appropriate distinct
-    """
-    def __init__(self, manager):
-        """ The constructor
-        @param manager: a models.Manager instance
-        """
-        super(DistinctManagerWrapper, self).__init__(manager)
-        
-    def get_query_set(self):
-        """ Returns a QuerySet with appropriate .distinct() applied """
-        query_set = self.manager.get_query_set()
-        query_set = query_set.distinct()
-        return query_set
-    
-class OrderByManagerWrapper(ManagerWrapper):
-    """ This a models.Manager instance that wraps any models.Manager instance and .order_by()
-    results from the query_set. All it does it proxy all requests to the wrapped manager EXCEPT
-    for calls to get_query_set() which it alters with the appropriate orderings
-    """
-    def __init__(self, manager, *fields):
-        """ The constructor
-        @param manager: a models.Manager instance
-        @param param:  
-        """
-        super(OrderByManagerWrapper, self).__init__(manager)
-        self.fields = fields
-        
-    def get_query_set(self):
-        """ Returns a QuerySet with appropriate .order_by() applied """
-        query_set = self.manager.get_query_set()
-        query_set = query_set.order_by(*self.fields)
-        return query_set
+GLOBAL_STATES = Choices(
+    (0, 'DRAFT', _('Draft')),
+    (1, 'SENT', _('Sent')),
+    (2, 'ON_SITE', _('On-site')),
+    (3, 'LOADED', _('Loaded')),
+    (4, 'RETURNED', _('Returned')),
+    (5, 'ACTIVE', _('Active')),
+    (6, 'PROCESSING', _('Processing')),
+    (7, 'COMPLETE', _('Complete')),
+    (8, 'REVIEWED', _('Reviewed')),
+    (9, 'ARCHIVED', _('Archived')),
+    (10, 'TRASHED', _('Trashed'))
+)
 
 class Beamline(models.Model):
     name = models.CharField(max_length=600)
@@ -144,11 +66,10 @@ class Carrier(models.Model):
     def __unicode__(self):
         return self.name
         
-class Project(models.Model):
+class Project(AbstractUser):
     HELP = {
         'contact_person': "Full name of contact person",
     }
-    user = models.OneToOneField(User)
     name = models.SlugField('account name')
     contact_person = models.CharField(max_length=200, blank=True, null=True)
     contact_email = models.EmailField(max_length=100, blank=True, null=True)
@@ -321,28 +242,44 @@ class LimsBaseClass(models.Model):
         self.save()
 
 class ObjectBaseClass(LimsBaseClass):
-    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.SENT, LimsBaseClass.STATES.ON_SITE, LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.ARCHIVED])
-
-    status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
+    STATUS_CHOICES = (
+        (LimsBaseClass.STATES.DRAFT, _('Draft')),
+        (LimsBaseClass.STATES.SENT, _('Sent')),
+        (LimsBaseClass.STATES.ON_SITE, _('On-site')),
+        (LimsBaseClass.STATES.RETURNED, _('Returned')),
+        (LimsBaseClass.STATES.ARCHIVED, _('Archived'))
+    )
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
     class Meta:
         abstract = True
 
 class LoadableBaseClass(LimsBaseClass):
-    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.SENT, LimsBaseClass.STATES.ON_SITE, LimsBaseClass.STATES.LOADED, LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.ARCHIVED])
+    STATUS_CHOICES = (
+        (LimsBaseClass.STATES.DRAFT, _('Draft')),
+        (LimsBaseClass.STATES.SENT, _('Sent')),
+        (LimsBaseClass.STATES.ON_SITE, _('On-site')),
+        (LimsBaseClass.STATES.LOADED, _('Loaded')),
+        (LimsBaseClass.STATES.RETURNED, _('Returned')),
+        (LimsBaseClass.STATES.ARCHIVED, _('Archived'))
+    )
     TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
     TRANSITIONS[LimsBaseClass.STATES.ON_SITE] = [LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.LOADED]
 
-    status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)    
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
     class Meta:
         abstract = True
 
 class DataBaseClass(LimsBaseClass):
-    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.ARCHIVED, LimsBaseClass.STATES.TRASHED])
+    STATUS_CHOICES = (
+        (LimsBaseClass.STATES.ACTIVE, _('Active')),
+        (LimsBaseClass.STATES.ARCHIVED, _('Archived')),
+        (LimsBaseClass.STATES.TRASHED, _('Trashed'))
+    )
     TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
     TRANSITIONS[LimsBaseClass.STATES.ACTIVE] = [LimsBaseClass.STATES.TRASHED, LimsBaseClass.STATES.ARCHIVED]
     TRANSITIONS[LimsBaseClass.STATES.ARCHIVED] = [LimsBaseClass.STATES.TRASHED]
 
-    status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.ACTIVE)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.ACTIVE)
 
     def is_closable(self):
         return self.status not in [LimsBaseClass.STATES.ARCHIVED, LimsBaseClass.STATES.TRASHED]
@@ -360,8 +297,8 @@ class Shipment(ObjectBaseClass):
     HELP = {
         'name': "This should be an externally visible label",
         'carrier': "Please select the carrier company. To change shipping companies, edit your profile on the Project Home page.",
-        'cascade': 'dewars, containers and crystals (along with experiments, datasets and results)',
-        'cascade_help': 'All associated dewars will be left without a shipment'
+        'cascade': 'containers and crystals (along with experiments, datasets and results)',
+        'cascade_help': 'All associated containers will be left without a shipment'
     }
     comments = models.TextField(blank=True, null=True, max_length=200)
     tracking_code = models.CharField(blank=True, null=True, max_length=60)
@@ -370,6 +307,7 @@ class Shipment(ObjectBaseClass):
     date_received = models.DateTimeField(null=True, blank=True)
     date_returned = models.DateTimeField(null=True, blank=True)
     carrier = models.ForeignKey(Carrier, null=True, blank=True)
+    storage_location = models.CharField(max_length=60, null=True, blank=True)
    
     def identity(self):
         return 'SH%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -382,9 +320,12 @@ class Shipment(ObjectBaseClass):
     def barcode(self):
         return self.tracking_code or self.name
 
-    def num_dewars(self):
-        return self.dewar_set.count()
-    
+    def num_containers(self):
+        return self.container_set.count()
+
+    def num_crystals(self):
+        return sum([c.crystal_set.count() for c in self.container_set.all()])
+
     def is_sendable(self):
         return self.status == self.STATES.DRAFT and not self.shipping_errors()
     
@@ -392,14 +333,14 @@ class Shipment(ObjectBaseClass):
         return self.is_sendable() or self.status >= self.STATES.SENT
     
     def is_xlsable(self):
-        # can general spreadsheet as long as there are no orphan crystals with no experiment)
-        return not Crystal.objects.filter(container__in=Container.objects.filter(dewar__in=self.dewar_set.all())).filter(experiment__exact=None).exists()
+        # can generate spreadsheet as long as there are no orphan crystals with no experiment)
+        return not Crystal.objects.filter(container__in=self.container_set.all()).filter(experiment__exact=None).exists()
     
     def is_returnable(self):
         return self.status == self.STATES.ON_SITE 
 
     def has_labels(self):
-        return self.status <= self.STATES.SENT and (self.num_dewars() or self.component_set.filter(label__exact=True))  
+        return self.status <= self.STATES.SENT and (self.num_containers() or self.component_set.filter(label__exact=True))
 
     def item_labels(self):
         return self.component_set.filter(label__exact=True)
@@ -407,29 +348,28 @@ class Shipment(ObjectBaseClass):
     def is_processed(self):
         # if all experiments in shipment are complete, then it is a processed shipment. 
         experiment_list = Experiment.objects.filter(shipment__get_container_list=self)
-        for dewar in self.dewar_set.all():
-            for container in dewar.container_set.all():
-                for experiment in container.get_experiment_list():
-                    if experiment not in experiment_list:
-                        experiment_list.append(experiment)
+        for container in self.container_set.all():
+            for experiment in container.get_experiment_list():
+                if experiment not in experiment_list:
+                    experiment_list.append(experiment)
         for experiment in experiment_list:
             if experiment.is_reviewable():
                 return False
         return True
 
     def is_processing(self):
-        return self.project.crystal_set.filter(container__dewar__shipment__exact=self).filter(Q(pk__in=self.project.data_set.values('crystal')) | Q(pk__in=self.project.result_set.values('crystal'))).exists()
+        return self.project.crystal_set.filter(container__shipment__exact=self).filter(Q(pk__in=self.project.data_set.values('crystal')) | Q(pk__in=self.project.result_set.values('crystal'))).exists()
  
     def add_component(self):
         return self.status <= self.STATES.SENT
  
     def label_hash(self):
-        # use dates of project, shipment, and each shipment within dewar to determine
+        # use dates of project, shipment, and each container within to determine
         # when contents were last changed
         txt = str(self.project) + str(self.project.modified) + str(self.modified)
-        for dewar in self.dewar_set.all():
-            txt += str(dewar.modified)
-        h = hashlib.new('ripemd160') # no successful collisoin attacks yet
+        for container in self.container_set.all():
+            txt += str(container.modified)
+        h = hashlib.new('ripemd160') # no successful collision attacks yet
         h.update(txt)
         return h.hexdigest()
     
@@ -438,14 +378,11 @@ class Shipment(ObjectBaseClass):
             in a 'shippable' state
         """
         errors = []
-        if self.num_dewars() == 0:
-            errors.append("no Dewars")
-        for dewar in self.dewar_set.all():
-            if dewar.num_containers() == 0:
-                errors.append("empty Dewar (%s)" % dewar.name)
-            for container in dewar.container_set.all():
-                if container.num_crystals() == 0:
-                    errors.append("empty Container (%s)" % container.name)
+        if self.num_containers() == 0:
+            errors.append("no Containers")
+        for container in self.container_set.all():
+            if container.num_crystals() == 0:
+                errors.append("empty Container (%s)" % container.name)
         return errors
     
     def setup_default_experiment(self, data=None):
@@ -461,20 +398,28 @@ class Shipment(ObjectBaseClass):
                 unassociated_crystal.experiment = experiment
                 unassociated_crystal.save()
 
+    def groups(self):
+        return Experiment.objects.filter(pk__in=Crystal.objects.filter(container__pk__in=self.container_set.values_list('pk')).values_list('experiment__pk'))
+
     def delete(self, request=None, cascade=True):
         if self.is_deletable():
             if not cascade:
-                self.dewar_set.all().update(shipment=None)
-            for obj in self.dewar_set.all():
+                self.container_set.all().update(shipment=None)
+            for obj in self.container_set.all():
                 obj.delete(request=request)
             super(Shipment, self).delete(request=request)
+
+    def receive(self, request=None):
+        for obj in self.container_set.all():
+            obj.receive(request=request)
+        super(Shipment, self).receive(request=request)
 
     def send(self, request=None):
         if self.is_sendable():
             self.date_shipped = timezone.now()
             self.setup_default_experiment()
             self.save()
-            for obj in self.dewar_set.all():
+            for obj in self.container_set.all():
                 obj.send(request=request)
             super(Shipment, self).send(request=request)
 
@@ -482,12 +427,12 @@ class Shipment(ObjectBaseClass):
         if self.is_returnable():
             self.date_returned = timezone.now()
             self.save()
-            for obj in self.dewar_set.all():
+            for obj in self.container_set.all():
                 obj.returned(request=request)
             super(Shipment, self).returned(request=request)
 
     def archive(self, request=None):
-        for obj in self.dewar_set.all():
+        for obj in self.container_set.all():
             obj.archive(request=request)
         super(Shipment, self).archive(request=request)
 
@@ -507,77 +452,41 @@ class Component(ObjectBaseClass):
     def barcode(self):
         return "CM%04d-%04d" % (self.id, self.shipment.id)
         
-class Dewar(ObjectBaseClass):
-    HELP = {
-        'name': "An externally visible label on the dewar. If there is a barcode on the dewar, please scan it here",
-        'comments': "Use this field to jot notes related to this shipment for your own use",
-        'cascade': 'containers and crystals (along with experiments)',
-        'cascade_help': 'All associated containers will be left without a dewar'
+
+
+class ContainerType(models.Model):
+    TYPE = Choices(
+        (0, 'CASSETTE', 'Cassette'),
+        (1, 'UNI_PUCK','Uni-Puck'),
+        (2, 'CANE','Cane'),
+        (3, 'BASKET','Basket')
+    )
+    STATES = Choices(
+        (0, 'PENDING', _('Pending')),
+        (1, 'LOADED', _('Loaded')),
+    )
+    TRANSITIONS = {
+        STATES.PENDING: [STATES.LOADED],
+        STATES.LOADED: [STATES.PENDING],
     }
-    comments = models.TextField(blank=True, null=True, help_text=HELP['comments'])
-    storage_location = models.CharField(max_length=60, null=True, blank=True)
-    shipment = models.ForeignKey(Shipment, blank=True, null=True)
+    name = models.CharField(max_length=20)
+    kind = models.IntegerField('type', choices=TYPE)
+    container_locations = models.ManyToManyField("ContainerLocation")
+    layout = JSONField()
+    envelope = models.CharField(max_length=200)
 
-    def identity(self):
-        return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
 
-    def _Shipment(self):
-        return self.shipment and self.shipment.name or None
-    _Shipment.admin_order_field = 'shipment__name'
+class ContainerLocation(models.Model):
+    name = models.CharField(max_length=5)
+    accepts = models.ManyToManyField(ContainerType, related_name="locations")
 
-    def barcode(self):
-        return "DE%04d-%04d" % (self.id, self.shipment and self.shipment.id or '')
-
-    def num_containers(self):
-        return self.container_set.count()   
-
-    def is_assigned(self):
-        return self.shipment is not None
-    
-    def is_receivable(self):
-        return self.status == self.STATES.SENT 
-    
-    def delete(self, request=None, cascade=True):
-        if self.is_deletable():
-            if not cascade:
-                self.container_set.all().update(dewar=None)
-            for obj in self.container_set.all():
-                obj.delete(request=request)
-            super(Dewar, self).delete(request=request)
-
-    def send(self, request=None):
-        for obj in self.container_set.all():
-            obj.send(request=request)
-        super(Dewar, self).send(request=request)
-
-    def receive(self, request=None):
-        if self.is_receivable():
-            for obj in self.container_set.all():
-                obj.receive(request=request)
-            super(Dewar, self).receive(request=request)
-            all_dewars_received = True
-            for dewar in self.shipment.dewar_set.all():
-                if dewar.status != Dewar.STATES.ON_SITE: all_dewars_received = False
-            if all_dewars_received:
-                super(Shipment, self.shipment).receive(request=request)
-
-    def returned(self, request=None):
-        for obj in self.container_set.all():
-            obj.returned(request=request)
-        super(Dewar, self).returned(request=request)
-
-    def archive(self, request=None):
-        for obj in self.container_set.all():
-            obj.archive(request=request)
-        super(Dewar, self).archive(request=request)
 
 class Container(LoadableBaseClass):
-    TYPE = Enum(
-        'Cassette', 
-        'Uni-Puck',
-        'Cane',
-        'Basket'
+    TYPE = Choices(
+        (0, 'CASSETTE', 'Cassette'),
+        (1, 'UNI_PUCK','Uni-Puck'),
+        (2, 'CANE','Cane'),
+        (3, 'BASKET','Basket')
     )
     HELP = {
         'name': "An externally visible label on the container. If there is a barcode on the container, please scan it here",
@@ -585,8 +494,10 @@ class Container(LoadableBaseClass):
         'cascade': 'crystals (along with experiments, datasets and results)',
         'cascade_help': 'All associated crystals will be left without a container'
     }
-    kind = models.IntegerField('type', max_length=1, choices=TYPE.get_choices() )
-    dewar = models.ForeignKey(Dewar, blank=True, null=True)
+    kind = models.IntegerField('type', choices=TYPE)
+    #type = models.ForeignKey(ContainerType, blank=False, null=False)
+    dewar = models.ForeignKey("Dewar", blank=True, null=True)
+    shipment = models.ForeignKey(Shipment, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(default=0)
     staff_priority = models.IntegerField(default=0)
@@ -595,10 +506,6 @@ class Container(LoadableBaseClass):
         return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
     
-    def _Dewar(self):
-        return self.dewar and self.dewar.name or None
-    _Dewar.admin_order_field = 'dewar'
-
     def barcode(self):
         return self.name
 
@@ -606,7 +513,7 @@ class Container(LoadableBaseClass):
         return self.crystal_set.count()
     
     def is_assigned(self):
-        return self.dewar is not None
+        return self.shipment is not None
 
     def capacity(self):
         _cap = {
@@ -749,7 +656,7 @@ class Container(LoadableBaseClass):
             'project_id': self.project.pk,
             'id': self.pk,
             'name': self.name,
-            'type': Container.TYPE[self.kind],
+            'type': self.kind.name,
             'load_position': '',
             'comments': self.comments,
             'crystals': [crystal.pk for crystal in self.crystal_set.all()]
@@ -864,7 +771,15 @@ class CrystalForm(LimsBaseClass):
         super(CrystalForm, self).delete()
 
 class Experiment(LimsBaseClass):
-    STATUS_CHOICES = LimsBaseClass.STATES.get_choices([LimsBaseClass.STATES.DRAFT, LimsBaseClass.STATES.ACTIVE, LimsBaseClass.STATES.PROCESSING, LimsBaseClass.STATES.COMPLETE, LimsBaseClass.STATES.REVIEWED, LimsBaseClass.STATES.ARCHIVED])
+    STATUS_CHOICES = (
+        (LimsBaseClass.STATES.DRAFT, _('Draft')),
+        (LimsBaseClass.STATES.ACTIVE, _('Active')),
+        (LimsBaseClass.STATES.PROCESSING, _('Processing')),
+        (LimsBaseClass.STATES.COMPLETE, _('Complete')),
+        (LimsBaseClass.STATES.REVIEWED, _('Reviewed')),
+        (LimsBaseClass.STATES.ARCHIVED, _('Archived'))
+    )
+
     HELP = {
         'cascade': 'crystals, datasets and results',
         'cascade_help': 'All associated crystals will be left without an experiment',
@@ -874,22 +789,22 @@ class Experiment(LimsBaseClass):
         'total_angle': 'The total angle range to collect.',
         'multiplicity': 'Values entered here take precedence over the specified "Angle Range".',
     }
-    EXP_TYPES = Enum(
-        'Native',   
-        'MAD',
-        'SAD',
+    EXP_TYPES = Choices(
+        (0,'NATIVE','Native'),
+        (1,'MAD','MAD'),
+        (2,'SAD','SAD'),
     )
-    EXP_PLANS = Enum(
-        'Rank and collect best',
-        'Collect first good',
-        'Screen and confirm',
-        'Screen and collect',
-        'Just collect',
+    EXP_PLANS = Choices(
+        (0,'RANK_AND_COLLECT_BEST','Rank and collect best'),
+        (1,'COLLECT_FIRST_GOOD','Collect first good'),
+        (2,'SCREEN_AND_CONFIRM','Screen and confirm'),
+        (3,'SCREEN_AND_COLLECT','Screen and collect'),
+        (4,'JUST_COLLECT','Just collect'),
     )
     TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
     TRANSITIONS[LimsBaseClass.STATES.DRAFT] = [LimsBaseClass.STATES.ACTIVE]
 
-    status = models.IntegerField(max_length=1, choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
     resolution = models.FloatField('Desired Resolution', null=True, blank=True)
     delta_angle = models.FloatField(null=True, blank=True)
     i_sigma = models.FloatField('Desired I/Sigma', null=True, blank=True)
@@ -897,9 +812,9 @@ class Experiment(LimsBaseClass):
     multiplicity = models.FloatField(null=True, blank=True)
     total_angle = models.FloatField('Desired Angle Range', null=True, blank=True)
     energy = models.DecimalField(null=True, max_digits=10, decimal_places=4, blank=True)
-    kind = models.IntegerField('exp. type',max_length=1, choices=EXP_TYPES.get_choices(), default=EXP_TYPES.NATIVE)
+    kind = models.IntegerField('exp. type', choices=EXP_TYPES, default=EXP_TYPES.NATIVE)
     absorption_edge = models.CharField(max_length=5, null=True, blank=True)
-    plan = models.IntegerField(max_length=1, choices=EXP_PLANS.get_choices(), default=EXP_PLANS.SCREEN_AND_CONFIRM)
+    plan = models.IntegerField(choices=EXP_PLANS, default=EXP_PLANS.SCREEN_AND_CONFIRM)
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(blank=True, null=True)
     staff_priority = models.IntegerField(blank=True, null=True)
@@ -921,7 +836,7 @@ class Experiment(LimsBaseClass):
         return 'experiment'
 
     def get_shipments(self):
-        return self.project.shipment_set.filter(pk__in=self.crystal_set.values('container__dewar__shipment__pk'))
+        return self.project.shipment_set.filter(pk__in=self.crystal_set.values('container__shipment__pk'))
 
     def set_strategy_status_resubmitted(self, data=None):
         strategy = data['strategy']
@@ -1039,22 +954,22 @@ class Crystal(LoadableBaseClass):
         'experiment': 'This field is optional here.  Crystals can also be added to an experiment on the experiments page.',
         'container': 'This field is optional here.  Crystals can also be added to a container on the containers page.',
     }
-    EXP_STATES = Enum(
-        'Not Required',
-        'Pending',
-        'Completed',
-        'Ignore',
+    EXP_STATES = Choices(
+        (0, 'NOT_REQUIRED','Not Required'),
+        (1, 'PENDING','Pending'),
+        (2, 'COMPLETED','Completed'),
+        (3, 'IGNORE','Ignore'),
     )
     barcode = models.SlugField(null=True, blank=True)
     crystal_form = models.ForeignKey(CrystalForm, null=True, blank=True)
-    pin_length = models.IntegerField(max_length=2, default=18)
+    pin_length = models.IntegerField(default=18)
     loop_size = models.FloatField(null=True, blank=True)
     cocktail = models.ForeignKey(Cocktail, null=True, blank=True)
     container = models.ForeignKey(Container, null=True, blank=True)
     container_location = models.CharField(max_length=10, null=True, blank=True, verbose_name='port')
     comments = models.TextField(blank=True, null=True)
-    collect_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.NOT_REQUIRED)
-    screen_status = models.IntegerField(max_length=1, choices=EXP_STATES.get_choices(), default=EXP_STATES.NOT_REQUIRED)
+    collect_status = models.IntegerField(choices=EXP_STATES, default=EXP_STATES.NOT_REQUIRED)
+    screen_status = models.IntegerField(choices=EXP_STATES, default=EXP_STATES.NOT_REQUIRED)
     priority = models.IntegerField(null=True, blank=True)
     staff_priority = models.IntegerField(null=True, blank=True)
     experiment = models.ForeignKey(Experiment, null=True, blank=True)
@@ -1210,9 +1125,9 @@ class Crystal(LoadableBaseClass):
         }
         
 class Data(DataBaseClass):
-    DATA_TYPES = Enum(
-        'Screening',   
-        'Collection',
+    DATA_TYPES = Choices(
+        (0,'SCREENING','Screening'),
+        (1,'COLLECTION','Collection'),
     )
     experiment = models.ForeignKey(Experiment, null=True, blank=True)
     crystal = models.ForeignKey(Crystal, null=True, blank=True)
@@ -1232,7 +1147,7 @@ class Data(DataBaseClass):
     beam_y = models.FloatField()
     beamline = models.ForeignKey(Beamline)
     url = models.CharField(max_length=200)
-    kind = models.IntegerField('Data type',max_length=1, choices=DATA_TYPES.get_choices(), default=DATA_TYPES.SCREENING)
+    kind = models.IntegerField('Data type', choices=DATA_TYPES, default=DATA_TYPES.SCREENING)
     download = models.BooleanField(default=False)
     
     # need a method to determine how many frames are in item
@@ -1352,9 +1267,9 @@ class Strategy(DataBaseClass):
         verbose_name_plural = 'Strategies'
 
 class Result(DataBaseClass):
-    RESULT_TYPES = Enum(
-        'Screening',   
-        'Collection',
+    RESULT_TYPES = Choices(
+        (0,'SCREENING','Screening'),
+        (1,'COLLECTION','Collection'),
     )
     experiment = models.ForeignKey(Experiment, null=True, blank=True)
     crystal = models.ForeignKey(Crystal, null=True, blank=True)
@@ -1382,7 +1297,7 @@ class Result(DataBaseClass):
     sigma_angle = models.FloatField('Sigma(angle)')
     ice_rings = models.IntegerField()
     url = models.CharField(max_length=200)
-    kind = models.IntegerField('Result type',max_length=1, choices=RESULT_TYPES.get_choices())
+    kind = models.IntegerField('Result type', choices=RESULT_TYPES)
     details = JSONField()
     strategy = models.OneToOneField(Strategy, null=True, blank=True)
     
@@ -1415,15 +1330,15 @@ class ScanResult(DataBaseClass):
                   '#008040','#804000','#808000',
                   '#408000','#400080','#004080',
                   ]
-    SCAN_TYPES = Enum(
-        'MAD Scan',   
-        'Excitation Scan',
+    SCAN_TYPES = Choices(
+        (0,'MAD_SCAN','MAD Scan'),
+        (1,'EXCITATION_SCAN','Excitation Scan'),
     )
     experiment = models.ForeignKey(Experiment, null=True, blank=True)
     crystal = models.ForeignKey(Crystal, null=True, blank=True)
     edge = models.CharField(max_length=20)
     details = JSONField()
-    kind = models.IntegerField('Scan type',max_length=1, choices=SCAN_TYPES.get_choices())
+    kind = models.IntegerField('Scan type', choices=SCAN_TYPES)
     
     energy = models.FloatField(null=True, blank=True)
     exposure_time = models.FloatField(null=True, blank=True)
@@ -1522,16 +1437,24 @@ class ActivityLogManager(models.Manager):
             return None
         
 class ActivityLog(models.Model):
-    TYPE = Enum('Login', 'Logout', 'Task', 'Create', 'Modify', 'Delete', 'Archive')
+    TYPE = Choices(
+        (0,'LOGIN','Login'),
+        (1,'LOGOUT','Logout'),
+        (2,'TASK','Task'),
+        (3,'CREATE','Create'),
+        (4,'MODIFY','Modify'),
+        (5,'DELETE','Delete'),
+        (6,'ARCHIVE','Archive')
+    )
     created = models.DateTimeField('Date/Time', auto_now_add=True, editable=False)
-    project = models.ForeignKey(Project, blank=True, null=True)
-    user = models.ForeignKey(User, blank=True, null=True)
+    #project = models.ForeignKey(Project, blank=True, null=True)
+    user = models.ForeignKey(Project, blank=True, null=True)
     user_description = models.CharField('User name', max_length=60, blank=True, null=True)
-    ip_number = models.IPAddressField('IP Address')
+    ip_number = models.GenericIPAddressField('IP Address')
     object_id = models.PositiveIntegerField(blank=True, null=True)
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
-    affected_item = generic.GenericForeignKey('content_type', 'object_id')
-    action_type = models.IntegerField(max_length=1, choices=TYPE.get_choices() )
+    affected_item = GenericForeignKey('content_type', 'object_id')
+    action_type = models.IntegerField(choices=TYPE )
     object_repr = models.CharField('Entity', max_length=200, blank=True, null=True)
     description = models.TextField(blank=True)
     
@@ -1547,13 +1470,13 @@ class Feedback(models.Model):
     HELP = {
         'message': 'You can use Restructured Text formatting to compose your message.',
     }
-    TYPE = Enum(
-        'Remote Control',
-        'MxLIVE Website',
-        'Other',
+    TYPE = Choices(
+        (0,'REMOTE_CONTROL','Remote Control'),
+        (1,'MXLIVE_WEBSITE','MxLIVE Website'),
+        (2,'OTHER','Other')
     )
     project = models.ForeignKey(Project)
-    category = models.IntegerField('Category',max_length=1, choices=TYPE.get_choices())
+    category = models.IntegerField('Category', choices=TYPE)
     contact_name = models.CharField(max_length=100, blank=True, null=True)
     contact = models.EmailField(max_length=100, blank=True, null=True)
     message = models.TextField(blank=False)
@@ -1593,30 +1516,14 @@ def on_project_delete(sender, instance, **kwargs):
         instance.user.delete()
     slap.del_user(instance.name)
 
-
-__all__ = [
-    'ExcludeManagerWrapper',
-    'FilterManagerWrapper',
-    'OrderByManagerWrapper',
-    'DistinctManagerWrapper',
-    'Carrier',
-    'Project',
-    'Session',
-    'Beamline',
-    'Shipment',
-    'Component',
-    'Dewar',
-    'Container',
-    'SpaceGroup',
-    'Cocktail',
-    'CrystalForm',
-    'Experiment',
-    'Crystal',
-    'Data',
-    'Strategy',
-    'Result',
-    'ScanResult',
-    'ActivityLog',
-    'Feedback',
-    ]   
-
+#FIXME: Remove everything below here - only there so old data can be loaded
+class Dewar(ObjectBaseClass):
+    HELP = {
+        'name': "An externally visible label on the dewar. If there is a barcode on the dewar, please scan it here",
+        'comments': "Use this field to jot notes related to this shipment for your own use",
+        'cascade': 'containers and crystals (along with experiments)',
+        'cascade_help': 'All associated containers will be left without a dewar'
+    }
+    comments = models.TextField(blank=True, null=True, help_text=HELP['comments'])
+    storage_location = models.CharField(max_length=60, null=True, blank=True)
+    shipment = models.ForeignKey(Shipment, blank=True, null=True)

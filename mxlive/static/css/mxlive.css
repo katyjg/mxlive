@@ -1,0 +1,714 @@
+html {
+    min-height: 100%;
+    overflow-y: scroll;
+}
+
+body, .tooltip, .popover {
+    font-family: "Encode Sans Narrow", sans-serif !important;
+}
+
+pre {
+    font-family: "Decima Mono Pro", monospace;
+}
+
+body {
+    font-size: 13px;
+    padding: 0;
+    min-height: 100%;
+    background-color: #eee;
+}
+#spinner.loading + .wrapper {
+    opacity: 0.5;
+}
+#spinner {
+    display: none;
+    z-index: 1100;
+    background-color: rgb(0,0,0,0.5);
+    height: 100%;
+    width: 100%;
+    top: 0;
+    position: fixed;
+}
+#spinner.loading {
+    display: block;
+}
+.loading img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    max-height: 128px;
+}
+@-ms-viewport {
+    width: auto !important; /* Fix IE problems */
+}
+main.content {
+    margin-top: 50px;
+    padding-bottom: 80px;
+}
+a.navbar-brand {
+    background-image: url("/static/img/mxlive-logo-sm.png");
+    min-width: 83px;
+}
+nav {
+    background-color: rgb(45,109,82) !important;
+}
+nav .dropdown-menu {
+    background-color: #333 !important;
+}
+nav li.open a {
+    background-color: #333 !important;
+}
+nav li a {
+    color: #fff !important;
+}
+img.grid-icon {
+    max-height: 56px;
+    max-width: 56px;
+}
+img.line-icon {
+    max-height: 25px;
+    max-width: 25px;
+}
+.grid-tools {
+    float: right;
+    border-left: 1px solid #333;
+    padding-left: 10px;
+}
+.grid-tools a {
+    color: #333;
+}
+.grid-tools a:hover {
+    color: #0e90d2;
+    cursor: pointer;
+}
+.pad-wrapper {
+    padding: 15px 15px;
+}
+.pagelet {
+    background: none repeat scroll 0 0 #fff;
+    border-bottom: none !important;
+    border-top: 0;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 0, 0, 0.05) inset;
+    margin-bottom: 15px;
+    padding-top: 15px;
+    position: relative;
+    transition: padding 500ms ease 0s;
+}
+
+.pagelet-body {
+    padding: 15px;
+}
+.pagelet-heading {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    font-weight: 300;
+}
+
+.pagelet-footer, .pagelet-header {
+    padding: 0.5em 1em;
+    min-height: 37px;
+    position: relative;
+}
+
+.pagelet-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.pagelet-header {
+    margin-top: -1em;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+.pagelet-header h1,
+.pagelet-header h2,
+.pagelet-header h3,
+.pagelet-header h4,
+.pagelet-header h5,
+.pagelet-header h6 {
+    line-height: 0.9;
+    margin: 0.5em 0;
+}
+.text-condensed {
+    font-family: "Encode Sans Compressed";
+}
+
+.text-narrow {
+    font-family: "Encode Sans Condensed";
+}
+
+.text-wide {
+    font-family: "Encode Sans Wide";
+}
+.ellipsis {
+    text-overflow: ellipsis;
+}
+.overflow {
+    white-space: nowrap;
+    overflow: hidden;
+    display: block;
+}
+.narrow-heading {
+    margin: 0 !important;
+    line-height: inherit !important;
+}
+.box-tools {
+    border-left: 1px solid rgba(0, 0, 0, 0.15);
+    padding: 0.5em 0.5em;
+    padding-right: 0.25em !important;
+    line-height: 1;
+    text-align: center;
+}
+
+.box-tools a {
+    position: relative;
+    text-align: center;
+    padding: 0 0.75em;
+}
+.box-tools a.separator {
+    border-left: 1px solid rgba(0, 0, 0, 0.15);
+    padding: 0.5em 1em 0.5em 1.25em;
+    margin-top: -0.5em;
+    margin-bottom: -0.5em;
+    margin-left: 0.5em;
+}
+.tool-label, .btn-label {
+    display: inline-block;
+    font-size: 90%;
+    color: inherit;
+    line-height: 0.75;
+    padding-top: 0.5em;
+}
+@media (max-width: 768px) {
+    /* hidden tool labels on small screens */
+    .btn-label, .tool-label {
+        display: none;
+    }
+}
+.fa-1x {
+    font-size: 17px;
+}
+
+.fa-2 {
+    font-size: 1.5em;
+}
+
+.fa-3 {
+    font-size: 2.5em;
+}
+
+.fa-4 {
+    font-size: 3.5em;
+}
+
+.fa-5 {
+    font-size: 4.5em;
+}
+
+.fa-6 {
+    font-size: 5.5em;
+}
+.status-bar {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 0.5em 1em;
+}
+.no-margin {
+    margin: 0 !important;
+}
+
+.no-vmargin {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.no-hmargin {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+.no-bmargin {
+    margin-bottom: 0 !important;
+}
+
+.no-tmargin {
+    margin-top: 0 !important;
+}
+
+table.cassette-layout, table.cane-layout {
+    font-size: 85%;
+    float: right;
+}
+.circle {
+    border-color: #ddd;
+    border-width: 5px;
+    border-radius: 50%;
+    text-align: center;
+    vertical-align: middle;
+}
+td.circle {
+    width: 35px;
+    height: 35px;
+}
+p.circle {
+    width: 40px;
+    line-height: 40px;
+}
+p.empty {
+    opacity: 0;
+}
+.occupied {
+    background-color: #98BDAD;
+}
+.empty {
+    background-color: #ddd;
+}
+div#unipuck p {
+    position: relative;
+    margin: 0;
+}
+
+th.Cassette {
+    text-align: center;
+    background: none;
+}
+div#unipuck {
+    background: url('/static/img/unipuck-sm.png') no-repeat center center;
+    width: 250px;
+    height: 250px;
+    float: right;
+    position: relative;
+}
+
+div#basket {
+    background: url('/static/img/basket-sm.png') no-repeat center center;
+    width: 250px;
+    height: 250px;
+    float: right;
+    position: relative;
+    margin-right: 2em;
+}
+.loc-1 {
+    left: 42%;
+    top: 24%;
+}
+
+.loc-2 {
+    left: 25%;
+    top: 20%;
+}
+
+.loc-3 {
+    left: 31%;
+    top: 25%;
+}
+
+.loc-4 {
+    left: 52%;
+    top: 9%
+}
+
+.loc-5 {
+    left: 59%;
+    top: -28%;
+}
+
+.loc-6 {
+    left: 42%;
+    top: -77%;
+}
+
+.loc-7 {
+    left: 21%;
+    top: -87%;
+}
+
+.loc-8 {
+    left: 7%;
+    top: -86%;
+}
+
+.loc-9 {
+    left: 3%;
+    top: -80%;
+}
+
+.loc-10 {
+    left: 13%;
+    top: -76%;
+}
+.loc-11 {
+    left: 31%;
+    top: -80%;
+}
+
+.loc-12 {
+    left: 53%;
+    top: -96%;
+}
+
+.loc-13 {
+    left: 71%;
+    top: -124%;
+}
+
+.loc-14 {
+    left: 81%;
+    top: -160%;
+}
+
+.loc-15 {
+    left: 78%;
+    top: -198%;
+}
+
+.loc-16 {
+    left: 63%;
+    top: -231%;
+}
+table.cane-layout {
+    float: right;
+    margin-right: 20px;
+    border-collapse: separate;
+    border: 1px solid #ccc;
+    width: 40px;
+}
+
+table.cane-layout td {
+    border-top: 1px dotted #bbb;
+    height: 40px;
+    vertical-align: middle;
+    text-align: center;
+}
+.inline-list {
+    float: left;
+}
+
+
+div.crystal.droppable, div.experiment.droppable, div.shipment.droppable, div.dewar-img.droppable, div.runlist.droppable {
+    float: right;
+    margin-top: 0;
+    clear: right;
+    margin: 1em;
+}
+
+div.crystal.droppable {
+    background: url(/static/img/crystal.png) no-repeat center center;
+    height: 125px;
+    width: 100px;
+}
+
+div.experiment.droppable {
+    background: url(/static/img/experiment.png) no-repeat center center;
+    height: 125px;
+    width: 100px;
+}
+
+div.shipment.droppable {
+    background: url(/static/img/shipment.png) no-repeat center center;
+    height: 125px;
+    width: 100px;
+}
+
+div.dewar-img.droppable {
+    background: url(/static/img/dewar.png) no-repeat center center;
+    height: 125px;
+    width: 100px;
+}
+
+div.runlist.droppable {
+    background: url(/static/img/runlist.png) no-repeat center center;
+    height: 60px;
+    width: 100px;
+    margin: 0 10px;
+    padding: 12px 0;
+}
+/*
+div#unipuck {
+    background: url('/static/img/unipuck-sm.png') no-repeat center center;
+    width: 250px;
+    height: 250px;
+    float: right;
+    margin-right: 2em;
+}
+
+div#basket {
+    background: url('/static/img/basket-sm.png') no-repeat center center;
+    width: 250px;
+    height: 250px;
+    float: right;
+    position: relative;
+    margin-right: 2em;
+}
+
+table.unipuck text, table.basket text {
+    float: none;
+}
+
+div.unipuck-xsm {
+    background: url('/static/img/unipuck-xsm.png') no-repeat center center !important;
+    width: 83px !important;
+    height: 83px !important;
+    float: right !important;
+    padding-top: 5px;
+    padding-right: 18px;
+}
+
+div.basket-xsm {
+    background: url('/static/img/basket-sm.png') no-repeat center center;
+    background-size: contain;
+    width: 83px !important;
+    height: 83px !important;
+    float: right !important;
+    padding-top: 5px;
+    padding-right: 18px;
+}
+
+table.unipuck td, table.basket td {
+    vertical-align: top;
+    width: 97px !important;
+    height: 110px !important;
+    margin-right: -10px;
+    border-right: 1px solid #ddd !important;
+    border-bottom: 1px solid #ddd !important;
+}
+
+table.unipuck, table.basket {
+    width: 205px;
+    height: 231px;
+}
+
+
+#basket div.Basket {
+    display: inline-block;
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    background: transparent;
+}
+
+div#unipuck .occupied, div#basket .occupied {
+    background: url('/static/img/circle_green-40.png') no-repeat center center;
+}
+
+div.unipuck-xsm .empty-xs, table.cassette td.empty-xs, div.basket-xsm .empty-xs {
+    background: url('/static/img/circle_gray-15.png') no-repeat center center !important;
+}
+
+table.cassette td.started,
+div.unipuck-xsm .started,
+div#unipuck p.started,
+div.basket-xsm .started,
+div#basket p.started,
+table.cane-detail td.started,
+table.cassette-detail td.started {
+    opacity: 0.5 !important;
+}
+
+
+.draggable a {
+    width: 180px;
+    cursor: move;
+}
+.drag-helper {
+    padding: 1em;
+    cursor: move;
+}
+.drag-helper a {
+    color: white;
+}
+table.cane-detail td.occupied {
+    background: #bee0bb !important;
+}
+.object-list.cane-detail {
+    float: left;
+    width: 600px;
+}
+table.cane-detail {
+    float: right;
+    margin-right: 20px;
+    border-collapse: separate;
+    border: 1px solid #ccc;
+}
+
+table.cane-detail td {
+    border: 1px dotted #bbb;
+}
+
+table.cassette-detail {
+    float: right;
+    clear: right;
+}
+
+.object-list.cassette-detail, .object-list.uni-puck-detail, .object-list.basket-detail {
+    width: 690px;
+}
+.lims-droppable-hover.Cassette, .lims-droppable-active.Cassette,
+.lims-droppable-active.Uni-Puck, .lims-droppable-hover.Uni-Puck,
+.lims-droppable-active.Basket, .lims-droppable-hover.Basket {
+    border: none !important;
+}
+
+td.lims-droppable-hover.Cassette {
+    background: url('/static/img/circle_purple-30.png') no-repeat center center !important;
+}
+
+.lims-droppable-hover.Uni-Puck {
+    background: url('/static/img/circle_purple-40.png') no-repeat center center !important;
+}
+
+.lims-droppable-hover.Basket {
+    background: url('/static/img/circle_purple-40.png') no-repeat center center !important;
+}
+
+td.lims-droppable-hover.Cane {
+    background-color: #c8b9d7;
+}
+
+li.Uni-Puck {
+    background: url('/static/img/container-uni-puck-sm.png') no-repeat 5px center;
+}
+
+li.Cassette {
+    background: url('/static/img/container-cassette-sm.png') no-repeat 5px center;
+}
+
+li.Cane {
+    background: url('/static/img/container-cane-sm.png') no-repeat 5px center;
+}
+
+li.Basket {
+    background: url('/static/img/container-basket-sm.png') no-repeat 5px center;
+}
+
+li.container p.Uni-Puck, li.container p.Cassette, li.container p.Basket {
+    width: 16px;
+    float: right;
+    padding-right: 5px;
+}
+
+li.container p.Uni-Puck, tr.runlist.closed td.Uni-Puck {
+    background: url('/static/img/container-uni-puck-xsm.png') no-repeat center center;
+    min-width: 16px;
+}
+
+li.container p.Cassette, tr.runlist.closed td.Cassette {
+    background: url('/static/img/container-cassette-xsm.png') no-repeat center center;
+}
+
+li.container p.Basket, tr.runlist.closed td.Basket {
+    background: url('/static/img/container-basket-xsm.png') no-repeat center center;
+}
+
+td.Cane {
+    background: #f7f7f7;
+    height: 50px;
+    width: 15px;
+    padding-left: 10px;
+}
+
+table.cane-detail td.occupied {
+    background: #bee0bb !important;
+}
+
+div#unipuck {
+    background: url('/static/img/unipuck-sm.png') no-repeat center center;
+    width: 250px;
+    height: 250px;
+    float: right;
+    margin-right: 2em;
+}
+
+div#basket {
+    background: url('/static/img/basket-sm.png') no-repeat center center;
+    width: 250px;
+    height: 250px;
+    float: right;
+    position: relative;
+    margin-right: 2em;
+}
+
+table.unipuck text, table.basket text {
+    float: none;
+}
+
+div.unipuck-xsm {
+    background: url('/static/img/unipuck-xsm.png') no-repeat center center !important;
+    width: 83px !important;
+    height: 83px !important;
+    float: right !important;
+    padding-top: 5px;
+    padding-right: 18px;
+}
+
+div.basket-xsm {
+    background: url('/static/img/basket-sm.png') no-repeat center center;
+    background-size: contain;
+    width: 83px !important;
+    height: 83px !important;
+    float: right !important;
+    padding-top: 5px;
+    padding-right: 18px;
+}
+
+table.unipuck td, table.basket td {
+    vertical-align: top;
+    width: 97px !important;
+    height: 110px !important;
+    margin-right: -10px;
+    border-right: 1px solid #ddd !important;
+    border-bottom: 1px solid #ddd !important;
+}
+
+table.unipuck, table.basket {
+    width: 205px;
+    height: 231px;
+}
+
+
+#basket div.Basket {
+    display: inline-block;
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    background: transparent;
+}
+
+div#unipuck .occupied, div#basket .occupied {
+    background: url('/static/img/circle_green-40.png') no-repeat center center;
+}
+
+table.cassette td {
+    padding-left: 2px !important;
+    height: 16px;
+}
+
+table.cassette td.started,
+div.unipuck-xsm .started,
+div#unipuck p.started,
+div.basket-xsm .started,
+div#basket p.started,
+table.cane-detail td.started,
+table.cassette-detail td.started {
+    opacity: 0.5 !important;
+}
+
+
+table.cassette-detail {
+    float: right;
+    clear: right;
+}
+
+
+table.cane-detail {
+    float: right;
+    margin-right: 20px;
+    border-collapse: separate;
+    border: 1px solid #ccc;
+}
+
+table.cane-detail td {
+    border: 1px dotted #bbb;
+}
+*/

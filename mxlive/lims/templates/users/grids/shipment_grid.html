@@ -1,0 +1,92 @@
+<div class="col-xs-12 col-sm-4">
+    <div class="panel panel-{% if object.status == object.STATES.ON_SITE %}info
+                            {% elif object.status == object.STATES.DRAFT %}warning
+                            {% elif object.status == object.STATES.SENT %}success
+                            {% elif object.status == object.STATES.RETURNED and not user.is_superuser %}success
+                            {% else %}default{% endif %}">
+        <div class="panel-heading">
+        <div class="container-fluid">
+            <div class="row">
+                <h5 class="pull-left text-condensed narrow-heading overflow ellipsis">
+                    {% if user.is_superuser %}{{ object.project }} | {% endif %}
+                    <strong class="text-muted">{{ object.identity }}</strong> |
+                    <a href="{% url 'shipment-detail' object.pk %}">{{ object.name }}</a>
+                </h5>
+
+                {% if user.is_superuser or object.status == object.STATES.DRAFT or object.status == object.STATES.RETURNED %}
+                    <span class="grid-tools">
+                        {% if object.status == object.STATES.DRAFT %}
+                            {% if object.project == user and object.is_sendable %}
+                                <a data-url="{% url 'shipment-send' object.pk %}" title="Send Shipment"><span class="fa-2x fa fa-paper-plane-o"></span></a>
+                            {% endif %}
+                        {% elif object.status == object.STATES.SENT %}
+                            {% if user.is_superuser %}
+                                <a data-url="{% url 'shipment-receive' object.pk %}" title="Receive Shipment"><span class="fa-2x fa fa-handshake-o"></span></a>
+                            {% else %}
+                                <a data-url="{% url 'shipment-send' object.pk %}" title="Update Shipping Information"><span class="fa-2x fa fa-barcode"></span></a>
+                            {% endif %}
+                        {% elif object.status == object.STATES.ON_SITE %}
+                            {% if user.is_superuser %}
+                                <a data-url="{% url 'shipment-return' object.pk %}" title="Return Shipment"><span class="fa fa-2x fa-paper-plane-o"></span></a>
+                            {% endif %}
+                        {% elif object.status == object.STATES.RETURNED %}
+                            {% if user.is_superuser %}
+                                <a data-url="{% url 'shipment-return' object.pk %}" title="Update Shipping Information"><span class="fa fa-2x fa-barcode"></span></a>
+                            {% else %}
+                                <a data-url="{% url 'shipment-archive' object.pk %}" title="Archive Shipment"><span class="fa fa-2x fa-archive"></span></a>
+                            {% endif %}
+                        {% endif %}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        </div>
+
+        <div  class="panel-body text-muted">
+            <div class="row">
+                <div class="col-xs-3">
+                    <div class="text-center text-muted">
+                        <div title="{% if object.status == object.STATES.ON_SITE %}Location: {{ object.storage_location }}
+                                    {% elif object.status == object.STATES.SEND %}Sent on {{ object.date_shipped }}
+                                    {% elif object.status == object.STATES.RETURNED %}Returned on {{ object.date_returned }}{% endif %}"
+                             class="fa fa-2x {% if object.status == object.STATES.DRAFT %}fa-clipboard
+                                             {% elif object.status == object.STATES.SENT %}fa-plane
+                                             {% elif object.status == object.STATES.ON_SITE %}fa-map-marker
+                                             {% elif object.status == object.STATES.RETURNED %}fa-plane
+                                             {% elif object.status == object.STATES.ARCHIVED %}fa-archive{% endif %}"></div>
+                        <div><small>{{ object.get_status_display|upper }}</small></div>
+                    </div>
+                </div>
+                <div class="col-xs-9">
+                    <div class="pull-right text-right">
+                        <strong>{{ object.num_containers }}</strong> Container{{ object.num_containers|pluralize }} / <strong>{{ object.num_crystals }}</strong> Crystal{{ object.num_crystals|pluralize }}
+                    </div>
+                <br/>
+                    {% if object.status == object.STATES.RETURNED or object.status == object.STATES.SENT %}
+                        <span class="pull-right">
+                            {% if object.status <= object.STATES.SENT %}
+                                {% if object.tracking_code and object.carrier %}
+                                    <a href="{{ object.carrier.url }}{{ object.tracking_code }}" title="Track with {{ object.carrier }}">{{ object.tracking_code }}</a>
+                                {% endif %}
+                            {% elif object.status == object.STATES.RETURNED %}
+                                {% if object.return_code and object.carrier %}
+                                    <a href="{{ object.carrier.url }}{{ object.return_code }}" title="Track with {{ object.carrier }}">{{ object.return_code }}</a>
+                                {% endif %}
+                            {% endif %}
+                            {% if object.carrier %}
+                                <img class="line-icon" src="/static/img/{{ object.carrier|slugify }}.png" title="{{ object.get_status_display }} via {{ object.carrier|title|default_if_none:'User' }}">
+                            {% else %}
+                                <img class="line-icon" src="/static/img/walking.png" title="{{ object.carrier|title|default_if_none:'User' }}">
+                            {% endif %}
+                        </span>
+                    {% elif object.status == object.STATES.ON_SITE and object.date_received %}
+                        <span class="pull-right">
+                            Arrived {{ object.date_received }}
+                        </span>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

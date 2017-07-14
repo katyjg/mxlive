@@ -28,7 +28,7 @@
         <tr valign="top"><th>Label:</th><td>{{dewar.name}}</td></tr>
         <tr valign="top"><th>Barcode:</th><td>{{dewar.barcode}}</td></tr>
         <tr valign="top"><th>Shipment:</th>
-            {% if dewar.shipment %}<td><a href="{% url "users-shipment-detail" dewar.shipment.pk %}">{{dewar.shipment.name}}</a></td>
+            {% if dewar.shipment %}<td><a href="{% url "shipment-detail" dewar.shipment.pk %}">{{dewar.shipment.name}}</a></td>
             {% else %}<td>None</td>{% endif %}</tr>
     </table>
     {% if object.comments or object.staff_comments%}

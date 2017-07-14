@@ -9,7 +9,7 @@
                 <th>Cocktail</th>
                 <th>Crystal Form</th>
                 <th>Container</th>
-                <th>Dewar</th>
+                <th>Shipment</th>
                 <th></th>
             </tr>
         </thead>
@@ -17,16 +17,16 @@
         {% if crystals %}
             {% for crystal in crystals %}{% if crystal.pk %}
                 <tr id="{{ crystal.pk }}" class="{% cycle 'odd' 'even'%}"
-                    rel="{% url "users-crystal-detail" crystal.pk %}">
+                    rel="{% url "crystal-detail" crystal.pk %}">
                     <td class="prioritize dragHandle" title="Drag to Prioritize"></td>
-                    <td class="redirect" href="{% url "users-crystal-detail" crystal.pk %}" title="Go to Crystal {{crystal.name}} : {{crystal.comments|default:""}}">{{ crystal.name }}</td>
-            		<td class="redirect" href="{% url "users-crystal-detail" crystal.pk %}" title="Go to Crystal {{crystal.name}}">{{ crystal.get_status_display }}</td>
+                    <td class="redirect" href="{% url "crystal-detail" crystal.pk %}" title="Go to Crystal {{crystal.name}} : {{crystal.comments|default:""}}">{{ crystal.name }}</td>
+            		<td class="redirect" href="{% url "crystal-detail" crystal.pk %}" title="Go to Crystal {{crystal.name}}">{{ crystal.get_status_display }}</td>
                     <td>{{ crystal.cocktail }}</td>
                     <td>{{ crystal.crystal_form }}</td>
                     {% if crystal.container %}
-                    <td class="redirect" href="{% url "users-container-detail" crystal.container.pk %}" title="Go to Container {{crystal.container.name}}">{{ crystal.container }} ({{ crystal.container_location }})</td>
+                    <td class="redirect" href="{% url "container-detail" crystal.container.pk %}" title="Go to Container {{crystal.container.name}}">{{ crystal.container }} ({{ crystal.container_location }})</td>
                     {% if crystal.container.dewar %}
-                    <td class="redirect" href="{% url "users-dewar-detail" crystal.container.dewar.pk %}" title="Go to Dewar {{crystal.container.dewar.name}}">{{ crystal.container.dewar.name }}</td>
+                    <td class="redirect" href="{% url "shipment-detail" crystal.container.shipment.pk %}" title="Go to Shipment {{crystal.container.shipment.name}}">{{ crystal.container.shipment.name }}</td>
                     {% else %}
                     <td>None</td>
                     {% endif %}
@@ -35,9 +35,9 @@
                     <td>None</td>
                     {% endif %}
 	            	{% if crystal.is_editable %}
-            		<td>
+            		{% comment %}<td>
             			<a class="remove" rel="{% url "users-experiment-remove-crystal" experiment 0 crystal.pk %}" href="#" onclick="remove_item(this);" title="Remove crystal from experiment"><span class="remove"></span></a>
-            		</td>
+            		</td>{% endcomment %}
             		{% else %}
             		<td> </td>
 	            	{% endif %}

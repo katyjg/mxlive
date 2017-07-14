@@ -1,5 +1,5 @@
 from django.template import Library
-from mxlive.lims.models import Crystal
+from lims.models import Crystal
 
 register = Library()
 

@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+{% extends "users/base.html" %}
 {% load humanize %}
 {% load markup %}
 
-{% block headline %}
+{% block page_heading %}
 <h2> <span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
 {% endblock %}
 
@@ -12,7 +12,7 @@
 </div>
 {% endblock %}
 
-{% block content %}
+{% block full %}
 
 <div class="experiment droppable droppable-replace" {% if object.is_editable %}accept="crystal" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>
 
@@ -33,7 +33,7 @@
 	{% if object.absorption_edge %}<tr valign="top"><th>Absorption Edge:</th><td>{{object.absorption_edge}}</td></tr>{% endif %}
 	<tr valign="top"><th>Completed:</th><td>{% if object.get_status_display == 'Complete' %}Yes{% else %} No {% endif %}</td></tr>
 	<tr valign="top"><th>Shipment:</th><td>
-        {% for shipment in object.get_shipments %}<a href="{% url "users-shipment-detail" shipment.pk %}">{{shipment.name}} </a>{% endfor %}
+        {% for shipment in object.get_shipments %}<a href="{% url "shipment-detail" shipment.pk %}">{{shipment.name}} </a>{% endfor %}
     </td></tr>
 </table>
 
@@ -69,6 +69,7 @@
 
 {% endblock %}
 
+{% comment %}
 {% block sidebar %}
 	{% if not user.is_superuser %}
         {% if object.is_editable %}
@@ -88,5 +89,5 @@
     {% endif %}
     {% include "users/individual_history.html" %}
 {% endblock %}
-
+{% endcomment %}
 

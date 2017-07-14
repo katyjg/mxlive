@@ -30,7 +30,7 @@ class APIKey(models.Model):
 class APIKeyUsage(models.Model):
     api_key = models.ForeignKey(APIKey)
     method = models.CharField(max_length=60)
-    host   = models.IPAddressField()
+    host   = models.GenericIPAddressField()
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
         
     def __unicode__(self):

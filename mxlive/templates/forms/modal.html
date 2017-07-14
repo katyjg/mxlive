@@ -1,0 +1,188 @@
+{% load msgs %}
+{% load crispy_forms_tags %}
+
+{% comment %}
+<link href="/static/dynforms/awesome-bootstrap-checkbox.css" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/chosen.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="/static/dynforms/dynforms.css" type="text/css" media="screen" />
+
+<script src="/static/jquery/chosen.jquery.min.js"></script>
+<script src="/static/dynforms/jquery.form.js"></script>
+
+<script src="/static/js/bootstrap-datepicker.min.js"></script>
+<script src="/static/js/bootstrap-timepicker.min.js"></script>
+<script src="/static/js/bootstrap-datetimepicker.min.js"></script>
+
+<link rel="stylesheet" href="/static/css/datetimepicker.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="/static/css/datepicker.css" type="text/css" media="screen" />
+{% endcomment %}
+
+<script src="/static/jquery/jquery.min.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/jquery/chosen.jquery.min.js"></script>
+<script src="/static/jquery/jquery.form.min.js"></script>
+
+{% block form_assets %}
+{% endblock %}
+
+<!-- Modal -->
+<div class="modal fade" id="modalForm" tabindex="-1" role="dialog" aria-labelledby="Form" aria-hidden="true">
+    <div class="modal-dialog {% block modal_size %}modal-md{% endblock %}">
+        <div class="modal-content">
+            <div class="modal-header">
+
+                <h3 class="modal-title">
+                    {% block form_title %}{{ form.helper.title }}{% endblock %}
+                    <button type="button" class="close pull-right" data-dismiss="modal" aria-hidden="true">
+                        <i class="ti ti-close"></i></button>
+                </h3>
+            </div>
+            <div class="modal-body"  id="form-content">
+                {% block form_body %}{% crispy form form.helper %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block form_init %}
+<script type="text/javascript">
+function initForm() {
+	// If you overwrite this block you must implement this function with exact
+	// same name
+}
+</script>
+{% endblock %}
+{% block form_js %}
+<script type="text/javascript">
+function initModal() {
+    var myform = $('#modalForm');
+	myform.find(".chosen").chosen({
+		placeholder_text_single: "Select an option",
+		search_contains: true,
+		allow_single_deselect: true,
+        disable_search_threshold: 8
+	});
+    myform.find(".chosen").trigger("change");
+	myform.modal('show');
+	myform.find(':submit').click(function(e){
+		e.preventDefault();
+		$(this).html('<i class="fa fa-spinner fa-spin"></i>');
+		myform.find("form").ajaxSubmit({
+			type: 'post',
+			success: showResponse,
+			data : {'submit': $(this).attr('value')}
+		});
+	});
+
+	/*
+	//Date picker
+	myform.find('.dateinput').datepicker({
+		format: "yyyy-mm-dd",
+		autoclose: true,
+		todayHighlight: true,
+        clearBtn: true
+	});
+
+	//Date time picker
+	myform.find('.datetimeinput').datetimepicker({
+		format: "yyyy-mm-dd hh:ii",
+		autoclose: true,
+		todayHighlight: true,
+        minuteStep: 15,
+        clearBtn: true
+	});
+
+    //Time picker
+    myform.find('.timeinput').each(function(){
+        $(this).timepicker({
+            template: false,
+            minuteStep: $(this).data('minstep'),
+            showSeconds: false,
+            showMeridian: false,
+            defaultTime: false
+        });
+    });
+
+
+    myform.find('.shift_input').datepicker({
+		format: "yyyy-mm-dd",
+		autoclose: true,
+		todayHighlight: true,
+        orientation: "auto",
+        clearBtn: true
+	});
+
+    myform.on('keypress keydown keyup', '.dateinput, .datetimeinput, .shift_input', function(e) {
+        e.stopPropagation(); // Don't allow direct editing
+        return false;
+    });
+    */
+	// Enable popovers
+	myform.find("[data-toggle='popover']").popover({
+			container: 'body'
+	});
+
+	// enable tooltips
+	myform.find("[title]:not([data-toggle='popover'])").tooltip({
+    		container: 'body',
+    		viewport: {selector: 'body', padding: 5}
+    });
+
+    /*
+	// configure niceScrollers
+	myform.find(".scrollbox").niceScroll({
+        cursorborder: "3px solid transparent",
+        cursorwidth: "12px",
+        autohidemode: "leave",
+        cursoropacitymax: 0.7
+    });
+    myform.find(".scrollbox").scroll(function(){
+        $(this).getNiceScroll().resize()
+    });
+    */
+    // configure next urls
+    myform.find("a.next-url").each(function(){
+        var url = $(this).attr("href");
+        $(this).attr("href", url + '?next=' + window.location.href)
+    });
+
+	// load custom init
+	initForm();
+}
+function showResponse(response, statusText, xhr, $form) {
+	var newForm = $(response).find('.modal-content'); // Body of new form
+    console.log(newForm);
+    var myform = $("#modalForm");
+	myform.find("[title]:not([data-toggle='popover'])").tooltip('destroy');
+	if (newForm.length) {
+		myform.find(".modal-content").html(newForm.first().html());  // replace only content
+		initModal();
+	} else {
+	    console.log(response.pk);
+		if (response.pk != null) {
+			myform.attr('data-new-object-pk', response.pk);
+			myform.attr('data-new-object-name', response.name);
+		}
+		if (response.url != null){
+			if (response.target != null) {
+				$(response.target).load(response.url, function(){
+					myform.modal('hide');
+				});
+			} else if (response.url) {
+				window.location.replace(response.url);
+			} else {
+				window.location.reload();
+			}
+		} else {
+		    myform.modal('hide');
+		    window.location.reload();
+		}
+	}
+}
+{% if not form.errors %}
+	initModal();
+{% endif %}
+
+</script>
+{% endblock %}
+

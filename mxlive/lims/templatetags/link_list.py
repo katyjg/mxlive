@@ -1,7 +1,7 @@
 
 from django.template import Library
 
-from mxlive.staff.models import Link
+from staff.models import Link
 
 register = Library()
 

@@ -1,4 +1,3 @@
-
 from django.contrib import admin
 from django.contrib.admin.views import main
 from django.core.paginator import QuerySetPaginator, InvalidPage
@@ -11,13 +10,14 @@ from django.utils.translation import ugettext
 from django.utils.encoding import force_text
 from django.contrib.admin.options import IncorrectLookupParameters
 
-from mxlive.lims.admin import staff_site
+from lims.admin import staff_site
+
 
 class ObjectList(main.ChangeList):
     def __init__(self, request, manager, admin_site=None, num_show=None):
         # initialize variables
         if admin_site:
-            _model_admin = admin_site._registry[manager.model]           
+            _model_admin = admin_site._registry[manager.model]
         elif request.user.is_superuser:
             # use the staff AdminSite if available
             _model_admin = staff_site._registry.get(manager.model, admin.site._registry[manager.model])
@@ -41,7 +41,7 @@ class ObjectList(main.ChangeList):
         self.model_admin = _model_admin
         self.preserved_filters = self.model_admin.get_preserved_filters(request)
 
-        self.unsortable = getattr(_model_admin, 'unsortable', ())        
+        self.unsortable = getattr(_model_admin, 'unsortable', ())
         # remove action_checkbox from list_display
         if 'action_checkbox' in self.list_display:
             self.list_display.remove('action_checkbox')
@@ -53,7 +53,7 @@ class ObjectList(main.ChangeList):
         except ValueError:
             self.page_num = 1
         self.show_all = main.ALL_VAR in request.GET
-        self.is_popup = main._is_changelist_popup(request)
+        self.is_popup = False
         self.to_field = request.GET.get(main.TO_FIELD_VAR)
         self.params = dict(request.GET.items())
         if main.PAGE_VAR in self.params:
@@ -69,7 +69,7 @@ class ObjectList(main.ChangeList):
             self.list_editable = ()
         else:
             self.list_editable = self.model_admin.list_editable
-            
+
         self.query = request.GET.get(main.SEARCH_VAR, '')
         self.queryset = self.get_queryset(request)
         self.get_results(request)
@@ -113,8 +113,7 @@ class ObjectList(main.ChangeList):
         self.paginator = paginator
         self.header_list = list(self.get_headers())
         self.all_shown = self.manager.count() == self.paginator.count
-            
-        
+
     def get_headers(self):
 
         for i, field_name in enumerate(self.model_admin.list_display):
@@ -130,7 +129,7 @@ class ObjectList(main.ChangeList):
                 elif field_name == '__str__':
                     header = smart_str(self.opts.verbose_name)
                 else:
-                    attr = getattr(self.model, field_name) # Let AttributeErrors propagate.
+                    attr = getattr(self.model, field_name)  # Let AttributeErrors propagate.
                     try:
                         header = attr.short_description
                     except AttributeError:
@@ -142,8 +141,8 @@ class ObjectList(main.ChangeList):
                     yield {"text": header}
                     continue
 
-                # So this _is_ a sortable non-field.  Go to the yield
-                # after the else clause.
+                    # So this _is_ a sortable non-field.  Go to the yield
+                    # after the else clause.
             else:
                 if isinstance(f.rel, models.ManyToOneRel) and f.null:
                     yield {"text": f.verbose_name}
@@ -162,17 +161,18 @@ class ObjectList(main.ChangeList):
                    "sortable": not (field_name in self.unsortable),
                    "url": self.get_query_string({main.ORDER_VAR: i, main.ORDER_TYPE_VAR: new_order_type}),
                    "class_attrib": mark_safe(th_classes and ' class="%s"' % ' '.join(th_classes) or '')}
-    
+
+
 def list_objects(request, manager, template='objlist/object_list.html', link=True, can_add=True):
     """A generic view to display a list of objects retrieved through the Manager
     ``manager`` using the Template ``template``
-    
+
     Keyworded options:
         - ``link`` (boolean) specifies whether or not to link each item to it's detailed page.
-        - ``can_add`` (boolean) specifies whether or not new entries can be added on the list page.   
-    """ 
+        - ``can_add`` (boolean) specifies whether or not new entries can be added on the list page.
+    """
     ol = ObjectList(request, manager)
-    return render_to_response(template, {'ol': ol, 'link': link, 'can_add': can_add, 'handler' : request.path},
-        context_instance=RequestContext(request)
-    )
+    return render_to_response(template, {'ol': ol, 'link': link, 'can_add': can_add, 'handler': request.path},
+                              context_instance=RequestContext(request)
+                              )
 

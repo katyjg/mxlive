@@ -1,8 +1,8 @@
 
 from django.db.models import *
 from django.template import Library
-from mxlive.lims.models import Container, Experiment, Crystal
-from mxlive.staff.models import Runlist, Adaptor
+from lims.models import Container, Experiment, Crystal
+from staff.models import Runlist, Adaptor
 
 register = Library()
 

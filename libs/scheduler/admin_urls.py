@@ -1,10 +1,10 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
-from scheduler import views
-from scheduler import models
-from scheduler import forms
+import views
+import models
+import forms
 
-urlpatterns = patterns('',
+urlpatterns = [
     # staff calendar urls
     url(r'^admin/$', views.admin_scheduler, name='admin-thisweek'),
     url(r'^admin/(?P<day>\d{4}-\d{2}-\d{2})/$', views.admin_scheduler, name='admin-anyweek'),
@@ -36,4 +36,4 @@ urlpatterns = patterns('',
     url(r'^breakdown/(?P<start>\d{4}-\d{2}-\d{2})/(?P<end>\d{4}-\d{2}-\d{2})/$', 
         views.get_shift_breakdown, {'template': 'scheduler/shift_breakdown.html'},
         name='bl.breakdown.dates'),
-)
+]

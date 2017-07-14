@@ -24,7 +24,6 @@ RUN /bin/cp /mxlive/deploy/mxlive.conf /etc/httpd/conf.d/
 
 RUN /mxlive/manage.py collectstatic --noinput
 
-
 VOLUME ["/mxlive/local", "/users"]
 
 CMD ["/run-server.sh"]

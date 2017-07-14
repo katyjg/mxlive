@@ -3,9 +3,9 @@
 import json
 from django.http import HttpResponse, Http404
 from django.core import serializers, exceptions
-from mxlive.middleware import get_client_address
+from middleware import get_client_address
 from django.db.models import Q
-from mxlive.apikey.views import apikey_required
+from apikey.views import apikey_required
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import decimal

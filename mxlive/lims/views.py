@@ -1,47 +1,49 @@
-from datetime import timedelta
-from django.conf import settings
-from django.contrib import messages
-from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.core.urlresolvers import reverse
-from django.db import IntegrityError
-from django.db import transaction
-from django.http import Http404, HttpResponseRedirect, HttpResponse
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
-from django.template import loader
-from django.utils import dateformat, timezone
-from django.views.decorators.cache import cache_page
-from apikey.views import apikey_required
-from download.views import create_download_key, create_cache_dir, send_raw_file
-from .excel import LimsWorkbookExport
-from .models import *
-from objlist.views import ObjectList
+from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.shortcuts import render
+from django.utils import timezone
+from django.db.models import Q
+
+from objlist.views import FilteredListView
 from staff.models import *
-from django.utils.encoding import smart_str
 
-import shutil
-import subprocess
-import sys
-import tempfile
+from datetime import datetime, timedelta
 
-ACTIVITY_LOG_LENGTH = 6
+from django.contrib.messages.views import SuccessMessageMixin
+from django.views.generic import edit
+from django.views.generic import detail
+from django.core.urlresolvers import reverse_lazy
+from lims import forms, models
 
-
-def get_ldap_user_info(username):
+class AjaxableResponseMixin(object):
     """
-    Get the ldap record for user identified by 'username'.
+    Mixin to add AJAX support to a form.
+    Must be used with an object-based FormView (e.g. CreateView)
     """
+    def form_invalid(self, form):
+        response = super(AjaxableResponseMixin, self).form_invalid(form)
+        if self.request.is_ajax():
+            return JsonResponse(form.errors, status=400)
+        else:
+            return response
 
-    import ldap
-    l = ldap.initialize(settings.LDAP_SERVER_URI)
-    flt = settings.LDAP_SEARCH_FILTER % username
-    result = l.search_s(settings.LDAP_SEARCHDN,
-                        ldap.SCOPE_SUBTREE, flt)
-    if len(result) != 1:
-        raise ValueError("More than one entry found for 'username'")
-    return result[0]
+    def form_valid(self, form):
+        # We make sure to call the parent's form_valid() method because
+        # it might do some processing (in the case of CreateView, it will
+        # call form.save() for example).
+        response = super(AjaxableResponseMixin, self).form_valid(form)
+        if self.request.is_ajax():
+            print "ajax"
+            data = {
+                'pk': self.object.pk,
+            }
+            return JsonResponse(data)
+        else:
+            print "not ajax"
+            return response
 
 
 def admin_login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME):
@@ -58,177 +60,10 @@ def admin_login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME)
     return actual_decorator
 
 
-def create_project(user=None, username=None, fetcher=None):
-    if user is None:
-        # find out if we have a user by the same username in LDAP and create a new one.
-        if username is None:
-            raise ValueError('"username" must be provided if "user" is not given.')
-        userinfo = get_ldap_user_info(username)[1]
-        user = User(username=username, password=userinfo['userPassword'][0])
-        user.last_name = userinfo['cn'][0].split()[0]
-        user.first_name = userinfo['cn'][0].split()[-1]
-        user.save()
-
-    try:
-        project = user.get_profile()
-
-    except Project.DoesNotExist:
-        project = Project(user=user, name=user.username)
-        project.save()
-
-    return project
-
-
-def project_required(function):
-    """ Decorator that enforces the existence of a mxlive.users.models.Project """
-
-    def project_required_wrapper(request, *args, **kwargs):
-        try:
-            project = request.user.get_profile()
-            request.project = project
-            return function(request, *args, **kwargs)
-        except Project.DoesNotExist:
-            raise Http404
-
-    return project_required_wrapper
-
-
-def project_optional(function):
-    """ Decorator that enforces the existence of a mxlive.users.models.Project """
-
-    def project_optional_wrapper(request, *args, **kwargs):
-        try:
-            project = request.user.get_profile()
-            request.project = project
-            return function(request, *args, **kwargs)
-        except Project.DoesNotExist:
-            if not request.user.is_staff:
-                raise
-            project = None
-            request.project = project
-            return function(request, *args, **kwargs)
-
-    return project_optional_wrapper
-
-
-# True = Staff; False = Users
-MANAGER_FILTERS = {
-    (Shipment, True): {'status__in': [Shipment.STATES.SENT, Shipment.STATES.ON_SITE, Shipment.STATES.RETURNED],
-                       'pk__in': Shipment.objects.exclude(modified__lte=timezone.now() - timedelta(days=7),
-                                                          status__exact=Shipment.STATES.RETURNED).values('pk')},
-    (Shipment, False): {
-        'status__in': [Shipment.STATES.DRAFT, Shipment.STATES.SENT, Shipment.STATES.ON_SITE, Shipment.STATES.RETURNED]},
-    (Dewar, True): {'status__in': [Dewar.STATES.SENT, Dewar.STATES.ON_SITE, Dewar.STATES.RETURNED],
-                    'pk__in': Dewar.objects.exclude(modified__lte=timezone.now() - timedelta(days=7),
-                                                    status__exact=Dewar.STATES.RETURNED).values('pk')},
-    (Dewar, False): {
-        'status__in': [Dewar.STATES.DRAFT, Dewar.STATES.SENT, Dewar.STATES.ON_SITE, Dewar.STATES.RETURNED]},
-    (Container, True): {'status__in': [Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED,
-                                       Container.STATES.RETURNED],
-                        'pk__in': Container.objects.exclude(modified__lte=timezone.now() - timedelta(days=7),
-                                                            status__exact=Container.STATES.RETURNED).values('pk')},
-    (Container, False): {
-        'status__in': [Container.STATES.DRAFT, Container.STATES.SENT, Container.STATES.ON_SITE, Container.STATES.LOADED,
-                       Container.STATES.RETURNED]},
-    (Crystal, True): {
-        'status__in': [Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED, Crystal.STATES.RETURNED]},
-    (Crystal, False): {
-        'status__in': [Crystal.STATES.DRAFT, Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED,
-                       Crystal.STATES.RETURNED]},
-    (Experiment, True): {
-        'status__in': [Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING, Experiment.STATES.COMPLETE,
-                       Experiment.STATES.REVIEWED], 'pk__in': Crystal.objects.filter(
-            status__in=[Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).values('experiment')},
-    (Experiment, False): {
-        'status__in': [Experiment.STATES.DRAFT, Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING,
-                       Experiment.STATES.COMPLETE, Experiment.STATES.REVIEWED]},
-    (Data, True): {'status__in': [Data.STATES.ACTIVE, Data.STATES.ARCHIVED, Data.STATES.TRASHED]},
-    (Data, False): {'status__in': [Data.STATES.ACTIVE]},
-    (Result, True): {'status__in': [Result.STATES.ACTIVE, Result.STATES.ARCHIVED, Result.STATES.TRASHED]},
-    (Result, False): {'status__in': [Result.STATES.ACTIVE]},
-    (Runlist, True): {
-        'status__in': [Runlist.STATES.PENDING, Runlist.STATES.LOADED, Runlist.STATES.UNLOADED, Runlist.STATES.CLOSED]},
-}
-
-# models.Manager ordering is overridden by admin.ModelAdmin.ordering in the ObjectList
-# framework (when specified). Ensure that admin.py does not conflict with these settings.
-MANAGER_ORDER_BYS = {}
-
-
-def manager_required(function):
-    """ Decorator that enforces the existence of a model.Manager """
-
-    def manager_required_wrapper(request, *args, **kwargs):
-        tmp = []
-        for arg in args:
-            try:
-                if issubclass(arg, models.Model):
-                    tmp.append(arg)
-            except TypeError:
-                pass
-        if tmp:
-            model = tmp[0]
-        else:
-            model = kwargs['model']
-        manager = model.objects
-        request.project = None
-        if not request.user.is_superuser:
-            try:
-                project = request.user.get_profile()
-                request.project = project
-                if model != Project:
-                    manager = FilterManagerWrapper(manager, project__exact=project)
-                else:
-                    manager = FilterManagerWrapper(manager, pk__exact=project.pk)
-            except Project.DoesNotExist:
-                raise Http404
-        if model in [Data, Result] and not request.user.is_superuser:
-            manager = FilterManagerWrapper(manager, status__lte=Data.STATES.ARCHIVED)
-        if MANAGER_FILTERS.has_key((model, request.user.is_superuser)):
-            if request.user.is_superuser or not project.show_archives:
-                manager = FilterManagerWrapper(manager, **MANAGER_FILTERS[(model, request.user.is_superuser)])
-        if MANAGER_ORDER_BYS.has_key((model, request.user.is_superuser)):
-            manager = OrderByManagerWrapper(manager, *MANAGER_ORDER_BYS[(model, request.user.is_superuser)])
-        request.manager = manager
-        assert isinstance(request.manager, models.Manager)
-        return function(request, *args, **kwargs)
-
-    return manager_required_wrapper
-
-
-def project_assurance(function):
-    """ Decorator that creates a default mxlive.users.models.Project if there isn't one """
-
-    def project_assurance_wrapper(request, fetcher=None):
-        try:
-            request.user.get_profile()  # test for existence of the project
-        except Project.DoesNotExist:
-            request.project = create_project(request.user, fetcher=fetcher)
-        return function(request)
-
-    return project_assurance_wrapper
-
-
 @login_required
-def home(request):
-    """ The /home/ page selects and redirects the user to either
-      1. /users/ - for users
-      2. /staff/ - for staff
-    """
-    if request.user.is_superuser:
-        return HttpResponseRedirect(reverse('staff-home'))
-    else:
+def staff_home(request):
+    if not request.user.is_superuser:
         return HttpResponseRedirect(reverse('project-home'))
-
-
-@login_required
-@project_assurance
-@project_required
-def show_project(request):
-    project = request.project
-
-    # if user has logged in past week, show recent items in past week otherwise
-    # show recent items since last login.
 
     recent_start = timezone.now() - timedelta(days=7)
     last_login = ActivityLog.objects.last_login(request)
@@ -238,974 +73,382 @@ def show_project(request):
 
     statistics = {
         'shipments': {
-            'outgoing': project.shipment_set.filter(status__exact=Shipment.STATES.SENT).count(),
-            'incoming': project.shipment_set.filter(status__exact=Shipment.STATES.RETURNED).count(),
-            'on_site': project.shipment_set.filter(status__exact=Shipment.STATES.ON_SITE).count(),
-        },
-        'dewars': {
-            'outgoing': project.dewar_set.filter(status__exact=Dewar.STATES.SENT).count(),
-            'incoming': project.dewar_set.filter(status__exact=Dewar.STATES.RETURNED).count(),
-            'on_site': project.dewar_set.filter(status__exact=Dewar.STATES.ON_SITE).count(),
+            'outgoing': models.Shipment.objects.filter(status__exact=models.Shipment.STATES.SENT).count(),
+            'incoming': models.Shipment.objects.filter(modified__gte=recent_start).filter(
+                status__exact=models.Shipment.STATES.RETURNED).count(),
+            'on_site': models.Shipment.objects.filter(status__exact=models.Shipment.STATES.ON_SITE).count(),
         },
         'experiments': {
-            'active': project.experiment_set.filter(status__exact=Experiment.STATES.ACTIVE).filter(
+            'active': Experiment.objects.filter(status__exact=Experiment.STATES.ACTIVE).filter(
                 pk__in=Crystal.objects.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).values(
                     'experiment')).count(),
-            'processing': project.experiment_set.filter(status__exact=Experiment.STATES.PROCESSING).count(),
+            'processing': Experiment.objects.filter(status__exact=Experiment.STATES.PROCESSING).filter(
+                pk__in=Crystal.objects.filter(status__exact=Crystal.STATES.ON_SITE).values('experiment')).count(),
         },
         'crystals': {
-            'on_site': project.crystal_set.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).count(),
-            'outgoing': project.crystal_set.filter(status__exact=Crystal.STATES.SENT).count(),
-            'incoming': project.crystal_set.filter(status__exact=Crystal.STATES.RETURNED).count(),
+            'on_site': Crystal.objects.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).count(),
+            'outgoing': Crystal.objects.filter(status__exact=Crystal.STATES.SENT).count(),
+            'incoming': Crystal.objects.filter(modified__gte=recent_start).filter(
+                status__exact=Crystal.STATES.RETURNED).count(),
         },
-        'reports': {
-            'total': project.result_set.all().count(),
-            'new': project.result_set.filter(modified__gte=recent_start).filter(**project.get_archive_filter()).count(),
-            'start_date': recent_start,
-        },
-        'datasets': {
-            'total': project.data_set.all().count(),
-            'new': project.data_set.filter(modified__gte=recent_start).filter(**project.get_archive_filter()).count(),
-            'start_date': recent_start,
-        },
-        'scanresults': {
-            'total': project.scanresult_set.all().count(),
-            'new': project.scanresult_set.filter(modified__gte=recent_start).filter(
-                **project.get_archive_filter()).count(),
+        'runlists': {
+            'loaded': Runlist.objects.filter(status__exact=Runlist.STATES.LOADED).count(),
+            'completed': Runlist.objects.filter(status__exact=Runlist.STATES.COMPLETED,
+                                                modified__gte=recent_start).count(),
             'start_date': recent_start,
         },
     }
 
-    return render_to_response('users/project.html', {
-        'project': project,
+    return render(request, 'users/staff.html', {
+        #'activity_log': FilteredListView(request, ActivityLog.objects),
+        'feedback': models.Feedback.objects.all()[:5],
         'statistics': statistics,
-        'activity_log': ObjectList(request, project.activitylog_set),
         'handler': request.path,
-    },
-                              context_instance=RequestContext(request))
+    })
+
+class ProjectDetail(detail.DetailView):
+    model = models.Project
+    template_name = "users/project.html"
+    slug_field = 'username'
+    slug_url_kwarg = 'username'
+    allowed_roles = ['owner','admin']
+
+    def get_object(self, *args, **kwargs):
+        # inject username in to kwargs if not already present
+        if not self.kwargs.get('username'):
+            self.kwargs['username'] = self.request.user
+        return super(ProjectDetail, self).get_object(*args, **kwargs)
 
 
-@login_required
-@project_required
-@transaction.commit_on_success
-def upload_shipment(request, model, form, template='users/forms/form_base.html'):
-    """A generic view which displays a Form of type ``form`` using the Template
-    ``template`` and when submitted will create new data using the LimsWorkbook
-    class
-    """
-    project = request.project
-    object_type = model.__name__
-    form_info = {
-        'title': 'Upload %s' % object_type,
-        'action': request.path,
-        'add_another': False,
-        'save_label': 'Upload',
-        'enctype': 'multipart/form-data',
-    }
-    if request.method == 'POST':
-        frm = form(request.POST, request.FILES)
-        if frm.is_valid():
-            # saving valid data to the database can fail if duplicates are found. in this case
-            # we need to manually rollback the transaction and return a normal rendered form error
-            # to the user, rather than a 500 page
-            try:
-                frm.save(request)  # FIXME ShipmentUpload form.save does not return the model being saved!
-                message = "Shipment uploaded successfully.  Click 'Send' to alert CMCF staff of your shipment."
-                messages.info(request, message)
-                obj = Shipment.objects.filter(status__exact=0).get(name__exact=frm.get_shipment())
-                return render_to_response("users/iframe_refresh.html",
-                                          {'redirect_to': '/users/shipping/shipment/%s/' % obj.pk, },
-                                          context_instance=RequestContext(request))
-            except IntegrityError:
-                transaction.rollback()
-                frm.add_excel_error('This data has been uploaded already')
-                return render_to_response(template, {'form': frm, 'info': form_info},
-                                          context_instance=RequestContext(request))
-        else:
-            if frm.error_message():
-                frm.fields = {}
-                form_info['no_action'] = True
-                form_info[
-                    'message'] = 'Uh-oh!  Please fix the following errors with your spreadsheet, and then try again.'
-            return render_to_response(template, {'form': frm, 'info': form_info},
-                                      context_instance=RequestContext(request))
-    else:
-        frm = form(initial={'project': project})
-        return render_to_response(template, {'form': frm, 'info': form_info}, context_instance=RequestContext(request))
+class ListViewMixin(object):
+    paginate_by = 25
+    owner_field = 'project__username'
+    template_name = "users/list.html"
+    add_ajax = True
+
+    def get_filters(self, request):
+        if request.user.is_superuser:
+            self.list_display = ['project'] + self.list_display
+            self.owner_field = None
+        return super(ListViewMixin, self).get_filters(request)
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            self.owner_field = None
+        return super(ListViewMixin, self).get_queryset()
 
 
-@login_required
-@transaction.commit_on_success
-def add_existing_object(request, dest_id, obj_id, destination, obj, src_id=None, loc_id=None, source=None,
-                        replace=False, reverse=False):
-    """
-    New add method. Meant for AJAX, so only intended to be POST'd to. This will add an object of type 'object'
-    and id 'obj_id' to the object of type 'destination' with the id of 'dest_id'.
-    Replace means if the field already has an item in it, replace it, else fail
-    Reverse means, due to model layout, you are actually adding destination to object
-    """
-    object_type = destination.__name__
-    form_info = {
-        'title': 'Add Existing %s' % (object_type),
-        'sub_title': 'Select existing %ss to add to %s' % (object_type.lower(), obj),
-        'action': request.path,
-        'target': 'entry-scratchpad',
-    }
-    if request.method != 'POST':
-        raise Http404
+class ShipmentList(ListViewMixin, FilteredListView):
+    model = models.Shipment
+    list_filter = ['created','status']
+    list_display = ['identity','name', 'date_shipped', 'carrier', 'num_containers', 'status']
+    search_fields = ['project__name','name', 'comments','status']
+    detail_url = 'shipment-detail'
+    add_url = 'shipment-new'
+    order_by = ['status','-modified']
+    grid_template = "users/grids/shipment_grid.html"
 
-    if reverse:
-        # swap obj and destination
-        obj_id, dest_id = dest_id, obj_id
-        obj, destination = destination, obj
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            recent = timezone.now() - timedelta(days=3)
+            return super(ShipmentList, self).get_queryset().filter(Q(status__in=[models.Shipment.STATES.SENT,
+                                                                               models.Shipment.STATES.ON_SITE]) |
+                                                                   Q(status=models.Shipment.STATES.RETURNED, modified__gte=recent))
+        return super(ShipmentList, self).get_queryset()
 
-    model = destination;
-    manager = model.objects
-    request.project = None
-    if not request.user.is_superuser:
-        try:
-            project = request.user.get_profile()
-            request.project = project
-            manager = FilterManagerWrapper(manager, project__exact=project)
-        except Project.DoesNotExist:
-            raise Http404
+class ShipmentDetail(detail.DetailView):
+    model = models.Shipment
+    template_name = "users/entries/shipment.html"
+    allowed_roles = ['owner','admin']
+    admin_roles = ['admin']
 
-    model = obj
-    obj_manager = model.objects
-    request.project = None
-    if not request.user.is_superuser:
-        try:
-            project = request.user.get_profile()
-            request.project = project
-            obj_manager = FilterManagerWrapper(obj_manager, project__exact=project)
-        except Project.DoesNotExist:
-            raise Http404
+class ShipmentCreate(SuccessMessageMixin, LoginRequiredMixin, edit.CreateView):
+    form_class = forms.ShipmentForm
+    template_name = "forms/modal.html"
+    model = models.Shipment
+    success_url = reverse_lazy('shipment-list')
+    success_message = "Shipment has been created."
 
-            # get just the items we want
-    try:
-        dest = manager.get(pk=dest_id)
-        to_add = obj_manager.get(pk=obj_id)
-    except:
-        raise Http404
+    def get_initial(self):
+        initial = super(ShipmentCreate, self).get_initial()
+        initial.update(project=self.request.user)
+        return initial
 
-    # get the display name
-    display_name = to_add.name
-    if reverse:
-        display_name = dest.name
+class ShipmentEdit(SuccessMessageMixin, LoginRequiredMixin, AjaxableResponseMixin, edit.UpdateView):
+    form_class = forms.ShipmentForm
+    template_name = "forms/modal.html"
+    model = models.Shipment
+    success_url = reverse_lazy('shipment-list')
+    success_message = "Shipment '%(name)s' has been updated."
+    allowed_roles = ['owner', 'admin']
+    admin_roles = ['admin']
 
-    lookup_name = obj.__name__.lower()
-    if lookup_name == 'crystalform':
-        lookup_name = 'crystal_form'
+    def get_initial(self):
+        initial = super(ShipmentEdit, self).get_initial()
+        initial.update(project=self.request.user)
+        return initial
 
-    if dest.is_editable():
-        # if replace == True or dest.(obj.__name__.lower()) == None
-        try:
-            getattr(dest, lookup_name)
-            setattr(dest, lookup_name, to_add)
-        except AttributeError:
-            # attrib didn't exist, append 's' for many field
-            try:
-                current = getattr(dest, '%ss' % lookup_name)
-                # want destination.objects.add(to_add)
-                current.add(to_add)
-                # setattr(dest, '%ss' % obj.__name__.lower(), current_values)
-            except AttributeError:
-                message = '%s has not been added. No Field (tried %s and %s)' % (
-                display_name, lookup_name, '%ss' % lookup_name)
-                messages.info(request, message)
-                return render_to_response('users/refresh.html', context_instance=RequestContext(request))
+class ShipmentDelete(edit.DeleteView):
+    success_url = reverse_lazy('shipment-list')
+    template_name = "forms/delete.html"
+    allowed_roles = ['owner','admin']
+    model = models.Shipment
+    success_message = "Shipment has been deleted."
 
-        if loc_id:
-            setattr(dest, 'container_location', loc_id)
-        if ((destination.__name__ == 'Experiment' and obj.__name__ == 'Crystal') or (
-                destination.__name__ == 'Container' and obj.__name__ == 'Dewar')):
-            for exp in dest.get_experiment_list():
-                if exp:
-                    exp.priority = 0
-                    exp.save()
+class SendShipment(ShipmentEdit):
+    form_class = forms.ShipmentSendForm
+    success_url = reverse_lazy('shipment-list')
 
-        dest.save()
-        message = '%s (%s) added' % (dest.__class__._meta.verbose_name, display_name)
-        ActivityLog.objects.log_activity(request, dest, ActivityLog.TYPE.MODIFY,
-                                         '%s added to %s (%s)' % (
-                                         dest._meta.verbose_name, to_add._meta.verbose_name, to_add))
-    else:
-        message = '%s has not been added, as %s is not editable' % (display_name, dest.name)
-
-    messages.info(request, message)
-    return render_to_response('users/refresh.html', {
-        'info': form_info,
-    }, context_instance=RequestContext(request))
-
-
-@login_required
-@manager_required
-def object_detail(request, id, model, template):
-    """
-    A generic view which displays a detailed page for an object of type ``model``
-    identified by the primary key ``id`` using the template ``template``. 
-    """
-    try:
-        obj = request.manager.get(pk=id)
-        project = Project.objects.filter(pk=request.GET.get('project')).first()
-    except:
-        raise Http404
-    cnt_type = ContentType.objects.get_for_model(obj)
-    history = ActivityLog.objects.filter(content_type__pk=cnt_type.id, object_id=obj.id)
-
-    # determine if there is a list url for this model and pass it in as list_url
-    if request.user.is_staff:
-        url_prefix = 'staff'
-    else:
-        url_prefix = 'users'
-    url_name = "%s-%s-list" % (url_prefix, model.__name__.lower())
-    try:
-        list_url = (model == Runlist and reverse(url_name) + '?status__lte=4') or reverse(url_name)
-    except:
-        list_url = None
-    return render_to_response(template, {
-        'object': obj,
-        'project': project,
-        'history': history[:ACTIVITY_LOG_LENGTH],
-        'handler': request.path,
-        'list_url': list_url,
-    }, context_instance=RequestContext(request))
-
-
-@login_required
-@project_optional
-@transaction.commit_on_success
-def create_object(request, model, form, id=None, template='users/forms/new_base.html', action=None, redirect=None,
-                  modal_upload=False):
-    """
-    A generic view which displays a Form of type ``form`` using the Template
-    ``template`` and when submitted will create a new object of type ``model``.
-    """
-    if request.project:
-        project = request.project
-        project_pk = project.pk
-    else:
-        project = None
-        project_pk = None
-    object_type = model._meta.verbose_name
-
-    form_info = {
-        'title': 'New %s' % object_type,
-        'action': request.path,
-        'add_another': True,  # does not work right now
-    }
-    if modal_upload:
-        form_info['enctype'] = 'multipart/form-data'
-
-    if request.method == 'POST':
-        frm = form(request.POST, request.FILES)
-        frm.restrict_by('project', project_pk)
-        if frm.is_valid():
-            new_obj = frm.save()
-            info_msg = 'New %(name)s (%(obj)s) added' % {'name': smart_str(model._meta.verbose_name),
-                                                         'obj': smart_str(new_obj)}
-            ActivityLog.objects.log_activity(request, new_obj, ActivityLog.TYPE.CREATE,
-                                             'new %s added' % (smart_str(model._meta.verbose_name),))
-            messages.info(request, info_msg)
-            if request.POST.has_key('_addanother'):
-                initial = {'project': project_pk}
-                initial.update(dict(request.GET.items()))
-                frm = form(initial=initial)
-                frm.restrict_by('project', project_pk)
-                return render_to_response(template, {
-                    'info': form_info,
-                    'form': frm,
-                }, context_instance=RequestContext(request))
-            else:
-                if modal_upload:
-                    return render_to_response("users/iframe_refresh.html", context_instance=RequestContext(request))
-                # messages are simply passed down to the template via the request context
-                return render_to_response("users/redirect.html", context_instance=RequestContext(request))
-        else:
-            return render_to_response(template, {
-                'info': form_info,
-                'form': frm,
-            }, context_instance=RequestContext(request))
-    else:
-        if project:
-            initial = {'project': project_pk}
-            if id:
-                initial['shipment'] = id
-            initial.update(dict(request.GET.items()))
-            frm = form(initial=initial)
-        else:
-            frm = form(initial=None)
-
-        frm.restrict_by('project', project_pk)
-        if request.GET.has_key('clone'):
-            clone_id = request.GET['clone']
-            try:
-                manager = getattr(project, model.__name__.lower() + '_set')
-                clone_obj = manager.get(pk=clone_id)
-            except:
-                info_msg = 'Could not clone %(name)s!' % {'name': smart_str(model._meta.verbose_name)}
-                messages.info(request, info_msg)
-            else:
-                for name, field in frm.fields.items():
-                    val = getattr(clone_obj, name)
-                    if hasattr(val, 'pk'):
-                        val = getattr(val, 'pk')
-                    elif hasattr(val, 'all'):
-                        val = [o.pk for o in val.all()]
-                    field.initial = val
-        return render_to_response(template, {
-            'info': form_info,
-            'form': frm,
-        }, context_instance=RequestContext(request))
-
-
-@login_required
-@manager_required
-def object_list(request, model, template='objlist/object_list.html', link=False, modal_link=False, modal_edit=False,
-                modal_upload=False, delete_inline=False, can_add=False, can_prioritize=False, num_show=None,
-                view_only=False):
-    """
-    A generic view which displays a list of objects of type ``model`` owned by
-    the current users project. The list is displayed using the template
-    `template`. 
-    
-    Keyworded options:
-        - ``link`` (boolean) specifies whether or not to link each item to it's detailed page.
-        - ``can_add`` (boolean) specifies whether or not new entries can be added on the list page.   
-        - 
-    """
-    log_set = [
-        ContentType.objects.get_for_model(model).pk,
-    ]
-    ol = ObjectList(request, request.manager, num_show=num_show)
-    if not request.user.is_superuser:
-        project = request.user.get_profile()
-        logs = project.activitylog_set.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]
-    else:
-        logs = ActivityLog.objects.filter(content_type__in=log_set)[:ACTIVITY_LOG_LENGTH]
-    return render_to_response(template, {'ol': ol,
-                                         'link': link,
-                                         'modal_link': modal_link,
-                                         'modal_edit': modal_edit,
-                                         'modal_upload': modal_upload,
-                                         'delete_inline': delete_inline,
-                                         'can_add': can_add,
-                                         'can_prioritize': can_prioritize,
-                                         'viewonly': view_only,
-                                         'handler': request.path,
-                                         'logs': logs},
-                              context_instance=RequestContext(request)
-                              )
-
-
-@login_required
-@manager_required
-def basic_object_list(request, model, template='objlist/basic_object_list.html'):
-    """
-    Request a basic list of objects for which the orphan field specified as a GET parameter is null.
-    The template this uses will be rendered in the sidebar controls.
-    """
-    ol = {}
-    if request.GET.get('orphan_field', None) is not None:
-        params = {'%s__isnull' % str(request.GET['orphan_field']): True}
-        objects = request.manager.filter(**params)
-    else:
-        objects = request.manager.all()
-    ol['object_list'] = objects
-    handler = request.path
-    # if path has /basic on it, remove that. 
-    if 'basic' in handler:
-        handler = handler[0:-6]
-    return render_to_response(template, {'ol': ol, 'type': model.__name__.lower(), 'handler': handler},
-                              context_instance=RequestContext(request))
-
-
-@login_required
-@transaction.commit_on_success
-def priority(request, id, model, field):
-    _priorities_changed = False
-    if request.method == 'POST':
-        pks = map(int, request.POST.getlist('id_list[]'))
-        for obj in model.objects.filter(pk__in=pks).all():
-            new_priority = pks.index(obj.pk) + 1
-            if obj.priority != new_priority:
-                obj.priority = new_priority
-                obj.save()
-                _priorities_changed = True
-    if _priorities_changed:
-        messages.info(request, "%s priority updated" % model.__name__)
-    return render_to_response('users/refresh.html', context_instance=RequestContext(request))
-
-
-@login_required
-@transaction.commit_on_success
-def edit_profile(request, form, id=None, template='objforms/form_base.html', action_url=None):
-    """
-    View for editing user profiles
-    """
-    if request.GET.get('warning', None) == 'label':
-        form.warning_message = "We don't have your address on file yet.  Please update your profile information before printing off shipping labels."
-    else:
-        form.warning_message = None
-    try:
-        model = Project
-        obj = request.user.get_profile()
-        request.project = obj
-        request.manager = Project.objects
-    except:
-        raise Http404
-    if id: action_url = '/users/shipping/shipment/%s/send/' % id
-    return edit_object_inline(request, obj.pk, model=model, form=form, template=template, action_url=action_url)
-
-
-@login_required
-@manager_required
-@transaction.commit_on_success
-def edit_object_inline(request, id, model, form, template='objforms/form_base.html', modal_upload=False,
-                       action_url=None):
-    """
-    A generic view which displays a form of type ``form`` using the template 
-    ``template``, for editing an object of type ``model``, identified by primary 
-    key ``id``, which when submitted will update the entry asynchronously through
-    AJAX.
-    """
-    if request.project:
-        project = request.project
-        project_pk = project.pk
-    else:
-        project = None
-        project_pk = None
-
-    try:
-        obj = request.manager.get(pk=id)
-    except:
-        raise Http404
-
-    if not obj.is_editable():
-        raise Http404
-
-    form_info = {
-        'title': request.GET.get('title', 'Edit %s' % model._meta.verbose_name),
-        'sub_title': obj.identity(),
-        'action': request.path,
-        'target': 'entry-scratchpad',
-        'save_label': 'Save'
-    }
-
-    if modal_upload:
-        form_info['enctype'] = 'multipart/form-data'
-
-    if request.method == 'POST':
-        frm = form(request.POST, instance=obj)
-        frm.restrict_by('project', project_pk)
-        if frm.is_valid():
-            form_info['message'] = '%s (%s) modified' % (model._meta.verbose_name, obj)
-            frm.save()
-            messages.info(request, form_info['message'])
-
-            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY,
-                                             '%s edited' % (model._meta.verbose_name,))
-            if modal_upload:
-                return render_to_response("users/iframe_refresh.html", context_instance=RequestContext(request))
-            if action_url:
-                return HttpResponseRedirect(action_url)
-            return render_to_response('users/redirect.html', context_instance=RequestContext(request))
-        else:
-            return render_to_response(template, {
-                'info': form_info,
-                'form': frm,
-            }, context_instance=RequestContext(request))
-    else:
-        frm = form(instance=obj,
-                   initial=dict(request.GET.items()))  # casting to a dict pulls out first list item in each value list
-        frm.restrict_by('project', project_pk)
-        return render_to_response(template, {
-            'info': form_info,
-            'form': frm,
-        }, context_instance=RequestContext(request))
-
-
-@login_required
-@transaction.commit_on_success
-def staff_comments(request, id, model, form, template='objforms/form_base.html', user='staff'):
-    try:
-        obj = model.objects.get(pk=id)
-    except:
-        raise Http404
-
-    form_info = {
-        'title': 'Add a note to this %s' % model._meta.verbose_name,
-        'sub_title': obj.identity(),
-        'action': request.path,
-        'target': 'entry-scratchpad',
-        'save_label': 'Save'
-    }
-    if request.method == 'POST':
-        frm = form(request.POST, instance=obj)
-        try:
-            base_comments = obj.comments or ''
-        except:
-            base_comments = ''
-        if frm.is_valid():
-            if user == 'staff':
-                author = ' by staff'
-            elif user == 'user' and request.POST.get('comments', None):
-                author = ''
-                obj.comments = base_comments + '\n\n%s - %s' % \
-                                               (dateformat.format(timezone.now(), 'Y-m-d P'),
-                                                request.POST.get('comments'))
+    def form_valid(self, form):
+        obj = form.instance
+        if form.instance.status == models.Shipment.STATES.DRAFT:
+            obj.status = models.Shipment.STATES.SENT
+            obj.date_shipped = datetime.now()
             obj.save()
-            form_info['message'] = 'comments added to %s (%s)%s' % (model._meta.verbose_name, obj, author)
-            messages.info(request, form_info['message'])
-            ActivityLog.objects.log_activity(request, obj, ActivityLog.TYPE.MODIFY,
-                                             'comments added to %s%s' % (model._meta.verbose_name, author))
-            return render_to_response('users/redirect.html', context_instance=RequestContext(request))
-        else:
-            return render_to_response(template, {
-                'info': form_info,
-                'form': frm,
-            }, context_instance=RequestContext(request))
-    else:
-        frm = form(initial=dict(request.GET.items()), instance=obj)
-        return render_to_response(template, {
-            'info': form_info,
-            'form': frm,
-        }, context_instance=RequestContext(request))
+        return super(SendShipment, self).form_valid(form)
+
+class ReturnShipment(ShipmentEdit):
+    form_class = forms.ShipmentReturnForm
+    success_url = reverse_lazy('shipment-list')
+
+    def form_valid(self, form):
+        obj = form.instance
+        if form.instance.status == models.Shipment.STATES.ON_SITE:
+            obj.status = models.Shipment.STATES.RETURNED
+            obj.date_returned = datetime.now()
+            obj.save()
+        return super(ReturnShipment, self).form_valid(form)
+
+class ArchiveShipment(ShipmentEdit):
+    form_class = forms.ShipmentArchiveForm
+    success_url = reverse_lazy('shipment-list')
+
+    def form_valid(self, form):
+        obj = form.instance
+        obj.archive()
+
+class ReceiveShipment(ShipmentEdit):
+    form_class = forms.ShipmentReceiveForm
+    success_url = reverse_lazy('shipment-list')
+
+    def form_valid(self, form):
+        obj = form.instance
+        obj.date_received = datetime.now()
+        obj.save()
+        obj.receive()
+        return super(ReceiveShipment, self).form_valid(form)
 
 
-@login_required
-@transaction.commit_on_success
-def remove_object(request, src_id, obj_id, source, obj, dest_id=None, destination=None, reverse=False):
-    """
-    New way to remove objects. Expected to be called via AJAX. By default removes object with id obj_id 
-    from source with src_id. 
-    reverse instead removes source from object. 
-    """
-    if request.method != 'POST':
-        raise Http404
+class ContainerList(ListViewMixin, FilteredListView):
+    model = models.Container
+    list_filter = ['modified','kind','status']
+    list_display = ['identity', 'name', 'shipment', 'kind', 'capacity', 'num_crystals', 'status']
+    search_fields = ['project__name','name', 'comments']
+    detail_url = 'container-detail'
+    add_url = 'container-new'
+    order_by = ['-created']
+    ordering_proxies = {}
+    list_transforms = {}
 
-    if reverse:
-        # swap obj and destination
-        obj_id, src_id = src_id, obj_id
-        obj, source = source, obj
+class ContainerWidget(ContainerList):
+    template_name="users/entries/container_widget.html"
 
-    model = source;
-    manager = model.objects
-    request.project = None
-    if not request.user.is_superuser:
-        try:
-            project = request.user.get_profile()
-            request.project = project
-            manager = FilterManagerWrapper(manager, project__exact=project)
-        except Project.DoesNotExist:
-            raise Http404
+    def get_queryset(self):
+        return super(ContainerWidget, self).get_queryset().filter(shipment__isnull=True)
 
-    form_info = {
-        'title': request.GET.get('title', 'Remove %s' % model.__name__),
-        'sub_title': obj_id,
-        'action': request.path,
-        'target': 'entry-scratchpad'
-    }
+# def basic_object_list(request, model, template='objlist/basic_object_list.html'):
+#     """
+#     Request a basic list of objects for which the orphan field specified as a GET parameter is null.
+#     The template this uses will be rendered in the sidebar controls.
+#     """
+#     ol = {}
+#     if request.GET.get('orphan_field', None) is not None:
+#         params = {'%s__isnull' % str(request.GET['orphan_field']): True}
+#         objects = request.manager.filter(**params)
+#     else:
+#         objects = request.manager.all()
+#     ol['object_list'] = objects
+#     handler = request.path
+#     # if path has /basic on it, remove that.
+#     if 'basic' in handler:
+#         handler = handler[0:-6]
+#     return render_to_response(template, {'ol': ol, 'type': model.__name__.lower(), 'handler': handler},
+#                               context_instance=RequestContext(request))
 
-    model = obj
-    obj_manager = model.objects
-    request.project = None
-    if not request.user.is_superuser:
-        try:
-            project = request.user.get_profile()
-            request.project = project
-            obj_manager = FilterManagerWrapper(obj_manager, project__exact=project)
-        except Project.DoesNotExist:
-            raise Http404
+class ContainerDetail(detail.DetailView):
+    model = models.Container
+    template_name = "users/entries/container.html"
+    allowed_roles = ['owner','admin']
+    admin_roles = ['admin']
 
-    # get just the items we want
-    src = manager.get(pk=src_id)
-    to_remove = obj_manager.get(pk=obj_id)
-    # get the display name
-    display_name = to_remove.name
-    if reverse:
-        display_name = src.name
+class ContainerCreate(SuccessMessageMixin, LoginRequiredMixin, AjaxableResponseMixin, edit.CreateView):
+    form_class = forms.ContainerForm
+    template_name = "forms/modal.html"
+    model = models.Container
+    success_url = reverse_lazy('container-list')
+    success_message = "Container '%(name)s' has been created."
 
-    if src.is_editable():
-        # if replace == True or dest.(obj.__name__.lower()) == None
-        try:
-            getattr(src, obj.__name__.lower())
-            setattr(src, obj.__name__.lower(), None)
-            if obj.__name__.lower() == "container":
-                setattr(src, "container_location", None)
-        except AttributeError:
-            # attrib didn't exist, append 's' for many field
-            try:
-                current = getattr(src, '%ss' % obj.__name__.lower())
-                # want destination.objects.add(to_add)
-                current.remove(to_remove)
-                if src.__class__.__name__.lower() == "runlist":
-                    src.remove_container(to_remove)
-                    # setattr(dest, '%ss' % obj.__name__.lower(), current_values)
-            except AttributeError:
-                message = '%s has not been removed. No Field (tried %s and %s)' % (
-                display_name, obj.__name__.lower(), '%ss' % obj.__name__.lower())
-                messages.info(request, message)
-                return render_to_response('users/refresh.html', context_instance=RequestContext(request))
+    def get_initial(self):
+        initial = super(ContainerCreate, self).get_initial()
+        initial.update(project=self.request.user)
+        return initial
 
-        src.save()
-        message = '%s removed from %s' % (src, to_remove)
-        ActivityLog.objects.log_activity(request, src, ActivityLog.TYPE.MODIFY,
-                                         '%s removed from %s' % (src._meta.verbose_name, to_remove._meta.verbose_name))
+class ContainerEdit(SuccessMessageMixin, LoginRequiredMixin, AjaxableResponseMixin, edit.UpdateView):
+    form_class = forms.ContainerForm
+    template_name = "forms/modal.html"
+    model = models.Container
+    success_message = "Container has been updated."
+    allowed_roles = ['owner', 'admin']
+    admin_roles = ['admin']
 
-    else:
-        message = '%s has not been removed, as %s is not editable' % (display_name, src.name)
+    def get_initial(self):
+        initial = super(ContainerEdit, self).get_initial()
+        initial.update(project=self.request.user)
+        print 'hi', initial
+        return initial
 
-    messages.info(request, message)
+    def form_valid(self, form):
+        print self.cleaned_data
+        return super(ContainerEdit, self).form_valid(form)
 
-    return render_to_response('users/refresh.html', {
-        'info': form_info,
-    }, context_instance=RequestContext(request))
+    def form_invalid(self, form):
+        print 'hey'
+        print form.errors
+        return super(ContainerEdit, self).form_invalid(form)
 
-
-@login_required
-@manager_required
-@transaction.commit_on_success
-def delete_object(request, id, model, form, template='objforms/form_base.html'):
-    """
-    A generic view which displays a form of type ``form`` using the template 
-    ``template``, for deleting an object of type ``model``, identified by primary 
-    key ``id``, which when submitted will delete the entry asynchronously through
-    AJAX.
-    """
-    if request.project:
-        project = request.project
-        project_pk = project.pk
-    else:
-        project = None
-        project_pk = None
-
-    try:
-        obj = request.manager.get(pk=id)
-    except:
-        raise Http404
-
-    if not obj.is_deletable():
-        raise Http404
-
-    form_info = {
-        'title': 'Delete %s?' % obj.__unicode__(),
-        'sub_title': 'The %s (%s) will be deleted' % (model._meta.verbose_name, obj.__unicode__()),
-        'action': request.path,
-        'message': 'Are you sure you want to delete %s "%s"?' % (
-            model.__name__, obj.__unicode__()
-        ),
-        'save_label': 'Delete'
-    }
-    if request.method == 'POST':
-        frm = form(request.POST)
-        frm.restrict_by('project', project_pk)
-        if request.POST.has_key('_save'):
-            form_info['message'] = '%s (%s) deleted' % (model._meta.verbose_name, obj)
-            cascade = False
-            if request.POST.get('cascade'):
-                cascade = True
-            obj.delete(request=request, cascade=cascade)
-            messages.info(request, form_info['message'])
-
-            # prepare url to redirect after delete. Always return to list
-            # Since this view is called from Ajax, the client has to interpret the
-            # redirect message and act accordingly
-            # example: JSON {"url" : "/path/to/redirect/to"}
-
-            if request.user.is_staff:
-                url_prefix = 'staff'
-            else:
-                url_prefix = 'users'
-            url_name = "%s-%s-list" % (url_prefix, model.__name__.lower())
-            try:
-                redirect = reverse(url_name)
-            except:
-                redirect = request.META['HTTP_REFERER']
-            return render_to_response("users/redirect.json", {
-                'redirect_to': redirect,
-            }, context_instance=RequestContext(request), mimetype="application/json")
-        else:
-            return render_to_response(template, {
-                'info': form_info,
-                'form': frm,
-            }, context_instance=RequestContext(request))
-    else:
-        frm = form(initial=None)
-        if 'cascade' in frm.fields:
-            frm.fields['cascade'].label = 'Delete all %s associated with this %s.' % (
-            obj.HELP.get('cascade', 'objects'), model.__name__.lower())
-            frm.fields['cascade'].help_text = 'If this box is left unchecked, only the %s will be deleted. %s' % (
-            model.__name__.lower(), obj.HELP.get('cascade_help', ''))
-        frm.restrict_by('project', project_pk)
-        return render_to_response(template, {
-            'info': form_info,
-            'form': frm,
-            'save_label': 'Delete',
-        }, context_instance=RequestContext(request))
-
-
-@login_required
-@project_optional
-@transaction.commit_on_success
-def action_object(request, id, model, form, template="objforms/form_base.html", action=None):
-    """
-    A generic view which displays a confirmation form and if confirmed, will
-    archive the object of type ``model`` identified by primary key ``id``.
+class ContainerDelete(edit.DeleteView):
+    success_url = reverse_lazy('container-list')
+    template_name = "forms/delete.html"
+    allowed_roles = ['owner','admin']
+    model = models.Container
+    success_message = "Container has been deleted."
     
-    If supplied, all instances of ``cascade_models`` (which is a list of tuples 
-    of (Model, fk_field)) with a ForeignKey referencing ``model``/``id`` will also
-    be archived.
-    """
-    if request.project:
-        project = request.project
-        project_pk = project.pk
-    else:
-        project = None
-        project_pk = None
-    try:
-        obj = model.objects.get(pk=id)
-    except:
-        raise Http404
+class CrystalList(ListViewMixin, FilteredListView):
+    model = models.Crystal
+    list_filter = ['modified','status']
+    list_display = ['identity', 'name', '_Cocktail', '_Crystal_form', 'comments', '_Container', 'container_location', 'status']
+    search_fields = ['project__name','name', 'barcode', 'comments', 'crystal_form__name', 'cocktail__name']
+    detail_url = 'crystal-detail'
+    add_url = 'crystal-new'
+    order_by = ['-created', '-priority']
+    ordering_proxies = {}
+    list_transforms = {}
 
-    save_label = None
-    save_labeled = None
-    if action:
-        save_label = action[0].upper() + action[1:]
-        if save_label[-1:] == 'e':
-            save_labeled = '%sd' % save_label
-        elif save_label[-1:] == 'd':
-            save_labeled = '%st' % save_label[:-1]
-        else:
-            save_labeled = '%sed' % save_label
+class CrystalDetail(detail.DetailView):
+    model = models.Crystal
+    template_name = "users/entries/crystal.html"
+    allowed_roles = ['owner','admin']
+    admin_roles = ['admin']
 
-    initial = {}
-    form_info = {
-        'title': '%s %s?' % (save_label, obj.__unicode__()),
-        'sub_title': 'The %s %s will be %s' % (model.__name__, obj.__unicode__(), save_labeled),
-        'action': request.path,
-        'target': 'entry-scratchpad',
-        'save_label': save_label
-    }
-    if action == 'archive' and obj.is_closable():
-        form_info['message'] = 'Are you sure you want to archive %s "%s"?  ' % (model.__name__, obj.__unicode__())
-    elif action == 'send' and obj.is_sendable():
-        dewars = obj.dewar_set.all()
-        containers = project.container_set.filter(dewar__in=dewars)
-        conts = ['%d %s%s' % (containers.filter(kind=num).count(), kind, containers.filter(kind=num) > 1 and 's' or '')
-                 for num, kind in Container.TYPE if containers.filter(kind=num).count()]
-        num_crystals = project.crystal_set.filter(container__pk__in=containers).count()
-        form_info['sub_title'] = ''
-        form_info['message'] = '%d Crystals are being sent in %s (%d Dewar%s).' % \
-                               (num_crystals, ', '.join(conts), dewars.count(), dewars.count() > 1 and 's' or '')
-        if project:
-            if project.carrier: initial['carrier'] = Carrier.objects.get(pk=project.carrier.pk)
-            form_info['update_profile'] = True
-            if project.address and project.city and project.province and project.country and project.postal_code:
-                msg = '<strong>Return samples to:</strong><small>\n%s\n%s%s\n%s\n%s, %s %s\n%s\nPhone: %s\n%s</small>' % (
-                project.contact_person,
-                project.department and '%s\n' % project.department or '', project.organisation,
-                project.address, project.city, project.province, project.postal_code, project.country,
-                project.contact_phone, project.contact_fax and "Fax: %s" % project.contact_fax or '')
-                form.warning_message = msg
-                form.error_message = ''
-            else:
-                form.warning_message = ''
-                form.error_message = [
-                    "The address we have for your lab is incomplete. Update your profile for return shipping."]
-    elif action == 'load' and obj.is_loadable():
-        pass
-    elif action == 'unload' and obj.is_unloadable():
-        pass
-    elif action == 'return' and obj.is_returnable():
-        pass
-    elif action == 'trash' and obj.is_trashable():
-        form_info['message'] = 'Are you sure you want to trash %s "%s"?  ' % (
-        model._meta.verbose_name, obj.__unicode__())
-    else:
-        raise Http404
+class CrystalCreate(SuccessMessageMixin, LoginRequiredMixin, AjaxableResponseMixin, edit.CreateView):
+    form_class = forms.CrystalForm
+    template_name = "forms/modal.html"
+    model = models.Crystal
+    success_url = reverse_lazy('crystal-list')
+    success_message = "Crystal '%(name)s' has been created."
 
-    if request.method == 'POST':
-        if request.POST.has_key('_updateprofile'):
-            return HttpResponseRedirect('/users/profile/edit/%s/' % obj.pk)
-        frm = form(request.POST, instance=obj)
-        frm.restrict_by('project', project_pk)
-        if frm.is_valid():
-            form_info['message'] = '%s (%s) modified' % (model._meta.verbose_name, obj)
-            frm.save()
-            # if an action ('send', 'close') is specified, the perform the action
-            if action:
-                if action == 'send': obj.send(request=request)
-                if action == 'load': obj.load(request=request)
-                if action == 'unload': obj.unload(request=request)
-                if action == 'return': obj.returned(request=request)
-                if action == 'archive':
-                    obj.archive(request=request)
-                    if not obj.project.show_archives and model.__name__ is not 'Data':
-                        messages.info(request, form_info['message'])
-                        url_name = "users-%s-list" % (model.__name__.lower())
-                        return render_to_response("users/redirect.json", {'redirect_to': reverse(url_name), },
-                                                  context_instance=RequestContext(request), mimetype="application/json")
-                if action == 'trash':
-                    obj.trash(request=request)
-                    if model.__name__ is not 'Data':
-                        messages.info(request, form_info['message'])
-                        url_name = "users-%s-list" % (model.__name__.lower())
-                        return render_to_response("users/redirect.json", {'redirect_to': reverse(url_name), },
-                                                  context_instance=RequestContext(request), mimetype="application/json")
-            return render_to_response('users/redirect.html', context_instance=RequestContext(request))
-        else:
-            return render_to_response('users/refresh.html', context_instance=RequestContext(request))
-    else:
-        frm = form(instance=obj, initial=initial)
-        frm.restrict_by('project', project_pk)
-        if action == 'archive':
-            frm.help_text = 'You can access archived objects by editing \n your profile and selecting "Show Archives" '
-        return render_to_response(template, {
-            'info': form_info,
-            'form': frm,
-            'save_label': 'Archive',
-        }, context_instance=RequestContext(request))
+    def get_initial(self):
+        initial = super(CrystalCreate, self).get_initial()
+        initial.update(project=self.request.user.project)
+        return initial
 
+class CrystalEdit(edit.UpdateView):
+    form_class = forms.CrystalForm
+    template_name = "forms/modal.html"
+    model = models.Crystal
+    success_message = "Crystal has been updated."
+    allowed_roles = ['owner', 'admin']
+    admin_roles = ['admin']
 
-@login_required
-@manager_required
-def shipment_pdf(request, id, model, format):
-    """ """
-    admin_project = Project.objects.filter(user__is_superuser=True).first()
-    if model != Project:
-        try:
-            obj = model.objects.get(pk=id)
-        except:
-            raise Http404
-    else:
-        obj = Project.objects.get(pk=id)
+class CrystalDelete(edit.DeleteView):
+    success_url = reverse_lazy('crystal-list')
+    template_name = "forms/delete.html"
+    allowed_roles = ['owner','admin']
+    model = models.Crystal
+    success_message = "Crystal has been deleted."
 
-    if format == 'protocol':
-        containers = obj.project.container_set.filter(dewar__in=obj.dewar_set.all())
-        all_experiments = obj.project.experiment_set.filter(
-            pk__in=obj.project.crystal_set.filter(container__dewar__shipment__exact=obj.pk).values('experiment'))
-        experiments = list(all_experiments.filter(priority__gte=1).order_by('priority')) + list(
-            all_experiments.exclude(priority__gte=1))
-        group = None
-        num_crystals = obj.project.crystal_set.filter(container__pk__in=containers).count()
+class ExperimentList(ListViewMixin, FilteredListView):
+    model = models.Experiment
+    list_filter = ['modified','status']
+    list_display = ['identity','name','kind','plan','num_crystals','status']
+    search_fields = ['project__name','comments','name']
+    detail_url = 'experiment-detail'
+    add_url = 'experiment-new'
+    order_by = ['-modified', '-priority']
+    ordering_proxies = {}
+    list_transforms = {}
 
-    if format == 'runlist':
-        containers = obj.containers.all()
-        experiments = Experiment.objects.filter(
-            pk__in=Crystal.objects.filter(container__in=obj.containers.all()).values('experiment')).order_by(
-            'priority').reverse()
-        group = Project.objects.filter(pk__in=obj.containers.all().values('project'))
-        try:
-            num_crystals = obj.project.crystal_set.filter(container__pk__in=containers).count()
-        except:
-            num_crystals = 12
+class ExperimentDetail(detail.DetailView):
+    model = models.Experiment
+    template_name = "users/entries/experiment.html"
+    allowed_roles = ['owner','admin']
+    admin_roles = ['admin']
 
-    work_dir = create_cache_dir(obj.label_hash())
-    prefix = "%s-%s" % (obj.label_hash(), format)
-    pdf_file = os.path.join(work_dir, '%s.pdf' % prefix)
+class ExperimentCreate(SuccessMessageMixin, LoginRequiredMixin, AjaxableResponseMixin, edit.CreateView):
+    form_class = forms.ExperimentForm
+    template_name = "forms/modal.html"
+    model = models.Experiment
+    success_url = reverse_lazy('experiment-list')
+    success_message = "Experiment '%(name)s' has been created."
 
-    if not os.path.exists(pdf_file) or settings.DEBUG:  # remove the True after testing
-        # create a file into which the LaTeX will be written
-        tex_file = os.path.join(work_dir, '%s.tex' % prefix)
-        dvi_file = os.path.join(work_dir, '%s.dvi' % prefix)
-        # render and output the LaTeX into temap_file
-        if format == 'protocol' or format == 'runlist':
-            if format == 'protocol':
-                project = obj.project
-            else:
-                project = request.project
-            tex = loader.render_to_string('users/tex/sample_list.tex',
-                                          {'project': project, 'group': group, 'shipment': obj,
-                                           'experiments': experiments, 'containers': containers,
-                                           'num_crystals': num_crystals,
-                                           })
-        elif format == 'label':
-            project = model == Project and obj or obj.project
-            tex = loader.render_to_string('users/tex/send_labels.tex', {
-                'project': project, 'shipment': obj, 'admin_project': admin_project
-            })
-        elif format == 'return_label':
-            project = obj if model == Project else obj.project
-            obj = model == Shipment and obj or None
-            tex = loader.render_to_string('users/tex/return_labels.tex', {
-                'project': project, 'shipment': obj, 'admin_project': admin_project
-            })
-        f = open(tex_file, 'w')
-        f.write(tex)
-        f.close()
+    def get_initial(self):
+        initial = super(ExperimentCreate, self).get_initial()
+        initial.update(project=self.request.user.project)
+        return initial
 
-        devnull = file('/dev/null', 'rw')
-        stdout = sys.stdout
-        stderr = sys.stderr
-        if not settings.DEBUG:
-            stdout = devnull
-            stderr = devnull
-        subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], cwd=work_dir, )
-        if format == 'protocol' or format == 'runlist':
-            subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], cwd=work_dir, )
+class ExperimentEdit(edit.UpdateView):
+    form_class = forms.ExperimentForm
+    template_name = "forms/modal.html"
+    model = models.Experiment
+    success_message = "Experiment has been updated."
+    allowed_roles = ['owner', 'admin']
+    admin_roles = ['admin']
 
-    return send_raw_file(request, pdf_file, attachment=True)
+class ExperimentDelete(edit.DeleteView):
+    success_url = reverse_lazy('experiment-list')
+    template_name = "forms/delete.html"
+    allowed_roles = ['owner','admin']
+    model = models.Experiment
+    success_message = "Experiment has been deleted."
 
+class DataList(ListViewMixin, FilteredListView):
+    model = models.Data
+    list_filter = ['modified','kind']
+    list_display = ['id', 'name', 'crystal', 'frame_sets', 'delta_angle', 'exposure_time', 'total_angle', 'wavelength', 'beamline', 'kind']
+    search_fields = ['id', 'name', 'beamline__name', 'delta_angle', 'crystal__name', 'frame_sets', 'project__name']
+    detail_url = 'data-detail'
+    detail_ajax = True
+    detail_target = '#modal-form'
+    order_by = ['-modified']
+    ordering_proxies = {}
+    list_transforms = {}
 
-@login_required
-@project_required
-def shipment_xls(request, id):
-    """ """
-    project = request.project
-    try:
-        shipment = Shipment.objects.get(id=id)
-    except:
-        raise Http404
+class DataDetail(detail.DetailView):
+    model = models.Data
+    template_name = "users/entries/data.html"
+    allowed_roles = ['owner','admin']
+    admin_roles = ['admin']
 
-    temp_dir = tempfile.mkdtemp()
+class ResultList(ListViewMixin, FilteredListView):
+    model = models.Result
+    list_filter = ['modified','kind']
+    list_display = ['id', 'name', 'frames', 'space_group', 'resolution', 'r_meas', 'completeness', 'score', 'kind']
+    search_fields = ['project__name','name','crystal__name','space_group__name']
+    #detail_url = 'data-detail'
+    #detail_ajax = True
+    #detail_target = '#modal-form'
+    order_by = ['-modified']
+    ordering_proxies = {}
+    list_transforms = {}
 
-    try:
-
-        # configure an HttpResponse so that it has the mimetype and attachment name set correctly
-        response = HttpResponse(mimetype='application/xls')
-        filename = ('%s-%s.xls' % (project.name, shipment.name)).replace(' ', '_')
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
-
-        # create a temporary directory
-        temp_dir = tempfile.mkdtemp()
-        # create a temporary file into which the .xls will be written
-        temp_file = tempfile.mkstemp(dir=temp_dir, suffix='.xls')[1]
-
-        # export it
-        # why we use all?
-        # workbook = LimsWorkbookExport(project.experiment_set.all(), project.crystal_set.all())
-        dewars = shipment.dewar_set.all()
-
-        containers = list()
-        for dewar in dewars:
-            for cont in dewar.container_set.all():
-                containers.append(cont)
-
-        crystals = list()
-        for cont in containers:
-            for crys in cont.crystal_set.all():
-                crystals.append(crys)
-
-        ship_experiments = list()
-        for cont in containers:
-            for exp in cont.get_experiment_list():
-                if exp not in ship_experiments:
-                    ship_experiments.append(exp)
-
-        workbook = LimsWorkbookExport(ship_experiments, crystals)
-        errors = workbook.save(temp_file)
-
-        # open the resulting .xls and write it out to the response/browser
-        xls_file = open(temp_file)
-        xls = xls_file.read()
-        xls_file.close()
-        response.write(xls)
-
-        # return the response
-        return response
-
-    finally:
-        if not settings.DEBUG:
-            # remove the tempfiles
-            shutil.rmtree(temp_dir)
+class ScanResultList(ListViewMixin, FilteredListView):
+    model = models.ScanResult
+    list_filter = ['modified','kind']
+    list_display = ['id', 'name', 'crystal', 'edge', 'kind', 'created']
+    search_fields = ['project__name','name','crystal__name','beamline__name']
+    #detail_url = 'data-detail'
+    #detail_ajax = True
+    #detail_target = '#modal-form'
+    order_by = ['-modified']
+    ordering_proxies = {}
+    list_transforms = {}

@@ -1,8 +1,8 @@
-from .models import Runlist, UserList, Link
+from models import Runlist, UserList, Link
 from django import forms
 from django.forms import widgets
-from django.forms.util import ErrorList
-from lims.models import Beamline, Carrier, Container, Dewar, Experiment, Shipment, Project
+from django.forms.utils import ErrorList
+from lims.models import Beamline, Carrier, Container, Experiment, Shipment, Project
 import objforms.forms
 import re
 
@@ -129,9 +129,9 @@ class RunlistEmptyForm(objforms.forms.OrderedForm):
 
 class LinkForm(objforms.forms.OrderedForm):
     description = objforms.widgets.SmallTextField(required=True)
-    category = forms.ChoiceField(choices=Link.CATEGORY.get_choices(), widget=objforms.widgets.LeftHalfSelect,
+    category = forms.ChoiceField(choices=Link.CATEGORY, widget=objforms.widgets.LeftHalfSelect,
                                  required=False)
-    frame_type = forms.ChoiceField(choices=Link.TYPE.get_choices(), widget=objforms.widgets.RightHalfSelect,
+    frame_type = forms.ChoiceField(choices=Link.TYPE, widget=objforms.widgets.RightHalfSelect,
                                    required=False)
     url = forms.CharField(widget=objforms.widgets.LargeInput, label='Absolute or Relative address', required=False)
     document = forms.Field(widget=objforms.widgets.LargeFileInput, required=False)

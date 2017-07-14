@@ -1,0 +1,30 @@
+{% load math_filters %}
+
+<div id="basket"  title="Drag and Drop into this region">
+{% for loc, crystal in object.location_and_crystal %}
+    <div
+        {% ifequal loc "1" %}style="top: 23px; left: 52px;"  {% endifequal %}
+        {% ifequal loc "2" %}style="top: 64px; left: 16px;"  {% endifequal %}
+        {% ifequal loc "3" %}style="top: 120px; left: 7px;"  {% endifequal %}
+        {% ifequal loc "4" %}style="top: 168px; left: 31px;" {% endifequal %}
+        {% ifequal loc "5" %}style="top: 201px; left: 78px;" {% endifequal %}
+        {% ifequal loc "6" %}style="top: 201px; left: 132px;" {% endifequal %}
+        {% ifequal loc "7" %}style="top: 168px; left: 180px;" {% endifequal %}
+        {% ifequal loc "8" %}style="top: 120px; left: 202px;" {% endifequal %}
+        {% ifequal loc "9" %}style="top: 64px; left: 194px;" {% endifequal %}
+        {% ifequal loc "10" %}style="top: 23px; left: 159px;" {% endifequal %}
+        {% if crystal %}
+               class="occupied loc-{{ loc }} {% if crystal.is_started %}started{% endif %} crystal {{object.json_dict.type}}"
+               title="<strong>{{ crystal.name }} ({{ crystal.identity }})</strong><br>{{ crystal.is_started }}"
+               href="{% url "crystal-detail" crystal.id %}"
+        {% else %}
+               class="container droppable droppable-add {{object.json_dict.type}}"
+               accept="crystal"
+               parent="{{ object.id }}"
+               rel="{% url "container-detail" object.id %}"
+               container_location="{{ loc }}"
+        {% endif %}>
+        {{ loc }}
+    </div>
+{% endfor %}
+</div>

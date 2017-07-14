@@ -1,7 +1,7 @@
 
-from .frameconverter import create_png
-from .maketarball import create_tar
-from .models import SecurePath
+from frameconverter import create_png
+from maketarball import create_tar
+from models import SecurePath
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist

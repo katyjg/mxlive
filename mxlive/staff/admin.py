@@ -16,6 +16,7 @@ class RunlistAdminForm(forms.ModelForm):
 
     class Meta:
         model = Runlist
+        fields = []
 
 
 class RunlistAdmin(admin.ModelAdmin):

@@ -1,6 +1,6 @@
 {% load markup %}
 
-<div class="object-list {{object.json_dict.type|lower}}-detail">
+<div class="inline-list {{object.json_dict.type|lower}}-detail">
     <h3>Crystals in {{object.json_dict.type|lower}} &ldquo;{{object.name}}&rdquo;</h3>
     <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
         <thead>
@@ -18,22 +18,22 @@
                 {% if crystal %}
                     <tr class="{% cycle 'odd' 'even'%}">
                         <td>{{ loc }}</td>
-                        <td><a href="{% url "users-crystal-detail" crystal.pk %}">{{ crystal.name }}</a></td>
+                        <td><a href="{% url "crystal-detail" crystal.pk %}">{{ crystal.name }}</a></td>
                         {% if crystal.experiment %}
-                        <td><a href="{% url "users-experiment-detail" crystal.experiment.pk %}">{{ crystal.experiment.name }}</a></td>
+                        <td><a href="{% url "experiment-detail" crystal.experiment.pk %}">{{ crystal.experiment.name }}</a></td>
                         {% else %}
                         <td>(None)</td>
                         {% endif %}
                         <td class="redirect limit"
-                            href="{% url "users-crystal-detail" crystal.pk %}">{{ crystal.comments|default:"" }}</td>
-                        <td>
+                            href="{% url "crystal-detail" crystal.pk %}">{{ crystal.comments|default:"" }}</td>
+                        <td>{% comment %}
                             {% if not admin %}{% if object.is_editable %}
                                 <a class="remove"
-                                   rel="{% url "users-container-remove-crystal" object.pk crystal.pk %}"
+                                   rel="{% url "container-remove-crystal" object.pk crystal.pk %}"
                                    href="#"
                                    onclick="remove_item(this);"
                                    title="Remove crystal from container"><span class="remove"></span></a>
-                            {% endif %}{% endif %}
+                            {% endif %}{% endif %}{% endcomment %}
                         </td>
                     </tr>
                 {% endif %}
@@ -43,22 +43,22 @@
                 {% if crystal %}
                     <tr class="{% cycle 'odd' 'even'%}">
                         <td>{{ loc }}</td>
-                        <td><a href="{% url "users-crystal-detail" crystal.pk %}">{{ crystal.name }}</a></td>
+                        <td><a href="{% url "crystal-detail" crystal.pk %}">{{ crystal.name }}</a></td>
                         {% if crystal.experiment %}
-                        <td><a href="{% url "users-experiment-detail" crystal.experiment.pk %}">{{ crystal.experiment.name }}</a></td>
+                        <td><a href="{% url "experiment-detail" crystal.experiment.pk %}">{{ crystal.experiment.name }}</a></td>
                         {% else %}
                         <td>(None)</td>
                         {% endif %}
                         <td class="redirect"
-                            href="{% url "users-crystal-detail" crystal.pk %}">{{ crystal.comments|default:"" }}</td>
-                        <td>
+                            href="{% url "crystal-detail" crystal.pk %}">{{ crystal.comments|default:"" }}</td>
+                        <td>{% comment %}
                             {% if not admin %}{% if object.is_editable %}
                                 <a class="remove"
-                                   rel="{% url "users-container-remove-crystal" object.pk crystal.pk %}"
+                                   rel="{% url "container-remove-crystal" object.pk crystal.pk %}"
                                    href="#"
                                    onclick="remove_item(this);"
                                    title="Remove crystal from container"><span class="remove"></span></a>
-                            {% endif %}{% endif %}
+                            {% endif %}{% endif %}{% endcomment %}
                         </td>
                     </tr>
                 {% endif %}

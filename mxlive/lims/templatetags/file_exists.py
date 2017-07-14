@@ -5,7 +5,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django import template  
 
-from mxlive.download.models import SecurePath
+from download.models import SecurePath
 
 register = template.Library()  
 

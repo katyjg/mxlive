@@ -12,7 +12,7 @@ from datetime import datetime, date, timedelta, time
 import string
 from django.conf import settings
 
-from scheduler.models import Visit, Stat, OnCall, SupportPerson, Beamline, Proposal
+from models import Visit, Stat, OnCall, SupportPerson, Beamline, Proposal
 
 WARNING = "This is a last-minute change. It will take a few moments to send a notification e-mail to the Users Office and to beamline staff."
 

@@ -1,0 +1,20 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% load objlist %}
+{% block extra_css %}
+<link rel="stylesheet" href="/static/objlist/objlist.css" type="text/css" media="screen" />
+{% endblock %}
+
+{% block page_heading %}<h3>{% objlist_heading %}</h3>{% endblock %}
+{% block full %}
+<div class="row">
+        <div class="col-xs-12">
+		{% objlist_tools %}
+		<div class="toolbar row no-space">
+			{% objlist_filters %}
+		</div>
+		{% objlist_list %}
+        </div>
+</div>
+{% endblock %}
+

@@ -1,8 +1,8 @@
 from django import forms
 from django.forms.fields import DateField
 from django.db.models import Q
-from scheduler.models import *
-from scheduler import widgets
+from models import *
+import widgets
 from datetime import datetime, timedelta
 from django.contrib.admin.widgets import AdminDateWidget
 

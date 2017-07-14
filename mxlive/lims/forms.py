@@ -1,14 +1,17 @@
 from django import forms
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
+from django.core.urlresolvers import reverse_lazy
 from django.utils import dateformat, timezone
 import objforms.widgets
 import uuid
-from .excel import LimsWorkbook
-from .models import *
-from mxlive.objforms.forms import OrderedForm
+from excel import LimsWorkbook
+from models import *
+from objforms.forms import OrderedForm
 import re
 import tempfile
 
+
+disabled_widget = forms.HiddenInput(attrs={'readonly': True})
 
 class BaseForm(forms.Form):
     def restrict_by(self, field_name, value):
@@ -91,19 +94,178 @@ class NewUserForm(OrderedForm):
         data['contact_person'] = u'{} {}'.format(data['first_name'], data['last_name'])
         return data
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, HTML, Div
+from crispy_forms.bootstrap import StrictButton, FormActions
 
-class ShipmentForm(OrderedForm):
-    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
+class ShipmentForm(forms.ModelForm):
+    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=disabled_widget)
     name = forms.CharField(
         widget=objforms.widgets.LargeInput
     )
     comments = objforms.widgets.CommentField(required=False,
                                              help_text=Crystal.HELP['comments'])
 
+    def __init__(self, *args, **kwargs):
+        super(ShipmentForm, self).__init__(*args, **kwargs)
+        pk = self.instance.pk
+
+        self.helper = FormHelper()
+        if pk:
+            self.helper.title = u"Edit Shipment"
+            self.helper.form_action = reverse_lazy('shipment-edit', kwargs={'pk': pk})
+        else:
+            self.helper.title = u"Create New Shipment"
+            self.helper.form_action = reverse_lazy('shipment-new')
+        self.helper.layout = Layout(
+            'project','name','comments',
+            FormActions(
+                HTML("<hr/>"),
+                Div(
+                    StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-default"),
+                    StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+                    css_class='pull-right'
+                ),
+            )
+        )
+
     class Meta:
         model = Shipment
         fields = ('project', 'name', 'comments',)
 
+class ShipmentSendForm(forms.ModelForm):
+    class Meta:
+        model = Shipment
+        fields = ('carrier','tracking_code','comments')
+
+    def __init__(self, *args, **kwargs):
+        super(ShipmentSendForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.title = u"Add Shipping Information"
+        self.helper.form_action = reverse_lazy('shipment-send', kwargs={'pk': self.instance.pk})
+        self.helper.layout = Layout(
+            'carrier','tracking_code','comments',
+            FormActions(
+                HTML("<hr/>"),
+                Div(
+                    StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-default"),
+                    StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+                    css_class='pull-right'
+                ),
+            )
+        )
+
+class ShipmentAddContainerForm(forms.ModelForm):
+    target = forms.ModelChoiceField(queryset=Container.objects.all())
+
+    class Meta:
+        model = Shipment
+        fields = ['target',]
+
+class ShipmentReturnForm(forms.ModelForm):
+    class Meta:
+        model = Shipment
+        fields = ['carrier','return_code','staff_comments']
+
+    def __init__(self, *args, **kwargs):
+        super(ShipmentReturnForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.title = u"Add Shipping Information"
+        self.helper.form_action = reverse_lazy('shipment-return', kwargs={'pk': self.instance.pk})
+        self.helper.layout = Layout(
+            'carrier','return_code','staff_comments',
+            FormActions(
+                HTML("<hr/>"),
+                Div(
+                    StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-default"),
+                    StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+                    css_class='pull-right'
+                ),
+            )
+        )
+
+class ShipmentReceiveForm(forms.ModelForm):
+
+    class Meta:
+        model = Shipment
+        fields = ['storage_location','staff_comments']
+
+    def __init__(self, *args, **kwargs):
+        super(ShipmentReceiveForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.title = u"Receive Shipment?"
+        self.helper.form_action = reverse_lazy('shipment-receive', kwargs={'pk': self.instance.pk})
+        self.helper.layout = Layout(
+            'storage_location','staff_comments',
+            FormActions(
+                HTML("<hr/>"),
+                Div(
+                    StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-default"),
+                    StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+                    css_class='pull-right'
+                ),
+            )
+        )
+
+class ShipmentArchiveForm(forms.ModelForm):
+    class Meta:
+        model = Shipment
+        fields = []
+
+    def __init__(self, *args, **kwargs):
+        super(ShipmentArchiveForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.title = u"Archive Shipment?"
+        self.helper.form_action = reverse_lazy('shipment-archive', kwargs={'pk': self.instance.pk})
+        self.helper.layout = Layout(
+            HTML("""{{ object }}"""),
+            FormActions(
+                HTML("<hr/>"),
+                Div(
+                    StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+                    css_class='pull-right'
+                ),
+            )
+        )
+
+class ContainerForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(ContainerForm, self).__init__(*args, **kwargs)
+        pk = self.instance.pk
+
+        self.helper = FormHelper()
+        if pk:
+            self.helper.title = u"Edit Container"
+            self.helper.form_action = reverse_lazy("container-edit", kwargs={'pk': pk})
+        else:
+            self.helper.title = u"Create New Container"
+            self.helper.form_action = reverse_lazy("container-new")
+        self.helper.layout = Layout(
+            'project','name','kind','shipment','comments',
+            FormActions(
+                HTML("<hr/>"),
+                Div(
+                    StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-default"),
+                    StrictButton('Save', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
+                    css_class='pull-right'
+                ),
+            )
+        )
+
+    def clean_kind(self):
+        """ Ensures that the 'kind' of Container cannot be changed when Crystals are associated with it """
+        cleaned_data = self.cleaned_data
+        if self.instance.pk:
+            if self.instance.kind != cleaned_data['kind']:
+                if self.instance.num_crystals() > 0:
+                    raise forms.ValidationError('Cannot change kind of Container when Crystals are associated')
+        return cleaned_data['kind']
+
+    class Meta:
+        model = Container
+        fields = ['project', 'name', 'kind', 'shipment', 'comments']
+        widgets = {'project': disabled_widget}
 
 class ConfirmDeleteForm(BaseForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
@@ -122,145 +284,39 @@ class LimsBasicForm(OrderedForm):
         fields = ('project',)
 
 
-class ShipmentUploadForm(forms.Form):
-    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    excel = forms.FileField(widget=objforms.widgets.LargeFileInput)
-    dewar = forms.CharField(widget=objforms.widgets.LargeInput,
-                            label='Dewar Name',
-                            help_text='A dewar with this name will be created for the contents of the uploaded spreadsheet.',
-                            required=True)
-    shipment = forms.CharField(widget=objforms.widgets.LargeInput,
-                               label='Shipment Name',
-                               help_text='Provide a name for this shipment.',
-                               required=True)
-    archive = objforms.widgets.LargeCheckBoxField(required=False,
-                                                  label='Archive old shipments',
-                                                  initial=True,
-                                                  help_text='If crystal or container names are reused from shipments already returned from the CMCF, those shipments will be automatically archived.')
-
-    NUM_ERRORS = 3
-
-    def __init__(self, *args, **kwargs):
-        super(ShipmentUploadForm, self).__init__(*args, **kwargs)
-        uid = str(uuid.uuid4())[:8]
-        now = timezone.now().strftime('%y%m%d')
-        self.fields['dewar'].initial = "DWR-{}-{}".format(now, uid).upper()
-        self.fields['shipment'].initial = "SHP-{}-{}".format(now, uid).upper()
-
-    def clean(self):
-        """ Cleans the form globally. This simply delegates validation to the LimsWorkbook. """
-        cleaned_data = self.cleaned_data
-        if cleaned_data.has_key('project') and cleaned_data.has_key('excel'):
-            temp = tempfile.NamedTemporaryFile()
-            temp.write(self.files['excel'].read())
-            temp.flush()
-            try:
-                self.workbook = LimsWorkbook(temp.name, cleaned_data['project'], dewar_name=cleaned_data['dewar'],
-                                             shipment_name=cleaned_data['shipment'], archive=cleaned_data['archive'])
-            except KeyError:
-                del cleaned_data['excel']
-                return cleaned_data
-
-            if not self.workbook.is_valid():
-                self._errors['excel'] = self._errors.get('excel', ErrorList())
-                errors = 'Please check the format of your spreadsheet and try to upload again.'
-                del cleaned_data['excel']
-            return cleaned_data
-
-    def clean_dewar(self):
-        if Dewar.objects.filter(project__exact=self.cleaned_data['project'],
-                                name__exact=self.cleaned_data['dewar']).exclude(
-                status__exact=Dewar.STATES.ARCHIVED).exists():
-            raise forms.ValidationError('A dewar already exists with this name')
-        return self.cleaned_data['dewar']
-
-    def clean_shipment(self):
-        if Shipment.objects.filter(project__exact=self.cleaned_data['project'],
-                                   name__exact=self.cleaned_data['shipment']).exclude(
-                status__exact=Shipment.STATES.ARCHIVED).exists():
-            raise forms.ValidationError('A shipment already exists with this name')
-        return self.cleaned_data['shipment']
-
-    def get_shipment(self):
-        return self.cleaned_data['shipment']
-
-    def error_message(self):
-        errors = ''
-        if hasattr(self, 'workbook') and not self.workbook.is_valid():
-            self._errors['excel'] = self._errors.get('excel', ErrorList())
-            errors = self.workbook.errors
-            # errors = self.workbook.errors[:self.NUM_ERRORS]
-            # if len(self.workbook.errors) > len(errors):
-            #    errors.append("and %d more errors..." % (len(self.workbook.errors)-len(errors)))
-            self._errors['excel'].extend(errors)
-        error_list = list()
-        short_errors = list()
-        for error in errors:
-            try:
-                error.split(' ')[6].split('!')[1][:-1]
-                if ' '.join(error.split(' ')[0:3]) not in short_errors:
-                    error_list.append(' '.join(error.split(' ')[0:3]) + ' in cell(s) ')
-                    short_errors.append(' '.join(error.split(' ')[0:3]))
-                for i in range(len(error_list)):
-                    if ' '.join(error.split(' ')[0:3]) == ' '.join(error_list[i].split(' ')[0:3]):
-                        if len(error_list[i]) < 90:
-                            error_list[i] += error.split(' ')[6].split('!')[1][:-1] + ', '
-                        elif error_list[i][-3:] != '...':
-                            error_list[i] += 'and others ...'
-            except IndexError:
-                error_list.append(error)
-
-        error_text = list()
-        error_text.append('The following problems with the spreadsheet have been identified:')
-        for error in error_list:
-            error_text.append('- ' + error)
-        if len(error_text) > 1:
-            return error_text
-        return
-
-    def save(self, request=None):
-        """ Saves the form which writes the Shipment spreadsheet data to the database """
-        assert self.is_valid()
-        self.workbook.save(request=request)
-
-    def add_excel_error(self, error):
-        """ Adds an error message to the 'excel' field """
-        self._errors['excel'] = self._errors.get('excel', ErrorList())
-        self._errors['excel'].append(error)
-
-
-class ShipmentSendForm(OrderedForm):
-    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    carrier = forms.ModelChoiceField(
-        queryset=Carrier.objects.all(),
-        widget=objforms.widgets.LargeSelect,
-        required=True, initial=''
-    )
-    tracking_code = objforms.widgets.LargeCharField(required=False)
-    comments = objforms.widgets.CommentField(required=False)
-
-    class Meta:
-        model = Shipment
-        fields = ('project', 'carrier', 'tracking_code', 'comments')
-
-    def warning_message(self):
-        shipment = self.instance
-        if shipment:
-            for crystal in shipment.project.crystal_set.filter(container__dewar__shipment__exact=shipment):
-                if not crystal.experiment:
-                    return 'Crystal "%s" is not associated with any Experiments. Sending the Shipment will create a ' \
-                           'default "Screen and confirm" Experiment and assign all unassociated Crystals. Close this window ' \
-                           'to setup the Experiment manually.' % crystal.name
-
-    def clean_tracking_code(self):
-        cleaned_data = self.cleaned_data['tracking_code']
-        # put this here instead of .clean() because objforms does not display form-wide error messages
-        if self.instance.status != Shipment.STATES.DRAFT:
-            raise forms.ValidationError('Shipment already sent.')
-        return cleaned_data
-
-    def restrict_by(self, field_name, id):
-        pass
+#
+# class ShipmentSendForm(OrderedForm):
+#     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
+#     carrier = forms.ModelChoiceField(
+#         queryset=Carrier.objects.all(),
+#         widget=objforms.widgets.LargeSelect,
+#         required=True, initial=''
+#     )
+#     tracking_code = objforms.widgets.LargeCharField(required=False)
+#     comments = objforms.widgets.CommentField(required=False)
+#
+#     class Meta:
+#         model = Shipment
+#         fields = ('project', 'carrier', 'tracking_code', 'comments')
+#
+#     def warning_message(self):
+#         shipment = self.instance
+#         if shipment:
+#             for crystal in shipment.project.crystal_set.filter(container__dewar__shipment__exact=shipment):
+#                 if not crystal.experiment:
+#                     return 'Crystal "%s" is not associated with any Experiments. Sending the Shipment will create a ' \
+#                            'default "Screen and confirm" Experiment and assign all unassociated Crystals. Close this window ' \
+#                            'to setup the Experiment manually.' % crystal.name
+#
+#     def clean_tracking_code(self):
+#         cleaned_data = self.cleaned_data['tracking_code']
+#         # put this here instead of .clean() because objforms does not display form-wide error messages
+#         if self.instance.status != Shipment.STATES.DRAFT:
+#             raise forms.ValidationError('Shipment already sent.')
+#         return cleaned_data
+#
+#     def restrict_by(self, field_name, id):
+#         pass
 
 
 class ComponentForm(OrderedForm):
@@ -276,45 +332,6 @@ class ComponentForm(OrderedForm):
 
     def clean_name(self):
         return self.cleaned_data['name']
-
-
-class DewarForm(OrderedForm):
-    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    shipment = forms.ModelChoiceField(
-        queryset=Shipment.objects.all(),
-        widget=objforms.widgets.LargeSelect,
-        required=False
-    )
-    name = objforms.widgets.BarCodeField()
-    comments = objforms.widgets.CommentField(required=False,
-                                             help_text=Crystal.HELP['comments'])
-
-    class Meta:
-        model = Dewar
-        fields = ('project', 'name', 'shipment', 'comments',)
-
-
-class ContainerForm(OrderedForm):
-    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    dewar = forms.ModelChoiceField(queryset=Dewar.objects.all(), widget=objforms.widgets.LargeSelect, required=False)
-    name = objforms.widgets.BarCodeField()
-    kind = forms.ChoiceField(choices=Container.TYPE.get_choices(), widget=objforms.widgets.LargeSelect,
-                             initial=Container.TYPE.UNI_PUCK)
-    comments = objforms.widgets.CommentField(required=False,
-                                             help_text=Crystal.HELP['comments'])
-
-    def clean_kind(self):
-        """ Ensures that the 'kind' of Container cannot be changed when Crystals are associated with it """
-        cleaned_data = self.cleaned_data
-        if self.instance.pk:
-            if unicode(self.instance.kind) != cleaned_data['kind']:
-                if self.instance.num_crystals() > 0:
-                    raise forms.ValidationError('Cannot change kind of Container when Crystals are associated')
-        return cleaned_data['kind']
-
-    class Meta:
-        model = Container
-        fields = ('project', 'name', 'kind', 'dewar', 'comments')
 
 
 class SampleForm(OrderedForm):
@@ -388,8 +405,8 @@ class SampleForm(OrderedForm):
 class ExperimentForm(OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     name = objforms.widgets.LargeCharField(required=True)
-    kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES.get_choices(), required=True)
-    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS.get_choices(),
+    kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES, required=True)
+    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS,
                                                  required=True, initial=Experiment.EXP_PLANS.COLLECT_FIRST_GOOD)
     resolution = forms.FloatField(label='Desired Resolution', widget=objforms.widgets.LeftHalfInput, required=False)
     delta_angle = forms.FloatField(widget=objforms.widgets.RightHalfInput, required=False)
@@ -413,8 +430,8 @@ class ExperimentFromStrategyForm(OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     strategy = forms.ModelChoiceField(queryset=Strategy.objects.all(), widget=forms.HiddenInput)
     name = objforms.widgets.LargeCharField(required=True)
-    kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES.get_choices(), required=True)
-    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS.get_choices(),
+    kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES, required=True)
+    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS,
                                                  required=True)
     resolution = forms.FloatField(label='Desired Resolution', widget=objforms.widgets.LeftHalfInput, required=False)
     delta_angle = forms.FloatField(widget=objforms.widgets.RightHalfInput, required=False,
@@ -493,6 +510,7 @@ class CrystalFormForm(OrderedForm):
 class DataForm(forms.ModelForm):
     class Meta:
         model = Data
+        fields = []
 
 
 class StrategyRejectForm(OrderedForm):
@@ -510,7 +528,7 @@ class FeedbackForm(OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     contact_name = objforms.widgets.LargeCharField(label='Name (optional)', required=False)
     contact = forms.EmailField(widget=objforms.widgets.LargeInput, label="Email Address (optional)", required=False)
-    category = forms.ChoiceField(choices=Feedback.TYPE.get_choices(), widget=objforms.widgets.LargeSelect)
+    category = forms.ChoiceField(choices=Feedback.TYPE, widget=objforms.widgets.LargeSelect)
     message = objforms.widgets.LargeTextField(required=True)
 
     class Meta:

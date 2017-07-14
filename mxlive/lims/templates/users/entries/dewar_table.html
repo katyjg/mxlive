@@ -1,7 +1,7 @@
 {% load objlist %}
 {% load truncate_filters %}
 {% ifequal page "shipment" %}
-<div id="{{dewar.id}}" 
+{% comment %}<div id="{{dewar.id}}"
      class="dewar dewar-detail droppable droppable-add" 
      {% if dewar.is_editable %}accept="container"{% else %}accept=""{% endif %} 
      rel="{% url "users-dewar-detail" dewar.id %}">
@@ -42,6 +42,7 @@
         <p class="list-empty">( empty )</p>
     {% endif %}
 </div>
+{% endcomment %}
 {% endifequal %}
 
 {% ifequal page "dewar" %}

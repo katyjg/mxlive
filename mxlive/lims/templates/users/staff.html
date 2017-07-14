@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block object-tools %}
-    <div class="object-tools">
+{% comment %}    <div class="object-tools">
         <ul class="toolbar">
             <li class="stats-tool"><a href='{% url "stats-calendar-now" %}' title="View Usage Statistics">Usage</a></li>
             <li class="users-tool"><a href='{% url "staff-get-profiles" %}' title="Manage User Accounts">Accounts</a></li>
@@ -16,6 +16,7 @@
         </ul>
         <div class="clear"></div>
     </div>
+    {% endcomment %}
 {% endblock %}
 
 {% block content-override %}
@@ -36,7 +37,7 @@
     <!-- right region -->
 	<div id="right-content" class="col-4">
 	<ul id="feedback-list">
-	    <li class="title redirect link-row" href="{% url "staff-feedback-list" %}" title="Show all feedback comments">User Feedback Comments ...</li>
+	    <li class="title redirect link-row" href="{% comment %}{% url "staff-feedback-list" %}{% endcomment %}" title="Show all feedback comments">User Feedback Comments ...</li>
         {% for item in feedback %}
         <li class="modal link-row" 
             href="{% url "staff-feedback-detail" item.pk %}">

@@ -1,0 +1,23 @@
+<table class="cassette-layout" title="Drag and Drop into this region">
+    <thead>
+    {% for letter in "ABCDEFGHIJKL" %}
+        <th class="{{object.json_dict.type}}">{{letter}}</th>
+    {% endfor %}
+    </thead>
+    <tr>
+    {% for loc, crystal in object.location_and_crystal %}
+        {% if crystal %}
+            <td class="circle occupied {% if crystal.is_started %}started{% endif %} crystal draggable-link-parent"
+                title="{{ crystal.name }} ({{ crystal.identity }}) {{ crystal.is_started }}"
+                href="{% url "crystal-detail" crystal.id %}">{{ loc }}</td>
+        {% else %}
+            <td class="circle empty droppable {{object.json_dict.type}}"
+                accept="crystal"
+                parent="{{ object.id }}"
+                rel="{% url "container-detail" object.id %}"
+                container_location="{{ loc }}">{{ loc }}</td>
+        {% endif %}
+        {% if forloop.counter|divisibleby:"12" %}</tr><tr>{% endif %}
+    {% endfor %}
+    </tr>
+</table>

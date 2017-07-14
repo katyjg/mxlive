@@ -1,22 +1,22 @@
-{% extends "base.html" %}
+{% extends "users/base.html" %}
 
-{% block headline %}
-<h2>Welcome, {{ user }}</h2>
+{% block page_heading %}
+<h2>Welcome, {{ user|title }}</h2>
 {% endblock %}
 
 {% block object-tools %}
     <div class="object-tools">
         <ul class="toolbar">
-            <li class="template-tool"><a href="/static/doc/spreadsheet_blank.xls" title="Download spreadsheet template" download="download" target="_blank">Get Template</a>
+            {% comment %}<li class="template-tool"><a href="/static/doc/spreadsheet_blank.xls" title="Download spreadsheet template" download="download" target="_blank">Get Template</a>
             <li class="upload-tool"><a class="modal-upload-form"  href="{% url "users-shipment-upload" %}" title="Upload shipment from spreadsheet">Upload</a>
             <li class="feedback-tool"><a class="modal-form"  href="{% url "users-feedback-new" %}" title="Send us feedback">Feedback</a></li>
-            <li class="profile-tool"><a class="modal-form"  href="{% url "users-profile-edit" %}" title="Edit your profile">Profile</a>
+            <li class="profile-tool"><a class="modal-form"  href="{% url "users-profile-edit" %}" title="Edit your profile">Profile</a>{% endcomment %}
         </ul>
         <div class="clear"></div>
     </div>
 {% endblock %}
 
-{% block content-override %}
+{% block full %}
     <!-- left region -->
 	<div id="left-content" class="col-4">
 	<p>MxLIVE is organized into sections accessible through the tabbed navigation above. 

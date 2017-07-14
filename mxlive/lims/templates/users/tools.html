@@ -2,160 +2,109 @@
     defines a common toolbar for object_list entities
     note: this file defines tools for both staff and users
 {% endcomment %}
-
-<ul class="toolbar">
-    {% if object.is_processing %}
-    <li class="process-tool" title="View the updated progress report for this shipment">
-        <a href="{{handler}}progress/">
-            Detailed Report
+<span class="box-tools pull-right">
+    {% if list_url %}
+        <a class="pull-right separator" href="{{list_url}}">
+            <i class="fa fa-2 fa-f2 fa-list"></i><br>
+            <span class="tool-label">Show all</span>
         </a>
-    </li>
     {% endif %}
-    {# STAFF TOOLS #}
+
+
+    {% if object.is_processing %}
+        <a class="pull-right" href="{{handler}}progress/">
+            <i class="fa fa-2 fa-fw fa-file-text-o"></i><br>
+            <span class="tool-label">Detailed Report</span>
+        </a>
+    {% endif %}
+    {% comment %}Staff Tools{% endcomment %}
     {% if request.user.is_staff %}
-        {% comment %}
-        <li class="feedback-tool">
-            <a href="{{ handler }}staff_comments/add/" class="action modal-form">
-                Add Comments
-            </a>
-        </li>
-        {% endcomment %}
         {% if object.is_loadable %}
-            <li class="load-tool">
-                <a href="{{ handler }}load/" class="action modal-form">
-                    Load
-                </a>
-            </li>
+            <a class="pull-right" data-url="{{ handler }}load/">
+                <i class="fa fa-2 fa-fw fa-load"></i><br>
+                <span class="tool-label">Load</span>
+            </a>
         {% endif %}
         {% if object.is_unloadable %}
-            <li class="unload-tool">
-                <a href="{{ handler }}unload/"  class="action modal-form">
-                    Unload
-                </a>
-            </li>
-        {% endif %}
-        {% if object.is_reviewable %}
-            <li class="review-tool">
-                <a href="{% url "staff-experiment-complete" object.pk %}"  class="action modal-form">
-                    Review
-                </a>
-            </li>
+            <a class="pull-right" data-url="{{ handler }}unload/">
+                <i class="fa fa-2 fa-fw fa-unload"></i><br>
+                <span class="tool-label">Unload</span>
+            </a>
         {% endif %}
         {% if object.is_receivable %}
-            <li class="receive-tool">
-                <a href="{% url "staff-dewar-receive" object.pk %}?name={{object.name}}"  class="action modal-form">
-                    Receive
-                </a>
-            </li>
+            <a class="pull-right" data-url="{% url "shipment-receive" object.pk %}">
+                <i class="fa fa-2 fa-fw fa-handshake-o"></i><br>
+                <span class="tool-label">Receive</span>
+            </a>
         {% endif %}
         {% if object.is_returnable %}
-            <li class="return-tool">
-                <a href="{{handler}}return/?title=Return%20Shipment"  class="action modal-form">
-                    Return
-                </a>
-            </li>
-            <li class="pdf-tool">
-                <a href="{{handler}}label/" class="">
-                    Labels
-                </a>
-            </li>
+            <a class="pull-right" data-url="{% url "shipment-return" object.pk %}">
+                <i class="fa fa-2 fa-fw fa-paper-plane-o"></i><br>
+                <span class="tool-label">Return</span>
+            </a>
+            <a class="pull-right" data-url="{% comment %}{% url "shipment-label" object.pk %}{% endcomment %}">
+                <i class="fa fa-2 fa-fw fa-tags"></i><br>
+                <span class="tool-label">Labels</span>
+            </a>
+
         {% endif %}
         {% if object.is_pdfable %}
-            <li class="pdf-tool">
-                <a href="{{handler}}protocol/">
-                    Protocol
-                </a>
-            </li>
+            <a class="pull-right" data-url="{% comment %}{% url "shipment-protocol" object.pk %}{% endcomment %}">
+                <i class="fa fa-2 fa-fw fa-envelope-o"></i><br>
+                <span class="tool-label">Protocol</span>
+            </a>
         {% endif %}
         {% if object.show_history %}
-            <li class="history-tool">
-                <a href="{% url "staff-runlist-list" %}?status__exact=5">
-                    History
-                </a>
-            </li>
+            <a class="pull-right" href="{% url "staff-runlist-list" %}?status__exact=5">
+                <i class="fa fa-2 fa-fw fa-history"></i><br>
+                <span class="tool-label">History</span>
+            </a>
         {% endif %}
-    {# USER TOOLS #}
+    {% comment %}User Tools{% endcomment %}
     {% else %}
         {% if object.is_sendable %}
-            <li class="send-tool" title="Send this shipment">
-                <a href="{{handler}}send/?title=Send%20Shipment"  class="action modal-form">
-                    Send
-                </a>
-            </li>
+            <a class="pull-right" data-url="{% url "shipment-send" object.pk %}">
+                <i class="fa fa-2 fa-fw fa-paper-plane-o"></i><br>
+                <span class="tool-label">Send</span>
+            </a>
         {% endif %}
         {% if object.has_labels %}
-            <li class="pdf-tool" title="Generate PDF labels for printing">
+            <a class="pull-right" data-url="{{ handler }}close/">
+                <i class="fa fa-2 fa-fw fa-file-text-o"></i><br>
+                <span class="tool-label">Labels</span>
+            </a>
+            {% comment %}<li class="pdf-tool" title="Generate PDF labels for printing">
                 <a {% if object.project.address and object.project.city and object.project.province and object.project.country and object.project.postal_code %}
                     href="{{handler}}label/" class=""
                     {% else %}
                     href="{% url "users-profile-edit" %}?warning=label" class="modal-form{% endif %}">
                     Labels
                 </a>
-            </li>
-        {% endif %}
-        {% if object.is_xlsable %}
-            <li class="template-tool" title="Download a spreadsheet of this entry">
-                <a href="{{handler}}xls/">
-                    Spreadsheet
-                </a>
-            </li>
+            </li>{% endcomment %}
         {% endif %}
         {% if object.is_closable %}
-            <li class="close-tool" title="Archive this entry">
-                <a href="{{handler}}close/" class="action modal-form">
-                    Archive
-                </a>
-            </li>
-        {% endif %}
-        {% if object.is_trashable %}
-            <li class="trash-tool" title="Trash this entry">
-                <a href="{{handler}}trash/" class="action modal-form">
-                    Trash
-                </a>
-            </li>
-        {% endif %}
-        {% comment %}
-        <li class="clone-tool" title="Create a new entry using this one as a template">
-            <a href="{{ handler }}../new/?clone={{object.id}}" class="action modal-form">
-                Clone
+            <a class="pull-right" data-url="{{ handler }}close/">
+                <i class="fa fa-2 fa-fw fa-archive"></i><br>
+                <span class="tool-label">Archive</span>
             </a>
-        </li>
-        {% endcomment %}
+        {% endif %}
 		{% if object.add_component %}
-			<li class="component-tool" title="Add a hard drive or other items to this shipment">
-				<a href="{{ handler }}component/" class="action modal-form">
-					Add Item
-				</a>
-			</li>
+            <a class="pull-right" data-url="{{ handler }}component/">
+                <i class="fa fa-2 fa-fw fa-usb"></i><br>
+                <span class="tool-label">Add Item</span>
+            </a>
 		{% endif %}
 	    {% if object.is_editable %}
-	        <li class="edit-tool" title="Edit this entry">
-	            <a href="{{ handler }}edit/"  class="action modal-form">
-	                Edit
-	            </a>
-	        </li>
+            <a class="pull-right" data-url="{{ handler }}edit/">
+                <i class="fa fa-2 fa-fw fa-pencil"></i><br>
+                <span class="tool-label">Edit</span>
+            </a>
 	    {% endif %}
     {% endif %}
     {% if object.is_deletable %}
-        <li class="delete-tool" title="Delete this entry">
-            <a href="{{ handler }}delete/"  class="action modal-form">
-                Delete
-            </a>
-        </li>
-    {% endif %}
-
-    <li class="toolbar-separator"></li>
-    {% if list_url %}
-        <li class="back-tool" title="Show the full list of entries">
-            <a href="{{list_url}}">
-                Show all
-            </a>
-        </li>
-    {% endif %}        
-    <li class="help-tool" title="Show user guide">
-        <a class="modal-iframe" href="/help/index.html">
-        Help
+        <a class="pull-right" data-url="{{ handler }}delete/">
+            <i class="fa fa-2 fa-fw fa-remove"></i><br>
+            <span class="tool-label">Delete</span>
         </a>
-    </li>
-</ul>
-
+    {% endif %}
+</span>

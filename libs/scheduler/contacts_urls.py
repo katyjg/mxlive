@@ -1,9 +1,10 @@
 from django.conf.urls import *
-from scheduler.models import *
+from models import *
+from views import *
 
-urlpatterns = patterns('scheduler.views',
+urlpatterns = [
     url(r'^$',
         view='contact_list',
         name='contact_posts'
     ),
-)
+]

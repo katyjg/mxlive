@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from enum import Enum
+from model_utils import Choices
 from jsonfield.fields import JSONField
 from lims.models import ActivityLog, Beamline, Container, Crystal, Experiment
 import hashlib
@@ -37,20 +38,20 @@ class StaffBaseClass(models.Model):
 
 
 class Link(StaffBaseClass):
-    TYPE = Enum(
-        'iframe',
-        'flash',
-        'image',
-        'inline',
-        'link',
+    TYPE = Choices(
+        (0,'IFRAME','iframe'),
+        (1,'FLASH','flash'),
+        (2,'IMAGE','image'),
+        (3,'INLINE','inline'),
+        (4,'LINK','link'),
     )
-    CATEGORY = Enum(
-        'News',
-        'How To',
+    CATEGORY = Choices(
+        (0,'NEWS','News'),
+        (1,'HOW_TO','How To'),
     )
     description = models.TextField(blank=False)
-    category = models.IntegerField(max_length=1, choices=CATEGORY.get_choices(), blank=True, null=True)
-    frame_type = models.IntegerField(max_length=1, choices=TYPE.get_choices(), blank=True, null=True)
+    category = models.IntegerField(choices=CATEGORY, blank=True, null=True)
+    frame_type = models.IntegerField(choices=TYPE, blank=True, null=True)
     url = models.CharField(max_length=200, blank=True)
     document = models.FileField(_('document'), blank=True, upload_to=get_storage_path)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
@@ -72,8 +73,8 @@ class Link(StaffBaseClass):
 class UserList(StaffBaseClass):
     name = models.CharField(max_length=60, unique=True)
     description = models.TextField(blank=True, null=True)
-    address = models.IPAddressField()
-    users = models.ManyToManyField("lims.Project", null=True, blank=True)
+    address = models.GenericIPAddressField()
+    users = models.ManyToManyField("lims.Project", blank=True)
     active = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified', auto_now_add=True, editable=False)
@@ -95,13 +96,13 @@ class UserList(StaffBaseClass):
 
 
 class Runlist(StaffBaseClass):
-    STATES = Enum(
-        'Pending',
-        'Loaded',
-        'Unloaded',
-        'Incomplete',
-        'Completed',
-        'Closed',
+    STATES = Choices(
+        (0, 'PENDING', _('Pending')),
+        (1, 'LOADED', _('Loaded')),
+        (2, 'UNLOADED', _('Unloaded')),
+        (3, 'INCOMPLETE', _('Incomplete')),
+        (4, 'COMPLETED', _('Completed')),
+        (5, 'CLOSED', _('Closed'))
     )
     TRANSITIONS = {
         STATES.PENDING: [STATES.LOADED],
@@ -110,7 +111,7 @@ class Runlist(StaffBaseClass):
         STATES.COMPLETED: [STATES.PENDING, STATES.CLOSED],
     }
     HELP = {}
-    status = models.IntegerField(max_length=1, choices=STATES.get_choices(), default=STATES.PENDING)
+    status = models.IntegerField(choices=STATES, default=STATES.PENDING)
     name = models.CharField(max_length=600)
     containers = models.ManyToManyField(Container, blank=True)
     priority = models.IntegerField(default=0)
@@ -544,6 +545,13 @@ class Runlist(StaffBaseClass):
                 'crystals': crystals,
                 'experiments': experiments}
 
+class Dewar(StaffBaseClass):
+    beamline = models.ForeignKey(Beamline)
+    container = models.ForeignKey(Container, related_name="automounter")
+
+    def identity(self):
+        return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
 
 class Adaptor(StaffBaseClass):
     name = models.CharField(max_length=600)

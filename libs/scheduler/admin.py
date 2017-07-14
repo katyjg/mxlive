@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from scheduler import models
+import models
 
 class VisitAdmin(admin.ModelAdmin):
     search_fields = ['description']

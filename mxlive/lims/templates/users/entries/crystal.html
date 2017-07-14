@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends "users/base.html" %}
 
 {% load humanize %}
 {% load markup %}
 
-{% block headline %}
+{% block page_heading %}
 <h2><span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
 {% endblock %}
 
@@ -13,7 +13,7 @@
 </div>
 {% endblock %}
 
-{% block content %}
+{% block full %}
 <div class="crystal droppable droppable-replace" {% if object.is_editable %}accept="crystalform cocktail" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>
 
 <table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
@@ -32,19 +32,16 @@
 	<tr valign="top"><th>Pin-length:</th><td>{{ object.pin_length }}</td></tr>
 	<tr valign="top"><th NOWRAP>Crystal Form:</th><td>{{ object.crystal_form }}</td></tr>
 	<tr valign="top"><th>Cocktail:</th><td>{{ object.cocktail }}</td></tr>
-	{% if object.container %}
-	<tr valign="top"><th>Container:</th><td><a href="{% url "users-container-detail" object.container.pk %}">{{ object.container }} ({{ object.container_location }})</a></td></tr>
-	    {% if object.container.dewar %}
-	<tr valign="top"><th>Dewar:</th><td><a href="{% url "users-dewar-detail" object.container.dewar.pk %}">{{ object.container.dewar }}</a></td></tr>
-	        {% if object.container.dewar.shipment %}
-	<tr valign="top"><th>Shipment:</th><td><a href="{% url "users-shipment-detail" object.container.dewar.shipment.pk %}">{{object.container.dewar.shipment}}</a></td></tr>    
-            {% endif %}
-        {% endif %}    
-	{% else %}
-	<tr valign="top"><th>Container:</th><td>None</a></td></tr>
-	{% endif %}
+	    <tr valign="top">
+            <th>Container:</th>
+            <td>{% if object.container %}<a href="{% url "container-detail" object.container.pk %}">{{ object.container }} ({{ object.container_location }})</a>{% endif %}</td>
+        </tr>
+	    <tr valign="top">
+            <th>Shipment:</th>
+            <td>{% if object.container.shipment %}<a href="{% url "shipment-detail" object.container.shipment.pk %}">{{object.container.shipment}}</a>{% endif %}</td>
+        </tr>
 	{% if object.experiment %}
-	<tr valign="top"><th>Experiment:</th><td><a href="{% url "users-experiment-detail" object.experiment.pk %}">{{object.experiment}}</a></td></tr>
+	<tr valign="top"><th>Experiment:</th><td><a href="{% url "experiment-detail" object.experiment.pk %}">{{object.experiment}}</a></td></tr>
 	{% else %}
 	<tr valign="top"><th>Experiment:</th><td>None</td></tr>
 	{% endif %}
@@ -60,7 +57,7 @@
 <div class="clear"></div>
 {% include "users/entries/data_report_table.html" %}
 {% endblock %}
-
+{% comment %}
 {% block sidebar %}
 	{% if not user.is_superuser %}
         {% if object.is_editable %}
@@ -94,3 +91,4 @@
     {% endif %}
     {% include "users/individual_history.html" %}
 {% endblock %}
+{% endcomment %}

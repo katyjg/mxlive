@@ -24,7 +24,10 @@ class Beamline(models.Model):
     def __unicode__(self):
         """Human readable string for Beamline"""
         return self.name        
-        
+
+    class Meta:
+        app_label = 'scheduler'
+
 class Proposal(models.Model):
     '''
     Basic proposal information for ``Visit`` entries.
@@ -64,6 +67,7 @@ class Proposal(models.Model):
             )
         verbose_name = "Active Proposal"   
         ordering = ['last_name']
+        app_label = 'scheduler'
         
     expiration.is_active_filter = True
         
@@ -98,6 +102,7 @@ class SupportPerson(models.Model):
             ("first_name", "last_name", "email"),
             )
         verbose_name_plural = "Personnel"
+        app_label = 'scheduler'
 
 class VisitManager(models.Manager):
     use_for_related_fields = True
@@ -293,6 +298,7 @@ class Visit(models.Model):
             )
         get_latest_by = "date"
         verbose_name = "Beamline Visit"
+        app_label = 'scheduler'
 
    
 class OnCallManager(models.Manager):
@@ -340,6 +346,7 @@ class OnCall(models.Model):
         get_latest_by = "date"
         verbose_name = "Local Contact"
         verbose_name_plural = "Local Contacts"
+        app_label = 'scheduler'
 
 class Stat(models.Model):
     STATUS_CHOICES = (
@@ -391,6 +398,7 @@ class Stat(models.Model):
         get_latest_by = "date"
         verbose_name = "Facility Status"
         verbose_name_plural = "Facility Statuses"
+        app_label = 'scheduler'
 
 
 def get_shift_lists(blname='08B1-1', first_date=datetime.now(), last_date=datetime.now()):

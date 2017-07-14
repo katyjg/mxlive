@@ -2,7 +2,7 @@ from django.template import Library
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
-from mxlive.lims.models import Project, Beamline
+from lims.models import Project, Beamline
 from scheduler.models import Proposal, Visit
 
 register = Library()
