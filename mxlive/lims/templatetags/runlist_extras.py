@@ -75,8 +75,8 @@ def prioritize_and_sort(object_list):
         obj_list = list(object_list.filter(priority__gte=1).order_by('priority','container','container_location')) + \
                    list(object_list.exclude(priority__gte=1).order_by('priority','container','container_location'))
     else:
-        obj_list = list(object_list.filter(priority__gte=1).annotate(port=Sum('container_location')).order_by('priority','container','port')) + \
-                   list(object_list.exclude(priority__gte=1).annotate(port=Sum('container_location')).order_by('priority','container','port'))
+        obj_list = list(object_list.filter(priority__gte=1).annotate(port=Count('container_location')).order_by('priority','container','port')) + \
+                   list(object_list.exclude(priority__gte=1).annotate(port=Count('container_location')).order_by('priority','container','port'))
     return obj_list
     
 @register.filter('num_containers')
