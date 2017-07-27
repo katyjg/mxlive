@@ -52,7 +52,7 @@ admin.site.register(Link, LinkAdmin)
 class ExperimentRunlistAdmin(admin.ModelAdmin):
     search_fields = ['comments', 'name']
     list_filter = []
-    list_display = ('project', 'id', 'name', 'kind', 'plan', 'num_crystals', 'status')
+    list_display = ('project', 'id', 'name', 'kind', 'plan', 'num_samples', 'status')
     ordering = ['-staff_priority', '-priority', '-created']
     unsortable = list_display
     list_per_page = 999999
@@ -64,8 +64,8 @@ runlist_site.register(Experiment, ExperimentRunlistAdmin)
 class ContainerRunlistAdmin(admin.ModelAdmin):
     ordering = ['-staff_priority', '-created']
     search_fields = ['name', 'code']
-    list_filter = ['modified', 'kind']
-    list_display = ('project', 'id', 'name', 'experiments', 'capacity', 'num_crystals', 'status')
+    list_filter = ['modified']
+    list_display = ('project', 'id', 'name', 'experiments', 'capacity', 'num_samples', 'status')
     list_per_page = 999999
     unsortable = list_display
 

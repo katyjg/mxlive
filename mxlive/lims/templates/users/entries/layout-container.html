@@ -1,0 +1,89 @@
+{% load static %}
+{% load layout %}
+
+<script type="text/javascript" src="{% static "js/d3.v3.min.js" %}"></script>
+<script>
+    var locations = {{ kind.layout|color_json:object }};
+
+    var container_width = 1;
+    var container_height = 1;
+    if (locations.width) {
+        container_width = locations.width;
+    }
+    var height = $('#layout-{{ object }}').height();
+    var svgContainer = d3.select("#layout-{{ object }}").append("svg")
+        .attr("width", height * container_width)
+        .attr("height", height)
+        .attr('container', '{{ object }}')
+        .attr('kind', '{{ kind.pk }}');
+
+    function createNodes(data) {
+        var nodes = [], x, y;
+        for (var key in data) {
+            var coords = data[key];
+            {% ifequal kind.envelope "circle" %}
+                y = (coords[0] * width / 2 * Math.cos(coords[1])) + width / 2;
+                x = (coords[0] * width / 2 * Math.sin(coords[1])) + width / 2;
+            {% else %}
+                x = coords[0]*width;
+                y = coords[1]*height;
+            {% endifequal %}
+            nodes.push({'id': key, 'x': x, 'y': y, 'sample': coords[2]});
+        }
+        return nodes;
+    }
+
+    function drawLocations(nodes, labels) {
+        var circles = svgContainer.selectAll("circle")
+            .data(nodes)
+            .enter()
+            .append("circle");
+        var circleAttributes = circles
+            .attr("cx", function (d) { return d.x; })
+            .attr("cy", function (d) { return d.y; })
+            .attr("r", locations.radius + "%" )
+            .attr("port", function(d) { return d.id })
+            .attr("title", function(d) { return d.id })
+            .style("fill", "none")
+            .attr("sample", function(d) { return d.sample; })
+            .attr("class", function(d) {
+                if(d.sample) {
+                    return 'full';
+                }
+                return 'empty';
+            });
+        var labels = svgContainer.selectAll("text")
+            .data(labels)
+            .enter()
+            .append("text");
+        var labelsAttributes = labels
+            .text(function(d) { return d.id; })
+            .attr("text-anchor", "middle")
+            .attr("title", function(d) { return d.id })
+            .attr("r", locations.radius + "%" )
+            .attr('dx', function(d) { return d.x; })
+            .attr('dy', function(d) { return d.y + 3; });
+    }
+
+    if (locations) {
+        var width = $('#layout-{{ object }} svg').width();
+        var height = $('#layout-{{ object }} svg').height();
+        var nodes = createNodes(locations.locations);
+        if (locations.labels) {
+            var labels = createNodes(locations.labels);
+        } else {
+            var labels = nodes;
+        }
+        drawLocations(nodes, labels);
+
+        var svgEnvelope = svgContainer.append("{{ kind.envelope }}")
+                                    .attr("width", {{ size }} * container_width)
+                                    .attr("height", {{ size }} * container_height)
+                                    .attr("cx", "50%")
+                                    .attr("cy", "50%")
+                                    .attr("r", '50%')
+                                    .style("stroke", {% if kind.envelope == 'circle' %}"#333"{% else %}"none"{% endif %})
+                                    .style("fill", "none");
+    }
+
+</script>

@@ -1,26 +1,18 @@
 {% load msgs %}
+{% load static %}
 {% load crispy_forms_tags %}
 
-{% comment %}
-<link href="/static/dynforms/awesome-bootstrap-checkbox.css" rel="stylesheet">
-<link rel="stylesheet" href="/static/css/chosen.css" type="text/css" media="screen" />
-<link rel="stylesheet" href="/static/dynforms/dynforms.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="{% static "css/chosen.css" %}" media="screen" />
+<link href="{% static "fontawesome/css/font-awesome.min.css" %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static "css/font-awesome-animation.min.css" %}">
+<link rel="stylesheet" href="{% static "themify-icons/themify-icons.css" %}">
 
-<script src="/static/jquery/chosen.jquery.min.js"></script>
-<script src="/static/dynforms/jquery.form.js"></script>
-
-<script src="/static/js/bootstrap-datepicker.min.js"></script>
-<script src="/static/js/bootstrap-timepicker.min.js"></script>
-<script src="/static/js/bootstrap-datetimepicker.min.js"></script>
-
-<link rel="stylesheet" href="/static/css/datetimepicker.css" type="text/css" media="screen" />
-<link rel="stylesheet" href="/static/css/datepicker.css" type="text/css" media="screen" />
-{% endcomment %}
-
-<script src="/static/jquery/jquery.min.js"></script>
-<script src="/static/bootstrap/js/bootstrap.min.js"></script>
-<script src="/static/jquery/chosen.jquery.min.js"></script>
-<script src="/static/jquery/jquery.form.min.js"></script>
+<script src="{% static "jquery/jquery.min.js" %}"></script>
+<script src="{% static "jquery/jquery-ui.min.js" %}"></script>
+<script src="{% static "jquery/chosen.jquery.min.js" %}"></script>
+<script src="{% static "jquery/jquery.form.min.js" %}"></script>
+<script src="{% static "jquery/repeatable-fields.js" %}"></script>
+<script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
 
 {% block form_assets %}
 {% endblock %}
@@ -30,7 +22,6 @@
     <div class="modal-dialog {% block modal_size %}modal-md{% endblock %}">
         <div class="modal-content">
             <div class="modal-header">
-
                 <h3 class="modal-title">
                     {% block form_title %}{{ form.helper.title }}{% endblock %}
                     <button type="button" class="close pull-right" data-dismiss="modal" aria-hidden="true">
@@ -60,10 +51,10 @@ function initModal() {
 		placeholder_text_single: "Select an option",
 		search_contains: true,
 		allow_single_deselect: true,
-        disable_search_threshold: 8
+        disable_search_threshold: 8,
 	});
     myform.find(".chosen").trigger("change");
-	myform.modal('show');
+	myform.modal({backdrop: 'static'});
 	myform.find(':submit').click(function(e){
 		e.preventDefault();
 		$(this).html('<i class="fa fa-spinner fa-spin"></i>');
@@ -73,6 +64,11 @@ function initModal() {
 			data : {'submit': $(this).attr('value')}
 		});
 	});
+    myform.find('[data-toggle="collapse"]').click(function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        myform.find($($(this).attr('href'))).toggleClass('in');
+    });
 
 	/*
 	//Date picker
@@ -124,8 +120,8 @@ function initModal() {
 
 	// enable tooltips
 	myform.find("[title]:not([data-toggle='popover'])").tooltip({
-    		container: 'body',
-    		viewport: {selector: 'body', padding: 5}
+    		container: '#modal-form',
+    		viewport: {selector: '#modal-form', padding: 5}
     });
 
     /*
@@ -145,13 +141,11 @@ function initModal() {
         var url = $(this).attr("href");
         $(this).attr("href", url + '?next=' + window.location.href)
     });
-
 	// load custom init
 	initForm();
 }
 function showResponse(response, statusText, xhr, $form) {
 	var newForm = $(response).find('.modal-content'); // Body of new form
-    console.log(newForm);
     var myform = $("#modalForm");
 	myform.find("[title]:not([data-toggle='popover'])").tooltip('destroy');
 	if (newForm.length) {
@@ -179,6 +173,133 @@ function showResponse(response, statusText, xhr, $form) {
 		}
 	}
 }
+
+
+// Handle Repeats
+(function($) {
+    $.fn.extend({
+        repeatable: function(options) {
+            options = $.extend( {}, $.repeatable.defaults, options );
+            this.each(function() {
+                new $.repeatable(this,options);
+            });
+            return this;
+        }
+    });
+
+    // ctl is the element, options is the set of defaults + user options
+    $.repeatable = function( ctl, options ) {
+    	var rp_sel = $(ctl).attr("data-repeat-add");
+    	var all_rp = $(ctl).siblings(rp_sel);
+    	var all_rp_rm = all_rp.find(options.remove);
+
+    	function updateRepeat(section){
+            console.log(section);
+            console.log(section.index())
+
+    		section.find('.repeat-html-index').each(function() {
+    			$(this).html(section.index());
+    		});
+    		section.find('.repeat-value-index').each(function() {
+    			$(this).attr('value', section.index());
+    		});
+    		section.find('[data-repeat-index]').each(function() {
+    			$(this).attr('data-repeat-index', section.index());
+    		});
+    		section.find(':input').each(function() {
+    			$(this).attr('id', $(this).attr('id') + "_" + section.index());
+    		});
+    		section.attr('id', section.attr('id') + "_" + section.index())
+
+    		all_rp = $(ctl).siblings(rp_sel);
+
+    		all_rp_rm = all_rp.find(options.remove);
+
+			if (all_rp.length > 1 ) {
+				all_rp_rm.removeAttr("disabled");
+			} else {
+				all_rp_rm.attr("disabled", "disabled");
+			}
+
+        	// rename multi-valued field names so values are kept separate
+    		all_rp.each(function(idx, obj){
+    			$(this).find("[data-repeat-name]").each(function(){
+        			$(this).attr("name", $(this).attr("data-repeat-name") + "." + idx);
+        		});
+    		});
+    	};
+
+    	$(ctl).click(function(e){
+    	    console.log('take one');
+        	var rp_el = all_rp.last();
+         	var field_cnt = $(ctl).closest(".df-field-runtime");
+        	// first destroy any chosen fields
+        	field_cnt.find(".chosen").chosen("destroy");
+            var cloned = rp_el.clone(true);
+            cloned.insertAfter(rp_el);
+            if (options.clearNew) {
+            	cloned.find(":input:not(.chosen)").each(function(){
+            		$(this).val('').removeAttr('checked').removeAttr('selected');
+            	});
+            }
+        	updateRepeat(cloned);
+        	// rebuild chosen fields
+        	//cloned.find("select.chosen option").removeAttr('selected');
+        	cloned.find("select.chosen").each(function(){
+        		$(this).val('');
+        		$(this).trigger('change')
+        	});
+        	field_cnt.find(".chosen").chosen({allow_single_deselect: true, display_disabled_options: false, search_contains: true});
+    	});
+
+    	all_rp_rm.each(function() {
+        	$(this).click(function(e){
+        	    console.log('take two');
+	    		var del_el = $(this).closest(rp_sel);
+	            var others = del_el.siblings(rp_sel);
+	            if (others.length > 0){
+	            	del_el.slideUp('fast', function(){
+	            		del_el.remove();
+	            		others.each(function(){
+	                		updateRepeat($(this));
+	                	});
+	            	});
+	            } else if (options.clearIfLast) {
+	            	del_el.find(":input").each(function(){
+	            		$(this).val('').removeAttr('checked').removeAttr('selected');
+	            	})
+	            };
+        	});
+        });
+
+		if (all_rp.length > 1 ) {
+			all_rp_rm.removeAttr("disabled");
+		} else {
+			all_rp_rm.attr("disabled", "disabled");
+		}
+
+		// Keep multi valued fields separate, by renaming them, __# can be stripped when cleaning
+		// the data
+		all_rp.each(function(idx, obj){
+			$(obj).find("select[multiple]:not([data-repeat-name])").each(function(){
+				$(this).attr("data-repeat-name", $(this).attr("name"));
+    			$(this).attr("name", $(this).attr("data-repeat-name") + "." + idx);
+    		});
+		});
+
+    };
+
+    // option defaults
+    $.repeatable.defaults = {
+        remove: ".remove-repeat",
+        clearIfLast: true,
+        clearNew: true
+    };
+})(jQuery);
+
+
+
+
 {% if not form.errors %}
 	initModal();
 {% endif %}

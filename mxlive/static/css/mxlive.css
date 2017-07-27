@@ -46,12 +46,17 @@ main.content {
     margin-top: 50px;
     padding-bottom: 80px;
 }
+.toolbar.row.no-space {
+    padding-right: 15px;
+}
 a.navbar-brand {
     background-image: url("/static/img/mxlive-logo-sm.png");
     min-width: 83px;
 }
 nav {
-    background-color: rgb(45,109,82) !important;
+    background-color: #883a6a !important;
+    max-height: 51px !important;
+
 }
 nav .dropdown-menu {
     background-color: #333 !important;
@@ -62,6 +67,77 @@ nav li.open a {
 nav li a {
     color: #fff !important;
 }
+/* disable navbar collapse */
+.navbar-header {
+    width: 100%;
+    margin-left: 0;
+    padding-left: 15px;
+}
+.navbar-header-menu {
+    float: left;
+    margin-right: 10px;
+}
+
+    .navbar-header-menu > .navbar-nav {
+        float: left;
+        margin: 0;
+    }
+
+        .navbar-header-menu > .navbar-nav > li {
+            float: left;
+        }
+
+            .navbar-header-menu > .navbar-nav > li > a {
+                padding-top: 15px;
+                padding-bottom: 15px;
+            }
+
+        .navbar-header-menu > .navbar-nav .open .dropdown-menu {
+            position: absolute;
+            float: left;
+            width: auto;
+            margin-top: 0;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border: 1px solid rgba(0,0,0,.15);
+            -webkit-box-shadow: 0 6px 12px rgba(0,0,0,.175);
+            box-shadow: 0 6px 12px rgba(0,0,0,.175);
+        }
+
+    .navbar-header-menu > .navbar-form {
+        float: left;
+        width: auto;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-right: 0;
+        margin-left: 0;
+        border: 0;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+    }
+
+        .navbar-header-menu > .navbar-form > .form-group {
+            display: inline-block;
+            margin-bottom: 0;
+            vertical-align: middle;
+        }
+
+    .navbar-header-menu > .navbar-left {
+        float: left;
+    }
+
+    .navbar-header-menu > .navbar-right {
+        float: right !important;
+    }
+
+    .navbar-header-menu > *.navbar-right:last-child {
+        margin-right: -15px !important;
+    }
+
+
+
+
+
 img.grid-icon {
     max-height: 56px;
     max-width: 56px;
@@ -158,7 +234,7 @@ img.line-icon {
     text-align: center;
 }
 
-.box-tools a {
+.box-tools a, .box-tools span {
     position: relative;
     text-align: center;
     padding: 0 0.75em;
@@ -169,6 +245,25 @@ img.line-icon {
     margin-top: -0.5em;
     margin-bottom: -0.5em;
     margin-left: 0.5em;
+}
+.box-status {
+    width: 65px;
+    padding-right: 0.5em;
+    padding-left: 0;
+    border-right: 1px solid rgba(0,0,0,0.15);
+}
+.box-info {
+    padding-left: 1em;
+}
+.superscript {
+    top: -1.5em !important;
+    right: -0.5em !important;
+    text-align: right;
+    left: auto;
+    font-size: 75%;
+}
+.superscript .badge {
+    padding: 0.25em 0.5em;
 }
 .tool-label, .btn-label {
     display: inline-block;
@@ -285,6 +380,11 @@ div#basket {
     position: relative;
     margin-right: 2em;
 }
+.mini-profile {
+    white-space: nowrap;
+    padding: 15px;
+    min-width: 210px;
+}
 .loc-1 {
     left: 42%;
     top: 24%;
@@ -380,6 +480,117 @@ table.cane-layout td {
 .inline-list {
     float: left;
 }
+.pagelet-body {
+    overflow: auto;
+}
+.modal-body {
+    overflow: auto;
+}
+
+.back svg:hover {
+  transform: scale(3);
+    z-index: 1000;
+}
+svg {
+  transition: all 1s;
+  transform-origin: 0% 0%;
+}
+.empty {
+    fill: #ddd !important;
+}
+.full {
+    fill: #7abfd3 !important;
+}
+.active-sample {
+    fill: #a583ad !important;
+}
+form .inline-btn {
+    margin-top: 23px;
+    padding: 0.5em;
+}
+form .inline-btn + .inline-btn {
+    margin-left: 5px;
+}
+form .controls input {
+    min-height: 34px;
+    padding: 1px;
+    width: 100%;
+}
+form .collapse ul.nav-tabs {
+    padding-top: 3px;
+}
+form .tab-content {
+    overflow: visible;
+}
+form .list-group-hover .list-group-item:hover {
+    background-color: #f5f5f5;
+}
+form .tab-content {
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    padding-bottom: 0.5em;
+    border-bottom: 1px solid #ddd;
+    background-color: #fff;
+
+}
+
+ul.errorlist > li {
+    font-weight: bold;
+}
+ul.errorlist > li ul.errorlist {
+    list-style: none;
+}
+ul.errorlist ul.errorlist li {
+    font-weight: normal;
+}
+.help-inline {
+    color: red;
+}
+/* entire container, keeps perspective */
+.flip-container {
+	perspective: 1000px;
+}
+/* flip the pane when hovered */
+/*.flip-container:hover .flipper,*/
+.flip-container.hover .flipper {
+    transform: rotateY(180deg);
+}
+
+.flip-container, .front, .back {
+	width: 100%;
+    min-height: 200px;
+}
+
+/* flip speed goes here */
+.flipper {
+	transition: 0.6s;
+	transform-style: preserve-3d;
+
+	position: relative;
+}
+
+/* hide back of pane during swap */
+.front, .back {
+	backface-visibility: hidden;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+/* front pane, placed above back */
+.front {
+	z-index: 2;
+	/* for firefox 31 */
+	transform: rotateY(0deg);
+}
+
+/* back, initially hidden pane */
+.back {
+    background-color: #eee;
+	transform: rotateY(180deg);
+}
+
+
 
 
 div.crystal.droppable, div.experiment.droppable, div.shipment.droppable, div.dewar-img.droppable, div.runlist.droppable {

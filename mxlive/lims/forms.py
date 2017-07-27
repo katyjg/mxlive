@@ -1,6 +1,8 @@
 from django import forms
 from django.forms.utils import ErrorList
+from django.forms import inlineformset_factory
 from django.core.urlresolvers import reverse_lazy
+from django.http import QueryDict
 from django.utils import dateformat, timezone
 import objforms.widgets
 import uuid
@@ -9,6 +11,11 @@ from models import *
 from objforms.forms import OrderedForm
 import re
 import tempfile
+
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, HTML, Div, Field, Button
+from crispy_forms.bootstrap import Accordion, AccordionGroup, Tab, TabHolder
+from crispy_forms.bootstrap import StrictButton, FormActions
 
 
 disabled_widget = forms.HiddenInput(attrs={'readonly': True})
@@ -94,9 +101,6 @@ class NewUserForm(OrderedForm):
         data['contact_person'] = u'{} {}'.format(data['first_name'], data['last_name'])
         return data
 
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, HTML, Div
-from crispy_forms.bootstrap import StrictButton, FormActions
 
 class ShipmentForm(forms.ModelForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=disabled_widget)
@@ -120,7 +124,6 @@ class ShipmentForm(forms.ModelForm):
         self.helper.layout = Layout(
             'project','name','comments',
             FormActions(
-                HTML("<hr/>"),
                 Div(
                     StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-default"),
                     StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
@@ -146,7 +149,6 @@ class ShipmentSendForm(forms.ModelForm):
         self.helper.layout = Layout(
             'carrier','tracking_code','comments',
             FormActions(
-                HTML("<hr/>"),
                 Div(
                     StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-default"),
                     StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
@@ -155,12 +157,12 @@ class ShipmentSendForm(forms.ModelForm):
             )
         )
 
-class ShipmentAddContainerForm(forms.ModelForm):
-    target = forms.ModelChoiceField(queryset=Container.objects.all())
-
-    class Meta:
-        model = Shipment
-        fields = ['target',]
+# class ShipmentAddContainerForm(forms.ModelForm):
+#     target = forms.ModelChoiceField(queryset=Container.objects.all())
+#
+#     class Meta:
+#         model = Shipment
+#         fields = ['target',]
 
 class ShipmentReturnForm(forms.ModelForm):
     class Meta:
@@ -175,7 +177,6 @@ class ShipmentReturnForm(forms.ModelForm):
         self.helper.layout = Layout(
             'carrier','return_code','staff_comments',
             FormActions(
-                HTML("<hr/>"),
                 Div(
                     StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-default"),
                     StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
@@ -198,7 +199,6 @@ class ShipmentReceiveForm(forms.ModelForm):
         self.helper.layout = Layout(
             'storage_location','staff_comments',
             FormActions(
-                HTML("<hr/>"),
                 Div(
                     StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-default"),
                     StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
@@ -220,7 +220,6 @@ class ShipmentArchiveForm(forms.ModelForm):
         self.helper.layout = Layout(
             HTML("""{{ object }}"""),
             FormActions(
-                HTML("<hr/>"),
                 Div(
                     StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
                     css_class='pull-right'
@@ -242,7 +241,7 @@ class ContainerForm(forms.ModelForm):
             self.helper.title = u"Create New Container"
             self.helper.form_action = reverse_lazy("container-new")
         self.helper.layout = Layout(
-            'project','name','kind','shipment','comments',
+            'project','name','shipment','comments',
             FormActions(
                 HTML("<hr/>"),
                 Div(
@@ -258,14 +257,253 @@ class ContainerForm(forms.ModelForm):
         cleaned_data = self.cleaned_data
         if self.instance.pk:
             if self.instance.kind != cleaned_data['kind']:
-                if self.instance.num_crystals() > 0:
+                if self.instance.num_samples() > 0:
                     raise forms.ValidationError('Cannot change kind of Container when Crystals are associated')
         return cleaned_data['kind']
 
     class Meta:
         model = Container
-        fields = ['project', 'name', 'kind', 'shipment', 'comments']
+        fields = ['project', 'name', 'shipment', 'comments']
         widgets = {'project': disabled_widget}
+
+
+class AddShipmentForm(forms.ModelForm):
+    class Meta:
+        model = Shipment
+        fields = ('name','comments')
+        widgets = {
+            'comments': forms.Textarea(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(AddShipmentForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Div(
+                Div(
+                    HTML("""<h4>Step 1: Give your shipment a name!</h4>"""),
+                    HTML("""<small>This name will be visible to you and staff at the beamline.</small>"""),
+                    Field('name', css_class="col-xs-12"),
+                    Field('comments', rows="2", css_class="col-xs-12"),
+                    css_class="col-xs-12"
+                ),
+                css_class="row"
+            )
+        )
+
+    def clean_name(self):
+        name = self.cleaned_data['name']
+        if Shipment.objects.filter(name__iexact=name).exists():
+            raise forms.ValidationError("Shipment with this name already exists")
+        return name
+
+
+
+class ShipmentContainerForm(forms.ModelForm):
+    class Meta:
+        model = Container
+        fields = ('name', 'kind')
+
+    def __init__(self, *args, **kwargs):
+        super(ShipmentContainerForm, self).__init__(*args, **kwargs)
+
+        repeated_fields = ['name','kind']
+        for f in repeated_fields:
+            self.fields['{}_set'.format(f)] = forms.CharField(required=False)
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Div(
+                Div(
+                    HTML("""<h4>Step 2: Add the containers you are bringing!</h4>"""),
+                    HTML("""<small>Use labels that are visible on your containers.
+                            Don't worry, you can always add more containers later.</small>"""),
+                    css_class="col-xs-12"
+                ),
+                css_class="row"
+            ),
+            Div(
+                Div(
+                    Div(
+                        Div(
+                            Div(Field('name', css_id="name"), css_class="col-xs-5"),
+                            Div(Field('kind', css_class="tab-chosen chosen-single chosen-select", css_id="kind"), css_class="col-xs-5"),
+                            Div(HTML("""<a title="Remove Group" class="inline-btn remove btn btn-danger"><i class="fa fa-fw fa-remove"></i></a>"""),
+                                css_class="col-xs-2"),
+                            css_class="col-xs-12 template repeat-row list-group-item"
+                        ),
+                        css_class="row repeat-group repeat-container list-group list-group-hover",
+                    ),
+                    Div(
+                        HTML("""<br/>"""),
+                        Button('Add', type='add', value='Add Another', css_class="btn btn-success add"),
+                        css_class="col-xs-12"
+                    ),
+                    css_class="repeat-wrapper"
+                ),
+                css_class='repeat'
+            )
+        )
+
+    def clean(self):
+        self.repeated_data = {}
+        self.cleaned_data = super(ShipmentContainerForm, self).clean()
+        for field in self.Meta.fields:
+            self.cleaned_data['{}_set'.format(field)] = self.data.getlist('containers-0-{}'.format(field))
+            self.fields[field].initial = self.cleaned_data['{}_set'.format(field)][0]
+        if not self.is_valid():
+            for k, v in self.cleaned_data.items():
+                if type(v) == type([]):
+                    self.repeated_data[k] = [str(e) for e in v]
+        return self.cleaned_data
+
+ContainerFormSet = inlineformset_factory(Shipment, Container, form=ShipmentContainerForm, extra=1)
+
+
+class ShipmentGroupForm(forms.ModelForm):
+    locations = forms.MultipleChoiceField(
+        choices= [],
+        label='Container Locations', required=False
+    )
+
+    class Meta:
+        model = Experiment
+        fields = ['name', 'sample_count', 'kind', 'resolution','delta_angle','multiplicity','total_angle','energy','absorption_edge','plan','comments','locations']
+        widgets = {
+            'comments': forms.Textarea(attrs={'rows': "4"})
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(ShipmentGroupForm, self).__init__(*args, **kwargs)
+
+        containers = self.initial.get('containers', [])
+        locations = []
+        for c in containers:
+            kind = ContainerType.objects.get(pk=int(c[1]))
+            locations.extend([('{2}:{0}:{1}'.format(c[0], l, c[1]),'{2}:{0}:{1}'.format(c[0], l, c[1])) for l in kind.container_locations.values_list('name',flat=True)])
+
+        self.fields['locations'] = forms.MultipleChoiceField(choices=locations, label="Container Locations", required=False)
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Div(
+                Div(
+                    HTML("""<h4>Step 3: Add the groups of samples you will be working on!</h4>"""),
+                    HTML("""<small>How do you want to keep track of your different projects?
+                        Don't worry, you can always add more groups later.</small>"""),
+                    css_class="col-xs-12"
+                ),
+                css_class="row"
+            ),
+            Div(
+                Div(
+                    Div(
+                        Div(
+                            Div(
+                                Div(
+                                    Div(
+                                        Div(
+                                            Div(
+                                                HTML("""<a title="Drag to change group priority" class="disabled inline-btn btn btn-info move"><i class="fa fa-fw fa-arrows"></i></a>"""),
+                                                HTML("""<a title="Sample Seat Selection" onclick="seatSelect(this, true);" class="disabled inline-btn btn btn-info btn-collapse"><i class="fa fa-fw fa-hand-pointer-o"></i></a>"""),
+                                                HTML("""<a title="Edit more group details" href="#group-details-{rowcount}" data-toggle="collapse" class="inline-btn btn btn-info btn-collapse"><i class="fa fa-fw fa-pencil"></i></a>"""),
+                                                css_class="col-xs-3"
+                                            ),
+                                            Div(Field('name'), css_class="col-xs-4"),
+                                            Div(Field('sample_count', css_class="large"), css_class="col-xs-3"),
+                                            Div(
+                                                HTML("""<a title="Remove Group" class="remove btn btn-danger"><i class="fa fa-fw fa-remove"></i></a>"""),
+                                                css_class="col-xs-2"
+                                            ),
+                                            css_class="row"
+                                        ),
+                                        Div(
+                                            Div(
+                                                TabHolder(
+                                                    Tab('Experiment Parameters',
+                                                        Div(
+                                                            Div(
+                                                                Div(Field('kind', css_class="tab-chosen chosen-select"), css_class="col-xs-6"),
+                                                                Div(Field('plan', css_class="tab-chosen chosen-select"), css_class="col-xs-6"),
+                                                                Div(Field('energy'), css_class="col-xs-6"),
+                                                                Div(Field('absorption_edge'), css_class="col-xs-6"),
+                                                                css_class="col-xs-12"
+                                                            ),
+                                                            css_class="row"
+                                                        )
+                                                    ),
+                                                    Tab('Desired Parameters',
+                                                        Div(
+                                                            Div(
+                                                                Div(Field('delta_angle'), css_class="col-xs-6"),
+                                                                Div(Field('total_angle'), css_class="col-xs-6"),
+                                                                Div(Field('resolution'), css_class="col-xs-6"),
+                                                                Div(Field('multiplicity'), css_class="col-xs-6"),
+                                                                css_class="col-xs-12"
+                                                            ),
+                                                            css_class="row"
+                                                        )
+                                                    ),
+                                                    Tab('Comments',
+                                                        Div(
+                                                            Div(
+                                                                Div(Field('comments'), css_class="col-xs-12"),
+                                                                css_class="col-xs-12"
+                                                            ),
+                                                            css_class="row"
+                                                        )
+                                                    )
+                                                )
+                                            ),
+                                            css_class="col-xs-12 collapse",
+                                            css_id="group-details-{rowcount}"
+                                        ),
+                                    ),
+                                    css_class="col-xs-12 template repeat-row list-group-item"
+                                ),
+                                css_class="row repeat-group repeat-container list-group list-group-hover",
+                            ),
+                            Div(
+                                HTML("""<br/>"""),
+                                Button('Add', type='add', value='Add Another', css_class="btn btn-success add"),
+                                css_class="col-xs-12"
+                            ),
+                            css_class="repeat-wrapper"
+                        ),
+                        css_class='repeat front'
+                    ),
+                    Div(
+                        Div(
+                            HTML("""<a title="Sample Seat Selection" onclick="seatSelect(false);" class="inline-btn btn btn-info btn-collapse"><i class="fa fa-fw fa-backward"></i></a>"""),
+                            css_class="col-xs-2"
+                        ),
+                        Div(
+                            HTML("""<h4>Select the locations of samples in group <strong>"<span class="group-name"></span>"</strong></h4>"""),
+                            css_class="col-xs-10"
+                        ),
+                        Field('locations', template="users/forms/layout-container.html"),
+                        css_class="back row"
+                    ),
+                    css_class="flipper"
+                ),
+                css_class="flip-container"
+            )
+        )
+
+    def clean(self):
+        self.cleaned_data = super(ShipmentGroupForm, self).clean()
+        print self.data
+        for field in self.Meta.fields:
+            self.cleaned_data['{}_set'.format(field)] = self.data.getlist('groups-0-{}'.format(field))
+        return self.cleaned_data
+
+    def clean_locations(self):
+        return self.data.getlist('groups-0-locations')
+
+GroupFormSet = inlineformset_factory(Shipment, Experiment, form=ShipmentGroupForm, extra=1)
+
+
 
 class ConfirmDeleteForm(BaseForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
@@ -426,48 +664,6 @@ class ExperimentForm(OrderedForm):
                   'energy', 'absorption_edge', 'comments')
 
 
-class ExperimentFromStrategyForm(OrderedForm):
-    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    strategy = forms.ModelChoiceField(queryset=Strategy.objects.all(), widget=forms.HiddenInput)
-    name = objforms.widgets.LargeCharField(required=True)
-    kind = objforms.widgets.LeftHalfChoiceField(label='Type', choices=Experiment.EXP_TYPES, required=True)
-    plan = objforms.widgets.RightHalfChoiceField(label='Plan', choices=Experiment.EXP_PLANS,
-                                                 required=True)
-    resolution = forms.FloatField(label='Desired Resolution', widget=objforms.widgets.LeftHalfInput, required=False)
-    delta_angle = forms.FloatField(widget=objforms.widgets.RightHalfInput, required=False,
-                                   help_text='If left blank, an appropriate value will be calculated during screening.')
-    multiplicity = forms.FloatField(widget=objforms.widgets.LeftHalfInput, required=False,
-                                    help_text='Values entered here take precedence over the specified "Angle Range".')
-    total_angle = forms.FloatField(label='Angle Range', widget=objforms.widgets.RightHalfInput, required=False,
-                                   help_text='The total angle range to collect.')
-    i_sigma = forms.FloatField(label='Desired I/Sigma', widget=objforms.widgets.LeftHalfInput, required=False)
-    r_meas = forms.FloatField(label='Desired R-factor', widget=objforms.widgets.RightHalfInput, required=False)
-    energy = forms.DecimalField(widget=objforms.widgets.LeftHalfInput, required=False)
-    absorption_edge = objforms.widgets.RightHalfCharField(required=False)
-    crystals = forms.ModelChoiceField(queryset=None, widget=forms.Select)
-    comments = objforms.widgets.CommentField(required=False,
-                                             help_text='You can use Restructured Text formatting here.')
-
-    class Meta:
-        model = Experiment
-        fields = ('project', 'strategy', 'name', 'kind', 'plan', 'resolution',
-                  'delta_angle', 'multiplicity', 'total_angle', 'i_sigma', 'r_meas',
-                  'energy', 'absorption_edge', 'crystals', 'comments')
-
-    def __init__(self, *args, **kwargs):
-        super(ExperimentFromStrategyForm, self).__init__(*args, **kwargs)
-        self.fields['plan'].choices = [
-            (Experiment.EXP_PLANS.JUST_COLLECT, Experiment.EXP_PLANS[Experiment.EXP_PLANS.JUST_COLLECT]), ]
-        pkey = self.initial.get('crystals', None) or self.data.get('crystals', None)
-        self.fields['crystals'].queryset = Crystal.objects.filter(pk=pkey)
-        self.fields['crystals'].choices = list(self.fields['crystals'].choices)[1:]
-
-    def clean_crystals(self):
-        if not self.cleaned_data.get('crystals', None):
-            raise forms.ValidationError('Crystal did not exist for Strategy that this Experiment was based on.')
-        return [self.cleaned_data['crystals']]
-
-
 class CocktailForm(OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
     name = objforms.widgets.LargeCharField(required=True, label='Constituents')
@@ -505,24 +701,6 @@ class CrystalFormForm(OrderedForm):
         model = CrystalForm
         fields = (
         'project', 'name', 'space_group', 'cell_a', 'cell_b', 'cell_c', 'cell_alpha', 'cell_beta', 'cell_gamma')
-
-
-class DataForm(forms.ModelForm):
-    class Meta:
-        model = Data
-        fields = []
-
-
-class StrategyRejectForm(OrderedForm):
-    name = objforms.widgets.LargeCharField(widget=forms.HiddenInput, required=False)
-
-    class Meta:
-        model = Strategy
-        fields = ('name',)
-
-    def get_message(self):
-        return "Are you sure you want to reject this Strategy?"
-
 
 class FeedbackForm(OrderedForm):
     project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)

@@ -22,6 +22,9 @@
     {% block extra_css %}{% endblock %}
     <script src="/static/jquery/jquery.min.js"></script>
     <script src="/static/jquery/jquery-ui.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+    <script src='/static/jquery/jquery.nicescroll.min.js'></script>
     {% block pre_js %}{% endblock %}
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -53,16 +56,14 @@
             </div>
         </div>
     </main>
-
+    {% endblock %}
     <div id="modal-form"></div>
     <div id="page-spinner"></div>
 	<div id="help-content" class="main-content removed"></div>
-{% endblock %}
+
 </div>
 {% include "users/messages.html" %}
-<!-- Bootstrap -->
-<script src="/static/bootstrap/js/bootstrap.min.js"></script>
-<script src='/static/jquery/jquery.nicescroll.min.js'></script>
+
 {% block post_js %}{% endblock %}
 {% block extra_js %}{% endblock %}
 <script>

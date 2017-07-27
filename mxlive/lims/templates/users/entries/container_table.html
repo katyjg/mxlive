@@ -13,7 +13,7 @@
             </tr>
         </thead>
         <tbody>
-        {% ifnotequal object.num_crystals 0 %}
+        {% ifnotequal object.num_samples 0 %}
             {% ifequal object.json_dict.type "Cane" %}{% for loc, crystal in object.location_and_crystal reversed %}
                 {% if crystal %}
                     <tr class="{% cycle 'odd' 'even'%}">

@@ -38,3 +38,22 @@ def cleanup(mxlive):
     data = json.load(fm)
     fm.close()
 
+    dewars = {d['pk']: d for d in data if d['model'] == 'lims.dewar'}
+
+    # Transfer dewar__storage_location to shipment__storage_location
+    for i, shipment in enumerate([d for d in data if d['model'] == 'lims.shipment']):
+        shipment_dewars = {k: v for k, v in  dewars.items() if v['fields']['shipment'] == shipment['pk']}
+        data[i]['fields']['storage_location'] == dewars[]
+
+    # Transfer container__dewar__shipment to container__shipment
+
+    # Transfer container__kind to instance of ContainerType
+
+    # Assign experiments to specific shipments
+
+    data = [d for d in data if d['model'] not in ['lims.dewar','lims.strategy']]
+
+    filename = open('mxlive-cleaned.json','w')
+    filename.write(json.dumps(data, indent=2))
+    filename.close()
+

@@ -59,7 +59,7 @@
                 </div>
                 <div class="col-xs-9">
                     <div class="pull-right text-right">
-                        <strong>{{ object.num_containers }}</strong> Container{{ object.num_containers|pluralize }} / <strong>{{ object.num_crystals }}</strong> Crystal{{ object.num_crystals|pluralize }}
+                        <strong>{{ object.num_containers }}</strong> Container{{ object.num_containers|pluralize }} / <strong>{{ object.num_samples }}</strong> Sample{{ object.num_samples|pluralize }}
                     </div>
                 <br/>
                     {% if object.status == object.STATES.RETURNED or object.status == object.STATES.SENT %}

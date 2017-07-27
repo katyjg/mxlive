@@ -55,6 +55,7 @@ INSTALLED_APPS = (
     'apikey',
     'reversion',
     'crispy_forms',
+    'formtools',
 )
 
 MIDDLEWARE_CLASSES = (

@@ -1,0 +1,5 @@
+<tr {% for attr, value in row_attrs.items %}{{ attr }}="{{ value }}"{% endfor %}>
+{% for field in fields %}
+    <td {% if field.style %}class="{{field.style}}"{% endif %}>{{ field.data }}</td>
+{% endfor %}
+</tr>

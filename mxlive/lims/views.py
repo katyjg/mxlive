@@ -17,6 +17,7 @@ from django.views.generic import edit
 from django.views.generic import detail
 from django.core.urlresolvers import reverse_lazy
 from lims import forms, models
+from itertools import chain
 
 class AjaxableResponseMixin(object):
     """
@@ -119,6 +120,19 @@ class ProjectDetail(detail.DetailView):
             self.kwargs['username'] = self.request.user
         return super(ProjectDetail, self).get_object(*args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        context = super(ProjectDetail, self).get_context_data(**kwargs)
+        month = datetime.now() - timedelta(days=30)
+        all = self.get_object().shipment_set.filter(status__lt=models.Shipment.STATES.ARCHIVED).order_by('modified')
+        base_set = all.filter(Q(status__in=[models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT]) | Q(modified__gte=month)).distinct()
+        if base_set.count() < 7:
+            pks = [s.pk for s in list(chain(base_set, list(all.exclude(pk__in=base_set.values_list('pk')))[0:10-base_set.count()]))]
+        else:
+            pks = base_set.values_list('pk')
+        context['shipments'] = all.filter(pk__in=pks).order_by('status','-modified')
+        return context
+
+
 
 class ListViewMixin(object):
     paginate_by = 25
@@ -162,18 +176,6 @@ class ShipmentDetail(detail.DetailView):
     allowed_roles = ['owner','admin']
     admin_roles = ['admin']
 
-class ShipmentCreate(SuccessMessageMixin, LoginRequiredMixin, edit.CreateView):
-    form_class = forms.ShipmentForm
-    template_name = "forms/modal.html"
-    model = models.Shipment
-    success_url = reverse_lazy('shipment-list')
-    success_message = "Shipment has been created."
-
-    def get_initial(self):
-        initial = super(ShipmentCreate, self).get_initial()
-        initial.update(project=self.request.user)
-        return initial
-
 class ShipmentEdit(SuccessMessageMixin, LoginRequiredMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.ShipmentForm
     template_name = "forms/modal.html"
@@ -188,12 +190,13 @@ class ShipmentEdit(SuccessMessageMixin, LoginRequiredMixin, AjaxableResponseMixi
         initial.update(project=self.request.user)
         return initial
 
-class ShipmentDelete(edit.DeleteView):
+class ShipmentDelete(AjaxableResponseMixin, SuccessMessageMixin, edit.DeleteView):
     success_url = reverse_lazy('shipment-list')
     template_name = "forms/delete.html"
     allowed_roles = ['owner','admin']
     model = models.Shipment
     success_message = "Shipment has been deleted."
+
 
 class SendShipment(ShipmentEdit):
     form_class = forms.ShipmentSendForm
@@ -242,7 +245,7 @@ class ReceiveShipment(ShipmentEdit):
 class ContainerList(ListViewMixin, FilteredListView):
     model = models.Container
     list_filter = ['modified','kind','status']
-    list_display = ['identity', 'name', 'shipment', 'kind', 'capacity', 'num_crystals', 'status']
+    list_display = ['identity', 'name', 'shipment', 'kind', 'capacity', 'num_samples', 'status']
     search_fields = ['project__name','name', 'comments']
     detail_url = 'container-detail'
     add_url = 'container-new'
@@ -255,25 +258,6 @@ class ContainerWidget(ContainerList):
 
     def get_queryset(self):
         return super(ContainerWidget, self).get_queryset().filter(shipment__isnull=True)
-
-# def basic_object_list(request, model, template='objlist/basic_object_list.html'):
-#     """
-#     Request a basic list of objects for which the orphan field specified as a GET parameter is null.
-#     The template this uses will be rendered in the sidebar controls.
-#     """
-#     ol = {}
-#     if request.GET.get('orphan_field', None) is not None:
-#         params = {'%s__isnull' % str(request.GET['orphan_field']): True}
-#         objects = request.manager.filter(**params)
-#     else:
-#         objects = request.manager.all()
-#     ol['object_list'] = objects
-#     handler = request.path
-#     # if path has /basic on it, remove that.
-#     if 'basic' in handler:
-#         handler = handler[0:-6]
-#     return render_to_response(template, {'ol': ol, 'type': model.__name__.lower(), 'handler': handler},
-#                               context_instance=RequestContext(request))
 
 class ContainerDetail(detail.DetailView):
     model = models.Container
@@ -370,7 +354,7 @@ class CrystalDelete(edit.DeleteView):
 class ExperimentList(ListViewMixin, FilteredListView):
     model = models.Experiment
     list_filter = ['modified','status']
-    list_display = ['identity','name','kind','plan','num_crystals','status']
+    list_display = ['identity','name','kind','plan','num_samples','status']
     search_fields = ['project__name','comments','name']
     detail_url = 'experiment-detail'
     add_url = 'experiment-new'
@@ -452,3 +436,89 @@ class ScanResultList(ListViewMixin, FilteredListView):
     order_by = ['-modified']
     ordering_proxies = {}
     list_transforms = {}
+
+class ActivityLogList(ListViewMixin, FilteredListView):
+    model = models.ActivityLog
+    list_filter = ['created','action_type']
+    list_display = ['created', 'action_type','user_description','ip_number','object_repr','description']
+    search_fields = ['description','ip_number', 'content_type__name', 'action_type']
+    owner_field = "user__username"
+    order_by = ['-created']
+    ordering_proxies = {}
+    list_transforms = {}
+    detail_url = 'activitylog-detail'
+    detail_ajax = True
+    detail_target = '#modal-form'
+
+from formtools.wizard.views import SessionWizardView
+
+class ShipmentContainerCreate(edit.CreateView):
+    model = models.Shipment
+    fields = ['name']
+    success_url = reverse_lazy('shipment-list')
+
+    def get_context_data(self, **kwargs):
+        data = super(ShipmentContainerCreate, self).get_context_data(**kwargs)
+        if self.request.POST:
+            data['containers'] = forms.ShipmentContainerFormset(self.request.POST)
+        else:
+            data['containers'] = forms.ShipmentContainerFormSet
+        return data
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        containers = context['containers']
+        with transaction.atomic():
+            self.object = form.save()
+            if containers.is_valid():
+                containers.shipment = self.object
+                containers.save()
+        return super(ShipmentContainerCreate, self).form_valid(form)
+
+
+class ShipmentCreate(SessionWizardView):
+    form_list = [('shipment', forms.AddShipmentForm),
+                 ('containers', forms.ContainerFormSet),
+                 ('groups', forms.GroupFormSet)]
+    template_name = "forms/wizard.html"
+
+    def get_form_initial(self, step):
+        if step == 'groups':
+            # on SECOND step get data of first step
+            containers_data = self.storage.get_step_data('containers')
+            if containers_data:
+                names = containers_data.getlist('containers-0-name')
+                kinds = containers_data.getlist('containers-0-kind')
+                containers = [(names[i], kinds[i]) for i in range(len(names))]
+                return self.initial_dict.get(step, [{'containers': containers}])
+        return self.initial_dict.get(step, {})
+
+    def done(self, form_list, **kwargs):
+
+        for label, form in kwargs['form_dict'].items():
+            if label == 'shipment':
+                data = form.cleaned_data
+                data.update({'project': self.request.user})
+                self.shipment, created = models.Shipment.objects.get_or_create(**data)
+            elif label == 'containers':
+                for i, name in enumerate(form.cleaned_data[0]['name_set']):
+                    data = {}
+                    data['kind'] = models.ContainerType.objects.get(pk=form.cleaned_data[0]['kind_set'][i])
+                    data['name'] = name
+                    data['shipment'] = self.shipment
+                    data['project'] = self.request.user
+                    container, created = models.Container.objects.get_or_create(**data)
+            elif label == 'groups':
+                for i, name in enumerate(form.cleaned_data[0]['name_set']):
+                    data = {field: form.cleaned_data[0]['{}_set'.format(field)][i] for field in ['name','sample_count','kind','plan','comments']}
+                    data.update({field: float(form.cleaned_data[0]['{}_set'.format(field)][i])
+                                for field in ['total_angle','energy','absorption_edge','resolution','delta_angle','multiplicity'] if form.cleaned_data[0]['{}_set'.format(field)][i]})
+                    data['shipment'] = self.shipment
+                    data['project'] = self.request.user
+                    data['priority'] = i + 1
+                    group, created = models.Experiment.objects.get_or_create(**data)
+
+                print form.cleaned_data
+
+        return HttpResponseRedirect(reverse('shipment-detail', kwargs={'pk': self.shipment.pk}))
+

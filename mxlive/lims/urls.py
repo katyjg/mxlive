@@ -39,4 +39,7 @@ urlpatterns = [
 
     url(r'^scans/$', views.ScanResultList.as_view(), name='scanresult-list'),
 
+    url(r'^activity/$', views.ActivityLogList.as_view(), name='activitylog-list'),
+    url(r'^activity/(?P<pk>\d+)/$', views.ActivityLogList.as_view(), name='activitylog-detail'),
+
 ]

@@ -26,7 +26,7 @@
                     <td class="redirect" title="Go to Experiment {{experiment.name}}"
                     href="{% url "experiment-detail" experiment.pk %}">{{ experiment.get_plan_display }}</td>
                     <td class="redirect"
-                    href="{% url "experiment-detail" experiment.pk %}">{% if admin %}{{ experiment.crystal_set|arrived_onsite:containers}}{% else %}{{ experiment.crystal_set|in_shipment:containers }}{% endif %}/{{ experiment.num_crystals }}</td>
+                    href="{% url "experiment-detail" experiment.pk %}">{% if admin %}{{ experiment.crystal_set|arrived_onsite:containers}}{% else %}{{ experiment.crystal_set|in_shipment:containers }}{% endif %}/{{ experiment.num_samples }}</td>
                     <td class="redirect"
                     href="{% url "experiment-detail" experiment.pk %}">{{ experiment.get_status_display }}</td>
                 </tr>

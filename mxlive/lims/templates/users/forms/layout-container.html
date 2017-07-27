@@ -1,0 +1,14 @@
+{% load layout %}
+
+<div id="layout-{{ field.name }}" class="layout-lg">
+    <div class="hidden">{{ field }}</div>
+    {% for container in form.fields.locations.choices|get_containers_from_choices %}
+        <div id="layout-{{ container.0 }}" class="layout-lg" style="min-height: 50px;">
+            <h4>
+                <strong>{{ container.0 }}</strong>
+                <a title="Select All" onclick="selectAll('{{ container.0 }}');" class="btn btn-success"><i class="fa fa-fw fa-hand-grab-o"></i></a>
+            </h4>
+        </div>
+        {% include "users/entries/layout-container.html" with object=container.0 kind=container.1 size=50 %}
+    {% endfor %}
+</div>

@@ -1,0 +1,151 @@
+{% extends "forms/modal.html" %}
+
+{% load msgs %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block form_title %}
+    Create a Shipment: Easy as {% for i in wizard.steps.all %}
+        {% if forloop.counter == wizard.steps.step1 %}
+            <strong style="color: dodgerblue;">{{ forloop.counter }}</strong>
+        {% else %}{{ forloop.counter }}
+        {% endif %}
+        {% if not forloop.last %} - {% endif %}{% endfor %}!
+{% endblock %}
+
+{% block form_body %}
+
+    <form action="/users/shipments/new/" method="post">
+        {% csrf_token %}
+        {{ wizard.management_form }}
+        {% if wizard.form.forms %}
+            {{ wizard.form.management_form }}
+            {% for form in wizard.form.forms %}
+                {% if form.errors %}
+                    <div id="form-errors" class="alert alert-warning"><strong>It looks like there's a problem!</strong> Please correct the errors below.</div>
+                {% endif %}
+                {% crispy form form.helper %}
+            {% endfor %}
+        {% else %}
+                {% if wizard.form.errors %}
+                    <div id="form-errors" class="alert alert-warning"><strong>It looks like there's a problem!</strong> Please correct the errors below.</div>
+                {% endif %}
+            {% crispy wizard.form wizard.form.helper %}
+        {% endif %}
+        <div class="form-actions">
+            <hr />
+            <div class="pull-right">
+            {% if wizard.steps.prev %}
+                <!--button class="btn btn btn-default" name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">{% trans "Back to Start" %}</button-->
+                <!--button class="btn btn btn-default" name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">{% trans "Back" %}</button-->
+            {% endif %}
+            <input class="btn btn btn-primary" type="submit" value="{% if wizard.steps.next %}{% trans "Continue" %}{% else %}{% trans "Finish" %}{% endif %}"/>
+            </div>
+        </div>
+    </form>
+
+<script>
+function seatSelect(e, open) {
+  $('.flip-container').toggleClass('hover');
+  var group = $(e).attr('group');
+  if (open) {
+      $('span.group-name').html(group);
+      $('circle').bind('click', function() {
+          $(this).toggleClass('empty').toggleClass('full');
+          var port = $(this).attr('port');
+          var svg = $(this).closest('svg');
+          var value = svg.attr('kind') + ':' + svg.attr('container') + ':' + port;
+          $('option[value="'+value+'"]').attr('value', value + '-' + group).attr('selected', true);
+      })
+  }
+};
+function selectAll(group) {
+  console.log($(this));
+  console.log(group);
+  $('.group-name').text(group);
+  $('option').attr('selected', true);
+};
+
+function setInitial(data) {
+    $.each(data, function(e, values) {
+        for (var i=0; i<=values.length; i++) {
+            if (i > $('.repeat-row').not('.template').length) {
+                $('.add').trigger('click');
+            }
+        }
+    });
+    var rows = $('.repeat-row').not('.template');
+    $.each(data, function(e, values) {
+        var field = e.split('_set')[0];
+        $.each(values, function(i, val) {
+            var input = $(rows[i]).find($('input[css-id="'+field.toString()+'"]'));
+            var select = $(rows[i]).find($('select[css-id="'+field.toString()+'"]'));
+            if (input.length) { input.attr('value', val); }
+            if (select.length) {
+                var option = select.find('option[value="'+val+'"]').attr('selected','true');
+                $(rows[i]).find($('.tab-chosen')).trigger("chosen:updated");
+            }
+        });
+    });
+}
+
+jQuery(function() {
+	jQuery('.repeat').each(function() {
+		jQuery(this).repeatable_fields({
+            row_count_placeholder: '{rowcount}',
+            row: '.repeat-row',
+            container: '.repeat-container',
+            wrapper: '.repeat-wrapper',
+            after_add: function(container, new_row) {
+                var rows = $(container).children('.repeat-row').filter(function() {
+                    return !jQuery(this).hasClass('template');
+                });
+                var row_count = rows.length;
+                $('*', new_row).each(function() {
+                    $.each(this.attributes, function(index, element) {
+                        this.value = this.value.replace('{rowcount}', row_count - 1);
+                    });
+                });
+                rows.find('[data-toggle="tab"]').not('.repeated').each(function() {
+                    var old_id = $(this).attr('href');
+                    var num = row_count - 1;
+                    $(this).attr('href', old_id + '-' + num ).addClass('repeated');
+                    rows.find(old_id).attr("id", old_id.replace('#','') + '-' + num);
+                });
+
+                new_row.find(".tab-chosen").chosen({
+                    placeholder_text_single: "Select an option",
+                    search_contains: true,
+                    allow_single_deselect: true,
+                    disable_search_threshold: 8,
+                });
+                new_row.find(".chosen-select").trigger("change");
+                new_row.find('[data-toggle="collapse"]').click(function(e){
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var dropdown = $($(this).attr('href'));
+                    dropdown.slideToggle().toggleClass('in');
+                });
+                $('input[name="groups-0-name"]').on('change', function(f) {
+                    var row = f.target.closest('.repeat-row');
+                    $(row).find($('a.disabled')).removeClass('disabled').attr('group',f.target.value);
+                });
+            }
+        });
+		$('.add').trigger('click');
+	});
+
+
+
+    {% if wizard.form.forms %}
+        {% for form in wizard.form.forms %}
+            {% if form.repeated_data %}
+                setInitial({{ form.repeated_data|safe }});
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+});
+</script>
+
+{% endblock %}

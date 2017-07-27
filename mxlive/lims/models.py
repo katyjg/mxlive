@@ -323,8 +323,16 @@ class Shipment(ObjectBaseClass):
     def num_containers(self):
         return self.container_set.count()
 
-    def num_crystals(self):
+    def num_samples(self):
         return sum([c.crystal_set.count() for c in self.container_set.all()])
+
+    def num_datasets(self):
+        crystals = self.project.crystal_set.filter(container__pk__in=self.container_set.values_list('pk'))
+        return sum([c.data_set.count() for c in crystals])
+
+    def num_results(self):
+        crystals = self.project.crystal_set.filter(container__pk__in=self.container_set.values_list('pk'))
+        return sum([c.result_set.count() for c in crystals])
 
     def is_sendable(self):
         return self.status == self.STATES.DRAFT and not self.shipping_errors()
@@ -381,7 +389,7 @@ class Shipment(ObjectBaseClass):
         if self.num_containers() == 0:
             errors.append("no Containers")
         for container in self.container_set.all():
-            if container.num_crystals() == 0:
+            if container.num_samples() == 0:
                 errors.append("empty Container (%s)" % container.name)
         return errors
     
@@ -399,7 +407,7 @@ class Shipment(ObjectBaseClass):
                 unassociated_crystal.save()
 
     def groups(self):
-        return Experiment.objects.filter(pk__in=Crystal.objects.filter(container__pk__in=self.container_set.values_list('pk')).values_list('experiment__pk'))
+        return self.experiment_set.order_by('-priority')
 
     def delete(self, request=None, cascade=True):
         if self.is_deletable():
@@ -471,22 +479,28 @@ class ContainerType(models.Model):
     }
     name = models.CharField(max_length=20)
     kind = models.IntegerField('type', choices=TYPE)
-    container_locations = models.ManyToManyField("ContainerLocation")
-    layout = JSONField()
-    envelope = models.CharField(max_length=200)
+    container_locations = models.ManyToManyField("ContainerLocation", blank=True)
+    layout = JSONField(null=True, blank=True)
+    envelope = models.CharField(max_length=200, blank=True)
+
+    def __unicode__(self):
+        return self.get_kind_display()
 
 
 class ContainerLocation(models.Model):
     name = models.CharField(max_length=5)
-    accepts = models.ManyToManyField(ContainerType, related_name="locations")
+    accepts = models.ManyToManyField(ContainerType, blank=True, related_name="locations")
 
+    def __unicode__(self):
+        return self.name
 
 class Container(LoadableBaseClass):
     TYPE = Choices(
         (0, 'CASSETTE', 'Cassette'),
         (1, 'UNI_PUCK','Uni-Puck'),
         (2, 'CANE','Cane'),
-        (3, 'BASKET','Basket')
+        (3, 'BASKET','Basket'),
+        (4, 'ADAPTOR','Adaptor')
     )
     HELP = {
         'name': "An externally visible label on the container. If there is a barcode on the container, please scan it here",
@@ -494,8 +508,7 @@ class Container(LoadableBaseClass):
         'cascade': 'crystals (along with experiments, datasets and results)',
         'cascade_help': 'All associated crystals will be left without a container'
     }
-    kind = models.IntegerField('type', choices=TYPE)
-    #type = models.ForeignKey(ContainerType, blank=False, null=False)
+    kind = models.ForeignKey(ContainerType, blank=False, null=False)
     dewar = models.ForeignKey("Dewar", blank=True, null=True)
     shipment = models.ForeignKey(Shipment, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
@@ -505,11 +518,16 @@ class Container(LoadableBaseClass):
     def identity(self):
         return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
-    
+
+    class Meta:
+        unique_together = (
+            ("project", "name", "shipment"),
+        )
+
     def barcode(self):
         return self.name
 
-    def num_crystals(self):
+    def num_samples(self):
         return self.crystal_set.count()
     
     def is_assigned(self):
@@ -523,7 +541,7 @@ class Container(LoadableBaseClass):
             self.TYPE.BASKET: 10,
             None : 0,
         }
-        return _cap[self.kind]
+        return _cap[self.kind.kind]
 
     def get_form_field(self):
         return 'container'
@@ -805,11 +823,12 @@ class Experiment(LimsBaseClass):
     TRANSITIONS[LimsBaseClass.STATES.DRAFT] = [LimsBaseClass.STATES.ACTIVE]
 
     status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
+    shipment = models.ForeignKey(Shipment, null=True)
     resolution = models.FloatField('Desired Resolution', null=True, blank=True)
-    delta_angle = models.FloatField(null=True, blank=True)
+    delta_angle = models.FloatField('Desired Delta Angle', null=True, blank=True)
     i_sigma = models.FloatField('Desired I/Sigma', null=True, blank=True)
     r_meas =  models.FloatField('Desired R-factor', null=True, blank=True)
-    multiplicity = models.FloatField(null=True, blank=True)
+    multiplicity = models.FloatField('Desired Multiplicity', null=True, blank=True)
     total_angle = models.FloatField('Desired Angle Range', null=True, blank=True)
     energy = models.DecimalField(null=True, max_digits=10, decimal_places=4, blank=True)
     kind = models.IntegerField('exp. type', choices=EXP_TYPES, default=EXP_TYPES.NATIVE)
@@ -818,9 +837,13 @@ class Experiment(LimsBaseClass):
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(blank=True, null=True)
     staff_priority = models.IntegerField(blank=True, null=True)
-    
+    sample_count = models.PositiveIntegerField(default=0)
+
     class Meta:
-        verbose_name = 'Experiment request'
+        verbose_name = 'Group'
+        unique_together = (
+            ("project", "name", "shipment"),
+        )
     
     def identity(self):
         return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))    
@@ -829,7 +852,7 @@ class Experiment(LimsBaseClass):
     def accept(self):
         return "crystal"
 
-    def num_crystals(self):
+    def num_samples(self):
         return self.crystal_set.count()
         
     def get_form_field(self):
@@ -1447,8 +1470,8 @@ class ActivityLog(models.Model):
         (6,'ARCHIVE','Archive')
     )
     created = models.DateTimeField('Date/Time', auto_now_add=True, editable=False)
-    #project = models.ForeignKey(Project, blank=True, null=True)
-    user = models.ForeignKey(Project, blank=True, null=True)
+    project = models.ForeignKey(Project, blank=True, null=True)
+    user = models.ForeignKey(Project, blank=True, null=True, related_name='activities')
     user_description = models.CharField('User name', max_length=60, blank=True, null=True)
     ip_number = models.GenericIPAddressField('IP Address')
     object_id = models.PositiveIntegerField(blank=True, null=True)
