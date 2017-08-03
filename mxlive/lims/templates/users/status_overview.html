@@ -8,7 +8,7 @@
     </td>
     <td class="links">
         {% if statistics.crystals.outgoing %}
-        <p>({{statistics.crystals.outgoing}})<br><a href="{% url "users-crystal-list" %}?status__exact=1">Crystal{{statistics.crystals.outgoing|pluralize}}</a></p>
+        <p>({{statistics.crystals.outgoing}})<br><a href="{% url "users-sample-list" %}?status__exact=1">Crystal{{statistics.crystals.outgoing|pluralize}}</a></p>
         {% else %}<p class="nothing">No<br/>Crystals</p>{% endif %}
     </td>
     <td>&nbsp;</td>
@@ -22,7 +22,7 @@
     </td> 
     <td class="links">
         {% if statistics.crystals.incoming %}
-        <p>({{statistics.crystals.incoming}})<br/><a href="{% url "users-crystal-list" %}?status__exact=4">Crystal{{statistics.crystals.incoming|pluralize}}</a></p>
+        <p>({{statistics.crystals.incoming}})<br/><a href="{% url "users-sample-list" %}?status__exact=4">Crystal{{statistics.crystals.incoming|pluralize}}</a></p>
         {% else %}<p class="nothing">No<br/>Crystals</p>{% endif %}
     </td>
     <td>&nbsp;</td>
@@ -36,12 +36,12 @@
     </td> 
     <td class="links">
         {% if statistics.crystals.on_site %}
-        <p>({{statistics.crystals.on_site}})<br/><a href="{% url "users-crystal-list" %}?status__in=2,3">Crystal{{statistics.crystals.on_site|pluralize}}</a></p>
+        <p>({{statistics.crystals.on_site}})<br/><a href="{% url "users-sample-list" %}?status__in=2,3">Crystal{{statistics.crystals.on_site|pluralize}}</a></p>
         {% else %}<p class="nothing">No<br/>Crystals</p>{% endif %}
     </td>
     <td class="links" title="Active Experiment Requests">
         {% if statistics.experiments.active %}
-        <p>({{statistics.experiments.active}})<br/><a href="{% url "users-experiment-list" %}?status__in=5,6,7,8">Request{{statistics.experiments.active|pluralize}}</a></p>
+        <p>({{statistics.experiments.active}})<br/><a href="{% url "users-group-list" %}?status__in=5,6,7,8">Request{{statistics.experiments.active|pluralize}}</a></p>
         {% else %}<p class="nothing">No<br/>Requests</p>{% endif %}
     </td>
     </tr>

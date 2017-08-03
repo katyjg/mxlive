@@ -2,7 +2,7 @@ from models import Runlist, UserList, Link
 from django import forms
 from django.forms import widgets
 from django.forms.utils import ErrorList
-from lims.models import Beamline, Carrier, Container, Experiment, Shipment, Project
+from lims.models import Beamline, Carrier, Container, Group, Shipment, Project
 import objforms.forms
 import re
 
@@ -87,9 +87,9 @@ class ShipmentReturnForm(objforms.forms.OrderedForm):
                 return 'There are containers still loaded in the %s automounter.' % container_list[0].runlist_set.all()[
                     0].beamline
             for experiment in shipment.project.experiment_set.filter(
-                    pk__in=shipment.project.crystal_set.filter(container__dewar__shipment__exact=shipment.pk).values(
+                    pk__in=shipment.project.sample_set.filter(container__dewar__shipment__exact=shipment.pk).values(
                             'experiment')):
-                if experiment.status != Experiment.STATES.REVIEWED:
+                if experiment.status != Group.STATES.REVIEWED:
                     return 'Experiment "%s" has not been reviewed. Click "Cancel" to review Experiments.' % experiment.name
 
     def clean_return_code(self):

@@ -24,8 +24,8 @@ from mxlive.staff.views import detailed_runlist
 from mxlive.lims.models import Shipment
 from mxlive.lims.models import Dewar
 from mxlive.lims.models import Container
-from mxlive.lims.models import Crystal
-from mxlive.lims.models import Experiment
+from mxlive.lims.models import Sample
+from mxlive.lims.models import Group
 from mxlive.lims.models import perform_action
 
 from mxlive.staff.models import Runlist
@@ -615,7 +615,7 @@ class DetailedRunlistTest(DjangoTestCase):
                           'experiments': [{'crystals': [1,2], 'id': 1, 'best_crystal': None}]}, 
                          self._filter([response])[0])
         
-        self.experiment.plan = Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST
+        self.experiment.plan = Group.EXP_PLANS.RANK_AND_COLLECT_BEST
         self.experiment.save()
         
         response = detailed_runlist(request, self.runlist.pk)
@@ -649,7 +649,7 @@ class DetailedRunlistTest(DjangoTestCase):
                           'experiments': [{'crystals': [1,2], 'id': 1, 'best_crystal': None}]}, 
                          self._filter([response])[0])
         
-        self.experiment.plan = Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST
+        self.experiment.plan = Group.EXP_PLANS.RANK_AND_COLLECT_BEST
         self.experiment.save()
         
         response = detailed_runlist(request, self.runlist.pk)

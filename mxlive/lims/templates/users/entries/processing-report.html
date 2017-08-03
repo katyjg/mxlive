@@ -70,7 +70,7 @@
                     <tr><td>Project</td><td>{{ object.project }}</td></tr>
                 {% endif %}
                 <tr><td>Crystal</td><td>{% if object.crystal %}<a href={% url "users-crystal-detail" object.crystal.id %}>{{object.crystal}}</a>{% else %} &mdash; {% endif %}</td></tr>   
-                <tr><td>Experiment</td><td>{% if object.experiment %}<a href={% url "users-experiment-detail" object.experiment.id %}>{{object.experiment.name}}</a>{% else %} &mdash; {% endif %}</td></tr>     
+                <tr><td>Experiment</td><td>{% if object.experiment %}<a href={% url "users-group-detail" object.experiment.id %}>{{object.experiment.name}}</a>{% else %} &mdash; {% endif %}</td></tr>
                 <tr><td>Dataset</td><td>{% if object.data %}<a class="modal" href={% url "users-data-detail" object.data.id %}>{{object.data}}</a>{% else %} &mdash; {% endif %}</td></tr>                  
             </tbody>
         </table>

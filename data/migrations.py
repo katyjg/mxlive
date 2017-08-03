@@ -50,6 +50,35 @@ def cleanup(mxlive):
     # Transfer container__kind to instance of ContainerType
 
     # Assign experiments to specific shipments
+    """
+    - Remove field project from cocktail
+    - Remove field project from crystalform
+    - Remove field space_group from crystalform
+    - Remove field project from strategy
+    - Remove field cocktail from crystal
+    - Remove field crystal_form from crystal
+    - Remove field delta_angle from experiment
+    - Remove field i_sigma from experiment
+    - Remove field multiplicity from experiment
+    - Remove field r_meas from experiment
+    - Remove field resolution from experiment
+    - Remove field total_angle from experiment
+    - Remove field strategy from result
+    - Alter field sample_count on experiment
+    - Delete model Cocktail
+    - Delete model CrystalForm
+    - Delete model Strategy
+    - Rename model Experiment to Group
+    - Rename model Crystal to Sample
+    - Rename field experiment on data to group
+    - Rename field crystal on data to sample
+    - Rename field experiment on result to group
+    - Rename field crystal on result to sample
+    - Rename field experiment on sample to group
+    - Rename field experiment on scanresult to group
+    - Rename field crystal on scanresult to sample
+
+    """
 
     data = [d for d in data if d['model'] not in ['lims.dewar','lims.strategy']]
 

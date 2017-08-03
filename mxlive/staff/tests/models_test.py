@@ -6,7 +6,7 @@ from mxlive.lims.tests.test_utils import create_Runlist
 
 from mxlive.lims.models import Shipment
 from mxlive.lims.models import Container
-from mxlive.lims.models import Crystal
+from mxlive.lims.models import Sample
 
 from mxlive.lims.models import change_status
 from mxlive.lims.models import perform_action
@@ -255,7 +255,7 @@ class RunlistLoadUnloadTest(DjangoTestCase):
         self.assertEqual(Runlist.STATES.PENDING, self.runlist.status)
         self.assertEqual(Shipment.STATES.ON_SITE, self.shipment.status)
         self.assertEqual(Container.STATES.ON_SITE, self.container.status)
-        self.assertEqual(Crystal.STATES.ON_SITE, self.crystal.status)
+        self.assertEqual(Sample.STATES.ON_SITE, self.crystal.status)
         
         perform_action(self.runlist, 'load')
         
@@ -264,7 +264,7 @@ class RunlistLoadUnloadTest(DjangoTestCase):
         self.assertEqual(Runlist.STATES.LOADED, self.runlist.status)
         self.assertEqual(Shipment.STATES.ON_SITE, self.shipment.status)
         self.assertEqual(Container.STATES.LOADED, self.container.status)
-        self.assertEqual(Crystal.STATES.LOADED, self.crystal.status)
+        self.assertEqual(Sample.STATES.LOADED, self.crystal.status)
         
     def test_load_one_already_loaded(self):
         perform_action(self.shipment, 'send')
@@ -300,7 +300,7 @@ class RunlistLoadUnloadTest(DjangoTestCase):
         self.assertEqual(Runlist.STATES.LOADED, self.runlist.status)
         self.assertEqual(Shipment.STATES.ON_SITE, self.shipment.status)
         self.assertEqual(Container.STATES.LOADED, self.container.status)
-        self.assertEqual(Crystal.STATES.LOADED, self.crystal.status)
+        self.assertEqual(Sample.STATES.LOADED, self.crystal.status)
         
         perform_action(self.runlist, 'unload')
         
@@ -309,5 +309,5 @@ class RunlistLoadUnloadTest(DjangoTestCase):
         self.assertEqual(Runlist.STATES.COMPLETED, self.runlist.status)
         self.assertEqual(Shipment.STATES.ON_SITE, self.shipment.status)
         self.assertEqual(Container.STATES.ON_SITE, self.container.status)
-        self.assertEqual(Crystal.STATES.ON_SITE, self.crystal.status)
+        self.assertEqual(Sample.STATES.ON_SITE, self.crystal.status)
         

@@ -10,11 +10,11 @@ from django.utils.datastructures import MultiValueDict
 from mxlive.lims.models import Project
 from mxlive.lims.models import Laboratory
 from mxlive.lims.models import Shipment
-from mxlive.lims.models import Crystal
+from mxlive.lims.models import Sample
 from mxlive.lims.models import Container
 from mxlive.lims.models import Dewar
 from mxlive.lims.models import Shipment
-from mxlive.lims.models import Experiment
+from mxlive.lims.models import Group
 from mxlive.lims.models import perform_action
 
 from mxlive.lims.views import create_and_update_project_and_laboratory
@@ -121,14 +121,14 @@ class ManagerRequiredTest(DjangoTestCase):
     def test_user1_has_project_missing_crystal(self):
         request = RequestMock(user=self.user1)
         self.assertEqual(None, request.manager)
-        manager_required_function(request, Crystal)
+        manager_required_function(request, Sample)
         self.assertNotEqual(None, request.manager)
         self.assertEqual([], list(request.manager.all()))
         
     def test_user1_has_project_has_crystal(self):
         request = RequestMock(user=self.user1)
         self.assertEqual(None, request.manager)
-        manager_required_function(request, Crystal)
+        manager_required_function(request, Sample)
         self.assertNotEqual(None, request.manager)
         crystal = create_Crystal(project=self.project1)
         self.assertEqual([crystal], list(request.manager.all()))
@@ -136,13 +136,13 @@ class ManagerRequiredTest(DjangoTestCase):
     def test_user2_missing_project(self):
         request = RequestMock(user=self.user2)
         self.assertEqual(None, request.manager)
-        self.assertRaises(Http404, manager_required_function, request, Crystal)
+        self.assertRaises(Http404, manager_required_function, request, Sample)
         self.assertEqual(None, request.manager)
         
     def test_superuser(self):
         request = RequestMock(user=self.superuser)
         self.assertEqual(None, request.manager)
-        manager_required_function(request, Crystal)
+        manager_required_function(request, Sample)
         self.assertNotEqual(None, request.manager)
         
 @project_assurance
@@ -267,7 +267,7 @@ class ShipmentUploadTest(DjangoTestCase):
     def test_valid(self):
         self.assertEqual(0, Shipment.objects.count())
         self.assertEqual(0, Container.objects.count())
-        self.assertEqual(0, Crystal.objects.count())
+        self.assertEqual(0, Sample.objects.count())
         
         excel = open(os.path.join(TEST_FILES, 'test.xls'))
         request = self.post_request(data={'project': self.project.pk}, files={'excel' : excel})
@@ -277,12 +277,12 @@ class ShipmentUploadTest(DjangoTestCase):
         
         self.assertEqual(1, Shipment.objects.count())
         self.assertEqual(4, Container.objects.count())
-        self.assertEqual(8, Crystal.objects.count())
+        self.assertEqual(8, Sample.objects.count())
         
     def test_double_upload(self):
         self.assertEqual(0, Shipment.objects.count())
         self.assertEqual(0, Container.objects.count())
-        self.assertEqual(0, Crystal.objects.count())
+        self.assertEqual(0, Sample.objects.count())
         
         excel = open(os.path.join(TEST_FILES, 'test.xls'))
         request = self.post_request(data={'project': self.project.pk}, files={'excel' : excel})
@@ -292,7 +292,7 @@ class ShipmentUploadTest(DjangoTestCase):
         
         self.assertEqual(1, Shipment.objects.count())
         self.assertEqual(4, Container.objects.count())
-        self.assertEqual(8, Crystal.objects.count())
+        self.assertEqual(8, Sample.objects.count())
         
         excel = open(os.path.join(TEST_FILES, 'test.xls'))
         request = self.post_request(data={'project': self.project.pk}, files={'excel' : excel})
@@ -304,7 +304,7 @@ class ShipmentUploadTest(DjangoTestCase):
         
         self.assertEqual(1, Shipment.objects.count())
         self.assertEqual(4, Container.objects.count())
-        self.assertEqual(8, Crystal.objects.count())
+        self.assertEqual(8, Sample.objects.count())
         
 class ShipmentSendTest(DjangoTestCase):
     
@@ -417,37 +417,37 @@ class ChangePriorityTest(DjangoTestCase):
         self.experiments = [create_Experiment(project=self.project, priority=i, staff_priority=i) for i in range(10)]
         
     def reload(self):
-        self.experiments = [Experiment.objects.get(pk=e.pk) for e in self.experiments]
+        self.experiments = [Group.objects.get(pk=e.pk) for e in self.experiments]
         
     def test_user_middle(self):
         request = self.post_request()
-        response = change_priority(request, self.experiments[5].pk, Experiment, 'up', 'priority')
+        response = change_priority(request, self.experiments[5].pk, Group, 'up', 'priority')
         self.reload()
         self.assertEqual([0, 1, 2, 3, 4, 7, 6, 7, 8, 9], [e.priority for e in self.experiments])
         self.assertEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [e.staff_priority for e in self.experiments])
-        response = change_priority(request, self.experiments[5].pk, Experiment, 'down', 'priority')
+        response = change_priority(request, self.experiments[5].pk, Group, 'down', 'priority')
         self.reload()
         self.assertEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [e.priority for e in self.experiments])
         self.assertEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [e.staff_priority for e in self.experiments])
         
     def test_user_highest(self):
         request = self.post_request()
-        response = change_priority(request, self.experiments[-1].pk, Experiment, 'up', 'priority')
+        response = change_priority(request, self.experiments[-1].pk, Group, 'up', 'priority')
         self.reload()
         self.assertEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 10], [e.priority for e in self.experiments])
         self.assertEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [e.staff_priority for e in self.experiments])
-        response = change_priority(request, self.experiments[-1].pk, Experiment, 'down', 'priority')
+        response = change_priority(request, self.experiments[-1].pk, Group, 'down', 'priority')
         self.reload()
         self.assertEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 7], [e.priority for e in self.experiments])
         self.assertEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [e.staff_priority for e in self.experiments])
         
     def test_user_lowest(self):
         request = self.post_request()
-        response = change_priority(request, self.experiments[0].pk, Experiment, 'up', 'priority')
+        response = change_priority(request, self.experiments[0].pk, Group, 'up', 'priority')
         self.reload()
         self.assertEqual([2, 1, 2, 3, 4, 5, 6, 7, 8, 9], [e.priority for e in self.experiments])
         self.assertEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [e.staff_priority for e in self.experiments])
-        response = change_priority(request, self.experiments[0].pk, Experiment, 'down', 'priority')
+        response = change_priority(request, self.experiments[0].pk, Group, 'down', 'priority')
         self.reload()
         self.assertEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [e.priority for e in self.experiments])
         self.assertEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [e.staff_priority for e in self.experiments])
@@ -463,13 +463,13 @@ class AddExistingObject_ContainerCrystal_Test(DjangoTestCase):
         
     def test_not_found(self):
         request = self.get_request()
-        self.assertRaises(Http404, add_existing_object, request, dest_id=999, destination=Container, object=Crystal, obj_id=1)
+        self.assertRaises(Http404, add_existing_object, request, dest_id=999, destination=Container, object=Sample, obj_id=1)
         
     def test_GET(self):
         request = self.get_request()
         # no longer supports GET to the add methods.
         # response = add_existing_object(request, self.container.pk, Container, Crystal, 'container', additional_fields=['container_location'], form=SampleSelectForm)
-        self.assertRaises(Http404, add_existing_object, request, 1, 1, Container, Crystal)
+        self.assertRaises(Http404, add_existing_object, request, 1, 1, Container, Sample)
        # response = add_existing_object(request, destination=Container, dest_id=1, object=Crystal, obj_id=1)
 #        self.assertEqual(200, response.status_code)
 #        form = response.rendered_args[1]['form']
@@ -500,17 +500,17 @@ class AddExistingObject_ContainerCrystal_Test(DjangoTestCase):
         
     def test_POST_valid(self):
         request = self.post_request({'parent': self.container.pk, 'items': self.crystal1.pk, 'container_location': 'A2'})
-        self.assertEqual([self.crystal], list(self.container.crystal_set.all()))
+        self.assertEqual([self.crystal], list(self.container.sample_set.all()))
         #response = add_existing_object(request, self.container.pk, Container, Crystal, 'container', additional_fields=['container_location'], form=SampleSelectForm)
-        response = add_existing_object(request, dest_id=self.container.pk, obj_id=self.crystal1.pk, destination=Container, object=Crystal, reverse=True)
-        self.assertEqual([self.crystal, self.crystal1], list(self.container.crystal_set.all()))
+        response = add_existing_object(request, dest_id=self.container.pk, obj_id=self.crystal1.pk, destination=Container, object=Sample, reverse=True)
+        self.assertEqual([self.crystal, self.crystal1], list(self.container.sample_set.all()))
         self.assertEqual(200, response.status_code)
         self.assertEqual(('users/refresh.html',), response.rendered_args)
         
     def test_POST_invalid(self):
         request = self.post_request({'parent': self.container.pk})
         #response = add_existing_object(request, self.container.pk, Container, Crystal, 'container', additional_fields=['container_location'], form=SampleSelectForm)
-        response = add_existing_object(request, destination=Container, dest_id=1, object=Crystal, obj_id=1)
+        response = add_existing_object(request, destination=Container, dest_id=1, object=Sample, obj_id=1)
         self.assertEqual(200, response.status_code)
         # No longer give a form, it's an Ajax endpoint. 
 #        form = response.rendered_args[1]['form']
@@ -548,13 +548,13 @@ class AddExistingObject_ContainerCrystal_Test(DjangoTestCase):
             def __init__(self, *args, **kwargs):
                 super(SampleSelectFormRace, self).__init__(*args, **kwargs)
                 # inject a race condition (db insertion) in form construction
-                crystal = Crystal.objects.get(pk=3)
+                crystal = Sample.objects.get(pk=3)
                 container = Container.objects.get(pk=1)
                 crystal.container = container
                 crystal.container_location = 'A2'
                 crystal.save()
         
-        self.assertRaises(IntegrityError, add_existing_object, request, self.container.pk, 3, Container, Crystal )
+        self.assertRaises(IntegrityError, add_existing_object, request, self.container.pk, 3, Container, Sample)
 
 class AddExistingObject_ShipmentDewar_Test(DjangoTestCase):
     
@@ -681,7 +681,7 @@ class CreateObject_ExperimentFromStrategy_Test(DjangoTestCase):
     
     def test_GET(self):
         request = self.get_request()
-        response = create_object(request, Experiment, ExperimentFromStrategyForm, action='resubmit', redirect='users-experiment-list')
+        response = create_object(request, Group, ExperimentFromStrategyForm, action='resubmit', redirect='users-group-list')
         self.assertEqual(200, response.status_code)
         form = response.rendered_args[1]['form']
         info = response.rendered_args[1]['info']
@@ -694,7 +694,7 @@ class CreateObject_ExperimentFromStrategy_Test(DjangoTestCase):
         
     def test_POST_invalid_ajax(self):
         request = self.post_request()
-        response = create_object(request, Experiment, ExperimentFromStrategyForm, action='resubmit', redirect='users-experiment-list')
+        response = create_object(request, Group, ExperimentFromStrategyForm, action='resubmit', redirect='users-group-list')
         self.assertEqual(200, response.status_code)
         form = response.rendered_args[1]['form']
         info = response.rendered_args[1]['info']
@@ -716,14 +716,14 @@ class CreateObject_ExperimentFromStrategy_Test(DjangoTestCase):
         request.POST['strategy'] = self.strategy.pk
         request.POST['name'] = 'name'
         request.POST.setlist('crystals', [c.pk for c in self.experiment.crystals.all()])
-        request.POST['plan'] = Experiment.EXP_PLANS.JUST_COLLECT
-        request.POST['kind'] = Experiment.EXP_TYPES.NATIVE
-        self.assertEqual(1, Experiment.objects.count())
-        response = create_object(request, Experiment, ExperimentFromStrategyForm, action='resubmit', redirect='users-experiment-list')
-        self.assertEqual(2, Experiment.objects.count())
+        request.POST['plan'] = Group.EXP_PLANS.JUST_COLLECT
+        request.POST['kind'] = Group.EXP_TYPES.NATIVE
+        self.assertEqual(1, Group.objects.count())
+        response = create_object(request, Group, ExperimentFromStrategyForm, action='resubmit', redirect='users-group-list')
+        self.assertEqual(2, Group.objects.count())
         
         self.assertEqual(200, response.status_code)
-        self.assertEqual(request.user.get_and_delete_messages()[0], ('The experiment "%(name)s" was added successfully.' % {'name':str(Experiment.objects.all()[1])}))
+        self.assertEqual(request.user.get_and_delete_messages()[0], ('The experiment "%(name)s" was added successfully.' % {'name':str(Group.objects.all()[1])}))
 #        
 #        self.assertEqual('users/message.html', response.rendered_args)
 #        self.assertEqual({}, response.rendered_kwargs)
@@ -734,10 +734,10 @@ class CreateObject_ExperimentFromStrategy_Test(DjangoTestCase):
         request.POST['strategy'] = self.strategy.pk + 1
         request.POST['name'] = 'name'
         request.POST.setlist('crystals', [c.pk for c in self.experiment.crystals.all()])
-        request.POST['plan'] = Experiment.EXP_PLANS.JUST_COLLECT
-        request.POST['kind'] = Experiment.EXP_TYPES.NATIVE
-        self.assertEqual(1, Experiment.objects.count())
-        response = create_object(request, Experiment, ExperimentFromStrategyForm, action='resubmit', redirect='users-experiment-list')
+        request.POST['plan'] = Group.EXP_PLANS.JUST_COLLECT
+        request.POST['kind'] = Group.EXP_TYPES.NATIVE
+        self.assertEqual(1, Group.objects.count())
+        response = create_object(request, Group, ExperimentFromStrategyForm, action='resubmit', redirect='users-group-list')
         self.assertEqual(200, response.status_code)
         form = response.rendered_args[1]['form']
         info = response.rendered_args[1]['info']
@@ -747,4 +747,4 @@ class CreateObject_ExperimentFromStrategy_Test(DjangoTestCase):
     def test_POST_missing_project_ajax(self):
         request = self.post_request()
         self.project.delete()
-        self.assertRaises(Http404, create_object, request, Experiment, ExperimentFromStrategyForm, action='resubmit', redirect='users-experiment-list')
+        self.assertRaises(Http404, create_object, request, Group, ExperimentFromStrategyForm, action='resubmit', redirect='users-group-list')

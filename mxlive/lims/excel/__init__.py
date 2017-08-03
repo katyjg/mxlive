@@ -286,7 +286,7 @@ class LimsWorkbook(object):
         experiments = {}
         for row_num in range(1, self.experiments_sheet.nrows):
             row_values = self.experiments_sheet.row_values(row_num)
-            experiment = Experiment()
+            experiment = Group()
             experiment.project = self.project
             if row_values[EXPERIMENT_NAME]:
                 experiment.name = str(row_values[EXPERIMENT_NAME])
@@ -295,21 +295,21 @@ class LimsWorkbook(object):
                 
             if row_values[EXPERIMENT_KIND]:
                 try:
-                    experiment.kind = Experiment.EXP_TYPES.get_value_by_name(len(row_values[EXPERIMENT_KIND]) > 3 and row_values[EXPERIMENT_KIND].capitalize() or row_values[EXPERIMENT_KIND]) # validated by Excel
+                    experiment.kind = Group.EXP_TYPES.get_value_by_name(len(row_values[EXPERIMENT_KIND]) > 3 and row_values[EXPERIMENT_KIND].capitalize() or row_values[EXPERIMENT_KIND]) # validated by Excel
                 except:
                     self.errors.append(EXPERIMENT_KIND_ERROR % (row_values[EXPERIMENT_KIND], row_num+1))
             else:
                 # default to Native
-                experiment.kind = Experiment.EXP_TYPES.NATIVE
+                experiment.kind = Group.EXP_TYPES.NATIVE
              
             if row_values[EXPERIMENT_PLAN]:
                 try:
-                    experiment.plan = Experiment.EXP_PLANS.get_value_by_name(row_values[EXPERIMENT_PLAN].capitalize()) # validated by Excel
+                    experiment.plan = Group.EXP_PLANS.get_value_by_name(row_values[EXPERIMENT_PLAN].capitalize()) # validated by Excel
                 except:
                     self.errors.append(EXPERIMENT_PLAN_ERROR % (row_values[EXPERIMENT_PLAN], row_num+1))
             else:
                 # no experiment plan provided default to just collect
-                experiment.plan = Experiment.EXP_PLANS.SCREEN_AND_COLLECT
+                experiment.plan = Group.EXP_PLANS.SCREEN_AND_COLLECT
                 
             if row_values[EXPERIMENT_ABSORPTION_EDGE]:
                 experiment.absorption_edge = row_values[EXPERIMENT_ABSORPTION_EDGE]
@@ -353,7 +353,7 @@ class LimsWorkbook(object):
         for key, experiment in experiments.items():
             appended = False
             for suffix in range(1,100):
-                if not experiment.project.experiment_set.filter(name__exact=experiment.name).exclude(status__exact=Experiment.STATES.ARCHIVED).exists():
+                if not experiment.project.experiment_set.filter(name__exact=experiment.name).exclude(status__exact=Group.STATES.ARCHIVED).exists():
                     pass
                 else:
                     if appended:
@@ -377,7 +377,7 @@ class LimsWorkbook(object):
                 self.errors.append(CRYSTAL_NAME_ERROR % (row_values[CRYSTAL_NAME], row_num+1))
                 continue
 
-            crystal = Crystal()
+            crystal = Sample()
             crystal.project = self.project
             crystal.name = row_values[CRYSTAL_NAME].strip()
 
@@ -460,11 +460,11 @@ class LimsWorkbook(object):
                     cont_locs[crystal.container.name].append(crystal.container_location)
                 else: 
                     cont_locs[crystal.container.name] = [crystal.container_location]
-                if self.project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).filter(name=crystal).exists():
+                if self.project.sample_set.exclude(status__exact=Sample.STATES.ARCHIVED).filter(name=crystal).exists():
                     if self.archive:
-                        for xtal in self.project.crystal_set.filter(status__exact=Crystal.STATES.RETURNED).filter(name=crystal):
+                        for xtal in self.project.sample_set.filter(status__exact=Sample.STATES.RETURNED).filter(name=crystal):
                             xtal.container.dewar.shipment.archive()
-                    if self.project.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).filter(name=crystal).exists():
+                    if self.project.sample_set.exclude(status__exact=Sample.STATES.ARCHIVED).filter(name=crystal).exists():
                         crystal_doubles += str(crystal) + ', '
                         msg = 'Un-archived c'
                         
@@ -617,10 +617,10 @@ class LimsWorkbookExport(object):
                 self.error
                 
             if experiment.kind != None:
-                row.write(EXPERIMENT_KIND, Experiment.EXP_TYPES[experiment.kind])
+                row.write(EXPERIMENT_KIND, Group.EXP_TYPES[experiment.kind])
                 
             if experiment.plan != None:
-                row.write(EXPERIMENT_PLAN, Experiment.EXP_PLANS[experiment.plan])
+                row.write(EXPERIMENT_PLAN, Group.EXP_PLANS[experiment.plan])
                 
             if experiment.priority:
                 row.write(EXPERIMENT_PRIORITY, experiment.priority)
@@ -646,7 +646,7 @@ class LimsWorkbookExport(object):
             if experiment.resolution:
                 row.write(EXPERIMENT_RESOLUTION, experiment.resolution)
                 
-            crystal_forms = [crystal.crystal_form for crystal in experiment.crystal_set.all()]
+            crystal_forms = [crystal.crystal_form for crystal in experiment.sample_set.all()]
             if len(set(crystal_forms)) == 1 and None not in crystal_forms:
                 crystal_form = crystal_forms[0]
                 

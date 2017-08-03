@@ -162,6 +162,8 @@ RESTRUCTUREDTEXT_FILTER_SETTINGS = {
     '_disable_config': 1    
 }
 
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
 SUIT_CONFIG = {
     'ADMIN_NAME': 'MxLIVE Administration',
     'CONFIRM_UNSAVED_CHANGES': False,

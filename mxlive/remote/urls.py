@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from lims.models import Data, ScanResult, Strategy, Result
+from lims.models import Data, ScanResult, Result
 from views import get_userlist, get_project_samples, post_data_object
 
 def keyed_url(regex, *args):
@@ -14,5 +14,4 @@ urlpatterns = [
     url(keyed_url(r'^data/(?P<beamline>[\w_-]+)/(?P<project>[\w_-]+)/$'), post_data_object, {'model': Data}),
     url(keyed_url(r'^scan/(?P<beamline>[\w_-]+)/(?P<project>[\w_-]+)/$'), post_data_object, {'model': ScanResult}),
     url(keyed_url(r'^report/(?P<beamline>[\w_-]+)/(?P<project>[\w_-]+)/$'), post_data_object, {'model': Result}),
-    url(keyed_url(r'^strategy/(?P<beamline>[\w_-]+)/(?P<project>[\w_-]+)/$'), post_data_object, {'model': Strategy}),
 ]

@@ -11,9 +11,9 @@ from mxlive.lims.tests.test_utils import TEST_FILES
 
 from mxlive.lims.tests import test_utils
 
-from mxlive.lims.models import Experiment
+from mxlive.lims.models import Group
 from mxlive.lims.models import Dewar
-from mxlive.lims.models import Crystal
+from mxlive.lims.models import Sample
 from mxlive.lims.models import Constituent
 from mxlive.lims.models import Cocktail
 from mxlive.lims.models import Container
@@ -52,9 +52,9 @@ class LimsWorkbookTest(DjangoTestCase):
         errors = workbook.save()
         self.assertEqual([], errors)
         self.assertEqual(1, Shipment.objects.count())
-        self.assertEqual(5, Experiment.objects.count())
+        self.assertEqual(5, Group.objects.count())
         self.assertEqual(1, Dewar.objects.count())
-        self.assertEqual(8, Crystal.objects.count())
+        self.assertEqual(8, Sample.objects.count())
         self.assertEqual(2, Constituent.objects.count())
         self.assertEqual(3, Cocktail.objects.count())
         self.assertEqual(1, SpaceGroup.objects.count())
@@ -107,10 +107,10 @@ class LimsWorkbookRoundTripTest(DjangoTestCase):
         
         # make sure that the old matches the new
         shipment = Shipment.objects.get(label="Uploaded Shipment")
-        experiment = Experiment.objects.get(name=self.experiment.name)
+        experiment = Group.objects.get(name=self.experiment.name)
         dewar = Dewar.objects.get(label="Default Dewar")
         container = Container.objects.get(label=self.container.label)
-        crystal = Crystal.objects.get(name=self.crystal.name)
+        crystal = Sample.objects.get(name=self.crystal.name)
         space_group = SpaceGroup.objects.get(name="SpaceGroup")
         crystal_form = CrystalForm.objects.get(project=self.project)
         
@@ -163,8 +163,8 @@ class LimsWorkbookRoundTripTest(DjangoTestCase):
         
         num_experiments, num_containers, num_crystals = 5, 10, 20
         
-        kinds = [c[0] for c in Experiment.EXP_TYPES.get_choices()]
-        plans = [c[0] for c in Experiment.EXP_PLANS.get_choices()]
+        kinds = [c[0] for c in Group.EXP_TYPES.get_choices()]
+        plans = [c[0] for c in Group.EXP_PLANS.get_choices()]
         experiments1 = [test_utils.create_Experiment(project=self.project,
                                                     name='Experiment-%d' % i,
                                                     kind=kinds[i % len(kinds)],
@@ -213,9 +213,9 @@ class LimsWorkbookRoundTripTest(DjangoTestCase):
         self._export_import(experiments1, crystals1)
         
         shipment2 = Shipment.objects.get(label="Uploaded Shipment")
-        experiments2 = list(Experiment.objects.all())
+        experiments2 = list(Group.objects.all())
         containers2 = list(Container.objects.all())
-        crystals2 = list(Crystal.objects.all())
+        crystals2 = list(Sample.objects.all())
         dewar2 = Dewar.objects.get(label="Default Dewar")
         space_group2 = list(SpaceGroup.objects.all())
         crystal_form2 = list(CrystalForm.objects.all())

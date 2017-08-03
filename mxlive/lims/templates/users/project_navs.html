@@ -2,9 +2,9 @@
 
 <ul id="nav">
 <li class='nav-menu {% active request.path "^/(users/)?$" %}'><a href="/users/">Project&nbsp;Home</a></li>
-<li class='nav-menu {% active request.path "^/users/samples/" %}'><a href="{% url "users-crystal-list" %}">Samples</a>
+<li class='nav-menu {% active request.path "^/users/samples/" %}'><a href="{% url "users-sample-list" %}">Samples</a>
     <ul class="nav-submenu">
-        <li><a href="{% url "users-crystal-list" %}">Crystals</a></li>
+        <li><a href="{% url "users-sample-list" %}">Crystals</a></li>
         <li><a href="{% url "users-cocktail-list" %}">Cocktails</a></li>
         <li><a href="{% url "users-crystalform-list" %}">Crystal Forms</a></li>
     </ul>
@@ -16,9 +16,9 @@
         <li><a href="{% url "users-container-list" %}">Containers</a></li>
     </ul>
 </li>
-<li class='nav-menu {% active request.path "^/users/experiment/" %}'><a href="{% url "users-experiment-list" %}">Experiments</a>
+<li class='nav-menu {% active request.path "^/users/experiment/" %}'><a href="{% url "users-group-list" %}">Experiments</a>
     <ul class="nav-submenu">
-        <li><a href="{% url "users-experiment-list" %}">Experiments</a></li>
+        <li><a href="{% url "users-group-list" %}">Experiments</a></li>
         <li><a href="{% url "users-data-list" %}">Datasets</a></li>
         <li><a href="{% url "users-result-list" %}">Reports</a></li>
         <li><a href="{% url "users-scanresult-list" %}">Scans</a></li>

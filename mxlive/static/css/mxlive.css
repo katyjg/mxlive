@@ -226,6 +226,7 @@ img.line-icon {
     margin: 0 !important;
     line-height: inherit !important;
 }
+
 .box-tools {
     border-left: 1px solid rgba(0, 0, 0, 0.15);
     padding: 0.5em 0.5em;
@@ -233,7 +234,14 @@ img.line-icon {
     line-height: 1;
     text-align: center;
 }
-
+.box-tools-inline {
+    border-right: 1px solid rgba(0,0,0,0.15);
+    border-left: none;
+    margin-right: 15px;
+}
+.box-tools-inline + h3 {
+    margin-top: 10px;
+}
 .box-tools a, .box-tools span {
     position: relative;
     text-align: center;
@@ -353,7 +361,7 @@ p.empty {
     background-color: #98BDAD;
 }
 .empty {
-    background-color: #ddd;
+    background-color: #eee;
 }
 div#unipuck p {
     position: relative;
@@ -484,26 +492,43 @@ table.cane-layout td {
     overflow: auto;
 }
 .modal-body {
-    overflow: auto;
+    overflow-x: hidden;
 }
-
+.back svg {
+    float: right;
+}
+.back .tab-content {
+    padding-top: 0.5em;
+}
 .back svg:hover {
-  transform: scale(3);
-    z-index: 1000;
+    //transform: scale(3);
+    //z-index: 1000;
 }
 svg {
   transition: all 1s;
   transform-origin: 0% 0%;
+    max-width: 100%;
 }
 .empty {
-    fill: #ddd !important;
+    fill: #eee !important;
 }
 .full {
     fill: #7abfd3 !important;
 }
+.selected {
+    fill: #a583ad !important;
+}
 .active-sample {
     fill: #a583ad !important;
 }
+.back circle.empty:hover, .back circle.empty.hover {
+    fill: #7abfd3 !important;
+}
+.back circle.empty:hover, .back circle.selected:hover, .back circle.hover {
+    fill-opacity: 1.0;
+    opacity: 1.0 !important;
+}
+
 form .inline-btn {
     margin-top: 23px;
     padding: 0.5em;
@@ -514,6 +539,7 @@ form .inline-btn + .inline-btn {
 form .controls input {
     min-height: 34px;
     padding: 1px;
+    padding-left: 5px;
     width: 100%;
 }
 form .collapse ul.nav-tabs {
@@ -532,6 +558,12 @@ form .tab-content {
     border-bottom: 1px solid #ddd;
     background-color: #fff;
 
+}
+.addon-btn-holder + span, span.input-group-addon {
+    padding: 0;
+}
+.btn-addon {
+    padding: 5px 10px;
 }
 
 ul.errorlist > li {
@@ -565,14 +597,12 @@ ul.errorlist ul.errorlist li {
 .flipper {
 	transition: 0.6s;
 	transform-style: preserve-3d;
-
 	position: relative;
 }
 
 /* hide back of pane during swap */
 .front, .back {
 	backface-visibility: hidden;
-	position: absolute;
 	top: 0;
 	left: 0;
 }
@@ -588,11 +618,28 @@ ul.errorlist ul.errorlist li {
 .back {
     background-color: #eee;
 	transform: rotateY(180deg);
+    position: absolute;
+    padding-top: 10px;
+    padding-bottom: 64px;
 }
-
-
-
-
+.back-actions {
+    padding-top: 15px;
+    margin-top: 15px;
+    border-top: 1px solid #ddd;
+    position: absolute;
+    bottom: 0;
+    padding-bottom: 15px;
+    background-color: white;
+}
+a[data-url], .back text[port] {
+    cursor: pointer;
+}
+.move {
+    cursor: move;
+}
+.list-group-item .alert {
+    margin: 10px 0;
+}
 div.crystal.droppable, div.experiment.droppable, div.shipment.droppable, div.dewar-img.droppable, div.runlist.droppable {
     float: right;
     margin-top: 0;

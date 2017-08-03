@@ -1,8 +1,8 @@
 {% load markup %}
 
 <div class="inline-list {{object.json_dict.type|lower}}-detail">
-    <h3>Crystals in {{object.json_dict.type|lower}} &ldquo;{{object.name}}&rdquo;</h3>
-    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
+    <h3>Samples in {{object.json_dict.type|title}} &ldquo;{{object.name}}&rdquo;</h3>
+    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="sample-list-table">
         <thead>
             <tr class="header">
              	<th>Location</th>
@@ -20,7 +20,7 @@
                         <td>{{ loc }}</td>
                         <td><a href="{% url "crystal-detail" crystal.pk %}">{{ crystal.name }}</a></td>
                         {% if crystal.experiment %}
-                        <td><a href="{% url "experiment-detail" crystal.experiment.pk %}">{{ crystal.experiment.name }}</a></td>
+                        <td><a href="{% url "group-detail" crystal.experiment.pk %}">{{ crystal.experiment.name }}</a></td>
                         {% else %}
                         <td>(None)</td>
                         {% endif %}
@@ -45,7 +45,7 @@
                         <td>{{ loc }}</td>
                         <td><a href="{% url "crystal-detail" crystal.pk %}">{{ crystal.name }}</a></td>
                         {% if crystal.experiment %}
-                        <td><a href="{% url "experiment-detail" crystal.experiment.pk %}">{{ crystal.experiment.name }}</a></td>
+                        <td><a href="{% url "group-detail" crystal.experiment.pk %}">{{ crystal.experiment.name }}</a></td>
                         {% else %}
                         <td>(None)</td>
                         {% endif %}

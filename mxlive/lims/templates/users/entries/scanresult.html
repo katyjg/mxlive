@@ -108,7 +108,7 @@
         <tr valign="top"><th>Crystal:</th><td>None</td></tr>
     {% endif %}
     {% if object.experiment %}
-        <tr valign="top"><th>Experiment:</th><td><a href="{% url "users-experiment-detail" object.experiment.pk %}">{{object.experiment}}</a></td></tr>
+        <tr valign="top"><th>Experiment:</th><td><a href="{% url "users-group-detail" object.experiment.pk %}">{{object.experiment}}</a></td></tr>
     {% else %}
         <tr valign="top"><th>Experiment:</th><td>None</td></tr>
     {% endif %}

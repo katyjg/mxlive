@@ -1,7 +1,7 @@
 
 from django.db.models import *
 from django.template import Library
-from lims.models import Container, Experiment, Crystal
+from lims.models import Container, Group, Sample
 from staff.models import Runlist, Adaptor
 
 register = Library()
@@ -47,7 +47,7 @@ def automounter_position(context, obj, side, spot, letter):
 
 @register.inclusion_tag('staff/entries/experiment_table.html', takes_context=True)
 def experiment_table(context, obj, admin):
-    experiments = Experiment.objects.filter(pk__in=Crystal.objects.filter(container__pk__in=obj.containers.all()).values('experiment')).order_by('priority')
+    experiments = Group.objects.filter(pk__in=Sample.objects.filter(container__pk__in=obj.containers.all()).values('experiment')).order_by('priority')
     return { 'experiments': experiments,
               'admin': admin,
               'object': obj

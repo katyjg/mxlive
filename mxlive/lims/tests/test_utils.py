@@ -23,8 +23,8 @@ from mxlive.lims.models import Project
 from mxlive.lims.models import Shipment
 from mxlive.lims.models import Dewar
 from mxlive.lims.models import Container
-from mxlive.lims.models import Crystal
-from mxlive.lims.models import Experiment
+from mxlive.lims.models import Sample
+from mxlive.lims.models import Group
 from mxlive.lims.models import Carrier
 from mxlive.lims.models import Strategy
 from mxlive.lims.models import Data
@@ -199,9 +199,9 @@ class DjangoTestCase(unittest.TestCase):
         if self.container:
             self.container = Container.objects.get(id=self.container.id)
         if self.crystal:
-            self.crystal = Crystal.objects.get(id=self.crystal.id)
+            self.crystal = Sample.objects.get(id=self.crystal.id)
         if self.experiment:
-            self.experiment = Experiment.objects.get(id=self.experiment.id)
+            self.experiment = Group.objects.get(id=self.experiment.id)
         if self.runlist:
             self.runlist = Runlist.objects.get(id=self.runlist.id)
         if self.strategy:
@@ -346,7 +346,7 @@ def create_Crystal(**kwargs):
     """Create a Crystal using a common test interface
     """
     defaults = {}
-    return create_instance(Crystal, defaults, **kwargs)
+    return create_instance(Sample, defaults, **kwargs)
 
 def create_Runlist(**kwargs):
     """Create a Runlist using a common test interface
@@ -368,12 +368,12 @@ def create_Runlist(**kwargs):
 def create_Experiment(**kwargs):
     """Create a Experiment using a common test interface
     """
-    defaults = {'kind' : Experiment.EXP_TYPES.NATIVE,
+    defaults = {'kind' : Group.EXP_TYPES.NATIVE,
                 'r_meas' : 1.1,
                 'i_sigma' : 1.1,
                 'resolution' : 1.1}
     crystals = kwargs.pop('crystals', [])
-    instance = create_instance(Experiment, defaults, **kwargs)
+    instance = create_instance(Group, defaults, **kwargs)
     instance.save()
     for c in crystals:
         c.experiment = instance

@@ -1,5 +1,5 @@
 from django.template import Library
-from lims.models import Crystal
+from lims.models import Sample
 
 register = Library()
 
@@ -11,7 +11,7 @@ def crystal_table(context, crystals, admin, experiment):
     
     # after discussion, make it an expandable row, 
     if admin:
-        crystals = crystals.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED])
+        crystals = crystals.filter(status__in=[Sample.STATES.ON_SITE, Sample.STATES.LOADED])
 
     crystal_list = list()
     unprocessed = list()

@@ -297,7 +297,7 @@ class Shipment(ObjectBaseClass):
     HELP = {
         'name': "This should be an externally visible label",
         'carrier': "Please select the carrier company. To change shipping companies, edit your profile on the Project Home page.",
-        'cascade': 'containers and crystals (along with experiments, datasets and results)',
+        'cascade': 'containers and samples (along with groups, datasets and results)',
         'cascade_help': 'All associated containers will be left without a shipment'
     }
     comments = models.TextField(blank=True, null=True, max_length=200)
@@ -312,7 +312,10 @@ class Shipment(ObjectBaseClass):
     def identity(self):
         return 'SH%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
-    
+
+    def groups_by_priority(self):
+        return self.group_set.order_by('priority')
+
     def _Carrier(self):
         return self.carrier and self.carrier.name or None
     _Carrier.admin_order_field = 'carrier__name'
@@ -324,15 +327,15 @@ class Shipment(ObjectBaseClass):
         return self.container_set.count()
 
     def num_samples(self):
-        return sum([c.crystal_set.count() for c in self.container_set.all()])
+        return sum([c.sample_set.count() for c in self.container_set.all()])
 
     def num_datasets(self):
-        crystals = self.project.crystal_set.filter(container__pk__in=self.container_set.values_list('pk'))
-        return sum([c.data_set.count() for c in crystals])
+        samples = self.project.sample_set.filter(container__pk__in=self.container_set.values_list('pk'))
+        return sum([c.data_set.count() for c in samples])
 
     def num_results(self):
-        crystals = self.project.crystal_set.filter(container__pk__in=self.container_set.values_list('pk'))
-        return sum([c.result_set.count() for c in crystals])
+        samples = self.project.sample_set.filter(container__pk__in=self.container_set.values_list('pk'))
+        return sum([c.result_set.count() for c in samples])
 
     def is_sendable(self):
         return self.status == self.STATES.DRAFT and not self.shipping_errors()
@@ -341,8 +344,8 @@ class Shipment(ObjectBaseClass):
         return self.is_sendable() or self.status >= self.STATES.SENT
     
     def is_xlsable(self):
-        # can generate spreadsheet as long as there are no orphan crystals with no experiment)
-        return not Crystal.objects.filter(container__in=self.container_set.all()).filter(experiment__exact=None).exists()
+        # can generate spreadsheet as long as there are no orphan samples with no group)
+        return not Sample.objects.filter(container__in=self.container_set.all()).filter(group__exact=None).exists()
     
     def is_returnable(self):
         return self.status == self.STATES.ON_SITE 
@@ -354,19 +357,19 @@ class Shipment(ObjectBaseClass):
         return self.component_set.filter(label__exact=True)
 
     def is_processed(self):
-        # if all experiments in shipment are complete, then it is a processed shipment. 
-        experiment_list = Experiment.objects.filter(shipment__get_container_list=self)
+        # if all groups in shipment are complete, then it is a processed shipment.
+        group_list = Group.objects.filter(shipment__get_container_list=self)
         for container in self.container_set.all():
-            for experiment in container.get_experiment_list():
-                if experiment not in experiment_list:
-                    experiment_list.append(experiment)
-        for experiment in experiment_list:
-            if experiment.is_reviewable():
+            for group in container.get_group_list():
+                if group not in group_list:
+                    group_list.append(group)
+        for group in group_list:
+            if group.is_reviewable():
                 return False
         return True
 
     def is_processing(self):
-        return self.project.crystal_set.filter(container__shipment__exact=self).filter(Q(pk__in=self.project.data_set.values('crystal')) | Q(pk__in=self.project.result_set.values('crystal'))).exists()
+        return self.project.sample_set.filter(container__shipment__exact=self).filter(Q(pk__in=self.project.data_set.values('sample')) | Q(pk__in=self.project.result_set.values('sample'))).exists()
  
     def add_component(self):
         return self.status <= self.STATES.SENT
@@ -393,21 +396,21 @@ class Shipment(ObjectBaseClass):
                 errors.append("empty Container (%s)" % container.name)
         return errors
     
-    def setup_default_experiment(self, data=None):
-        """ If there are unassociated Crystals in the project, creates a default Experiment and associates the
-            crystals
+    def setup_default_group(self, data=None):
+        """ If there are unassociated samples in the project, creates a default group and associates the
+            samples
         """
-        unassociated_crystals = self.project.crystal_set.filter(experiment__isnull=True)
-        if unassociated_crystals:
+        unassociated_samples = self.project.sample_set.filter(group__isnull=True)
+        if unassociated_samples:
             exp_name = '%s auto' % dateformat.format(timezone.now(), 'M jS P')
-            experiment = Experiment(project=self.project, name=exp_name)
-            experiment.save()
-            for unassociated_crystal in unassociated_crystals:
-                unassociated_crystal.experiment = experiment
-                unassociated_crystal.save()
+            group = Group(project=self.project, name=exp_name)
+            group.save()
+            for unassociated_sample in unassociated_samples:
+                unassociated_sample.group = group
+                unassociated_sample.save()
 
     def groups(self):
-        return self.experiment_set.order_by('-priority')
+        return self.group_set.order_by('-priority')
 
     def delete(self, request=None, cascade=True):
         if self.is_deletable():
@@ -425,7 +428,7 @@ class Shipment(ObjectBaseClass):
     def send(self, request=None):
         if self.is_sendable():
             self.date_shipped = timezone.now()
-            self.setup_default_experiment()
+            self.setup_default_group()
             self.save()
             for obj in self.container_set.all():
                 obj.send(request=request)
@@ -505,16 +508,14 @@ class Container(LoadableBaseClass):
     HELP = {
         'name': "An externally visible label on the container. If there is a barcode on the container, please scan it here",
         'capacity': "The maximum number of samples this container can hold",
-        'cascade': 'crystals (along with experiments, datasets and results)',
-        'cascade_help': 'All associated crystals will be left without a container'
+        'cascade': 'samples (along with groups, datasets and results)',
+        'cascade_help': 'All associated samples will be left without a container'
     }
     kind = models.ForeignKey(ContainerType, blank=False, null=False)
-    dewar = models.ForeignKey("Dewar", blank=True, null=True)
     shipment = models.ForeignKey(Shipment, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(default=0)
-    staff_priority = models.IntegerField(default=0)
-    
+
     def identity(self):
         return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
@@ -528,7 +529,7 @@ class Container(LoadableBaseClass):
         return self.name
 
     def num_samples(self):
-        return self.crystal_set.count()
+        return self.sample_set.count()
     
     def is_assigned(self):
         return self.shipment is not None
@@ -546,47 +547,47 @@ class Container(LoadableBaseClass):
     def get_form_field(self):
         return 'container'
 
-    def experiments(self):
-        experiments = set([])
-        for crystal in self.crystal_set.all():
-            for experiment in crystal.experiment_set.all():
-                experiments.add('%s-%s' % (experiment.project.name, experiment.name))
-        return ', '.join(experiments)
+    def groups(self):
+        groups = set([])
+        for sample in self.sample_set.all():
+            for group in sample.group_set.all():
+                groups.add('%s-%s' % (group.project.name, group.name))
+        return ', '.join(groups)
     
-    def get_experiment_list(self):
-        experiments = list()
-        for crystal in self.crystal_set.all():
-            if crystal.experiment not in experiments:
-                experiments.append(crystal.experiment)
-        return experiments
+    def get_group_list(self):
+        groups = list()
+        for sample in self.sample_set.all():
+            if sample.group not in groups:
+                groups.append(sample.group)
+        return groups
     
-    def contains_experiment(self, experiment):
+    def contains_group(self, group):
         """
-        Checks if the specified experiment is in the container.
+        Checks if the specified group is in the container.
         """
-        for crystal in self.crystal_set.all():
-            for crys_experiment in crystal.experiment_set.all():
-                if crys_experiment == experiment:
+        for sample in self.sample_set.all():
+            for sample_group in sample.group_set.all():
+                if sample_group == group:
                     return True
         return False
     
-    def contains_experiments(self, experiment_list):
-        for experiment in experiment_list:
-            if self.contains_experiment(experiment):
+    def contains_groups(self, group_list):
+        for group in group_list:
+            if self.contains_group(group):
                 return True
         return False
     
     def update_priority(self):
-        """ Updates the Container's priority/staff_priority to max(Experiment priorities)
+        """ Updates the Container's priority to max(group priorities)
         """
-        for field in ['priority', 'staff_priority']:
+        for field in ['priority']:
             priority = None
-            for crystal in self.crystal_set.all():
-                if crystal.experiment:
+            for sample in self.sample_set.all():
+                if sample.group:
                     if priority is None:
-                        priority = getattr(crystal.experiment, field)
+                        priority = getattr(sample.group, field)
                     else:
-                        priority = max(priority, getattr(crystal.experiment, field))
+                        priority = max(priority, getattr(sample.group, field))
             if priority is not None:
                 setattr(self, field, priority)
     
@@ -610,23 +611,23 @@ class Container(LoadableBaseClass):
         return loc in self.valid_locations()
     
     def location_is_available(self, loc, id=None):
-        occupied_positions = [xtl.container_location for xtl in self.crystal_set.all().exclude(pk=id) ]
+        occupied_positions = [xtl.container_location for xtl in self.sample_set.all().exclude(pk=id) ]
         return loc not in occupied_positions
     
-    def location_and_crystal(self):
+    def location_and_sample(self):
         retval = []
-        xtalset = self.crystal_set.all()
+        xtalset = self.sample_set.all()
         for location in self.valid_locations():
             xtl = None
-            for crystal in xtalset:
-                if crystal.container_location == location:
-                    xtl = crystal
+            for sample in xtalset:
+                if sample.container_location == location:
+                    xtl = sample
             retval.append((location, xtl))
         return retval
 
     def loc_and_xtal(self):
         retval = {}
-        xtalset = self.crystal_set.all()
+        xtalset = self.sample_set.all()
         for xtal in xtalset:
             retval[xtal.container_location] = xtal        
         return retval
@@ -635,37 +636,36 @@ class Container(LoadableBaseClass):
     def delete(self, request=None, cascade=True):
         if self.is_deletable:
             if not cascade:
-                self.crystal_set.all().update(container=None)
-            for obj in self.crystal_set.all():
+                self.sample_set.all().update(container=None)
+            for obj in self.sample_set.all():
                 obj.delete(request=request)
             super(Container, self).delete(request=request)
 
     def send(self, request=None):
-        for obj in self.crystal_set.all():
+        for obj in self.sample_set.all():
             obj.send(request=request)
         super(Container, self).send(request=request)
 
     def receive(self, request=None):
-        for obj in self.crystal_set.all():
+        for obj in self.sample_set.all():
             obj.receive(request=request)
-            obj.setup_experiment()
         super(Container, self).receive(request=request)
 
     def load(self, request=None):
-        for obj in self.crystal_set.all(): obj.load(request=request)
+        for obj in self.sample_set.all(): obj.load(request=request)
         super(Container, self).load(request=request)
 
     def unload(self, request=None):
-        for obj in self.crystal_set.all(): obj.unload(request=request)
+        for obj in self.sample_set.all(): obj.unload(request=request)
         super(Container, self).unload(request=request)  
 
     def returned(self, request=None):
-        for obj in self.crystal_set.all():
+        for obj in self.sample_set.all():
             obj.returned(request=request)
         super(Container, self).returned(request=request)
 
     def archive(self, request=None):
-        for obj in self.crystal_set.all():
+        for obj in self.sample_set.all():
             obj.archive(request=request)
         super(Container, self).archive(request=request)
         
@@ -677,7 +677,7 @@ class Container(LoadableBaseClass):
             'type': self.kind.name,
             'load_position': '',
             'comments': self.comments,
-            'crystals': [crystal.pk for crystal in self.crystal_set.all()]
+            'samples': [sample.pk for sample in self.sample_set.all()]
         }
 
 class SpaceGroup(models.Model):
@@ -705,90 +705,7 @@ class SpaceGroup(models.Model):
     def __unicode__(self):
         return self.name
 
-class Cocktail(LimsBaseClass):
-    HELP = {
-        'name': 'Enter a series of keywords here which summarize the constituents of the protein cocktail',
-        'cascade': 'crystals',
-        'cascade_help': 'All associated crystals will be left without a cocktail'
-    }
-    is_radioactive = models.BooleanField(default=False)
-    contains_heavy_metals = models.BooleanField(default=False)
-    contains_prions = models.BooleanField(default=False)
-    contains_viruses = models.BooleanField(default=False)
-    description = models.TextField(blank=True, null=True)
-
-    def identity(self):
-        return 'CT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-
-    def is_editable(self):
-        return True
-
-    def is_deletable(self):
-        return True
-
-    def is_closable(self):
-        return False
-    
-    def delete(self, request=None, cascade=True):
-        if not cascade:
-            for obj in self.crystal_set.all():
-                if obj.is_editable():
-                    obj.cocktail = None
-                    obj.save()
-        super(Cocktail, self).delete()
-
-    class Meta:
-        ordering = ['name','-created']
-        verbose_name = "Protein Cocktail"
-        verbose_name_plural = 'Protein Cocktails'
-    
-class CrystalForm(LimsBaseClass):
-    HELP = {
-        'cascade': 'crystals',
-        'cascade_help': 'All associated crystals will be left without a crystal form',
-        'cell_a': 'Dimension of the cell A-axis',
-        'cell_b': 'Dimension of the cell B-axis',
-        'cell_c': 'Dimension of the cell C-axis',
-    }
-    space_group = models.ForeignKey(SpaceGroup,null=True, blank=True)
-    cell_a = models.FloatField(' a', null=True, blank=True)
-    cell_b = models.FloatField(' b', null=True, blank=True)
-    cell_c = models.FloatField(' c',null=True, blank=True)
-    cell_alpha = models.FloatField(' alpha',null=True, blank=True)
-    cell_beta = models.FloatField(' beta',null=True, blank=True)
-    cell_gamma = models.FloatField(' gamma',null=True, blank=True)
-    
-    def identity(self):
-        return 'CF%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-    
-    def _Space_group(self):
-        return self.space_group and self.space_group.name or None
-    _Space_group.admin_order_field = 'space_group__name'
-
-    class Meta:
-        ordering = ['name','-created']
-        verbose_name = 'Crystal Form'
-
-    def is_editable(self):
-        return True
-
-    def is_deletable(self):
-        return True
-
-    def is_closable(self):
-        return False
-    
-    def delete(self, request=None, cascade=True):
-        if not cascade:
-            for obj in self.crystal_set.all():
-                if obj.is_editable():
-                    obj.crystal_form = None
-                    obj.save()
-        super(CrystalForm, self).delete()
-
-class Experiment(LimsBaseClass):
+class Group(LimsBaseClass):
     STATUS_CHOICES = (
         (LimsBaseClass.STATES.DRAFT, _('Draft')),
         (LimsBaseClass.STATES.ACTIVE, _('Active')),
@@ -799,10 +716,10 @@ class Experiment(LimsBaseClass):
     )
 
     HELP = {
-        'cascade': 'crystals, datasets and results',
-        'cascade_help': 'All associated crystals will be left without an experiment',
+        'cascade': 'samples, datasets and results',
+        'cascade_help': 'All associated samples will be left without a group',
         'kind': "If you select SAD or MAD make sure you provide the absorption edge below, otherwise Se-K will be assumed.",
-        'plan': "Select the plan which describes your instructions for all crystals in this experiment group.",
+        'plan': "Select the plan which describes your instructions for all samples in this group.",
         'delta_angle': 'If left blank, an appropriate value will be calculated during screening.',
         'total_angle': 'The total angle range to collect.',
         'multiplicity': 'Values entered here take precedence over the specified "Angle Range".',
@@ -824,97 +741,89 @@ class Experiment(LimsBaseClass):
 
     status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
     shipment = models.ForeignKey(Shipment, null=True)
-    resolution = models.FloatField('Desired Resolution', null=True, blank=True)
-    delta_angle = models.FloatField('Desired Delta Angle', null=True, blank=True)
-    i_sigma = models.FloatField('Desired I/Sigma', null=True, blank=True)
-    r_meas =  models.FloatField('Desired R-factor', null=True, blank=True)
-    multiplicity = models.FloatField('Desired Multiplicity', null=True, blank=True)
-    total_angle = models.FloatField('Desired Angle Range', null=True, blank=True)
     energy = models.DecimalField(null=True, max_digits=10, decimal_places=4, blank=True)
     kind = models.IntegerField('exp. type', choices=EXP_TYPES, default=EXP_TYPES.NATIVE)
     absorption_edge = models.CharField(max_length=5, null=True, blank=True)
     plan = models.IntegerField(choices=EXP_PLANS, default=EXP_PLANS.SCREEN_AND_CONFIRM)
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(blank=True, null=True)
-    staff_priority = models.IntegerField(blank=True, null=True)
-    sample_count = models.PositiveIntegerField(default=0)
+    sample_count = models.PositiveIntegerField('Number of Samples', default=1)
 
     class Meta:
         verbose_name = 'Group'
         unique_together = (
             ("project", "name", "shipment"),
         )
-    
+
     def identity(self):
         return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))    
     identity.admin_order_field = 'pk'
 
     def accept(self):
-        return "crystal"
+        return "sample"
 
     def num_samples(self):
-        return self.crystal_set.count()
+        return self.sample_set.count()
         
     def get_form_field(self):
-        return 'experiment'
+        return 'group'
 
     def get_shipments(self):
-        return self.project.shipment_set.filter(pk__in=self.crystal_set.values('container__shipment__pk'))
+        return self.project.shipment_set.filter(pk__in=self.sample_set.values('container__shipment__pk'))
 
-    def set_strategy_status_resubmitted(self, data=None):
-        strategy = data['strategy']
-        perform_action(strategy, 'resubmit')
-        
-    def best_crystal(self):
+    def best_sample(self):
         # need to change to [id, score]
-        if self.plan == Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST:
-            results = self.project.result_set.filter(experiment=self, crystal__in=self.crystal_set.all()).order_by('-score')
+        if self.plan == Group.EXP_PLANS.RANK_AND_COLLECT_BEST:
+            results = self.project.result_set.filter(group=self, sample__in=self.sample_set.all()).order_by('-score')
             if results:
-                return [results[0].crystal.pk, results[0].score]
-        
-    def experiment_errors(self):
-        """ Returns a list of descriptive string error messages indicating the Experiment has missing crystals
+                return [results[0].sample.pk, results[0].score]
+
+    def unassigned_samples(self):
+        return self.sample_count - self.sample_set.count()
+
+    def group_errors(self):
+        """ Returns a list of descriptive string error messages indicating the group has missing samples
         """
         errors = []
-        if self.crystal_set.count() == 0:
-            errors.append("no Crystals")
-        if self.status == Experiment.STATES.ACTIVE:
-            diff = self.crystal_set.count() - self.crystal_set.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).count()
+        if self.sample_set.count() == 0:
+            errors.append("no samples")
+        if self.status == Group.STATES.ACTIVE:
+            diff = self.sample_set.count() - self.sample_set.filter(status__in=[Sample.STATES.ON_SITE, Sample.STATES.LOADED]).count()
             if diff:
-                errors.append("%i crystals have not arrived on-site." % diff)
+                errors.append("%i samples have not arrived on-site." % diff)
         return errors
 
     def is_processing(self):
-        return self.crystal_set.filter(Q(pk__in=self.project.data_set.values('crystal')) | Q(pk__in=self.project.result_set.values('crystal'))).exists()
+        return self.sample_set.filter(Q(pk__in=self.project.data_set.values('sample')) | Q(pk__in=self.project.result_set.values('sample'))).exists()
 
     def is_reviewable(self):
-        return self.status != Experiment.STATES.REVIEWED
+        return self.status != Group.STATES.REVIEWED
     
     def is_closable(self):
-        return self.crystal_set.all().exists() and not self.crystal_set.exclude(status__in=[Crystal.STATES.RETURNED, Crystal.STATES.ARCHIVED]).exists() and self.status != Experiment.STATES.ARCHIVED
+        return self.sample_set.all().exists() and not self.sample_set.exclude(status__in=[Sample.STATES.RETURNED, Sample.STATES.ARCHIVED]).exists() and self.status != Group.STATES.ARCHIVED
         
     def is_complete(self):
         """
-        Checks experiment type, and depending on type, determines if it's fully completed or not. 
+        Checks group type, and depending on type, determines if it's fully completed or not.
         Updates Exp Status if considered complete. 
         """
-        if self.crystal_set.filter(Q(screen_status__exact=Crystal.EXP_STATES.PENDING) | Q(collect_status__exact=Crystal.EXP_STATES.PENDING)).exists():
+        if self.sample_set.filter(Q(screen_status__exact=Sample.EXP_STATES.PENDING) | Q(collect_status__exact=Sample.EXP_STATES.PENDING)).exists():
             return False
-        if self.plan == Experiment.EXP_PLANS.RANK_AND_COLLECT_BEST or self.plan == Experiment.EXP_PLANS.COLLECT_FIRST_GOOD:
-            # complete if all crystals are "screened" (or "ignored") and at least 1 is "collected"
-            if not self.crystal_set.filter(collect_status__exact=Crystal.EXP_STATES.COMPLETED).exists():
-                if not self.crystal_set.filter(collect_status__exact=Crystal.EXP_STATES.NOT_REQUIRED).exists():
-                    self.add_comments('Unable to collect a dataset for any crystal in this experiment.')
+        if self.plan == Group.EXP_PLANS.RANK_AND_COLLECT_BEST or self.plan == Group.EXP_PLANS.COLLECT_FIRST_GOOD:
+            # complete if all samples are "screened" (or "ignored") and at least 1 is "collected"
+            if not self.sample_set.filter(collect_status__exact=Sample.EXP_STATES.COMPLETED).exists():
+                if not self.sample_set.filter(collect_status__exact=Sample.EXP_STATES.NOT_REQUIRED).exists():
+                    self.add_comments('Unable to collect a dataset for any sample in this group.')
                     return True
                 return False
-        elif self.plan == Experiment.EXP_PLANS.SCREEN_AND_CONFIRM:
-            # complete if all crystals are "screened" (or "ignored")
-            if not self.crystal_set.exclude(screen_status__exact=Crystal.EXP_STATES.IGNORE).exists():
-                self.add_comments('Unable to screen any crystals in this experiment.')
-        elif self.plan == Experiment.EXP_PLANS.SCREEN_AND_COLLECT or self.plan == Experiment.EXP_PLANS.JUST_COLLECT:
-            # complete if all crystals are "screened" or "collected"
-            if not self.crystal_set.exclude(collect_status__exact=Crystal.EXP_STATES.IGNORE).exists():
-                self.add_comments('Unable to collect a dataset for any crystal in this experiment.')
+        elif self.plan == Group.EXP_PLANS.SCREEN_AND_CONFIRM:
+            # complete if all samples are "screened" (or "ignored")
+            if not self.sample_set.exclude(screen_status__exact=Sample.EXP_STATES.IGNORE).exists():
+                self.add_comments('Unable to screen any samples in this group.')
+        elif self.plan == Group.EXP_PLANS.SCREEN_AND_COLLECT or self.plan == Group.EXP_PLANS.JUST_COLLECT:
+            # complete if all samples are "screened" or "collected"
+            if not self.sample_set.exclude(collect_status__exact=Sample.EXP_STATES.IGNORE).exists():
+                self.add_comments('Unable to collect a dataset for any sample in this group.')
         else:
             # should never get here.
             raise Exception('Invalid plan')  
@@ -923,22 +832,22 @@ class Experiment(LimsBaseClass):
     def delete(self, request=None, cascade=True):
         if self.is_deletable:
             if not cascade:
-                self.crystal_set.all().update(experiment=None)
-            for obj in self.crystal_set.all():
-                obj.experiment = None
+                self.sample_set.all().update(group=None)
+            for obj in self.sample_set.all():
+                obj.group = None
                 obj.delete(request=request)
-            super(Experiment, self).delete(request=request)
+            super(Group, self).delete(request=request)
 
     def review(self, request=None):
-        super(Experiment, self).change_status(LimsBaseClass.STATES.REVIEWED)
+        super(Group, self).change_status(LimsBaseClass.STATES.REVIEWED)
         message = '%s reviewed' % (self._meta.verbose_name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def archive(self, request=None):
-        for obj in self.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED):
+        for obj in self.sample_set.exclude(status__exact=Sample.STATES.ARCHIVED):
             obj.archive(request=request)
-        super(Experiment, self).archive(request=request)
+        super(Group, self).archive(request=request)
         
     def json_dict(self):
         """ Returns a json dictionary of the Runlist """
@@ -947,35 +856,34 @@ class Experiment(LimsBaseClass):
             'project_name': self.project.name,
             'id': self.pk,
             'name': self.name,
-            'plan': Experiment.EXP_PLANS[self.plan],
+            'plan': Group.EXP_PLANS[self.plan],
             'r_meas': self.r_meas,
             'i_sigma': self.i_sigma,
             'absorption_edge': self.absorption_edge,
             'energy': self.energy,
-            'type': Experiment.EXP_TYPES[self.kind],
+            'type': Group.EXP_TYPES[self.kind],
             'resolution': self.resolution,
             'delta_angle': self.delta_angle,
             'total_angle': self.total_angle,
             'multiplicity': self.multiplicity,
             'comments': self.comments,
-            'crystals': [crystal.pk for crystal in self.crystal_set.filter(Q(screen_status__exact=Crystal.EXP_STATES.PENDING) | Q(collect_status__exact=Crystal.EXP_STATES.PENDING))],
-            'best_crystal': self.best_crystal()
+            'samples': [sample.pk for sample in self.sample_set.filter(Q(screen_status__exact=Sample.EXP_STATES.PENDING) | Q(collect_status__exact=Sample.EXP_STATES.PENDING))],
+            'best_sample': self.best_sample()
         }
         return json_info
         
      
-class Crystal(LoadableBaseClass):
+class Sample(LoadableBaseClass):
     HELP = {
         'cascade': 'datasets and results',
-        'cascade_help': 'All associated datasets and results will be left without a crystal',
+        'cascade_help': 'All associated datasets and results will be left without a sample',
         'name': "Give the sample a name by which you can recognize it. Avoid using spaces or special characters in sample names",
         'barcode': "If there is a datamatrix code on sample, please scan or input the value here",
         'pin_length': "18 mm pins are standard. Please make sure you discuss other sizes with Beamline staff before sending the sample!",
         'comments': 'You can use restructured text formatting in this field',
-        'cocktail': 'The mixture of protein, buffer, precipitant or heavy atoms that make up your crystal',
         'container_location': 'This field is required only if a container has been selected',
-        'experiment': 'This field is optional here.  Crystals can also be added to an experiment on the experiments page.',
-        'container': 'This field is optional here.  Crystals can also be added to a container on the containers page.',
+        'group': 'This field is optional here.  Samples can also be added to a group on the groups page.',
+        'container': 'This field is optional here.  Samples can also be added to a container on the containers page.',
     }
     EXP_STATES = Choices(
         (0, 'NOT_REQUIRED','Not Required'),
@@ -984,18 +892,15 @@ class Crystal(LoadableBaseClass):
         (3, 'IGNORE','Ignore'),
     )
     barcode = models.SlugField(null=True, blank=True)
-    crystal_form = models.ForeignKey(CrystalForm, null=True, blank=True)
     pin_length = models.IntegerField(default=18)
     loop_size = models.FloatField(null=True, blank=True)
-    cocktail = models.ForeignKey(Cocktail, null=True, blank=True)
     container = models.ForeignKey(Container, null=True, blank=True)
     container_location = models.CharField(max_length=10, null=True, blank=True, verbose_name='port')
     comments = models.TextField(blank=True, null=True)
     collect_status = models.IntegerField(choices=EXP_STATES, default=EXP_STATES.NOT_REQUIRED)
     screen_status = models.IntegerField(choices=EXP_STATES, default=EXP_STATES.NOT_REQUIRED)
     priority = models.IntegerField(null=True, blank=True)
-    staff_priority = models.IntegerField(null=True, blank=True)
-    experiment = models.ForeignKey(Experiment, null=True, blank=True)
+    group = models.ForeignKey(Group, null=True, blank=True)
 
     class Meta:
         unique_together = (
@@ -1006,14 +911,6 @@ class Crystal(LoadableBaseClass):
     def identity(self):
         return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
-
-    def _Crystal_form(self):
-        return self.crystal_form and self.crystal_form.name or None
-    _Crystal_form.admin_order_field = 'crystal_form__name'
-
-    def _Cocktail(self):
-        return self.cocktail and self.cocktail.name or None
-    _Cocktail.admin_order_field = 'cocktail__name'
 
     def _Container(self):
         return self.container and self.container.name or None
@@ -1061,13 +958,13 @@ class Crystal(LoadableBaseClass):
         return True
 
     def is_complete(self):
-        return (self.screen_status != Crystal.EXP_STATES.PENDING and self.collect_status != Crystal.EXP_STATES.PENDING and self.status > Crystal.STATES.DRAFT) or self.collect_status == Crystal.EXP_STATES.COMPLETED
+        return (self.screen_status != Sample.EXP_STATES.PENDING and self.collect_status != Sample.EXP_STATES.PENDING and self.status > Sample.STATES.DRAFT) or self.collect_status == Sample.EXP_STATES.COMPLETED
     
     def is_started(self):
         msg = str()
-        data = Data.objects.filter(crystal__exact=self)
-        result = Result.objects.filter(crystal__exact=self)
-        scan = ScanResult.objects.filter(crystal__exact=self)
+        data = Data.objects.filter(sample__exact=self)
+        result = Result.objects.filter(sample__exact=self)
+        scan = ScanResult.objects.filter(sample__exact=self)
         types = [Data.DATA_TYPES, Result.RESULT_TYPES, ScanResult.SCAN_TYPES]
         for i, set in enumerate([data, result, scan]):
             if set.exists():
@@ -1077,42 +974,31 @@ class Crystal(LoadableBaseClass):
                     msg += '%s%s%s %s<br>' % (s0, (s0 and s1) and '/' or '', s1, set[0].__class__.__name__)
         return msg
     
-    def setup_experiment(self):
-        """ If crystal is on-site, updates the screen_status and collect_status based on its experiment type
-        """
-        assert self.experiment
-        if self.status == Crystal.STATES.ON_SITE:
-            if self.experiment.plan not in [Experiment.EXP_PLANS.JUST_COLLECT, Experiment.EXP_PLANS.COLLECT_FIRST_GOOD]:
-                self.change_screen_status(Crystal.EXP_STATES.PENDING)
-                if self.experiment.plan != Experiment.EXP_PLANS.SCREEN_AND_COLLECT:
-                    return
-            self.change_collect_status(Crystal.EXP_STATES.PENDING) 
-
     def delete(self, request=None, cascade=True):
         if self.is_deletable:
-            if self.experiment:
-                if self.experiment.crystal_set.count() == 1:
-                    self.experiment.delete(request=request, cascade=False)
+            if self.group:
+                if self.group.sample_set.count() == 1:
+                    self.group.delete(request=request, cascade=False)
             obj_list = []
             for obj in self.data_set.all(): obj_list.append(obj)
             for obj in self.result_set.all(): obj_list.append(obj)
             for obj in obj_list:
-                obj.crystal = None
+                obj.sample = None
                 obj.save()
                 if cascade:
                     obj.trash(request=request)
-            super(Crystal, self).delete(request=request)
+            super(Sample, self).delete(request=request)
 
     def send(self, request=None):
-        assert self.experiment
-        self.experiment.change_status(Experiment.STATES.ACTIVE)
-        super(Crystal, self).send(request=request)
+        assert self.group
+        self.group.change_status(Group.STATES.ACTIVE)
+        super(Sample, self).send(request=request)
 
     def archive(self, request=None):
-        super(Crystal, self).archive(request=request)
-        assert self.experiment
-        if self.experiment.crystal_set and self.experiment.crystal_set.exclude(status__exact=Crystal.STATES.ARCHIVED).count() == 0:
-            super(Experiment, self.experiment).archive(request=request)
+        super(Sample, self).archive(request=request)
+        assert self.group
+        if self.group.sample_set and self.group.sample_set.exclude(status__exact=Sample.STATES.ARCHIVED).count() == 0:
+            super(Group, self.group).archive(request=request)
         for obj in self.data_set.exclude(status__exact=Data.STATES.ARCHIVED):
             obj.archive(request=request)
             super(Data, obj).archive(request=request)
@@ -1131,14 +1017,14 @@ class Crystal(LoadableBaseClass):
             self.save()
 
     def json_dict(self):
-        if self.experiment is not None:
-            exp_id = self.experiment.pk
+        if self.group is not None:
+            exp_id = self.group.pk
         else:
             exp_id = None
         return {
             'project_id': self.project.pk,
             'container_id': self.container.pk,
-            'experiment_id': exp_id,
+            'group_id': exp_id,
             'id': self.pk,
             'name': self.name,
             'barcode': self.barcode,
@@ -1152,8 +1038,8 @@ class Data(DataBaseClass):
         (0,'SCREENING','Screening'),
         (1,'COLLECTION','Collection'),
     )
-    experiment = models.ForeignKey(Experiment, null=True, blank=True)
-    crystal = models.ForeignKey(Crystal, null=True, blank=True)
+    group = models.ForeignKey(Group, null=True, blank=True)
+    sample = models.ForeignKey(Sample, null=True, blank=True)
     resolution = models.FloatField()
     start_angle = models.FloatField()
     delta_angle = models.FloatField()
@@ -1176,10 +1062,6 @@ class Data(DataBaseClass):
     # need a method to determine how many frames are in item
     def num_frames(self):
         return len(self.get_frame_list())          
-
-    def _Crystal(self):
-        return self.crystal and self.crystal.name or None
-    _Crystal.admin_order_field = 'crystal__name'
 
     def toggle_download(self, state):
         self.download = state
@@ -1252,50 +1134,25 @@ class Data(DataBaseClass):
 
     def update_states(self):
         # check type, and change status accordingly
-        if self.crystal is not None:
+        if self.sample is not None:
             if self.kind == Result.RESULT_TYPES.SCREENING:
-                self.crystal.change_screen_status(Crystal.EXP_STATES.COMPLETED)
+                self.sample.change_screen_status(Sample.EXP_STATES.COMPLETED)
             elif self.kind == Result.RESULT_TYPES.COLLECTION:
-                self.crystal.change_collect_status(Crystal.EXP_STATES.COMPLETED)
-        if self.experiment is not None:
-            if self.experiment.status == Experiment.STATES.ACTIVE:
-                self.experiment.change_status(Experiment.STATES.PROCESSING)
+                self.sample.change_collect_status(Sample.EXP_STATES.COMPLETED)
+        if self.group is not None:
+            if self.group.status == Group.STATES.ACTIVE:
+                self.group.change_status(Group.STATES.PROCESSING)
 
     class Meta:
         verbose_name = 'Dataset'
-
-class Strategy(DataBaseClass):
-    attenuation = models.FloatField()
-    distance = models.FloatField(default=200.0)
-    start_angle = models.FloatField(default=0.0)
-    delta_angle = models.FloatField(default=1.0)
-    total_angle = models.FloatField(default=180.0)
-    exposure_time = models.FloatField(default=1.0)
-    two_theta = models.FloatField(default=0.0)
-    energy = models.FloatField(default=12.658)
-    exp_resolution = models.FloatField('Expected Resolution')
-    exp_completeness = models.FloatField('Expected Completeness')
-    exp_multiplicity = models.FloatField('Expected Multiplicity')
-    exp_i_sigma = models.FloatField('Expected I/Sigma')
-    exp_r_factor =models.FloatField('Expected R-factor')
-
-    def identity(self):
-        return 'ST%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-
-    def is_strategy_type(self):
-        return True
-
-    class Meta:
-        verbose_name_plural = 'Strategies'
 
 class Result(DataBaseClass):
     RESULT_TYPES = Choices(
         (0,'SCREENING','Screening'),
         (1,'COLLECTION','Collection'),
     )
-    experiment = models.ForeignKey(Experiment, null=True, blank=True)
-    crystal = models.ForeignKey(Crystal, null=True, blank=True)
+    group = models.ForeignKey(Group, null=True, blank=True)
+    sample = models.ForeignKey(Sample, null=True, blank=True)
     data = models.ForeignKey(Data)
     score = models.FloatField()
     space_group = models.ForeignKey(SpaceGroup)
@@ -1322,8 +1179,7 @@ class Result(DataBaseClass):
     url = models.CharField(max_length=200)
     kind = models.IntegerField('Result type', choices=RESULT_TYPES)
     details = JSONField()
-    strategy = models.OneToOneField(Strategy, null=True, blank=True)
-    
+
     def identity(self):
         return 'RT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
@@ -1357,8 +1213,8 @@ class ScanResult(DataBaseClass):
         (0,'MAD_SCAN','MAD Scan'),
         (1,'EXCITATION_SCAN','Excitation Scan'),
     )
-    experiment = models.ForeignKey(Experiment, null=True, blank=True)
-    crystal = models.ForeignKey(Crystal, null=True, blank=True)
+    group = models.ForeignKey(Group, null=True, blank=True)
+    sample = models.ForeignKey(Sample, null=True, blank=True)
     edge = models.CharField(max_length=20)
     details = JSONField()
     kind = models.IntegerField('Scan type', choices=SCAN_TYPES)
@@ -1544,7 +1400,7 @@ class Dewar(ObjectBaseClass):
     HELP = {
         'name': "An externally visible label on the dewar. If there is a barcode on the dewar, please scan it here",
         'comments': "Use this field to jot notes related to this shipment for your own use",
-        'cascade': 'containers and crystals (along with experiments)',
+        'cascade': 'containers and samples (along with groups)',
         'cascade_help': 'All associated containers will be left without a dewar'
     }
     comments = models.TextField(blank=True, null=True, help_text=HELP['comments'])

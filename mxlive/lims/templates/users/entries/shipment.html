@@ -5,7 +5,7 @@
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
         <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
-        <strong class="text-muted">{{ object.identity }}</strong> | {{ object.name }}
+        <span class="text-muted">{{ object.identity }}</span> | <strong>{{ object.name }}</strong>
     </h3>
     <span class="text-muted">
         {% if object.status == object.STATES.DRAFT %}Created {{ object.created|naturalday }}
@@ -82,15 +82,22 @@
     {% with object as shipment %}
 
     <div class="clear"></div>
-    <div class="col-xs-8">
+    <div class="col-sm-7 col-xs-12">
+        <span class="box-tools box-tools-inline pull-left">
+            <a class="pull-left" data-url="{% url "shipment-add-containers" object.pk %}">
+                <i class="fa fa-2 fa-fw fa-plus"></i><br>
+                <span class="tool-label">Add</span>
+            </a>
+        </span>
         <h3>Containers</h3>
+        <hr />
         {% for container in shipment.container_set.all %}
             <div class="pull-left text-center">
                 <div class="col-xs-12">
                     <div id="layout-{{ container.pk }}" class="layout-lg" style="min-height: 200px;">
                         <h4>
                             <a href="{% url "container-detail" pk=container.pk %}">
-                                <strong>{{ container.identity }}</strong> | {{ container.name }}
+                                <span class="text-muted">{{ container.identity }}</span> | <strong>{{ container.name }}</strong>
                             </a>
                         </h4>
                     </div>
@@ -100,24 +107,35 @@
         {% endfor %}
     </div>
 
-    <div class="col-xs-4">
+    <div class="col-sm-5 col-xs-12">
+        <span class="box-tools box-tools-inline pull-left">
+            <a class="pull-left" data-url="{% url "shipment-add-groups" object.pk %}">
+                <i class="fa fa-2 fa-fw fa-plus"></i><br>
+                <span class="tool-label">Add</span>
+            </a>
+        </span>
         <h3>Groups</h3>
+        <hr />
         <div class="list-group">
-            {% for group in shipment.groups %}
+            {% for group in shipment.groups_by_priority %}
                 <div class="list-group-item" id="group-{{ group.pk }}">
                     <span class="box-tools pull-right">
-                        <a class="pull-right" data-url="{% url "experiment-edit" pk=group.pk %}">
-                            <i class="fa fa-2 fa-fw fa-pencil"></i>
-                            <br><span class="tool-label">Edit</span>
-                        </a>
                         <a class="pull-right" data-url="#" title="Sample Seat Selection">
-                            <i class="fa fa-2 fa-fw fa-map-pin"></i>
-                            <br><span class="tool-label">Layout</span>
+                            <i class="fa fa-2 fa-fw fa-plus-circle"></i>
+                            <br><span class="tool-label">Samples</span>
                         </a>
                     </span>
-                    <h4 class="list-group-item-heading"><a href="{% url "experiment-detail" pk=group.pk %}"><strong class="text-muted">{{ group.identity }}</strong> | {{ group.name }}</a></h4>
-                    <p class="list-group-item-text">{{ group.sample_count }} sample{{ group.crystal_set.count|pluralize }}</p>
-                    <p class="list-group-item-text">{{ group.crystal_set.count }} samples not assigned a location</p>
+                    <h4 class="list-group-item-heading"><a href="{% url "group-detail" pk=group.pk %}"><span class="text-muted">{{ group.identity }}</span> | <strong>{{ group.name }}</strong></a></h4>
+                    <p class="list-group-item-text">
+                        Priority <strong>#{{ group.priority }}</strong> / <strong>{{ group.sample_count }}</strong> sample{{ group.sample_set.count|pluralize }}
+                    </p>
+                    {% if group.unassigned_samples %}
+                        <div class="alert alert-{% if group.sample_set.count %}warning{% else %}danger{% endif %}">
+                            <p class="list-group-item-text">
+                                <strong>{{ group.unassigned_samples }}</strong> sample{{ group.unassigned_samples|pluralize }} not assigned a location
+                            </p>
+                        </div>
+                    {% endif %}
                 </div>
             {% endfor %}
         </div>
@@ -128,8 +146,8 @@
     <script>
         {% for group in shipment.groups %}
             $('#group-{{ group.pk }}').hover(function() {
-                {% for sample in group.crystal_set.all %}
-                    $('[sample="{{ sample.pk }}"]').addClass('active-sample');
+                {% for sample in group.sample_set.all %}
+                    $('[sample="{{ sample.name }}"]').addClass('active-sample');
                 {% endfor %}
             },
             function() {

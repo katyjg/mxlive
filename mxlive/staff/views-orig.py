@@ -44,13 +44,13 @@ def staff_home(request):
                 'on_site': Dewar.objects.filter(status__exact=Dewar.STATES.ON_SITE).count(),
                 },
         'experiments': {
-                'active': Experiment.objects.filter(status__exact=Experiment.STATES.ACTIVE).filter(pk__in=Crystal.objects.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).values('experiment')).count(),
-                'processing': Experiment.objects.filter(status__exact=Experiment.STATES.PROCESSING).filter(pk__in=Crystal.objects.filter(status__exact=Crystal.STATES.ON_SITE).values('experiment')).count(),
+                'active': Group.objects.filter(status__exact=Group.STATES.ACTIVE).filter(pk__in=Sample.objects.filter(status__in=[Sample.STATES.ON_SITE, Sample.STATES.LOADED]).values('experiment')).count(),
+                'processing': Group.objects.filter(status__exact=Group.STATES.PROCESSING).filter(pk__in=Sample.objects.filter(status__exact=Sample.STATES.ON_SITE).values('experiment')).count(),
                 },
         'crystals': {
-                'on_site': Crystal.objects.filter(status__in=[Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).count(),
-                'outgoing': Crystal.objects.filter(status__exact=Crystal.STATES.SENT).count(),
-                'incoming': Crystal.objects.filter(modified__gte=recent_start).filter(status__exact=Crystal.STATES.RETURNED).count(),
+                'on_site': Sample.objects.filter(status__in=[Sample.STATES.ON_SITE, Sample.STATES.LOADED]).count(),
+                'outgoing': Sample.objects.filter(status__exact=Sample.STATES.SENT).count(),
+                'incoming': Sample.objects.filter(modified__gte=recent_start).filter(status__exact=Sample.STATES.RETURNED).count(),
                 },
         'runlists':{
                 'loaded': Runlist.objects.filter(status__exact=Runlist.STATES.LOADED).count(),
@@ -295,7 +295,7 @@ def experiment_basic_object_list(request, runlist_id, model, template='objlist/b
         runlist = None
 
     if runlist:
-        ol.object_list = Experiment.objects.filter(status__in=[Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING]).filter(pk__in=Crystal.objects.filter(container__pk__in=Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE)).values('experiment'))
+        ol.object_list = Group.objects.filter(status__in=[Group.STATES.ACTIVE, Group.STATES.PROCESSING]).filter(pk__in=Sample.objects.filter(container__pk__in=Container.objects.filter(status__exact=Container.STATES.ON_SITE).exclude(pk__in=runlist.containers.all()).exclude(kind__exact=Container.TYPE.CANE)).values('experiment'))
     
     return render_to_response(template, {'ol': ol, 'type': ol.model.__name__.lower() }, context_instance=RequestContext(request))
 
@@ -381,29 +381,29 @@ CACHE_DIR = getattr(settings, 'DOWNLOAD_CACHE_DIR', '/tmp')
 def object_status(request, model):
     pks = map(int, request.POST.getlist('id_list[]'))
     action = int(request.POST.get('action'))
-    if model is Crystal:
-        experiment = Crystal.objects.get(pk=pks[0]).experiment
-        for crystal in Crystal.objects.filter(pk__in=pks):
+    if model is Sample:
+        experiment = Sample.objects.get(pk=pks[0]).experiment
+        for crystal in Sample.objects.filter(pk__in=pks):
             if action == 1:
-                crystal.change_screen_status(Crystal.EXP_STATES.PENDING) 
+                crystal.change_screen_status(Sample.EXP_STATES.PENDING)
             elif action == 2:
-                crystal.change_collect_status(Crystal.EXP_STATES.PENDING) 
+                crystal.change_collect_status(Sample.EXP_STATES.PENDING)
             elif action == 3:
-                crystal.change_screen_status(Crystal.EXP_STATES.IGNORE) 
-                crystal.change_collect_status(Crystal.EXP_STATES.IGNORE) 
+                crystal.change_screen_status(Sample.EXP_STATES.IGNORE)
+                crystal.change_collect_status(Sample.EXP_STATES.IGNORE)
             elif action == 4:
-                crystal.change_screen_status(Crystal.EXP_STATES.COMPLETED)
+                crystal.change_screen_status(Sample.EXP_STATES.COMPLETED)
             elif action == 5: 
-                crystal.change_collect_status(Crystal.EXP_STATES.COMPLETED) 
+                crystal.change_collect_status(Sample.EXP_STATES.COMPLETED)
                 
         if experiment.is_complete():
-            experiment.change_status(Experiment.STATES.COMPLETE)
+            experiment.change_status(Group.STATES.COMPLETE)
         else:
-            if experiment.status == Experiment.STATES.COMPLETE:
+            if experiment.status == Group.STATES.COMPLETE:
                 if experiment.result_set.exists() or experiment.data_set.exists():
-                    experiment.change_status(Experiment.STATES.PROCESSING)
+                    experiment.change_status(Group.STATES.PROCESSING)
                 else:
-                    experiment.change_status(Experiment.STATES.ACTIVE)
+                    experiment.change_status(Group.STATES.ACTIVE)
 
     if model is Data:
         threads = {}
@@ -535,7 +535,7 @@ def staff_action_object(request, id, model, form, template='objforms/form_base.h
             'form' : frm, 
             }, context_instance=RequestContext(request))
     else:   
-        form._meta.model = Experiment
+        form._meta.model = Group
         frm = form(initial=dict(request.GET.items()))
         return render_to_response(template, {
         'info': form_info, 

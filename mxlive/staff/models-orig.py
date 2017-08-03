@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from enum import Enum
 from model_utils import Choices
 from jsonfield.fields import JSONField
-from lims.models import ActivityLog, Beamline, Container, Crystal, Experiment
+from lims.models import ActivityLog, Beamline, Container, Sample, Group
 import hashlib
 import os
 
@@ -118,7 +118,7 @@ class Runlist(StaffBaseClass):
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified', auto_now=True, editable=False)
     comments = models.TextField(blank=True, null=True)
-    experiments = models.ManyToManyField(Experiment, blank=True)
+    experiments = models.ManyToManyField(Group, blank=True)
     beamline = models.ForeignKey(Beamline, blank=False)
 
     left = JSONField(null=True, blank=True)
@@ -528,13 +528,13 @@ class Runlist(StaffBaseClass):
                 container_json['load_position'] = auto_pos
             containers[container.pk] = container_json
             for crystal_pk in container_json['crystals']:
-                crystal = Crystal.objects.get(pk=crystal_pk)
+                crystal = Sample.objects.get(pk=crystal_pk)
                 crystals[crystal.pk] = crystal.json_dict()
 
         # determine the list of Experiments in the Runlist
         experiments = []
-        exp_list = Experiment.objects.filter(
-            pk__in=Crystal.objects.filter(container__pk__in=self.containers.all()).values('experiment')).order_by(
+        exp_list = Group.objects.filter(
+            pk__in=Sample.objects.filter(container__pk__in=self.containers.all()).values('experiment')).order_by(
             'priority').reverse()
         for experiment in exp_list:
             experiment_json = experiment.json_dict()

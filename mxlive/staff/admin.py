@@ -1,6 +1,6 @@
 from django.contrib import admin
 from models import Runlist, Link, UserList, Adaptor
-from lims.models import Experiment, Container, Crystal
+from lims.models import Group, Container, Sample
 
 from django import forms
 
@@ -8,10 +8,10 @@ runlist_site = admin.AdminSite()
 
 
 class RunlistAdminForm(forms.ModelForm):
-    experiments = forms.ModelMultipleChoiceField(
-        queryset=Experiment.objects.filter(status__in=[Experiment.STATES.ACTIVE, Experiment.STATES.PROCESSING]).filter(
-            pk__in=Crystal.objects.filter(
-                status__in=[Crystal.STATES.SENT, Crystal.STATES.ON_SITE, Crystal.STATES.LOADED]).values('experiment')),
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.filter(status__in=[Group.STATES.ACTIVE, Group.STATES.PROCESSING]).filter(
+            pk__in=Sample.objects.filter(
+                status__in=[Sample.STATES.SENT, Sample.STATES.ON_SITE, Sample.STATES.LOADED]).values('group')),
         required=False)
 
     class Meta:
@@ -49,23 +49,23 @@ class LinkAdmin(admin.ModelAdmin):
 admin.site.register(Link, LinkAdmin)
 
 
-class ExperimentRunlistAdmin(admin.ModelAdmin):
+class GroupRunlistAdmin(admin.ModelAdmin):
     search_fields = ['comments', 'name']
     list_filter = []
     list_display = ('project', 'id', 'name', 'kind', 'plan', 'num_samples', 'status')
-    ordering = ['-staff_priority', '-priority', '-created']
+    ordering = ['-priority', '-created']
     unsortable = list_display
     list_per_page = 999999
 
 
-runlist_site.register(Experiment, ExperimentRunlistAdmin)
+runlist_site.register(Group, GroupRunlistAdmin)
 
 
 class ContainerRunlistAdmin(admin.ModelAdmin):
-    ordering = ['-staff_priority', '-created']
+    ordering = ['-created']
     search_fields = ['name', 'code']
     list_filter = ['modified']
-    list_display = ('project', 'id', 'name', 'experiments', 'capacity', 'num_samples', 'status')
+    list_display = ('project', 'id', 'name', 'groups', 'capacity', 'num_samples', 'status')
     list_per_page = 999999
     unsortable = list_display
 

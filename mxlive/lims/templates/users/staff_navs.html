@@ -49,9 +49,9 @@
         <li><a href="{% url "staff-container-list" %}">Containers</a></li>
     </ul>
 </li>
-<li class='nav-menu {% active request.path "^/staff/experiment/" %}'><a href="{% url "staff-experiment-list" %}">Experiments</a>
+<li class='nav-menu {% active request.path "^/staff/experiment/" %}'><a href="{% url "staff-group-list" %}">Experiments</a>
     <ul class="nav-submenu">
-        <li><a href="{% url "staff-experiment-list" %}">Experiments</a></li>
+        <li><a href="{% url "staff-group-list" %}">Experiments</a></li>
         <li><a href="{% url "staff-data-list" %}">Datasets</a></li>
         <li><a href="{% url "staff-result-list" %}">Reports</a></li>
         <li><a href="{% url "staff-scanresult-list" %}">Scans</a></li>

@@ -18,8 +18,8 @@ from mxlive.lims.tests.test_utils import DjangoTestCase
 from mxlive.lims.models import Container
 from mxlive.lims.models import Shipment
 from mxlive.lims.models import Dewar
-from mxlive.lims.models import Crystal
-from mxlive.lims.models import Experiment
+from mxlive.lims.models import Sample
+from mxlive.lims.models import Group
 from mxlive.lims.models import delete
 from mxlive.lims.models import ExcludeManagerWrapper
 from mxlive.lims.models import FilterManagerWrapper
@@ -53,15 +53,15 @@ class ProjectTest(DjangoTestCase):
     def test_cascading_delete(self):
         self.set_up_default_experiment()
         
-        self.assertNotEqual(0, Experiment.objects.count())
-        self.assertNotEqual(0, Crystal.objects.count())
+        self.assertNotEqual(0, Group.objects.count())
+        self.assertNotEqual(0, Sample.objects.count())
         self.assertNotEqual(0, Container.objects.count())
         self.assertNotEqual(0, Dewar.objects.count())
         
         self.project.delete()
         
-        self.assertEqual(0, Experiment.objects.count())
-        self.assertEqual(0, Crystal.objects.count())
+        self.assertEqual(0, Group.objects.count())
+        self.assertEqual(0, Sample.objects.count())
         self.assertEqual(0, Container.objects.count())
         self.assertEqual(0, Dewar.objects.count())
         
@@ -123,22 +123,22 @@ class CrystalTest(DjangoTestCase):
     def test_update_associated_experiments_one_crystal(self):
         self.set_up_default_experiment()
         
-        self.assertEqual(Crystal.STATES.DRAFT, self.crystal.status)
-        self.assertEqual(Experiment.STATES.DRAFT, self.experiment.status)
+        self.assertEqual(Sample.STATES.DRAFT, self.crystal.status)
+        self.assertEqual(Group.STATES.DRAFT, self.experiment.status)
         
         # nothing happens when DRAFT
         self.crystal.activate_associated_experiments()
         self.reload_models()
-        self.assertEqual(Crystal.STATES.DRAFT, self.crystal.status)
-        self.assertEqual(Experiment.STATES.DRAFT, self.experiment.status)
+        self.assertEqual(Sample.STATES.DRAFT, self.crystal.status)
+        self.assertEqual(Group.STATES.DRAFT, self.experiment.status)
         
         # all Crystals are ON_SITE, update Experiment
-        self.crystal.status = Crystal.STATES.ON_SITE
+        self.crystal.status = Sample.STATES.ON_SITE
         self.crystal.save()
         self.crystal.activate_associated_experiments()
         self.reload_models()
-        self.assertEqual(Crystal.STATES.ON_SITE, self.crystal.status)
-        self.assertEqual(Experiment.STATES.ACTIVE, self.experiment.status)
+        self.assertEqual(Sample.STATES.ON_SITE, self.crystal.status)
+        self.assertEqual(Group.STATES.ACTIVE, self.experiment.status)
         
     def test_update_associated_experiments_many_crystals(self):
         self.set_up_default_experiment()
@@ -147,34 +147,34 @@ class CrystalTest(DjangoTestCase):
         c2.experiment = self.experiment
         c2.save()
         
-        self.assertEqual(Crystal.STATES.DRAFT, self.crystal.status)
-        self.assertEqual(Crystal.STATES.DRAFT, c2.status)
-        self.assertEqual(Experiment.STATES.DRAFT, self.experiment.status)
+        self.assertEqual(Sample.STATES.DRAFT, self.crystal.status)
+        self.assertEqual(Sample.STATES.DRAFT, c2.status)
+        self.assertEqual(Group.STATES.DRAFT, self.experiment.status)
         
         # nothing happens when DRAFT
         self.crystal.activate_associated_experiments()
         self.reload_models()
-        self.assertEqual(Crystal.STATES.DRAFT, self.crystal.status)
-        self.assertEqual(Crystal.STATES.DRAFT, c2.status)
-        self.assertEqual(Experiment.STATES.DRAFT, self.experiment.status)
+        self.assertEqual(Sample.STATES.DRAFT, self.crystal.status)
+        self.assertEqual(Sample.STATES.DRAFT, c2.status)
+        self.assertEqual(Group.STATES.DRAFT, self.experiment.status)
         
         # not all Crystals are ON_SITE, update Experiment should do nothing
-        self.crystal.status = Crystal.STATES.ON_SITE
+        self.crystal.status = Sample.STATES.ON_SITE
         self.crystal.save()
         self.crystal.activate_associated_experiments()
         self.reload_models()
-        self.assertEqual(Crystal.STATES.ON_SITE, self.crystal.status)
-        self.assertEqual(Crystal.STATES.DRAFT, c2.status)
-        self.assertEqual(Experiment.STATES.DRAFT, self.experiment.status)
+        self.assertEqual(Sample.STATES.ON_SITE, self.crystal.status)
+        self.assertEqual(Sample.STATES.DRAFT, c2.status)
+        self.assertEqual(Group.STATES.DRAFT, self.experiment.status)
         
         # all Crystals are ON_SITE, update Experiment should update
-        c2.status = Crystal.STATES.ON_SITE
+        c2.status = Sample.STATES.ON_SITE
         c2.save()
         self.crystal.activate_associated_experiments()
         self.reload_models()
-        self.assertEqual(Crystal.STATES.ON_SITE, self.crystal.status)
-        self.assertEqual(Crystal.STATES.ON_SITE, c2.status)
-        self.assertEqual(Experiment.STATES.ACTIVE, self.experiment.status)
+        self.assertEqual(Sample.STATES.ON_SITE, self.crystal.status)
+        self.assertEqual(Sample.STATES.ON_SITE, c2.status)
+        self.assertEqual(Group.STATES.ACTIVE, self.experiment.status)
         
 class StrategyTest(DjangoTestCase):
     """ Tests for Strategy model """
@@ -256,17 +256,17 @@ class ShipmentTest(DjangoTestCase):
         
     def test_setup_default_experiment_no_orphan_crystals(self):
         self.set_up_default_experiment()
-        self.assertEqual(1, Experiment.objects.count())
+        self.assertEqual(1, Group.objects.count())
         self.shipment.setup_default_experiment()
-        self.assertEqual(1, Experiment.objects.count())
+        self.assertEqual(1, Group.objects.count())
         
     def test_setup_default_experiment_orphan_crystals(self):
         self.set_up_default_experiment()
-        self.assertEqual(1, Experiment.objects.count())
+        self.assertEqual(1, Group.objects.count())
         crystal = create_Crystal(project=self.project, name='I have no Experiment')
         self.shipment.setup_default_experiment()
-        self.assertEqual(2, Experiment.objects.count())
-        self.assertTrue([crystal], Experiment.objects.get(name="Default Experiment").crystals)
+        self.assertEqual(2, Group.objects.count())
+        self.assertTrue([crystal], Group.objects.get(name="Default Experiment").crystals)
         
 class ModelsTest(DjangoTestCase):
     
@@ -300,14 +300,14 @@ class ModelsTest(DjangoTestCase):
         self.assertEqual(Shipment.STATES.ARCHIVED, self.shipment.status)
         self.assertEqual(Dewar.STATES.ARCHIVED, self.dewar.status)
         self.assertEqual(Container.STATES.ARCHIVED, self.container.status)
-        self.assertEqual(Crystal.STATES.ARCHIVED, self.crystal.status)
+        self.assertEqual(Sample.STATES.ARCHIVED, self.crystal.status)
         
     def test_archive_shipment(self):
         self.set_up_default_crystal()
         self.assertEqual(Shipment.STATES.DRAFT, self.shipment.status)
         self.assertEqual(Dewar.STATES.DRAFT, self.dewar.status)
         self.assertEqual(Container.STATES.DRAFT, self.container.status)
-        self.assertEqual(Crystal.STATES.DRAFT, self.crystal.status)
+        self.assertEqual(Sample.STATES.DRAFT, self.crystal.status)
         self.assertEqual(self.container, self.crystal.container)
         perform_action(self.shipment, 'send')
         self.reload_models()
@@ -320,7 +320,7 @@ class ModelsTest(DjangoTestCase):
         self.assertEqual(Shipment.STATES.ARCHIVED, self.shipment.status)
         self.assertEqual(Dewar.STATES.ARCHIVED, self.dewar.status)
         self.assertEqual(Container.STATES.ARCHIVED, self.container.status)
-        self.assertEqual(Crystal.STATES.ARCHIVED, self.crystal.status)
+        self.assertEqual(Sample.STATES.ARCHIVED, self.crystal.status)
         self.assertEqual(self.container, self.crystal.container)
         
     def test_send_shipment(self):
@@ -328,7 +328,7 @@ class ModelsTest(DjangoTestCase):
         self.assertEqual(Shipment.STATES.DRAFT, self.shipment.status)
         self.assertEqual(Dewar.STATES.DRAFT, self.dewar.status)
         self.assertEqual(Container.STATES.DRAFT, self.container.status)
-        self.assertEqual(Crystal.STATES.DRAFT, self.crystal.status)
+        self.assertEqual(Sample.STATES.DRAFT, self.crystal.status)
         self.assertEqual(self.container, self.crystal.container)
         self.assertEqual(None, self.shipment.date_shipped)
         perform_action(self.shipment, 'send') # send it
@@ -336,7 +336,7 @@ class ModelsTest(DjangoTestCase):
         self.assertEqual(Shipment.STATES.SENT, self.shipment.status)
         self.assertEqual(Dewar.STATES.SENT, self.dewar.status)
         self.assertEqual(Container.STATES.SENT, self.container.status)
-        self.assertEqual(Crystal.STATES.SENT, self.crystal.status)
+        self.assertEqual(Sample.STATES.SENT, self.crystal.status)
         self.assertEqual(self.container, self.crystal.container)
         self.assertNotEqual(None, self.shipment.date_shipped)
         
@@ -345,7 +345,7 @@ class ModelsTest(DjangoTestCase):
         self.assertEqual(Shipment.STATES.DRAFT, self.shipment.status)
         self.assertEqual(Dewar.STATES.DRAFT, self.dewar.status)
         self.assertEqual(Container.STATES.DRAFT, self.container.status)
-        self.assertEqual(Crystal.STATES.DRAFT, self.crystal.status)
+        self.assertEqual(Sample.STATES.DRAFT, self.crystal.status)
         self.assertEqual(self.container, self.crystal.container)
         self.assertEqual(None, self.shipment.date_received)
         perform_action(self.shipment, 'send')
@@ -355,7 +355,7 @@ class ModelsTest(DjangoTestCase):
         self.assertEqual(Shipment.STATES.ON_SITE, self.shipment.status)
         self.assertEqual(Dewar.STATES.ON_SITE, self.dewar.status)
         self.assertEqual(Container.STATES.ON_SITE, self.container.status)
-        self.assertEqual(Crystal.STATES.ON_SITE, self.crystal.status)
+        self.assertEqual(Sample.STATES.ON_SITE, self.crystal.status)
         self.assertEqual(self.container, self.crystal.container)
         self.assertNotEqual(None, self.shipment.date_received)
         
@@ -364,7 +364,7 @@ class ModelsTest(DjangoTestCase):
         self.assertEqual(Shipment.STATES.DRAFT, self.shipment.status)
         self.assertEqual(Dewar.STATES.DRAFT, self.dewar.status)
         self.assertEqual(Container.STATES.DRAFT, self.container.status)
-        self.assertEqual(Crystal.STATES.DRAFT, self.crystal.status)
+        self.assertEqual(Sample.STATES.DRAFT, self.crystal.status)
         self.assertEqual(self.container, self.crystal.container)
         self.assertEqual(None, self.shipment.date_returned)
         perform_action(self.shipment, 'send')
@@ -376,7 +376,7 @@ class ModelsTest(DjangoTestCase):
         self.assertEqual(Shipment.STATES.RETURNED, self.shipment.status)
         self.assertEqual(Dewar.STATES.RETURNED, self.dewar.status)
         self.assertEqual(Container.STATES.RETURNED, self.container.status)
-        self.assertEqual(Crystal.STATES.RETURNED, self.crystal.status)
+        self.assertEqual(Sample.STATES.RETURNED, self.crystal.status)
         self.assertEqual(self.container, self.crystal.container)
         self.assertNotEqual(None, self.shipment.date_returned)
         
@@ -400,12 +400,12 @@ class ExcludeManagerWrapperTest(DjangoTestCase):
         self.assertEqual([self.shipment], list(self.project.shipment_set.all()))
         self.assertEqual([self.dewar], list(self.project.dewar_set.all()))
         self.assertEqual([self.container], list(self.project.container_set.all()))
-        self.assertEqual([self.crystal], list(self.project.crystal_set.all()))
+        self.assertEqual([self.crystal], list(self.project.sample_set.all()))
         # with the excludes, no results are returned
         self.assertEqual([], list(ExcludeManagerWrapper(self.project.shipment_set, status__exact=self.shipment.status).all()))
         self.assertEqual([], list(ExcludeManagerWrapper(self.project.dewar_set, status__exact=self.dewar.status).all()))
         self.assertEqual([], list(ExcludeManagerWrapper(self.project.container_set, status__exact=self.container.status).all()))
-        self.assertEqual([], list(ExcludeManagerWrapper(self.project.crystal_set, name__exact=self.crystal.name).all()))
+        self.assertEqual([], list(ExcludeManagerWrapper(self.project.sample_set, name__exact=self.crystal.name).all()))
         
 class FilterManagerWrapperTest(DjangoTestCase):
     
@@ -420,12 +420,12 @@ class FilterManagerWrapperTest(DjangoTestCase):
         self.assertEqual([self.shipment], list(self.project.shipment_set.all()))
         self.assertEqual([self.dewar], list(self.project.dewar_set.all()))
         self.assertEqual([self.container], list(self.project.container_set.all()))
-        self.assertEqual([self.crystal], list(self.project.crystal_set.all()))
+        self.assertEqual([self.crystal], list(self.project.sample_set.all()))
         # with the excludes, no results are returned
         self.assertEqual([], list(FilterManagerWrapper(self.project.shipment_set, status__in=[self.shipment.status+1]).all()))
         self.assertEqual([], list(FilterManagerWrapper(self.project.dewar_set, status__in=[self.dewar.status+1]).all()))
         self.assertEqual([], list(FilterManagerWrapper(self.project.container_set, status__in=[self.container.status+1]).all()))
-        self.assertEqual([], list(FilterManagerWrapper(self.project.crystal_set, name__in=[self.crystal.name+'1']).all()))
+        self.assertEqual([], list(FilterManagerWrapper(self.project.sample_set, name__in=[self.crystal.name+'1']).all()))
         
 class PriorityTest(DjangoTestCase):
     
@@ -437,8 +437,8 @@ class PriorityTest(DjangoTestCase):
     def reload_models(self):
         super(PriorityTest, self).reload_models()
         try:
-            self.experiment2 = Experiment.objects.get(pk=self.experiment2.pk)
-        except Experiment.DoesNotExist:
+            self.experiment2 = Group.objects.get(pk=self.experiment2.pk)
+        except Group.DoesNotExist:
             self.experiment2 = None
         
     def test_container_priority_is_max_of_experiments(self):

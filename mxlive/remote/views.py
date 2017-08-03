@@ -39,7 +39,7 @@ def get_userlist(request, ipnumber=None, *args, **kwargs):
 
 @apikey_required
 def get_project_samples(request, *args, **kwargs):
-    from lims.models import Project, Container, Crystal, Experiment, Beamline
+    from lims.models import Project, Container, Sample, Group, Beamline
     from staff.models import Runlist
     project_name = kwargs.get('project')
     beamline_name = kwargs.get('beamline')
@@ -51,13 +51,13 @@ def get_project_samples(request, *args, **kwargs):
     cnt_list = project.container_set.filter(
         Q(status__exact=Container.STATES.ON_SITE) |
         Q(status__exact=Container.STATES.LOADED))
-    xtl_list = project.crystal_set.filter(
-        Q(status__exact=Crystal.STATES.ON_SITE) |
-        Q(status__exact=Crystal.STATES.LOADED)).order_by('priority')
+    xtl_list = project.sample_set.filter(
+        Q(status__exact=Sample.STATES.ON_SITE) |
+        Q(status__exact=Sample.STATES.LOADED)).order_by('priority')
     exp_list = project.experiment_set.filter(
-        Q(status__exact=Experiment.STATES.ACTIVE) |
-        Q(status__exact=Experiment.STATES.PROCESSING) |
-        Q(status__exact=Experiment.STATES.COMPLETE))
+        Q(status__exact=Group.STATES.ACTIVE) |
+        Q(status__exact=Group.STATES.PROCESSING) |
+        Q(status__exact=Group.STATES.COMPLETE))
     containers = {}
     crystals = {}
     experiments = {}
@@ -105,7 +105,7 @@ def get_active_runlist(request, *args, **kwargs):
 @csrf_exempt
 @apikey_required
 def post_data_object(request, *args, **kwargs):
-    from lims.models import Project, Beamline, ActivityLog, Crystal, Result, SpaceGroup, Experiment, Data
+    from lims.models import Project, Beamline, ActivityLog, Sample, Result, SpaceGroup, Group, Data
     from lims.views import create_download_key
     model = kwargs.get('model')
     if request.method == 'POST':
@@ -134,7 +134,7 @@ def post_data_object(request, *args, **kwargs):
 
         # Check if crystal exists
         if 'crystal_id' in info:
-            info['crystal'] = Crystal.objects.filter(project=owner, pk=info.pop('crystal_id')).first()
+            info['crystal'] = Sample.objects.filter(project=owner, pk=info.pop('crystal_id')).first()
             if info['crystal']:
                 info['experiment'] = info['crystal'].experiment
                 info.pop('experiment_id', '')
@@ -142,7 +142,7 @@ def post_data_object(request, *args, **kwargs):
                 info.pop('crystal')
 
         if 'experiment_id' in info and not info.get('experiment'):
-            info['experiment'] = Experiment.objects.filter(project=owner, pk=info.pop('experiment_id')).first()
+            info['experiment'] = Group.objects.filter(project=owner, pk=info.pop('experiment_id')).first()
             if not info['experiment']:
                 info.pop('experiment')
 

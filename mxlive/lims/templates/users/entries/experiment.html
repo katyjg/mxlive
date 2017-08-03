@@ -3,39 +3,83 @@
 {% load markup %}
 
 {% block page_heading %}
-<h2> <span class="identity {% if not object.is_editable %}locked{% endif %}">{{object.identity}}</span> {{object.name}}</h2>
+    <h3 class="text-condensed narrow-heading">
+        <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
+        <strong class="text-muted">{{ object.identity }}</strong> | {{ object.name }}
+    </h3>
+    <span class="text-muted">
+        {% if object.shipment %}
+            {{ object.get_kind_display }} in Shipment <a href="{% url "shipment-detail" object.shipment.pk %}">{{object.shipment.name}}</a>
+        {% else %}
+            {{ object.get_kind_display }} not in a shipment.
+        {% endif %}
+    </span>
 {% endblock %}
 
-{% block object-tools %}
-<div class="object-tools">
-    {% include "users/tools.html" %}
-</div>
+{% block object_tools %}
+    {% if object.is_editable or object.is_deletable %}
+        <div class="object-tools">
+            <span class="box-tools pull-right">
+                {% if object.is_editable %}
+                    <a class="pull-right" data-url="{{ handler }}edit/">
+                        <i class="fa fa-2 fa-fw fa-pencil"></i><br>
+                        <span class="tool-label">Edit</span>
+                    </a>
+                {% endif %}
+                {% if object.is_deletable %}
+                    <a class="pull-right" data-url="{{ handler }}delete/">
+                        <i class="fa fa-2 fa-fw fa-remove"></i><br>
+                        <span class="tool-label">Delete</span>
+                    </a>
+                {% endif %}
+            </span>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block object_status %}
+    <div class="status-bar">
+        <div class="row">
+            <div class="col-xs-2">
+                <h3 class="no-vmargin">
+                    <span class="label label-{% if object.status == object.STATES.ON_SITE %}info
+                                {% elif object.status == object.STATES.DRAFT %}warning
+                                {% elif object.status == object.STATES.SENT %}success
+                                {% elif object.status == object.STATES.RETURNED and not user.is_superuser %}success
+                                {% else %}default{% endif %}">{{ object.get_status_display }}</span>
+                </h3>
+            </div>
+            {% if user.is_superuser %}<div class="col-xs-1">
+                <small class="text-muted text-condensed">Project:</small><br>
+                {{ object.project }}
+            </div>{% endif %}
+            <div class="col-xs-2">
+                <small class="text-muted text-condensed">Plan:</small><br>
+                {{ object.get_plan_display }}
+            </div>
+            <div class="col-xs-4">
+                <small class="text-muted text-condensed">Type:</small><br>
+                {{ object.get_kind_display }}
+                {% if object.absorption_edge or object.energy %}
+                    ({% if object.energy %}{{ object.energy }} keV {% if object.absorption_edge %}/{% endif %}{% endif %}
+                    {{ object.absorption_edge }}){% endif %}
+            </div>
+            <div class="col-xs-2 pull-right text-right">
+                <small class="text-muted text-condensed">Number of Samples:</small><br>
+                <strong>{{ object.num_samples }}</strong>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block full %}
 
-<div class="experiment droppable droppable-replace" {% if object.is_editable %}accept="crystal" title="Drag and drop onto this image"{% else %}accept=""{% endif %}></div>
-
-<table class="entrysummary" cellpadding="2" cellspacing="0" border="0">
-    {% if user.is_superuser %}
-        <tr valign="top"><th>Project:</th><td>{{object.project.name}}</td></tr>
-    {% endif %}
-    <tr valign="top"><th>Status:</th><td>{{object.get_status_display}}</td></tr>
-    <tr valign="top"><th>Type:</th><td>{{object.get_kind_display}}</td></tr>
-    <tr valign="top"><th>Plan:</th><td>{{object.get_plan_display}}</td></tr>
-	<tr valign="top"><th NOWRAP>Desired Resolution:</th><td>{{object.resolution}}</td></tr>
-	<tr valign="top"><th>Delta Angle:</th><td>{{object.delta_angle}}</td></tr>
-	<tr valign="top"><th>Multiplicity:</th><td>{{object.multiplicity}}</td></tr>
-	<tr valign="top"><th>Angle Range:</th><td>{{object.total_angle}}</td></tr>
-	<tr valign="top"><th>I/Sigma:</th><td>{{object.i_sigma}}</td></tr>
-	<tr valign="top"><th>Desired R-factor:</th><td>{{object.r_meas}}</td></tr>
-	{% if object.energy %}<tr valign="top"><th>Energy:</th><td>{{object.energy}}</td></tr>{% endif %}
-	{% if object.absorption_edge %}<tr valign="top"><th>Absorption Edge:</th><td>{{object.absorption_edge}}</td></tr>{% endif %}
-	<tr valign="top"><th>Completed:</th><td>{% if object.get_status_display == 'Complete' %}Yes{% else %} No {% endif %}</td></tr>
-	<tr valign="top"><th>Shipment:</th><td>
-        {% for shipment in object.get_shipments %}<a href="{% url "shipment-detail" shipment.pk %}">{{shipment.name}} </a>{% endfor %}
-    </td></tr>
-</table>
+<div class="row">
+    <div class="col-sm-12">
+        {% include "objlist/object_list.html" with object_list=object.sample_set.all %}
+    </div>
+</div>
 
 {% if object.comments or object.staff_comments or object.experiment_errors %}
     <div class="entrycomment">
@@ -54,18 +98,6 @@
     	{% endif  %}
     </div>
 {% endif %}
-<div class="clear"></div>
-
-<!-- object.crystal_set.all contains all the crystals -->
-{% load crystal_table %}
-
-{% if object.get_status_display == 'Draft' %}
-    {% crystal_priority_table object.crystal_set.all request.user.is_superuser object.pk %}
-{% else %}
-    {% crystal_table object.crystal_set.all request.user.is_superuser object.pk %}
-{% endif %}
-
-<div style="clear: both;"></div>
 
 {% endblock %}
 

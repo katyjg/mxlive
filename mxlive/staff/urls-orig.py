@@ -22,10 +22,10 @@ _URL_META = {
         'container': {'model': Container},
     },
     'samples': {
-        'crystal': {'model': Crystal, 'list': False},
+        'crystal': {'model': Sample, 'list': False},
     },
     'experiment': {
-        'request': {'model': Experiment},
+        'request': {'model': Group},
         'dataset': {'model': Data, 'list_template': 'staff/lists/dataset_full_list.html'},
         'report': {'model': Result},
         'scan': {'model': ScanResult},
@@ -162,10 +162,10 @@ urlpatterns = [
       'action': 'receive'}, 'staff-dewar-receive'),
 
     # Experiments
-    url(r'^experiment/crystal/action/$', object_status, {'model': Crystal}, 'staff-crystal-status'),
+    url(r'^experiment/crystal/action/$', object_status, {'model': Sample}, 'staff-crystal-status'),
     url(r'^experiment/dataset/action/$', object_status, {'model': Data}, 'staff-dataset-status'),
     url(r'^experiment/(?P<id>\d+)/review/$', staff_action_object,
-     {'model': Experiment, 'form': LimsBasicForm, 'template': 'objforms/form_base.html',
+     {'model': Group, 'form': LimsBasicForm, 'template': 'objforms/form_base.html',
       'action': 'review'}, 'staff-experiment-complete'),
 
     # Runlists
@@ -176,13 +176,13 @@ urlpatterns = [
         {'model': Adaptor, 'template': 'staff/lists/basic_adaptor_list.html'},
         'staff-adaptor-basic-list'),
     url(r'^runlist/(?P<runlist_id>\d+)/experiment/basic/$', experiment_basic_object_list,
-        {'model': Experiment, 'template': 'staff/lists/basic_experiment_list.html'},
+        {'model': Group, 'template': 'staff/lists/basic_experiment_list.html'},
         'staff-experiment-basic-list'),
     url(r'^runlist/(?P<runlist_id>\d+)/project/basic/$', project_basic_object_list,
      {'model': Project, 'template': 'staff/lists/basic_project_list.html'},
      'staff-project-basic-list'),
     url(r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/experiment/(?P<obj_id>\d+)/$',
-     add_existing_object, {'destination': Runlist, 'obj': Experiment},
+        add_existing_object, {'destination': Runlist, 'obj': Group},
      'staff-runlist-add-experiment'),
     url(r'^runlist/(?P<dest_id>\d+)/widget/(?P<src_id>\d+)/project/(?P<obj_id>\d+)/$',
      add_existing_object, {'destination': Runlist, 'obj': Project}, 'staff-runlist-add-project'),

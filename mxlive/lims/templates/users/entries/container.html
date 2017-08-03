@@ -19,9 +19,24 @@
 {% endblock %}
 
 {% block object_tools %}
-<div class="object-tools">
-    {% include "users/tools.html" %}
-</div>
+    {% if object.is_editable or object.is_deletable %}
+        <div class="object-tools">
+            <span class="box-tools pull-right">
+                {% if object.is_editable %}
+                    <a class="pull-right" data-url="{{ handler }}edit/">
+                        <i class="fa fa-2 fa-fw fa-pencil"></i><br>
+                        <span class="tool-label">Edit</span>
+                    </a>
+                {% endif %}
+                {% if object.is_deletable %}
+                    <a class="pull-right" data-url="{{ handler }}delete/">
+                        <i class="fa fa-2 fa-fw fa-remove"></i><br>
+                        <span class="tool-label">Delete</span>
+                    </a>
+                {% endif %}
+            </span>
+        </div>
+    {% endif %}
 {% endblock %}
 
 {% block object_status %}
@@ -40,20 +55,31 @@
                 <small class="text-muted text-condensed">Project:</small><br>
                 {{ object.project }}
             </div>{% endif %}
-            <div class="col-xs-8 pull-right text-right">
-                <small class="text-muted text-condensed">Number of Crystals:</small><br>
+            <div class="col-xs-2 pull-right text-right">
+                <small class="text-muted text-condensed">Number of Samples:</small><br>
                 <strong>{{ object.num_samples }}</strong>
             </div>
+            <div class="col-xs-2 pull-right text-right">
+                <small class="text-muted text-condensed">Capacity:</small><br>
+                {{ object.kind.container_locations.count }}
+            </div>
+            <div class="col-xs-2 pull-left">
+                <small class="text-muted text-condensed">Type:</small><br>
+                {{ object.kind.get_kind_display }}
+            </div>
+
         </div>
     </div>
 {% endblock %}
 
-
-
-
 {% block full %}
+
 <div class="row">
-    <div class="col-sm-6">
+    <div class="col-sm-5">
+        <div id="layout-{{ object.pk }}" class="layout-lg" style="min-height: 200px;"></div>
+        {% include "users/entries/layout-container.html" with object=object.pk kind=object.kind size=300 %}
+    </div>
+    <div class="col-sm-7">
         {% if object.comments or object.staff_comments %}
         <div class="entrycomment {% if object.get_kind_display != 'Cane' %}container{% endif %}">
             <span class="{% if object.get_kind_display == 'Cane' %}left-pointer{% else %}up-pointer{% endif %}"></span>
@@ -61,51 +87,10 @@
             <div class="user">{{ object.comments|default:""|restructuredtext}}</div>
             <div class="staff">{{ object.staff_comments|default:""|restructuredtext}}</div>
         </div>
-    {% endif %}
-    {% ifnotequal object.json_dict.type "Cane" %}<div class="clear"></div>{% endifnotequal %}
+        {% endif %}
 
-    {% container_table object request.user.is_superuser %}
-    </div>
-    <div class="col-sm-6">
-        {% ifequal object.json_dict.type "Cane" %}
-            {% include "users/entries/layout-cane.html" %}
-        {% endifequal %}
-
-        {% ifequal object.json_dict.type "Cassette" %}
-            {% include "users/entries/layout-cassette.html" %}
-        {% endifequal %}
-
-        {% ifequal object.json_dict.type "Uni-Puck" %}
-            {% include "users/entries/layout-unipuck.html" %}
-        {% endifequal %}
-
-        {% ifequal object.json_dict.type "Basket" %}
-            {% include "users/entries/layout-basket.html" %}
-        {% endifequal %}
+        {% include "objlist/object_list.html" with object_list=object.sample_set.all %}
     </div>
 </div>
 
 {% endblock %}
-{% comment %}
-{% block sidebar %}
-	{% if not user.is_superuser %}
-        {% if object.is_editable %}
-		    <div id="crystals" class="widget droppable-remove parent-stop" data="{% url "users-crystal-basic-list" %}?orphan_field=container">
-		       <div class="widget-title">
-		       <span>Crystals</span><a href="{% url "users-crystal-new" %}" class="modal-form add-action" title="Add New Crystal" ><img src="/static/img/small-add-icon.png" /></a>
-		       </div>
-		        <ul>
-                    <p class="list-empty">( Not loaded )</p>
-		        </ul>
-		    </div>
-        {% else %}
-            {% include "users/entries/comments_form.html" %}
-        {% endif %}
-    {% else %}
-        {% include "staff/entries/comments_form.html" %}
-    {% endif %}
-    {% include "users/individual_history.html" %}
-{% endblock %}
-
-
-{% endcomment %}

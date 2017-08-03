@@ -90,7 +90,7 @@
 \multicolumn{1}{c|}{\cellcolor[gray]{.92}Comments} \\ \cline{2-11}
 
 %\cellcolor[gray]{0.98}
-{% for xtal in exp.crystal_set.all|prioritize_and_sort %} \multicolumn{1}{|c|}{} & 
+{% for xtal in exp.sample_set.all|prioritize_and_sort %} \multicolumn{1}{|c|}{} &
 \multicolumn{1}{c}{\cellcolor[gray]{0.98} \hspace{-0.013\textwidth} $\Box$ } & 
 \cellcolor[gray]{0.98} {{ xtal.name|texsafe|default:"" }} &
 \cellcolor[gray]{0.98} {% if xtal.priority %}{{ xtal.priority|texsafe|default:"" }}{% endif %} &

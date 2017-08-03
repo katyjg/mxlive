@@ -2,7 +2,7 @@
 
 <div class="object-list">
     <h3>Experiments in Runlist &ldquo;{{object.name}}&rdquo;</h3>
-    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="crystal-list-table">
+    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="sample-list-table">
         <thead>
             <tr class="header">
              	<th>Project</th>
@@ -18,12 +18,12 @@
             {% for experiment in experiments %}
                 <tr class="{% cycle 'odd' 'even'%} link-row redirect"
                     title="Go to Experiment {{experiment.name}}"
-                    href="{% url "users-experiment-detail" experiment.pk %}">
+                    href="{% url "users-group-detail" experiment.pk %}">
                     <td>{{ experiment.project.name }}</td>
                     <td>{{ experiment.name }}</td>
                     <td>{{ experiment.get_kind_display }}</td>
                     <td>{{ experiment.get_plan_display }}</td>
-                    <td>{{ experiment.crystal_set|in_runlist:object.containers }}/{{ experiment.num_samples }}</td>
+                    <td>{{ experiment.sample_set|in_runlist:object.containers }}/{{ experiment.num_samples }}</td>
                     <td>{{ experiment.get_status_display }}</td>
                 </tr>
             {% endfor %}

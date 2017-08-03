@@ -41,7 +41,7 @@
             <td>{% if object.container.shipment %}<a href="{% url "shipment-detail" object.container.shipment.pk %}">{{object.container.shipment}}</a>{% endif %}</td>
         </tr>
 	{% if object.experiment %}
-	<tr valign="top"><th>Experiment:</th><td><a href="{% url "experiment-detail" object.experiment.pk %}">{{object.experiment}}</a></td></tr>
+	<tr valign="top"><th>Experiment:</th><td><a href="{% url "group-detail" object.experiment.pk %}">{{object.experiment}}</a></td></tr>
 	{% else %}
 	<tr valign="top"><th>Experiment:</th><td>None</td></tr>
 	{% endif %}

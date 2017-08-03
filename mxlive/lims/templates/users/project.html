@@ -27,7 +27,7 @@
 
 {% block full %}
 
-    <div class="col-xs-12 list-group">
+    <div class="col-xs-12 col-md-9 list-group">
             <a data-url="{% url "shipment-new" %}" class="list-group-item empty">
                 <div class="row">
                     <div class="col-xs-12">
@@ -48,7 +48,7 @@
             <a href="{% url 'shipment-detail' object.pk %}" class="list-group-item list-group-item-{% if object.status == object.STATES.ON_SITE %}info
                         {% elif object.status == object.STATES.DRAFT %}warning
                         {% elif object.status == object.STATES.SENT %}success
-                        {% elif object.status == object.STATES.RETURNED and not user.is_superuser %}success
+                        {% elif object.status == object.STATES.RETURNED and not user.is_superuser %} empty
                         {% else %}default{% endif %}">
                 <div class="row">
                     <div class="col-xs-8 col-md-9">
@@ -113,17 +113,12 @@
             </a>
         {% endfor %}
     </div>
-    <p>&nbsp;</p>
 
         <!-- left region -->
-	<div id="left-content" class="col-xs-6">
+	<div id="left-content" class="col-xs-12 col-md-3">
     <p>Start by clicking the <em>New Shipment</em> icon to create a new
     set of samples to be used on the beamline. Then check in during your beamtime to see or download your datasets as they are collected!
     Review your results from past beamtime, or track your samples as they are shipped back to your home lab.</p>
-    </div>
-    <!--left region -->
-    <!-- right region -->
-	<div id="right-content" class="col-xs-6">
     {% load link_list %}
     {% link_list %}
 	</div>

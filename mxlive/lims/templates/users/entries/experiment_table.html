@@ -17,18 +17,18 @@
         {% if experiments %}
             {% for experiment in experiments %}{% if experiment.pk %}
                 <tr id="{{ experiment.pk }}" class="{% cycle 'odd' 'even'%} link-row"
-                    rel="{% url "experiment-detail" experiment.pk %}">
+                    rel="{% url "group-detail" experiment.pk %}">
                     {% if object.get_status_display == 'Draft' %}<td class="prioritize dragHandle" title="Drag to Prioritize"></td>{% endif %}
                     <td class="redirect" title="Go to Experiment {{experiment.name}}"
-                    href="{% url "experiment-detail" experiment.pk %}">{{ experiment.name }}</td>
+                    href="{% url "group-detail" experiment.pk %}">{{ experiment.name }}</td>
                     <td class="redirect" title="Go to Experiment {{experiment.name}}"
-                    href="{% url "experiment-detail" experiment.pk %}">{{ experiment.get_kind_display }}</td>
+                    href="{% url "group-detail" experiment.pk %}">{{ experiment.get_kind_display }}</td>
                     <td class="redirect" title="Go to Experiment {{experiment.name}}"
-                    href="{% url "experiment-detail" experiment.pk %}">{{ experiment.get_plan_display }}</td>
+                    href="{% url "group-detail" experiment.pk %}">{{ experiment.get_plan_display }}</td>
                     <td class="redirect"
-                    href="{% url "experiment-detail" experiment.pk %}">{% if admin %}{{ experiment.crystal_set|arrived_onsite:containers}}{% else %}{{ experiment.crystal_set|in_shipment:containers }}{% endif %}/{{ experiment.num_samples }}</td>
+                    href="{% url "group-detail" experiment.pk %}">{% if admin %}{{ experiment.sample_set|arrived_onsite:containers}}{% else %}{{ experiment.sample_set|in_shipment:containers }}{% endif %}/{{ experiment.num_samples }}</td>
                     <td class="redirect"
-                    href="{% url "experiment-detail" experiment.pk %}">{{ experiment.get_status_display }}</td>
+                    href="{% url "group-detail" experiment.pk %}">{{ experiment.get_status_display }}</td>
                 </tr>
             {% endif %}{% endfor %}
         {% else %}                

@@ -17,10 +17,10 @@
         {% if crystals %}
             {% for crystal in crystals %}{% if crystal.pk %}
                 <tr id="{{ crystal.pk }}" class="{% cycle 'odd' 'even'%}"
-                    rel="{% url "crystal-detail" crystal.pk %}">
+                    rel="{% url "sample-detail" crystal.pk %}">
                     <td class="prioritize dragHandle" title="Drag to Prioritize"></td>
-                    <td class="redirect" href="{% url "crystal-detail" crystal.pk %}" title="Go to Crystal {{crystal.name}} : {{crystal.comments|default:""}}">{{ crystal.name }}</td>
-            		<td class="redirect" href="{% url "crystal-detail" crystal.pk %}" title="Go to Crystal {{crystal.name}}">{{ crystal.get_status_display }}</td>
+                    <td class="redirect" href="{% url "sample-detail" crystal.pk %}" title="Go to Crystal {{crystal.name}} : {{crystal.comments|default:""}}">{{ crystal.name }}</td>
+            		<td class="redirect" href="{% url "sample-detail" crystal.pk %}" title="Go to Crystal {{crystal.name}}">{{ crystal.get_status_display }}</td>
                     <td>{{ crystal.cocktail }}</td>
                     <td>{{ crystal.crystal_form }}</td>
                     {% if crystal.container %}

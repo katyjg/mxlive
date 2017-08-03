@@ -13,9 +13,9 @@ from mxlive.lims.forms import SampleSelectForm
 from mxlive.lims.forms import ExperimentFromStrategyForm
 
 from mxlive.lims.models import Shipment
-from mxlive.lims.models import Crystal
+from mxlive.lims.models import Sample
 from mxlive.lims.models import Container
-from mxlive.lims.models import Experiment
+from mxlive.lims.models import Group
 
 class ShipmentSendFormTest(DjangoTestCase):
     """ Tests for ShipmentSendForm class """
@@ -92,12 +92,12 @@ class ShipmentUploadFormTest(DjangoTestCase):
         # valid spreadsheet
         self.assertEqual(0, Shipment.objects.count())
         self.assertEqual(0, Container.objects.count())
-        self.assertEqual(0, Crystal.objects.count())
+        self.assertEqual(0, Sample.objects.count())
         form = ShipmentUploadForm({'project': self.project.pk}, {'excel' : file(os.path.join(TEST_FILES, 'test.xls'), 'r')})
         form.save()
         self.assertEqual(1, Shipment.objects.count())
         self.assertEqual(4, Container.objects.count())
-        self.assertEqual(8, Crystal.objects.count())
+        self.assertEqual(8, Sample.objects.count())
         
 class ContainerFormTest(DjangoTestCase):
     """ Tests for ContainerForm class """
@@ -175,7 +175,7 @@ class SampleSelectFormTest(DjangoTestCase):
         
     def test_valid(self):
         form = SampleSelectForm({'parent': self.container.pk, 'items': self.crystal1.pk, 'container_location': 'A1'})
-        form.fields['items'].queryset = Crystal.objects.all()
+        form.fields['items'].queryset = Sample.objects.all()
         self.assertTrue(form.is_bound)
         self.assertTrue(form.is_valid())
         self.assertEqual({}, form.errors)
@@ -185,7 +185,7 @@ class SampleSelectFormTest(DjangoTestCase):
         self.crystal2.container_location = 'A1'
         self.crystal2.save()
         form = SampleSelectForm({'parent': self.container.pk, 'items': self.crystal1.pk, 'container_location': 'A1'})
-        form.fields['items'].queryset = Crystal.objects.all()
+        form.fields['items'].queryset = Sample.objects.all()
         self.assertTrue(form.is_bound)
         self.assertFalse(form.is_valid())
         self.assertEqual({'container_location': ['Select a valid choice. A1 is not one of the available choices.']}, form.errors)
@@ -219,7 +219,7 @@ class ExperimentFromStrategyFormTest(DjangoTestCase):
         form = ExperimentFromStrategyForm(
                 {'project': self.strategy.project.pk, 'strategy': self.strategy.pk, \
                  'name': 'Resubmitted'+self.strategy.name+'_'+self.strategy.result.crystal.name, \
-                 'kind': Experiment.EXP_TYPES.NATIVE, 'plan': Experiment.EXP_PLANS.JUST_COLLECT, \
+                 'kind': Group.EXP_TYPES.NATIVE, 'plan': Group.EXP_PLANS.JUST_COLLECT, \
                  'crystals': self.strategy.result.crystal.pk})
         self.assertTrue(form.is_bound)
         self.assertTrue(form.is_valid())
@@ -229,7 +229,7 @@ class ExperimentFromStrategyFormTest(DjangoTestCase):
         form = ExperimentFromStrategyForm(
                 {'project': self.strategy.project.pk, 'strategy': self.strategy.pk, \
                  'name': 'Resubmitted'+self.strategy.name+'_'+self.strategy.result.crystal.name, \
-                 'kind': Experiment.EXP_TYPES.NATIVE, 'plan': Experiment.EXP_PLANS.JUST_COLLECT, \
+                 'kind': Group.EXP_TYPES.NATIVE, 'plan': Group.EXP_PLANS.JUST_COLLECT, \
                  'crystals': self.strategy.result.crystal.pk})
 
         self.assertEqual(self.strategy.result.crystal, form.fields['crystals'].queryset.all()[0])
@@ -241,7 +241,7 @@ class ExperimentFromStrategyFormTest(DjangoTestCase):
         form = ExperimentFromStrategyForm(
                 {'project': self.strategy.project.pk, 'strategy': self.strategy.pk, \
                  'name': 'Resubmitted'+self.strategy.name+'_'+self.strategy.result.crystal.name, \
-                 'kind': Experiment.EXP_TYPES.NATIVE, 'plan': Experiment.EXP_PLANS.JUST_COLLECT, \
+                 'kind': Group.EXP_TYPES.NATIVE, 'plan': Group.EXP_PLANS.JUST_COLLECT, \
                  'crystals': self.strategy.result.crystal.pk})
         import datetime
         today = datetime.date.today()
@@ -255,7 +255,7 @@ class ExperimentFromStrategyFormTest(DjangoTestCase):
         form = ExperimentFromStrategyForm(
                 {'project': self.strategy.project.pk, 'strategy': self.strategy.pk, \
                  'name': 'Resubmitted'+self.strategy.name+'_'+self.strategy.result.crystal.name, \
-                 'kind': Experiment.EXP_TYPES.NATIVE, 'plan': Experiment.EXP_PLANS.JUST_COLLECT, \
+                 'kind': Group.EXP_TYPES.NATIVE, 'plan': Group.EXP_PLANS.JUST_COLLECT, \
                  'crystals': self.strategy.result.crystal.pk})
 
         self.assertEqual([(4, u'Just collect')], form.fields['plan'].choices)
@@ -264,7 +264,7 @@ class ExperimentFromStrategyFormTest(DjangoTestCase):
         form = ExperimentFromStrategyForm(
                 {'project': self.strategy.project.pk, 'strategy': self.strategy.pk, \
                  'name': 'Resubmitted'+self.strategy.name+'_'+self.strategy.result.crystal.name, \
-                 'kind': Experiment.EXP_TYPES.NATIVE, 'plan': Experiment.EXP_PLANS.JUST_COLLECT })
+                 'kind': Group.EXP_TYPES.NATIVE, 'plan': Group.EXP_PLANS.JUST_COLLECT})
         self.assertTrue(form.is_bound)
         self.assertFalse(form.is_valid())
         self.assertEqual({'crystals': [u'This field is required.']}, form.errors)
@@ -273,7 +273,7 @@ class ExperimentFromStrategyFormTest(DjangoTestCase):
         form = ExperimentFromStrategyForm(
                 {'project': self.strategy.project.pk, 'strategy': self.strategy.pk, \
                  'name': 'Resubmitted'+self.strategy.name+'_'+self.strategy.result.crystal.name, \
-                 'kind': Experiment.EXP_TYPES.NATIVE, 'plan': Experiment.EXP_PLANS.JUST_COLLECT, \
+                 'kind': Group.EXP_TYPES.NATIVE, 'plan': Group.EXP_PLANS.JUST_COLLECT, \
                  'crystals': 0})
         self.assertTrue(form.is_bound)
         self.assertFalse(form.is_valid())
@@ -284,7 +284,7 @@ class ExperimentFromStrategyFormTest(DjangoTestCase):
         form = ExperimentFromStrategyForm(
                 {'project': self.strategy.project.pk, 'strategy': self.strategy.pk, \
                  'name': 'Resubmitted'+self.strategy.name+'_'+self.strategy.result.crystal.name, \
-                 'kind': Experiment.EXP_TYPES.NATIVE, 'plan': Experiment.EXP_PLANS.JUST_COLLECT, \
+                 'kind': Group.EXP_TYPES.NATIVE, 'plan': Group.EXP_PLANS.JUST_COLLECT, \
                  'crystals': None})
         self.assertTrue(form.is_bound)
         self.assertFalse(form.is_valid())

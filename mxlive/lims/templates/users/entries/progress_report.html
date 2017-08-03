@@ -45,7 +45,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for crystal in shipment|get_crystal_set %}
+            {% for crystal in shipment|get_sample_set %}
                 <tr class="{% cycle 'odd' 'even'%}{% if crystal.status == Crystal.STATES.LOADED %} loaded-row{% endif %}
                  {% if crystal.is_complete %} complete-row{% endif %}">
                     <td class="prose"><a class="redirect" title="Go to Crystal {{crystal.name}}"
