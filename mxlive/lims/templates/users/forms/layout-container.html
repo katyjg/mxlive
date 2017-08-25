@@ -1,25 +1,28 @@
 {% load layout %}
 
 {% with form.fields.locations.choices|get_containers_from_choices as containers %}
-<div id="layout-{{ field.name }}" class="layout-lg">
-    <div class="hidden">{{ field }}</div>
-    <div class="col-xs-6 col-sm-3">
-        <ul class="nav nav-pills nav-stacked">
-        {% for container in containers %}
-            <li class="{% if forloop.first %}active{% endif %} overflow ellipsis">
-                <a data-toggle="pill" href="#{{ container.0 }}"><strong>{{ container.0 }}</strong> | {{ container.1 }}</a>
-            </li>
-        {% endfor %}
-        </ul>
+    <div id="layout-{{ field.name }}" class="layout-lg">
+        <div class="hidden">{{ field }}</div>
+        <div class="col-xs-6 col-sm-3">
+            <ul class="nav nav-pills nav-stacked">
+            {% for container in containers %}
+                <li class="{% if forloop.first %}active{% endif %} overflow ellipsis">
+                    <a data-toggle="pill" href="#form{{ container.0 }}"><strong>{{ container.0 }}</strong> | {{ container.1 }}</a>
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+        <div class="col-xs-6 col-sm-9 tab-content">
+            {% for container in containers %}
+                <div id="form{{ container.0 }}" class="tab-pane fade {% if forloop.first %}in active{% endif %}">
+                <div class="col-xs-12">
+                    <div id="formlayout-{{ container.0 }}"></div>
+                    {% include "users/entries/layout-container.html" with selector="formlayout" object=container.0 kind=container.1 size=200 %}
+                    <a title="Select All" onclick="selectAll('{{ container.0 }}');" class="btn btn-success"><i class="fa fa-fw fa-check-circle"></i></a>
+                </div>
+                </div>
+            {% endfor %}
+        </div>
     </div>
-    <div class="col-xs-6 col-sm-9 tab-content">
-        {% for container in containers %}
-            <div id="{{ container.0 }}" class="tab-pane fade {% if forloop.first %}in active{% endif %}">
-                <div id="layout-{{ container.0 }}"></div>
-                {% include "users/entries/layout-container.html" with object=container.0 kind=container.1 size=200 %}
-                <a title="Select All" onclick="selectAll('{{ container.0 }}');" class="btn btn-success"><i class="fa fa-fw fa-check-circle"></i></a>
-            </div>
-        {% endfor %}
-    </div>
-</div>
 {% endwith %}
+

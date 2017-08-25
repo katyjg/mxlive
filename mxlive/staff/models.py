@@ -85,6 +85,9 @@ class UserList(StaffBaseClass):
     def is_editable(self):
         return True
 
+    def current_users(self):
+        return ';'.join(self.users.values_list('username', flat=True))
+
     def identity(self):
         return self.name
 
@@ -545,13 +548,7 @@ class Runlist(StaffBaseClass):
                 'crystals': crystals,
                 'groups': groups}
 
-class Dewar(StaffBaseClass):
-    beamline = models.ForeignKey(Beamline)
-    container = models.ForeignKey(Container, related_name="automounter")
 
-    def identity(self):
-        return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
 
 class Adaptor(StaffBaseClass):
     name = models.CharField(max_length=600)

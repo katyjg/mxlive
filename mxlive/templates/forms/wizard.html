@@ -15,8 +15,7 @@
 {% endblock %}
 
 {% block form_body %}
-
-    <form action="/users/shipments/new/" method="post">
+    <form action="{{ request.path }}" method="post">
         {% csrf_token %}
         {{ wizard.management_form }}
         {% if wizard.form.forms %}
@@ -49,6 +48,9 @@
 <script type="text/javascript" src="{% static 'js/live-forms.js' %}"></script>
 <script>
     jQuery(function() {
+        {% if wizard.form.repeated_data %}
+            setInitial({{ wizard.form.repeated_data|safe }});
+        {% endif %}
         {% if wizard.form.forms %}
             {% for form in wizard.form.forms %}
                 {% if form.repeated_data %}

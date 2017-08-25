@@ -1,5 +1,3 @@
-# Create your views here.
-
 import json
 from django.http import HttpResponse, Http404
 from django.core import serializers, exceptions
@@ -9,7 +7,7 @@ from apikey.views import apikey_required
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import decimal
-
+from objlist.views import FilteredListView
 
 def json_encode_decimal(obj):
     if isinstance(obj, decimal.Decimal):

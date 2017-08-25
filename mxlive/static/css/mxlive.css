@@ -134,7 +134,9 @@ nav li a {
         margin-right: -15px !important;
     }
 
-
+.chosen-container-multi .chosen-results {
+    max-height: 100px !important;
+}
 
 
 
@@ -247,6 +249,9 @@ img.line-icon {
     text-align: center;
     padding: 0 0.75em;
 }
+.box-tools a span {
+    padding: 0 0.25em;
+}
 .box-tools a.separator {
     border-left: 1px solid rgba(0, 0, 0, 0.15);
     padding: 0.5em 1em 0.5em 1.25em;
@@ -285,6 +290,15 @@ img.line-icon {
     .btn-label, .tool-label {
         display: none;
     }
+}
+table.table {
+    margin-bottom: 0px;
+}
+.table-hover tr[data-url]:hover {
+    cursor: pointer;
+}
+.table-hover.collapse.in {
+    display: table !important;
 }
 .fa-1x {
     font-size: 17px;
@@ -363,6 +377,31 @@ p.empty {
 .empty {
     background-color: #eee;
 }
+.data-thumbnail {
+    max-height: 150px;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+.data-thumbnail img {
+    max-height: 140px;
+    float: left;
+}
+.data-thumbnail .alert {
+    margin-bottom: 0px;
+    padding: 5px;
+}
+.thumbnail-print {
+    display: none;
+}
+.panel-title .box-tools {
+    margin-top: -12px;
+    padding-left: 0px;
+    margin-left: 20px;
+}
+.box-tools a {
+    cursor: pointer;
+}
+
 div#unipuck p {
     position: relative;
     margin: 0;
@@ -493,6 +532,7 @@ table.cane-layout td {
 }
 .modal-body {
     overflow-x: hidden;
+    overflow-y: hidden;
 }
 .back svg {
     float: right;
@@ -505,9 +545,67 @@ table.cane-layout td {
     //z-index: 1000;
 }
 svg {
-  transition: all 1s;
-  transform-origin: 0% 0%;
+    transition: all 1s;
+    transform-origin: 0% 0%;
     max-width: 100%;
+}
+svg {
+    overflow: visible !important;
+}
+.list-group .box-tools a {
+    padding-right: 0px;
+    padding-left: 0px;
+}
+.box-tools a[data-toggle="collapse"] {
+    padding: 0;
+}
+.comments {
+    background-color: rgba(0,110,182,0.15);
+    padding: 15px 0px;
+    margin-top: -20px;
+}
+.comments .panel {
+	position:relative;
+    margin-bottom: 10px;
+}
+.comments .panel>.panel-heading:after,.comments .panel>.panel-heading:before{
+	position:absolute;
+	top:11px;
+	width:0;
+	height:0;
+	display:block;
+	content:" ";
+	border-color:transparent;
+    border-style:solid solid outset;
+    pointer-events:none;
+}
+.comments .panel>.panel-heading-left:after{
+	border-width:7px;
+	border-right-color:#f7f7f7;
+	margin-top:1px;
+	margin-left:2px;
+}
+.comments .panel>.panel-heading-left:before{
+	border-right-color:#ddd;
+	border-width:8px;
+}
+.comments .panel>.panel-heading-left:after, .comments .panel>.panel-heading-left:before {
+    left:-16px;
+    right: 100%;
+}
+.comments .panel>.panel-heading-right:after, .comments .panel>.panel-heading-right:before {
+    right:0px;
+    left: 100%;
+}
+.comments .panel>.panel-heading-right:after {
+	border-width:7px;
+	border-left-color:#f7f7f7;
+	margin-top:1px;
+	margin-right:2px;
+}
+.comments .panel>.panel-heading-right:before {
+    border-left-color: #ddd;
+	border-width:8px;
 }
 .empty {
     fill: #eee !important;
@@ -516,10 +614,18 @@ svg {
     fill: #7abfd3 !important;
 }
 .selected {
-    fill: #a583ad !important;
+    fill: #883a6a !important;
 }
 .active-sample {
-    fill: #a583ad !important;
+    fill: #883a6a !important;
+}
+.active-envelope {
+    fill: #883a6a !important;
+    opacity: 0.5;
+    z-index: 1000;
+}
+#admin-assign .empty[accepts] {
+    cursor: pointer;
 }
 .back circle.empty:hover, .back circle.empty.hover {
     fill: #7abfd3 !important;
@@ -528,7 +634,10 @@ svg {
     fill-opacity: 1.0;
     opacity: 1.0 !important;
 }
-
+.text-large {
+    font-size: 200%;
+    font-weight: bold;
+}
 form .inline-btn {
     margin-top: 23px;
     padding: 0.5em;
@@ -548,8 +657,9 @@ form .collapse ul.nav-tabs {
 form .tab-content {
     overflow: visible;
 }
-form .list-group-hover .list-group-item:hover {
+.list-group-hover .list-group-item:hover, .list-group-item.active-envelope {
     background-color: #f5f5f5;
+    opacity: 1;
 }
 form .tab-content {
     border-left: 1px solid #ddd;
@@ -565,6 +675,7 @@ form .tab-content {
 .btn-addon {
     padding: 5px 10px;
 }
+
 
 ul.errorlist > li {
     font-weight: bold;
@@ -590,7 +701,7 @@ ul.errorlist ul.errorlist li {
 
 .flip-container, .front, .back {
 	width: 100%;
-    min-height: 200px;
+    //min-height: 200px;
 }
 
 /* flip speed goes here */
@@ -612,6 +723,7 @@ ul.errorlist ul.errorlist li {
 	z-index: 2;
 	/* for firefox 31 */
 	transform: rotateY(0deg);
+    overflow: auto;
 }
 
 /* back, initially hidden pane */
@@ -636,6 +748,9 @@ a[data-url], .back text[port] {
 }
 .move {
     cursor: move;
+}
+.repeat-row {
+    padding: 0 15px;
 }
 .list-group-item .alert {
     margin: 10px 0;

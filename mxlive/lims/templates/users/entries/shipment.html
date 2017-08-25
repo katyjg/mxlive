@@ -75,9 +75,11 @@
             {% endif %}
         </div>
     </div>
+    {% include "users/comments.html" with object=object %}
 {% endblock %}
 
 {% block full %}
+
 
     {% with object as shipment %}
 
@@ -89,19 +91,19 @@
                 <span class="tool-label">Add</span>
             </a>
         </span>
-        <h3>Containers</h3>
+        <h3><strong>{{ shipment.container_set.count }}</strong> Containers</h3>
         <hr />
         {% for container in shipment.container_set.all %}
-            <div class="pull-left text-center">
-                <div class="col-xs-12">
-                    <div id="layout-{{ container.pk }}" class="layout-lg" style="min-height: 200px;">
+            <div class="text-center">
+                <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div id="layout-{{ container.pk }}" class="layout-lg">
                         <h4>
                             <a href="{% url "container-detail" pk=container.pk %}">
                                 <span class="text-muted">{{ container.identity }}</span> | <strong>{{ container.name }}</strong>
                             </a>
                         </h4>
                     </div>
-                    {% include "users/entries/layout-container.html" with object=container.pk kind=container.kind size=200 %}
+                    {% include "users/entries/layout-container.html" with object=container.pk kind=container.kind %}
                 </div>
             </div>
         {% endfor %}
@@ -114,7 +116,7 @@
                 <span class="tool-label">Add</span>
             </a>
         </span>
-        <h3>Groups</h3>
+        <h3><strong>{{ shipment.group_set.count }}</strong> Groups</h3>
         <hr />
         <div class="list-group">
             {% for group in shipment.groups_by_priority %}
@@ -125,7 +127,7 @@
                             <br><span class="tool-label">Samples</span>
                         </a>
                     </span>
-                    <h4 class="list-group-item-heading"><a href="{% url "group-detail" pk=group.pk %}"><span class="text-muted">{{ group.identity }}</span> | <strong>{{ group.name }}</strong></a></h4>
+                    <h4 class="list-group-item-heading ellipsis overflow"><a href="{% url "group-detail" pk=group.pk %}"><span class="text-muted">{{ group.identity }}</span> | <strong>{{ group.name }}</strong></a></h4>
                     <p class="list-group-item-text">
                         Priority <strong>#{{ group.priority }}</strong> / <strong>{{ group.sample_count }}</strong> sample{{ group.sample_set.count|pluralize }}
                     </p>
@@ -189,57 +191,4 @@
     </div>
 {% endif %}
 
-        {% if shipment.comments or shipment.shipping_errors or shipment.staff_comments %}
-        <div class="entrycomment">
-        <span class="left-pointer"></span>
-        <h3>Comments</h3>
-        <div class="user">{{ object.comments|restructuredtext}}</div>
-        {% if object.staff_comments %}
-        <h3>On-site Comments</h3>
-        <div class="staff">{{ object.staff_comments|restructuredtext}}</div>
-            {% if shipment.shipping_errors %}
-            <div class="errors">
-            {% for error in shipment.shipping_errors %}
-            {% if forloop.counter != 1 %};
-            {% endif %}
-            {{error|capfirst}}
-            {% endfor %}
-            </div>
-            {% endif  %}
-        {% endif %}
-        </div>
-    {% endif  %}
-
-
 {% endblock %}
-
-{% comment %}
-{% block sidebar %}
-    {% if not request.user.is_superuser %} {# We don't want these to show on the staff side #}
-        {% if object.is_editable %}
-            <div id="dewars" class="widget droppable-remove parent-stop" data="{% url "users-dewar-basic-list" %}?orphan_field=shipment">
-	           <div class="widget-title">
-	           <span>Dewars</span><a href="{% url "users-dewar-new" %}" class="modal-form add-action" title="Add New Dewar"><img src="/static/img/small-add-icon.png" /></a>
-	           </div>
-                <ul>
-                    <p class="list-empty">( Not loaded )</p>
-                </ul>
-            </div>
-
-            <div id="containers" class="widget droppable-remove parent-stop" data="{% url "users-container-basic-list" %}?orphan_field=dewar">
-	           <div class="widget-title">
-	           <span>Container</span><a href="{% url "users-container-new" %}" class="modal-form add-action" title="Add New Container"><img src="/static/img/small-add-icon.png" /></a>
-	           </div>
-                <ul>
-                    <p class="list-empty">( Not loaded )</p>
-                </ul>
-            </div>
-        {% else %}
-            {% include "users/entries/comments_form.html" %}
-        {% endif %}
-    {% else %}
-        {% include "staff/entries/comments_form.html" %}
-    {% endif %}
-    {% include "users/individual_history.html" %}
-{% endblock %}
-{% endcomment %}

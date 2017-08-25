@@ -36,6 +36,7 @@ class ZipNode(template.Node):
         self.var_name = var_name
     
     def render(self, context):
+        print self.vals
         _vals = [v.resolve(context) for v in self.vals]
         context[self.var_name] = zip(*_vals)
         return ''

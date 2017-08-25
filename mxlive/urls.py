@@ -2,6 +2,7 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth.decorators import login_required
 
 from views import logout_view, login_view
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
@@ -11,14 +12,13 @@ import os
 admin.autodiscover()
 
 urlpatterns = [
-    url(r'^$', ProjectDetail.as_view(), {}, 'dashboard'),
+    url(r'^$', login_required(ProjectDetail.as_view()), {}, 'dashboard'),
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^staff/', include('staff.urls')),
     url(r'^users/',  include('lims.urls')),
     url(r'^download/', include('download.urls')),
     url(r'^stats/', include('stats.urls')),
-    url(r'^ajax/', include('lims.ajax_urls')),
 
     url(r'^login/$',  login_view, {'template_name': 'login.html'}),
     url(r'^logout/$', logout_view, name='mxlive-logout'),

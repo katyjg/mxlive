@@ -45,72 +45,7 @@
                 </div>
             </a>
         {% for object in shipments %}
-            <a href="{% url 'shipment-detail' object.pk %}" class="list-group-item list-group-item-{% if object.status == object.STATES.ON_SITE %}info
-                        {% elif object.status == object.STATES.DRAFT %}warning
-                        {% elif object.status == object.STATES.SENT %}success
-                        {% elif object.status == object.STATES.RETURNED and not user.is_superuser %} empty
-                        {% else %}default{% endif %}">
-                <div class="row">
-                    <div class="col-xs-8 col-md-9">
-                        <div class="box-status pull-left">
-                            <div class="text-center text-muted">
-                                <div title="{% if object.status == object.STATES.ON_SITE %}Location: {{ object.storage_location }}
-                                            {% elif object.status == object.STATES.SEND %}Sent on {{ object.date_shipped }}
-                                            {% elif object.status == object.STATES.RETURNED %}Returned on {{ object.date_returned }}{% endif %}"
-                                     class="fa fa-2x {% if object.status == object.STATES.DRAFT %}fa-clipboard
-                                                     {% elif object.status == object.STATES.SENT %}fa-plane
-                                                     {% elif object.status == object.STATES.ON_SITE %}fa-map-marker
-                                                     {% elif object.status == object.STATES.RETURNED %}fa-plane
-                                                     {% elif object.status == object.STATES.ARCHIVED %}fa-archive{% endif %}"></div>
-                                <div><small>{{ object.get_status_display|upper }}</small></div>
-                            </div>
-                        </div>
-                        <div class="box-info pull-left">
-                            <h4 class="text-condensed narrow-heading overflow ellipsis">
-                                {% if user.is_superuser %}{{ object.project }} | {% endif %}
-                                <strong class="text-muted">{{ object.identity }}</strong> |
-                                {{ object.name }}
-                            </h4>
-                            <span><strong>{{ object.num_containers }}</strong> Container{{ object.num_containers|pluralize }} / <strong>{{ object.num_samples }}</strong> Sample{{ object.num_samples|pluralize }}</span>
-                        </div>
-                    </div>
-                    {% if object.status >= object.STATES.ON_SITE %}
-                    <div class="col-xs-4 col-md-3">
-                        <div class="pull-right box-tools">
-                            <span class="pull-right">
-                                <span class="fa-stack">
-                                    <i class="fa-stack-2x fa fa-2 fa-fw fa-bar-chart"></i>
-                                    {% if object.num_results %}
-                                    <span class="fa-stack-1x superscript">
-                                        <span class="badge progress-bar-info">{{ object.num_results }}</span>
-                                    </span>
-                                    {% endif %}
-                                </span>
-                                <br><span class="tool-label">Results</span>
-                            </span>
-                            <span class="pull-right">
-                                <span class="fa-stack">
-                                    <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
-                                    {% if object.num_datasets %}
-                                    <span class="fa-stack-1x superscript">
-                                        <span class="badge progress-bar-info">{{ object.num_datasets }}</span>
-                                    </span>
-                                    {% endif %}
-                                </span>
-                                <br><span class="tool-label">Data</span>
-                            </span>
-
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-            </a>
-        {% empty %}
-            <a href="#" class="list-group-item">
-                <div class="empty">
-                    Click here to start a new shipment!
-                </div>
-            </a>
+            {% include "users/entries/shipment-list-item.html" with object=object %}
         {% endfor %}
     </div>
 
@@ -118,7 +53,7 @@
 	<div id="left-content" class="col-xs-12 col-md-3">
     <p>Start by clicking the <em>New Shipment</em> icon to create a new
     set of samples to be used on the beamline. Then check in during your beamtime to see or download your datasets as they are collected!
-    Review your results from past beamtime, or track your samples as they are shipped back to your home lab.</p>
+    Review your data and analysis from past beamtime, or track your samples as they are shipped back to your home lab.</p>
     {% load link_list %}
     {% link_list %}
 	</div>

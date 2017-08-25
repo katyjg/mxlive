@@ -19,7 +19,7 @@
                  <li>
                      <div class="row-fluid">
                          <div class="col-xs-12 mini-profile">
-                            <a class="pull-left" href="#"><button type="button" class="btn btn-info">
+                            <a class="pull-left" data-url="{% url "edit-profile" user.username %}"><button type="button" class="btn btn-info">
                                 <i class="ti ti ti-pencil-alt fa-fw"></i>&nbsp;Profile
                             </button></a>
                             <a class="pull-right" href="{% url 'mxlive-logout' %}"><button type="button" class="btn btn-danger">

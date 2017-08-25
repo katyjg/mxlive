@@ -1,0 +1,1402 @@
+[
+{
+  "model": "lims.containertype",
+  "pk": 1,
+  "fields": {
+    "name": "Uni-Puck",
+    "kind": 1,
+    "layout": "{\"radius\":9,\"locations\":{\"11\":[0.75,0.28559933],\"10\":[0.75,0.856798],\"13\":[0.75,-0.856798],\"12\":[0.75,-0.28559933],\"15\":[0.75,-1.99919533],\"14\":[0.75,-1.42799666],\"16\":[0.75,-2.57039399],\"1\":[0.36,3.14159265],\"3\":[0.36,0.62831853],\"2\":[0.36,1.88495559],\"5\":[0.36,-1.88495559],\"4\":[0.36,-0.62831853],\"7\":[0.75,2.57039399],\"6\":[0.75,3.14159265],\"9\":[0.75,1.42799666],\"8\":[0.75,1.99919533]}}",
+    "envelope": "circle",
+    "container_locations": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ]
+  }
+},
+{
+  "model": "lims.containertype",
+  "pk": 2,
+  "fields": {
+    "name": "Cassette",
+    "kind": 0,
+    "layout": "{\"width\":1.5,\"labels\":{\"A\":[0.08,0.03],\"C\":[0.24000000000000005,0.03],\"B\":[0.16,0.03],\"E\":[0.4,0.03],\"D\":[0.32000000000000006,0.03],\"G\":[0.56,0.03],\"F\":[0.48000000000000004,0.03],\"I\":[0.7200000000000002,0.03],\"H\":[0.6400000000000001,0.03],\"K\":[0.88,0.03],\"J\":[0.8,0.03],\"L\":[0.96,0.03],\"1\":[0.01,0.11875],\"3\":[0.01,0.35374999999999995],\"2\":[0.01,0.23625],\"5\":[0.01,0.5887499999999999],\"4\":[0.01,0.47125],\"7\":[0.01,0.82375],\"6\":[0.01,0.70625],\"8\":[0.01,0.9412499999999999]},\"radius\":4.5,\"locations\":{\"G7\":[0.56,0.82375],\"G6\":[0.56,0.70625],\"G5\":[0.56,0.5887499999999999],\"G4\":[0.56,0.47125],\"G3\":[0.56,0.35374999999999995],\"G2\":[0.56,0.23625],\"G1\":[0.56,0.11875],\"G8\":[0.56,0.9412499999999999],\"J8\":[0.8,0.9412499999999999],\"J4\":[0.8,0.47125],\"J5\":[0.8,0.5887499999999999],\"J6\":[0.8,0.70625],\"J7\":[0.8,0.82375],\"J1\":[0.8,0.11875],\"J2\":[0.8,0.23625],\"J3\":[0.8,0.35374999999999995],\"B4\":[0.16,0.47125],\"B5\":[0.16,0.5887499999999999],\"B6\":[0.16,0.70625],\"B7\":[0.16,0.82375],\"B1\":[0.16,0.11875],\"B2\":[0.16,0.23625],\"B3\":[0.16,0.35374999999999995],\"B8\":[0.16,0.9412499999999999],\"E8\":[0.4,0.9412499999999999],\"E5\":[0.4,0.5887499999999999],\"E4\":[0.4,0.47125],\"E7\":[0.4,0.82375],\"E6\":[0.4,0.70625],\"E1\":[0.4,0.11875],\"E3\":[0.4,0.35374999999999995],\"E2\":[0.4,0.23625],\"H8\":[0.6400000000000001,0.9412499999999999],\"H2\":[0.6400000000000001,0.23625],\"H3\":[0.6400000000000001,0.35374999999999995],\"H1\":[0.6400000000000001,0.11875],\"H6\":[0.6400000000000001,0.70625],\"H7\":[0.6400000000000001,0.82375],\"H4\":[0.6400000000000001,0.47125],\"H5\":[0.6400000000000001,0.5887499999999999],\"K3\":[0.88,0.35374999999999995],\"K2\":[0.88,0.23625],\"K1\":[0.88,0.11875],\"K7\":[0.88,0.82375],\"K6\":[0.88,0.70625],\"K5\":[0.88,0.5887499999999999],\"K4\":[0.88,0.47125],\"K8\":[0.88,0.9412499999999999],\"C8\":[0.24000000000000005,0.9412499999999999],\"C3\":[0.24000000000000005,0.35374999999999995],\"C2\":[0.24000000000000005,0.23625],\"C1\":[0.24000000000000005,0.11875],\"C7\":[0.24000000000000005,0.82375],\"C6\":[0.24000000000000005,0.70625],\"C5\":[0.24000000000000005,0.5887499999999999],\"C4\":[0.24000000000000005,0.47125],\"F1\":[0.48000000000000004,0.11875],\"F2\":[0.48000000000000004,0.23625],\"F3\":[0.48000000000000004,0.35374999999999995],\"F4\":[0.48000000000000004,0.47125],\"F5\":[0.48000000000000004,0.5887499999999999],\"F6\":[0.48000000000000004,0.70625],\"F7\":[0.48000000000000004,0.82375],\"F8\":[0.48000000000000004,0.9412499999999999],\"I8\":[0.7200000000000002,0.9412499999999999],\"I1\":[0.7200000000000002,0.11875],\"I3\":[0.7200000000000002,0.35374999999999995],\"I2\":[0.7200000000000002,0.23625],\"I5\":[0.7200000000000002,0.5887499999999999],\"I4\":[0.7200000000000002,0.47125],\"I7\":[0.7200000000000002,0.82375],\"I6\":[0.7200000000000002,0.70625],\"A1\":[0.08,0.11875],\"A3\":[0.08,0.35374999999999995],\"A2\":[0.08,0.23625],\"A5\":[0.08,0.5887499999999999],\"A4\":[0.08,0.47125],\"A7\":[0.08,0.82375],\"A6\":[0.08,0.70625],\"A8\":[0.08,0.9412499999999999],\"L6\":[0.96,0.70625],\"L7\":[0.96,0.82375],\"L4\":[0.96,0.47125],\"L5\":[0.96,0.5887499999999999],\"L2\":[0.96,0.23625],\"L3\":[0.96,0.35374999999999995],\"L1\":[0.96,0.11875],\"L8\":[0.96,0.9412499999999999],\"D8\":[0.32000000000000006,0.9412499999999999],\"D6\":[0.32000000000000006,0.70625],\"D7\":[0.32000000000000006,0.82375],\"D4\":[0.32000000000000006,0.47125],\"D5\":[0.32000000000000006,0.5887499999999999],\"D2\":[0.32000000000000006,0.23625],\"D3\":[0.32000000000000006,0.35374999999999995],\"D1\":[0.32000000000000006,0.11875]}}",
+    "envelope": "rect",
+    "container_locations": [
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110,
+      111,
+      112
+    ]
+  }
+},
+{
+  "model": "lims.containertype",
+  "pk": 3,
+  "fields": {
+    "name": "Cane",
+    "kind": 2,
+    "layout": "{\"width\":0.25,\"radius\":8,\"locations\":{\"1\":[0.5,0.1],\"3\":[0.5,0.42],\"2\":[0.5,0.26],\"5\":[0.5,0.74],\"4\":[0.5,0.58],\"6\":[0.5,0.9]}}",
+    "envelope": "rect",
+    "container_locations": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  }
+},
+{
+  "model": "lims.containertype",
+  "pk": 4,
+  "fields": {
+    "name": "Basket",
+    "kind": 3,
+    "layout": "{\"radius\":9,\"locations\":{\"10\":[0.75,-1.99919533],\"1\":[0.75,3.14159265],\"3\":[0.75,1.99919533],\"2\":[0.75,2.57039399],\"5\":[0.75,0.856798],\"4\":[0.75,1.42799666],\"7\":[0.75,-0.28559933],\"6\":[0.75,0.28559933],\"9\":[0.75,-1.42799666],\"8\":[0.75,-0.856798]}}",
+    "envelope": "circle",
+    "container_locations": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 1,
+  "fields": {
+    "name": "1",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 2,
+  "fields": {
+    "name": "2",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 3,
+  "fields": {
+    "name": "3",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 4,
+  "fields": {
+    "name": "4",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 5,
+  "fields": {
+    "name": "5",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 6,
+  "fields": {
+    "name": "6",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 7,
+  "fields": {
+    "name": "7",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 8,
+  "fields": {
+    "name": "8",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 9,
+  "fields": {
+    "name": "9",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 10,
+  "fields": {
+    "name": "10",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 11,
+  "fields": {
+    "name": "11",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 12,
+  "fields": {
+    "name": "12",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 13,
+  "fields": {
+    "name": "13",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 14,
+  "fields": {
+    "name": "14",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 15,
+  "fields": {
+    "name": "15",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 16,
+  "fields": {
+    "name": "16",
+    "accepts": []
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 17,
+  "fields": {
+    "name": "A1",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 18,
+  "fields": {
+    "name": "A2",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 19,
+  "fields": {
+    "name": "A3",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 20,
+  "fields": {
+    "name": "A4",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 21,
+  "fields": {
+    "name": "A5",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 22,
+  "fields": {
+    "name": "A6",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 23,
+  "fields": {
+    "name": "A7",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 24,
+  "fields": {
+    "name": "A8",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 25,
+  "fields": {
+    "name": "B1",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 26,
+  "fields": {
+    "name": "B2",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 27,
+  "fields": {
+    "name": "B3",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 28,
+  "fields": {
+    "name": "B4",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 29,
+  "fields": {
+    "name": "B5",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 30,
+  "fields": {
+    "name": "B6",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 31,
+  "fields": {
+    "name": "B7",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 32,
+  "fields": {
+    "name": "B8",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 33,
+  "fields": {
+    "name": "C1",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 34,
+  "fields": {
+    "name": "C2",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 35,
+  "fields": {
+    "name": "C3",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 36,
+  "fields": {
+    "name": "C4",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 37,
+  "fields": {
+    "name": "C5",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 38,
+  "fields": {
+    "name": "C6",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 39,
+  "fields": {
+    "name": "C7",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 40,
+  "fields": {
+    "name": "C8",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 41,
+  "fields": {
+    "name": "D1",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 42,
+  "fields": {
+    "name": "D2",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 43,
+  "fields": {
+    "name": "D3",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 44,
+  "fields": {
+    "name": "D4",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 45,
+  "fields": {
+    "name": "D5",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 46,
+  "fields": {
+    "name": "D6",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 47,
+  "fields": {
+    "name": "D7",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 48,
+  "fields": {
+    "name": "D8",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 49,
+  "fields": {
+    "name": "E1",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 50,
+  "fields": {
+    "name": "E2",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 51,
+  "fields": {
+    "name": "E3",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 52,
+  "fields": {
+    "name": "E4",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 53,
+  "fields": {
+    "name": "E5",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 54,
+  "fields": {
+    "name": "E6",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 55,
+  "fields": {
+    "name": "E7",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 56,
+  "fields": {
+    "name": "E8",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 57,
+  "fields": {
+    "name": "F1",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 58,
+  "fields": {
+    "name": "F2",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 59,
+  "fields": {
+    "name": "F3",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 60,
+  "fields": {
+    "name": "F4",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 61,
+  "fields": {
+    "name": "F5",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 62,
+  "fields": {
+    "name": "F6",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 63,
+  "fields": {
+    "name": "F7",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 64,
+  "fields": {
+    "name": "F8",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 65,
+  "fields": {
+    "name": "G1",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 66,
+  "fields": {
+    "name": "G2",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 67,
+  "fields": {
+    "name": "G3",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 68,
+  "fields": {
+    "name": "G4",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 69,
+  "fields": {
+    "name": "G5",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 70,
+  "fields": {
+    "name": "G6",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 71,
+  "fields": {
+    "name": "G7",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 72,
+  "fields": {
+    "name": "G8",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 73,
+  "fields": {
+    "name": "H1",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 74,
+  "fields": {
+    "name": "H2",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 75,
+  "fields": {
+    "name": "H3",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 76,
+  "fields": {
+    "name": "H4",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 77,
+  "fields": {
+    "name": "H5",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 78,
+  "fields": {
+    "name": "H6",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 79,
+  "fields": {
+    "name": "H7",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 80,
+  "fields": {
+    "name": "H8",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 81,
+  "fields": {
+    "name": "I1",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 82,
+  "fields": {
+    "name": "I2",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 83,
+  "fields": {
+    "name": "I3",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 84,
+  "fields": {
+    "name": "I4",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 85,
+  "fields": {
+    "name": "I5",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 86,
+  "fields": {
+    "name": "I6",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 87,
+  "fields": {
+    "name": "I7",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 88,
+  "fields": {
+    "name": "I8",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 89,
+  "fields": {
+    "name": "J1",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 90,
+  "fields": {
+    "name": "J2",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 91,
+  "fields": {
+    "name": "J3",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 92,
+  "fields": {
+    "name": "J4",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 93,
+  "fields": {
+    "name": "J5",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 94,
+  "fields": {
+    "name": "J6",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 95,
+  "fields": {
+    "name": "J7",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 96,
+  "fields": {
+    "name": "J8",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 97,
+  "fields": {
+    "name": "K1",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 98,
+  "fields": {
+    "name": "K2",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 99,
+  "fields": {
+    "name": "K3",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 100,
+  "fields": {
+    "name": "K4",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 101,
+  "fields": {
+    "name": "K5",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 102,
+  "fields": {
+    "name": "K6",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 103,
+  "fields": {
+    "name": "K7",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 104,
+  "fields": {
+    "name": "K8",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 105,
+  "fields": {
+    "name": "L1",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 106,
+  "fields": {
+    "name": "L2",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 107,
+  "fields": {
+    "name": "L3",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 108,
+  "fields": {
+    "name": "L4",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 109,
+  "fields": {
+    "name": "L5",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 110,
+  "fields": {
+    "name": "L6",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 111,
+  "fields": {
+    "name": "L7",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 112,
+  "fields": {
+    "name": "L8",
+    "accepts": [
+      2
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 113,
+  "fields": {
+    "name": "A",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 114,
+  "fields": {
+    "name": "B",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 115,
+  "fields": {
+    "name": "C",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 116,
+  "fields": {
+    "name": "D",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.carrier",
+  "pk": 1,
+  "fields": {
+    "name": "UPS",
+    "phone_number": "800-742-5877",
+    "fax_number": "",
+    "code_regex": "^(1Z)",
+    "url": "http://wwwapps.ups.com/etracking/tracking.cgi?TypeOfInquiryNumber=T&AcceptUPSLicenseAgreement=yes&submit=Track&InquiryNumber1="
+  }
+},
+{
+  "model": "lims.carrier",
+  "pk": 2,
+  "fields": {
+    "name": "Canada Post",
+    "phone_number": "866-607-6301",
+    "fax_number": "",
+    "code_regex": "(CA)$",
+    "url": "https://obc.canadapost.ca/emo/basicPin.do?trackingCode=PIN&action=query&language=en&sblid=dcsubmitted&trackingId="
+  }
+},
+{
+  "model": "lims.carrier",
+  "pk": 3,
+  "fields": {
+    "name": "FedEx",
+    "phone_number": "800-463-3339",
+    "fax_number": "",
+    "code_regex": "^\\d{12,19}$",
+    "url": "http://www.fedex.com/Tracking?action=track&tracknumbers="
+  }
+},
+{
+  "model": "lims.carrier",
+  "pk": 4,
+  "fields": {
+    "name": "USPS",
+    "phone_number": "800-222-1811",
+    "fax_number": "",
+    "code_regex": "\\d{20,}",
+    "url": "http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum="
+  }
+},
+{
+  "model": "lims.carrier",
+  "pk": 5,
+  "fields": {
+    "name": "DHL",
+    "phone_number": "800-225-5345",
+    "fax_number": "",
+    "code_regex": "^\\d{10,11}$",
+    "url": "http://track.dhl-usa.com/TrackByNbr.asp?ShipmentNumber="
+  }
+},
+{
+  "model": "lims.carrier",
+  "pk": 6,
+  "fields": {
+    "name": "Purolator",
+    "phone_number": "888-744-7123",
+    "fax_number": "",
+    "code_regex": "*",
+    "url": "http://shipnow.purolator.com/shiponline/track/purolatortrack.asp?pinno="
+  }
+},
+{
+  "model": "lims.beamline",
+  "pk": 1,
+  "fields": {
+    "name": "08ID-1",
+    "energy_lo": 6.0,
+    "energy_hi": 18.5,
+    "contact_phone": "306-657-3610"
+  }
+},
+{
+  "model": "lims.beamline",
+  "pk": 2,
+  "fields": {
+    "name": "08B1-1",
+    "energy_lo": 4.0,
+    "energy_hi": 18.5,
+    "contact_phone": "306-657-3619"
+  }
+},
+{
+  "model": "lims.beamline",
+  "pk": 3,
+  "fields": {
+    "name": "SIM-1",
+    "energy_lo": 4.0,
+    "energy_hi": 18.5,
+    "contact_phone": "306-657-3758"
+  }
+}
+]

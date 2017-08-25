@@ -1,0 +1,37 @@
+{% extends "forms/modal.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block form_title %}
+    Sample <strong>{{ object.name }}</strong>
+{% endblock %}
+
+{% block form_body %}
+    {% with form.instance as object %}
+    <div class="row">
+        <div class="col-xs-12">
+            <table>
+                <tr>
+                    <th>Group</th>
+                    <td></td>
+                    <td>{{ object.group }}</td></tr>
+                <tr>
+                    <th>Location</th>
+                    <td></td>
+                    <td>{{ object.container.parent.parent.dewar_set.first.beamline }}{{ object.container.parent.dewar_set.first.beamline }} {{ object.container.parent.location|default_if_none:"" }}{{ object.container.location|default_if_none:"" }}{{ object.container_location }}</td></tr>
+
+                <tr>
+                    <th>Container</th>
+                    <td></td>
+                    <td>{{ object.container.name }}</td></tr>
+                <tr>
+                    <th>Shipment</th>
+                    <td></td>
+                    <td>{{ object.container.shipment }}</td></tr>
+            </table>
+        </div>
+    </div>
+    {% endwith %}
+    {% crispy form form.helper %}
+{% endblock %}
+

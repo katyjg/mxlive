@@ -1,0 +1,15 @@
+{% extends "forms/modal.html" %}
+
+{% load static %}
+
+{% block form_js %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% static 'js/live-forms.js' %}"></script>
+    <script>
+        jQuery(function() {
+            {% if form.repeated_data %}
+                setInitial({{ form.repeated_data|safe }});
+            {% endif %}
+        });
+    </script>
+{% endblock %}

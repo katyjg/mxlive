@@ -6,31 +6,6 @@ from django import forms
 
 runlist_site = admin.AdminSite()
 
-
-class RunlistAdminForm(forms.ModelForm):
-    groups = forms.ModelMultipleChoiceField(
-        queryset=Group.objects.filter(status__in=[Group.STATES.ACTIVE, Group.STATES.PROCESSING]).filter(
-            pk__in=Sample.objects.filter(
-                status__in=[Sample.STATES.SENT, Sample.STATES.ON_SITE, Sample.STATES.LOADED]).values('group')),
-        required=False)
-
-    class Meta:
-        model = Runlist
-        fields = []
-
-
-class RunlistAdmin(admin.ModelAdmin):
-    search_fields = ['name', 'beamline__name', 'containers__name']
-    list_filter = ['status', 'created']
-    list_display = ('name', 'beamline', 'created', 'status')
-    list_per_page = 16
-    ordering = ['-created']
-    form = RunlistAdminForm
-
-
-admin.site.register(Runlist, RunlistAdmin)
-
-
 class AdaptorAdmin(admin.ModelAdmin):
     search_fields = ['name', 'containers__name']
     list_filter = ['modified', 'created']

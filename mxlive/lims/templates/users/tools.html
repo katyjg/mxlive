@@ -3,75 +3,88 @@
     note: this file defines tools for both staff and users
 {% endcomment %}
 <span class="box-tools pull-right">
-    {% if list_url %}
-        <a class="pull-right separator" href="{{list_url}}">
-            <i class="fa fa-2 fa-f2 fa-list"></i><br>
-            <span class="tool-label">Show all</span>
-        </a>
-    {% endif %}
-
-
     {% if object.is_processing %}
-        <a class="pull-right" href="{{handler}}progress/">
-            <i class="fa fa-2 fa-fw fa-file-text-o"></i><br>
-            <span class="tool-label">Detailed Report</span>
+        <a class="pull-right" href="{{ handler }}progress/">
+            <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-file-text-o"></i>
+                </span><br>
+                <span class="tool-label">Progress</span>
+            </span>
         </a>
     {% endif %}
+
     {% comment %}Staff Tools{% endcomment %}
     {% if request.user.is_staff %}
-        {% if object.is_loadable %}
-            <a class="pull-right" data-url="{{ handler }}load/">
-                <i class="fa fa-2 fa-fw fa-load"></i><br>
-                <span class="tool-label">Load</span>
-            </a>
-        {% endif %}
-        {% if object.is_unloadable %}
-            <a class="pull-right" data-url="{{ handler }}unload/">
-                <i class="fa fa-2 fa-fw fa-unload"></i><br>
-                <span class="tool-label">Unload</span>
-            </a>
-        {% endif %}
         {% if object.is_receivable %}
             <a class="pull-right" data-url="{% url "shipment-receive" object.pk %}">
-                <i class="fa fa-2 fa-fw fa-handshake-o"></i><br>
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-handshake-o"></i>
+                </span><br>
                 <span class="tool-label">Receive</span>
             </a>
         {% endif %}
         {% if object.is_returnable %}
             <a class="pull-right" data-url="{% url "shipment-return" object.pk %}">
-                <i class="fa fa-2 fa-fw fa-paper-plane-o"></i><br>
-                <span class="tool-label">Return</span>
+                        <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-paper-plane-o"></i></span><br>
+                            <span class="tool-label">Return</span></span>
             </a>
-            <a class="pull-right" data-url="{% comment %}{% url "shipment-label" object.pk %}{% endcomment %}">
-                <i class="fa fa-2 fa-fw fa-tags"></i><br>
-                <span class="tool-label">Labels</span>
+            <a class="pull-right" href="{% url "send-labels" object.pk %}">
+                                    <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-tags"></i></span><br>
+                                        <span class="tool-label">Labels</span></span>
             </a>
 
         {% endif %}
-        {% if object.is_pdfable %}
-            <a class="pull-right" data-url="{% comment %}{% url "shipment-protocol" object.pk %}{% endcomment %}">
-                <i class="fa fa-2 fa-fw fa-envelope-o"></i><br>
-                <span class="tool-label">Protocol</span>
+        {% if object.status == object.STATES.RETURNED %}
+            <a class="pull-right" data-url="{% url "shipment-update-return" object.pk %}">
+                        <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-undo"></i>
+                <span class="fa-stack-1x superscript">
+                    <i class="fa fa-fw fa-2 fa-paper-plane-o"></i>
+                </span></span><br>
+                <span class="tool-label">Recall</span></span>
             </a>
         {% endif %}
-        {% if object.show_history %}
-            <a class="pull-right" href="{% url "staff-runlist-list" %}?status__exact=5">
-                <i class="fa fa-2 fa-fw fa-history"></i><br>
-                <span class="tool-label">History</span>
-            </a>
-        {% endif %}
-    {% comment %}User Tools{% endcomment %}
+
+        <a class="pull-right" href="{% url "shipment-protocol" object.pk %}">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-envelope-o"></i></span><br>
+                                    <span class="tool-label">Protocol</span>
+        </a>
+
+        {% comment %}User Tools{% endcomment %}
     {% else %}
         {% if object.is_sendable %}
             <a class="pull-right" data-url="{% url "shipment-send" object.pk %}">
-                <i class="fa fa-2 fa-fw fa-paper-plane-o"></i><br>
-                <span class="tool-label">Send</span>
+                        <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-paper-plane-o"></i></span><br>
+                            <span class="tool-label">Send</span></span>
+            </a>
+        {% endif %}
+        {% if object.status == object.STATES.SENT %}
+            <a class="pull-right" data-url="{% url "shipment-update-send" object.pk %}">
+                        <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-undo"></i>
+                <span class="fa-stack-1x superscript">
+                    <i class="fa fa-fw fa-2 fa-paper-plane-o"></i>
+                </span></span><br>
+                <span class="tool-label">Recall</span></span>
             </a>
         {% endif %}
         {% if object.has_labels %}
-            <a class="pull-right" data-url="{{ handler }}close/">
-                <i class="fa fa-2 fa-fw fa-file-text-o"></i><br>
+            <a class="pull-right" data-url="{% url "send-labels" object.pk %}">
+                        <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-file-text-o"></i></span><br>
                 <span class="tool-label">Labels</span>
+                        </span>
             </a>
             {% comment %}<li class="pdf-tool" title="Generate PDF labels for printing">
                 <a {% if object.project.address and object.project.city and object.project.province and object.project.country and object.project.postal_code %}
@@ -84,27 +97,51 @@
         {% endif %}
         {% if object.is_closable %}
             <a class="pull-right" data-url="{{ handler }}close/">
-                <i class="fa fa-2 fa-fw fa-archive"></i><br>
+                        <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-archive"></i></span><br>
                 <span class="tool-label">Archive</span>
+                        </span>
             </a>
         {% endif %}
-		{% if object.add_component %}
+        {% if object.add_component %}
             <a class="pull-right" data-url="{{ handler }}component/">
-                <i class="fa fa-2 fa-fw fa-usb"></i><br>
+                        <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-usb"></i></span><br>
                 <span class="tool-label">Add Item</span>
+                        </span>
             </a>
-		{% endif %}
-	    {% if object.is_editable %}
+        {% endif %}
+        {% if object.is_editable %}
             <a class="pull-right" data-url="{{ handler }}edit/">
-                <i class="fa fa-2 fa-fw fa-pencil"></i><br>
+            <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-pencil"></i></span><br>
                 <span class="tool-label">Edit</span>
+            </span>
             </a>
-	    {% endif %}
+        {% endif %}
     {% endif %}
     {% if object.is_deletable %}
         <a class="pull-right" data-url="{{ handler }}delete/">
-            <i class="fa fa-2 fa-fw fa-remove"></i><br>
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-remove"></i></span><br>
             <span class="tool-label">Delete</span>
+        </a>
+    {% endif %}
+    {% if object.comments or object.staff_comments %}
+        <a class="pull-right" data-toggle="collapse" href="#comments-{{ object.pk }}">
+            <span class="fa-stack">
+                <i class="fa-stack-2x fa fa-fw fa-comments-o"></i>
+                {% if object.comments or object.staff_comments %}
+                    <span class="fa-stack-1x superscript">
+                        <span class="badge progress-bar-info">{% if object.comments and object.staff_comments %}
+                            2{% else %}1{% endif %}</span>
+                    </span>
+                {% endif %}
+            </span><br>
+            <span class="tool-label">Comments</span>
         </a>
     {% endif %}
 </span>

@@ -2,8 +2,6 @@
 {% load humanize %}
 {% load markup %}
 
-{% load container_table %}
-
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading">
         <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
@@ -11,15 +9,15 @@
     </h3>
     <span class="text-muted">
         {% if object.shipment %}
-            {{ object.get_kind_display }} in Shipment <a href="{% url "shipment-detail" object.shipment.pk %}">{{object.shipment.name}}</a>
+            {{ object.kind }} in Shipment <a href="{% url "shipment-detail" object.shipment.pk %}">{{object.shipment.name}}</a>
         {% else %}
-            {{ object.get_kind_display }} not in a shipment.
+            {{ object.kind }} not in a shipment.
         {% endif %}
     </span>
 {% endblock %}
 
 {% block object_tools %}
-    {% if object.is_editable or object.is_deletable %}
+    {% if object.is_editable or object.is_deletable or object.comments or object.staff_comments %}
         <div class="object-tools">
             <span class="box-tools pull-right">
                 {% if object.is_editable %}
@@ -34,6 +32,22 @@
                         <span class="tool-label">Delete</span>
                     </a>
                 {% endif %}
+                {% if object.comments or object.staff_comments %}
+
+        <a data-toggle="collapse" href="#comments-{{ object.pk }}">
+            <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-fw fa-comments-o"></i>
+                    {% if object.comments or object.staff_comments %}
+                        <span class="fa-stack-1x superscript">
+                            <span class="badge progress-bar-info">{% if object.comments and object.staff_comments %}2{% else %}1{% endif %}</span>
+                        </span>
+                    {% endif %}
+                </span><br>
+                <span class="tool-label">Comments</span>
+            </span>
+        </a>
+    {% endif %}
             </span>
         </div>
     {% endif %}
@@ -65,20 +79,17 @@
             </div>
             <div class="col-xs-2 pull-left">
                 <small class="text-muted text-condensed">Type:</small><br>
-                {{ object.kind.get_kind_display }}
+                {{ object.kind }}
             </div>
 
         </div>
     </div>
+    {% include "users/comments.html" with object=object %}
 {% endblock %}
 
 {% block full %}
 
 <div class="row">
-    <div class="col-sm-5">
-        <div id="layout-{{ object.pk }}" class="layout-lg" style="min-height: 200px;"></div>
-        {% include "users/entries/layout-container.html" with object=object.pk kind=object.kind size=300 %}
-    </div>
     <div class="col-sm-7">
         {% if object.comments or object.staff_comments %}
         <div class="entrycomment {% if object.get_kind_display != 'Cane' %}container{% endif %}">
@@ -90,6 +101,10 @@
         {% endif %}
 
         {% include "objlist/object_list.html" with object_list=object.sample_set.all %}
+    </div>
+    <div class="col-sm-5">
+        <div id="layout-{{ object.pk }}" class="layout-lg"></div>
+        {% include "users/entries/layout-container.html" with object=object.pk kind=object.kind %}
     </div>
 </div>
 

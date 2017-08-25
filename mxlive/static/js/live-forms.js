@@ -20,7 +20,9 @@ function selectOne(e, group, data) {
             if (!(container in data[group])) {
                 data[group][container] = [];
             }
-            data[group][container].push(port);
+            if (!(port in data[group][container])) {
+                data[group][container].push(port);
+            }
         }
     }
     locations.val(JSON.stringify(data));
@@ -28,7 +30,7 @@ function selectOne(e, group, data) {
 
 function selectAll(container) {
     var group = $('span.group-name').html();
-    $.each( $('#'+container+' circle.empty, #'+container+' circle.selected'), function() {
+    $.each( $('form #'+container+' circle.empty, #'+container+' circle.selected'), function() {
         selectOne(this, group);
     });
 };
@@ -56,7 +58,7 @@ function toggleFlip(e, open) {
     $('.flip-container').toggleClass('hover');
 
     if (open) {
-        $('.back').height($('.back').height());
+        //$('.back').height($('.back').height());
         $('.flip-container').height($('.back').outerHeight());
         $('span.group-name').html(group);
 
@@ -94,6 +96,12 @@ function setInitial(data) {
             }
         });
     });
+    $.each($('input[name$="name"]'), function() {
+        if ($(this).attr('value')) {
+            var row = $(this).closest('.repeat-row');
+            $(row).find($('a.disabled')).removeClass('disabled').attr('group',$(this).attr('value'));
+        }
+    });
 }
 
 jQuery(function() {
@@ -108,6 +116,7 @@ jQuery(function() {
             container: '.repeat-container',
             wrapper: '.repeat-wrapper',
             after_add: function(container, new_row) {
+                $('.flip-container').height($('.front').height());
                 var rows = $(container).children('.repeat-row').filter(function() {
                     return !jQuery(this).hasClass('template');
                 });
@@ -137,7 +146,7 @@ jQuery(function() {
                     var dropdown = $($(this).attr('href'));
                     dropdown.slideToggle().toggleClass('in');
                 });
-                $('input[name="groups-0-name"]').on('change', function(f) {
+                $('input[name$="name"]').on('change', function(f) {
                     var row = f.target.closest('.repeat-row');
                     $(row).find($('a.disabled')).removeClass('disabled').attr('group',f.target.value);
                 });
