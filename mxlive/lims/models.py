@@ -154,7 +154,7 @@ class LimsBaseClass(models.Model):
     STATES = GLOBAL_STATES
     TRANSITIONS = {
         STATES.DRAFT: [STATES.SENT],
-        STATES.SENT: [STATES.ON_SITE],
+        STATES.SENT: [STATES.ON_SITE, STATES.DRAFT],
         STATES.ON_SITE: [STATES.RETURNED],
         STATES.LOADED: [STATES.ON_SITE],
         STATES.RETURNED: [STATES.ARCHIVED],
@@ -199,7 +199,7 @@ class LimsBaseClass(models.Model):
                 ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.ARCHIVE, message)
 
     def send(self, request=None):
-        self.change_status(self.STATES.SENT)       
+        self.change_status(self.STATES.SENT)
         message = '{} sent'.format(self._meta.verbose_name)
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
@@ -425,6 +425,8 @@ class Shipment(ObjectBaseClass):
             super(Shipment, self).delete(request=request)
 
     def receive(self, request=None):
+        self.date_received = timezone.now()
+        self.save()
         for obj in self.container_set.all():
             obj.receive(request=request)
         super(Shipment, self).receive(request=request)
@@ -435,6 +437,7 @@ class Shipment(ObjectBaseClass):
             self.save()
             for obj in self.container_set.all():
                 obj.send(request=request)
+            self.group_set.all().update(status=Group.STATES.ACTIVE)
             super(Shipment, self).send(request=request)
 
     def unsend(self, request=None):
@@ -444,6 +447,7 @@ class Shipment(ObjectBaseClass):
             self.save()
             for obj in self.container_set.all():
                 obj.unsend()
+            self.group_set.all().update(status=Group.STATES.DRAFT)
 
     def returned(self, request=None):
         if self.is_returnable():
@@ -1036,8 +1040,13 @@ class AnalysisReport(DataBaseClass):
     result = models.ForeignKey('Result')
     details = JSONField()
 
+
     class Meta:
         ordering = ['-score']
+
+    def identity(self):
+        return 'AR%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
 
 
 class Result(DataBaseClass):

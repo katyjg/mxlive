@@ -125,30 +125,159 @@ def cleanup(mxlive):
 
 
 def result_to_report(result):
+
+for r in Result.objects.filter(kind=0):
+
     screen_details = [{
         'title': 'Predicted Quality and Suggested Strategy',
-        'description': """<dl class="note-list">
-            <dt>[1] -<dt>
-            <dd>
-                Data Quality Score for comparing similar data sets. Typically, values >
+        'description': """[1] - Data Quality Score for comparing similar data sets. Typically, values >
                 0.8 are excellent, > 0.6 are good, > 0.5 are acceptable, > 0.4
                 marginal, and &lt; 0.4 are Barely usable
-            </dd>
-            <dt>[2] -<dt>
-            <dd>
-                This space group was automatically assigned using POINTLESS (see P.R.Evans,
+            [2] - This space group was automatically assigned using POINTLESS (see P.R.Evans,
                 Acta Cryst. D62, 72-82, 2005). This procedure is unreliable for incomplete datasets
                 such as those used for screening. Please Inspect the detailed results below.
-            </dd>
-            <dt>[3] -<dt>
-            <dd>
-                Data collection strategy and predicted quality was calculated using BEST. See
+            [3] - Data collection strategy and predicted quality was calculated using BEST. See
             A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64.
-            </dd>
-            <dt>[4] -<dt>
-            <dd>
-                {{object.details.strategy.resolution_reasoning}}.
-            </dd>
-        </dl>""",
-
+            [4] - {}.
+            """.format(r.details['strategy']['resolution_reasoning']),
+        'data': [
+            {
+                'title': 'Observed Parameters',
+                'kind': 'table',
+                'data': [['Score[1]', r.score],
+                         ['Wavelength (A)', r.wavelength],
+                         ['Space Group[2]', r.space_group.name],
+                         ['Unit Cell (A)', "{} {} {} {} {} {}".format(r.cell_a,r.cell_b, r.cell_c,r.cell_alpha, r.cell_beta,r.cell_gamma)],
+                         ['Mosaicity', r.mosaicity],
+                         ['Spot deviation', r.sigma_spot],
+                         ['Spindle deviation', r.sigma_angle],
+                         ['Ice Rings', r.ice_rings]
+                ],
+                'header': 'column',
+                'description': ''
+            },
+            {
+                'title': 'Expected Quality[3]',
+                'kind': 'table',
+                'data': [['Resolution (A)[4]', r.details.get('strategy',{}).get('resolution')],
+                         ['Multiplicity', r.details.get('strategy',{}).get('multiplicity')],
+                         ['Completeness', r.details.get('strategy',{}).get('completeness')],
+                         ['I/Sigma (I)', r.details.get('strategy',{}).get('i_sigma')],
+                         ['R-factor', r.details.get('strategy',{}).get('r_factor')],
+                         ['Fraction overloaded', r.details.get('strategy',{}).get('frac_overload')],
+                         ],
+                'header': 'column',
+                'description': ''
+            },
+            {
+                'title': "Kappa and Phi angles for re-orienting the crystal",
+                'kind': 'table',
+                'data': [['Kappa[*]', 'Phi', 'Vectors (v1,v2)[*]']].extend(r.details.get('crystal_alignment',{}).get('solutions',['','',''])),
+                'header': 'row',
+                'description': """[*] - Alignment is calculated for the goniometer 'CLS MiniKappa'. The alignment method is v1 parallel to omega, v2 perpendicular to the omega-beam plane.""",
+            },
+            {
+                'title': "Compatible bravais lattice types",
+                'kind': 'table',
+                'data': [['No.', 'Lattice type', 'Cell Parameters', 'Quality', 'Cell Volume']] + [
+                    [id, r.details['compatible_lattices']['type'][i],
+                     r.details['compatible_lattices']['unit_cell'][i], r.details['compatible_lattices']['quality'][i],
+                     r.details['compatible_lattices']['volume'][i]]
+                    for i, id in enumerate(r.details['compatible_lattices']['id'])
+                    ],
+                'header': 'row',
+            },
+            {
+                'title': "Automatic Space-Group Selection",
+                'kind': 'table',
+                'data': [['Selected','Candidates','Space Group No.','Probability']] + [
+                    [prob == max(r.details['spacegroup_selection']['probability']) and '*' or '',
+                     r.details['spacegroup_selection']['name'][i],
+                     r.details['spacegroup_selection']['space_group'][i],
+                     prob,
+                    ]
+                for i, prob in enumerate(r.details['spacegroup_selection']['probability'])],
+                'header': 'row',
+                'description': """The above table contains results from POINTLESS (see Evans, Acta Cryst. D62, 72-82, 2005). Indistinguishable space groups will have similar probabilities. If two or more of the top candidates have the same probability, the one with the fewest symmetry assumptions is chosen. This usually corresponds to the point group,  trying out higher symmetry space groups within the top tier does not require re-indexing the data as they are already in the same setting. For more detailed results, please inspect the output file 'pointless.log'."""
+            }
+        ]
+    },
+    {
+        'title': "Predicted statistics for suggested strategy by resolution",
+        'data': [
+            {
+                'kind': 'lineplot',
+                'data':
+                    {
+                        'x': ['']+ r.details['predicted_quality']['shell'],
+                        'y1': [['Completeness (%)']+ r.details['predicted_quality']['completeness']],
+                        'y2': [['R-factor (%)']+ r.details['predicted_quality']['r_factor']]
+                    }
+            },
+            {
+                'kind': 'lineplot',
+                'data':
+                    {
+                        'x': ['Resolution Shell']+ r.details['predicted_quality']['shell'],
+                        'y1': [['I/Sigma(I)']+ r.details['predicted_quality']['i_sigma']],
+                        'y2': [['Multiplicity']+ r.details['predicted_quality']['multiplicity']]
+                    },
+                'description': "The above plot was calculated by BEST. See A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64"
+            },
+            {
+                'kind': 'table',
+                'data': [['Shell','Completeness','R-factor','I/Sigma(I)','Multiplicity','Overload Fraction']] + [
+                    [shell, r.details['predicted_quality']['completeness'][i],r.details['predicted_quality']['r_factor'][i],r.details['predicted_quality']['i_sigma'][i],r.details['predicted_quality']['multiplicity'][i],r.details['predicted_quality']['frac_overload'][i]]
+                    for i, shell in enumerate(r.details['predicted_quality']['shell'])
+                 ],
+                'header': 'row',
+                'description': """I/Sigma - Mean intensity/Sigma of a reflection in shell
+                                  R-factor - &Sigma;|I(h,i)-I(h)| / &Sigma;[I(h,i)]"""
+            }
+        ],
+    },
+    {
+        'title': "Maximum Oscillation width to avoid overlapped spots at different resolutions",
+        'data': [
+            {
+                'kind': 'lineplot',
+                'data': {
+                    'x': ['Oscillation Angle (deg)']+ r.details['overlap_analysis']['angle'],
+                    'y1': [[k]+ v for k, v in r.details['overlap_analysis'].items() if k != 'angle'],
+                    'y1-label': 'Maximum Delta (deg)'
+                },
+                'description': "The above plot was calculated by BEST. See A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64 ",
+            },
+        ]
+    },
+    {
+        'title': "Minimal oscillation ranges for different percentages of data completeness",
+        'data': [
+            {
+                'kind': 'lineplot',
+                'data': {
+                    'x': ['Starting Angle (deg)']+ r.details['wedge_analysis']['start_angle'],
+                    'y1': [[k]+ v for k, v in r.details['wedge_analysis'].items() if k != 'start_angle'],
+                    'y1-label': 'Total Oscillation Angle (deg)'
+                },
+                'description': "The above plot was calculated by BEST. See A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64 ",
+            },
+        ]
+    },
+    {
+        'title': "Analysis of exposure time required versus resolution attained",
+        'data': [
+            {
+                'kind': 'lineplot',
+                'data': {
+                    'x': ['Exposure Time (s)']+ r.details['exposure_analysis']['exposure_time'],
+                    'y1': [['Resolution']+ r.details['exposure_analysis']['resolution']]
+                },
+                'annotations': [],
+                'description': "The above plot was calculated by BEST. See A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64 ",
+            },
+        ]
     }]
+    print screen_details, r.pk
+    r.analysisreport_set.update(details=screen_details)
+

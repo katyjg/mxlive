@@ -1,0 +1,83 @@
+{% load static %}
+{% load json_to_dict %}
+
+<div id="report-builder"></div>
+
+<script type="text/javascript" src="{% static "js/d3.v3.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/live-reports.js" %}"></script>
+
+<script>
+
+var report = {{ object.details|json_to_dict }};
+
+$.each(report, function(i, section) {
+    $('#report-builder').append('<div id="row-'+i+'"></div>');
+    var row = $('#row-'+i);
+    row.append("<h3 class='text-condensed'>"+section['title']+"</h3>");
+    if (section['description']) {
+        row.append("<small class='text-muted'>" + section['description'] + "</small>");
+    };
+    $.each(section['data'], function(j, entry) {
+        if (entry['kind'] == 'table') {
+            if(entry['data']) {
+                var table = $("<table id='table-" + i + "-" + j + "' class='table table-hover'></table>");
+                var thead = $('<thead></thead>');
+                var tbody = $('<tbody></tbody>');
+                if (entry['title']) {
+                    table.append("<thead><tr><th class='table-heading' colspan=" + entry['data'][0].length + ">Table "+ ($('table').length+1) + '. ' + entry['title'] + "</th></tr></thead>")
+                }
+                $.each(entry['data'], function (l, line) {
+                    if (line) {
+                        var tr = $('<tr></tr>');
+                        for (k = 0; k < line.length; k++) {
+                            if ((k == 0 && entry['header'] == 'column') || (l == 0 && entry['header'] == 'row')) {
+                                var td = $('<th></th>').text(line[k]);
+                            } else {
+                                var td = $('<td></td>').text(line[k]);
+                            }
+                            tr.append(td);
+                        }
+                        if (entry['header'] == 'row' && l == 0) {
+                            thead.append(tr);
+                        } else {
+                            tbody.append(tr);
+                        }
+                    }
+                });
+                table.append(thead);
+                table.append(tbody);
+                row.append(table);
+            }
+        } else if (entry['kind'] == 'lineplot') {
+            var data = [];
+            var xlabel = entry['data']['x'].shift();
+            var y1label = '', y2label = '';
+            $.each(entry['data']['y1'], function(l, line) {
+                y1label = line.shift();
+                if (entry['data']['y2']) {
+                    y2label = entry['data']['y2'][l].shift();
+                    data.push({'label': "", 'x': entry['data']['x'], 'y1': line, 'y2': entry['data']['y2'][l]});
+                } else {
+                    data.push({'label': y1label, 'x': entry['data']['x'], 'y1': line});
+                }
+            });
+            var width = row.width();
+            y1label = entry['data']['y1-label'] || y1label;
+            y2label = entry['data']['y2-label'] || y2label;
+            var xy_chart = draw_xy_chart()
+                .width(width)
+                .height(500)
+                .xlabel(xlabel)
+                .y1label(y1label)
+                .y2label(y2label) ;
+            var svg = d3.select('#row-'+i).append("svg").attr('id','plot-' + i + "-" + j)
+                .datum(data)
+                .call(xy_chart) ;
+        }
+        if (entry['data'] && entry['description']) {
+            row.append("<div class='caption'>"+entry['description']+"</div>");
+        }
+    });
+});
+
+</script>

@@ -1,4 +1,4 @@
-from models import Runlist, UserList, Link
+from models import UserList, Link
 from django import forms
 from django.conf import settings
 from django.forms import widgets
@@ -12,61 +12,6 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, HTML, Div, Field, Button
 from crispy_forms.bootstrap import Accordion, AccordionGroup, Tab, TabHolder, PrependedText, InlineField
 from crispy_forms.bootstrap import StrictButton, FormActions
-
-# class DewarForm(objforms.forms.OrderedForm):
-#     comments = objforms.widgets.CommentField(required=False)
-#     storage_location = objforms.widgets.CommentField(required=False)
-#
-#     class Meta:
-#         model = Dewar
-#         fields = ('comments', 'storage_location')
-#
-
-# class DewarReceiveForm(objforms.forms.OrderedForm):
-#     """ Form used to receive a Dewar, based on the Dewar upc code """
-#     barcode = objforms.widgets.BarCodeReturnField(required=True,
-#                                                   help_text='Please scan in the dewar barcode or type it in.')
-#     storage_location = objforms.widgets.LargeCharField(required=True,
-#                                                        help_text='Please briefly describe where the dewar will be stored.')
-#     staff_comments = objforms.widgets.CommentField(required=False)
-#
-#     class Meta:
-#         model = Dewar
-#         fields = ('barcode', 'storage_location', 'staff_comments')
-#
-#     def __init__(self, *args, **kwargs):
-#         super(DewarReceiveForm, self).__init__(*args, **kwargs)
-#
-#     def clean(self):
-#         cleaned_data = self.cleaned_data
-#         barcode = cleaned_data.get("barcode", "")
-#         bc_match = re.match("[A-Z]{2,3}(?P<dewar_id>\d{4})-(?P<shipment_id>\d{4})", barcode)
-#
-#         if bc_match:
-#             dewar_id = int(bc_match.group('dewar_id'))
-#             shipment_id = int(bc_match.group('shipment_id'))
-#             try:
-#                 instance = Dewar.objects.filter(shipment__id__exact=shipment_id).get(pk=dewar_id)
-#                 if instance.status != Dewar.STATES.SENT:
-#                     self._errors['barcode'] = self._errors.get('barcode', ErrorList())
-#                     self._errors['barcode'].append('This dewar can not be received.')
-#                     raise forms.ValidationError('Dewar already received.')
-#                 if instance.barcode() != barcode:
-#                     self._errors['barcode'] = self._errors.get('barcode', ErrorList())
-#                     self._errors['barcode'].append('Barcode Mismatch.')
-#                     raise forms.ValidationError('Incorrect barcode.')
-#                 self.instance = instance
-#             except Dewar.DoesNotExist:
-#                 self._errors['barcode'] = self._errors.get('barcode', ErrorList())
-#                 self._errors['barcode'].append('Incorrect barcode.')
-#                 raise forms.ValidationError(
-#                     'No Dewar found with matching tracking code. Did you scan the correct dewar?')
-#         else:
-#             if barcode != "":
-#                 self._errors['barcode'] = self._errors.get('barcode', ErrorList())
-#                 self._errors['barcode'].append('Invalid barcode format.')
-#             raise forms.ValidationError('Invalid barcode. Please scan in the correct barcode.')
-#         return cleaned_data
 
 
 class ShipmentReturnForm(objforms.forms.OrderedForm):
@@ -108,29 +53,6 @@ class ShipmentReturnForm(objforms.forms.OrderedForm):
     def restrict_by(self, field_name, value):
         pass
 
-
-class RunlistForm(objforms.forms.OrderedForm):
-    """ Form used to create a Runlist """
-    name = objforms.widgets.LargeCharField(required=True)
-    beamline = forms.ModelChoiceField(
-        queryset=Beamline.objects.all(),
-        widget=objforms.widgets.LargeSelect,
-        required=True
-    )
-    comments = objforms.widgets.CommentField(required=False)
-
-    class Meta:
-        model = Runlist
-        fields = ('name', 'beamline', 'comments')  # , 'experiments', 'containers')
-
-
-class RunlistEmptyForm(objforms.forms.OrderedForm):
-    """ Form used to load/complete a Runlist """
-    name = forms.CharField(widget=widgets.HiddenInput)
-
-    class Meta:
-        model = Runlist
-        fields = ('name',)
 
 
 class LinkForm(objforms.forms.OrderedForm):
@@ -193,14 +115,3 @@ class StaffCommentsForm(objforms.forms.OrderedForm):
     class Meta:
         model = Project
         fields = ('staff_comments',)
-
-
-
-
-class RunlistCommentsForm(objforms.forms.OrderedForm):
-    comments = objforms.widgets.CommentField(required=False,
-                                             help_text="Comments entered here will be visible on the user's MxLIVE account. You can use Restructured Text markup for formatting.")
-
-    class Meta:
-        model = Project
-        fields = ('comments',)

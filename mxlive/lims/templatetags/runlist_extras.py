@@ -2,7 +2,7 @@
 from django.db.models import *
 from django.template import Library
 from lims.models import Container, Group, Sample
-from staff.models import Runlist, Adaptor
+
 
 register = Library()
 

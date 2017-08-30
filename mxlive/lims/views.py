@@ -332,11 +332,7 @@ class SendShipment(ShipmentEdit):
     form_class = forms.ShipmentSendForm
 
     def form_valid(self, form):
-        obj = form.instance
-        if form.instance.status == models.Shipment.STATES.DRAFT:
-            obj.status = models.Shipment.STATES.SENT
-            obj.date_shipped = datetime.now()
-            obj.save()
+        form.instance.send()
         return super(SendShipment, self).form_valid(form)
 
 
@@ -344,11 +340,7 @@ class ReturnShipment(ShipmentEdit):
     form_class = forms.ShipmentReturnForm
 
     def form_valid(self, form):
-        obj = form.instance
-        if form.instance.status == models.Shipment.STATES.ON_SITE:
-            obj.status = models.Shipment.STATES.RETURNED
-            obj.date_returned = datetime.now()
-            obj.save()
+        obj = form.instance.returned()
         return super(ReturnShipment, self).form_valid(form)
 
 

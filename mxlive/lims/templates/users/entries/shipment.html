@@ -86,10 +86,12 @@
     <div class="clear"></div>
     <div class="col-sm-7 col-xs-12">
         <span class="box-tools box-tools-inline pull-left">
+            {% if object.status == object.STATES.DRAFT %}
             <a class="pull-left" data-url="{% url "shipment-add-containers" object.pk %}">
                 <i class="fa fa-2 fa-fw fa-plus"></i><br>
                 <span class="tool-label">Add</span>
             </a>
+            {% else %}<span class="text-muted"><i class="fa fa-3 fa-lock"></i></span>{% endif %}
         </span>
         <h3><strong>{{ shipment.container_set.count }}</strong> Containers</h3>
         <hr />
@@ -111,10 +113,11 @@
 
     <div class="col-sm-5 col-xs-12">
         <span class="box-tools box-tools-inline pull-left">
-            <a class="pull-left" data-url="{% url "shipment-add-groups" object.pk %}">
+            {% if object.status ==  object.STATES.DRAFT %}<a class="pull-left" data-url="{% url "shipment-add-groups" object.pk %}">
                 <i class="fa fa-2 fa-fw fa-plus"></i><br>
                 <span class="tool-label">Add</span>
             </a>
+            {% else %}<span class="text-muted"><i class="fa fa-3 fa-lock"></i></span>{% endif %}
         </span>
         <h3><strong>{{ shipment.group_set.count }}</strong> Groups</h3>
         <hr />

@@ -318,10 +318,10 @@ class ShipmentRecallSendForm(forms.ModelForm):
         fields = ['carrier','tracking_code','comments']
 
     def __init__(self, *args, **kwargs):
-        super(ShipmentRecallForm, self).__init__(*args, **kwargs)
+        super(ShipmentRecallSendForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.title = u"Update Shipping Information"
-        self.helper.form_action = reverse_lazy('shipment-recall', kwargs={'pk': self.instance.pk})
+        self.helper.form_action = reverse_lazy('shipment-update-send', kwargs={'pk': self.instance.pk})
         self.helper.layout = Layout(
             Div(
                 Div(Field('carrier', css_class="chosen"), css_class="col-xs-6"),
@@ -344,10 +344,10 @@ class ShipmentRecallReturnForm(forms.ModelForm):
         fields = ['carrier','return_code','staff_comments']
 
     def __init__(self, *args, **kwargs):
-        super(ShipmentRecallForm, self).__init__(*args, **kwargs)
+        super(ShipmentRecallReturnForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.title = u"Update Shipping Information"
-        self.helper.form_action = reverse_lazy('shipment-recall', kwargs={'pk': self.instance.pk})
+        self.helper.form_action = reverse_lazy('shipment-update-return', kwargs={'pk': self.instance.pk})
         self.helper.layout = Layout(
             Div(
                 Div(Field('carrier', css_class="chosen"), css_class="col-xs-6"),
