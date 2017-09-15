@@ -51,6 +51,7 @@ GLOBAL_STATES = Choices(
 
 class Beamline(models.Model):
     name = models.CharField(max_length=600)
+    acronym = models.CharField(max_length=50)
     energy_lo = models.FloatField(default=4.0)
     energy_hi = models.FloatField(default=18.5)
     contact_phone = models.CharField(max_length=60)
@@ -92,7 +93,8 @@ class Project(AbstractUser):
     contact_phone = models.CharField(max_length=60, blank=True, null=True)
     contact_fax = models.CharField(max_length=60, blank=True, null=True)
     organisation = models.CharField(max_length=600, blank=True, null=True)
-    show_archives = models.BooleanField(default=False)    
+    show_archives = models.BooleanField(default=False)
+    key = models.CharField(max_length=100, blank=True, null=True)
 
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified', auto_now=True, editable=False)
@@ -135,11 +137,21 @@ class Project(AbstractUser):
 
 
 class Session(models.Model):
+    name = models.CharField(max_length=100)
     project = models.ForeignKey(Project)
     beamline = models.ForeignKey(Beamline)
-    start_time = models.DateTimeField(null=False, blank=False)
-    end_time = models.DateTimeField(null=False, blank=False)
     comments = models.TextField()
+
+    def launch(self):
+        self.stretches.filter(end_time__isnull=True).update(end_time=datetime.now())
+        stretch = Stretch.objects.create(session=self, start_time=datetime.now())
+        return stretch
+
+
+class Stretch(models.Model):
+    start_time = models.DateTimeField(null=False, blank=False)
+    end_time = models.DateTimeField(null=True, blank=True)
+    session = models.ForeignKey(Session, related_name='stretches')
 
 
 class LimsBaseClass(models.Model):
@@ -157,7 +169,7 @@ class LimsBaseClass(models.Model):
         STATES.SENT: [STATES.ON_SITE, STATES.DRAFT],
         STATES.ON_SITE: [STATES.RETURNED],
         STATES.LOADED: [STATES.ON_SITE],
-        STATES.RETURNED: [STATES.ARCHIVED],
+        STATES.RETURNED: [STATES.ARCHIVED, STATES.ON_SITE],
         STATES.ACTIVE: [STATES.PROCESSING, STATES.COMPLETE, STATES.REVIEWED, STATES.ARCHIVED],
         STATES.PROCESSING: [STATES.COMPLETE, STATES.REVIEWED, STATES.ARCHIVED],
         STATES.COMPLETE: [STATES.ACTIVE, STATES.PROCESSING, STATES.REVIEWED, STATES.ARCHIVED],
@@ -186,59 +198,35 @@ class LimsBaseClass(models.Model):
         return self.status == self.STATES.RETURNED 
 
     def delete(self, request=None):
-        message = '{} deleted'.format(self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.DELETE, message)
         super(LimsBaseClass, self).delete()
 
     def archive(self, request=None):
         if self.is_closable():
             self.change_status(self.STATES.ARCHIVED)
-            message = '{} archived'.format(self._meta.verbose_name)
-            if request is not None:
-                ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.ARCHIVE, message)
 
     def send(self, request=None):
         self.change_status(self.STATES.SENT)
-        message = '{} sent'.format(self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def unsend(self, request=None):
         self.change_status(self.STATES.DRAFT)
-        message = '{} recalled'.format(self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
+
+    def unreturn(self, request=None):
+        self.change_status(self.STATES.ON_SITE)
 
     def receive(self, request=None):
         self.change_status(self.STATES.ON_SITE) 
-        message = '{} received on-site'.format(self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def load(self, request=None):
         self.change_status(self.STATES.LOADED)    
-        message = '{} loaded in automounter'.format(self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def unload(self, request=None):
         self.change_status(self.STATES.ON_SITE)   
-        message = '{} unloaded from automounter'.format(self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def returned(self, request=None):
         self.change_status(self.STATES.RETURNED)     
-        message = '{} returned to user'.format(self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def trash(self, request=None):
         self.change_status(self.STATES.TRASHED)     
-        message = '{} sent to trash'.format(self._meta.verbose_name)
-        if request is not None:
-            ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.MODIFY, message)
 
     def change_status(self, status):
         if status == self.status:
@@ -301,6 +289,7 @@ class DataBaseClass(LimsBaseClass):
     TRANSITIONS[LimsBaseClass.STATES.ARCHIVED] = [LimsBaseClass.STATES.TRASHED]
 
     status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.ACTIVE)
+    session = models.ForeignKey(Session, null=True)
 
     def is_closable(self):
         return self.status not in [LimsBaseClass.STATES.ARCHIVED, LimsBaseClass.STATES.TRASHED]
@@ -449,6 +438,14 @@ class Shipment(ObjectBaseClass):
                 obj.unsend()
             self.group_set.all().update(status=Group.STATES.DRAFT)
 
+    def unreturn(self, request=None):
+        if self.status == self.STATES.RETURNED:
+            self.date_shipped = None
+            self.status = self.STATES.ON_SITE
+            self.save()
+            for obj in self.container_set.all():
+                obj.unreturn()
+
     def returned(self, request=None):
         if self.is_returnable():
             self.date_returned = timezone.now()
@@ -463,21 +460,16 @@ class Shipment(ObjectBaseClass):
         super(Shipment, self).archive(request=request)
 
 
-class Component(ObjectBaseClass):
-    HELP = {
-        'label': 'If this box is checked, an additional label for this item will be printed along with dewar labels.',
-        'name': 'Components can be hard drives, tools, or any other items you are including in your shipment.'
-    }
-    shipment = models.ForeignKey(Shipment)
-    description = models.CharField(max_length=100)
-    label = models.BooleanField()
-    
-    def identity(self):
-        return 'CM%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-    
-    def barcode(self):
-        return "CM%04d-%04d" % (self.id, self.shipment.id)
+class ComponentType(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __unicode__(self):
+        return self.name
+
+
+class Component(models.Model):
+    shipment = models.ForeignKey(Shipment, related_name="components")
+    kind = models.ForeignKey(ComponentType)
 
 
 class ContainerType(models.Model):
@@ -637,6 +629,15 @@ class Dewar(models.Model):
         return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
 
+    def json_dict(self):
+        return {
+            'project_id': self.project.pk,
+            'id': self.pk,
+            'name': self.beamline.name,
+            'comments': self.staff_comments,
+            'container': [container.pk for container in self.children.all()]
+        }
+
 
 class SpaceGroup(models.Model):
     CS_CHOICES = (
@@ -713,6 +714,7 @@ class Group(LimsBaseClass):
         unique_together = (
             ("project", "name", "shipment"),
         )
+        ordering = ['priority']
 
     def identity(self):
         return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))    
@@ -782,15 +784,9 @@ class Group(LimsBaseClass):
             'id': self.pk,
             'name': self.name,
             'plan': Group.EXP_PLANS[self.plan],
-            'r_meas': self.r_meas,
-            'i_sigma': self.i_sigma,
             'absorption_edge': self.absorption_edge,
             'energy': self.energy,
             'type': Group.EXP_TYPES[self.kind],
-            'resolution': self.resolution,
-            'delta_angle': self.delta_angle,
-            'total_angle': self.total_angle,
-            'multiplicity': self.multiplicity,
             'comments': self.comments,
             'samples': [sample.pk for sample in self.sample_set.filter(Q(collect_status__exact=False))],
             'best_sample': self.best_sample()
@@ -804,15 +800,12 @@ class Sample(LimsBaseClass):
         'cascade_help': 'All associated datasets and results will be left without a sample',
         'name': "Avoid using spaces or special characters in sample names",
         'barcode': "If there is a datamatrix code on sample, please scan or input the value here",
-        'pin_length': "18mm pins are standard. Discuss with staff before sending samples with other pin lengths!",
         'comments': 'You can use restructured text formatting in this field',
         'container_location': 'This field is required only if a container has been selected',
         'group': 'This field is optional here.  Samples can also be added to a group on the groups page.',
         'container': 'This field is optional here.  Samples can also be added to a container on the containers page.',
     }
     barcode = models.SlugField(null=True, blank=True)
-    pin_length = models.IntegerField(default=18)
-    loop_size = models.FloatField(null=True, blank=True)
     container = models.ForeignKey(Container, null=True, blank=True)
     container_location = models.CharField(max_length=10, null=True, blank=True, verbose_name='port')
     comments = models.TextField(blank=True, null=True)
@@ -874,12 +867,12 @@ class Sample(LimsBaseClass):
         result = Result.objects.filter(sample__exact=self)
         scan = ScanResult.objects.filter(sample__exact=self)
         types = [Data.DATA_TYPES, Result.RESULT_TYPES, ScanResult.SCAN_TYPES]
-        for i, set in enumerate([data, result, scan]):
-            if set.exists():
-                s0 = set.filter(kind=0).count() and '%i %s' % (set.filter(kind=0).count(), types[i][0]) or ''
-                s1 = set.filter(kind=1).count() and '%i %s' % (set.filter(kind=1).count(), types[i][1]) or ''
+        for i, st in enumerate([data, result, scan]):
+            if st.exists():
+                s0 = st.filter(kind=0).count() and '%i %s' % (st.filter(kind=0).count(), types[i][0]) or ''
+                s1 = st.filter(kind=1).count() and '%i %s' % (st.filter(kind=1).count(), types[i][1]) or ''
                 if s1 or s0:
-                    msg += '%s%s%s %s<br>' % (s0, (s0 and s1) and '/' or '', s1, set[0].__class__.__name__)
+                    msg += '%s%s%s %s<br>' % (s0, (s0 and s1) and '/' or '', s1, st[0].__class__.__name__)
         return msg
 
     def is_editable(self):
@@ -903,20 +896,16 @@ class Sample(LimsBaseClass):
             super(Sample, self).delete(request=request)
 
     def json_dict(self):
-        if self.group is not None:
-            exp_id = self.group.pk
-        else:
-            exp_id = None
         return {
-            'project_id': self.project.pk,
-            'container_id': self.container.pk,
-            'group_id': exp_id,
+            'container': self.container.name,
+            'container_type': self.container.kind.name,
+            'group': self.group.name,
             'id': self.pk,
             'name': self.name,
             'barcode': self.barcode,
             'priority': self.priority if self.priority else 1,
-            'container_location': self.container_location,
-            'comments': self.comments
+            'comments': self.comments,
+            'port': '{}{}{}'.format(self.container.parent and self.container.parent.location or "", self.container.location, self.container_location),
         }
 
 
@@ -959,6 +948,10 @@ class Data(DataBaseClass):
 
     objects = DataManager()
 
+    def identity(self):
+        return 'DA%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
+
     # need a method to determine how many frames are in item
     def num_frames(self):
         return len(self.get_frame_list())          
@@ -982,6 +975,11 @@ class Data(DataBaseClass):
     def score_label(self):
         if len(self.result_set.all()) is 1:
             return self.result_set.all()[0].score
+        return False
+
+    def report(self):
+        if self.analysisreport_set.count() is 1:
+            return self.analysisreport_set.first()
         return False
 
     def result(self):
@@ -1037,9 +1035,8 @@ class AnalysisReport(DataBaseClass):
     sample = models.ForeignKey(Sample, null=True, blank=True)
     score = models.FloatField()
     data = models.ForeignKey(Data)
-    result = models.ForeignKey('Result')
+    result = models.ForeignKey('Result', related_name="reports")
     details = JSONField()
-
 
     class Meta:
         ordering = ['-score']
@@ -1176,13 +1173,14 @@ class ScanResult(DataBaseClass):
 class ActivityLogManager(models.Manager):
     def log_activity(self, request, obj, action_type, description=''):
         e = self.model()
+        print request
         if obj is None:
             try:
-                project = request.user.get_profile()
+                project = request.user
                 e.project_id = project.pk
             except Project.DoesNotExist:
                 pass
-                
+
         else:
             if getattr(obj, 'project', None) is not None:
                 e.project_id = obj.project.pk
@@ -1198,11 +1196,7 @@ class ActivityLogManager(models.Manager):
             e.user = request.user
             e.user_description = request.user.username
         except:
-            # use api_user if available in request
-            if getattr(request, 'api_user') is not None:
-                e.user_description = request.api_user.client_name
-            else:
-                e.user_description = "System"
+            e.user_description = "System"
         e.ip_number = request.META['REMOTE_ADDR']
         e.action_type = action_type
         e.description = description

@@ -80,26 +80,30 @@
             });
     }
 
-    function drawChild(name, svg, csize, coords, cnodes, clabels, cradius, cenvelope, parent, location) {
+    function drawChild(svg, info) {
         var svgLocation = svg.append("svg")
-            .attr("width", csize)
-            .attr("height", csize)
-            .attr("x", coords[0])
-            .attr("y", coords[1])
-            .attr('id', 'id-'+parent+'-'+location);
-        drawLocations(parent, cnodes, clabels, cradius, svgLocation);
-        var svgLocationEnvelope = svgLocation.append(cenvelope)
-            .attr('id', 'envelope' + '-' + parent + '-' + location)
-            .attr("width", csize)
-            .attr("height", csize)
+            .attr("width", info.size.width)
+            .attr("height", info.size.width)
+            .attr("x", info.coords[0])
+            .attr("y", info.coords[1])
+            .attr('id', 'id-'+info.parent+'-'+info.location);
+        drawLocations(info.parent, info.nodes, info.labels, info.radius, svgLocation);
+        var svgLocationEnvelope = svgLocation.append(info.envelope)
+            .attr('id', 'envelope' + '-' + info.parent + '-' + info.location)
+            .attr("width", info.size.width)
+            .attr("height", info.size.width)
             .attr("cx", "50%")
             .attr("cy", "50%")
             .attr("r", '50%')
-            .attr("title", name)
-            .style("pointer-events", "all")
+            .attr("title", info.name)
+            .style("pointer-events", function() { for(i=0;i<info.nodes.length;i++) {
+                    if(info.nodes[i]['accepts']) {
+                        return "none";
+                    }
+                }; return "all";})
             .style("stroke", function () {
-                if (cenvelope == 'circle') {
-                    return "#333";
+                if (info.envelope == 'circle') {
+                    return "#bbb";
                 }
                 return "none";
             })
@@ -124,10 +128,11 @@
                                     .attr("cx", "50%")
                                     .attr("cy", "50%")
                                     .attr("r", '50%')
-                                    .style("stroke", {% if kind.envelope == 'circle' %}"#333"{% else %}"none"{% endif %})
+                                    .style("stroke", {% if kind.envelope == 'circle' %}"#bbb"{% else %}"none"{% endif %})
                                     .style("fill", "none");
 
         {% for child in object|get_children %}
+
             var child_locations = {{ child.kind.layout|kind_json:child.pk }};
             var child_envelope = '{{ child.kind.envelope }}';
             var child_size = d3.select('#id-{{ child.parent.pk }}-{{child.location }}').node().getBBox();
@@ -142,8 +147,19 @@
                 var cy = size * container_height * {{ cc.1 }} - child_size.height / 2;
             {% endwith %}
 
-            var svgChild = drawChild("{{ child.project.username|upper }} | {{ child.name }}", svgContainer, child_size.width, [cx, cy], child_nodes,
-                child_labels, {{ child.kind.layout.radius }}, child_envelope, "{{ child.parent.pk }}-{{ child.pk }}", "{{ child.location }}");
+            var child_info = {
+                'nodes': child_nodes,
+                'envelope': '{{ child.kind.envelope }}',
+                'size': child_size,
+                'labels': child_labels,
+                'radius': {{ child.kind.layout.radius }},
+                'name': "{{ child.project.username|upper }} | {{ child.name }}",
+                'coords': [cx, cy],
+                'location': "{{ child.location }}",
+                'parent': "{{ child.parent.pk }}-{{ child.pk }}",
+            };
+
+            var svgChild = drawChild(svgContainer, child_info);
 
             {% for grandchild in child.pk|get_children %}
                 var grand_locations = {{ grandchild.kind.layout|kind_json:grandchild.pk }};
@@ -156,8 +172,19 @@
                     var gy = child_size.height * {{ cc.1 }} - grand_size.height / 2;
                 {% endwith %}
 
-                drawChild("{{ grandchild.project.username|upper }} | {{ grandchild.name }}", svgChild, grand_size.width, [gx, gy], grand_nodes, [], {{ grandchild.kind.layout.radius }},
-                                         grand_envelope, {{ child.pk }}, "{{ grandchild.location }}");
+                var grandchild_info = {
+                    'nodes': grand_nodes,
+                    'envelope': '{{ grandchild.kind.envelope }}',
+                    'size': grand_size,
+                    'labels': [],
+                    'radius': {{ grandchild.kind.layout.radius }},
+                    'name': "{{ grandchild.project.username|upper }} | {{ grandchild.name }}",
+                    'coords': [gx, gy],
+                    'location': "{{ grandchild.location }}",
+                    'parent': "{{ child.pk }}",
+                };
+
+                drawChild(svgChild, grandchild_info);
 
             {% endfor %}
         {% endfor %}

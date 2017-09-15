@@ -22,8 +22,10 @@ urlpatterns = [
 
     url(r'^login/$',  login_view, {'template_name': 'login.html'}),
     url(r'^logout/$', logout_view, name='mxlive-logout'),
-    url(r'^api/', include('remote.urls')),
+    url(r'^api/v2/', include('remote.urls')),
 ]
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:       
     urlpatterns += staticfiles_urlpatterns()

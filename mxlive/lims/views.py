@@ -39,12 +39,6 @@ class AjaxableResponseMixin(object):
     Mixin to add AJAX support to a form.
     Must be used with an object-based FormView (e.g. CreateView)
     """
-    def form_invalid(self, form):
-        response = super(AjaxableResponseMixin, self).form_invalid(form)
-        if self.request.is_ajax():
-            return JsonResponse(form.errors, status=400)
-        else:
-            return response
 
     def form_valid(self, form):
         # We make sure to call the parent's form_valid() method because
@@ -60,129 +54,56 @@ class AjaxableResponseMixin(object):
             return response
 
 
-
-
-from django.http import HttpResponse
-from reportlab.pdfgen import canvas
-
 from django.template.loader import get_template
-from django.template import TemplateDoesNotExist, Context
-from django.http import HttpResponse, Http404, HttpResponseNotModified
-from django.core.cache import cache
+from django.http import HttpResponse
 from django.conf import settings
 
 from tempfile import mkdtemp
 import subprocess
 import os
 import shutil
-from hashlib import md5
 
 TEMP_PREFIX = getattr(settings, 'TEX_TEMP_PREFIX', 'render_tex-')
 CACHE_PREFIX = getattr(settings, 'TEX_CACHE_PREFIX', 'render-tex')
-CACHE_TIMEOUT = getattr(settings, 'TEX_CACHE_TIMEOUT', 86400)  # 1 day
+CACHE_TIMEOUT = getattr(settings, 'TEX_CACHE_TIMEOUT', 30), # 86400)  # 1 day
 
 
-class LaTeXResponseMixin(TemplateResponseMixin):
-    template_name = ""
-    def render_to_response(self, ctx, **kwargs):
+class Tex2PdfMixin(object):
 
-        doc = self.template_name.rsplit('/', 1)[-1].rsplit('.', 1)[0]
+    def get_template_name(self):
+        return "users/base.html"
 
+    def get(self, request, *args, **kwargs):
+        object = self.get_object()
+        context = self.get_template_context()
+        template = get_template(self.get_template_name())
+
+        rendered_tpl = template.render(context).encode('utf-8')
+
+        tmp = mkdtemp(prefix=TEMP_PREFIX)
+        tex_file = os.path.join(tmp, '%s.tex' % object.name)
+        f = open(tex_file, 'w')
+        f.write(rendered_tpl)
+        f.close()
         try:
-            body = get_template(self.template_name).render(ctx).encode("utf-8")
-        except TemplateDoesNotExist:
-            raise Http404()
+            FNULL = open(os.devnull, 'w')
+            process = subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], cwd=tmp, stdout=FNULL, stderr=subprocess.STDOUT)
 
-        etag = md5(body).hexdigest()
-        if self.request.META.get('HTTP_IF_NONE_MATCH', '') == etag:
-            return HttpResponseNotModified()
-
-        cache_key = "%s:%s:%s" % (CACHE_PREFIX, self.template_name, etag)
-        pdf = cache.get(cache_key)
-        if pdf is None:
-            if '\\nonstopmode' not in body:
-                raise ValueError("\\nonstopmode not present in document, cowardly refusing to process.")
-
-            tmp = mkdtemp(prefix=TEMP_PREFIX)
             try:
-                with open("%s/%s.tex" % (tmp, doc), "w") as f:
-                    f.write(body)
-                del body
+                pdf = open("%s/%s.pdf" % (tmp, object.name))
+            except:
+                if request.user.is_superuser:
+                    log = open("%s/%s.log" % (tmp, object.name)).read()
+                    return HttpResponse(log, "text/plain")
+                else:
+                    raise RuntimeError("xelatex error (code %s) in %s/%s" % (process, tmp, object.name))
 
-                error = subprocess.Popen(
-                    ["pdflatex", "%s.tex" % doc],
-                    cwd=tmp,
-                    stdin=open(os.devnull, "r"),
-                    stderr=open(os.devnull, "wb"),
-                    stdout=open(os.devnull, "wb")
-                ).wait()
+        finally:
+            shutil.rmtree(tmp)
 
-                if error:
-                    if request.user.is_superuser:
-                        log = open("%s/%s.log" % (tmp, doc)).read()
-                        return HttpResponse(log, mimetype="text/plain")
-                    else:
-                        raise RuntimeError("pdflatex error (code %s) in %s/%s" % (error, tmp, doc))
-
-                pdf = open("%s/%s.pdf" % (tmp, doc))
-            finally:
-                shutil.rmtree(tmp)
-
-            if pdf:
-                cache.set(cache_key, pdf, CACHE_TIMEOUT)
-
-        res = HttpResponse(pdf, mimetype="application/pdf")
-        res['ETag'] = etag
+        res = HttpResponse(pdf, "application/pdf")
 
         return res
-
-
-class PDFResponseMixin(TemplateResponseMixin):
-    """
-    Mixin for Django class based views.
-    Switch normal and pdf template based on request.
-
-    The switch is made when the request has a particular querydict, per
-    class attributes, `pdf_querydict_keys` and `pdf_querydict_value`
-    example:
-
-        http://www.example.com?[pdf_querydict_key]=[pdf_querydict_value]
-
-    Example with values::
-
-        http://www.example.com?format=pdf
-
-    Simplified version of snippet here:
-    http://djangosnippets.org/snippets/2540/
-    """
-    pdf_querydict_key = 'format'
-    pdf_querydict_value = 'pdf'
-
-    def is_pdf(self):
-        value = self.request.GET.get(self.pdf_querydict_key, '')
-        return True
-        return value.lower() == self.pdf_querydict_value.lower()
-
-    def get_pdf_response(self, context, **response_kwargs):
-
-        response = HttpResponse(content_type='application/pdf')
-        # uncomment to toggle: downloading | display (moz browser)
-        # response['Content-Disposition'] = 'attachment; filename="myfilename.pdf"'
-
-        c = canvas.Canvas(response)
-        c.drawString(100, 600, self.get_object().name)
-        c.showPage
-        c.save()
-        return response
-
-    def render_to_response(self, context, **response_kwargs):
-        if self.is_pdf():
-            from django.conf import settings
-            context['STATIC_ROOT'] = settings.STATIC_ROOT
-            return self.get_pdf_response(context, **response_kwargs)
-        #context[self.pdf_url_varname] = self.get_pdf_url()
-        return super(PDFResponseMixin, self).render_to_response(
-            context, **response_kwargs)
 
 
 class BeamlineDetail(AdminRequiredMixin, detail.DetailView):
@@ -211,21 +132,22 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(ProjectDetail, self).get_context_data(**kwargs)
+
         if self.request.user.is_superuser:
             all = models.Shipment.objects.filter(status__in=[models.Shipment.STATES.ON_SITE,models.Shipment.STATES.SENT])
             context['shipments'] = all.order_by('status','-modified')
             context['automounters'] = models.Dewar.objects.filter(active=True).order_by('beamline__name')
+
         else:
-            month = datetime.now() - timedelta(days=30)
             all = self.get_object().shipment_set.filter(status__lt=models.Shipment.STATES.ARCHIVED).order_by('modified')
-            base_set = all.filter(Q(status__in=[models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT]) | Q(
-                modified__gte=month)).distinct()
+            base_set = all.filter(status__lte=models.Shipment.STATES.ON_SITE).distinct()
             if base_set.count() < 7:
                 pks = [s.pk for s in list(
-                    chain(base_set, list(all.exclude(pk__in=base_set.values_list('pk')))[0:10 - base_set.count()]))]
+                    chain(base_set, list(all.exclude(pk__in=base_set.values_list('pk')))[0:7 - base_set.count()]))]
             else:
                 pks = base_set.values_list('pk')
             context['shipments'] = all.filter(pk__in=pks).order_by('status', '-modified')
+
         return context
 
 
@@ -265,7 +187,7 @@ class ListViewMixin(LoginRequiredMixin):
 class DetailListMixin(OwnerRequiredMixin):
     add_url = None
     list_filter = []
-    paginate_by = None
+    paginate_by = 25
 
     def get_context_data(self, **kwargs):
         c = super(DetailListMixin, self).get_context_data(**kwargs)
@@ -299,8 +221,24 @@ class ShipmentDetail(OwnerRequiredMixin, detail.DetailView):
     template_name = "users/entries/shipment.html"
 
 
-class ShipmentLabels(LaTeXResponseMixin, ShipmentDetail):
+class ShipmentLabels(Tex2PdfMixin, ShipmentDetail):
     template_name = "users/labels-send.html"
+
+    def get_template_name(self):
+        if self.request.user.is_superuser:
+            template = 'users/tex/return_labels.tex'
+        else:
+            template = 'users/tex/send_labels.tex'
+        return template
+
+    def get_template_context(self):
+        object = self.get_object()
+        context = {
+            'project': object.project,
+            'shipment': object,
+            'admin_project': models.Project.objects.filter(is_superuser=True).first()
+        }
+        return context
 
 
 class ShipmentEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
@@ -325,14 +263,28 @@ class ShipmentDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMi
     def delete(self, request, *args, **kwargs):
         super(ShipmentDelete, self).delete(request, *args, **kwargs)
         success_url = self.get_success_url()
+        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE, self.success_message)
         return JsonResponse({'url': success_url})
 
 
 class SendShipment(ShipmentEdit):
     form_class = forms.ShipmentSendForm
 
+    def get_initial(self):
+        initial = super(SendShipment, self).get_initial()
+        initial['components'] = models.ComponentType.objects.filter(pk__in=self.object.components.values_list('kind__pk'))
+        return initial
+
     def form_valid(self, form):
+        components = form.cleaned_data.get('components', [])
+        models.Component.objects.filter(
+            pk__in=self.object.components.exclude(kind__in=components).values_list('pk')).delete()
+        for component in components.exclude(pk__in=self.object.components.values_list('kind__pk')):
+            models.Component.objects.create(shipment=self.object, kind=component)
+
         form.instance.send()
+        message = "Shipment sent"
+        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.MODIFY, message)
         return super(SendShipment, self).form_valid(form)
 
 
@@ -341,18 +293,33 @@ class ReturnShipment(ShipmentEdit):
 
     def form_valid(self, form):
         obj = form.instance.returned()
+        message = "Shipment returned"
+        models.ActivityLog.objects.log_activity(self.request, obj, models.ActivityLog.TYPE.MODIFY, message)
         return super(ReturnShipment, self).form_valid(form)
 
 
 class RecallSendShipment(ShipmentEdit):
     form_class = forms.ShipmentRecallSendForm
 
+    def get_initial(self):
+        initial = super(RecallSendShipment, self).get_initial()
+        initial['components'] = models.ComponentType.objects.filter(pk__in=self.object.components.values_list('kind__pk'))
+        return initial
+
     def form_valid(self, form):
+        components = form.cleaned_data.get('components', [])
+        models.Component.objects.filter(
+            pk__in=self.object.components.exclude(kind__in=components).values_list('pk')).delete()
+        for component in components.exclude(pk__in=self.object.components.values_list('kind__pk')):
+            models.Component.objects.create(shipment=self.object, kind=component)
+
         obj = form.instance
         if form.data.get('submit') == 'Recall':
             obj.unsend()
-
+            message = "Shipping recalled"
+            models.ActivityLog.objects.log_activity(self.request, obj, models.ActivityLog.TYPE.MODIFY, message)
         return super(RecallSendShipment, self).form_valid(form)
+
 
 
 class RecallReturnShipment(ShipmentEdit):
@@ -361,9 +328,9 @@ class RecallReturnShipment(ShipmentEdit):
     def form_valid(self, form):
         obj = form.instance
         if form.data.get('submit') == 'Recall':
-            obj.date_shipped = None
-            obj.status = obj.STATES.ON_SITE
-            obj.save()
+            obj.unreturn()
+            message = "Shipping recalled by staff"
+            models.ActivityLog.objects.log_activity(self.request, obj, models.ActivityLog.TYPE.MODIFY, message)
         return super(RecallReturnShipment, self).form_valid(form)
 
 
@@ -380,9 +347,9 @@ class ReceiveShipment(ShipmentEdit):
 
     def form_valid(self, form):
         obj = form.instance
-        obj.date_received = datetime.now()
-        obj.save()
         obj.receive()
+        message = "Shipment received on-site"
+        models.ActivityLog.objects.log_activity(self.request, obj, models.ActivityLog.TYPE.MODIFY, message)
         return super(ReceiveShipment, self).form_valid(form)
 
 
@@ -394,7 +361,6 @@ class SampleList(ListViewMixin, FilteredListView):
     detail_url = 'sample-detail'
     detail_ajax = True
     detail_target = '#modal-form'
-    add_url = 'sample-new'
     order_by = ['-created', '-priority']
     ordering_proxies = {}
     list_transforms = {}
@@ -406,19 +372,6 @@ class SampleDetail(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixi
     template_name = "users/entries/sample.html"
     success_url = reverse_lazy('sample-list')
     success_message = "Sample has been updated"
-
-
-class SampleCreate(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
-    form_class = forms.SampleForm
-    template_name = "forms/modal.html"
-    model = models.Sample
-    success_url = reverse_lazy('sample-list')
-    success_message = "Sample '%(name)s' has been created."
-
-    def get_initial(self):
-        initial = super(SampleCreate, self).get_initial()
-        initial.update(project=self.request.user.project)
-        return initial
 
 
 class SampleEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
@@ -437,10 +390,20 @@ class SampleDone(SampleEdit):
 
 
 class SampleDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
-    success_url = reverse_lazy('sample-list')
+    success_url = reverse_lazy('dashboard')
     template_name = "forms/delete.html"
     model = models.Sample
     success_message = "Sample has been deleted."
+
+    def delete(self, request, *args, **kwargs):
+        super(SampleDelete, self).delete(request, *args, **kwargs)
+        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE, self.success_message)
+        return JsonResponse({'url': self.success_url})
+
+    def get_context_data(self, **kwargs):
+        context = super(SampleDelete, self).get_context_data(**kwargs)
+        context['form_action'] = reverse_lazy('sample-delete', kwargs={'pk': self.object.pk})
+        return context
 
 
 class ContainerList(ListViewMixin, FilteredListView):
@@ -449,7 +412,6 @@ class ContainerList(ListViewMixin, FilteredListView):
     list_display = ['identity', 'name', 'shipment', 'kind', 'capacity', 'num_samples', 'status']
     search_fields = ['project__name', 'name', 'comments']
     detail_url = 'container-detail'
-    add_url = 'container-new'
     order_by = ['-created']
     ordering_proxies = {}
     list_transforms = {}
@@ -464,18 +426,11 @@ class ContainerDetail(DetailListMixin, SampleList):
         object = self.get_object()
         return 'Samples in {}'.format(object.name)
 
-
-class ContainerCreate(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
-    form_class = forms.ContainerForm
-    template_name = "forms/modal.html"
-    model = models.Container
-    success_url = reverse_lazy('container-list')
-    success_message = "Container '%(name)s' has been created."
-
-    def get_initial(self):
-        initial = super(ContainerCreate, self).get_initial()
-        initial.update(project=self.request.user)
-        return initial
+    def get_filters(self, request):
+        filters = super(ContainerDetail, self).get_filters(request)
+        if self.get_object().has_children():
+            self.list_display.append('container')
+        return filters
 
 
 class ContainerEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
@@ -495,12 +450,7 @@ class ContainerEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
 
 class ContainerLoad(AdminRequiredMixin, ContainerEdit):
     form_class = forms.ContainerLoadForm
-
-
-class ContainerUnload(ContainerLoad):
-
-    def form_valid(self, form):
-        return super(ContainerUnload, self).form_valid(form)
+    template_name = "users/forms/container_load.html"
 
 
 class LocationLoad(AdminRequiredMixin, ContainerEdit):
@@ -527,10 +477,15 @@ def update_locations(request):
 
 
 class ContainerDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
-    success_url = reverse_lazy('container-list')
+    success_url = reverse_lazy('dashboard')
     template_name = "forms/delete.html"
     model = models.Container
     success_message = "Container has been deleted."
+
+    def delete(self, request, *args, **kwargs):
+        super(ContainerDelete, self).delete(request, *args, **kwargs)
+        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE, self.success_message)
+        return JsonResponse({'url': self.success_url})
 
 
 class GroupList(ListViewMixin, FilteredListView):
@@ -539,7 +494,6 @@ class GroupList(ListViewMixin, FilteredListView):
     list_display = ['identity', 'name', 'kind', 'plan', 'num_samples', 'status']
     search_fields = ['project__name', 'comments', 'name']
     detail_url = 'group-detail'
-    add_url = 'group-new'
     order_by = ['-modified', '-priority']
     ordering_proxies = {}
     list_transforms = {}
@@ -558,36 +512,40 @@ class GroupDetail(DetailListMixin, SampleList):
         return 'Samples in {}'.format(object.name)
 
 
-class GroupCreate(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
-    form_class = forms.GroupForm
-    template_name = "forms/modal.html"
-    model = models.Group
-    success_url = reverse_lazy('group-list')
-    success_message = "Group '%(name)s' has been created."
-
-    def get_initial(self):
-        initial = super(GroupCreate, self).get_initial()
-        initial.update(project=self.request.user.project)
-        return initial
-
-
 class GroupEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.GroupForm
     template_name = "forms/modal.html"
     model = models.Group
     success_message = "Group has been updated."
+    success_url = reverse_lazy('group-list')
+
+    def get_initial(self):
+        self.original_name = self.object.name
+        return super(GroupEdit, self).get_initial()
+
+    def form_valid(self, form):
+        resp = super(GroupEdit, self).form_valid(form)
+        for s in self.object.sample_set.all():
+            if self.original_name in s.name.split('-'):
+                models.Sample.objects.filter(pk=s.pk).update(name=s.name.replace(self.original_name, self.object.name))
+        return resp
 
 
 class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
-    success_url = reverse_lazy('group-list')
+    success_url = reverse_lazy('dashboard')
     template_name = "forms/delete.html"
     model = models.Group
     success_message = "Group has been deleted."
 
+    def delete(self, request, *args, **kwargs):
+        super(GroupDelete, self).delete(request, *args, **kwargs)
+        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE, self.success_message)
+        return JsonResponse({'url': self.success_url})
+
 
 class DataList(ListViewMixin, FilteredListView):
     model = models.Data
-    list_filter = ['modified', 'kind']
+    list_filter = ['modified', 'kind', 'beamline']
     list_display = ['id', 'name', 'sample', 'frame_sets', 'delta_angle', 'exposure_time', 'total_angle', 'wavelength', 'beamline', 'kind']
     search_fields = ['id', 'name', 'beamline__name', 'delta_angle', 'sample__name', 'frame_sets', 'project__name']
     detail_url = 'data-detail'
@@ -652,7 +610,7 @@ class ActivityLogList(ListViewMixin, FilteredListView):
     list_filter = ['created', 'action_type']
     list_display = ['created', 'action_type', 'user_description', 'ip_number', 'object_repr', 'description']
     search_fields = ['description', 'ip_number', 'content_type__name', 'action_type']
-    owner_field = "user__username"
+    owner_field = "project__username"
     order_by = ['-created']
     ordering_proxies = {}
     list_transforms = {}
@@ -711,10 +669,11 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                     })
                     group, created = models.Group.objects.get_or_create(**data)
                     to_create = []
+
                     for c, locations in sample_locations.get(group.name, {}).items():
                         container = models.Container.objects.get(name=c, project=project, shipment=self.shipment)
                         for j, sample in enumerate(locations):
-                            name = "{0}-{1:02d}".format(group.name, j)
+                            name = "{0}-{1:02d}".format(group.name, j+1)
                             to_create.append(models.Sample(group=group, container=container, container_location=sample,
                                                            name=name, project=project))
                     models.Sample.objects.bulk_create(to_create)
@@ -768,6 +727,8 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
         initial['sample_locations'] = json.dumps({g.name: {c.pk: list(c.sample_set.filter(group=g).values_list('container_location', flat=True))
                                                 for c in initial['shipment'].container_set.all()}
                                        for g in initial['shipment'].group_set.all()})
+        if initial['shipment']:
+            initial['containers'] = initial['shipment'].container_set.all()
         return initial
 
     @transaction.atomic
@@ -799,12 +760,17 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
             to_create = []
             for c, locations in sample_locations.get(group.name, {}).items():
                 container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
-                j = 0
+                j = 1
+                names = []
                 for location in locations:
                     if not models.Sample.objects.filter(container=container, container_location=location).exists():
-                        while models.Sample.objects.filter(group=group, name="{0}-{1:02d}".format(group.name, j)).exists():
-                            j += 1
-                        name = "{0}-{1:02d}".format(group.name, j)
+                        while True:
+                            name = "{0}-{1:02d}".format(group.name, j)
+                            if models.Sample.objects.filter(group=group, name=name).exists() or name in names:
+                                j += 1
+                                continue
+                            names.append(name)
+                            break
                         to_create.append(
                             models.Sample(group=group, container=container, container_location=location, name=name,
                                           project=self.request.user))
@@ -813,4 +779,56 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
             if group.sample_count < group.sample_set.count():
                 group.sample_count = group.sample_set.count()
                 group.save()
+        return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': data['shipment'].pk})})
+
+
+class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+    form_class = forms.GroupSelectForm
+    template_name = "users/forms/add-wizard.html"
+    model = models.Group
+    success_message = "Group has been updated."
+
+    def get_initial(self):
+        initial = super(GroupSelect, self).get_initial()
+        initial['shipment'] = self.get_object().shipment
+        initial['containers'] = [(c.pk, c.kind.pk, c.name) for c in initial['shipment'].container_set.all()]
+        initial['sample_locations'] = json.dumps({g.name: {c.pk: list(c.sample_set.filter(group=g).values_list('container_location', flat=True))
+                                                for c in initial['shipment'].container_set.all()}
+                                       for g in initial['shipment'].group_set.all()})
+        initial['containers'] = initial['shipment'].container_set.all()
+        return initial
+
+    @transaction.atomic
+    def form_valid(self, form):
+        data = form.cleaned_data
+        sample_locations = json.loads(data['sample_locations'])
+        group = self.object
+
+        # Delete samples removed from containers
+        for container, locations in sample_locations[group.name].items():
+            models.Sample.objects.filter(container__pk=int(container), group__name=group).exclude(container_location__in=locations).delete()
+
+        group = models.Group.objects.get(pk=int(data['id']))
+        to_create = []
+        for c, locations in sample_locations.get(group.name, {}).items():
+            container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
+            j = 1
+            names = []
+            for location in locations:
+                if not models.Sample.objects.filter(container=container, container_location=location).exists():
+                    while True:
+                        name = "{0}-{1:02d}".format(group.name, j)
+                        if models.Sample.objects.filter(group=group, name=name).exists() or name in names:
+                            j += 1
+                            continue
+                        names.append(name)
+                        break
+                    to_create.append(
+                        models.Sample(group=group, container=container, container_location=location, name=name,
+                                      project=self.request.user))
+
+        models.Sample.objects.bulk_create(to_create)
+        if group.sample_count < group.sample_set.count():
+            group.sample_count = group.sample_set.count()
+            group.save()
         return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': data['shipment'].pk})})

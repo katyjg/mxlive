@@ -48,9 +48,10 @@ $.each(report, function(i, section) {
                 table.append(tbody);
                 row.append(table);
             }
-        } else if (entry['kind'] == 'lineplot') {
+        } else if (entry['kind'] == 'lineplot' || entry['kind'] == 'scatterplot') {
             var data = [];
             var xlabel = entry['data']['x'].shift();
+            var xscale = entry['data']['xscale'] || 'linear';
             var y1label = '', y2label = '';
             $.each(entry['data']['y1'], function(l, line) {
                 y1label = line.shift();
@@ -64,12 +65,15 @@ $.each(report, function(i, section) {
             var width = row.width();
             y1label = entry['data']['y1-label'] || y1label;
             y2label = entry['data']['y2-label'] || y2label;
+
             var xy_chart = draw_xy_chart()
                 .width(width)
                 .height(500)
                 .xlabel(xlabel)
                 .y1label(y1label)
-                .y2label(y2label) ;
+                .y2label(y2label)
+                .xscale(xscale)
+                .scatter(entry['kind'] == 'scatterplot' && 'scatter' || entry['kind'] == 'lineplot' && 'line');
             var svg = d3.select('#row-'+i).append("svg").attr('id','plot-' + i + "-" + j)
                 .datum(data)
                 .call(xy_chart) ;

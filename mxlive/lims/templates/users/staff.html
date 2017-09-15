@@ -1,5 +1,7 @@
 {% extends "users/base.html" %}
 
+{% load link_list %}
+
 {% block page_heading %}
 <h2>Welcome, Staff</h2>
 {% endblock %}
@@ -22,98 +24,50 @@
 {% endblock %}
 
 {% block full %}
-    <div class="col-xs-12 col-md-9 list-group">
-            <a data-url="{% url "shipment-new" %}" class="list-group-item empty">
-                <div class="row">
-                    <div class="col-xs-12">
-                        <div class="box-status pull-left">
-                            <div class="text-center text-muted">
-                                <div title="Create a Shipment" class="fa fa-2x fa-plus"></div>
-                                <div><small>Start Now</small></div>
+    <div class="row">
+        <div class="col-xs-12 col-md-9">
+            <div class="list-group">
+                <a data-url="{% url "shipment-new" %}" class="list-group-item empty">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="box-status pull-left">
+                                <div class="text-center text-muted">
+                                    <div title="Create a Shipment" class="fa fa-2x fa-plus"></div>
+                                    <div><small>Start Now</small></div>
+                                </div>
+                            </div>
+                            <div class="box-info pull-left">
+                                <h4 class="text-condensed narrow-heading overflow ellipsis">Click here to start a new shipment!</h4>
+                                <span>Follow the steps to enter your sample information</span>
                             </div>
                         </div>
-                        <div class="box-info pull-left">
-                            <h4 class="text-condensed narrow-heading overflow ellipsis">Click here to start a new shipment!</h4>
-                            <span>Follow the steps to enter your sample information</span>
-                        </div>
                     </div>
-                </div>
-            </a>
-        {% for object in shipments %}
-            {% include "users/entries/shipment-list-item.html" with object=object %}
-        {% endfor %}
-    </div>
-
-	<div class="col-xs-12 col-md-3 list-group">
-        {% for am in automounters %}
-            <a href="{% url "beamline-detail" pk=am.pk %}" class="text-center list-group-item" style="overflow: auto;">
-                <div class="col-xs12">
-                    <div id="layout-{{ am.container.pk }}" class="layout-lg">
-                        <h4>
-                            <strong><span class="text-muted">{{ am.beamline.name }}</span></strong> | {{ am.container.kind }}
-                        </h4>
-                        <hr/>
-                    </div>
-                    {% include "users/entries/layout-container.html" with object=am.container.pk kind=am.container.kind %}
-                </div>
-            </a>
-        {% endfor %}
+                </a>
+            {% for object in shipments %}
+                {% include "users/entries/shipment-list-item.html" with object=object %}
+            {% endfor %}
+            </div>
         </div>
-{% endblock %}
 
-{% load truncate_filters %}
+        <div class="col-xs-12 col-md-3">
+            <div class="list-group">
+                {% for am in automounters %}
+                    <a href="{% url "beamline-detail" pk=am.pk %}" class="text-center list-group-item" style="overflow: auto;">
+                        <div class="col-xs12">
+                            <div id="layout-{{ am.container.pk }}" class="layout-lg">
+                                <h4>
+                                    <strong><span class="text-muted">{{ am.beamline.acronym }}</span></strong> | {{ am.container.kind }}
+                                </h4>
+                                <hr/>
+                            </div>
+                            {% include "users/entries/layout-container.html" with object=am.container.pk kind=am.container.kind %}
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
 
-{% block object-tools %}
-{% comment %}    <div class="object-tools">
-        <ul class="toolbar">
-            <li class="stats-tool"><a href='{% url "stats-calendar-now" %}' title="View Usage Statistics">Usage</a></li>
-            <li class="users-tool"><a href='{% url "staff-get-profiles" %}' title="Manage User Accounts">Accounts</a></li>
-            <li class="access-tool"><a href='{% url "staff-userlist-list" %}' title="Manage Remote Access Lists">Access</a></li>
-            <li class="receive-tool"><a class="modal-form"  href="{% url "staff-dewar-receive" 0 %}" title="Receive a Shipment">Receive</a></li>
-            <li class="help-tool"><a href='{% url "staff-link-list" %}' title="Edit News and HowTo sections">Help</a></li>
-        </ul>
-        <div class="clear"></div>
+            {% load_announcements %}
+        </div>
     </div>
-    {% endcomment %}
 {% endblock %}
-
-{% block content-override %}
-    <!-- left region -->
-	<div id="left-content" class="col-4">
-	<p>MxLIVE is organized into the following sections. The <em>Shipping</em> section enables you receive and manage shipments, and their contents.
-    Experiments and their status are available in the <em>Experiments</em> section. In the
-    <em>Run Lists</em> section, you can prepare containers for loading into the beamline automounter. Datasets and results from already performed experiments can also be inspected
-    through the experiment links.</p>
-    </div>
-	<!-- end left region -->
-    <!-- middle region -->
-	<div id="middle-content" class="col-4">
-    {% include "staff/status_overview.html" %}   
-	<p></p>
-	</div>
-	<!-- end middle region -->
-    <!-- right region -->
-	<div id="right-content" class="col-4">
-	<ul id="feedback-list">
-	    <li class="title redirect link-row" href="{% comment %}{% url "staff-feedback-list" %}{% endcomment %}" title="Show all feedback comments">User Feedback Comments ...</li>
-        {% for item in feedback %}
-        <li class="modal link-row" 
-            href="{% url "staff-feedback-detail" item.pk %}">
-            <strong>{{ item.get_category_display }}:</strong> "{{ item.message|truncate_chars:50 }}" <span class="highlight">|
-        	{{ item.created|date:"M jS, Y"}}<em> by {{ item.project }}</em></span>
-        </li>
-        {% empty %}
-        <li class="list-empty">( No feedback )</li>
-        {% endfor %}
-	</ul>
-	</div>
-	<div class="clear spacer"></div>
-    <!-- bottom region -->
-	<div id="bottom-content" class="col-12">
-	{% with activity_log as ol %}
-    {% include "users/activity_history.html" %}
-    {% endwith %}
-	</div>
-	<!-- end botom region -->
-{% endblock %}	
 

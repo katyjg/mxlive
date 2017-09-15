@@ -1,0 +1,29 @@
+{% load layout %}
+
+<div id="layout-{{ field.name }}" class="layout-lg">
+    <div class="hidden">{{ field }}</div>
+    <div class="row">
+        {% for container in form.fields.containers.queryset %}
+            <div class="col-xs-6">
+                <div class="col-xs-12">
+                    <h4 class="text-center text-condensed"><strong>{{ container.name }}</strong><a title="Select All" onclick="selectAll('{{ container.pk }}');" class="btn btn-success pull-right">Toggle All</a></h4>
+                    <div id="formlayout-{{ container.pk }}"></div>
+                    {% include "users/entries/layout-container.html" with selector="formlayout" object=container.pk kind=container.kind size=200 %}
+
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        var group = "{{ object.name }}";
+        $('circle.full[group="'+group+'"]').addClass('selected').removeClass('full');
+        $('span.group-name').html(group);
+        $('circle').on('click', function () {
+            selectOne(this, group);
+            var locations = $('input[id$=sample_locations]');
+        });
+    });
+</script>

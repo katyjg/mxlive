@@ -7,6 +7,7 @@ from model_utils import Choices
 from jsonfield.fields import JSONField
 from lims.models import ActivityLog, Beamline, Container, Sample, Group
 import hashlib
+import imghdr
 import os
 
 
@@ -22,8 +23,6 @@ def handle_uploaded_file(f):
 
 
 class StaffBaseClass(models.Model):
-    def is_deletable(self):
-        return True
 
     def delete(self, *args, **kwargs):
         request = kwargs.get('request', None)
@@ -37,37 +36,21 @@ class StaffBaseClass(models.Model):
         abstract = True
 
 
-class Link(StaffBaseClass):
-    TYPE = Choices(
-        (0,'IFRAME','iframe'),
-        (1,'FLASH','flash'),
-        (2,'IMAGE','image'),
-        (3,'INLINE','inline'),
-        (4,'LINK','link'),
-    )
-    CATEGORY = Choices(
-        (0,'NEWS','News'),
-        (1,'HOW_TO','How To'),
-    )
-    description = models.TextField(blank=False)
-    category = models.IntegerField(choices=CATEGORY, blank=True, null=True)
-    frame_type = models.IntegerField(choices=TYPE, blank=True, null=True)
+class Announcement(StaffBaseClass):
+    title = models.CharField(max_length=50, blank=True)
+    description = models.TextField(blank=True)
+    priority = models.IntegerField(blank=True)
+    attachment = models.FileField(blank=True, upload_to=get_storage_path)
     url = models.CharField(max_length=200, blank=True)
-    document = models.FileField(_('document'), blank=True, upload_to=get_storage_path)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified', auto_now=True, editable=False)
+
+    def has_document(self):
+        return self.attachment and not self.has_image()
+
+    def has_image(self):
+        return self.attachment and imghdr.what(self.attachment)
 
     def __unicode__(self):
-        return self.description
-
-    def is_editable(self):
-        return True
-
-    def identity(self):
-        return self.description
-
-    def save(self, *args, **kwargs):
-        super(Link, self).save(*args, **kwargs)
+        return self.title
 
 
 class UserList(StaffBaseClass):
@@ -78,12 +61,6 @@ class UserList(StaffBaseClass):
     active = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified', auto_now_add=True, editable=False)
-
-    def is_deletable(self):
-        return False
-
-    def is_editable(self):
-        return True
 
     def current_users(self):
         return ';'.join(self.users.values_list('username', flat=True))

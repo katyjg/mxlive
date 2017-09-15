@@ -79,7 +79,7 @@
             </a>
         {% endif %}
         {% if object.has_labels %}
-            <a class="pull-right" data-url="{% url "send-labels" object.pk %}">
+            <a class="pull-right" href="{% url "send-labels" object.pk %}">
                         <span class="pull-right">
                 <span class="fa-stack">
                     <i class="fa-stack-2x fa fa-2 fa-fw fa-file-text-o"></i></span><br>

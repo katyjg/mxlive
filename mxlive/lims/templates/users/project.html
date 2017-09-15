@@ -14,10 +14,6 @@
             <i class="fa fa-2 fa-clock-o"></i><br>
             <span class="tool-label">Activity</span>
         </a>
-        <a class="pull-right separator" href="#">
-            <i class="fa fa-2 fa-comment-o"></i><br>
-            <span class="tool-label">Feedback</span>
-        </a>
         <a class="pull-right" data-url="{% url "shipment-new" %}">
             <i class="fa fa-2 fa-plus"></i><br>
             <span class="tool-label">New Shipment</span>
@@ -51,11 +47,8 @@
 
         <!-- left region -->
 	<div id="left-content" class="col-xs-12 col-md-3">
-    <p>Start by clicking the <em>New Shipment</em> icon to create a new
-    set of samples to be used on the beamline. Then check in during your beamtime to see or download your datasets as they are collected!
-    Review your data and analysis from past beamtime, or track your samples as they are shipped back to your home lab.</p>
     {% load link_list %}
-    {% link_list %}
+    {% load_announcements %}
 	</div>
 	<div class="clear spacer"></div>
     <hr />

@@ -49,17 +49,21 @@
                     {% endif %}
                 </div>
             {% endif %}
-            <div class="col-xs-3">
-                {% ifequal object.status object.STATES.DRAFT %}
+
+            {% ifequal object.status object.STATES.DRAFT %}
+                <div class="col-xs-3">
                     <small class="text-muted text-condensed">Ready to Ship:</small><br>
                     {{ object.shipping_errors|yesno:"No,Yes" }}
-                {% else %}
+                </div>
+            {% else %}{% if object.status < object.STATES.RETURNED %}
+                <div class="col-xs-3">
                     <small class="text-muted text-condensed">Sent:</small><br>
                     <span class="text-muted">via</span> {{ object.carrier }} {% if object.tracking_code and object.carrier %}
                         [<a href="{{ object.carrier.url }}{{ object.tracking_code }}" title="Track with {{ object.carrier }}">{{ object.tracking_code }}</a>]
                     {% endif %}
-                {% endifequal %}
-            </div>
+                </div>
+            {% endif %}{% endifequal %}
+
             {% if object.status >= object.STATES.RETURNED %}
                 <div class="col-xs-3">
                     {% if object.status < object.STATES.RETURNED %}
@@ -71,6 +75,12 @@
                             [<a href="{{ object.carrier.url }}{{ object.return_code }}" title="Track with {{ object.carrier }}">{{ object.return_code }}</a>]
                         {% endif %}
                     {% endif %}
+                </div>
+            {% endif %}
+            {% if object.components.all %}
+                <div class="col-xs-3">
+                    <small class="text-muted text-condensed">Included Items</small><br>
+                    {% for c in object.components.all %}<span class="label label-info">{{ c.kind }}</span> {% endfor %}
                 </div>
             {% endif %}
         </div>
@@ -89,7 +99,7 @@
             {% if object.status == object.STATES.DRAFT %}
             <a class="pull-left" data-url="{% url "shipment-add-containers" object.pk %}">
                 <i class="fa fa-2 fa-fw fa-plus"></i><br>
-                <span class="tool-label">Add</span>
+                <span class="tool-label">Edit</span>
             </a>
             {% else %}<span class="text-muted"><i class="fa fa-3 fa-lock"></i></span>{% endif %}
         </span>
@@ -115,7 +125,7 @@
         <span class="box-tools box-tools-inline pull-left">
             {% if object.status ==  object.STATES.DRAFT %}<a class="pull-left" data-url="{% url "shipment-add-groups" object.pk %}">
                 <i class="fa fa-2 fa-fw fa-plus"></i><br>
-                <span class="tool-label">Add</span>
+                <span class="tool-label">Edit</span>
             </a>
             {% else %}<span class="text-muted"><i class="fa fa-3 fa-lock"></i></span>{% endif %}
         </span>
@@ -125,7 +135,7 @@
             {% for group in shipment.groups_by_priority %}
                 <div class="list-group-item" id="group-{{ group.pk }}">
                     <span class="box-tools pull-right">
-                        <a class="pull-right" data-url="#" title="Sample Seat Selection">
+                        <a class="pull-right" data-url="{% url "group-select" group.pk %}" title="Sample Seat Selection">
                             <i class="fa fa-2 fa-fw fa-plus-circle"></i>
                             <br><span class="tool-label">Samples</span>
                         </a>
@@ -160,38 +170,5 @@
             });
         {% endfor %}
     </script>
-
-    <div class="col-xs-12">
-{% if object.component_set.all %}
-<div class="object-list">
-    <h3>Miscellaneous Items</h3>
-    <table cellspacing="0" cellpadding="2" border="0" width="100%" id="objlist-list-table">
-        <thead>
-            <tr class="header">
-                <th>Item</th>
-                <th>Description</th>
-                {% if not request.user.is_superuser %}<th>Label</th>{% endif %}
-				{% if object.is_editable %}<th></th>{% endif %}
-            </tr>
-        </thead>
-        <tbody>{% comment %}
-		{% for item in object.component_set.all %}
-			<tr class="{% cycle 'odd' 'even'%} link-row">
-				<td class="modal-form" href="{% url "users-component-edit" item.pk %}" title="Edit this item">{{ item.name }}</td>
-				<td class="modal-form" href="{% url "users-component-edit" item.pk %}" title="Edit this item">{{ item.description }}</td>
-				{% if not request.user.is_superuser %}<td class="modal-form" href="{% url "users-component-edit" item.pk %}" title="Edit this item">
-					{% if item.label %}Yes{% else %}No{% endif %}</td>{% endif %}
-				{% if object.is_editable %}
-					<td class="action">
-						<a class="delete modal-form delete-tool" title="Delete" href="{% url "users-component-delete" item.pk %}"></a>
-					</td>
-				{% endif %}
-			</tr>
-		{% endfor %}{% endcomment %}
-        </tbody>
-    </table>
-</div>
-    </div>
-{% endif %}
 
 {% endblock %}

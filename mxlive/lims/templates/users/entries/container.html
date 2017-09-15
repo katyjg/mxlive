@@ -90,22 +90,18 @@
 {% block full %}
 
 <div class="row">
-    <div class="col-sm-7">
-        {% if object.comments or object.staff_comments %}
-        <div class="entrycomment {% if object.get_kind_display != 'Cane' %}container{% endif %}">
-            <span class="{% if object.get_kind_display == 'Cane' %}left-pointer{% else %}up-pointer{% endif %}"></span>
-            <h3>Comments</h3>
-            <div class="user">{{ object.comments|default:""|restructuredtext}}</div>
-            <div class="staff">{{ object.staff_comments|default:""|restructuredtext}}</div>
-        </div>
-        {% endif %}
-
-        {% include "objlist/object_list.html" with object_list=object.sample_set.all %}
-    </div>
-    <div class="col-sm-5">
+    <div {% if object.has_children %}id="admin-assign"{% endif %} class="col-sm-5 pull-right">
         <div id="layout-{{ object.pk }}" class="layout-lg"></div>
         {% include "users/entries/layout-container.html" with object=object.pk kind=object.kind %}
     </div>
+    <div class="col-sm-7">
+        {% if object.has_children %}
+            {% include "users/entries/container_load_list.html" %}
+        {% else %}
+            {% include "objlist/object_list.html" with object_list=object.sample_set.all %}
+        {% endif %}
+    </div>
+
 </div>
 
 {% endblock %}

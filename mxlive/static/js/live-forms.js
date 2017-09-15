@@ -2,8 +2,8 @@ function selectOne(e, group, data) {
     var locations = $('input[id$=sample_locations]');
     var data = $.parseJSON(locations.val());
     var assigned_group = $(e).attr('group');
-
     if (!assigned_group | group == assigned_group) {
+
         $(e).toggleClass('empty').toggleClass('selected');
         var port = $(e).attr('port');
         var container = $(e).closest('svg').attr('id');
@@ -20,19 +20,26 @@ function selectOne(e, group, data) {
             if (!(container in data[group])) {
                 data[group][container] = [];
             }
-            if (!(port in data[group][container])) {
+            if (port.indexOf(data[group][container]) <= 0) {
                 data[group][container].push(port);
             }
         }
     }
+
     locations.val(JSON.stringify(data));
 }
 
 function selectAll(container) {
     var group = $('span.group-name').html();
-    $.each( $('form #'+container+' circle.empty, #'+container+' circle.selected'), function() {
-        selectOne(this, group);
-    });
+    if($('#group-select #'+container+' circle.empty').length) {
+        $.each( $('#group-select #'+container+' circle.empty'), function() {
+            selectOne(this, group);
+        });
+    } else {
+        $.each($('#group-select #' + container + ' circle.selected'), function () {
+            selectOne(this, group);
+        });
+    }
 };
 
 $('text[port]').hover(function() {
@@ -50,30 +57,6 @@ $('text[port]').on('click', function() {
        selectOne(this, group);
     });
 });
-
-function toggleFlip(e, open) {
-    var group = $(e).attr('group');
-    $('circle.full[group="'+group+'"]').addClass('selected').removeClass('full');
-    $('.form-actions').fadeToggle();
-    $('.flip-container').toggleClass('hover');
-
-    if (open) {
-        //$('.back').height($('.back').height());
-        $('.flip-container').height($('.back').outerHeight());
-        $('span.group-name').html(group);
-
-        $('circle').on('click', function () {
-            selectOne(this, group);
-        });
-    } else {
-        var group = $('span.group-name').html();
-        $('.flip-container').height($('.front').height());
-        $('circle.selected').addClass('full').removeClass('selected');
-        $('circle').off();
-    }
-};
-
-
 
 function setInitial(data) {
     $.each(data, function(e, values) {
@@ -99,8 +82,30 @@ function setInitial(data) {
     $.each($('input[name$="name"]'), function() {
         if ($(this).attr('value')) {
             var row = $(this).closest('.repeat-row');
+            $(this).attr('')
             $(row).find($('a.disabled')).removeClass('disabled').attr('group',$(this).attr('value'));
         }
+    });
+}
+
+function hideModal(e) {
+    e.closest($('.modal')).modal('hide');
+    var group = $('span.group-name').html();
+    $('#group-select circle.selected').addClass('full').removeClass('selected');
+    $('#group-select circle').off();
+}
+function showModal(e) {
+    $(e.attr('href')).modal('show');
+    var group = $(e).attr('group');
+    openSelector(group);
+}
+
+function openSelector(group) {
+    $('span.group-name').html(group);
+    $('#group-select circle.full[group="'+group+'"]').addClass('selected').removeClass('full');
+    $('#group-select circle').off();
+    $('#group-select circle').on('click', function () {
+        selectOne(this, group);
     });
 }
 
@@ -149,6 +154,16 @@ jQuery(function() {
                 $('input[name$="name"]').on('change', function(f) {
                     var row = f.target.closest('.repeat-row');
                     $(row).find($('a.disabled')).removeClass('disabled').attr('group',f.target.value);
+                });
+                $('.safe-remove').on('click', function(e) {
+                    var row = e.target.closest('.repeat-row');
+                    $(this).hide();
+                    $(row).find($('.remove')).show();
+                    function protect(){
+                      $(row).find($('.safe-remove')).show();
+                      $(row).find($('.remove')).hide();
+                    }
+                    setTimeout(protect, 3000);
                 });
             }
         });

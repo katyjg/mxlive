@@ -6,10 +6,19 @@ function draw_xy_chart() {
                 innerwidth = width - margin.left - margin.right,
                 innerheight = height - margin.top - margin.bottom ;
 
-            var x_scale = d3.scale.linear()
-                .range([0, innerwidth])
-                .domain([ d3.min(datasets, function(d) { return d3.min(d.x); }),
-                          d3.max(datasets, function(d) { return d3.max(d.x); }) ]) ;
+            if (xscale == 'ordinal') {
+                var x_scale = d3.scale.ordinal()
+                    .range([0, innerwidth])
+                    .domain(datasets.map(function (d) {
+                        return d.x;
+                    }));
+            } else {
+                var x_scale = d3.scale.linear()
+                    .range([0, innerwidth])
+                    .domain([ d3.min(datasets, function(d) { return d3.min(d.x); }),
+                              d3.max(datasets, function(d) { return d3.max(d.x); }) ]) ;
+            }
+
 
             var y1_scale = d3.scale.linear()
                 .range([innerheight, 0])
@@ -44,6 +53,7 @@ function draw_xy_chart() {
                 .x(function(d) { return x_scale(d[0]); })
                 .y(function(d) { return y1_scale(d[1]); }) ;
 
+
             var svg = d3.select(this)
                 .attr("width", width)
                 .attr("height", height)
@@ -71,6 +81,7 @@ function draw_xy_chart() {
                 .style("text-anchor", "middle")
                 .text(xlabel) ;
 
+
             var data_lines = svg.selectAll(".d3_xy_chart_line")
                 .data(datasets.map(function (d) {
                     return d3.zip(d.x, d.y1);
@@ -78,15 +89,36 @@ function draw_xy_chart() {
                 .enter().append("g")
                 .attr("class", "d3_xy_chart_line");
 
-            data_lines.append("path")
-                .attr("class", "line")
-                .attr("d", function (d) {
-                    return draw_line1(d);
-                })
-                .attr("stroke", function (_, i) {
-                    return color_scale(i);
-                })
-                .attr("fill", "none");
+            if (scatter == 'line') {
+                data_lines.append("path")
+                    .attr("class", "line")
+                    .attr("d", function (d) {
+                        return draw_line1(d);
+                    })
+                    .attr("stroke", function (_, i) {
+                        return color_scale(i);
+                    })
+                    .attr("fill", "none");
+            } else {
+                for (i = 0; i < datasets.length; i++) {
+                    var newdata = datasets[i]['x'].map(function (e, j) {
+                        return [e, datasets[i]['y1'][j]];
+                    });
+                    var data_points = svg.selectAll("dot")
+                        .data(newdata)
+                        .enter().append("circle")
+                        .attr("r", 2)
+                        .attr("cx", function (d) {
+                            return x_scale(d[0]);
+                        })
+                        .attr("cy", function (d) {
+                            return y1_scale(d[1]);
+                        })
+                        .attr("fill", function (_, k) {
+                            return color_scale(i);
+                        });
+                }
+            }
 
             if(!(datasets[0]['y2'])) {
                 svg.append("g")
@@ -129,6 +161,8 @@ function draw_xy_chart() {
                     .x(function(d) { return x_scale(d[0]); })
                     .y(function(d) { return y2_scale(d[1]); }) ;
 
+
+
                 svg.append("g")
                     .attr("class", "y axis")
                     .attr("transform", "translate("+ innerwidth +", 0)")
@@ -147,12 +181,37 @@ function draw_xy_chart() {
                     .data(datasets.map(function(d) {return d3.zip(d.x, d.y2);}))
                     .enter().append("g")
                     .attr("class", "xy2_chart_line") ;
-                y2_data_lines.append("path")
-                    .attr("class", "line")
-                    .attr("d", function(d) {return draw_line2(d); })
-                    .attr("stroke", function(_, i) {return color_scale(i+1);})
-                    .attr("fill", "none");
 
+                if (scatter == 'line') {
+                    y2_data_lines.append("path")
+                        .attr("class", "line")
+                        .attr("d", function (d) {
+                            return draw_line2(d);
+                        })
+                        .attr("stroke", function (_, i) {
+                            return color_scale(i + 1);
+                        })
+                        .attr("fill", "none");
+                } else {
+                    for (i = 0; i < datasets.length; i++) {
+                        var newdata = datasets[i]['x'].map(function (e, j) {
+                            return [e, datasets[i]['y2'][j]];
+                        });
+                        var data_points = svg.selectAll("dot")
+                            .data(newdata)
+                            .enter().append("circle")
+                            .attr("r", 2)
+                            .attr("cx", function (d) {
+                                return x_scale(d[0]);
+                            })
+                            .attr("cy", function (d) {
+                                return y2_scale(d[1]);
+                            })
+                            .attr("fill", function (_, k) {
+                                return color_scale(i + 1);
+                            });
+                    }
+                }
             }
 
             if (datasets.length > 1) {
@@ -286,6 +345,18 @@ function draw_xy_chart() {
         y2label = value ;
         return chart ;
     } ;
+
+    chart.xscale = function(value) {
+        if(!arguments.length) return xscale ;
+        xscale = value ;
+        return chart ;
+    } ;
+    chart.scatter = function(value) {
+        if(!arguments.length) return scatter ;
+        scatter = value ;
+        return chart ;
+    } ;
+
 
     return chart;
 }

@@ -136,9 +136,32 @@ nav li a {
 
 .chosen-container-multi .chosen-results {
     max-height: 100px !important;
+    z-index: 1030 !important;
 }
 
+.fa.fa-grip:before {
+    content: "\f142 \202F \f142";
+}
+.align-middle {
+    height: 100%;
+    padding: 0;
+    padding-top: 13px;
+    margin-left: -10px;
+    float: left;
+}
+.align-middle i {
+    padding: 10px 5px;
+}
+.hidden-modal {
+    display: none;
+}
 
+.button-holder {
+    padding-right: 0;
+    float: right;
+    margin-right: -30px;
+    padding-left: 0;
+}
 
 img.grid-icon {
     max-height: 56px;
@@ -247,7 +270,7 @@ img.line-icon {
 .box-tools a, .box-tools span {
     position: relative;
     text-align: center;
-    padding: 0 0.75em;
+    padding: 0 0.65em;
 }
 .box-tools a span {
     padding: 0 0.25em;
@@ -531,8 +554,24 @@ table.cane-layout td {
     overflow: auto;
 }
 .modal-body {
-    overflow-x: hidden;
-    overflow-y: hidden;
+    //overflow-x: hidden;
+    //overflow-y: hidden;
+}
+.modal-content {
+    overflow: visible;
+    //overflow-x: hidden;
+}
+#group-select .modal-content {
+    overflow: auto;
+}
+#group-select .select-button {
+    float: right;
+}
+#group-select svg {
+    float: right;
+}
+.form-action {
+    float: none;
 }
 .back svg {
     float: right;
@@ -645,6 +684,9 @@ form .inline-btn {
 form .inline-btn + .inline-btn {
     margin-left: 5px;
 }
+form .inline-btn.safe-remove + .inline-btn.remove {
+    margin-left: 0;
+}
 form .controls input {
     min-height: 34px;
     padding: 1px;
@@ -662,10 +704,7 @@ form .tab-content {
     opacity: 1;
 }
 form .tab-content {
-    border-left: 1px solid #ddd;
-    border-right: 1px solid #ddd;
     padding-bottom: 0.5em;
-    border-bottom: 1px solid #ddd;
     background-color: #fff;
 
 }
@@ -743,7 +782,7 @@ ul.errorlist ul.errorlist li {
     padding-bottom: 15px;
     background-color: white;
 }
-a[data-url], .back text[port] {
+a[data-url], .back text[port], .cursor {
     cursor: pointer;
 }
 .move {
@@ -1085,3 +1124,206 @@ table.cane-detail td {
     border: 1px dotted #bbb;
 }
 */
+/* data viewer */
+
+.btn-dk { background-color: #333; border-color: #333; }
+.btn-nm { background-color: #777; border-color: #777; }
+.btn-lt { background-color: #ddd; border-color: #ddd; }
+
+.active-brightness { background-color: #449d44; border-color: #398439; }
+
+#data-viewer .toolbar li a {
+    padding: 32px 2px 2px 0;
+}
+
+#data-viewer ul.toolbar {
+    height: 40px;
+    margin-top: 0px;
+}
+
+#data-viewer .meta-data, #data-viewer .frame-list {
+    float: right;
+    clear: right;
+    width: 100%;
+    margin: 0 0 7px 7px;
+    background: #fff;
+}
+
+#data-viewer .xtal-snapshot {
+    float: right;
+    clear: right;
+    width: 100%;
+    margin: 0 0 0 7px;
+}
+
+#data-viewer .image-wrapper, #data-viewer .viewer {
+    overflow: hidden;
+    height: 512px;
+    width: 512px;
+}
+#data-viewer .xtal-snapshot img {
+    max-width: 100%;
+}
+
+#data-viewer .frame-list p, #data-viewer .meta-data p, #data-viewer .xtal-snapshot p {
+    background: none repeat scroll 0 0 #747E80;
+    display: block;
+    clear: both;
+    color: #F7F3E8;
+    font-weight: bold;
+    margin: 0;
+    padding: 3px;
+}
+
+#data-viewer ul {
+    list-style: none;
+}
+
+#data-viewer img.nofile {
+    background: url('/static/img/diffract.png') no-repeat;
+    position: absolute;
+    border: 1px solid #ccc;
+}
+
+#data-viewer .image-nav {
+    width: 512px;
+}
+
+#data-viewer .frame-list ul {
+    background: #fff;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    height: 210px;
+    padding: 5px;
+    border: 1px solid #ccc;
+}
+
+#data-viewer .meta-data ul {
+    background: #fff;
+    padding: 5px;
+    font-size: 85%;
+    line-height: 1.2em;
+}
+
+#data-viewer .meta-data li.separator {
+    border-top: 1px dotted #ccc;
+    margin-top: 2px;
+}
+
+#data-viewer .frame-list li {
+    line-height: 24px;
+    border-bottom: 1px dotted #ccc;
+    cursor: pointer;
+}
+
+#data-image-loading {
+    cursor: pointer;
+    display: none;
+    height: 40px;
+    left: 256px;
+    margin-left: -20px;
+    margin-top: -20px;
+    overflow: hidden;
+    position: absolute;
+    top: 50%;
+    width: 40px;
+    z-index: 1104;
+}
+
+#data-image-loading div {
+    background-image: url("/static/img/fancybox/fancybox.png");
+    height: 480px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 40px;
+}
+
+#data-viewer .diffviewer_zoom_status {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#data-viewer .viewer {
+    width: 100%;
+    border: 1px solid #bbb;
+    position: relative;
+    margin-bottom: 5px;
+}
+#data-viewer .loaded-image {
+    padding-left: 10px;
+    vertical-align: middle;
+    max-width: 230px;
+}
+#data-viewer #framename {
+    font-weight: bold;
+}
+#data-viewer .frame-list ul {
+    height: 14.75em;
+}
+.reverse-ellipsis {
+  text-overflow: clip;
+  position: relative;
+  background-color: white;
+}
+
+.reverse-ellipsis:before {
+  content: '\02026';
+  position: absolute;
+  z-index: 1;
+  left: -1em;
+  background-color: inherit;
+  padding-left: 1em;
+  margin-left: 0.5em;
+}
+
+.reverse-ellipsis span {
+  min-width: 100%;
+  position: relative;
+  display: inline-block;
+  float: right;
+  overflow: visible;
+  background-color: inherit;
+  text-indent: -0.5em;
+}
+
+.reverse-ellipsis span:before {
+  content: '';
+  position: absolute;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background-color: inherit;
+  z-index: 200;
+  left: -1em;
+}
+
+/* SCORE COLORING */
+
+span.excellent-score {
+    color: #0c0 !important;
+}
+
+span.good-score {
+    color: #9c0 !important;
+}
+
+span.fair-score {
+    color: #cc0 !important;
+}
+
+span.usable-score {
+    color: #a96 !important;
+}
+span.unusable-score {
+    color: #933 !important;
+}
+.badge-score {
+    background-color: #f7f7f7;
+    padding: 3px !important;
+}
+.highlight {
+    font-style: italic;
+    color: #883a6a;
+}

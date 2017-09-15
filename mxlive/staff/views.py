@@ -12,9 +12,13 @@ from lims.views import AjaxableResponseMixin, ListViewMixin
 from lims.models import Project
 from lims.forms import NewProjectForm
 
+User = get_user_model()
+
+
 class StaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     def test_func(self):
         return self.request.user.is_superuser
+
 
 class AccessList(StaffRequiredMixin, FilteredListView):
     model = models.UserList
@@ -26,6 +30,7 @@ class AccessList(StaffRequiredMixin, FilteredListView):
     detail_target = '#modal-form'
     order_by = ['name']
     template_name = "users/list.html"
+
 
 class AccessEdit(StaffRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.AccessForm
@@ -39,13 +44,35 @@ class AccessEdit(StaffRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin,
     def get_object(self):
         return self.model.objects.get(address=self.kwargs.get('address'))
 
+
+class AnnouncementEdit(StaffRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+    form_class = forms.AnnouncementForm
+    template_name = "forms/modal.html"
+    model = models.Announcement
+    success_url = reverse_lazy('dashboard')
+    success_message = "Announcement has been updated"
+
+
+class AnnouncementDelete(StaffRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
+    template_name = "forms/delete.html"
+    model = models.Announcement
+    success_url = reverse_lazy('dashboard')
+    success_message = "Announcement has been deleted"
+
+    def get_context_data(self, **kwargs):
+        context = super(AnnouncementDelete, self).get_context_data(**kwargs)
+        context['form_action'] = reverse_lazy('announcement-delete', kwargs={'pk': self.object.pk})
+        return context
+
+
 class ProjectList(StaffRequiredMixin, FilteredListView):
     model = Project
     paginate_by = 25
     template_name = "users/list.html"
-    list_filter = ['modified',]
-    list_display = ['username','contact_name','contact_phone','contact_email','shipment_count', 'forms']
-    search_fields = ['username','contact_name','contact_phone','contact_email','city','province','country','department','organisation']
+    list_filter = ['modified', ]
+    list_display = ['username', 'contact_name', 'contact_phone', 'contact_email', 'shipment_count', 'forms']
+    search_fields = ['username', 'contact_name', 'contact_phone', 'contact_email', 'city', 'province', 'country',
+                     'department', 'organisation']
     detail_url = 'edit-profile'
     detail_url_kwarg = 'username'
     detail_ajax = True
@@ -55,6 +82,7 @@ class ProjectList(StaffRequiredMixin, FilteredListView):
     order_by = ['name']
     ordering_proxies = {}
     list_transforms = {}
+
 
 class ProjectCreate(StaffRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
     form_class = NewProjectForm
@@ -71,7 +99,6 @@ class ProjectCreate(StaffRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
             if k in data
         }
         # Make sure user with username does not already exist
-        User = get_user_model()
         if User.objects.filter(username=user_info.get('username')).exists():
             user_info.pop('username', '')
 
@@ -94,4 +121,3 @@ class ProjectCreate(StaffRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
         messages.info(request, info_msg)
         # messages are simply passed down to the template via the request context
         return render_to_response("users/redirect.html", context_instance=RequestContext(request))
-

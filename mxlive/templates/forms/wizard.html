@@ -32,16 +32,6 @@
                 {% endif %}
             {% crispy wizard.form wizard.form.helper %}
         {% endif %}
-        <div class="form-actions">
-            <hr />
-            <div class="pull-right">
-            {% if wizard.steps.prev %}
-                <!--button class="btn btn btn-default" name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">{% trans "Back to Start" %}</button-->
-                <!--button class="btn btn btn-default" name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">{% trans "Back" %}</button-->
-            {% endif %}
-            <input class="btn btn btn-primary" type="submit" value="{% if wizard.steps.next %}{% trans "Continue" %}{% else %}{% trans "Finish" %}{% endif %}"/>
-            </div>
-        </div>
     </form>
 
 <script src="{% static "jquery/jquery-ui.min.js" %}"></script>
@@ -61,4 +51,15 @@
     });
 </script>
 
+{% endblock %}
+
+{% block form_init %}
+<script type="text/javascript">
+function initForm() {
+    var extra_modal = $('.extra-modal');
+    extra_modal.each(function() {
+       $(this).detach().appendTo($('#modal-form'));
+    });
+}
+</script>
 {% endblock %}

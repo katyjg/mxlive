@@ -6,6 +6,64 @@
     <link href="{% static "css/reports.css" %}" rel="stylesheet">
 {% endblock %}
 
+{% block object_status %}
+    <div class="status-bar">
+        <div class="row">
+            <div class="col-xs-2">
+                <h3 class="no-vmargin">
+                    <span class="label label-{% if object.status == object.STATES.ON_SITE %}info
+                                {% elif object.status == object.STATES.DRAFT %}warning
+                                {% elif object.status == object.STATES.SENT %}success
+                                {% elif object.status == object.STATES.RETURNED and not user.is_superuser %}success
+                                {% else %}default{% endif %}">{{ object.get_status_display }}</span>
+                </h3>
+            </div>
+            {% if user.is_superuser %}
+                <div class="col-xs-1">
+                    <small class="text-muted text-condensed">Project:</small><br>
+                    {{ object.project }}
+                </div>
+            {% endif %}
+            {% if object.status >= object.STATES.ON_SITE %}
+                <div class="col-xs-3">
+                    {% if object.status > object.STATES.ON_SITE %}
+                        <small class="text-muted text-condensed">Dates On-Site:</small><br>
+                        {% if object.date_received %}{{ object.date_received|naturalday }}{% else %}{{ object.date_shipped|naturalday }}{% endif %} - {{ object.date_returned|naturalday }}
+                    {% else %}
+                        <small class="text-muted text-condensed">Current Location:</small><br>
+                        {{ object.storage_location }}
+                    {% endif %}
+                </div>
+            {% endif %}
+            <div class="col-xs-3">
+                {% ifequal object.status object.STATES.DRAFT %}
+                    <small class="text-muted text-condensed">Ready to Ship:</small><br>
+                    {{ object.shipping_errors|yesno:"No,Yes" }}
+                {% else %}
+                    <small class="text-muted text-condensed">Sent:</small><br>
+                    <span class="text-muted">via</span> {{ object.carrier }} {% if object.tracking_code and object.carrier %}
+                        [<a href="{{ object.carrier.url }}{{ object.tracking_code }}" title="Track with {{ object.carrier }}">{{ object.tracking_code }}</a>]
+                    {% endif %}
+                {% endifequal %}
+            </div>
+            {% if object.status >= object.STATES.RETURNED %}
+                <div class="col-xs-3">
+                    {% if object.status < object.STATES.RETURNED %}
+                        <small class="text-muted text-condensed">Ready to Return:</small><br>
+                        {{ object.is_returnable|yesno:"No,Yes" }}
+                    {% else %}
+                        <small class="text-muted text-condensed">Returned:</small><br>
+                        via {{ object.carrier }} {% if object.return_code and object.carrier %}
+                            [<a href="{{ object.carrier.url }}{{ object.return_code }}" title="Track with {{ object.carrier }}">{{ object.return_code }}</a>]
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% include "users/comments.html" with object=object %}
+{% endblock %}
+
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
         <span class="text-muted">{{ object.identity }}</span> | <strong>{{ object.data.name }}</strong>

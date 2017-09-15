@@ -97,6 +97,13 @@ CACHES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': 'unix:/tmp/memcached.sock',
+    }
+}
+
 DOWNLOAD_FRONTEND = "xsendfile"
 DOWNLOAD_CACHE_DIR =  os.path.join(BASE_DIR, 'local', 'cache')
 

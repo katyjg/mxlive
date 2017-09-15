@@ -1,17 +1,18 @@
 {% load tex %}
 {% load math_filters %}
 \documentclass[letterpaper,6pt]{report}
-\usepackage{pst-barcode}
+\usepackage[T1]{fontenc}
 \usepackage{xcolor,colortbl}
 \usepackage{varwidth}
 \usepackage{fontspec}
 \usepackage[top=0.5in,bottom=0.5in,left=0.5in,right=0.5in,nohead,nofoot]{geometry}
 %\usepackage{parskip}
-\usepackage{ncccropbox}
+%\usepackage{ncccropbox}
 \usepackage{wasysym}
 \usepackage{amssymb}
 \usepackage{multirow}
 \usepackage{color}
+\usepackage{newtxtext}
 
 \addtolength{\fboxsep}{0.2cm}
 \renewcommand{\arraystretch}{1.5}
@@ -21,7 +22,6 @@
 %------------------------------------------------------------
 % normal line spacing: 1.0
 % double spacing     : 1.6
-\setmainfont{Alegreya-Regular}
 \begin{document}
 {% if project.address and project.city and project.province %}
 
@@ -38,9 +38,8 @@
     \end{minipage}
 
     \vspace{0.2in}
-    {% if shipment %}{% for dewar in shipment.dewar_set.all %}
-    {% if not forloop.first %}\newpage{% endif %}
-    {\color{blue} {\bf Return Label {{ forloop.counter }}: Replace the current label on the outside of a dewar "{{ dewar.name|texsafe|default:"" }}" with this label. } }
+    {% if shipment %}
+    {\color{blue} {\bf Return Label {{ forloop.counter }}: Replace the current label on the outside of the dewar with this label. } }
     \begin{center}
 	\fbox{
         \begin{minipage}{4in}
@@ -62,7 +61,6 @@
                 \begin{tabular*}{0.9\textwidth}{@{\extracolsep{\fill}} | p{.3\textwidth} | p{.5\textwidth} |}
                 \hline
                 Shipment name & {{shipment.name}} \\ \hline 
-                Package Number & {{ forloop.counter}} of {{shipment.dewar_set.count}} \\ \hline
                 \hline
                  From: &  {\large {{ admin_project.department|texsafe|default:"" }} } \\
                  & {\large {{ admin_project.organisation|texsafe|default:"" }} } \\
@@ -91,7 +89,7 @@
             \end{minipage}
 	}
     \end{center}
-    {% endfor %}{% else %}
+    {% else %}
     \begin{center}
 	\fbox{
         \begin{minipage}{4in}

@@ -1,28 +1,59 @@
 {% load layout %}
 
-{% with form.fields.locations.choices|get_containers_from_choices as containers %}
-    <div id="layout-{{ field.name }}" class="layout-lg">
-        <div class="hidden">{{ field }}</div>
-        <div class="col-xs-6 col-sm-3">
-            <ul class="nav nav-pills nav-stacked">
-            {% for container in containers %}
-                <li class="{% if forloop.first %}active{% endif %} overflow ellipsis">
-                    <a data-toggle="pill" href="#form{{ container.0 }}"><strong>{{ container.0 }}</strong> | {{ container.1 }}</a>
-                </li>
-            {% endfor %}
-            </ul>
+
+{% block form_body %}
+    {% with form.fields.locations.choices|get_containers_from_choices as containers %}
+        <div id="layout-{{ field.name }}" class="layout-lg">
+            <span class="group-name" style="display: none"></span>
+            <div class="hidden">{{ field }}</div>
+            <div class="col-xs-4">
+                <ul class="nav nav-pills nav-stacked">
+                {% if form.initial.shipment %}
+                    {% for container in form.fields.containers.queryset %}
+                        <li class="{% if forloop.first %}active{% endif %} overflow ellipsis">
+                            <a data-toggle="pill" href="#form{{ container.pk }}"><strong>{{ container.name }}</strong> | {{ container.kind.name }}</a>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    {% for container in containers %}
+                        <li class="{% if forloop.first %}active{% endif %} overflow ellipsis">
+                            <a data-toggle="pill" href="#form{{ container.0 }}"><strong>{{ container.0 }}</strong> | {{ container.1 }}</a>
+                        </li>
+                    {% endfor %}
+                {% endif %}
+                </ul>
+            </div>
+            <div class="col-xs-8 tab-content">
+                {% if form.initial.shipment %}
+                    {% for container in form.fields.containers.queryset %}
+                        <div id="form{{ container.pk }}" class="tab-pane fade {% if forloop.first %}in active{% endif %}">
+                        <div class="col-xs-12">
+                            <div id="formlayout-{{ container.pk }}"><a title="Select All" onclick="selectAll('{{ container.pk }}');" class="select-button btn btn-success">Toggle All</a></div>
+                            {% include "users/entries/layout-container.html" with selector="formlayout" object=container.pk kind=container.kind size=200 %}
+                        </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    {% for container in containers %}
+                        <div id="form{{ container.0 }}" class="tab-pane fade {% if forloop.first %}in active{% endif %}">
+                        <div class="col-xs-12">
+                            <div id="formlayout-{{ container.0 }}"></div>
+                            {% include "users/entries/layout-container.html" with selector="formlayout" object=container.0 kind=container.1 size=200 %}
+                            <a title="Select All" onclick="selectAll('{{ container.0 }}');" class="btn btn-success">Toggle All</a>
+                        </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <br>
         </div>
-        <div class="col-xs-6 col-sm-9 tab-content">
-            {% for container in containers %}
-                <div id="form{{ container.0 }}" class="tab-pane fade {% if forloop.first %}in active{% endif %}">
-                <div class="col-xs-12">
-                    <div id="formlayout-{{ container.0 }}"></div>
-                    {% include "users/entries/layout-container.html" with selector="formlayout" object=container.0 kind=container.1 size=200 %}
-                    <a title="Select All" onclick="selectAll('{{ container.0 }}');" class="btn btn-success">Toggle All</a>
-                </div>
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-{% endwith %}
+    {% endwith %}
+
+<script>
+    $(document).ready(function() {
+        var group = "{{ object.name }}";
+        openSelector(group);
+    });
+</script>
+{% endblock %}
 
