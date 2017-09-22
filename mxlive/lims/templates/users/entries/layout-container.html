@@ -80,14 +80,18 @@
             });
     }
 
-    function drawChild(svg, info) {
+    function drawChild(svg, info, accepts) {
         var svgLocation = svg.append("svg")
             .attr("width", info.size.width)
             .attr("height", info.size.width)
             .attr("x", info.coords[0])
             .attr("y", info.coords[1])
             .attr('id', 'id-'+info.parent+'-'+info.location);
-        drawLocations(info.parent, info.nodes, info.labels, info.radius, svgLocation);
+
+        if (!(accepts)) {
+            drawLocations(info.parent, info.nodes, info.labels, info.radius, svgLocation);
+        }
+
         var svgLocationEnvelope = svgLocation.append(info.envelope)
             .attr('id', 'envelope' + '-' + info.parent + '-' + info.location)
             .attr("width", info.size.width)
@@ -96,11 +100,8 @@
             .attr("cy", "50%")
             .attr("r", '50%')
             .attr("title", info.name)
-            .style("pointer-events", function() { for(i=0;i<info.nodes.length;i++) {
-                    if(info.nodes[i]['accepts']) {
-                        return "none";
-                    }
-                }; return "all";})
+            .style("pointer-events", "all")
+            .attr("class", "cursor")
             .style("stroke", function () {
                 if (info.envelope == 'circle') {
                     return "#bbb";
@@ -108,6 +109,12 @@
                 return "none";
             })
             .style("fill", "none");
+
+        if (accepts) {
+            drawLocations(info.parent, info.nodes, info.labels, info.radius, svgLocation);
+        }
+
+
         return svgLocation;
     }
 
@@ -159,7 +166,9 @@
                 'parent': "{{ child.parent.pk }}-{{ child.pk }}",
             };
 
-            var svgChild = drawChild(svgContainer, child_info);
+            var child_accepts = {% if child.accepts_children %}true{% else %}false{% endif %};
+
+            var svgChild = drawChild(svgContainer, child_info, child_accepts);
 
             {% for grandchild in child.pk|get_children %}
                 var grand_locations = {{ grandchild.kind.layout|kind_json:grandchild.pk }};
@@ -181,7 +190,7 @@
                     'name': "{{ grandchild.project.username|upper }} | {{ grandchild.name }}",
                     'coords': [gx, gy],
                     'location': "{{ grandchild.location }}",
-                    'parent': "{{ child.pk }}",
+                    'parent': "{{ child.pk }}-{{ grandchild.pk }}",
                 };
 
                 drawChild(svgChild, grandchild_info);

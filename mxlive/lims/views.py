@@ -1,21 +1,16 @@
-from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import Http404, HttpResponseRedirect, JsonResponse
+from django.http import JsonResponse
 from django.core.urlresolvers import reverse
-from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.shortcuts import render
-from django.utils import timezone
-from django.db.models import Q
+from django.utils.text import slugify
+
 from django.db import transaction
 from formtools.wizard.views import SessionWizardView
 
 from objlist.views import FilteredListView
-from datetime import datetime, timedelta
 
 from django.contrib.messages.views import SuccessMessageMixin
 from django.views.generic import edit
 from django.views.generic import detail
-from django.views.generic.base import TemplateResponseMixin
 from django.core.urlresolvers import reverse_lazy
 from lims import forms, models
 from itertools import chain
@@ -106,10 +101,7 @@ class Tex2PdfMixin(object):
         return res
 
 
-class BeamlineDetail(AdminRequiredMixin, detail.DetailView):
-    model = models.Beamline
-    template_name = "users/entries/beamline.html"
-    allowed_roles = ['admin']
+
 
 
 class ProjectDetail(UserPassesTestMixin, detail.DetailView):
@@ -359,8 +351,6 @@ class SampleList(ListViewMixin, FilteredListView):
     list_display = ['identity', 'name', 'comments', '_Container', 'container_location']
     search_fields = ['project__name', 'name', 'barcode', 'comments']
     detail_url = 'sample-detail'
-    detail_ajax = True
-    detail_target = '#modal-form'
     order_by = ['-created', '-priority']
     ordering_proxies = {}
     list_transforms = {}
@@ -420,7 +410,10 @@ class ContainerList(ListViewMixin, FilteredListView):
 class ContainerDetail(DetailListMixin, SampleList):
     extra_model = models.Container
     template_name = "users/entries/container.html"
-    list_display = ['identity', 'name', 'container_location', 'comments']
+    list_display = ['name', 'barcode', 'group__name', 'container_location', 'comments']
+    detail_url = 'sample-edit'
+    detail_ajax = True
+    detail_target = '#modal-form'
 
     def get_list_title(self):
         object = self.get_object()
@@ -431,6 +424,18 @@ class ContainerDetail(DetailListMixin, SampleList):
         if self.get_object().has_children():
             self.list_display.append('container')
         return filters
+
+    def get_object(self):
+        obj = super(ContainerDetail, self).get_object()
+        if obj.status != self.extra_model.STATES.DRAFT:
+            self.detail_ajax = False
+            self.detail_target = None
+        return obj
+
+    def get_detail_url(self, obj):
+        if self.get_object().status == self.extra_model.STATES.DRAFT:
+            return super(ContainerDetail, self).get_detail_url(obj)
+        return reverse_lazy('sample-detail', kwargs={'pk': obj.pk})
 
 
 class ContainerEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
@@ -466,14 +471,29 @@ class LocationLoad(AdminRequiredMixin, ContainerEdit):
 
     def form_valid(self, form):
         data = form.cleaned_data
-        data['child'].update(parent=self.object, location=data['container_location'])
+        models.Container.objects.filter(pk=data['child'].pk).update(parent=self.object, location=data['container_location'])
         return super(LocationLoad, self).form_valid(form)
 
 
-def update_locations(request):
-    container = models.Container.objects.get(pk=request.GET.get('pk', None))
-    locations = list(container.kind.container_locations.values_list('pk', 'name'))
-    return JsonResponse(locations, safe=False)
+class EmptyContainers(AdminRequiredMixin, edit.UpdateView):
+    form_class = forms.EmptyContainers
+    template_name = "forms/modal.html"
+    model = models.Project
+    success_message = "Containers have been removed for {username}."
+    success_url = reverse_lazy('dashboard')
+
+    def get_object(self):
+        return models.Project.objects.get(username=self.kwargs.get('username'))
+
+    def get_initial(self):
+        initial = super(EmptyContainers, self).get_initial()
+        initial['parent'] = models.Container.objects.get(pk=self.kwargs.get('pk'))
+        return initial
+
+    def form_valid(self, form):
+        data = form.cleaned_data
+        self.object.container_set.filter(parent=data.get('parent')).update(**{'location': None, 'parent': None})
+        return HttpResponse()
 
 
 class ContainerDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
@@ -501,8 +521,8 @@ class GroupList(ListViewMixin, FilteredListView):
 
 class GroupDetail(DetailListMixin, SampleList):
     extra_model = models.Group
-    template_name = "users/entries/experiment.html"
-    list_display = ['identity', 'name', 'container_location', 'comments']
+    template_name = "users/entries/group.html"
+    list_display = ['name', 'barcode', 'container_and_location', 'comments']
     detail_url = 'sample-edit'
     detail_ajax = True
     detail_target = '#modal-form'
@@ -510,6 +530,18 @@ class GroupDetail(DetailListMixin, SampleList):
     def get_list_title(self):
         object = self.get_object()
         return 'Samples in {}'.format(object.name)
+
+    def get_object(self):
+        obj = super(GroupDetail, self).get_object()
+        if obj.status != self.extra_model.STATES.DRAFT:
+            self.detail_ajax = False
+            self.detail_target = None
+        return obj
+
+    def get_detail_url(self, obj):
+        if self.get_object().status == self.extra_model.STATES.DRAFT:
+            return super(GroupDetail, self).get_detail_url(obj)
+        return reverse_lazy('sample-detail', kwargs={'pk': obj.pk})
 
 
 class GroupEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
@@ -546,8 +578,8 @@ class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
 class DataList(ListViewMixin, FilteredListView):
     model = models.Data
     list_filter = ['modified', 'kind', 'beamline']
-    list_display = ['id', 'name', 'sample', 'frame_sets', 'delta_angle', 'exposure_time', 'total_angle', 'wavelength', 'beamline', 'kind']
-    search_fields = ['id', 'name', 'beamline__name', 'delta_angle', 'sample__name', 'frame_sets', 'project__name']
+    list_display = ['id', 'name', 'sample', 'frames', 'delta_angle', 'exposure_time', 'total_angle', 'wavelength', 'beamline', 'kind']
+    search_fields = ['id', 'name', 'beamline__name', 'delta_angle', 'sample__name', 'frames', 'project__name']
     detail_url = 'data-detail'
     detail_ajax = True
     detail_target = '#modal-form'
@@ -559,16 +591,6 @@ class DataList(ListViewMixin, FilteredListView):
 class DataDetail(OwnerRequiredMixin, detail.DetailView):
     model = models.Data
     template_name = "users/entries/data.html"
-
-
-class DataEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
-    form_class = forms.DataForm
-    template_name = "forms/modal.html"
-    model = models.Data
-    success_message = "Data has been updated."
-
-    def get_success_url(self):
-        return reverse_lazy("shipment-protocol", kwargs={'pk': self.object.sample.container.shipment.pk})
 
 
 class ReportList(ListViewMixin, FilteredListView):
@@ -619,6 +641,64 @@ class ActivityLogList(ListViewMixin, FilteredListView):
     detail_target = '#modal-form'
 
 
+class SessionList(ListViewMixin, FilteredListView):
+    model = models.Session
+    list_filter = ['created', 'beamline', ]
+    list_display = ['created', 'name', 'beamline']
+    search_fields = ['beamline','project','name']
+    owner_field = "project__username"
+    order_by = ['-created']
+    ordering_proxies = {}
+    list_transforms = {}
+    detail_url = 'session-detail'
+    detail_ajax = True
+    detail_target = '#modal-form'
+
+
+class SessionDetail(OwnerRequiredMixin, detail.DetailView):
+    model = models.Session
+    template_name = "users/entries/session.html"
+
+
+class BeamlineDetail(AdminRequiredMixin, detail.DetailView):
+    model = models.Beamline
+    template_name = "users/entries/beamline.html"
+    allowed_roles = ['admin']
+
+    def get_context_data(self, **kwargs):
+        context = super(BeamlineDetail, self).get_context_data(**kwargs)
+        context['projects'] = {
+            project: self.object.active_automounter().children.filter(project=project)
+            for project in models.Project.objects.filter(pk__in=self.object.active_automounter().children.values_list('project', flat=True)).distinct()
+        }
+        return context
+
+
+class BeamlineHistory(AdminRequiredMixin, ListViewMixin, FilteredListView):
+    model = models.Stretch
+    list_filter = ['start_time', 'end_time']
+    list_display = ['session', 'session__beamline', 'start_time', 'end_time']
+    search_fields = ['session__beamline', 'session__project', 'session__name']
+    owner_field = 'session__project__username'
+    order_by = ['-start_time']
+    detail_url_kwarg = 'session__pk'
+    detail_url = 'session-detail'
+    detail_ajax = True
+    detail_target = '#modal-form'
+
+    def get_queryset(self):
+        qs = super(BeamlineHistory, self).get_queryset()
+        return qs.filter(session__beamline__pk=self.kwargs['pk'])
+
+
+class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+    form_class = forms.DewarForm
+    template_name = "forms/modal.html"
+    model = models.Dewar
+    success_url = reverse_lazy('dashboard')
+    success_message = "Comments have been updated."
+
+
 class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
     form_list = [('shipment', forms.AddShipmentForm),
                  ('containers', forms.ShipmentContainerForm),
@@ -639,11 +719,11 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
 
     @transaction.atomic
     def done(self, form_list, **kwargs):
-        project = self.request.user
 
         for label, form in kwargs['form_dict'].items():
             if label == 'shipment':
                 data = form.cleaned_data
+                project = self.request.user.is_superuser and data.get('project') or self.request.user
                 data.update({'project': project})
                 self.shipment, created = models.Shipment.objects.get_or_create(**data)
             elif label == 'containers':
@@ -656,30 +736,50 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                     }
                     container, created = models.Container.objects.get_or_create(**data)
             elif label == 'groups':
-                sample_locations = json.loads(form.cleaned_data['sample_locations'])
-                for i, name in enumerate(form.cleaned_data['name_set']):
-                    data = {field: form.cleaned_data['{}_set'.format(field)][i] for field in ['name','kind','comments',
-                                                                                              'plan','absorption_edge']}
-                    data.update({
-                        'energy': data.get('energy_set',[]) and float(data['energy_set'][i]) or None,
-                        'sample_count': int(form.cleaned_data['sample_count_set'][i]),
-                        'shipment': self.shipment,
-                        'project': project,
-                        'priority': i + 1
-                    })
-                    group, created = models.Group.objects.get_or_create(**data)
+                if form.cleaned_data['fill']:
                     to_create = []
-
-                    for c, locations in sample_locations.get(group.name, {}).items():
-                        container = models.Container.objects.get(name=c, project=project, shipment=self.shipment)
-                        for j, sample in enumerate(locations):
-                            name = "{0}-{1:02d}".format(group.name, j+1)
-                            to_create.append(models.Sample(group=group, container=container, container_location=sample,
+                    for c in self.shipment.container_set.all():
+                        data = {
+                            'name': slugify(c.name),
+                            'sample_count': c.capacity(),
+                            'shipment': self.shipment,
+                            'project': project,
+                        }
+                        group, created = models.Group.objects.get_or_create(**data)
+                        for i, location in enumerate(c.kind.container_locations.all()):
+                            name = '{0}-{1:02d}'.format(group.name, i)
+                            to_create.append(models.Sample(group=group, container=c, container_location=location,
                                                            name=name, project=project))
                     models.Sample.objects.bulk_create(to_create)
-                    if group.sample_count < group.sample_set.count():
-                        group.sample_count = group.sample_set.count()
-                        group.save()
+                else:
+                    sample_locations = json.loads(form.cleaned_data['sample_locations'])
+                    for i, name in enumerate(form.cleaned_data['name_set']):
+                        data = {field: form.cleaned_data['{}_set'.format(field)][i]
+                                for field in ['name', 'kind', 'comments', 'plan', 'absorption_edge']}
+                        data.update({
+                            'energy': data.get('energy_set',[]) and float(data['energy_set'][i]) or None,
+                            'sample_count': int(form.cleaned_data['sample_count_set'][i]),
+                            'shipment': self.shipment,
+                            'project': project,
+                            'priority': i + 1
+                        })
+                        group, created = models.Group.objects.get_or_create(**data)
+                        to_create = []
+                        j = 1
+                        for c, locations in sample_locations.get(group.name, {}).items():
+                            container = models.Container.objects.get(name=c, project=project, shipment=self.shipment)
+                            for k, sample in enumerate(locations):
+                                name = "{0}-{1:02d}".format(group.name, j)
+                                to_create.append(models.Sample(group=group, container=container, container_location=sample,
+                                                               name=name, project=project))
+                                j += 1
+                        models.Sample.objects.bulk_create(to_create)
+                        if group.sample_count < group.sample_set.count():
+                            group.sample_count = group.sample_set.count()
+                            group.save()
+                if project != self.request.user and self.request.user.is_superuser:
+                    self.shipment.send()
+                    self.shipment.receive()
 
         return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': self.shipment.pk})})
 
@@ -758,9 +858,9 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
             else:
                 group, created = models.Group.objects.get_or_create(**info)
             to_create = []
+            j = 1
             for c, locations in sample_locations.get(group.name, {}).items():
                 container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
-                j = 1
                 names = []
                 for location in locations:
                     if not models.Sample.objects.filter(container=container, container_location=location).exists():
@@ -810,9 +910,9 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
 
         group = models.Group.objects.get(pk=int(data['id']))
         to_create = []
+        j = 1
         for c, locations in sample_locations.get(group.name, {}).items():
             container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
-            j = 1
             names = []
             for location in locations:
                 if not models.Sample.objects.filter(container=container, container_location=location).exists():

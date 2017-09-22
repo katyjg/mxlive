@@ -1,9 +1,0 @@
-{% load runlist_extras %}
-{% load truncate_filters %}
-{% for object in ol.object_list %}
-        <li id="{{object.id}}" class="draggable-link-parent {{ type }}" rel="{{ handler }}{{object.pk}}" ondragstart="setupDragAndDrop()">
-            <a class="{{type}}">
-               {{ object.name }} - {{ object|adaptor_containers }} containers
-            </a>
-        </li>
-{% endfor %}

@@ -1,7 +1,7 @@
 <nav class="navbar navbar-default navbar-fixed-top">
     <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
-      <a class="navbar-brand" href="#"> </a>
+      <a class="navbar-brand" href="{% url "dashboard" %}"> </a>
 <div class="navbar-header-menu navbar-right pull-right">
     <ul class="nav navbar-nav pull-right">
         <li><a href="{% url "dashboard" %}"><i class="fa fa-home fa-fw"></i><span class="hidden-xs">Dashboard</span> </a></li>
@@ -36,15 +36,17 @@
                 <span class="hidden-xs">Search</span>
                 <i class="ti ti-angle-down"></i></a>
             <ul class="dropdown-menu">
-                <li><a href="{% url "group-list" %}">Groups</a></li>
-                <li><a href="{% url "sample-list" %}">Samples</a></li>
-                <li role="separator" class="divider"></li>
                 <li><a href='{% url "shipment-list" %}'>Shipments</a></li>
                 <li><a href="{% url "container-list" %}">Containers</a></li>
+                <li><a href="{% url "group-list" %}">Groups</a></li>
+                <li><a href="{% url "sample-list" %}">Samples</a></li>
                 <li role="separator" class="divider"></li>
                 <li><a href="{% url "data-list" %}">Datasets</a></li>
                 <li><a href="{% url "result-list" %}">Reports</a></li>
                 <li><a href="{% url "scanresult-list" %}">Scans</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a href="{% url "session-list" %}">Sessions</a></li>
+                <li><a href="{% url "activitylog-list" %}">Activity Log</a></li>
             </ul>
         </li>
     </ul>

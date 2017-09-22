@@ -1,54 +1,40 @@
 {% load layout %}
 
-
 {% block form_body %}
-    {% with form.fields.locations.choices|get_containers_from_choices as containers %}
+    {% if form.initial.shipment %}
+        {% containers_from_queryset form.fields.containers.queryset as containers %}
+    {% else %}
+        {% containers_from_choices form.fields.locations.choices as containers %}
+    {% endif %}
         <div id="layout-{{ field.name }}" class="layout-lg">
             <span class="group-name" style="display: none"></span>
             <div class="hidden">{{ field }}</div>
             <div class="col-xs-4">
                 <ul class="nav nav-pills nav-stacked">
-                {% if form.initial.shipment %}
-                    {% for container in form.fields.containers.queryset %}
-                        <li class="{% if forloop.first %}active{% endif %} overflow ellipsis">
-                            <a data-toggle="pill" href="#form{{ container.pk }}"><strong>{{ container.name }}</strong> | {{ container.kind.name }}</a>
-                        </li>
-                    {% endfor %}
-                {% else %}
                     {% for container in containers %}
                         <li class="{% if forloop.first %}active{% endif %} overflow ellipsis">
-                            <a data-toggle="pill" href="#form{{ container.0 }}"><strong>{{ container.0 }}</strong> | {{ container.1 }}</a>
+                            <a data-toggle="pill" href="#form{{ container.0 }}"><strong>{{ container.1 }}</strong> | {{ container.2.name }}</a>
                         </li>
                     {% endfor %}
-                {% endif %}
                 </ul>
             </div>
             <div class="col-xs-8 tab-content">
-                {% if form.initial.shipment %}
-                    {% for container in form.fields.containers.queryset %}
-                        <div id="form{{ container.pk }}" class="tab-pane fade {% if forloop.first %}in active{% endif %}">
-                        <div class="col-xs-12">
-                            <div id="formlayout-{{ container.pk }}"><a title="Select All" onclick="selectAll('{{ container.pk }}');" class="select-button btn btn-success">Toggle All</a></div>
-                            {% include "users/entries/layout-container.html" with selector="formlayout" object=container.pk kind=container.kind size=200 %}
-                        </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    {% for container in containers %}
-                        <div id="form{{ container.0 }}" class="tab-pane fade {% if forloop.first %}in active{% endif %}">
-                        <div class="col-xs-12">
-                            <div id="formlayout-{{ container.0 }}"></div>
-                            {% include "users/entries/layout-container.html" with selector="formlayout" object=container.0 kind=container.1 size=200 %}
-                            <a title="Select All" onclick="selectAll('{{ container.0 }}');" class="btn btn-success">Toggle All</a>
-                        </div>
-                        </div>
-                    {% endfor %}
-                {% endif %}
+                {% for container in containers %}
+                    <div id="form{{ container.0 }}" class="tab-pane fade {% if forloop.first %}in active{% endif %}">
+                    <div class="col-xs-12">
+                        <div class="row">
+                            <span class="col-xs-12 pull-right">
+                                <a onclick="selectAll('{{ container.0 }}');" class="select-button btn btn-success">Select All</a>
+                            </span>
+                        </div><br>
+                        <div id="formlayout-{{ container.0 }}"></div>
+                        {% include "users/entries/layout-container.html" with selector="formlayout" object=container.0 kind=container.2 size=300 %}
+                    </div>
+                    </div>
+                {% endfor %}
             </div>
             <br>
         </div>
-    {% endwith %}
-
 <script>
     $(document).ready(function() {
         var group = "{{ object.name }}";

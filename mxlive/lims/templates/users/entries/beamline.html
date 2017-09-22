@@ -3,8 +3,6 @@
 {% load markup %}
 {% load static %}
 
-{% load container_table %}
-
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading">
         <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
@@ -16,24 +14,18 @@
 {% endblock %}
 
 {% block object_tools %}
-    {% if object.is_editable or object.is_deletable %}
-        <div class="object-tools">
-            <span class="box-tools pull-right">
-                {% if object.is_editable %}
-                    <a class="pull-right" data-url="{{ handler }}edit/">
-                        <i class="fa fa-2 fa-fw fa-pencil"></i><br>
-                        <span class="tool-label">Edit</span>
-                    </a>
-                {% endif %}
-                {% if object.is_deletable %}
-                    <a class="pull-right" data-url="{{ handler }}delete/">
-                        <i class="fa fa-2 fa-fw fa-remove"></i><br>
-                        <span class="tool-label">Delete</span>
-                    </a>
-                {% endif %}
-            </span>
-        </div>
-    {% endif %}
+    <div class="object-tools">
+        <span class="box-tools pull-right">
+            <a class="pull-right" data-url="{% url "dewar-edit" pk=object.active_dewar.pk %}">
+                <i class="fa fa-2 fa-fw fa-commenting-o"></i><br>
+                <span class="tool-label">Add Comment</span>
+            </a>
+            <a class="pull-right" href="{% url "beamline-history" pk=object.pk %}">
+                <i class="fa fa-2 fa-fw fa-history"></i><br>
+                <span class="tool-label">Sessions</span>
+            </a>
+        </span>
+    </div>
 {% endblock %}
 
 {% block object_status %}
@@ -49,8 +41,8 @@
                 {{ object.energy_lo }} - {{ object.energy_hi }}
             </div>
             <div class="col-xs-3 col-sm-4 pull-right text-right">
-                <small class="text-muted text-condensed">Comments:</small><br>
-                {{ object.active_automounter.staff_comments }}
+                <small class="text-muted text-condensed">Staff Comments:</small><br>
+                {{ object.active_dewar.staff_comments|safe }}
             </div>
         </div>
     </div>
@@ -67,12 +59,8 @@
 
 
     <div class="col-sm-5 col-xs-12">
-        {% include "users/entries/container_load_list.html" with object=automounter %}
+        {% include "users/entries/loaded-list.html" with object=automounter %}
     </div>
 
     {% endwith %}
-{% endblock %}
-
-{% block extra_js %}
-
 {% endblock %}

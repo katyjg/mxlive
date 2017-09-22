@@ -1,0 +1,28 @@
+{% extends "forms/modal.html" %}
+
+{% block form_title %}
+    Session <strong>{{ object.name }}</strong>
+{% endblock %}
+
+{% block form_body %}
+    <div class="row">
+        <div class="col-xs-12">
+            <table>
+                <tr>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Uptime</th>
+                    <th>IP Number</th></tr>
+                {% for stretch in object.stretches.all %}
+                    <tr>
+                        <td>{{ stretch.start_time }}</td>
+                        <td>{{ stretch.end_time }}</td>
+                        <td>{{ stretch.active_time }}</td>
+                        <td>{{ stretch.activitylog_set.first.ip_number }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}
+

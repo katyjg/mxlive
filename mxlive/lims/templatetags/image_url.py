@@ -1,4 +1,3 @@
-
 from django.template import Library
 from download.views import get_download_path
 import os   

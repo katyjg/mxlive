@@ -98,10 +98,10 @@ CACHES = {
 }
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': 'unix:/tmp/memcached.sock',
-    }
+   'default': {
+      'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+      'LOCATION': '/home/janzen/code/projects/mxlive/cache',
+   }
 }
 
 DOWNLOAD_FRONTEND = "xsendfile"
@@ -124,6 +124,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = (
     os.path.join(PROJECT_DIR, "static"),
 )
+
+CACHE_URL = '/cache/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'local/media')
 AUTH_USER_MODEL = 'lims.Project'

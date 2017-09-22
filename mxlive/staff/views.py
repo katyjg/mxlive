@@ -8,19 +8,14 @@ import forms
 import slap
 
 from objlist.views import FilteredListView
-from lims.views import AjaxableResponseMixin, ListViewMixin
+from lims.views import AjaxableResponseMixin, AdminRequiredMixin
 from lims.models import Project
 from lims.forms import NewProjectForm
 
 User = get_user_model()
 
 
-class StaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
-    def test_func(self):
-        return self.request.user.is_superuser
-
-
-class AccessList(StaffRequiredMixin, FilteredListView):
+class AccessList(AdminRequiredMixin, FilteredListView):
     model = models.UserList
     list_filter = []
     list_display = ['name', 'description', 'current_users', 'address', 'active']
@@ -32,7 +27,7 @@ class AccessList(StaffRequiredMixin, FilteredListView):
     template_name = "users/list.html"
 
 
-class AccessEdit(StaffRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.AccessForm
     template_name = "forms/modal.html"
     model = models.UserList
@@ -45,7 +40,7 @@ class AccessEdit(StaffRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin,
         return self.model.objects.get(address=self.kwargs.get('address'))
 
 
-class AnnouncementEdit(StaffRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class AnnouncementEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.AnnouncementForm
     template_name = "forms/modal.html"
     model = models.Announcement
@@ -53,7 +48,7 @@ class AnnouncementEdit(StaffRequiredMixin, SuccessMessageMixin, AjaxableResponse
     success_message = "Announcement has been updated"
 
 
-class AnnouncementDelete(StaffRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
+class AnnouncementDelete(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
     template_name = "forms/delete.html"
     model = models.Announcement
     success_url = reverse_lazy('dashboard')
@@ -65,7 +60,7 @@ class AnnouncementDelete(StaffRequiredMixin, SuccessMessageMixin, AjaxableRespon
         return context
 
 
-class ProjectList(StaffRequiredMixin, FilteredListView):
+class ProjectList(AdminRequiredMixin, FilteredListView):
     model = Project
     paginate_by = 25
     template_name = "users/list.html"
@@ -84,7 +79,7 @@ class ProjectList(StaffRequiredMixin, FilteredListView):
     list_transforms = {}
 
 
-class ProjectCreate(StaffRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
+class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
     form_class = NewProjectForm
     template_name = "forms/modal.html"
     model = Project

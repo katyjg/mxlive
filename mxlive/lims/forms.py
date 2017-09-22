@@ -1,18 +1,9 @@
 from django import forms
-from django.forms.utils import ErrorList
-from django.forms import inlineformset_factory
-from django.forms import BaseFormSet
 from django.core.urlresolvers import reverse_lazy
-from django.http import QueryDict
-from django.utils import dateformat, timezone
-import objforms.widgets
 from django.utils.text import slugify
-import uuid
-from excel import LimsWorkbook
+
 from models import *
-from objforms.forms import OrderedForm
 import re
-import tempfile
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, HTML, Div, Field, Button
@@ -145,37 +136,21 @@ class ShipmentForm(forms.ModelForm):
                    'comments': forms.Textarea(attrs={'rows': "2"})}
 
 
-class DataForm(forms.ModelForm):
+class DewarForm(forms.ModelForm):
 
     class Meta:
-        model = Data
-        fields = ('staff_comments', 'resolution', 'start_angle', 'delta_angle', 'first_frame', 'frame_sets',
-                  'exposure_time', 'two_theta', 'wavelength', 'detector', 'beamline')
-        widgets = {
-            'staff_comments': forms.Textarea(attrs={'rows': "4"}),
-        }
+        model = Dewar
+        fields = ('staff_comments', )
+        widgets = {'staff_comments': forms.Textarea(attrs={'rows': "3"})}
 
     def __init__(self, *args, **kwargs):
-        super(DataForm, self).__init__(*args, **kwargs)
+        super(DewarForm, self).__init__(*args, **kwargs)
 
         self.helper = FormHelper()
-        self.helper.form_action = reverse_lazy('data-edit', kwargs={'pk': self.instance.pk})
-        self.helper.title = "Add notes about this dataset"
+        self.helper.form_action = reverse_lazy('dewar-edit', kwargs={'pk': self.instance.pk})
+        self.helper.title = u"Staff Comments for {} Automounter".format(self.instance.beamline.acronym)
         self.helper.layout = Layout(
-            Div(
-                Div('staff_comments', css_class="col-xs-12"),
-                Div(Field('resolution', readonly=True), css_class="col-xs-3"),
-                Div(Field('wavelength', readonly=True), css_class="col-xs-3"),
-                Div(Field('delta_angle', readonly=True), css_class="col-xs-3"),
-                Div(Field('exposure_time', readonly=True), css_class="col-xs-3"),
-                Div(Field('start_angle', readonly=True), css_class="col-xs-3"),
-                Div(Field('first_frame', readonly=True), css_class="col-xs-3"),
-                Div(Field('frame_sets', readonly=True), css_class="col-xs-6"),
-                Div(Field('beamline', readonly=True), css_class="col-xs-4"),
-                Div(Field('detector', readonly=True), css_class="col-xs-4"),
-                Div(Field('two_theta', readonly=True), css_class="col-xs-4"),
-                css_class="row"
-            ),
+            'staff_comments',
             FormActions(
                 Div(
                     Div(
@@ -216,10 +191,11 @@ class SampleForm(forms.ModelForm):
         else:
             self.helper.title = u"Create New Sample"
             self.helper.form_action = reverse_lazy('sample-new')
+
         self.helper.layout = Layout(
             Div('name', css_class='col-xs-6'),
             Div('barcode', css_class='col-xs-6'),
-            Div('staff_comments', css_class='col-xs-12'),
+            Div('comments', css_class='col-xs-12'),
             FormActions(
                 Div(
                     Div(
@@ -241,10 +217,44 @@ class SampleForm(forms.ModelForm):
 
     class Meta:
         model = Sample
-        fields = ('name', 'barcode', 'staff_comments')
+        fields = ('name', 'barcode', 'comments')
         widgets = {
             'comments': forms.Textarea(attrs={'rows': "4"}),
         }
+
+
+class SampleAdminForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(SampleAdminForm, self).__init__(*args, **kwargs)
+        pk = self.instance.pk
+
+        self.helper = FormHelper()
+        self.helper.title = u"Add Staff Comments to Sample"
+        self.helper.form_action = reverse_lazy('sample-admin-edit', kwargs={'pk': pk})
+
+        self.helper.layout = Layout(
+            Div('staff_comments', css_class='col-xs-12'),
+            FormActions(
+                Div(
+                    Div(
+                        StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-default"),
+                        StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+                        css_class='pull-right'
+                    ),
+                    css_class="col-xs-12"
+                ),
+                css_class="row"
+            )
+        )
+
+    class Meta:
+        model = Sample
+        fields = ('staff_comments', )
+        widgets = {
+            'staff_comments': forms.Textarea(attrs={'rows': "4"}),
+        }
+
 
 
 class ShipmentSendForm(forms.ModelForm):
@@ -533,17 +543,17 @@ class GroupForm(forms.ModelForm):
         widgets = {'project': disabled_widget}
 
 
-
 class ContainerLoadForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ContainerLoadForm, self).__init__(*args, **kwargs)
 
-        self.fields['parent'].queryset = self.fields['parent'].queryset\
-            .filter(kind__container_locations=self.instance.kind.locations.all())
+        self.fields['parent'].queryset = self.fields['parent'].queryset.filter(
+            kind__in=self.instance.accepted_by())
+
 
         self.helper = FormHelper()
-        self.helper.title = u"Move Container"
+        self.helper.title = u"Move Container {}".format(self.instance)
         self.helper.form_action = reverse_lazy("container-load", kwargs={'pk': self.instance.pk})
 
         self.helper.layout = Layout(
@@ -560,10 +570,8 @@ class ContainerLoadForm(forms.ModelForm):
             ),
             FormActions(
                 Div(
-                    Div(
-                        StrictButton('Save', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
-                        css_class='pull-right'
-                    ),
+                        StrictButton('Unload', type="submit", name="unload", value='Unload', css_class='pull-left btn btn-danger'),
+                        StrictButton('Save', type='submit', name="submit", value='submit', css_class='pull-right btn btn-primary'),
                     css_class="col-xs-12"
                 ),
                 css_class="row"
@@ -571,9 +579,13 @@ class ContainerLoadForm(forms.ModelForm):
         )
 
     def clean(self):
-        if self.cleaned_data['location']:
-            if Container.objects.filter(parent=self.cleaned_data['parent'],location=self.cleaned_data['location']).exists():
-                self.add_error(None, forms.ValidationError("Container is already loaded in that location"))
+        if self.data.get('submit') == 'Unload':
+            self.cleaned_data.update({'location': None, 'parent': None})
+        else:
+            if self.cleaned_data['location']:
+                if self.cleaned_data['parent'].children.exclude(pk=self.instance.pk).filter(location=self.cleaned_data['location']).exists():
+                    self.add_error(None, forms.ValidationError("Container is already loaded in that location"))
+
         return self.cleaned_data
 
     class Meta:
@@ -581,22 +593,55 @@ class ContainerLoadForm(forms.ModelForm):
         fields = ['parent', 'location']
 
 
+class EmptyContainers(forms.ModelForm):
+    parent = forms.ModelChoiceField(queryset=Container.objects.all(), widget=forms.HiddenInput)
+
+    class Meta:
+        model = Project
+        fields = []
+
+    def __init__(self, *args, **kwargs):
+        super(EmptyContainers, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.title = u"Remove containers".format(self.instance.username.upper())
+        self.helper.form_action = reverse_lazy("empty-containers", kwargs={
+            'pk': self.initial['parent'].pk,
+            'username': self.instance.username})
+        self.helper.layout = Layout(
+            Div(HTML("""Any containers owned by {} will be removed from the automounter.""".format(self.instance.username))),
+            'parent',
+            FormActions(
+                Div(
+                    StrictButton('Save', type='submit', name="submit", value='submit',
+                                 css_class='pull-right btn btn-primary'),
+                    css_class="col-xs-12"
+                ),
+                css_class="row"
+            )
+        )
+
 class LocationLoadForm(forms.ModelForm):
-    child = forms.ModelMultipleChoiceField(label="Container", queryset=Container.objects.filter(status=Container.STATES.ON_SITE))
+    child = forms.ModelChoiceField(
+        label="Container",
+        queryset=Container.objects.filter(status=Container.STATES.ON_SITE))
     container_location = forms.ModelChoiceField(queryset=ContainerLocation.objects.all())
 
     class Meta:
         model = Container
-        fields = ['child','container_location']
+        fields = ['child', 'container_location']
 
     def __init__(self, *args, **kwargs):
         super(LocationLoadForm, self).__init__(*args, **kwargs)
 
-        self.fields['child'].queryset = self.fields['child'].queryset.filter(parent__isnull=True).filter(kind__in=self.initial['container_location'].accepts.all())
+        self.fields['child'].queryset = self.fields['child'].queryset.filter(parent__isnull=True).filter(
+            kind__in=self.initial['container_location'].accepts.all())
 
         self.helper = FormHelper()
         self.helper.title = u"Load Container in location {}".format(self.initial['container_location'])
-        self.helper.form_action = reverse_lazy("location-load", kwargs={'pk': self.instance.pk, 'location': self.initial['container_location'].name})
+        self.helper.form_action = reverse_lazy("location-load", kwargs={
+            'pk': self.instance.pk,
+            'location': self.initial['container_location'].name})
 
         self.helper.layout = Layout(
             Div(
@@ -619,17 +664,30 @@ class LocationLoadForm(forms.ModelForm):
             )
         )
 
+
 class AddShipmentForm(forms.ModelForm):
     class Meta:
         model = Shipment
-        fields = ('name','comments','project')
+        fields = ('name', 'comments', 'project')
         widgets = {
             'comments': forms.Textarea(),
-            'project': forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
         super(AddShipmentForm, self).__init__(*args, **kwargs)
+
+        if self.initial['project'].is_superuser:
+            name_row = Div(
+                Div(Field('project', css_class="chosen"), css_class="col-xs-4"),
+                Div('name', css_class="col-xs-8"),
+                css_class="row"
+            )
+        else:
+            self.fields['project'].widget = forms.HiddenInput()
+            name_row = Div(
+                Field('project', hidden=True),
+                Field('name', css_class="col-xs-12")
+            )
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -637,9 +695,8 @@ class AddShipmentForm(forms.ModelForm):
                 Div(
                     HTML("""<h4>Step 1: Give your shipment a name!</h4>"""),
                     HTML("""<small>This name will be visible to you and staff at the beamline.</small>"""),
-                    Field('name', css_class="col-xs-12"),
+                    name_row,
                     Field('comments', rows="2", css_class="col-xs-12"),
-                    'project',
                     css_class="col-xs-12"
                 ),
                 css_class="row"
@@ -661,7 +718,7 @@ class AddShipmentForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(AddShipmentForm, self).clean()
-        if cleaned_data['project'].shipment_set.filter(name__iexact=cleaned_data.get('name','')).exists():
+        if cleaned_data['project'].shipment_set.filter(name__iexact=cleaned_data.get('name', '')).exists():
             self.add_error('name', forms.ValidationError("Shipment with this name already exists"))
 
 
@@ -676,9 +733,10 @@ class ShipmentContainerForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ShipmentContainerForm, self).__init__(*args, **kwargs)
 
-        self.fields['kind'].queryset = self.fields['kind'].queryset.filter(container_locations__in=ContainerLocation.objects.filter(accepts__isnull=True)).distinct()
+        self.fields['kind'].queryset = self.fields['kind'].queryset.filter(
+            container_locations__in=ContainerLocation.objects.filter(accepts__isnull=True)).distinct()
 
-        self.repeated_fields = ['name','kind','id']
+        self.repeated_fields = ['name', 'kind', 'id']
         self.repeated_data = {}
         for f in self.repeated_fields:
             self.fields['{}_set'.format(f)] = forms.CharField(required=False)
@@ -696,9 +754,9 @@ class ShipmentContainerForm(forms.ModelForm):
         )
 
         if self.initial.get('shipment'):
-            self.repeated_data['name_set'] = [str(container.name) for container in self.initial['shipment'].container_set.all()]
-            self.repeated_data['id_set'] = [container.pk for container in self.initial['shipment'].container_set.all()]
-            self.repeated_data['kind_set'] = [container.kind.pk for container in self.initial['shipment'].container_set.all()]
+            self.repeated_data['name_set'] = [str(c.name) for c in self.initial['shipment'].container_set.all()]
+            self.repeated_data['id_set'] = [c.pk for c in self.initial['shipment'].container_set.all()]
+            self.repeated_data['kind_set'] = [c.kind.pk for c in self.initial['shipment'].container_set.all()]
             self.helper.form_action = reverse_lazy('shipment-add-containers', kwargs={'pk': self.initial['shipment'].pk})
             self.helper.title = 'Add Containers to Shipment'
             action_row.append(Div(
@@ -732,10 +790,12 @@ class ShipmentContainerForm(forms.ModelForm):
                             Div(Field('shipment')),
                             Div(Field('id', css_id="id")),
                             Div(Field('name', css_id="name"), css_class="col-xs-5"),
-                            Div(Field('kind', css_class="tab-chosen chosen-single chosen-select", css_id="kind"), css_class="col-xs-5"),
+                            Div(Field('kind', css_class="tab-chosen chosen-single", css_id="kind"), css_class="col-xs-5"),
                             Div(
-                                HTML("""<a title="Remove Container" class="inline-btn safe-remove btn btn-default"><i class="fa fa-fw fa-minus"></i></a>"""),
-                                HTML("""<a title="Remove Container" class="inline-btn remove btn btn-danger" style="display: none;"><i class="fa fa-fw fa-remove"></i></a>"""),
+                                HTML("""<a title="Remove Container" class="inline-btn safe-remove btn btn-default">
+                                            <i class="fa fa-fw fa-minus"></i></a>"""),
+                                HTML("""<a title="Remove Container" class="inline-btn remove btn btn-danger" style="display: none;">
+                                            <i class="fa fa-fw fa-remove"></i></a>"""),
                                 css_class="col-xs-2 pull-right"),
                             css_class="col-xs-12 template repeat-row list-group-item"
                         ),
@@ -747,8 +807,6 @@ class ShipmentContainerForm(forms.ModelForm):
                 css_class='repeat'
             )
         )
-
-
 
     def help_text(self):
         if self.initial.get('shipment'):
@@ -762,18 +820,18 @@ class ShipmentContainerForm(forms.ModelForm):
 
     def clean(self):
         self.repeated_data = {}
-        self.cleaned_data = super(ShipmentContainerForm, self).clean()
+        cleaned_data = super(ShipmentContainerForm, self).clean()
         for field in self.repeated_fields:
             if 'containers-{}'.format(field) in self.data:
-                self.cleaned_data['{}_set'.format(field)] = self.data.getlist('containers-{}'.format(field))
+                cleaned_data['{}_set'.format(field)] = self.data.getlist('containers-{}'.format(field))
             else:
-                self.cleaned_data['{}_set'.format(field)] = self.data.getlist(field)
-            self.fields[field].initial = self.cleaned_data['{}_set'.format(field)]
+                cleaned_data['{}_set'.format(field)] = self.data.getlist(field)
+            self.fields[field].initial = cleaned_data['{}_set'.format(field)]
         if not self.is_valid():
-            for k, v in self.cleaned_data.items():
-                if type(v) == type([]):
+            for k, v in cleaned_data.items():
+                if isinstance(v, list):
                     self.repeated_data[k] = [str(e) for e in v]
-        return self.cleaned_data
+        return cleaned_data
 
 
 class ShipmentGroupForm(forms.ModelForm):
@@ -787,10 +845,12 @@ class ShipmentGroupForm(forms.ModelForm):
         queryset=Container.objects.all(),
         required=False
     )
+    name = forms.CharField(max_length=50, required=False)
+    sample_count = forms.IntegerField(min_value=1, required=False, initial=1)
 
     class Meta:
         model = Group
-        fields = ['shipment','id','name','sample_count','priority','kind','energy','absorption_edge','plan','comments','locations']
+        fields = ['shipment', 'id', 'priority', 'kind', 'energy', 'absorption_edge', 'name', 'sample_count', 'plan', 'comments', 'locations']
         widgets = {
             'comments': forms.Textarea(attrs={'rows': "4"}),
             'priority': forms.TextInput(attrs={'readonly': True}),
@@ -807,8 +867,8 @@ class ShipmentGroupForm(forms.ModelForm):
         else:
             for c in containers:
                 kind = ContainerType.objects.get(pk=int(c[1]))
-                locations.extend([('{2};{0};{1}'.format(c[0], l, c[1]),'{2};{0};{1}'.format(c[0], l, c[1])) for l in kind.container_locations.values_list('name',flat=True)])
-
+                locations.extend([('{2};{0};{1}'.format(c[0], l, c[1]), '{2};{0};{1}'.format(c[0], l, c[1]))
+                                  for l in kind.container_locations.values_list('name', flat=True)])
             self.fields['locations'].choices = locations
 
         self.helper = FormHelper()
@@ -826,11 +886,12 @@ class ShipmentGroupForm(forms.ModelForm):
 
         if self.initial.get('shipment'):
             groups = self.initial['shipment'].group_set.order_by('priority')
-            self.repeated_data = {}
-            self.repeated_data['name_set'] = [str(group.name) for group in groups]
-            self.repeated_data['priority_set'] = [group.priority for group in groups]
-            self.repeated_data['id_set'] = [group.pk for group in groups]
-            self.repeated_data['sample_count_set'] = [group.sample_count for group in groups]
+            self.repeated_data = {
+                'name_set': [str(group.name) for group in groups],
+                'priority_set': [group.priority for group in groups],
+                'id_set': [group.pk for group in groups],
+                'sample_count_set': [group.sample_count for group in groups]
+            }
             action_row.append(Div(
                 Div(
                     StrictButton('Save', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
@@ -845,7 +906,8 @@ class ShipmentGroupForm(forms.ModelForm):
         else:
             action_row.append(Div(
                 Div(
-                    StrictButton('Finish', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
+                    StrictButton('Fill Containers & Finish', type="submit", name="fill", value='Fill', css_class='btn btn-warning'),
+                    StrictButton('Finish', type='submit', name="submit", value='Finish', css_class='btn btn-primary'),
                     css_class="pull-right"
                 ),
                 css_class="col-xs-6"
@@ -863,7 +925,8 @@ class ShipmentGroupForm(forms.ModelForm):
                 Div(
                     Div(
                         Div(
-                            Div(HTML("""<a title="Drag to change group priority" class="disabled move"><i class="fa fa-3x fa-grip"></i></a>"""), css_class="align-middle"),
+                            Div(HTML("""<a title="Drag to change group priority" class="disabled move">
+                                            <i class="fa fa-3x fa-grip"></i></a>"""), css_class="align-middle"),
                             Div(Field('shipment')),
                             Div(Field('id', css_id="id")),
                             Div(Field('priority', type="hidden", css_id="priority")),
@@ -891,7 +954,7 @@ class ShipmentGroupForm(forms.ModelForm):
                                                 ),
                                                 css_class="row-fluid"
                                             )
-                                            ),
+                                        ),
                                         Tab('Comments',
                                             Div(
                                                 Div(Field('comments', css_id="comments"), css_class="col-xs-12"),
@@ -958,23 +1021,23 @@ class ShipmentGroupForm(forms.ModelForm):
 
     def clean(self):
         self.repeated_data = {}
-        self.cleaned_data = super(ShipmentGroupForm, self).clean()
+        cleaned_data = super(ShipmentGroupForm, self).clean()
         for field in self.Meta.fields:
             if 'groups-{}'.format(field) in self.data:
-                self.cleaned_data['{}_set'.format(field)] = self.data.getlist('groups-{}'.format(field))
+                cleaned_data['{}_set'.format(field)] = self.data.getlist('groups-{}'.format(field))
             else:
-                self.cleaned_data['{}_set'.format(field)] = self.data.getlist(field)
+                cleaned_data['{}_set'.format(field)] = self.data.getlist(field)
 
-        self.cleaned_data['name_set'] = [slugify(name) for name in self.cleaned_data['name_set']]
-        if len(set(self.cleaned_data['name_set'])) != len(self.cleaned_data['name_set']):
+        cleaned_data['name_set'] = [slugify(name) for name in cleaned_data.get('name_set', [])]
+        if len(set(cleaned_data['name_set'])) != len(cleaned_data['name_set']):
             self.add_error(None, forms.ValidationError("Groups in a shipment must each have a unique name"))
-
+        cleaned_data['fill'] = self.data.get('submit') == 'Fill'
         if not self.is_valid():
-            for k, v in self.cleaned_data.items():
-                if type(v) == type([]):
+            for k, v in cleaned_data.items():
+                if isinstance(v, list):
                     self.repeated_data[k] = [str(e) for e in v]
 
-        return self.cleaned_data
+        return cleaned_data
 
 
 class GroupSelectForm(forms.ModelForm):
@@ -986,7 +1049,7 @@ class GroupSelectForm(forms.ModelForm):
 
     class Meta:
         model = Group
-        fields = ['shipment','id']
+        fields = ['shipment', 'id']
         widgets = {
             'comments': forms.Textarea(attrs={'rows': "4"}),
             'priority': forms.TextInput(attrs={'readonly': True}),
@@ -1029,7 +1092,6 @@ class GroupSelectForm(forms.ModelForm):
             self.helper.title = 'Select Seats for Samples in Group {}'.format(self.instance.name)
             self.helper.form_action = reverse_lazy('group-select', kwargs={'pk': self.instance.pk})
 
-
     def help_text(self):
         if self.initial.get('shipment'):
             return Div(HTML("""How do you want to group your samples?<br/>
@@ -1039,38 +1101,3 @@ class GroupSelectForm(forms.ModelForm):
             return Div(HTML("""<h4>Step 3: Add the groups of samples you will be working on!</h4>"""),
                        HTML("""<small>How do you want to group your samples?
                                Don't worry, you can always add more groups later.</small>"""),)
-
-
-class LimsBasicForm(OrderedForm):
-    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-
-    class Meta:
-        model = Project
-        fields = ('project',)
-
-
-class ComponentForm(OrderedForm):
-    project = forms.ModelChoiceField(queryset=Project.objects.all(), widget=forms.HiddenInput)
-    shipment = forms.ModelChoiceField(queryset=Shipment.objects.all(), widget=forms.HiddenInput)
-    name = objforms.widgets.LargeCharField(required=True)
-    description = objforms.widgets.LargeTextField(required=False)
-    label = objforms.widgets.LargeCheckBoxField(required=False, label="Print Label")
-
-    class Meta:
-        model = Component
-        fields = ('project', 'shipment', 'name', 'label', 'description',)
-
-    def clean_name(self):
-        return self.cleaned_data['name']
-
-
-class CommentsForm(forms.Form):
-    comments = objforms.widgets.CommentField(required=False,
-                                             help_text="Comments entered here will be visible to staff at the CMCF. You can use Restructured Text markup for formatting.")
-
-    class Meta:
-        fields = ('comments',)
-
-    def is_valid(self):
-        super(CommentsForm, self).is_valid()
-        return self.cleaned_data.get('comments', None)

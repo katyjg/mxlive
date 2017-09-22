@@ -246,12 +246,22 @@ img.line-icon {
     white-space: nowrap;
     overflow: hidden;
     display: block;
+    padding-bottom: 0.1em;
 }
 .narrow-heading {
     margin: 0 !important;
     line-height: inherit !important;
 }
-
+.absolute-right {
+    position: absolute;
+    top: 0;
+    float: right;
+}
+.absolute-left {
+    position: absolute;
+    top: 0;
+    float: left;
+}
 .box-tools {
     border-left: 1px solid rgba(0, 0, 0, 0.15);
     padding: 0.5em 0.5em;
@@ -267,6 +277,15 @@ img.line-icon {
 .box-tools-inline + h3 {
     margin-top: 10px;
 }
+.box-tools-sm {
+    margin-top: -4px;
+}
+.box-tools-sm a {
+    margin-left: 0.5em;
+}
+.box-tools-sm a + a {
+    margin-right: 1em;
+}
 .box-tools a, .box-tools span {
     position: relative;
     text-align: center;
@@ -275,12 +294,15 @@ img.line-icon {
 .box-tools a span {
     padding: 0 0.25em;
 }
-.box-tools a.separator {
+.box-tools a.separator, .box-tools span.separator {
     border-left: 1px solid rgba(0, 0, 0, 0.15);
     padding: 0.5em 1em 0.5em 1.25em;
     margin-top: -0.5em;
     margin-bottom: -0.5em;
     margin-left: 0.5em;
+}
+.box-tools span.separator {
+    height: 100%;
 }
 .box-status {
     width: 65px;
@@ -371,11 +393,6 @@ table.table {
 .no-tmargin {
     margin-top: 0 !important;
 }
-
-table.cassette-layout, table.cane-layout {
-    font-size: 85%;
-    float: right;
-}
 .circle {
     border-color: #ddd;
     border-width: 5px;
@@ -424,128 +441,10 @@ p.empty {
 .box-tools a {
     cursor: pointer;
 }
-
-div#unipuck p {
-    position: relative;
-    margin: 0;
-}
-
-th.Cassette {
-    text-align: center;
-    background: none;
-}
-div#unipuck {
-    background: url('/static/img/unipuck-sm.png') no-repeat center center;
-    width: 250px;
-    height: 250px;
-    float: right;
-    position: relative;
-}
-
-div#basket {
-    background: url('/static/img/basket-sm.png') no-repeat center center;
-    width: 250px;
-    height: 250px;
-    float: right;
-    position: relative;
-    margin-right: 2em;
-}
 .mini-profile {
     white-space: nowrap;
     padding: 15px;
     min-width: 210px;
-}
-.loc-1 {
-    left: 42%;
-    top: 24%;
-}
-
-.loc-2 {
-    left: 25%;
-    top: 20%;
-}
-
-.loc-3 {
-    left: 31%;
-    top: 25%;
-}
-
-.loc-4 {
-    left: 52%;
-    top: 9%
-}
-
-.loc-5 {
-    left: 59%;
-    top: -28%;
-}
-
-.loc-6 {
-    left: 42%;
-    top: -77%;
-}
-
-.loc-7 {
-    left: 21%;
-    top: -87%;
-}
-
-.loc-8 {
-    left: 7%;
-    top: -86%;
-}
-
-.loc-9 {
-    left: 3%;
-    top: -80%;
-}
-
-.loc-10 {
-    left: 13%;
-    top: -76%;
-}
-.loc-11 {
-    left: 31%;
-    top: -80%;
-}
-
-.loc-12 {
-    left: 53%;
-    top: -96%;
-}
-
-.loc-13 {
-    left: 71%;
-    top: -124%;
-}
-
-.loc-14 {
-    left: 81%;
-    top: -160%;
-}
-
-.loc-15 {
-    left: 78%;
-    top: -198%;
-}
-
-.loc-16 {
-    left: 63%;
-    top: -231%;
-}
-table.cane-layout {
-    float: right;
-    margin-right: 20px;
-    border-collapse: separate;
-    border: 1px solid #ccc;
-    width: 40px;
-}
-
-table.cane-layout td {
-    border-top: 1px dotted #bbb;
-    height: 40px;
-    vertical-align: middle;
-    text-align: center;
 }
 .inline-list {
     float: left;
@@ -561,6 +460,21 @@ table.cane-layout td {
     overflow: visible;
     //overflow-x: hidden;
 }
+.modal-data {
+    min-width: 542px;
+}
+.modal-data .col-meta {
+     width: 371px;
+}
+@media (max-width: 991px) {
+    /* hidden tool labels on small screens */
+    .modal-data .col-meta {
+         width: 100%;
+        margin-left: 0;
+        padding-top: 10px;
+    }
+}
+
 #group-select .modal-content {
     overflow: auto;
 }
@@ -572,16 +486,6 @@ table.cane-layout td {
 }
 .form-action {
     float: none;
-}
-.back svg {
-    float: right;
-}
-.back .tab-content {
-    padding-top: 0.5em;
-}
-.back svg:hover {
-    //transform: scale(3);
-    //z-index: 1000;
 }
 svg {
     transition: all 1s;
@@ -666,15 +570,12 @@ svg {
 #admin-assign .empty[accepts] {
     cursor: pointer;
 }
-.back circle.empty:hover, .back circle.empty.hover {
-    fill: #7abfd3 !important;
-}
-.back circle.empty:hover, .back circle.selected:hover, .back circle.hover {
-    fill-opacity: 1.0;
-    opacity: 1.0 !important;
-}
 .text-large {
     font-size: 200%;
+    font-weight: bold;
+}
+.text-medium {
+    font-size: 150%;
     font-weight: bold;
 }
 form .inline-btn {
@@ -1318,6 +1219,24 @@ span.usable-score {
 }
 span.unusable-score {
     color: #933 !important;
+}
+span.label-excellent-score {
+    background-color: #0c0 !important;
+}
+
+span.label-good-score {
+    background-color: #9c0 !important;
+}
+
+span.label-fair-score {
+    background-color: #cc0 !important;
+}
+
+span.label-usable-score {
+    background-color: #a96 !important;
+}
+span.label-unusable-score {
+    background-color: #933 !important;
 }
 .badge-score {
     background-color: #f7f7f7;

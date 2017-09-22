@@ -32,8 +32,6 @@
 		    Print this document and cut out each label.  They are to be used as follows:
 		    \begin{enumerate}
 			    \item {\color{blue!50!black}{\bf Address Labels:}} These are to be attached to the outside of your transport containers (one label per dewar transport container) for shipment to the CLS.
-				{% if shipment.item_labels %}\item {\color{blue!10!black!50!green}{\bf Item Labels:}} These are to be affixed to miscellaneous items included in your shipment for identification purposes while at the CLS.{% endif %} 
-
 		    \end{enumerate}
 		\end{minipage}
 
@@ -92,66 +90,6 @@
         }
     \end{center}
 
-
-  \newpage
-	\renewcommand{\arraystretch}{1.25}
-	{% for item in shipment.item_labels %}
-			\begin{center}
-    			{\color{blue!10!black!50!green} {\bf Item Label {{ forloop.counter }}: 
-					Affix this to the outside of the box containing item \\ 
-					"{{ item.name|texsafe|default:"" }}" to be shipped to the CLS. } }
-				\vskip
-                \fbox{
-                		\begin{minipage}{3.5in}
-                	        {\bf 
-                		        \begin{tabular}{ll}
-	                                 {\Large To: } &
-	                                   {\large {{ admin_project.department|texsafe|default:"" }} } \\
-                 & {\large {{ admin_project.organisation|texsafe|default:"" }} } \\
-                 & {\large {{ admin_project.address|texsafe|default:"" }} } \\
-                 & {\large {{ admin_project.city|texsafe|default:"" }}, {{ admin_project.province|texsafe|default:"" }}\ \ {{admin_project.postal_code|texsafe|default:"" }} } \\
-                 & {\large {{ admin_project.country|texsafe|default:"" }} } \\
-                 & {\normalsize Phone: {{admin_project.contact_phone|texsafe|default:""}} } \\
-                 {% if admin_project.contact_fax %}& {\normalsize Fax: {{admin_project.contact_fax|texsafe|default:""}} } \\{% endif %}
-				                \end{tabular}
-				            }
-                        	\vskip\fboxsep
-                    		\colorbox[gray]{0.92}{
-                        		\begin{tabular*}{0.9\textwidth}{@{\extracolsep{\fill}} | p{.3\textwidth} | p{.5\textwidth} |}
-                        			\hline
-						            Shipment name & {{shipment.name}} \\ \hline 
-						            \hline
-						            From: &
-						            {\large {{ project.contact_person|texsafe|default:"" }} } \\
-	                 {% if project.department %}& {\large {{ project.department|texsafe|default:"" }} } \\{% endif %}
-	                 & {\large {{ project.organisation|texsafe|default:"" }} } \\
-	                 & {\large {{ project.address|texsafe|default:"" }} } \\
-	                 & {\large {{ project.city|texsafe|default:"" }}, {{ project.province|texsafe|default:"" }}\ \ {{project.postal_code|texsafe|default:"" }} } \\
-	                 & {\large {{ project.country|texsafe|default:"" }} } \\
-	                 & {\normalsize Phone: {{ project.contact_phone|texsafe|default:"" }} } \\
-	                 {% if project.contact_fax %}& Fax: {{ project.contact_fax|texsafe|default:"" }} \\{% endif %}
-						            \hline
-                        		\end{tabular*}
-                    		}
-                    		\vskip\fboxsep
-                		\end{minipage}
-                		\begin{minipage}{1.5in}
-                    		\begin{center}
-							    \vspace{-0.1in}
-										\includegraphics[width=80pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/logo.pdf}
-
-						        \vspace{0.1in}
-										\includegraphics[width=75pt]{{% path_to_files %}/mxlive/lims/templates/users/tex/fragile_sign.pdf}
-				            \end{center}
-                		\end{minipage}
-                }
-			\end{center}
-		\vspace{0.2in}
-	{% endfor %}
-	\renewcommand{\arraystretch}{1.5}
-
-
-	\end{center}
 \end{document}
 
 

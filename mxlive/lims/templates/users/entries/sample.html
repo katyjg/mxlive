@@ -1,37 +1,68 @@
-{% extends "forms/modal.html" %}
+{% extends "users/base.html" %}
 
-{% load crispy_forms_tags %}
-
-{% block form_title %}
-    Sample <strong>{{ object.name }}</strong>
+{% block page_heading %}
+    <h3 class="text-condensed narrow-heading">
+        <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
+        <strong class="text-muted">{{ object.identity }}</strong> | {{ object.name }}
+    </h3>
+    <span class="text-muted">
+        {% if object.container.shipment %}
+            Sample in Shipment <a href="{% url "shipment-detail" object.container.shipment.pk %}">{{object.container.shipment.name}}</a>
+        {% else %}
+            Sample not in a shipment.
+        {% endif %}
+    </span>
 {% endblock %}
 
-{% block form_body %}
-    {% with form.instance as object %}
-    <div class="row">
-        <div class="col-xs-12">
-            <table>
-                <tr>
-                    <th>Group</th>
-                    <td></td>
-                    <td>{{ object.group }}</td></tr>
-                <tr>
-                    <th>Location</th>
-                    <td></td>
-                    <td>{{ object.container.parent.parent.dewar_set.first.beamline }}{{ object.container.parent.dewar_set.first.beamline }} {{ object.container.parent.location|default_if_none:"" }}{{ object.container.location|default_if_none:"" }}{{ object.container_location }}</td></tr>
+{% block object_tools %}
+    {% include "users/tools-base.html" %}
+{% endblock %}
 
-                <tr>
-                    <th>Container</th>
-                    <td></td>
-                    <td>{{ object.container.name }}</td></tr>
-                <tr>
-                    <th>Shipment</th>
-                    <td></td>
-                    <td>{{ object.container.shipment }}</td></tr>
-            </table>
+{% block object_status %}
+    <div class="status-bar">
+        <div class="row">
+            <div class="col-xs-2">
+                <h3 class="no-vmargin">
+                    <span class="label label-{% if object.container.status == object.container.STATES.ON_SITE %}info
+                                             {% elif object.container.status < object.container.STATES.ON_SITE %}warning
+                                             {% else %}default{% endif %}">
+                        {% if object.container.status < object.container.STATES.SENT %}Draft
+                        {% elif object.container.status < object.container.STATES.RETURNED %}{{ object.dewar|default:"Pending" }}
+                        {% else %}Done{% endif %}
+                    </span>
+                </h3>
+            </div>
+            {% if user.is_superuser %}<div class="col-xs-1">
+                <small class="text-muted text-condensed">Project:</small><br>
+                {{ object.project }}
+            </div>{% endif %}
+            <div class="col-xs-2 pull-right text-right">
+                <small class="text-muted text-condensed">Location:</small><br>
+                <strong>{{ object.dewar|default_if_none:"" }} {{ object.port }}</strong>
+            </div>
+            <div class="col-xs-3 pull-left">
+                <small class="text-muted text-condensed">Group:</small><br>
+                <a href="{% url "group-detail" object.group.pk %}">{{ object.group }}</a>
+            </div>
+            <div class="col-xs-4 pull-left">
+                <small class="text-muted text-condensed">Container:</small><br>
+                <a href="{% url "container-detail" object.container.pk %}">{{ object.container }}</a>
+            </div>
+
         </div>
     </div>
-    {% endwith %}
-    {% crispy form form.helper %}
+    {% include "users/comments.html" with object=object %}
+{% endblock %}
+
+{% block full %}
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="list-group list-group-hover">
+                {% for data in object.data_set.all %}
+                    {% include "users/entries/data-thumbnail.html" with detail=True %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 {% endblock %}
 

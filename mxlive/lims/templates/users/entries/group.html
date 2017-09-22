@@ -8,8 +8,7 @@
         <strong class="text-muted">{{ object.identity }}</strong> | {{ object.name }}
     </h3>
     <span class="text-muted">
-        Container
-        {% if object.shipment %}
+        Group {% if object.shipment %}
             in Shipment <a href="{% url "shipment-detail" object.shipment.pk %}">{{object.shipment.name}}</a>
         {% else %}
             not in a shipment.
@@ -37,19 +36,21 @@
                 <small class="text-muted text-condensed">Project:</small><br>
                 {{ object.project }}
             </div>{% endif %}
+            <div class="col-xs-2">
+                <small class="text-muted text-condensed">Plan:</small><br>
+                {{ object.get_plan_display }}
+            </div>
+            <div class="col-xs-4">
+                <small class="text-muted text-condensed">Type:</small><br>
+                {{ object.get_kind_display }}
+                {% if object.absorption_edge or object.energy %}
+                    ({% if object.energy %}{{ object.energy }} keV {% if object.absorption_edge %}/{% endif %}{% endif %}
+                    {{ object.absorption_edge }}){% endif %}
+            </div>
             <div class="col-xs-2 pull-right text-right">
                 <small class="text-muted text-condensed">Number of Samples:</small><br>
                 <strong>{{ object.num_samples }}</strong>
             </div>
-            <div class="col-xs-2 pull-right text-right">
-                <small class="text-muted text-condensed">Capacity:</small><br>
-                {{ object.kind.container_locations.count }}
-            </div>
-            <div class="col-xs-2 pull-left">
-                <small class="text-muted text-condensed">Type:</small><br>
-                {{ object.kind }}
-            </div>
-
         </div>
     </div>
     {% include "users/comments.html" with object=object %}
@@ -57,18 +58,14 @@
 
 {% block full %}
 
-    <div class="row">
-        <div {% if object.accepts_children %}id="admin-assign"{% endif %} class="col-sm-4 pull-right">
-            <div id="layout-{{ object.pk }}" class="layout-lg"></div>
-            {% include "users/entries/layout-container.html" with object=object.pk kind=object.kind %}
-        </div>
-        <div class="col-sm-8">
-            {% if object.accepts_children %}
-                {% include "users/entries/loaded-list.html" with object=object %}
-            {% else %}
-                {% include "objlist/object_list.html" with object_list=object.sample_set.all %}
-            {% endif %}
-        </div>
+<div class="row">
+    <div class="col-sm-12">
+        {% if object.status > object.STATES.DRAFT %}
+            {% include "users/entries/group-protocol.html" with group=object %}
+        {% else %}
+            {% include "objlist/object_list.html" with object_list=object.sample_set.all %}
+        {% endif %}
     </div>
+</div>
 
 {% endblock %}

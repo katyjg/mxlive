@@ -78,7 +78,7 @@
                 </div>
             {% endif %}
             {% if object.components.all %}
-                <div class="col-xs-3">
+                <div class="col-xs-3 pull-right text-right">
                     <small class="text-muted text-condensed">Included Items</small><br>
                     {% for c in object.components.all %}<span class="label label-info">{{ c.kind }}</span> {% endfor %}
                 </div>
@@ -89,8 +89,6 @@
 {% endblock %}
 
 {% block full %}
-
-
     {% with object as shipment %}
 
     <div class="clear"></div>
@@ -109,7 +107,7 @@
             <div class="text-center">
                 <div class="col-md-3 col-sm-4 col-xs-6">
                     <div id="layout-{{ container.pk }}" class="layout-lg">
-                        <h4>
+                        <h4 class="text-condensed">
                             <a href="{% url "container-detail" pk=container.pk %}">
                                 <span class="text-muted">{{ container.identity }}</span> | <strong>{{ container.name }}</strong>
                             </a>
@@ -134,13 +132,15 @@
         <div class="list-group">
             {% for group in shipment.groups_by_priority %}
                 <div class="list-group-item" id="group-{{ group.pk }}">
+                    {% if object.is_editable %}
                     <span class="box-tools pull-right">
                         <a class="pull-right" data-url="{% url "group-select" group.pk %}" title="Sample Seat Selection">
                             <i class="fa fa-2 fa-fw fa-plus-circle"></i>
                             <br><span class="tool-label">Samples</span>
                         </a>
                     </span>
-                    <h4 class="list-group-item-heading ellipsis overflow"><a href="{% url "group-detail" pk=group.pk %}"><span class="text-muted">{{ group.identity }}</span> | <strong>{{ group.name }}</strong></a></h4>
+                    {% endif %}
+                    <h4 class="list-group-item-heading ellipsis overflow text-condensed"><a href="{% url "group-detail" pk=group.pk %}"><span class="text-muted">{{ group.identity }}</span> | <strong>{{ group.name }}</strong></a></h4>
                     <p class="list-group-item-text">
                         Priority <strong>#{{ group.priority }}</strong> / <strong>{{ group.sample_count }}</strong> sample{{ group.sample_set.count|pluralize }}
                     </p>

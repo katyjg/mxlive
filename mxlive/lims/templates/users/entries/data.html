@@ -2,13 +2,14 @@
 
 {% load zip %}
 {% load markup %}
-{% load image_url %}
+{% load data_extras %}
+{% load data_server %}
 {% load file_exists %}
 {% load static %}
 {% load get_version %}
 {% load score_colors %}
 
-{% block modal_size %}modal-lg{% endblock %}
+{% block modal_size %}modal-lg modal-data{% endblock %}
 
 {% block form_title %}
     <span class="text-condensed">
@@ -30,88 +31,85 @@
 {% block form_body %}
 
 <div id="data-viewer">
-
-<div class="row">
-    <div class="col-xs-9" style="width: 542px;">
-        <!-- image viewer aspect -->
-        <div class="data-image">
-            <div id="data-image-loading"><div></div></div>
-            <div class="image-wrapper">
-                <div id="diffviewer" class="viewer"></div>
-            </div>
-            <!-- image navigation -->
-            <div class="image-nav">
-                <div class="pull-left">
-                    <button class="btn btn-success btn-dk" onclick="changeBrightness('dk');">Dark</button>
-                    <button class="btn btn-success btn-nm" onclick="changeBrightness('nm');">Normal</button>
-                    <button class="btn btn-success btn-lt" onclick="changeBrightness('lt');">Light</button>
+    <div class="row">
+        <div class="col-xs-9" style="width: 542px;">
+            <!-- image viewer aspect -->
+            <div class="data-image">
+                <div id="data-image-loading"><div></div></div>
+                <div class="image-wrapper">
+                    <div id="diffviewer" class="viewer"></div>
                 </div>
-                <div class="pull-left loaded-image overflow"><span><var id="framename"></var></span><br/>Osc: <var id="oscstart"></var> to <var id="oscend"></var></div>
-                <div class="pull-right">
-                    <button class="btn btn-info" onclick="prevClicked();"><i class="fa fa-fw fa-chevron-left"></i></button>
-                    <button class="btn btn-info" onclick="nextClicked();"><i class="fa fa-fw fa-chevron-right"></i></button>
+                <!-- image navigation -->
+                <div class="image-nav">
+                    <div class="pull-left">
+                        <button class="btn btn-success btn-dk" onclick="changeBrightness('dk');">Dark</button>
+                        <button class="btn btn-success btn-nm" onclick="changeBrightness('nm');">Normal</button>
+                        <button class="btn btn-success btn-lt" onclick="changeBrightness('lt');">Light</button>
+                    </div>
+                    <div class="pull-left loaded-image overflow"><span><var id="framename"></var></span><br/>Osc: <var id="oscstart"></var> to <var id="oscend"></var></div>
+                    <div class="pull-right">
+                        <button class="btn btn-info" onclick="prevClicked();"><i class="fa fa-fw fa-chevron-left"></i></button>
+                        <button class="btn btn-info" onclick="nextClicked();"><i class="fa fa-fw fa-chevron-right"></i></button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="row col-xs-3" style="width: 371px;">
-        <!-- Display of metaData -->
-        <div class="meta-data">
-            <p>Meta-Data
-               <span class="pull-right cursor"
-                     title="Show/Hide"
-                     data-target="#parameters" data-toggle="collapse">
-                   <i class="fa fa-fw fa-expand"></i>
-               </span>
-            </p>
-            <div id="parameters" style="overflow: auto;" class="collapse">
+        <div class="row col-xs-3 col-meta">
+            <!-- Display of metaData -->
+            <div class="meta-data">
+                <p>Meta-Data
+                   <span class="pull-right cursor"
+                         title="Show/Hide"
+                         data-target="#parameters" data-toggle="collapse">
+                       <i class="fa fa-fw fa-expand"></i>
+                   </span>
+                </p>
+                <div id="parameters" style="overflow: auto;" class="collapse">
+                    <ul>
+                        <li><strong>Beamline:</strong> {{ object.beamline }}</li>
+                        <li><strong>Detector type:</strong> {{ object.detector }}</li>
+                        {% if object.experiment %}
+                        <li><strong>Experiment:</strong><a href="{% url "group-detail" object.experiment.pk %}">{{ object.experiment.name }}</a></li>
+                        {% endif %}
+                        {% if object.crystal %}
+                        <li><strong>Crystal:</strong><a href="{% url "sample-detail" object.crystal.pk %}"> {{ object.crystal.name }}</a></li>
+                        {% endif %}
+
+                        {% for report in object.reports.all %}
+                            <li><strong>Analysis Score: {{ report.score|color_score:2 }}</strong>  <a href="{% url "report-detail" report.pk %}">View Report</a></li>
+                        {% endfor %}
+                        <li><strong>Resolution Limit:</strong> {{ object.resolution|floatformat:2 }} &#8491;</li>
+                        <li><strong>Wavelength:</strong> {{ object.wavelength }} &#8491;</li>
+                        <li><strong>Beam X, Y:</strong>	{{ object.beam_x }}, {{ object.beam_y }}</li>
+                        <li><strong>Pixel Size:</strong> {{ object.pixel_size }} mm</li>
+                        <li><strong>Two Theta:</strong> {{ object.two_theta|floatformat:1}} deg</li>
+                        <li><strong>Exposure time:</strong> {{ object.exposure_time }} sec</li>
+                        <li><strong>Collection date:</strong> {{ object.modified }}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="frame-list">
+                <p>{{ object.num_frames }} Frames</p>
                 <ul>
-                    <li><strong>Beamline:</strong> {{ object.beamline }}</li>
-                    <li><strong>Detector type:</strong> {{ object.detector }}</li>
-                    {% if object.experiment %}
-                    <li><strong>Experiment:</strong><a href="{% url "group-detail" object.experiment.pk %}">{{ object.experiment.name }}</a></li>
-                    {% endif %}
-                    {% if object.crystal %}
-                    <li><strong>Crystal:</strong><a href="{% url "sample-detail" object.crystal.pk %}"> {{ object.crystal.name }}</a></li>
-                    {% endif %}
+                {% for frame_id in object.frames %}
 
-                    {% for report in object.analysisreport_set.all %}
-                        <li><strong>Analysis Score: {{ report.score|color_score:2 }}</strong>  <a href="{% url "report-detail" report.pk %}">View Report</a></li>
-                    {% endfor %}
-                    <li><strong>Resolution Limit:</strong> {{ object.resolution|floatformat:2 }} &#8491;</li>
-                    <li><strong>Wavelength:</strong> {{ object.wavelength }} &#8491;</li>
-                    <li><strong>Beam X, Y:</strong>	{{ object.beam_x }}, {{ object.beam_y }}</li>
-                    <li><strong>Pixel Size:</strong> {{ object.pixel_size }} mm</li>
-                    <li><strong>Two Theta:</strong> {{ object.two_theta|floatformat:1}} deg</li>
-                    <li><strong>Exposure time:</strong> {{ object.exposure_time }} sec</li>
-                    <li><strong>Collection date:</strong> {{ object.modified }}</li>
+                    <li><a onclick="toFrame({{ frame_id }});">{{object.name}}_{{ frame_id|stringformat:"04d" }}</a>&nbsp;
+                        <a class="pull-right download-tool" href="{% get_image_url object frame_id %}" title="Download this image"><i class="fa fa-fw fa-download"></i></a>
+                    </li>
+
+                {% endfor %}
                 </ul>
             </div>
-        </div>
-
-        <div class="frame-list">
-            <p>Frames {{ object.frame_sets }}</p>
-            <ul>
-            {% for frame_id in object.get_frame_list %}
-                <li><a onclick="toFrame({{ frame_id }});">{{object.name}}_{{ frame_id|stringformat:"04d" }}</a>&nbsp;
-                {% if not request.user.is_superuser %}{% if object|is_downloadable:frame_id %}
-                <a class="download-tool" href="{% image_url object frame_id %}" title="Download this image"></a>
-                {% endif %}{% endif %}
-                </li>
-            {% endfor %}
-            </ul>
-        </div>
-        {% if object|images_exist %}
             <div class="xtal-snapshot">
                 <p>Sample Centering</p>
                 <img id="xtal-pic"
-                     src="{{ 'IMAGE_PREPEND'|get_from_settings }}/download/files/{{object.url}}/{{ object.name }}.gif"
-                     title="Snapshots at {{object.start_angle}} and {{object.start_angle|second_view}} deg" />
+                     src="{{ 'IMAGE_PREPEND'|get_from_settings }}/files/{{object.url}}/{{ object.name }}.gif"
+                     title="Snapshots at {{object.start_angle}} and {{object.meta_data.start_angle|second_view}} deg" />
             </div>
-        {% endif %}
+        </div>
     </div>
-</div>
 <div>
 
 {% endblock %}
@@ -170,9 +168,9 @@ initModal();
     }();
 
 
-	var $current_frame_to_display = {{object.get_frame_list.0}};
+	var $current_frame_to_display = {{object.first_frame}};
 	var $current_brightness_to_display = 'nm';
-	var $expanded_frame_set = {{ object.get_frame_list }};
+	var $expanded_frame_set = {{ object.frames }};
     dataViewer.setPars({{object.wavelength}}, {{object.resolution}});
 
     $('[data-target="#parameters"]').click(function(e){
@@ -191,7 +189,7 @@ initModal();
             height = frame_list.height() - $('#parameters').height();
         }
         frame_list.height(height);
-    })
+    });
 
 	function changeBrightness(brightness) {
 		if (brightness == $current_brightness_to_display) {
@@ -200,16 +198,30 @@ initModal();
 		$('.active-brightness').removeClass('active-brightness');
 		$('.btn-'+brightness).addClass('active-brightness');
 		$current_brightness_to_display = brightness;
-        $("#diffviewer").diffviewer('loadImage', makeCorrectUrl());
+        updateFrame();
+		//$("#diffviewer").diffviewer('loadImage', makeCorrectUrl());
 	};
 
-	function makeCorrectUrl() {
-		url = '{% image_url object 0 "###" %}';
-		// replace numbers 4 digits
+	function updateFrame() {
+		url = '{% get_image_url object 0 %}';
 		url = url.replace(/0000/i, zerofill($current_frame_to_display, 4));
-		// replace_brightness.
-        url = url.replace(/###/i, $current_brightness_to_display);
-		return url;
+		var src;
+        $.ajax({
+            url: '{% url "fetch-image" %}',
+            data: {
+                'url': url,
+                'brightness': $current_brightness_to_display
+            },
+            success: function (response) {
+                if (response['src']) {
+                    src = response['src']
+                } else {
+                    src = "/static/img/image-not-found.png";
+                }
+                $("#diffviewer").diffviewer('loadImage', src);
+                updateFrameDetails();
+                }
+        });
 	}
 
 	function zerofill(number, size) {
@@ -221,12 +233,16 @@ initModal();
 	}
 	
 	$(document).ready( function() {
-		$current_frame_to_display = {{ object.get_frame_list.0 }};
+		$current_frame_to_display = {{ object.first_frame }};
 		$current_brightness_to_display = "nm";
 		updateFrameDetails();
-		$expanded_frame_set = {{ object.get_frame_list }};
+		var img_src = "{% get_image object object.first_frame 'nm' %}";
+		if (!img_src) {
+            img_src = "/static/img/image-not-found.png";
+        }
+		$expanded_frame_set = {{ object.frames }};
         $("#diffviewer").diffviewer({
-            src: "{% image_url object object.get_frame_list.0 'nm' %}",
+            src: img_src,
             //update_on_resize: false,
             zoom: 50,
             zoom_min: 50,
@@ -251,10 +267,10 @@ initModal();
             $('.loaded-image').addClass('reverse-ellipsis');
         }
 
-		osc = ($current_frame_to_display - {{object.first_frame}}) * {{object.delta_angle}} + {{object.start_angle}};
+		osc = ($current_frame_to_display - {{object.first_frame}}) * {{object.meta_data.delta_angle}} + {{object.meta_data.start_angle}};
 		$('#oscstart').text(osc + " deg");
 		
-		osc = osc + {{object.delta_angle}};
+		osc = osc + {{object.meta_data.delta_angle|floatformat:1}};
 		$('#oscend').text(osc + " deg");
 		
 	}	
@@ -265,8 +281,9 @@ initModal();
 		if ((index != -1) && (index < $expanded_frame_set.length -1)) {
 			index++;
 			$current_frame_to_display = $expanded_frame_set[index];
-            $("#diffviewer").diffviewer('loadImage', makeCorrectUrl());
-			updateFrameDetails();
+            updateFrame();
+			//$("#diffviewer").diffviewer('loadImage', makeCorrectUrl());
+			//updateFrameDetails();
 		}
 		return;
 	}
@@ -277,8 +294,9 @@ initModal();
 		if ((index != -1) && (index > 0)) {
 			index--;
 			$current_frame_to_display = $expanded_frame_set[index];
-            $("#diffviewer").diffviewer('loadImage', makeCorrectUrl());
-			updateFrameDetails();
+            updateFrame();
+			//$("#diffviewer").diffviewer('loadImage', makeCorrectUrl());
+			//updateFrameDetails();
 		}
 		return;
 	}		
@@ -287,8 +305,9 @@ initModal();
         index = $.inArray(frame, $expanded_frame_set);
 		if (index != -1) {
 			$current_frame_to_display = $expanded_frame_set[index];
-            $("#diffviewer").diffviewer('loadImage', makeCorrectUrl());
-			updateFrameDetails();
+			updateFrame();
+            //$("#diffviewer").diffviewer('loadImage', makeCorrectUrl());
+			//updateFrameDetails();
 		}
 		return;
 	}

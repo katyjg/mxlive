@@ -1,0 +1,188 @@
+{% load static %}
+{% load loaded_extras %}
+
+{% get_container_projects object as projects %}
+
+<span class="box-tools pull-right">
+    <a class="pull-right" data-toggle="pill" href="#by-project">
+        <i class="fa fa-2 fa-fw fa-group"></i>
+        <br/><span class="tool-label">Users</span>
+    </a>
+    <a class="pull-right" data-toggle="pill" href="#by-location">
+        <i class="fa fa-2 fa-fw fa-database"></i>
+        <br/><span class="tool-label">Locations</span>
+    </a>
+</span>
+<h3>Loaded Containers</h3>
+<hr />
+<div class="tab-content">
+    <div class="panel panel-default tab-pane fade" id="by-project">
+        {% for project, containers in projects.items %}
+            <div class="panel-heading" id="containers-{{ project.pk }}" rel="{% for c in containers %}{{ c.pk }} {% endfor %}">
+                <span class="box-tools box-tools-inline pull-left" style="min-width: 70px; padding-top: 0;">
+                    <span class="text-condensed text-large" style="padding-left: 0; padding-right: 0.25em;">{{ project|num_containers:object }}</span><br/><small class="text-muted">{{ containers.0.kind }}{{ project|num_containers:object|pluralize }}</small>
+                </span>
+                <span class="box-tools pull-right">
+                    <a class="pull-right" data-url="{% url "empty-containers" pk=object.pk username=project.username %}" title="Unload all containers for this project">
+                        <i class="fa fa-2 fa-fw fa-remove"></i>
+                        <br><span class="tool-label">Empty</span>
+                    </a>
+                    <a class="pull-right" data-toggle="collapse" href="#{{ project }}-containers" title="Show all containers for this project">
+                        <i class="fa fa-2 fa-fw fa-expand"></i>
+                        <br><span class="tool-label">Details</span>
+                    </a>
+                </span>
+                <h4 class="list-group-item-heading"><strong>{{ project|upper }}</strong></h4>
+                <p class="list-group-item-text overflow ellipsis">
+                    <span class="text-muted">{% for container in containers %}{{ container.location }}{% if not forloop.last %} | {% endif %}{% endfor %}</span>
+                </p>
+            </div>
+                <ul class="list-group list-group-hover collapse" id="{{ project }}-containers">
+                {% for container in containers %}
+                    <li class="list-group-item container-{{ container.pk }}">
+                        <span class="box-tools box-tools-inline box-tools-sm pull-left" style="min-width: 40px;">
+                            <span class="text-condensed text-medium" style="padding-left: 0; padding-right: 0.25em;">{{ container.location }}</span>
+                        </span>
+                        <span class="box-tools box-tools-sm pull-right">
+                            <a class="pull-right" onclick="unload({{ container.pk }});" title="Unload Container">
+                                <i class="fa fa-2 fa-fw fa-minus-circle"></i>
+                                <form method="post" id="{{ container.pk }}-unload" action="{% url "container-unload" container.pk %}">
+                                    {% csrf_token %}
+                                    <input name="parent" type="hidden" />
+                                    <input name="location" type="hidden" />
+                                </form>
+                            </a>
+                        </span>
+                        <h4 class="narrow-heading list-group-item-heading overflow ellipsis"><a href="{% url "container-detail" pk=container.pk %}"><strong>{{ container.name }}</strong></a> |
+                            <span class="text-muted">{{ container.sample_set.count }} sample{{ container.sample_set.count|pluralize }}</span></h4>
+                    </li>
+                {% endfor %}
+                </ul>
+        {% endfor %}
+    </div>
+
+    <div class="list-group list-group-hover tab-pane fade in active" id="by-location">
+
+        {% for container in object.children.all %}
+            {% container_project container as project %}
+            <div class="list-group-item container-{{ container.pk }}">
+                <span class="box-tools box-tools-inline pull-left" style="min-width: 40px;">
+                    <span class="text-condensed text-large" style="padding-left: 0; padding-right: 0.25em;">{{ container.location }}</span>
+                </span>
+                <span class="box-tools pull-right">
+                    <a class="pull-right" onclick="unload({{ container.pk }});" title="Unload Container">
+                        <i class="fa fa-2 fa-fw fa-minus-circle"></i>
+                        <br><span class="tool-label">Unload</span>
+                        <form method="post" id="{{ container.pk }}-unload" action="{% url "container-unload" container.pk %}">
+                            {% csrf_token %}
+                            <input name="parent" type="hidden" />
+                            <input name="location" type="hidden" />
+                        </form>
+                    </a>
+                </span>
+                <h4 class="list-group-item-heading overflow ellipsis"><a href="{% url "container-detail" pk=container.pk %}"><span class="text-muted">{{ container.project|upper }}</span> | <strong>{{ container.name }}</strong></a></h4>
+                <p class="list-group-item-text overflow ellipsis">
+                    <span class="text-muted">{{ container.kind }} | </span><strong>{{ container.sample_set.count }}</strong> sample{{ container.sample_set.count|pluralize }}
+                </p>
+                {% if container.children.count %}
+                    <small class="text-muted">
+                     <table class="table table-hover">
+                         <tr><th>Location</th>
+                             <th>Container</th>
+                             <th class="text-center">Samples</th>
+                             <th class="text-center">Unload</th></tr>
+                        {% for child in container.children.all %}
+                            <tr class="container-{{ child.pk }}">
+                                <td>
+                                    <strong>{{ container.location }}{{ child.location }}</strong>
+                                </td>
+                                <td><a href="{% url "container-detail" pk=child.pk %}"><span class="text-muted">{{ child.project|upper }}</span> | <strong>{{ child.name }}</strong></a>
+                                </td>
+                                <td class="text-center"><strong>{{ child.sample_set.count }}</strong></td>
+                                <td class="text-center">
+                                    <a class="cursor" onclick="unload({{ child.pk }});" title="Unload Container">
+                                        <i class="fa fa-2 fa-fw fa-minus-circle"></i>
+                                    </a>
+                                    <form method="post" id="{{ child.pk }}-unload" action="{% url "container-unload" child.pk %}">
+                                        {% csrf_token %}
+                                        <input name="parent" type="hidden" />
+                                        <input name="location" type="hidden" />
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                     </table></small>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+<script src="{% static "jquery/jquery.form.min.js" %}"></script>
+<script>
+{% for project, containers in projects.items %}
+    $('#containers-{{ project.pk }}').hover(
+        function() {
+            {% for container in containers %}
+                $('#envelope-{{ container.parent.pk }}-{{ container.pk }}-{{ container.location }}').addClass('active-envelope');
+            {% endfor %}
+        },
+        function() {
+            $('.active-envelope').removeClass('active-envelope');
+        }
+    );
+{% endfor %}
+{% for container in object.children.all %}
+    $('.container-{{ container.pk }}').hover(
+        function () {
+            $('#envelope-{{ container.parent.pk }}-{{ container.pk }}-{{ container.location }}').addClass('active-envelope');
+        },
+        function () {
+            $('.active-envelope').removeClass('active-envelope');
+        });
+    $('#envelope-{{ container.parent.pk }}-{{ container.pk }}-{{ container.location }}').hover(function () {
+            $('.container-{{ container.pk }}').addClass('active-envelope');
+            $('#envelope-{{ container.parent.pk }}-{{ container.pk }}-{{ container.location }}').addClass('active-envelope');
+        },
+        function () {
+            $('.active-envelope').removeClass('active-envelope');
+        });
+    {% for child in container.children.all %}
+        $('#envelope-{{ container.pk }}-{{ child.pk }}-{{ child.location }}').hover(function () {
+                $('.container-{{ container.pk }}').addClass('active-envelope');
+                $('#envelope-{{ container.pk }}-{{ child.pk }}-{{ child.location }}').addClass('active-envelope');
+            },
+            function () {
+                $('.active-envelope').removeClass('active-envelope');
+            });
+    {% endfor %}
+
+{% endfor %}
+
+$('[accepts]').click(function () {
+    var location = $(this).attr('id').split('-')[$(this).attr('id').split('-').length - 1];
+    var container = $(this).attr('id').split('-')[$(this).attr('id').split('-').length - 2];
+    $('#modal-form').load("/users/containers/" + container + '/location/' + location + '/');
+});
+
+$('[id^=envelope]:not([accepts])').click(function() {
+    var container = $(this).attr('id').split('-')[$(this).attr('id').split('-').length - 2];
+    $('#modal-form').load("/users/containers/" + container + '/load/');
+});
+
+function unload(e) {
+    e.preventDefault;
+    $(this).html('<i class="fa fa-spinner fa-spin"></i>');
+    var form = $('form#'+e+'-unload');
+    var url = form.attr('action');
+    form.ajaxSubmit({
+        type: 'post',
+        url: url,
+        success: function () {
+            window.location.reload();
+        },
+        data: ""
+    });
+}
+</script>

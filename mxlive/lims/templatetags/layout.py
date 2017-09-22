@@ -63,9 +63,12 @@ def get_kind(pk):
     return ContainerType.objects.get(pk=int(pk))
 
 
-@register.filter
-def get_containers_from_choices(data):
-    # Expecting a list of strings formatted like {containertype__pk}:{name}:{containerlocation__name}
-    # Returns a list of tuples like (name, containertype)
+@register.simple_tag
+def containers_from_choices(data):
     containers = set([';'.join(opt[0].split(';')[0:-1]) for opt in data])
-    return [(c.split(';')[1], ContainerType.objects.get(pk=int(c.split(';')[0]))) for c in containers]
+    return [(c.split(';')[1], c.split(';')[1], ContainerType.objects.get(pk=int(c.split(';')[0]))) for c in containers]
+
+
+@register.simple_tag
+def containers_from_queryset(data):
+    return [(c.pk, c.name, c.kind) for c in data]

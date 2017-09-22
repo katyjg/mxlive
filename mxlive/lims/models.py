@@ -13,6 +13,8 @@ import hashlib
 import string
 from model_utils import Choices
 from datetime import datetime
+import json
+import itertools
 
 from django_auth_ldap.backend import populate_user, populate_user_profile
 from django.db.models.signals import pre_delete, post_delete
@@ -58,10 +60,13 @@ class Beamline(models.Model):
     automounters = models.ManyToManyField('Container', through='Dewar', through_fields=('beamline', 'container'))
 
     def __unicode__(self):
-        return self.name
+        return self.acronym
 
     def active_automounter(self):
-        return self.automounters.filter(dewar__active=True).first()
+        return self.active_dewar().container
+
+    def active_dewar(self):
+        return self.dewar_set.filter(active=True).first()
 
 
 class Carrier(models.Model):
@@ -137,13 +142,14 @@ class Project(AbstractUser):
 
 
 class Session(models.Model):
+    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     name = models.CharField(max_length=100)
     project = models.ForeignKey(Project)
     beamline = models.ForeignKey(Beamline)
     comments = models.TextField()
 
     def launch(self):
-        self.stretches.filter(end_time__isnull=True).update(end_time=datetime.now())
+        Stretch.objects.filter(beamline=self.beamline, end_time__isnull=True).update(end_time=datetime.now())
         stretch = Stretch.objects.create(session=self, start_time=datetime.now())
         return stretch
 
@@ -152,6 +158,10 @@ class Stretch(models.Model):
     start_time = models.DateTimeField(null=False, blank=False)
     end_time = models.DateTimeField(null=True, blank=True)
     session = models.ForeignKey(Session, related_name='stretches')
+
+    class Meta:
+        verbose_name = u"Beamline Usage"
+        verbose_name_plural = u"Beamline Usage"
 
 
 class LimsBaseClass(models.Model):
@@ -357,9 +367,6 @@ class Shipment(ObjectBaseClass):
     def has_labels(self):
         return self.status <= self.STATES.SENT and (self.num_containers() or self.component_set.filter(label=True))
 
-    def item_labels(self):
-        return self.component_set.filter(label__exact=True)
-
     def is_processed(self):
         # if all groups in shipment are complete, then it is a processed shipment.
         group_list = Group.objects.filter(shipment__get_container_list=self)
@@ -482,7 +489,7 @@ class ContainerType(models.Model):
         STATES.LOADED: [STATES.PENDING],
     }
     name = models.CharField(max_length=20)
-    container_locations = models.ManyToManyField("ContainerLocation", blank=True)
+    container_locations = models.ManyToManyField("ContainerLocation", blank=True, related_name="containers")
     layout = JSONField(null=True, blank=True)
     envelope = models.CharField(max_length=200, blank=True)
 
@@ -523,7 +530,7 @@ class Container(LoadableBaseClass):
         unique_together = (
             ("project", "name", "shipment"),
         )
-        ordering = ('project__name', 'kind', 'location')
+        ordering = ('kind', 'location')
 
     def barcode(self):
         return self.name
@@ -534,18 +541,20 @@ class Container(LoadableBaseClass):
     def has_children(self):
         return self.children.count() > 0
 
+    def accepts_children(self):
+        return self.kind.container_locations.filter(accepts__isnull=False).exists()
+
+    def accepted_by(self):
+        return ContainerType.objects.filter(pk__in=self.kind.locations.values_list('containers', flat=True))
+
+    def children_by_location(self):
+        return self.children.order_by('location')
+
     def is_assigned(self):
         return self.shipment is not None
 
     def capacity(self):
-        _cap = {
-            self.TYPE.CASSETTE: 96,
-            self.TYPE.UNI_PUCK: 16,
-            self.TYPE.CANE: 6,
-            self.TYPE.BASKET: 10,
-            None: 0,
-        }
-        return _cap[self.kind.kind]
+        return self.kind.container_locations.count()
 
     def groups(self):
         groups = set([])
@@ -560,22 +569,6 @@ class Container(LoadableBaseClass):
             if sample.group not in groups:
                 groups.append(sample.group)
         return groups
-    
-    def contains_group(self, group):
-        """
-        Checks if the specified group is in the container.
-        """
-        for sample in self.sample_set.all():
-            for sample_group in sample.group_set.all():
-                if sample_group == group:
-                    return True
-        return False
-    
-    def contains_groups(self, group_list):
-        for group in group_list:
-            if self.contains_group(group):
-                return True
-        return False
     
     def update_priority(self):
         """ Updates the Container's priority to max(group priorities)
@@ -817,11 +810,24 @@ class Sample(LimsBaseClass):
         unique_together = (
             ("project", "container", "container_location"),
         )
-        ordering = ['priority', 'container', 'container_location']
+        ordering = ['priority', 'container__name', 'container_location', 'name']
 
     def identity(self):
         return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
+
+    def dewar(self):
+        try:
+            return self.container.parent.parent.dewar_set.first().beamline
+        except:
+            return self.container.parent and self.container.parent.dewar_set.first() and (self.container.parent.dewar_set.first().beamline)
+
+    def container_and_location(self):
+        return "{} - {}".format(self.container.name, self.container_location)
+    container_and_location.short_description = "Container Location"
+
+    def port(self):
+        return '{}{}{}'.format(self.container.parent and self.container.parent.location or "", self.container.location or "", self.container_location)
 
     def get_data_set(self):
         return self.data_set.filter(**self.project.get_archive_filter())
@@ -839,7 +845,7 @@ class Sample(LimsBaseClass):
             info['report'] = results[0]
             info['data'] = info['report'].data
         else:
-            data = self.get_data_set().filter(kind__exact=Data.DATA_TYPES.SCREENING).order_by('-created')
+            data = self.get_data_set().filter(kind__exact=Data.DATA_TYPES.MX_SCREEN).order_by('-created')
             if len(data) > 0:
                 info['data'] = data[0]
         return info
@@ -851,7 +857,7 @@ class Sample(LimsBaseClass):
             info['report'] = results[0]
             info['data'] = info['report'].data
         else:
-            data = self.get_data_set().filter(kind__exact=Data.DATA_TYPES.COLLECTION).order_by('-created')
+            data = self.get_data_set().filter(kind__exact=Data.DATA_TYPES.MX_DATA).order_by('-created')
             if len(data) > 0:
                 info['data'] = data[0]
         return info
@@ -905,16 +911,55 @@ class Sample(LimsBaseClass):
             'barcode': self.barcode,
             'priority': self.priority if self.priority else 1,
             'comments': self.comments,
-            'port': '{}{}{}'.format(self.container.parent and self.container.parent.location or "", self.container.location, self.container_location),
+            'port': self.port(),
         }
+
+
+def parse_frames(frame_string):
+    frames = []
+    for w in frame_string.split(','):
+        v = map(int, w.split('-'))
+        if len(v) == 2:
+            frames.extend(range(v[0], v[1]+1))
+        elif len(v) == 1:
+            frames.extend(v)
+    return frames
+
+
+def frame_ranges(frame_list):
+    for a, b in itertools.groupby(enumerate(frame_list), lambda (x, y): y - x):
+        b = list(b)
+        yield b[0][1], b[-1][1]
+
+
+class FrameField(models.CharField):
+    description = _("List of frames")
+
+    def get_prep_value(self, value):
+        if isinstance(value, basestring):
+            return value
+        else:
+            value = isinstance(json.loads(value), list) and json.loads(value) or value
+            if isinstance(value, list):
+                val_str = ",".join([r[0] == r[1] and "{}".format(r[0]) or "{}-{}".format(r[0], r[1])
+                                    for r in list(frame_ranges(value))])
+                return val_str
+        return value
+
+    def from_db_value(self, value, expression, connection, context):
+        if value is None or isinstance(value, list):
+            return value
+        if isinstance(value, basestring):
+            return parse_frames(value)
+        return value
 
 
 class DataQueryset(models.QuerySet):
     def screening(self):
-        return self.filter(kind=0)
+        return self.filter(kind='MX_SCREEN')
 
     def collection(self):
-        return self.filter(kind=1)
+        return self.filter(kind='MX_DATA')
 
 
 class DataManager(models.Manager.from_queryset(DataQueryset)):
@@ -923,28 +968,34 @@ class DataManager(models.Manager.from_queryset(DataQueryset)):
 
 class Data(DataBaseClass):
     DATA_TYPES = Choices(
-        (0, 'SCREENING', 'Screening'),
-        (1, 'COLLECTION', 'Collection'),
+        ('MX_SCREEN', 'MX Screening'),
+        ('MX_DATA', 'MX Dataset'),
+        ('XRD_DATA', 'XRD Dataset'),
+        ('RASTER', 'Raster'),
+        ('XAS_SCAN', 'XAS Scan'),
+        ('XRF_SCAN', 'XRF Scan'),
+        ('MAD_SCAN', 'MAD Scan'),
     )
+    METADATA = {
+        DATA_TYPES.MX_SCREEN:  ['delta_angle', 'start_angle', 'resolution', 'detector', 'detector_size', 'pixel_size',
+                                'beam_x', 'beam_y', 'two_theta'],
+        DATA_TYPES.MX_DATA: ['delta_angle', 'start_angle', 'resolution', 'detector', 'detector_size', 'pixel_size',
+                             'beam_x', 'beam_y', 'two_theta']
+    }
     group = models.ForeignKey(Group, null=True, blank=True)
     sample = models.ForeignKey(Sample, null=True, blank=True)
-    resolution = models.FloatField()
-    start_angle = models.FloatField()
-    delta_angle = models.FloatField()
     first_frame = models.IntegerField(default=1)
-    frame_sets = models.CharField(max_length=200)
+    file_name = models.CharField(max_length=200, null=True, blank=True)
+    frames = FrameField(max_length=200)
     exposure_time = models.FloatField()
-    two_theta = models.FloatField()
-    wavelength = models.FloatField()
-    detector = models.CharField(max_length=20)
-    detector_size = models.IntegerField()
-    pixel_size = models.FloatField()
-    beam_x = models.FloatField()
-    beam_y = models.FloatField()
+    attenuation = models.FloatField()
+    energy = models.FloatField()
     beamline = models.ForeignKey(Beamline)
+    beam_size = models.FloatField()
     url = models.CharField(max_length=200)
-    kind = models.IntegerField('Data type', choices=DATA_TYPES, default=DATA_TYPES.SCREENING)
+    kind = models.CharField('Data type', choices=DATA_TYPES, default=DATA_TYPES.MX_SCREEN, max_length=20)
     download = models.BooleanField(default=False)
+    meta_data = JSONField(default={})
 
     objects = DataManager()
 
@@ -954,20 +1005,10 @@ class Data(DataBaseClass):
 
     # need a method to determine how many frames are in item
     def num_frames(self):
-        return len(self.get_frame_list())          
+        return len(self.frames)
 
     def can_download(self):
         return (not RESTRICTED_DOWNLOADS) or self.download
-
-    def get_frame_list(self):
-        frame_numbers = []
-        wlist = [map(int, w.split('-')) for w in self.frame_sets.split(',')]
-        for v in wlist:
-            if len(v) == 2:
-                frame_numbers.extend(range(v[0], v[1]+1))
-            elif len(v) == 1:
-                frame_numbers.extend(v) 
-        return frame_numbers
 
     def __unicode__(self):
         return '%s (%d)' % (self.name, self.num_frames())
@@ -978,8 +1019,8 @@ class Data(DataBaseClass):
         return False
 
     def report(self):
-        if self.analysisreport_set.count() is 1:
-            return self.analysisreport_set.first()
+        if self.reports.count() is 1:
+            return self.reports.first()
         return False
 
     def result(self):
@@ -987,16 +1028,19 @@ class Data(DataBaseClass):
             return self.result_set.all()[0]
         return False
 
-    def energy(self):
-        if self.wavelength: 
-            return 4.13566733e-15 * 299792458e10 / (self.wavelength * 1000) 
-        return 0
+    def wavelength(self):
+        _h = 4.13566733e-15  # eV.s
+        _c = 299792458e10  # A/s
+        if self.energy == 0.0:
+            return 0.0
+        return (_h * _c) / (self.energy * 1000.0)
 
     def total_angle(self):
-        return self.delta_angle * self.num_frames()
+        return self.meta_data.get('delta_angle', 0) * self.num_frames()
         
     def file_extension(self):
-        return '.cbf' if 'PILATUS' in self.detector else '.img'
+        detector = 'detector' in self.meta_data and self.meta_data['detector'] or ""
+        return '.cbf' if 'PILATUS' in detector else '.img'
 
     def generate_image_base(self, frame):
         image_url = settings.IMAGE_PREPEND or ''
@@ -1031,10 +1075,11 @@ class Data(DataBaseClass):
 
 
 class AnalysisReport(DataBaseClass):
+    kind = models.CharField(max_length=100)
     group = models.ForeignKey(Group, null=True, blank=True)
     sample = models.ForeignKey(Sample, null=True, blank=True)
     score = models.FloatField()
-    data = models.ForeignKey(Data)
+    data = models.ForeignKey(Data, related_name="reports")
     result = models.ForeignKey('Result', related_name="reports")
     details = JSONField()
 

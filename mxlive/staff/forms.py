@@ -1,16 +1,9 @@
 from models import UserList, Announcement
 from django import forms
-from django.conf import settings
-from django.forms import widgets
-from django.forms.utils import ErrorList
 from django.core.urlresolvers import reverse_lazy
-from lims.models import Beamline, Carrier, Container, Group, Shipment, Project
-import objforms.forms
-import re
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, HTML, Div, Field, Button
-from crispy_forms.bootstrap import Accordion, AccordionGroup, Tab, TabHolder, PrependedText, InlineField
+from crispy_forms.layout import Layout, HTML, Div, Field
 from crispy_forms.bootstrap import StrictButton, FormActions
 
 
@@ -84,14 +77,3 @@ class AccessForm(forms.ModelForm):
     class Meta:
         model = UserList
         fields = ('users',)
-
-
-class StaffCommentsForm(objforms.forms.OrderedForm):
-    staff_comments = objforms.widgets.CommentField(required=False,
-                        help_text="Comments entered here will be visible on the user's MxLIVE account.")
-
-    class Meta:
-        model = Project
-        fields = ('staff_comments', )
-
-

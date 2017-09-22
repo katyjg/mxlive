@@ -42,7 +42,7 @@
             </table>
         </div>
     {% else %}
-        {% load runlist_extras %}{% with object|pos_full:side as location %}
+        {% load loaded_extras %}{% with object|pos_full:side as location %}
         <table class="unipuck">
             <tr>
                 {% automounter_position object side 0 'A' %}

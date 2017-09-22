@@ -6,13 +6,13 @@
 
 {% block object_tools %}
     <span class="box-tools pull-right">
-        <a class="pull-right" href="#">
+        <!--a class="pull-right" href="#">
             <i class="fa fa-2 fa-question"></i><br>
             <span class="tool-label">Help</span>
-        </a>
-        <a class="pull-right" href="{% url "activitylog-list" %}">
+        </a-->
+        <a class="pull-right" href="{% url "session-list" %}">
             <i class="fa fa-2 fa-clock-o"></i><br>
-            <span class="tool-label">Activity</span>
+            <span class="tool-label">Session History</span>
         </a>
         <a class="pull-right" data-url="{% url "shipment-new" %}">
             <i class="fa fa-2 fa-plus"></i><br>

@@ -108,6 +108,12 @@ def cleanup(mxlive):
     for pk, result in entries['lims.data'].items():
         entries['lims.data'][pk]['fields']['sample'] = entries['lims.data'][pk]['fields'].pop('crystal')
         entries['lims.data'][pk]['fields']['group'] = entries['lims.data'][pk]['fields'].pop('experiment')
+        meta = {
+            field: entries['lims.data'][pk]['fields'].pop(field)
+            for field in ['delta_angle', 'start_angle', 'resolution', 'detector', 'detector_size', 'pixel_size', 'beam_x', 'beam_y', 'two_theta']
+        }
+        entries['lims.data'][pk]['fields']['meta_data'] = json.dumps(meta)
+
 
     print "Cleaning up {} scans".format(len(entries['lims.scanresult']))
     for pk, result in entries['lims.scanresult'].items():
@@ -328,10 +334,13 @@ for r in Result.objects.filter(kind=1):
         ]
     }
     ]
-    print collect_details, r.pk, r.analysisreport_set.values_list('pk')
-    r.analysisreport_set.update(details=collect_details)
+    print collect_details, r.pk
+    kind = "{}Processing".format(r.details.get('anomalous') and 'Anomalous ' or "")
+    r.reports.update(details=collect_details, kind=kind)
 
 
+
+for r in Result.objects.filter(kind=0):
     if r.kind == 0 and 'standard_errors' not in r.details.keys():
         screen_details = [{
             'title': 'Predicted Quality and Suggested Strategy',
@@ -484,5 +493,6 @@ for r in Result.objects.filter(kind=1):
             ]
         }]
         print screen_details, r.pk
-        r.analysisreport_set.update(details=screen_details)
+        kind = "{}Screening".format(r.details.get('anomalous') and 'Anomalous ' or "")
+        r.reports.update(details=screen_details, kind=kind)
 
