@@ -20,7 +20,7 @@ urlpatterns = [
     url(r'^download/', include('download.urls')),
     url(r'^stats/', include('stats.urls')),
 
-    url(r'^login/$',  login_view, {'template_name': 'login.html'}),
+    url(r'^login/$',  login_view, {'template_name': 'login.html'}, name="mxlive-login"),
     url(r'^logout/$', logout_view, name='mxlive-logout'),
     url(r'^api/v2/', include('remote.urls')),
 ]

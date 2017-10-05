@@ -14,25 +14,23 @@
 .diffviewer_button {
     width: 19px;
     height: 19px;
-    border-left: 1px solid #fff;
-    border-right: 1px solid #999;
+    background-color: rgba(255, 255, 255, 1);
     cursor: pointer;
     box-shadow: 1px 1px 6px #666;
+    text-align: center;
+    color: #337ab7;
 }
 
 .diffviewer_zoom_in {
     left: 0px;
-    background: url(/static/img/diffviewer.zoom_in.png) no-repeat center center #eee;
 }
 
 .diffviewer_zoom_out {
     left: 21px;
-    background: url(/static/img/diffviewer.zoom_out.png) no-repeat center center #eee;
 }
 
 .diffviewer_zoom_fit {
     left: 42px;
-    background: url(/static/img/diffviewer.zoom_fit.png) no-repeat center center #eee;
 }
 
 .diffviewer_zoom_status {

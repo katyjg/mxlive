@@ -3,16 +3,18 @@ from django.utils.translation import ugettext as _
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, F, ExpressionWrapper
 from django.utils import dateformat, timezone
 from django.contrib.auth.models import AbstractUser
+
 #from django.contrib.postgres.fields import JSONField
 from jsonfield.fields import JSONField
+
 import copy
 import hashlib
 import string
 from model_utils import Choices
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import itertools
 
@@ -61,6 +63,9 @@ class Beamline(models.Model):
 
     def __unicode__(self):
         return self.acronym
+
+    def active_session(self):
+        return self.sessions.filter(pk__in=Stretch.objects.active().values_list('session__pk')).first()
 
     def active_automounter(self):
         return self.active_dewar().container
@@ -141,27 +146,107 @@ class Project(AbstractUser):
         verbose_name = "Project Account"
 
 
+class Hours(models.Func):
+    function = 'HOUR'
+    template = '%(function)s(%(expressions)s)'
+
+    def as_postgresql(self, compiler, connection):
+        self.arg_joiner = " - "
+        return self.as_sql(compiler, connection, function="EXTRACT", template="%(function)s(epoch FROM %(expressions)s)/3600")
+
+    def as_mysql(self, compiler, connection):
+        self.arg_joiner = " , "
+        return self.as_sql(compiler, connection, function="TIMESTAMPDIFF", template="-%(function)s(HOUR,%(expressions)s)")
+
+    def as_sqlite(self, compiler, connection):
+        # the template string needs to escape '%Y' to make sure it ends up in the final SQL. Because two rounds of
+        # template parsing happen, it needs double-escaping ("%%%%").
+        return self.as_sql(compiler, connection, function="strftime", template="%(function)s(\"%%%%H\",%(expressions)s)")
+
+
+class Shifts(models.Func):
+    function = 'HOUR'
+    template = '%(function)s(%(expressions)s)'
+
+    def as_postgresql(self, compiler, connection):
+        self.arg_joiner = " - "
+        return self.as_sql(compiler, connection, function="EXTRACT", template="(%(function)s(epoch FROM %(expressions)s)/28800)")
+
+    def as_mysql(self, compiler, connection):
+        self.arg_joiner = " , "
+        return self.as_sql(compiler, connection, function="TIMESTAMPDIFF", template="-%(function)s(HOUR,%(expressions)s)/8")
+
+    def as_sqlite(self, compiler, connection):
+        # the template string needs to escape '%Y' to make sure it ends up in the final SQL. Because two rounds of
+        # template parsing happen, it needs double-escaping ("%%%%").
+        return self.as_sql(compiler, connection, function="strftime", template="%(function)s(\"%%%%H\",%(expressions)s)")
+
+
+class StretchQuerySet(models.QuerySet):
+
+    def active(self, extras={}):
+        return self.filter(end__isnull=True, **extras)
+
+    def recent(self, extras={}):
+        recently = timezone.now() - timedelta(minutes=5)
+        return self.filter(end__gte=recently, **extras)
+
+    def with_duration(self):
+        return self.filter(end__isnull=False).annotate(duration=ExpressionWrapper((F('end')-F('start'))/60000000, output_field=models.IntegerField()))
+
+    def with_hours(self):
+        return self.annotate(hours=Hours(F('end'), F('start'), output_field=models.FloatField()))
+
+    def with_shifts(self):
+        return self.annotate(shifts=Shifts(F('end'), F('start'), output_field=models.FloatField()))
+
+
+class StretchManager(models.Manager.from_queryset(StretchQuerySet)):
+    use_for_related_fields = True
+
+
 class Session(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     name = models.CharField(max_length=100)
-    project = models.ForeignKey(Project)
-    beamline = models.ForeignKey(Beamline)
+    project = models.ForeignKey(Project, related_name="sessions")
+    beamline = models.ForeignKey(Beamline, related_name="sessions")
     comments = models.TextField()
 
     def launch(self):
-        Stretch.objects.filter(beamline=self.beamline, end_time__isnull=True).update(end_time=datetime.now())
-        stretch = Stretch.objects.create(session=self, start_time=datetime.now())
+        Stretch.objects.active(extras={'session__beamline':self.beamline}).exclude(session=self).update(end=timezone.now())
+        self.stretches.recent().update(end=None)
+        stretch = self.stretches.active().last() or Stretch.objects.create(session=self, start=timezone.now())
         return stretch
+
+    def close(self):
+        self.stretches.active().update(end=timezone.now())
+
+    def is_active(self):
+        return self.stretches.active().exists()
+
+    def total_time(self):
+        t = sum(self.stretches.with_duration().values_list("duration", flat=True))
+        if self.is_active():
+            t += int((timezone.now() - self.stretches.active().first().start).total_seconds())/60
+        return t/60
+
+    def start(self):
+        return self.stretches.last().start
+
+    def end(self):
+        return self.stretches.start().end
 
 
 class Stretch(models.Model):
-    start_time = models.DateTimeField(null=False, blank=False)
-    end_time = models.DateTimeField(null=True, blank=True)
+    start = models.DateTimeField(null=False, blank=False)
+    end = models.DateTimeField(null=True, blank=True)
     session = models.ForeignKey(Session, related_name='stretches')
+    objects = StretchManager()
 
     class Meta:
         verbose_name = u"Beamline Usage"
         verbose_name_plural = u"Beamline Usage"
+        ordering = ['-start', ]
 
 
 class LimsBaseClass(models.Model):
@@ -299,7 +384,6 @@ class DataBaseClass(LimsBaseClass):
     TRANSITIONS[LimsBaseClass.STATES.ARCHIVED] = [LimsBaseClass.STATES.TRASHED]
 
     status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.ACTIVE)
-    session = models.ForeignKey(Session, null=True)
 
     def is_closable(self):
         return self.status not in [LimsBaseClass.STATES.ARCHIVED, LimsBaseClass.STATES.TRASHED]
@@ -800,7 +884,7 @@ class Sample(LimsBaseClass):
     }
     barcode = models.SlugField(null=True, blank=True)
     container = models.ForeignKey(Container, null=True, blank=True)
-    container_location = models.CharField(max_length=10, null=True, blank=True, verbose_name='port')
+    location = models.CharField(max_length=10, null=True, blank=True, verbose_name='port')
     comments = models.TextField(blank=True, null=True)
     collect_status = models.BooleanField(default=False)
     priority = models.IntegerField(null=True, blank=True)
@@ -808,9 +892,9 @@ class Sample(LimsBaseClass):
 
     class Meta:
         unique_together = (
-            ("project", "container", "container_location"),
+            ("project", "container", "location"),
         )
-        ordering = ['priority', 'container__name', 'container_location', 'name']
+        ordering = ['priority', 'container__name', 'location', 'name']
 
     def identity(self):
         return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -823,63 +907,13 @@ class Sample(LimsBaseClass):
             return self.container.parent and self.container.parent.dewar_set.first() and (self.container.parent.dewar_set.first().beamline)
 
     def container_and_location(self):
-        return "{} - {}".format(self.container.name, self.container_location)
+        return "{} - {}".format(self.container.name, self.location)
     container_and_location.short_description = "Container Location"
 
     def port(self):
-        return '{}{}{}'.format(self.container.parent and self.container.parent.location or "", self.container.location or "", self.container_location)
-
-    def get_data_set(self):
-        return self.data_set.filter(**self.project.get_archive_filter())
-
-    def get_result_set(self):
-        return self.result_set.filter(**self.project.get_archive_filter())
-    
-    def get_scanresult_set(self):
-        return self.scanresult_set.filter(**self.project.get_archive_filter())
-
-    def best_screening(self):
-        info = {}
-        results = self.get_result_set().filter(kind__exact=Result.RESULT_TYPES.SCREENING).order_by('-score')
-        if len(results) > 0:
-            info['report'] = results[0]
-            info['data'] = info['report'].data
-        else:
-            data = self.get_data_set().filter(kind__exact=Data.DATA_TYPES.MX_SCREEN).order_by('-created')
-            if len(data) > 0:
-                info['data'] = data[0]
-        return info
-    
-    def best_collection(self):
-        info = {}
-        results = self.get_result_set().filter(kind__exact=Result.RESULT_TYPES.COLLECTION).order_by('-score')
-        if len(results) > 0:
-            info['report'] = results[0]
-            info['data'] = info['report'].data
-        else:
-            data = self.get_data_set().filter(kind__exact=Data.DATA_TYPES.MX_DATA).order_by('-created')
-            if len(data) > 0:
-                info['data'] = data[0]
-        return info
-
-    def best_overall(self):
-        if 'report' in self.best_collection():
-            return self.best_collection()
-        return self.best_screening()
-
-    def is_started(self):
-        msg = str()
-        data = Data.objects.filter(sample__exact=self)
-        result = Result.objects.filter(sample__exact=self)
-        scan = ScanResult.objects.filter(sample__exact=self)
-        types = [Data.DATA_TYPES, Result.RESULT_TYPES, ScanResult.SCAN_TYPES]
-        for i, st in enumerate([data, result, scan]):
-            if st.exists():
-                s0 = st.filter(kind=0).count() and '%i %s' % (st.filter(kind=0).count(), types[i][0]) or ''
-                s1 = st.filter(kind=1).count() and '%i %s' % (st.filter(kind=1).count(), types[i][1]) or ''
-                if s1 or s0:
-                    msg += '%s%s%s %s<br>' % (s0, (s0 and s1) and '/' or '', s1, st[0].__class__.__name__)
-        return msg
+        if not self.dewar():
+            return ""
+        return '{}{}{}'.format(self.container.parent and self.container.parent.location or "", self.container.location or "", self.location)
 
     def is_editable(self):
         return True
@@ -889,16 +923,6 @@ class Sample(LimsBaseClass):
             if self.group:
                 if self.group.sample_set.count() == 1:
                     self.group.delete(request=request, cascade=False)
-            obj_list = []
-            for obj in self.data_set.all():
-                obj_list.append(obj)
-            for obj in self.result_set.all():
-                obj_list.append(obj)
-            for obj in obj_list:
-                obj.sample = None
-                obj.save()
-                if cascade:
-                    obj.trash(request=request)
             super(Sample, self).delete(request=request)
 
     def json_dict(self):
@@ -911,18 +935,20 @@ class Sample(LimsBaseClass):
             'barcode': self.barcode,
             'priority': self.priority if self.priority else 1,
             'comments': self.comments,
+            'location': self.location,
             'port': self.port(),
         }
 
 
 def parse_frames(frame_string):
     frames = []
-    for w in frame_string.split(','):
-        v = map(int, w.split('-'))
-        if len(v) == 2:
-            frames.extend(range(v[0], v[1]+1))
-        elif len(v) == 1:
-            frames.extend(v)
+    if frame_string:
+        for w in frame_string.split(','):
+            v = map(int, w.split('-'))
+            if len(v) == 2:
+                frames.extend(range(v[0], v[1]+1))
+            elif len(v) == 1:
+                frames.extend(v)
     return frames
 
 
@@ -936,10 +962,13 @@ class FrameField(models.CharField):
     description = _("List of frames")
 
     def get_prep_value(self, value):
-        if isinstance(value, basestring):
+        if value is None or isinstance(value, basestring):
             return value
         else:
-            value = isinstance(json.loads(value), list) and json.loads(value) or value
+            try:
+                value = isinstance(json.loads(value), list) and json.loads(value)
+            except:
+                pass
             if isinstance(value, list):
                 val_str = ",".join([r[0] == r[1] and "{}".format(r[0]) or "{}-{}".format(r[0], r[1])
                                     for r in list(frame_ranges(value))])
@@ -980,18 +1009,24 @@ class Data(DataBaseClass):
         DATA_TYPES.MX_SCREEN:  ['delta_angle', 'start_angle', 'resolution', 'detector', 'detector_size', 'pixel_size',
                                 'beam_x', 'beam_y', 'two_theta'],
         DATA_TYPES.MX_DATA: ['delta_angle', 'start_angle', 'resolution', 'detector', 'detector_size', 'pixel_size',
-                             'beam_x', 'beam_y', 'two_theta']
+                             'beam_x', 'beam_y', 'two_theta'],
+        DATA_TYPES.MAD_SCAN: ['roi', 'edge'],
+        DATA_TYPES.XRF_SCAN: [],
+        DATA_TYPES.RASTER: ['grid_points', 'grid_origin', 'start_angle', 'delta_angle', 'detector_type',
+                            'detector_size', 'pixel_size', 'beam_x', 'beam_y','inverse_beam'],
+        DATA_TYPES.XRD_DATA: [],
     }
     group = models.ForeignKey(Group, null=True, blank=True)
     sample = models.ForeignKey(Sample, null=True, blank=True)
+    session = models.ForeignKey(Session, null=True, blank=True)
     first_frame = models.IntegerField(default=1)
     file_name = models.CharField(max_length=200, null=True, blank=True)
-    frames = FrameField(max_length=200)
-    exposure_time = models.FloatField()
+    frames = FrameField(max_length=200, null=True, blank=True)
+    exposure_time = models.FloatField(null=True, blank=True)
     attenuation = models.FloatField()
-    energy = models.FloatField()
+    energy = models.DecimalField(decimal_places=4, max_digits=6)
     beamline = models.ForeignKey(Beamline)
-    beam_size = models.FloatField()
+    beam_size = models.FloatField(null=True, blank=True)
     url = models.CharField(max_length=200)
     kind = models.CharField('Data type', choices=DATA_TYPES, default=DATA_TYPES.MX_SCREEN, max_length=20)
     download = models.BooleanField(default=False)
@@ -1007,21 +1042,21 @@ class Data(DataBaseClass):
     def num_frames(self):
         return len(self.frames)
 
+    def frame_sets(self):
+        if isinstance(self.frames, list):
+            val_str = ",".join([r[0] == r[1] and "{}".format(r[0]) or "{}-{}".format(r[0], r[1])
+                                for r in list(frame_ranges(self.frames))])
+            return val_str
+        return self.frames
+
     def can_download(self):
         return (not RESTRICTED_DOWNLOADS) or self.download
 
     def __unicode__(self):
         return '%s (%d)' % (self.name, self.num_frames())
-    
-    def score_label(self):
-        if len(self.result_set.all()) is 1:
-            return self.result_set.all()[0].score
-        return False
 
     def report(self):
-        if self.reports.count() is 1:
-            return self.reports.first()
-        return False
+        return self.reports.first()
 
     def result(self):
         if len(self.result_set.all()) is 1:
@@ -1031,30 +1066,17 @@ class Data(DataBaseClass):
     def wavelength(self):
         _h = 4.13566733e-15  # eV.s
         _c = 299792458e10  # A/s
-        if self.energy == 0.0:
+        if float(self.energy) == 0.0:
             return 0.0
-        return (_h * _c) / (self.energy * 1000.0)
+        return (_h * _c) / (float(self.energy) * 1000.0)
 
     def total_angle(self):
-        return self.meta_data.get('delta_angle', 0) * self.num_frames()
+        return float(self.meta_data.get('delta_angle', 0)) * self.num_frames()
         
     def file_extension(self):
         detector = 'detector' in self.meta_data and self.meta_data['detector'] or ""
         return '.cbf' if 'PILATUS' in detector else '.img'
 
-    def generate_image_base(self, frame):
-        image_url = settings.IMAGE_PREPEND or ''
-        return image_url + "/download/images/%s/%s_%04d%s" % (self.url, self.name, frame, self.file_extension())
-
-    def generate_image_url(self, frame, brightness=None):
-        # brightness is assumed to be "nm" "dk" or "lt"
-        image_url = self.generate_image_base(frame)
-        
-        if brightness:
-            image_url = '%s-%s.png' % (image_url, brightness)
-
-        return image_url   
-    
     def start_angle_for_frame(self, frame):
         return (frame - self.first_frame) * self.delta_angle + self.start_angle 
 
@@ -1218,7 +1240,6 @@ class ScanResult(DataBaseClass):
 class ActivityLogManager(models.Manager):
     def log_activity(self, request, obj, action_type, description=''):
         e = self.model()
-        print request
         if obj is None:
             try:
                 project = request.user

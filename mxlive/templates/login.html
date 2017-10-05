@@ -1,30 +1,180 @@
-{% extends "base.html" %}
+{% extends "users/base.html" %}
 
-{% block bodyclass %}login{% endblock %}
-{% block content-override %}
-    <div class="login-error">{{ form.non_field_errors.0 }}</div>
-    {% if error_message %}
-        <p class="errornote">{{ error_message }}</p>
-    {% endif %}
-            
-    <div id="content">
-        <div style="height: 2.5em;"></div>
-        <form action="{{ app_path }}" method="post" id="login-form" class="objform">
-            {% csrf_token %}
-            <div class="form-row">
-                <div class="login-error login-field-error">{{ form.username.errors.0 }}</div>
-                <label for="id_username">Username:</label> <input type="text" name="username" id="id_username" class="large text field" />
-            </div>
-            <div class="form-row">
-                <div class="login-error login-field-error">{{ form.password.errors.0 }}</div>
-                <label for="id_password">Password:</label> <input type="password" name="password" id="id_password" class="large text field"/>
-                <input type="hidden" name="this_is_the_login_form" value="1" />
-                <input type="hidden" name="post_data" value="{{ post_data }}" /> {#<span class="help">Have you <a href="/password_reset/">forgotten your password</a>?</span> #}
-            </div>
-            <div class="submit-row">
-                <label>&nbsp;</label><input type="submit" value="Sign in" />
-            </div>
-        </form>
+{% load static %}
 
-    </div>
+{% block extra_css %}
+<style>
+.backstretch {
+    left: 0;
+    top: 0;
+    overflow: hidden;
+    margin: 0px;
+    padding: 0px;
+    height: 100%;
+    width: 100%;
+    z-index: -999999;
+    position: fixed;
+    background-image: url("/static/img/backstretch.png");
+}
+
+    /***** Top content *****/
+
+.inner-bg {
+    padding: 100px 0 170px 0;
+}
+
+.top-content .text {
+	color: #fff;
+}
+
+.top-content .text h1 { color: #fff; }
+
+.top-content .description {
+	margin: 20px 0 10px 0;
+}
+
+.top-content .description p { opacity: 0.8; }
+
+.top-content .description a {
+	color: #fff;
+}
+.top-content .description a:hover,
+.top-content .description a:focus { border-bottom: 1px dotted #fff; }
+
+.form-box {
+	margin-top: 35px;
+}
+
+.form-top {
+	overflow: hidden;
+	padding: 0 25px 15px 25px;
+	background: #fff;
+	-moz-border-radius: 4px 4px 0 0; -webkit-border-radius: 4px 4px 0 0; border-radius: 4px 4px 0 0;
+	text-align: left;
+}
+
+.form-top-left {
+	float: left;
+	width: 75%;
+	padding-top: 25px;
+}
+
+.form-top-left h3 { margin-top: 0; }
+
+.form-top-right {
+	float: left;
+	width: 25%;
+	padding-top: 5px;
+	font-size: 66px;
+	color: #ddd;
+	line-height: 100px;
+	text-align: right;
+}
+
+.form-bottom {
+	padding: 25px 25px 30px 25px;
+	background: #eee;
+	-moz-border-radius: 0 0 4px 4px; -webkit-border-radius: 0 0 4px 4px; border-radius: 0 0 4px 4px;
+	text-align: left;
+}
+
+.form-bottom form textarea {
+	height: 100px;
+}
+
+.form-bottom form button.btn {
+	width: 100%;
+}
+
+.form-bottom form .input-error {
+	border-color: #a94442;
+}
+
+
+/***** Media queries *****/
+
+@media (min-width: 992px) and (max-width: 1199px) {}
+
+@media (min-width: 768px) and (max-width: 991px) {}
+
+@media (max-width: 767px) {
+
+	.inner-bg { padding: 60px 0 110px 0; }
+
+}
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+<div class="top-content">
+
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 text-center text">
+                    <h1><strong>MxLIVE</strong> Login</h1>
+                    <div class="description">
+                        <p>
+                            Your portal to CMCF, from sample prep to data analysis.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6 col-sm-offset-3 form-box">
+                    <div class="form-top">
+                        <div class="form-top-left">
+                            <h3>Login to MxLIVE</h3>
+                            <p>Enter your beamline username and password to log on:</p>
+                        </div>
+                        <div class="form-top-right">
+                            <i class="fa fa-key"></i>
+                        </div>
+                    </div>
+                    <div class="form-bottom">
+                        <form role="form" action="{{ app_path }}" method="post" id="login-form" class="login-form">
+                            {% csrf_token %}
+                            {% if form.non_field_errors or error_message %}
+                            <div class="panel panel-danger">
+                                <div class="panel-heading">
+                                <div class="login-error">{{ form.non_field_errors.0 }}</div>
+                                {% if error_message %}
+                                    <p class="errornote">{{ error_message }}</p>
+                                {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div class="form-group">
+                                <label class="sr-only" for="id_username">Username</label>
+                                {% if form.username.errors %}<span class="text-danger">{{ form.username.errors.0 }}</span>{% endif %}
+                                <input type="text" name="username" id="id_username" placeholder="Username..."
+                                       class="{% if form.username.errors %}input-error{% endif %} form-username form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="sr-only" for="id_password">Password</label>
+                                {% if form.password.errors %}<span class="text-danger">{{ form.password.errors.0 }}</span>{% endif %}
+                                <input type="password" name="password" placeholder="Password..."
+                                       class="{% if form.password.errors %}input-error{% endif %} form-password form-control" id="id_password">
+                            </div>
+                            <button type="submit" class="btn">Sign in!</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="footer col-xs-12 text text-center">
+                    <h5>&copy;2008-2017 Canadian Light Source </h5>
+                </div>
+            </div>
+        </div>
+
+</div>
+
+<div class="backstretch"></div>
+
 {% endblock %}

@@ -1,0 +1,98 @@
+{% load data_server %}
+{% load static %}
+{% load json_to_dict %}
+
+{% get_xrf_data object as data %}
+
+<div class="row">
+    {% if data.data %}
+        <div class="col-xs-8">
+            <div id="xrf-{{ object.pk }}" style="padding-top: 15px;"></div>
+        </div>
+    {% endif %}
+    {% if data.assignments %}
+        <div class="col-xs-4">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th class="col-xs-2"></th>
+                        <th class="col-xs-4">Element</th>
+                        <th class="col-xs-6">Reliability (%)</th>
+                    </tr>
+                </thead>
+            </table>
+            <div class="scrollbar-inner scroll-sidebar">
+                <table class="table table-hover shallow-table">
+                    {% for e in data.assignments %}
+                        <tr style="color: {{ e.color }};">
+                            <td>
+                                <input type="checkbox" onclick="$('.{{ e.label }}').toggleClass('hidden').toggleClass('visible');" {% if e.reliability > 2 %}checked{% endif %} />
+                            </td>
+                            <td>{{ e.label }}</td>
+                            <td>{{ e.reliability|floatformat:1 }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+        <div class="col-xs-12">
+            <h4>Detailed Summary</h4>
+            <div class="scroll-details scrollbar-inner">
+                <table class="table table-hover">
+                    <tr>
+                        <th>Element</th>
+                        <th>Reliability (%)</th>
+                        <th>Edge <span class="pull-right">Energy (keV)</span></th>
+                    </tr>
+                    {% for e in data.assignments %}
+                        <tr>
+                            <td class="text-medium" style="vertical-align: middle;">{{ e.label }}</td>
+                            <td class="text-medium" style="vertical-align: middle;">{{ e.reliability|floatformat:2 }}</td>
+                            <td>
+                                {% for edge in e.edges %}
+                                    {{ edge.label }} <span class="pull-right">{{ edge.energy }}</span><br/>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+
+<link href="{% static "css/reports.css" %}" rel="stylesheet">
+
+<script type="text/javascript" src="{% static "js/d3.v4.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/d3.legend.js" %}"></script>
+<script type="text/javascript" src="{% static "js/live-reports.js" %}"></script>
+<script>
+    var data = {{ data|dict_to_dict }};
+    var annotations = [];
+    for (i=0; i < data['assignments'].length; i++) {
+        for (j=0; j < data['assignments'][i]['edges'].length; j++) {
+            annotations.push({
+                'class': data['assignments'][i]['label'],
+                'label': data['assignments'][i]['edges'][j]['label'],
+                'x': data['assignments'][i]['edges'][j]['energy'],
+                'ystart': data['assignments'][i]['edges'][j]['amplitude'],
+                'color': data['assignments'][i]['color'] || '#883a6a',
+                'display': data['assignments'][i]['reliability'] > 2 && true || false
+            });
+        }
+    }
+    var xy_chart = draw_xy_chart()
+        .width(630)
+        .height(500)
+        .xlabel("{{ data.xlabel }}")
+        .y1label("{{ data.y1label }}")
+        .y2label("{{ data.y2label }}")
+        .xscale('linear')
+        .notes(annotations)
+        .scatter('line');
+    var svg = d3.select('#xrf-{{ object.pk }}').append("svg")
+        .datum(data.data)
+        .call(xy_chart);
+</script>

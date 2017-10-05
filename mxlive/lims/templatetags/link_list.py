@@ -1,12 +1,9 @@
-
 from django.template import Library
 
-from staff.models import Announcement
+from staff import models
 
 register = Library()
 
-
 @register.inclusion_tag('users/announcements.html', takes_context=True)
 def load_announcements(context):
-    context['announcements'] = Announcement.objects.all()
-    return context
+    return {'announcements': models.Announcement.objects.all()}

@@ -24,7 +24,7 @@ g.axis > text {
 th.table-heading {
     text-align: center;
 }
-table.table {
+table.report-table {
     margin-top: 20px !important;
     max-width: 80%;
     margin: auto;

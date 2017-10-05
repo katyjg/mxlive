@@ -3,7 +3,8 @@
 
 <div id="report-builder"></div>
 
-<script type="text/javascript" src="{% static "js/d3.v3.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/d3.v4.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/d3.legend.js" %}"></script>
 <script type="text/javascript" src="{% static "js/live-reports.js" %}"></script>
 
 <script>
@@ -13,14 +14,14 @@ var report = {{ object.details|json_to_dict }};
 $.each(report, function(i, section) {
     $('#report-builder').append('<div id="row-'+i+'"></div>');
     var row = $('#row-'+i);
-    row.append("<h3 class='text-condensed'>"+section['title']+"</h3>");
+    row.append("<h3 class='text-condensed text-center'>"+section['title']+"</h3>");
     if (section['description']) {
         row.append("<small class='text-muted'>" + section['description'] + "</small>");
     };
     $.each(section['data'], function(j, entry) {
         if (entry['kind'] == 'table') {
             if(entry['data']) {
-                var table = $("<table id='table-" + i + "-" + j + "' class='table table-hover'></table>");
+                var table = $("<table id='table-" + i + "-" + j + "' class='table table-hover report-table'></table>");
                 var thead = $('<thead></thead>');
                 var tbody = $('<tbody></tbody>');
                 if (entry['title']) {
@@ -55,12 +56,11 @@ $.each(report, function(i, section) {
             var y1label = '', y2label = '';
             $.each(entry['data']['y1'], function(l, line) {
                 y1label = line.shift();
-                if (entry['data']['y2']) {
-                    y2label = entry['data']['y2'][l].shift();
-                    data.push({'label': "", 'x': entry['data']['x'], 'y1': line, 'y2': entry['data']['y2'][l]});
-                } else {
-                    data.push({'label': y1label, 'x': entry['data']['x'], 'y1': line});
-                }
+                data.push({'label': y1label, 'x': entry['data']['x'], 'y1': line});
+            });
+            $.each(entry['data']['y2'], function(l, line) {
+                y2label = line.shift();
+                data.push({'label': y2label, 'x': entry['data']['x'], 'y2': line});
             });
             var width = row.width();
             y1label = entry['data']['y1-label'] || y1label;
@@ -73,6 +73,7 @@ $.each(report, function(i, section) {
                 .y1label(y1label)
                 .y2label(y2label)
                 .xscale(xscale)
+                .notes([])
                 .scatter(entry['kind'] == 'scatterplot' && 'scatter' || entry['kind'] == 'lineplot' && 'line');
             var svg = d3.select('#row-'+i).append("svg").attr('id','plot-' + i + "-" + j)
                 .datum(data)

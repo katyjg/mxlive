@@ -60,12 +60,9 @@ def update_locations(request):
     return JsonResponse(locations, safe=False)
 
 
-def get_image(data, frame, brightness="nm"):
-    url = IMAGE_URL + "/images/%s/%s_%04d%s" % (data.url, data.name, frame, data.file_extension())
-    return fetch_image(None, url, brightness)
-
 
 def fetch_image(request, url=None, brightness=None):
+    src = ""
     url = url or request.GET.get('url', None)
     brightness = brightness or request.GET.get('brightness', 'nm')
     if url:
@@ -78,11 +75,28 @@ def fetch_image(request, url=None, brightness=None):
                 os.makedirs(path)
             with open(img_file, 'w') as f:
                 f.write(r.content)
-
             if not os.path.exists(png_file):
                 try:
                     create_png(img_file, png_file, BRIGHTNESS_VALUES[brightness])
                 except OSError:
-                    return JsonResponse({'src': ''})
-            return JsonResponse({'src': "/cache{}".format(png_file.replace(CACHE_DIR, ""))})
-    return JsonResponse({'src':''})
+                    pass
+            src = "/cache{}".format(png_file.replace(CACHE_DIR, ""))
+            os.remove(img_file)
+    return JsonResponse({'src': src})
+
+
+def fetch_file(request, url=None):
+    url = url or request.GET.get('url', None)
+    src = ''
+    if url:
+        r = requests.get(url)
+        if r.status_code == 200:
+            f = ''.join([CACHE_DIR, urlparse.urlparse(r.url).path])
+            path, file_extension = os.path.splitext(f)
+            basepath, _ = os.path.splitext(path)
+            if not os.path.exists(basepath):
+                os.makedirs(basepath)
+            src = "/cache{}".format(f.replace(CACHE_DIR, ""))
+            with open(f, 'w') as cached_file:
+                cached_file.write(r.content)
+    return JsonResponse({'src': src})

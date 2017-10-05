@@ -1,5 +1,4 @@
 {% load score_colors %}
-{% load data_extras %}
 {% load data_server %}
 
 <table class="table table-hover collapse in" id="group-{{ group.pk }}">
@@ -43,7 +42,7 @@
                                class="{% ifequal data sample.best_overall.data %}stress{% endifequal %}">
                                 {{ data.name }}
                             </a>
-                            {% if data.score_label %}
+                            {% if data.report %}
                                 <a href="{% url "report-detail" data.report.pk %}"
                                    title="View Analysis Report"
                                    class="{% ifequal data sample.best_overall.data %}stress{%endifequal %}">

@@ -13,7 +13,7 @@ pre {
 
 body {
     font-size: 13px;
-    padding: 0;
+    padding: 0 !important;
     min-height: 100%;
     background-color: #eee;
 }
@@ -155,7 +155,20 @@ nav li a {
 .hidden-modal {
     display: none;
 }
-
+.full-right {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    overflow: hidden;
+}
+.full-left {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    overflow: hidden;
+}
 .button-holder {
     padding-right: 0;
     float: right;
@@ -372,6 +385,13 @@ table.table {
     background-color: rgba(0, 0, 0, 0.05);
     padding: 0.5em 1em;
 }
+.underline {
+    border-bottom: 1px solid #ddd;
+}
+.modal-body .status-bar {
+    margin-top: -15px;
+    margin-bottom: 10px;
+}
 .no-margin {
     margin: 0 !important;
 }
@@ -392,6 +412,22 @@ table.table {
 
 .no-tmargin {
     margin-top: 0 !important;
+}
+table.shallow-table td {
+    padding-top: 4px !important;
+    padding-bottom: 2px !important;
+}
+.scroll-sidebar {
+    overflow-x: hidden !important;
+    overflow-y: scroll !important;
+    padding: 5px !important;
+    max-height: 480px !important;
+}
+.scroll-details {
+    overflow-x: hidden !important;
+    overflow-y: scroll !important;
+    padding: 5px !important;
+    max-height: 250px !important;
 }
 .circle {
     border-color: #ddd;
@@ -460,18 +496,19 @@ p.empty {
     overflow: visible;
     //overflow-x: hidden;
 }
-.modal-data {
-    min-width: 542px;
-}
+
 .modal-data .col-meta {
      width: 371px;
 }
 @media (max-width: 991px) {
     /* hidden tool labels on small screens */
     .modal-data .col-meta {
-         width: 100%;
+        width: 100%;
         margin-left: 0;
         padding-top: 10px;
+    }
+    .modal-data {
+        width: 542px;
     }
 }
 
@@ -733,298 +770,7 @@ div.runlist.droppable {
     margin: 0 10px;
     padding: 12px 0;
 }
-/*
-div#unipuck {
-    background: url('/static/img/unipuck-sm.png') no-repeat center center;
-    width: 250px;
-    height: 250px;
-    float: right;
-    margin-right: 2em;
-}
 
-div#basket {
-    background: url('/static/img/basket-sm.png') no-repeat center center;
-    width: 250px;
-    height: 250px;
-    float: right;
-    position: relative;
-    margin-right: 2em;
-}
-
-table.unipuck text, table.basket text {
-    float: none;
-}
-
-div.unipuck-xsm {
-    background: url('/static/img/unipuck-xsm.png') no-repeat center center !important;
-    width: 83px !important;
-    height: 83px !important;
-    float: right !important;
-    padding-top: 5px;
-    padding-right: 18px;
-}
-
-div.basket-xsm {
-    background: url('/static/img/basket-sm.png') no-repeat center center;
-    background-size: contain;
-    width: 83px !important;
-    height: 83px !important;
-    float: right !important;
-    padding-top: 5px;
-    padding-right: 18px;
-}
-
-table.unipuck td, table.basket td {
-    vertical-align: top;
-    width: 97px !important;
-    height: 110px !important;
-    margin-right: -10px;
-    border-right: 1px solid #ddd !important;
-    border-bottom: 1px solid #ddd !important;
-}
-
-table.unipuck, table.basket {
-    width: 205px;
-    height: 231px;
-}
-
-
-#basket div.Basket {
-    display: inline-block;
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    text-align: center;
-    background: transparent;
-}
-
-div#unipuck .occupied, div#basket .occupied {
-    background: url('/static/img/circle_green-40.png') no-repeat center center;
-}
-
-div.unipuck-xsm .empty-xs, table.cassette td.empty-xs, div.basket-xsm .empty-xs {
-    background: url('/static/img/circle_gray-15.png') no-repeat center center !important;
-}
-
-table.cassette td.started,
-div.unipuck-xsm .started,
-div#unipuck p.started,
-div.basket-xsm .started,
-div#basket p.started,
-table.cane-detail td.started,
-table.cassette-detail td.started {
-    opacity: 0.5 !important;
-}
-
-
-.draggable a {
-    width: 180px;
-    cursor: move;
-}
-.drag-helper {
-    padding: 1em;
-    cursor: move;
-}
-.drag-helper a {
-    color: white;
-}
-table.cane-detail td.occupied {
-    background: #bee0bb !important;
-}
-.object-list.cane-detail {
-    float: left;
-    width: 600px;
-}
-table.cane-detail {
-    float: right;
-    margin-right: 20px;
-    border-collapse: separate;
-    border: 1px solid #ccc;
-}
-
-table.cane-detail td {
-    border: 1px dotted #bbb;
-}
-
-table.cassette-detail {
-    float: right;
-    clear: right;
-}
-
-.object-list.cassette-detail, .object-list.uni-puck-detail, .object-list.basket-detail {
-    width: 690px;
-}
-.lims-droppable-hover.Cassette, .lims-droppable-active.Cassette,
-.lims-droppable-active.Uni-Puck, .lims-droppable-hover.Uni-Puck,
-.lims-droppable-active.Basket, .lims-droppable-hover.Basket {
-    border: none !important;
-}
-
-td.lims-droppable-hover.Cassette {
-    background: url('/static/img/circle_purple-30.png') no-repeat center center !important;
-}
-
-.lims-droppable-hover.Uni-Puck {
-    background: url('/static/img/circle_purple-40.png') no-repeat center center !important;
-}
-
-.lims-droppable-hover.Basket {
-    background: url('/static/img/circle_purple-40.png') no-repeat center center !important;
-}
-
-td.lims-droppable-hover.Cane {
-    background-color: #c8b9d7;
-}
-
-li.Uni-Puck {
-    background: url('/static/img/container-uni-puck-sm.png') no-repeat 5px center;
-}
-
-li.Cassette {
-    background: url('/static/img/container-cassette-sm.png') no-repeat 5px center;
-}
-
-li.Cane {
-    background: url('/static/img/container-cane-sm.png') no-repeat 5px center;
-}
-
-li.Basket {
-    background: url('/static/img/container-basket-sm.png') no-repeat 5px center;
-}
-
-li.container p.Uni-Puck, li.container p.Cassette, li.container p.Basket {
-    width: 16px;
-    float: right;
-    padding-right: 5px;
-}
-
-li.container p.Uni-Puck, tr.runlist.closed td.Uni-Puck {
-    background: url('/static/img/container-uni-puck-xsm.png') no-repeat center center;
-    min-width: 16px;
-}
-
-li.container p.Cassette, tr.runlist.closed td.Cassette {
-    background: url('/static/img/container-cassette-xsm.png') no-repeat center center;
-}
-
-li.container p.Basket, tr.runlist.closed td.Basket {
-    background: url('/static/img/container-basket-xsm.png') no-repeat center center;
-}
-
-td.Cane {
-    background: #f7f7f7;
-    height: 50px;
-    width: 15px;
-    padding-left: 10px;
-}
-
-table.cane-detail td.occupied {
-    background: #bee0bb !important;
-}
-
-div#unipuck {
-    background: url('/static/img/unipuck-sm.png') no-repeat center center;
-    width: 250px;
-    height: 250px;
-    float: right;
-    margin-right: 2em;
-}
-
-div#basket {
-    background: url('/static/img/basket-sm.png') no-repeat center center;
-    width: 250px;
-    height: 250px;
-    float: right;
-    position: relative;
-    margin-right: 2em;
-}
-
-table.unipuck text, table.basket text {
-    float: none;
-}
-
-div.unipuck-xsm {
-    background: url('/static/img/unipuck-xsm.png') no-repeat center center !important;
-    width: 83px !important;
-    height: 83px !important;
-    float: right !important;
-    padding-top: 5px;
-    padding-right: 18px;
-}
-
-div.basket-xsm {
-    background: url('/static/img/basket-sm.png') no-repeat center center;
-    background-size: contain;
-    width: 83px !important;
-    height: 83px !important;
-    float: right !important;
-    padding-top: 5px;
-    padding-right: 18px;
-}
-
-table.unipuck td, table.basket td {
-    vertical-align: top;
-    width: 97px !important;
-    height: 110px !important;
-    margin-right: -10px;
-    border-right: 1px solid #ddd !important;
-    border-bottom: 1px solid #ddd !important;
-}
-
-table.unipuck, table.basket {
-    width: 205px;
-    height: 231px;
-}
-
-
-#basket div.Basket {
-    display: inline-block;
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    text-align: center;
-    background: transparent;
-}
-
-div#unipuck .occupied, div#basket .occupied {
-    background: url('/static/img/circle_green-40.png') no-repeat center center;
-}
-
-table.cassette td {
-    padding-left: 2px !important;
-    height: 16px;
-}
-
-table.cassette td.started,
-div.unipuck-xsm .started,
-div#unipuck p.started,
-div.basket-xsm .started,
-div#basket p.started,
-table.cane-detail td.started,
-table.cassette-detail td.started {
-    opacity: 0.5 !important;
-}
-
-
-table.cassette-detail {
-    float: right;
-    clear: right;
-}
-
-
-table.cane-detail {
-    float: right;
-    margin-right: 20px;
-    border-collapse: separate;
-    border: 1px solid #ccc;
-}
-
-table.cane-detail td {
-    border: 1px dotted #bbb;
-}
-*/
 /* data viewer */
 
 .btn-dk { background-color: #333; border-color: #333; }
@@ -1064,7 +810,16 @@ table.cane-detail td {
 }
 #data-viewer .xtal-snapshot img {
     max-width: 100%;
+
 }
+#data-viewer .xtal-pic {
+    margin-left: 15px;
+    height: 255px;
+    background-size: contain;
+    background-repeat: no-repeat;
+
+}
+
 
 #data-viewer .frame-list p, #data-viewer .meta-data p, #data-viewer .xtal-snapshot p {
     background: none repeat scroll 0 0 #747E80;
@@ -1094,9 +849,13 @@ table.cane-detail td {
     background: #fff;
     overflow-x: hidden;
     overflow-y: scroll;
-    height: 210px;
     padding: 5px;
-    border: 1px solid #ccc;
+    max-height: 226px;
+    margin-bottom: 0;
+    padding-right: 12px;
+}
+#data-viewer .frame-list ul.tall {
+    max-height: 481px;
 }
 
 #data-viewer .meta-data ul {
@@ -1140,12 +899,6 @@ table.cane-detail td {
     width: 40px;
 }
 
-#data-viewer .diffviewer_zoom_status {
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-
 #data-viewer .viewer {
     width: 100%;
     border: 1px solid #bbb;
@@ -1160,9 +913,7 @@ table.cane-detail td {
 #data-viewer #framename {
     font-weight: bold;
 }
-#data-viewer .frame-list ul {
-    height: 14.75em;
-}
+
 .reverse-ellipsis {
   text-overflow: clip;
   position: relative;
@@ -1246,3 +997,145 @@ span.label-unusable-score {
     font-style: italic;
     color: #883a6a;
 }
+
+/*************** SCROLLBAR BASE CSS ***************/
+
+.scroll-wrapper {
+    overflow: hidden !important;
+    padding: 0 !important;
+    position: relative;
+}
+
+.scroll-wrapper > .scroll-content {
+    border: none !important;
+    box-sizing: content-box !important;
+    height: auto;
+    left: 0;
+    margin: 0;
+    max-height: none;
+    max-width: none !important;
+    overflow: scroll !important;
+    padding: 0;
+    position: relative !important;
+    top: 0;
+    width: auto !important;
+}
+
+.scroll-wrapper > .scroll-content::-webkit-scrollbar {
+    height: 0;
+    width: 0;
+}
+
+.scroll-element {
+    display: none;
+}
+.scroll-element, .scroll-element div {
+    box-sizing: content-box;
+}
+
+.scroll-element.scroll-x.scroll-scrollx_visible,
+.scroll-element.scroll-y.scroll-scrolly_visible {
+    display: block;
+}
+
+.scroll-element .scroll-bar,
+.scroll-element .scroll-arrow {
+    cursor: default;
+}
+
+.scroll-textarea {
+    border: 1px solid #cccccc;
+    border-top-color: #999999;
+}
+.scroll-textarea > .scroll-content {
+    overflow: hidden !important;
+}
+.scroll-textarea > .scroll-content > textarea {
+    border: none !important;
+    box-sizing: border-box;
+    height: 100% !important;
+    margin: 0;
+    max-height: none !important;
+    max-width: none !important;
+    overflow: scroll !important;
+    outline: none;
+    padding: 2px;
+    position: relative !important;
+    top: 0;
+    width: 100% !important;
+}
+.scroll-textarea > .scroll-content > textarea::-webkit-scrollbar {
+    height: 0;
+    width: 0;
+}
+
+
+
+
+/*************** SIMPLE INNER SCROLLBAR ***************/
+
+.scrollbar-inner > .scroll-element,
+.scrollbar-inner > .scroll-element div
+{
+    border: none;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    z-index: 10;
+}
+
+.scrollbar-inner > .scroll-element div {
+    display: block;
+    height: 100%;
+    left: 0;
+    top: 0;
+    width: 100%;
+}
+
+.scrollbar-inner > .scroll-element.scroll-x {
+    bottom: 2px;
+    height: 8px;
+    left: 0;
+    width: 100%;
+}
+
+.scrollbar-inner > .scroll-element.scroll-y {
+    height: 100%;
+    right: 2px;
+    top: 0;
+    width: 8px;
+}
+
+.scrollbar-inner > .scroll-element .scroll-element_outer {
+    overflow: hidden;
+}
+
+.scrollbar-inner > .scroll-element .scroll-element_outer,
+.scrollbar-inner > .scroll-element .scroll-element_track,
+.scrollbar-inner > .scroll-element .scroll-bar {
+    -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    border-radius: 8px;
+}
+
+.scrollbar-inner > .scroll-element .scroll-element_track,
+.scrollbar-inner > .scroll-element .scroll-bar {
+    -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=40)";
+    filter: alpha(opacity=40);
+    opacity: 0.4;
+}
+
+.scrollbar-inner > .scroll-element .scroll-element_track { background-color: #e0e0e0; }
+.scrollbar-inner > .scroll-element .scroll-bar { background-color: #c2c2c2; }
+.scrollbar-inner > .scroll-element:hover .scroll-bar { background-color: #919191; }
+.scrollbar-inner > .scroll-element.scroll-draggable .scroll-bar { background-color: #919191; }
+
+
+/* update scrollbar offset if both scrolls are visible */
+
+.scrollbar-inner > .scroll-element.scroll-x.scroll-scrolly_visible .scroll-element_track { left: -12px; }
+.scrollbar-inner > .scroll-element.scroll-y.scroll-scrollx_visible .scroll-element_track { top: -12px; }
+
+
+.scrollbar-inner > .scroll-element.scroll-x.scroll-scrolly_visible .scroll-element_size { left: -12px; }
+.scrollbar-inner > .scroll-element.scroll-y.scroll-scrollx_visible .scroll-element_size { top: -12px; }

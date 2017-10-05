@@ -53,13 +53,12 @@ urlpatterns = [
     url(r'^reports/$', views.ReportList.as_view(), name='result-list'),
     url(r'^reports/(?P<pk>\d+)/$', views.ReportDetail.as_view(), name='report-detail'),
 
-    url(r'^scans/$', views.ScanResultList.as_view(), name='scanresult-list'),
-
     url(r'^activity/$', views.ActivityLogList.as_view(), name='activitylog-list'),
     url(r'^activity/(?P<pk>\d+)/$', views.ActivityLogList.as_view(), name='activitylog-detail'),
 
-    url(r'^session/$', views.SessionList.as_view(), name='session-list'),
+    url(r'^sessions/$', views.SessionList.as_view(), name='session-list'),
     url(r'^sessions/(?P<pk>\d+)/$', views.SessionDetail.as_view(), name='session-detail'),
+    url(r'^sessions/(?P<pk>\d+)/history/$', views.SessionDetail.as_view(template_name="users/entries/session-history.html"), name='session-history'),
 
     url(r'^ajax/update_locations/$', ajax_views.update_locations, name='update-locations'),
     url(r'^ajax/fetch_image/$', ajax_views.fetch_image, name='fetch-image'),

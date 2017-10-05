@@ -348,7 +348,7 @@ class ReceiveShipment(ShipmentEdit):
 class SampleList(ListViewMixin, FilteredListView):
     model = models.Sample
     list_filter = ['modified']
-    list_display = ['identity', 'name', 'comments', '_Container', 'container_location']
+    list_display = ['identity', 'name', 'comments', '_Container', 'location']
     search_fields = ['project__name', 'name', 'barcode', 'comments']
     detail_url = 'sample-detail'
     order_by = ['-created', '-priority']
@@ -410,7 +410,7 @@ class ContainerList(ListViewMixin, FilteredListView):
 class ContainerDetail(DetailListMixin, SampleList):
     extra_model = models.Container
     template_name = "users/entries/container.html"
-    list_display = ['name', 'barcode', 'group__name', 'container_location', 'comments']
+    list_display = ['name', 'barcode', 'group__name', 'location', 'comments']
     detail_url = 'sample-edit'
     detail_ajax = True
     detail_target = '#modal-form'
@@ -578,8 +578,8 @@ class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
 class DataList(ListViewMixin, FilteredListView):
     model = models.Data
     list_filter = ['modified', 'kind', 'beamline']
-    list_display = ['id', 'name', 'sample', 'frames', 'delta_angle', 'exposure_time', 'total_angle', 'wavelength', 'beamline', 'kind']
-    search_fields = ['id', 'name', 'beamline__name', 'delta_angle', 'sample__name', 'frames', 'project__name']
+    list_display = ['id', 'name', 'sample', 'frame_sets', 'exposure_time', 'energy', 'beamline', 'kind']
+    search_fields = ['id', 'name', 'beamline__name', 'sample__name', 'frames', 'project__name']
     detail_url = 'data-detail'
     detail_ajax = True
     detail_target = '#modal-form'
@@ -609,24 +609,6 @@ class ReportDetail(OwnerRequiredMixin, detail.DetailView):
     template_name = "users/entries/report.html"
 
 
-class ResultDetail(OwnerRequiredMixin, detail.DetailView):
-    model = models.Result
-    template_name = "users/entries/result.html"
-
-
-class ScanResultList(ListViewMixin, FilteredListView):
-    model = models.ScanResult
-    list_filter = ['modified', 'kind']
-    list_display = ['id', 'name', 'sample', 'edge', 'kind', 'created']
-    search_fields = ['project__name', 'name', 'sample__name', 'beamline__name']
-    # detail_url = 'data-detail'
-    # detail_ajax = True
-    # detail_target = '#modal-form'
-    order_by = ['-modified']
-    ordering_proxies = {}
-    list_transforms = {}
-
-
 class ActivityLogList(ListViewMixin, FilteredListView):
     model = models.ActivityLog
     list_filter = ['created', 'action_type']
@@ -651,8 +633,6 @@ class SessionList(ListViewMixin, FilteredListView):
     ordering_proxies = {}
     list_transforms = {}
     detail_url = 'session-detail'
-    detail_ajax = True
-    detail_target = '#modal-form'
 
 
 class SessionDetail(OwnerRequiredMixin, detail.DetailView):
@@ -674,21 +654,28 @@ class BeamlineDetail(AdminRequiredMixin, detail.DetailView):
         return context
 
 
+from django.contrib.humanize.templatetags.humanize import naturaltime
+
+def format_time(val, record):
+    return naturaltime(val) or ""
+
+
 class BeamlineHistory(AdminRequiredMixin, ListViewMixin, FilteredListView):
-    model = models.Stretch
-    list_filter = ['start_time', 'end_time']
-    list_display = ['session', 'session__beamline', 'start_time', 'end_time']
-    search_fields = ['session__beamline', 'session__project', 'session__name']
-    owner_field = 'session__project__username'
-    order_by = ['-start_time']
-    detail_url_kwarg = 'session__pk'
+    model = models.Session
+    list_filter = ['project', ]
+    list_display = ['name', 'project', 'start', 'end', 'total_time']
+    list_transforms = {
+        'start': format_time,
+        'end': format_time,
+    }
+    search_fields = ['beamline', 'project', 'name']
+    order_by = ['pk']
+    detail_url_kwarg = 'pk'
     detail_url = 'session-detail'
-    detail_ajax = True
-    detail_target = '#modal-form'
 
     def get_queryset(self):
         qs = super(BeamlineHistory, self).get_queryset()
-        return qs.filter(session__beamline__pk=self.kwargs['pk'])
+        return qs.filter(beamline__pk=self.kwargs['pk'])
 
 
 class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
@@ -748,7 +735,7 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                         group, created = models.Group.objects.get_or_create(**data)
                         for i, location in enumerate(c.kind.container_locations.all()):
                             name = '{0}-{1:02d}'.format(group.name, i)
-                            to_create.append(models.Sample(group=group, container=c, container_location=location,
+                            to_create.append(models.Sample(group=group, container=c, location=location,
                                                            name=name, project=project))
                     models.Sample.objects.bulk_create(to_create)
                 else:
@@ -770,7 +757,7 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                             container = models.Container.objects.get(name=c, project=project, shipment=self.shipment)
                             for k, sample in enumerate(locations):
                                 name = "{0}-{1:02d}".format(group.name, j)
-                                to_create.append(models.Sample(group=group, container=container, container_location=sample,
+                                to_create.append(models.Sample(group=group, container=container, location=sample,
                                                                name=name, project=project))
                                 j += 1
                         models.Sample.objects.bulk_create(to_create)
@@ -824,7 +811,7 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
         initial = super(ShipmentAddGroup, self).get_initial()
         initial['shipment'] = models.Shipment.objects.get(pk=self.kwargs.get('pk'))
         initial['containers'] = [(c.pk, c.kind.pk) for c in initial['shipment'].container_set.all()]
-        initial['sample_locations'] = json.dumps({g.name: {c.pk: list(c.sample_set.filter(group=g).values_list('container_location', flat=True))
+        initial['sample_locations'] = json.dumps({g.name: {c.pk: list(c.sample_set.filter(group=g).values_list('location', flat=True))
                                                 for c in initial['shipment'].container_set.all()}
                                        for g in initial['shipment'].group_set.all()})
         if initial['shipment']:
@@ -840,7 +827,7 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
         # Delete samples removed from containers
         for group, containers in sample_locations.items():
             for container, locations in containers.items():
-                models.Sample.objects.filter(container__pk=int(container), group__name=group).exclude(container_location__in=locations).delete()
+                models.Sample.objects.filter(container__pk=int(container), group__name=group).exclude(location__in=locations).delete()
 
         for i, name in enumerate(data['name_set']):
             info = {field: data['{}_set'.format(field)][i] for field in ['name', 'kind', 'plan',
@@ -863,7 +850,7 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
                 container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
                 names = []
                 for location in locations:
-                    if not models.Sample.objects.filter(container=container, container_location=location).exists():
+                    if not models.Sample.objects.filter(container=container, location=location).exists():
                         while True:
                             name = "{0}-{1:02d}".format(group.name, j)
                             if models.Sample.objects.filter(group=group, name=name).exists() or name in names:
@@ -872,7 +859,7 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
                             names.append(name)
                             break
                         to_create.append(
-                            models.Sample(group=group, container=container, container_location=location, name=name,
+                            models.Sample(group=group, container=container, location=location, name=name,
                                           project=self.request.user))
 
             models.Sample.objects.bulk_create(to_create)
@@ -892,7 +879,7 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
         initial = super(GroupSelect, self).get_initial()
         initial['shipment'] = self.get_object().shipment
         initial['containers'] = [(c.pk, c.kind.pk, c.name) for c in initial['shipment'].container_set.all()]
-        initial['sample_locations'] = json.dumps({g.name: {c.pk: list(c.sample_set.filter(group=g).values_list('container_location', flat=True))
+        initial['sample_locations'] = json.dumps({g.name: {c.pk: list(c.sample_set.filter(group=g).values_list('location', flat=True))
                                                 for c in initial['shipment'].container_set.all()}
                                        for g in initial['shipment'].group_set.all()})
         initial['containers'] = initial['shipment'].container_set.all()
@@ -906,7 +893,7 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
 
         # Delete samples removed from containers
         for container, locations in sample_locations[group.name].items():
-            models.Sample.objects.filter(container__pk=int(container), group__name=group).exclude(container_location__in=locations).delete()
+            models.Sample.objects.filter(container__pk=int(container), group__name=group).exclude(location__in=locations).delete()
 
         group = models.Group.objects.get(pk=int(data['id']))
         to_create = []
@@ -915,7 +902,7 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
             container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
             names = []
             for location in locations:
-                if not models.Sample.objects.filter(container=container, container_location=location).exists():
+                if not models.Sample.objects.filter(container=container, location=location).exists():
                     while True:
                         name = "{0}-{1:02d}".format(group.name, j)
                         if models.Sample.objects.filter(group=group, name=name).exists() or name in names:
@@ -924,7 +911,7 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
                         names.append(name)
                         break
                     to_create.append(
-                        models.Sample(group=group, container=container, container_location=location, name=name,
+                        models.Sample(group=group, container=container, location=location, name=name,
                                       project=self.request.user))
 
         models.Sample.objects.bulk_create(to_create)

@@ -1,15 +1,13 @@
 {% extends "users/base.html" %}
 
+{% load link_list %}
+
 {% block page_heading %}
 <h2>Welcome, {{ user|title }}</h2>
 {% endblock %}
 
 {% block object_tools %}
     <span class="box-tools pull-right">
-        <!--a class="pull-right" href="#">
-            <i class="fa fa-2 fa-question"></i><br>
-            <span class="tool-label">Help</span>
-        </a-->
         <a class="pull-right" href="{% url "session-list" %}">
             <i class="fa fa-2 fa-clock-o"></i><br>
             <span class="tool-label">Session History</span>
@@ -47,7 +45,6 @@
 
         <!-- left region -->
 	<div id="left-content" class="col-xs-12 col-md-3">
-    {% load link_list %}
     {% load_announcements %}
 	</div>
 	<div class="clear spacer"></div>

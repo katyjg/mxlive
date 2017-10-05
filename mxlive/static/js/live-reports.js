@@ -2,9 +2,10 @@ function draw_xy_chart() {
 
     function chart(selection) {
         selection.each(function(datasets) {
-            var margin = {top: 20, right: width*0.1+50, bottom: 50, left: width*0.1+50},
+            var xoffset = notes && 40 || 0;
+            var margin = {top: 20, right: width*0.1, bottom: 50, left: width*0.1},
                 innerwidth = width - margin.left - margin.right,
-                innerheight = height - margin.top - margin.bottom ;
+                innerheight = height - margin.top - margin.bottom;
 
             if (xscale == 'ordinal') {
                 var x_scale = d3.scale.ordinal()
@@ -13,46 +14,72 @@ function draw_xy_chart() {
                         return d.x;
                     }));
             } else {
-                var x_scale = d3.scale.linear()
+                var x_scale = d3.scaleLinear()
                     .range([0, innerwidth])
                     .domain([ d3.min(datasets, function(d) { return d3.min(d.x); }),
                               d3.max(datasets, function(d) { return d3.max(d.x); }) ]) ;
             }
 
+            var color_scale = d3.scaleOrdinal(d3.schemeCategory10);
 
-            var y1_scale = d3.scale.linear()
-                .range([innerheight, 0])
-                .domain([ d3.min(datasets, function(d) { return d3.min(d.y1); }),
-                          d3.max(datasets, function(d) { return d3.max(d.y1); }) ]) ;
+            var y1data = [], y2data = [];
+            var y1datasets = [], y2datasets = [];
+            for (var p = 0; p < datasets.length; p++) {
+               datasets[p]['color'] = color_scale(p);
+               if ((datasets[p]['y1'])) {
+                   y1data = y1data.concat(datasets[p]['y1']);
+                   y1datasets.push(datasets[p]);
+               }
+               if ((datasets[p]['y2'])) {
+                   y2data = y2data.concat(datasets[p]['y2']);
+                   y2datasets.push(datasets[p]);
+               }
+            }
 
-            var color_scale = d3.scale.category10()
-                .domain(d3.range(datasets.length)) ;
+            var y1_scale = d3.scaleLinear()
+                .range([innerheight-xoffset, 0])
+                .domain([ d3.min(y1data),
+                          d3.max(y1data) ]) ;
 
-            var x_axis = d3.svg.axis()
+            var y2_scale = d3.scaleLinear()
+                .range([innerheight-xoffset, 0])
+                .domain([ d3.min(y2data),
+                          d3.max(y2data) ]) ;
+
+            var x_axis = d3.axisBottom()
                 .scale(x_scale)
-                .orient("bottom") ;
+                .tickSize(-innerheight);
 
-            var y1_axis = d3.svg.axis()
+            var y1_axis = d3.axisLeft()
                 .scale(y1_scale)
-                .orient("left") ;
+                .tickSize(-innerwidth);
 
-            var x_grid = d3.svg.axis()
-                .scale(x_scale)
-                .orient("bottom")
-                .tickSize(-innerheight)
-                .tickFormat("") ;
+            var y2_axis = d3.axisRight()
+                .scale(y2_scale);
 
-            var y1_grid = d3.svg.axis()
-                .scale(y1_scale)
-                .orient("left")
-                .tickSize(-innerwidth)
-                .tickFormat("") ;
+            var y1_draw_line = [], y2_draw_line = [];
 
-            var draw_line1 = d3.svg.line()
-                .interpolate("basis")
-                .x(function(d) { return x_scale(d[0]); })
-                .y(function(d) { return y1_scale(d[1]); }) ;
-
+            for (var p = 0; p < datasets.length; p++) {
+                if (datasets[p]['y1']) {
+                    y1_draw_line.push(d3.line()
+                        .curve(d3.curveCardinal)
+                        .x(function (d) {
+                            return x_scale(d[0]);
+                        })
+                        .y(function (d) {
+                            return y1_scale(d[1]);
+                        }));
+                } else if (datasets[p]['y2']) {
+                    y2_draw_line.push(d3.line()
+                        .curve(d3.curveCardinal)
+                        .x(function (d) {
+                            return x_scale(d[0]);
+                        })
+                        .y(function (d) {
+                            return y2_scale(d[1]);
+                        }));
+                }
+            }
 
             var svg = d3.select(this)
                 .attr("width", width)
@@ -60,109 +87,32 @@ function draw_xy_chart() {
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")") ;
 
-            svg.append("g")
-                .attr("class", "x grid")
-                .attr("fill", "none")
-                .attr("transform", "translate(0," + innerheight + ")")
-                .call(x_grid) ;
-
-            svg.append("g")
-                .attr("class", "y grid")
-                .attr("fill", "none")
-                .call(y1_grid) ;
 
             svg.append("g")
                 .attr("class", "x axis")
-                .attr("transform", "translate(0," + innerheight + ")")
-                .call(x_axis)
-                .append("text")
-                .attr("dy", "2.5em")
-                .attr("x", innerwidth/2)
+                .attr("transform", "translate(0," + (innerheight) + ")")
+                .call(x_axis);
+            svg.append("text")
+                .attr("transform", "translate("+ (innerwidth/2) +","+(height-margin.bottom/2)+")")
                 .style("text-anchor", "middle")
                 .text(xlabel) ;
 
-
-            var data_lines = svg.selectAll(".d3_xy_chart_line")
-                .data(datasets.map(function (d) {
-                    return d3.zip(d.x, d.y1);
-                }))
-                .enter().append("g")
-                .attr("class", "d3_xy_chart_line");
-
-            if (scatter == 'line') {
-                data_lines.append("path")
-                    .attr("class", "line")
-                    .attr("d", function (d) {
-                        return draw_line1(d);
-                    })
-                    .attr("stroke", function (_, i) {
-                        return color_scale(i);
-                    })
-                    .attr("fill", "none");
-            } else {
-                for (i = 0; i < datasets.length; i++) {
-                    var newdata = datasets[i]['x'].map(function (e, j) {
-                        return [e, datasets[i]['y1'][j]];
-                    });
-                    var data_points = svg.selectAll("dot")
-                        .data(newdata)
-                        .enter().append("circle")
-                        .attr("r", 2)
-                        .attr("cx", function (d) {
-                            return x_scale(d[0]);
-                        })
-                        .attr("cy", function (d) {
-                            return y1_scale(d[1]);
-                        })
-                        .attr("fill", function (_, k) {
-                            return color_scale(i);
-                        });
-                }
-            }
-
-            if(!(datasets[0]['y2'])) {
-                svg.append("g")
-                    .attr("class", "y axis")
-                    .call(y1_axis)
-                    .append("text")
-                    .attr("transform", "translate(0," + innerheight / 2 + "), rotate(-90)")
-                    .attr("y", 6)
-                    .attr("dy", "-2.5em")
-                    .style("text-anchor", "middle")
-                    .text(y1label);
-            } else {
-                svg.append("g")
-                    .attr("class", "y axis")
-                    .call(y1_axis)
-                    .append("text")
-                    .attr("transform", "translate(0," + innerheight / 2 + "), rotate(-90)")
-                    .attr("y", 6)
-                    .attr("dy", "-2.5em")
-                    .style("text-anchor", "middle")
-                    .attr("fill", function (_, i) {
-                        return color_scale(i);
-                    })
-                    .text(y1label);
-
-                var y2_scale = d3.scale.linear()
-                    .range([innerheight, 0])
-                    .domain([d3.min(datasets, function (d) {
-                        return d3.min(d.y2);
-                    }),
-                        d3.max(datasets, function (d) {
-                            return d3.max(d.y2);
-                        })]);
-                var y2_axis = d3.svg.axis()
-                    .scale(y2_scale)
-                    .orient("right") ;
-
-                var draw_line2 = d3.svg.line()
-                    .interpolate("cardinal")
-                    .x(function(d) { return x_scale(d[0]); })
-                    .y(function(d) { return y2_scale(d[1]); }) ;
+            svg.append("g")
+                .attr("class", "y axis")
+                .call(y1_axis)
+                .append("text")
+                .attr("transform", "translate(0," + innerheight / 2 + "), rotate(-90)")
+                .attr("y", 6)
+                .attr("dy", "-3.5em")
+                .style("text-anchor", "middle")
+                .attr("fill", function (_, i) {
+                    if (y1datasets.length > 1 ) { return "#000000"; }
+                    return y1datasets[0]['color'];
+                })
+                .text(y1label);
 
 
-
+            if (y2data.length) {
                 svg.append("g")
                     .attr("class", "y axis")
                     .attr("transform", "translate("+ innerwidth +", 0)")
@@ -173,29 +123,75 @@ function draw_xy_chart() {
                     .attr("dy", 0)
                     .style("text-anchor", "middle")
                     .attr("fill", function (_, i) {
-                        return color_scale(i+1);
+                        if (y2datasets.length > 1 ) { return "#000000"; }
+                        return y2datasets[0]['color'];
                     })
                     .text(y2label) ;
+            }
 
-                var y2_data_lines = svg.selectAll(".xy2_chart_line")
-                    .data(datasets.map(function(d) {return d3.zip(d.x, d.y2);}))
-                    .enter().append("g")
-                    .attr("class", "xy2_chart_line") ;
+            var y1_data_lines = svg.selectAll(".d3_xy1_chart_line")
+                .data(y1datasets.map(function (d) {
+                        return d3.zip(d.x, d.y1);
+                }))
+                .enter().append("g")
+                .attr("class", "d3_xy1_chart_line");
+            var y2_data_lines = svg.selectAll(".d3_xy2_chart_line")
+                .data(y2datasets.map(function (d) {
+                        return d3.zip(d.x, d.y2);
+                }))
+                .enter().append("g")
+                .attr("class", "d3_xy2_chart_line");
 
+            for (var p = 0; p < y1_draw_line.length; p++) {
+                if (scatter == 'line') {
+                    y1_data_lines.append("path")
+                        .attr("class", "line")
+                        .attr("d", function (d) {
+                            return y1_draw_line[p](d);
+                        })
+                        .attr("data-legend",function(_, l) { return y1datasets[l]['label'] || null;})
+                        .attr("stroke", function (_, l) {
+                            return y1datasets[l]['color'];
+                        })
+                        .attr("fill", "none");
+                } else {
+                    for (k = 0; k < y1datasets.length; k++) {
+                        var newdata = y1datasets[k]['x'].map(function (e, j) {
+                            return [e, y1datasets[k]['y1'][j]];
+                        });
+                        var data_points = svg.selectAll("dot")
+                            .data(newdata)
+                            .enter().append("circle")
+                            .attr("r", 2)
+                            .attr("cx", function (d) {
+                                return x_scale(d[0]);
+                            })
+                            .attr("cy", function (d) {
+                                return y1_scale(d[1]);
+                            })
+                            .attr("fill", function (_, l) {
+                                return y1datasets[k]['color'];
+                            });
+                    }
+                }
+            }
+
+            for (var p = 0; p < y2_draw_line.length; p++) {
                 if (scatter == 'line') {
                     y2_data_lines.append("path")
                         .attr("class", "line")
                         .attr("d", function (d) {
-                            return draw_line2(d);
+                            return y2_draw_line[p](d);
                         })
-                        .attr("stroke", function (_, i) {
-                            return color_scale(i + 1);
+                        .attr("data-legend",function(_, l) { return y2datasets[l]['label'] || null;;})
+                        .attr("stroke", function (_, l) {
+                            return y2datasets[l]['color'];
                         })
                         .attr("fill", "none");
                 } else {
-                    for (i = 0; i < datasets.length; i++) {
-                        var newdata = datasets[i]['x'].map(function (e, j) {
-                            return [e, datasets[i]['y2'][j]];
+                    for (k = 0; k < y2datasets.length; k++) {
+                        var newdata = y2datasets[k]['x'].map(function (e, j) {
+                            return [e, y2datasets[k]['y2'][j]];
                         });
                         var data_points = svg.selectAll("dot")
                             .data(newdata)
@@ -207,31 +203,41 @@ function draw_xy_chart() {
                             .attr("cy", function (d) {
                                 return y2_scale(d[1]);
                             })
-                            .attr("fill", function (_, k) {
-                                return color_scale(i + 1);
+                            .attr("fill", function (_, l) {
+                                return y2datasets[k]['color'];
                             });
                     }
                 }
             }
 
-            if (datasets.length > 1) {
-                data_lines.append("text")
-                    .datum(function (d, i) {
-                        return {name: datasets[i].label, final: d[d.length - 1]};
-                    })
-                    .attr("transform", function (d) {
-                        return ( "translate(" + x_scale(d.final[0]) + "," +
-                        y1_scale(d.final[1]) + ")" );
-                    })
-                    .attr("x", 3)
-                    .attr("dy", ".35em")
-                    .attr("fill", function (_, i) {
-                        return color_scale(i);
-                    })
-                    .text(function (d) {
-                        return d.name;
-                    });
-            }
+    for (i=0; i < notes.length; i++) {
+        var xpos = notes[i]['x'] && x_scale(notes[i]['x']) || 0,
+            ystart = notes[i]['ystart'] && y1_scale(notes[i]['ystart']) || 0,
+            yend = notes[i]['yend'] && y1_scale(notes[i]['yend']) || innerheight - xoffset;
+
+        svg.append("path")
+           .attr('class', notes[i]['label'] + ' ' + (notes[i]['class'] || '') + ' ' + (notes[i]['display'] != null && (notes[i]['display'] == true && 'visible ' || 'hidden')) || 'visible')
+           .style("stroke", notes[i]['color'] || "#333")
+           .attr("d", function() {
+                var d = "M" + xpos + "," + yend;
+                    d += " " + xpos + "," + ystart;
+                    return d;
+           });
+        svg.append("text")
+           .attr('class', notes[i]['label'] + ' ' + (notes[i]['class'] || '') + ' ' + (notes[i]['display'] != null && (notes[i]['display'] == true && 'visible ' || 'hidden')) || 'visible')
+           .text(notes[i]['label'])
+           .style("font-size","9px")
+           .style("fill", notes[i]['color'] || "#333")
+           .attr("transform", "translate("+ (xpos+3) +"," + (y1_scale(0) + xoffset/2) + "), rotate(-90)")
+           .style("text-anchor", "middle");
+    }
+
+    legend = svg.append("g")
+        .attr("class","legend")
+        .attr("transform","translate(50,30)")
+        .style("font-size","12px")
+        .call(d3.legend);
+
 
     /* Interactive stuff */
     var mouseG = svg.append("g")
@@ -245,11 +251,14 @@ function draw_xy_chart() {
 
     var lines = this.getElementsByClassName('line');
 
-    if (datasets[0]['y2']) {
-        var dualdatasets = [
-            {'x': datasets[0]['x'], 'y1': datasets[0]['y1']},
-            {'x': datasets[0]['x'], 'y1': datasets[0]['y2'], 'scale': y2_scale}
-        ];
+    if (y2datasets) {
+        var dualdatasets = [];
+        for (var p = 0; p < y1datasets.length; p++) {
+            dualdatasets.push({'x': y1datasets[p]['x'], 'y1': y1datasets[p]['y1']});
+        }
+        for (var p = 0; p < y2datasets.length; p++) {
+            dualdatasets.push({'x': y2datasets[p]['x'], 'y1': y2datasets[p]['y2'], 'scale': y2_scale});
+        }
         var mousePerLine = mouseG.selectAll('.mouse-per-line')
             .data(dualdatasets)
             .enter()
@@ -312,6 +321,8 @@ function draw_xy_chart() {
                     return "translate(" + x_scale(closest) + "," + pos + ")";
                 });
         });
+    /* End of interactive stuff */
+
     }) ;
 
     }
@@ -356,7 +367,11 @@ function draw_xy_chart() {
         scatter = value ;
         return chart ;
     } ;
-
+    chart.notes = function(value) {
+        if(!arguments.length) return notes || [] ;
+        notes = value ;
+        return chart ;
+    } ;
 
     return chart;
 }

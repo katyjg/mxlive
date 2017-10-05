@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="{% static "css/chosen.css" %}" media="screen" />
 <link href="{% static "fontawesome/css/font-awesome.min.css" %}" rel="stylesheet">
 <link rel="stylesheet" href="{% static "css/font-awesome-animation.min.css" %}">
+<link rel="stylesheet" href="{% static "css/jquery.scrollbar.css" %}">
 <link rel="stylesheet" href="{% static "themify-icons/themify-icons.css" %}">
 
 <script src="{% static "jquery/jquery.min.js" %}"></script>
@@ -13,6 +14,7 @@
 <script src="{% static "jquery/jquery.form.min.js" %}"></script>
 <script src="{% static "jquery/repeatable-fields.js" %}"></script>
 <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+<script src="{% static "jquery/jquery.scrollbar.js" %}"></script>
 
 {% block form_assets %}
 {% endblock %}
@@ -22,10 +24,12 @@
     <div class="modal-dialog {% block modal_size %}modal-md{% endblock %}">
         <div class="modal-content">
             <div class="modal-header">
+                <button type="button" class="close pull-right" data-dismiss="modal" aria-hidden="true">
+                    <i class="ti ti-close"></i></button>
+                {% block form_title_tools %}{% endblock %}
                 <h3 class="modal-title">
                     {% block form_title %}{{ form.helper.title }}{% endblock %}
-                    <button type="button" class="close pull-right" data-dismiss="modal" aria-hidden="true">
-                        <i class="ti ti-close"></i></button>
+
                 </h3>
             </div>
             <div class="modal-body"  id="form-content">
@@ -46,6 +50,12 @@ function initForm() {
 
 {% block form_js %}
 <script type="text/javascript">
+
+function reload_js(src) {
+    $('script[src="' + src + '"]').remove();
+    $('<script>').attr('src', src).appendTo('head');
+}
+
 function initModal() {
     var myform = $('#modalForm');
 	myform.find(".chosen").chosen({
@@ -71,49 +81,6 @@ function initModal() {
         myform.find($($(this).attr('href'))).toggleClass('in');
     });
 
-	/*
-	//Date picker
-	myform.find('.dateinput').datepicker({
-		format: "yyyy-mm-dd",
-		autoclose: true,
-		todayHighlight: true,
-        clearBtn: true
-	});
-
-	//Date time picker
-	myform.find('.datetimeinput').datetimepicker({
-		format: "yyyy-mm-dd hh:ii",
-		autoclose: true,
-		todayHighlight: true,
-        minuteStep: 15,
-        clearBtn: true
-	});
-
-    //Time picker
-    myform.find('.timeinput').each(function(){
-        $(this).timepicker({
-            template: false,
-            minuteStep: $(this).data('minstep'),
-            showSeconds: false,
-            showMeridian: false,
-            defaultTime: false
-        });
-    });
-
-
-    myform.find('.shift_input').datepicker({
-		format: "yyyy-mm-dd",
-		autoclose: true,
-		todayHighlight: true,
-        orientation: "auto",
-        clearBtn: true
-	});
-
-    myform.on('keypress keydown keyup', '.dateinput, .datetimeinput, .shift_input', function(e) {
-        e.stopPropagation(); // Don't allow direct editing
-        return false;
-    });
-    */
 	// Enable popovers
 	myform.find("[data-toggle='popover']").popover({
 			container: 'body'
@@ -125,18 +92,16 @@ function initModal() {
     		viewport: {selector: '#modal-form', padding: 5}
     });
 
-    /*
-	// configure niceScrollers
-	myform.find(".scrollbox").niceScroll({
-        cursorborder: "3px solid transparent",
-        cursorwidth: "12px",
-        autohidemode: "leave",
-        cursoropacitymax: 0.7
+    // Remove modal content after it is hidden
+    $(myform).on('hide.bs.modal', function (e) {
+        $(this).remove();
+        reload_js('{% static "bootstrap/js/bootstrap.min.js" %}');
     });
-    myform.find(".scrollbox").scroll(function(){
-        $(this).getNiceScroll().resize()
-    });
-    */
+
+	// configure pretty scrollbars
+    myform.find('.scrollbar-outer').scrollbar();
+    myform.find('.scrollbar-inner').scrollbar();
+
     // configure next urls
     myform.find("a.next-url").each(function(){
         var url = $(this).attr("href");
@@ -173,7 +138,6 @@ function showResponse(response, statusText, xhr, $form) {
 		}
 	}
 }
-
 
 {% if not form.errors %}
 	initModal();

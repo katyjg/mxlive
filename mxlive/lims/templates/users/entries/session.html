@@ -1,28 +1,125 @@
-{% extends "forms/modal.html" %}
+{% extends "users/base.html" %}
+{% load humanize %}
+{% load static %}
+{% load time_extras %}
 
-{% block form_title %}
-    Session <strong>{{ object.name }}</strong>
+{% block extra_css %}
+    <link href="{% static "objlist/objlist.css" %}" rel="stylesheet"/>
 {% endblock %}
 
-{% block form_body %}
-    <div class="row">
-        <div class="col-xs-12">
-            <table>
-                <tr>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Uptime</th>
-                    <th>IP Number</th></tr>
-                {% for stretch in object.stretches.all %}
-                    <tr>
-                        <td>{{ stretch.start_time }}</td>
-                        <td>{{ stretch.end_time }}</td>
-                        <td>{{ stretch.active_time }}</td>
-                        <td>{{ stretch.activitylog_set.first.ip_number }}</td>
-                    </tr>
-                {% endfor %}
-            </table>
+{% block page_heading %}
+    <h3 class="text-condensed narrow-heading overflow ellipsis">
+        <span class="text-muted">{{ object.project.username.upper }}</span> | <strong>Session {{ object.name }}</strong>
+    </h3>
+    <span class="text-muted">
+        Started {{ object.created|naturalday }}
+    </span>
+{% endblock %}
+
+{% block object_tools %}
+<span class="box-tools pull-right">
+    <a class="pull-right" data-url="{% url "session-history" object.pk %}">
+        <span class="pull-right">
+            <span class="fa-stack">
+                <i class="fa-stack-2x fa fa-2 fa-fw fa-history"></i>
+            </span><br>
+            <span class="tool-label">History</span>
+        </span>
+    </a>
+</span>
+{% endblock %}
+
+{% block object_status %}
+    <div class="status-bar">
+        <div class="row">
+            {% if object.is_active %}
+                <div class="col-xs-2">
+                    <h3 class="no-vmargin">
+                        <span class="label label-info">Active</span>
+                    </h3>
+                </div>
+            {% endif %}
+            {% if user.is_superuser %}<div class="col-xs-2">
+                <small class="text-muted text-condensed">Project:</small><br>
+                {{ object.project }}
+            </div>{% endif %}
+            <div class="col-xs-2 pull-left">
+                <small class="text-muted text-condensed">Datasets:</small><br>
+                {{ object.data_set.count }}
+            </div>
+            <div class="col-xs-2 pull-right text-right">
+                <small class="text-muted text-condensed">Total Time:</small><br>
+                {{ object.total_time }} hour{{ object.total_time|pluralize }}
+            </div>
+            <div class="col-xs-4 pull-right text-right">
+                <small class="text-muted text-condensed">Start:</small><br>
+                {{ object.start|naturalday }}
+            </div>
+
         </div>
     </div>
 {% endblock %}
 
+{% block full %}
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="list-group list-group-hover">
+                <div class="row">
+                    {% for data in object.data_set.all %}
+                        {% if forloop.first %}
+                            <h2 class="col-xs-12 underline">{{ data.modified|date:"F j, Y" }}</h2>
+                            <h3 class="col-xs-12">{{ data.modified|date:"P" }}</h3>
+                            {% save_time data.modified as time %}
+                        {% endif %}
+                        {% if data.modified|check_time:time %}
+                            {% if data.modified|date:"N j" != time|date:"N j" %}
+                                <h2 class="col-xs-12 underline">{{ data.modified|date:"F j, Y" }}</h2>
+                            {% endif %}
+                            <h3 class="col-xs-12">{{ data.modified|date:"P" }}</h3>
+                        {% endif %}
+                        {% save_time data.modified as time %}
+                        <div class="col-xs-12 col-sm-6">
+                            {% include "users/entries/data-thumbnail.html" with detail=True %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <!--div class="col-xs-12 object-list">
+            <table class="table table-hover collapse in" id="group-{{ group.pk }}">
+                <thead>
+                    <tr>
+                        <th>Created</th>
+                        <th>Sample</th>
+                        <th>Barcode</th>
+                        <th>Container</th>
+                        <th>Comments</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                {% for data in object.data_set.all %}
+                    {% if object.sample and sample == object.sample %}
+
+                    {% endif %}
+                    <tr>
+                        <td>{{ data.created }}</td>
+                        <td>{% if object.sample %}<a href="{% url "sample-detail" object.sample.pk %}">{{ object.sample }}</a>{% endif %}</td>
+                        <td>{{ object.sample.barcode }}</td>
+                        <td>{% if object.sample.container.parent %}
+                                <span class="text-muted"><strong>{{ object.sample.dewar }} {{ object.sample.port }}</strong> |</span>
+                            {% endif %}
+                            {{ object.sample.container_and_location }} </td>
+                        <td>{{ sample.comments|default_if_none:"" }}
+                            {% if sample.comments and sample.staff_comments %}<br/>{% endif %}
+                            <span class="highlight">
+                                {% if sample.staff_comments %}<strong>Collection Notes:</strong> {% endif %}
+                                {{ sample.staff_comments|default_if_none:""  }}</span></td>
+                        <td>{% include "users/entries/data-thumbnail.html" with detail=True %}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="empty">No data found for this session</td></tr>
+                {% endfor %}
+
+        </div-->
+    </div>
+{% endblock %}

@@ -1,23 +1,20 @@
-{% load data_extras %}
 {% load data_server %}
 {% load score_colors %}
 {% load static %}
 
 <link href="{% static "css/css-circular-prog-bar.css" %}" rel="stylesheet">
 
-<div class="thumbnail data-thumbnail" style="margin-bottom: 0px; {% if not detail %}background-image: url({% get_image data data.first_frame 'lt' %});{% endif %}">
+<div class="thumbnail data-thumbnail" style="margin-bottom: 0px; {% if not detail and "MX" in data.kind %}background-image: url({% get_image data data.first_frame 'lt' %}); background-position: right;{% endif %}">
     <div class="row">
         <div class="col-xs-12 text-condensed">
-            {% if detail %}
-                <span class="box-tools pull-right" style="background-image: url({% get_image data data.first_frame 'lt' %}); background-position: center; background-size: 100%">
+            {% if detail %}{% with data|get_meta_data as meta_data %}{% if meta_data %}
+                <span class="box-tools pull-right full-right" style="margin-right: 15px;{% if "MX" in data.kind or "DATA" in data.kind or "RASTER" in data.kind %}background-image: url({% get_image data data.first_frame 'lt' %}); background-position: center; background-size: 100%;{% endif %}">
                     <small>
-                    {% with data|get_meta_data as meta_data %}
                         {% for k, v in meta_data.items %}
                             <span class="pull-left">{{ k|title }}: <strong>{{ v }}</strong></span><br/>
                         {% endfor %}
-                    {% endwith %}
                 </small></span>
-            {% endif %}
+            {% endif %}{% endwith %}{% endif %}
 
             <div style="margin-left: 5px;">
                 {% if data.reports.all %}
@@ -46,9 +43,9 @@
                         </div>
                     </div>
                 </span>
-            <a data-url="{% url "data-detail" data.pk %}">
+            <a title="View {{ data.name }}" data-url="{% url "data-detail" data.pk %}">
                 <h4 class="overflow ellipsis">
-                    {% if detail %}<span class="text-muted">{{ data.get_kind_display }} | </span> {% endif %}<strong>&nbsp;{{ data.name }}</strong>
+                    <span class="text-muted">{{ data.get_kind_display }} | </span> <strong>&nbsp;{{ data.name }}</strong>
                 </h4>
                 {% if not detail %}<small>{% endif %}
                 <p class="text-muted overflow ellipsis"><strong>{{ data.beamline.acronym }}: {{ data.modified }}</strong></p>

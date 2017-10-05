@@ -7,3 +7,8 @@ register = template.Library()
 @register.filter
 def json_to_dict(data):
     return mark_safe(json.dumps(data))
+
+
+@register.filter
+def dict_to_dict(data):
+    return mark_safe(data)

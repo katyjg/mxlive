@@ -1,0 +1,67 @@
+{% load data_server %}
+{% load static %}
+{% load json_to_dict %}
+
+{% get_mad_data object as data %}
+
+<div class="row">
+    {% if data.data %}
+        <div class="col-xs-12">
+            <div id="mad-{{ object.pk }}"></div>
+        </div>
+    {% endif %}
+    {% if data.choices %}
+        <div class="col-xs-12">
+            <table class="pull-right table table-hover">
+                {% for e in data.choices %}
+                    {% if forloop.first %}
+                        <thead>
+                            <tr>
+                                <th></th>
+                                {% for k in e.keys %}
+                                    <th>{{ k|title }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                    {% endif %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" onclick="$('.{{ e.label }}').toggleClass('hidden').toggleClass('visible');" checked />
+                        </td>
+                        {% for v in e.values %}
+                            <td>{{ v }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endif %}
+</div>
+
+<link href="{% static "css/reports.css" %}" rel="stylesheet">
+
+<script type="text/javascript" src="{% static "js/d3.v4.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/d3.legend.js" %}"></script>
+<script type="text/javascript" src="{% static "js/live-reports.js" %}"></script>
+<script>
+    var data = {{ data|dict_to_dict }};
+    var annotations = [];
+    for (i=0; i < data['choices'].length; i++) {
+        annotations.push({
+            'label': data['choices'][i]['label'],
+            'x': data['choices'][i]['energy'],
+            'color': '#883a6a'});
+    }
+    var xy_chart = draw_xy_chart()
+        .width(868)
+        .height(500)
+        .xlabel("{{ data.xlabel }}")
+        .y1label("{{ data.y1label }}")
+        .y2label("{{ data.y2label }}")
+        .xscale('linear')
+        .notes(annotations)
+        .scatter('line');
+    var svg = d3.select('#mad-{{ object.pk }}').append("svg")
+        .datum(data.data)
+        .call(xy_chart);
+</script>
