@@ -1,23 +1,38 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils.text import slugify
-
+from django.contrib.messages.views import SuccessMessageMixin
+from django.views.generic import edit, detail
 from django.db import transaction
+
 from formtools.wizard.views import SessionWizardView
 
 from objlist.views import FilteredListView
 
-from django.contrib.messages.views import SuccessMessageMixin
-from django.views.generic import edit
-from django.views.generic import detail
-from django.core.urlresolvers import reverse_lazy
+
 from lims import forms, models
 from itertools import chain
 import json
+from django.template.loader import get_template
+from django.http import HttpResponse
+from django.conf import settings
+
+from tempfile import mkdtemp
+import subprocess
+import os
+import shutil
+
+TEMP_PREFIX = getattr(settings, 'TEX_TEMP_PREFIX', 'render_tex-')
+CACHE_PREFIX = getattr(settings, 'TEX_CACHE_PREFIX', 'render-tex')
+CACHE_TIMEOUT = getattr(settings, 'TEX_CACHE_TIMEOUT', 30), # 86400)  # 1 day
 
 
 class OwnerRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    """
+    Mixin to limit access to the owner of an object (or superusers).
+    Must be used with an object-based View (e.g. DetailView, EditView)
+    """
     owner_field = 'project'
 
     def test_func(self):
@@ -49,21 +64,10 @@ class AjaxableResponseMixin(object):
             return response
 
 
-from django.template.loader import get_template
-from django.http import HttpResponse
-from django.conf import settings
-
-from tempfile import mkdtemp
-import subprocess
-import os
-import shutil
-
-TEMP_PREFIX = getattr(settings, 'TEX_TEMP_PREFIX', 'render_tex-')
-CACHE_PREFIX = getattr(settings, 'TEX_CACHE_PREFIX', 'render-tex')
-CACHE_TIMEOUT = getattr(settings, 'TEX_CACHE_TIMEOUT', 30), # 86400)  # 1 day
-
-
 class Tex2PdfMixin(object):
+    """
+    Mixin to create a .pdf file from a LaTeX template.
+    """
 
     def get_template_name(self):
         return "users/base.html"
@@ -99,9 +103,6 @@ class Tex2PdfMixin(object):
         res = HttpResponse(pdf, "application/pdf")
 
         return res
-
-
-
 
 
 class ProjectDetail(UserPassesTestMixin, detail.DetailView):

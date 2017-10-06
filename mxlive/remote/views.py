@@ -20,21 +20,15 @@ IMAGE_URL = settings.IMAGE_PREPEND or ''
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class AccessList(View):
-
-    def get(self, request, *args, **kwargs):
-        from staff.models import UserList
-        client_addr = kwargs.get('ipnumber', get_client_address(request))
-
-        list = UserList.objects.filter(address=client_addr, active=True).first()
-        if list:
-            return JsonResponse([p.username for p in list.users.all()], safe=False)
-        else:
-            return JsonResponse([], safe=False)
-
-
-@method_decorator(csrf_exempt, name='dispatch')
 class VerificationMixin(object):
+    """
+    Mixin to verify identity of user.
+    Requires URL parameters `username` and `signature` where the signature is a string that has been time-stamped and
+    signed using a private key, and can be unsigned using the public key stored with the user's MxLIVE User object.
+
+    If the signature cannot be successfully unsigned, or the User does not exist,
+    the dispatch method will return a HttpResponseNotAllowed.
+    """
 
     def is_valid(self, request, **kwargs):
         assert kwargs.get('username') and kwargs.get('signature'), "Must provide a username and a signature."
@@ -55,7 +49,36 @@ class VerificationMixin(object):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class AccessList(View):
+    """
+    Returns list of usernames that should be able to access the remote server referenced by `ipnumber`.
+
+    :Referenced with:
+     - r'^accesslist/$' (to get access list for requesting location)
+     - r'^accesslist/(?P<ipnumber>)/$'
+    """
+
+    def get(self, request, *args, **kwargs):
+
+        from staff.models import UserList
+        client_addr = kwargs.get('ipnumber', get_client_address(request))
+
+        list = UserList.objects.filter(address=client_addr, active=True).first()
+        if list:
+            return JsonResponse([p.username for p in list.users.all()], safe=False)
+        else:
+            return JsonResponse([], safe=False)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class UpdateUserKey(View):
+    """
+    API for adding a public key to an MxLIVE Project. This method will only be allowed if the signature can be verified,
+    and the User object does not already have a public key registered.
+
+    :Referenced with:
+     - r'^(?P<signature>(?P<username>):.+)/project/$'
+    """
 
     def post(self, request, *args, **kwargs):
 
@@ -80,6 +103,13 @@ class UpdateUserKey(View):
 
 
 class LaunchSession(VerificationMixin, View):
+    """
+    Method to start an MxLIVE Session from the beamline. If a Session with the same name already exists, a new Stretch
+    will be added to the Session.
+
+    :Referenced with:
+     - r'^(?P<signature>(?P<username>):.+)/launch/(?P<beamline>)/(?P<session>)/$'
+    """
 
     def post(self, request, *args, **kwargs):
         from lims.models import Project, Beamline, Session
@@ -107,6 +137,12 @@ class LaunchSession(VerificationMixin, View):
 
 
 class CloseSession(VerificationMixin, View):
+    """
+    Method to close an MxLIVE Session from the beamline.
+
+    :Referenced with:
+     - r'^(?P<signature>(?P<username>):.+)/close/(?P<beamline>)/(?P<session>)/$'
+    """
 
     def post(self, request, *args, **kwargs):
         from lims.models import Project, Beamline, Session
@@ -152,7 +188,12 @@ class ActiveLayout(VerificationMixin, View):
 
 
 class ProjectSamples(VerificationMixin, View):
+    """
+    :Return: Dictionary for each On-Site sample owned by the User and NOT loaded on another beamline.
 
+    :Referenced with:
+     - r'^(?P<signature>(?P<username>):.+)/samples/(?P<beamline>)/$'
+    """
     def get(self, request, *args, **kwargs):
         from lims.models import Project, Beamline, Container
         project_name = kwargs.get('username')
@@ -181,6 +222,22 @@ TRANSFORMS = {
 
 
 class AddReport(VerificationMixin, View):
+    """
+    Method to add meta-data and JSON details about an AnalysisReport.
+
+    :param username: User__username
+    :param data_id: Data object referenced
+    :param score: float
+    :param type: str
+    :param details: JSON dict
+    :param name: str
+    :param beamline: Beamline__acronym
+
+    :Return: {'id': < Created AnalysisReport.pk >}
+
+    :Referenced with:
+     - r'^(?P<signature>(?P<username>):.+)/report/(?P<beamline>)/$'
+    """
 
     def post(self, request, *args, **kwargs):
         info = request.POST.copy()
@@ -221,14 +278,32 @@ class AddReport(VerificationMixin, View):
         return JsonResponse({'id': report.pk})
 
 
-import pprint
-
-
 class AddData(VerificationMixin, View):
+    """
+    Method to add meta-data about Data collected on the Beamline.
+
+    :param username: User__username
+    :param data_id: If updating an existing Data object
+    :param directory: Path to files
+    :param energy: float (in keV)
+    :param type: str (one of Data.DATA_TYPES)
+    :param exposure: float (in seconds)
+    :param attenuation: float (in percent)
+    :param beam_size: float (in microns)
+    :param name: str
+    :param filename: filename (if single frame) or formattable template (e.g. "test_{:0>4d}.img")
+    :param beamline: Beamline__acronym
+    :param sample_id: If known
+    :param frames: frames collected (e.g. "1-4,8,10-99")
+
+    :Return: {'id': < Created Data.pk >}
+
+    :Referenced with:
+     - r'^(?P<signature>(?P<username>):.+)/data/(?P<beamline>)/$'
+    """
 
     def post(self, request, *args, **kwargs):
         info = request.POST.copy()
-        pprint.pprint(info)
 
         from lims.models import Project, Beamline, Data
         project_name = kwargs.get('username')

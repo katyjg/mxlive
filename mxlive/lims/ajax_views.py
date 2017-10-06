@@ -28,8 +28,14 @@ CACHE_DIR = settings.CACHES.get('default', {}).get('LOCATION', '/tmp')
 
 
 def load_image(filename, gamma_offset=0.0, resolution=(1024, 1024)):
-    # Read file and return an PIL image of desired resolution histogram stretched by the
-    # requested gamma_offset
+    """
+    Read file and return an PIL image of desired resolution histogram stretched by the
+    requested gamma_offset
+    :param filename: Image File (e.g. filename.img, filename.cbf)
+    :param gamma_offset: default 0.0
+    :param resolution: output size
+    :return: resized PIL image
+    """
 
     image_obj = read_image(filename)
     gamma = image_obj.header['gamma']
@@ -42,9 +48,16 @@ def load_image(filename, gamma_offset=0.0, resolution=(1024, 1024)):
 
 
 def create_png(filename, output, brightness, resolution=(1024, 1024)):
-    # generate png in output using filename as input with specified brightness
-    # and resolution. default resolution is 1024x1024
-    # creates a directory for output if none exists
+    """
+    Generate png in output using filename as input with specified brightness
+    and resolution. default resolution is 1024x1024
+    creates a directory for output if none exists
+    :param filename: Image File (e.g. filename.img, filename.cbf)
+    :param output: PNG Image Filename
+    :param brightness: float (1.5=dark; -0.5=light)
+    :param resolution: output size
+    :return: PNG Image
+    """
 
     img_info = load_image(filename, brightness, resolution)
 

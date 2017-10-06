@@ -1,0 +1,371 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Models &mdash; MxLIVE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="MxLIVE  documentation" href="../index.html"/>
+        <link rel="next" title="Views" href="views.html"/>
+        <link rel="prev" title="Application Program Interfaces" href="../apis.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> MxLIVE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v3.1.4-18-gc8ef30e
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../starting.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../shipping.html">Shipment Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reports.html">Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis.html">Application Program Interfaces</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Details:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">Views</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MxLIVE</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Models</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/modules/models.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-lims.models">
+<span id="models"></span><h1>Models<a class="headerlink" href="#module-lims.models" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="lims.models.Beamline">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Beamline</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Beamline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Beamline" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Beamline object should be created for every unique facility that will be uploading data or reports,
+or has its own automounter layout.</p>
+<dl class="method">
+<dt id="lims.models.Beamline.active_automounter">
+<code class="descname">active_automounter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Beamline.active_automounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Beamline.active_automounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the container referenced by the active dewar pointing to the beamline.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lims.models.Beamline.active_dewar">
+<code class="descname">active_dewar</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Beamline.active_dewar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Beamline.active_dewar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the first active dewar pointing to the beamline. Generally, there should only be one active dewar
+referencing each beamline.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lims.models.Beamline.active_session">
+<code class="descname">active_session</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Beamline.active_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Beamline.active_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the session that is currently running on the beamline, if there is one.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="lims.models.Dewar">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Dewar</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Dewar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Dewar" title="Permalink to this definition">¶</a></dt>
+<dd><p>A through-model relating a Beamline object to a Container object. The container referenced here should be the
+one that samples or containers can be added to during a Project&#8217;s beamtime. If a beamline has multiple containers
+(ie. Dewar objects), only the current one should be marked &#8216;active&#8217;.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="lims.models.Project">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Project</code><span class="sig-paren">(</span><em>id</em>, <em>password</em>, <em>last_login</em>, <em>is_superuser</em>, <em>username</em>, <em>first_name</em>, <em>last_name</em>, <em>email</em>, <em>is_staff</em>, <em>is_active</em>, <em>date_joined</em>, <em>name</em>, <em>contact_person</em>, <em>contact_email</em>, <em>carrier</em>, <em>account_number</em>, <em>department</em>, <em>address</em>, <em>city</em>, <em>province</em>, <em>postal_code</em>, <em>country</em>, <em>contact_phone</em>, <em>contact_fax</em>, <em>organisation</em>, <em>show_archives</em>, <em>key</em>, <em>created</em>, <em>modified</em>, <em>updated</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Project"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Project" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="lims.models.Carrier">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Carrier</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Carrier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Carrier" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Carrier object should be created for each courier company that may be used for shipping to the beamline.
+To link to shipment tracking, provide a URL that can be completed using a tracking number to link to a
+courier-specific tracking page.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="lims.models.Shipment">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Shipment</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>comments</em>, <em>tracking_code</em>, <em>return_code</em>, <em>date_shipped</em>, <em>date_received</em>, <em>date_returned</em>, <em>carrier</em>, <em>storage_location</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Shipment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Shipment" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="lims.models.Shipment.shipping_errors">
+<code class="descname">shipping_errors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Shipment.shipping_errors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Shipment.shipping_errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of descriptive string error messages indicating the Shipment is not
+in a &#8216;shippable&#8217; state</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="lims.models.ContainerType">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">ContainerType</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>layout</em>, <em>envelope</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#ContainerType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.ContainerType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="lims.models.ContainerLocation">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">ContainerLocation</code><span class="sig-paren">(</span><em>id</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#ContainerLocation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.ContainerLocation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="lims.models.Container">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Container</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>kind</em>, <em>shipment</em>, <em>comments</em>, <em>priority</em>, <em>parent</em>, <em>location</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Container"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Container" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="lims.models.Container.update_priority">
+<code class="descname">update_priority</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Container.update_priority"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Container.update_priority" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the Container&#8217;s priority to max(group priorities)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="lims.models.Group">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Group</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>shipment</em>, <em>energy</em>, <em>kind</em>, <em>absorption_edge</em>, <em>plan</em>, <em>comments</em>, <em>priority</em>, <em>sample_count</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Group" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="lims.models.Sample">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Sample</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>barcode</em>, <em>container</em>, <em>location</em>, <em>comments</em>, <em>collect_status</em>, <em>priority</em>, <em>group</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Sample" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="lims.models.Data">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Data</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>group</em>, <em>sample</em>, <em>session</em>, <em>first_frame</em>, <em>file_name</em>, <em>frames</em>, <em>exposure_time</em>, <em>attenuation</em>, <em>energy</em>, <em>beamline</em>, <em>beam_size</em>, <em>url</em>, <em>kind</em>, <em>download</em>, <em>meta_data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="lims.models.AnalysisReport">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">AnalysisReport</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>kind</em>, <em>group</em>, <em>sample</em>, <em>score</em>, <em>data</em>, <em>result</em>, <em>details</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#AnalysisReport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.AnalysisReport" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="lims.models.ActivityLog">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">ActivityLog</code><span class="sig-paren">(</span><em>id</em>, <em>created</em>, <em>project</em>, <em>user</em>, <em>user_description</em>, <em>ip_number</em>, <em>object_id</em>, <em>content_type</em>, <em>action_type</em>, <em>object_repr</em>, <em>description</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#ActivityLog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.ActivityLog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="lims.models.Session">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Session</code><span class="sig-paren">(</span><em>id</em>, <em>created</em>, <em>name</em>, <em>project</em>, <em>beamline</em>, <em>comments</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Session" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="lims.models.Stretch">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Stretch</code><span class="sig-paren">(</span><em>id</em>, <em>start</em>, <em>end</em>, <em>session</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Stretch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Stretch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<span class="target" id="module-staff.models"></span><dl class="class">
+<dt id="staff.models.Announcement">
+<em class="property">class </em><code class="descclassname">staff.models.</code><code class="descname">Announcement</code><span class="sig-paren">(</span><em>id</em>, <em>title</em>, <em>description</em>, <em>priority</em>, <em>attachment</em>, <em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/staff/models.html#Announcement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#staff.models.Announcement" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="staff.models.UserList">
+<em class="property">class </em><code class="descclassname">staff.models.</code><code class="descname">UserList</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>description</em>, <em>address</em>, <em>active</em>, <em>created</em>, <em>modified</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/staff/models.html#UserList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#staff.models.UserList" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="views.html" class="btn btn-neutral float-right" title="Views" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../apis.html" class="btn btn-neutral" title="Application Program Interfaces" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2008-17, Canadian Light Source, Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
