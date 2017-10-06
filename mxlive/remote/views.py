@@ -76,7 +76,7 @@ class UpdateUserKey(View):
         else:
             return http.HttpResponseNotAllowed()
 
-        return http.HttpResponse()
+        return JsonResponse({})
 
 
 class LaunchSession(VerificationMixin, View):

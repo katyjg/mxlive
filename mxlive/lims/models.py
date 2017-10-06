@@ -34,7 +34,6 @@ RETURNED = 4
 ACTIVE = 5
 PROCESSING = 6
 COMPLETE = 7
-REVIEWED = 8
 ARCHIVED = 9
 TRASHED = 10
 
@@ -47,13 +46,14 @@ GLOBAL_STATES = Choices(
     (5, 'ACTIVE', _('Active')),
     (6, 'PROCESSING', _('Processing')),
     (7, 'COMPLETE', _('Complete')),
-    (8, 'REVIEWED', _('Reviewed')),
     (9, 'ARCHIVED', _('Archived')),
     (10, 'TRASHED', _('Trashed'))
 )
 
 
 class Beamline(models.Model):
+    """A Beamline object should be created for every unique facility that will be uploading data or reports,
+    or has its own automounter layout."""
     name = models.CharField(max_length=600)
     acronym = models.CharField(max_length=50)
     energy_lo = models.FloatField(default=4.0)
@@ -65,20 +65,25 @@ class Beamline(models.Model):
         return self.acronym
 
     def active_session(self):
+        """Returns the session that is currently running on the beamline, if there is one."""
         return self.sessions.filter(pk__in=Stretch.objects.active().values_list('session__pk')).first()
 
     def active_automounter(self):
+        """Returns the container referenced by the active dewar pointing to the beamline."""
         return self.active_dewar().container
 
     def active_dewar(self):
+        """Returns the first active dewar pointing to the beamline. Generally, there should only be one active dewar
+        referencing each beamline. """
         return self.dewar_set.filter(active=True).first()
 
 
 class Carrier(models.Model):
+    """A Carrier object should be created for each courier company that may be used for shipping to the beamline.
+    To link to shipment tracking, provide a URL that can be completed using a tracking number to link to a
+    courier-specific tracking page."""
+
     name = models.CharField(max_length=60)
-    phone_number = models.CharField(max_length=20)
-    fax_number = models.CharField(max_length=20)
-    code_regex = models.CharField(max_length=60)
     url = models.URLField()
 
     def __unicode__(self):
@@ -250,13 +255,14 @@ class Stretch(models.Model):
 
 
 class LimsBaseClass(models.Model):
-    # STATES/TRANSITIONS define a finite state machine (FSM) for the Shipment (and other 
-    # models.Model instances also defined in this file).
-    #
-    # STATES: an Enum specifying all of the valid states for instances of Shipment.
-    #
-    # TRANSITIONS: a dict specifying valid state transitions. the keys are starting STATES and the 
-    #     values are lists of valid final STATES. 
+    """ STATES/TRANSITIONS define a finite state machine (FSM) for the Shipment (and other
+    models.Model instances also defined in this file).
+
+    STATES: an Enum specifying all of the valid states for instances of Shipment.
+
+    TRANSITIONS: a dict specifying valid state transitions. the keys are starting STATES and the
+        values are lists of valid final STATES.
+     """
 
     STATES = GLOBAL_STATES
     TRANSITIONS = {
@@ -265,10 +271,9 @@ class LimsBaseClass(models.Model):
         STATES.ON_SITE: [STATES.RETURNED],
         STATES.LOADED: [STATES.ON_SITE],
         STATES.RETURNED: [STATES.ARCHIVED, STATES.ON_SITE],
-        STATES.ACTIVE: [STATES.PROCESSING, STATES.COMPLETE, STATES.REVIEWED, STATES.ARCHIVED],
-        STATES.PROCESSING: [STATES.COMPLETE, STATES.REVIEWED, STATES.ARCHIVED],
-        STATES.COMPLETE: [STATES.ACTIVE, STATES.PROCESSING, STATES.REVIEWED, STATES.ARCHIVED],
-        STATES.REVIEWED: [STATES.ARCHIVED],
+        STATES.ACTIVE: [STATES.PROCESSING, STATES.COMPLETE, STATES.ARCHIVED],
+        STATES.PROCESSING: [STATES.COMPLETE, STATES.ARCHIVED],
+        STATES.COMPLETE: [STATES.ACTIVE, STATES.PROCESSING, STATES.ARCHIVED],
     }
 
     project = models.ForeignKey(Project)
@@ -696,6 +701,9 @@ class Container(LoadableBaseClass):
 
 
 class Dewar(models.Model):
+    """A through-model relating a Beamline object to a Container object. The container referenced here should be the
+    one that samples or containers can be added to during a Project's beamtime. If a beamline has multiple containers
+    (ie. Dewar objects), only the current one should be marked 'active'."""
     beamline = models.ForeignKey(Beamline, on_delete=models.CASCADE)
     container = models.ForeignKey(Container, on_delete=models.CASCADE)
     staff_comments = models.TextField(blank=True, null=True)
@@ -748,7 +756,6 @@ class Group(LimsBaseClass):
         (LimsBaseClass.STATES.ACTIVE, _('Active')),
         (LimsBaseClass.STATES.PROCESSING, _('Processing')),
         (LimsBaseClass.STATES.COMPLETE, _('Complete')),
-        (LimsBaseClass.STATES.REVIEWED, _('Reviewed')),
         (LimsBaseClass.STATES.ARCHIVED, _('Archived'))
     )
 
@@ -800,9 +807,6 @@ class Group(LimsBaseClass):
     def num_samples(self):
         return self.sample_set.count()
 
-    def get_shipments(self):
-        return self.project.shipment_set.filter(pk__in=self.sample_set.values('container__shipment__pk'))
-
     def best_sample(self):
         # need to change to [id, score]
         if self.plan == Group.EXP_PLANS.RANK_AND_COLLECT_BEST:
@@ -813,27 +817,6 @@ class Group(LimsBaseClass):
     def unassigned_samples(self):
         return self.sample_count - self.sample_set.count()
 
-    def group_errors(self):
-        """ Returns a list of descriptive string error messages indicating the group has missing samples
-        """
-        errors = []
-        if self.sample_set.count() == 0:
-            errors.append("no samples")
-        if self.status == Group.STATES.ACTIVE:
-            diff = self.sample_set.count() - self.sample_set.filter(
-                status__in=[Sample.STATES.ON_SITE, Sample.STATES.LOADED]).count()
-            if diff:
-                errors.append("%i samples have not arrived on-site." % diff)
-        return errors
-
-    def is_processing(self):
-        return self.sample_set.filter(
-            Q(pk__in=self.project.data_set.values('sample')) |
-            Q(pk__in=self.project.result_set.values('sample'))).exists()
-
-    def is_reviewable(self):
-        return self.status != Group.STATES.REVIEWED
-    
     def is_closable(self):
         return self.sample_set.all().exists() and not self.sample_set.exclude(
             status__in=[Sample.STATES.RETURNED, Sample.STATES.ARCHIVED]).exists() and \
@@ -853,24 +836,7 @@ class Group(LimsBaseClass):
             obj.archive(request=request)
         super(Group, self).archive(request=request)
         
-    def json_dict(self):
-        """ Returns a json dictionary of the Runlist """
-        json_info = {
-            'project_id': self.project.pk,
-            'project_name': self.project.name,
-            'id': self.pk,
-            'name': self.name,
-            'plan': Group.EXP_PLANS[self.plan],
-            'absorption_edge': self.absorption_edge,
-            'energy': self.energy,
-            'type': Group.EXP_TYPES[self.kind],
-            'comments': self.comments,
-            'samples': [sample.pk for sample in self.sample_set.filter(Q(collect_status__exact=False))],
-            'best_sample': self.best_sample()
-        }
-        return json_info
-        
-     
+
 class Sample(LimsBaseClass):
     HELP = {
         'cascade': 'datasets and results',

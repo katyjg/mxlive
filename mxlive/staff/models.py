@@ -1,12 +1,6 @@
 # define models here
 from django.db import models
-from django.contrib import messages
-from django.utils.translation import ugettext_lazy as _
-from enum import Enum
-from model_utils import Choices
-from jsonfield.fields import JSONField
 from lims.models import ActivityLog, Beamline, Container, Sample, Group
-import hashlib
 import imghdr
 import os
 
@@ -15,19 +9,12 @@ def get_storage_path(instance, filename):
     return os.path.join('uploads/', 'links', filename)
 
 
-def handle_uploaded_file(f):
-    destination = open(get_storage_path(f))
-    for chunk in f.chunks():
-        destination.write(chunk)
-    destination.close()
-
-
 class StaffBaseClass(models.Model):
 
     def delete(self, *args, **kwargs):
         request = kwargs.get('request', None)
-        message = '%s (%s) deleted.' % (
-        self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(), self.__unicode__())
+        message = '%s (%s) deleted.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(),
+                                        self.__unicode__())
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.DELETE, message, )
         super(StaffBaseClass, self).delete()
