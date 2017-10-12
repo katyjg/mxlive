@@ -1,0 +1,40 @@
+{% extends "forms/modal.html" %}
+
+{% load converter %}
+
+{% block modal_size %}modal-lg{% endblock %}
+
+{% block form_title %}
+    Container <strong>{{ object.name }}</strong>
+{% endblock %}
+
+{% block form_body %}
+    <div class="row">
+        <div class="col-xs-12">
+            <table>
+                <tr>
+                    <th class="col-xs-3">Location</th>
+                    <th class="col-xs-3">Start</th>
+                    <th class="col-xs-3 text-right">End</th>
+                    <th class="col-xs-3 text-right">Loaded Time</th></tr>
+                {% for stretch in object.parent_history.active %}
+                    <tr>
+                        <td class="col-xs-3">{{ stretch.parent.name }} <strong>{{ stretch.location }}</strong></td>
+                        <td class="col-xs-3">{{ stretch.start }}</td>
+                        <td class="col-xs-3 text-right">{{ stretch.end }}</td>
+                        <td class="col-xs-3 text-right">{{ stretch.duration|default:"Active" }} {% if stretch.duration %}minutes{% endif %}</td>
+                    </tr>
+                {% endfor %}
+                {% for stretch in object.parent_history.with_duration %}
+                    <tr>
+                        <td class="col-xs-3">{{ stretch.parent.name }} <strong>{{ stretch.location }}</strong></td>
+                        <td class="col-xs-3">{{ stretch.start }}</td>
+                        <td class="col-xs-3 text-right">{{ stretch.end }}</td>
+                        <td class="col-xs-3 text-right">{{ stretch.duration|humanize_minutes|default:"0 minutes" }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}
+

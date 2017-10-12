@@ -19,6 +19,30 @@
 
 {% block object_tools %}
     {% include "users/tools-base.html" %}
+    {% if object.parent_history.all %}
+        <span class="box-tools pull-right">
+            <a class="pull-right" data-url="{% url "container-history" object.pk %}">
+                <span class="pull-right">
+                    <span class="fa-stack">
+                        <i class="fa-stack-2x fa fa-2 fa-fw fa-history"></i>
+                    </span><br>
+                    <span class="tool-label">History</span>
+                </span>
+            </a>
+        </span>
+    {% endif %}
+    {% if object.children_history.all %}
+        <span class="box-tools pull-right">
+            <a class="pull-right" data-url="{% url "automounter-history" object.pk %}">
+                <span class="pull-right">
+                    <span class="fa-stack">
+                        <i class="fa-stack-2x fa fa-2 fa-fw fa-history"></i>
+                    </span><br>
+                    <span class="tool-label">History</span>
+                </span>
+            </a>
+        </span>
+    {% endif %}
 {% endblock %}
 
 {% block object_status %}
@@ -30,7 +54,7 @@
                                 {% elif object.status == object.STATES.DRAFT %}warning
                                 {% elif object.status == object.STATES.SENT %}success
                                 {% elif object.status == object.STATES.RETURNED and not user.is_superuser %}success
-                                {% else %}default{% endif %}">{{ object.get_status_display }}</span>
+                                {% else %}default{% endif %}">{% if object.parent %}Loaded{% else %}{{ object.get_status_display }}{% endif %}</span>
                 </h3>
             </div>
             {% if user.is_superuser %}<div class="col-xs-1">
@@ -38,13 +62,19 @@
                 {{ object.project }}
             </div>{% endif %}
             <div class="col-xs-2 pull-right text-right">
-                <small class="text-muted text-condensed">Number of Samples:</small><br>
-                <strong>{{ object.num_samples }}</strong>
+                <small class="text-muted text-condensed">Number of {% if object.accepts_children %}Containers{% else %}Samples{% endif %}:</small><br>
+                <strong>{% if object.accepts_children %}{{ object.children.count }}{% else %}{{ object.num_samples }}{% endif %}</strong> / {{ object.kind.container_locations.count }}
             </div>
-            <div class="col-xs-2 pull-right text-right">
-                <small class="text-muted text-condensed">Capacity:</small><br>
-                {{ object.kind.container_locations.count }}
-            </div>
+            {% if object.parent %}
+                <div class="col-xs-3 pull-right text-right">
+                    <small class="text-muted text-condensed">Location:</small><br>
+                    {% if object.dewar %}
+                        {% if user.is_superuser %}<a href="{% url "beamline-detail" object.dewar.beamline.pk %}">{% endif %}{{ object.dewar.beamline }}
+                    {% else %}
+                        {% if user.is_superuser %}<a href="{% url "container-detail" object.parent.pk %}">{% endif %}{{ object.parent.kind.name }} {{ object.parent.name }}
+                    {% endif %} | <strong>{{ object.port }}</strong>{% if user.is_superuser %}</a>{% endif %}
+                </div>
+            {% endif %}
             <div class="col-xs-2 pull-left">
                 <small class="text-muted text-condensed">Type:</small><br>
                 {{ object.kind }}
@@ -71,4 +101,14 @@
         </div>
     </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        {% for sample in object.sample_set.all %}
+            $('circle[sample={{ sample.name }}]').attr('data-href', '{% url "sample-detail" sample.pk %}');
+        {% endfor %}
+    });
+</script>
 {% endblock %}

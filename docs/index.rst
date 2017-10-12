@@ -24,6 +24,7 @@ Welcome to MxLIVE's documentation!
 
    modules/models
    modules/views
+   modules/mixins
 
 
 Indices and tables

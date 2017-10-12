@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                v3.1.4-18-gc8ef30e
+                v3.1.4-19-g093f9a8
 
               </div>
             
@@ -103,6 +103,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../modules/views.html">Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/mixins.html">Mixins</a></li>
 </ul>
 
             
@@ -365,6 +366,11 @@
         <span class="n">recently</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">end__gte</span><span class="o">=</span><span class="n">recently</span><span class="p">,</span> <span class="o">**</span><span class="n">extras</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">recent_days</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">days</span><span class="p">):</span>
+        <span class="n">recently</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">days</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">end__gte</span><span class="o">=</span><span class="n">recently</span><span class="p">)</span>
+
+
     <span class="k">def</span> <span class="nf">with_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">end__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">ExpressionWrapper</span><span class="p">((</span><span class="n">F</span><span class="p">(</span><span class="s1">&#39;end&#39;</span><span class="p">)</span><span class="o">-</span><span class="n">F</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">))</span><span class="o">/</span><span class="mi">60000000</span><span class="p">,</span> <span class="n">output_field</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">()))</span>
 
@@ -395,6 +401,9 @@
     <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stretches</span><span class="o">.</span><span class="n">active</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">end</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
 
+    <span class="k">def</span> <span class="nf">num_reports</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">analysisreport_set</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">data__in</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_set</span><span class="o">.</span><span class="n">all</span><span class="p">())</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+
     <span class="k">def</span> <span class="nf">is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretches</span><span class="o">.</span><span class="n">active</span><span class="p">()</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
 
@@ -408,7 +417,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretches</span><span class="o">.</span><span class="n">last</span><span class="p">()</span><span class="o">.</span><span class="n">start</span>
 
     <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretches</span><span class="o">.</span><span class="n">start</span><span class="p">()</span><span class="o">.</span><span class="n">end</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretches</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">end</span></div>
 
 
 <div class="viewcode-block" id="Stretch"><a class="viewcode-back" href="../../modules/models.html#lims.models.Stretch">[docs]</a><span class="k">class</span> <span class="nc">Stretch</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
@@ -715,6 +724,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_returnable</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">date_returned</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container_set</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">container_set</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
                 <span class="n">obj</span><span class="o">.</span><span class="n">returned</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
             <span class="nb">super</span><span class="p">(</span><span class="n">Shipment</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">returned</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
@@ -738,6 +748,19 @@
 
 
 <div class="viewcode-block" id="ContainerType"><a class="viewcode-back" href="../../modules/models.html#lims.models.ContainerType">[docs]</a><span class="k">class</span> <span class="nc">ContainerType</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A ContainerType should be defined for each container that has a unique layout. (e.g. Uni-Puck, Adaptor, Autmounter, etc.)</span>
+
+<span class="sd">    :param envelope: &#39;rect&#39; or &#39;circle&#39; are supported.</span>
+<span class="sd">        If &#39;rect&#39;, location__name lists are assumed to be [x, y] coordinates relative to width and height.</span>
+<span class="sd">        If &#39;circle&#39;, location__name value lists are assumed to be polar coordinates [r, theta], relative to width.</span>
+<span class="sd">    :param layout: dictionary with keys:</span>
+
+<span class="sd">        - `locations`: dictionary with a key for each location__name mapping to a list with relative coordinates of the center of the location.</span>
+<span class="sd">        - `radius`: radius of the circle (in range(0,100)) to draw for each location.</span>
+<span class="sd">        - `labels` (optional): If present, takes the same form as the locations dictionary. If missing, a label is drawn for each location__name at the center of the location.</span>
+<span class="sd">        - `height` (optional): To adjust dimensions of the envelope, relative to a default width of 1. If missing, height is also assumed to be 1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">STATES</span> <span class="o">=</span> <span class="n">Choices</span><span class="p">(</span>
         <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;PENDING&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Pending&#39;</span><span class="p">)),</span>
         <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;LOADED&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Loaded&#39;</span><span class="p">)),</span>
@@ -811,9 +834,6 @@
     <span class="k">def</span> <span class="nf">is_assigned</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shipment</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">capacity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="o">.</span><span class="n">container_locations</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-
     <span class="k">def</span> <span class="nf">groups</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">groups</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
         <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_set</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
@@ -827,7 +847,21 @@
             <span class="k">if</span> <span class="n">sample</span><span class="o">.</span><span class="n">group</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
                 <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">group</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">groups</span>
-    
+
+    <span class="k">def</span> <span class="nf">dewar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">:</span>
+            <span class="n">parents</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">Dewar</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">container__in</span><span class="o">=</span><span class="n">parents</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">port</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">location</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_project</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">return</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;project__username&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span>
+
 <div class="viewcode-block" id="Container.update_priority"><a class="viewcode-back" href="../../modules/models.html#lims.models.Container.update_priority">[docs]</a>    <span class="k">def</span> <span class="nf">update_priority</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Updates the Container&#39;s priority to max(group priorities)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -842,37 +876,21 @@
             <span class="k">if</span> <span class="n">priority</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">priority</span><span class="p">)</span></div>
     
-    <span class="k">def</span> <span class="nf">loc_and_xtal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">retval</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">xtalset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_set</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">xtal</span> <span class="ow">in</span> <span class="n">xtalset</span><span class="p">:</span>
-            <span class="n">retval</span><span class="p">[</span><span class="n">xtal</span><span class="o">.</span><span class="n">container_location</span><span class="p">]</span> <span class="o">=</span> <span class="n">xtal</span>        
-        <span class="k">return</span> <span class="n">retval</span>
-
     <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cascade</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_deletable</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">cascade</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">sample_set</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">container</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_set</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
                 <span class="n">obj</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
-            <span class="nb">super</span><span class="p">(</span><span class="n">Container</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">json_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s1">&#39;project_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span>
-            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span>
-            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-            <span class="s1">&#39;load_position&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;comments&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">comments</span><span class="p">,</span>
-            <span class="s1">&#39;samples&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">sample</span><span class="o">.</span><span class="n">pk</span> <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_set</span><span class="o">.</span><span class="n">all</span><span class="p">()]</span>
-        <span class="p">}</span></div>
+            <span class="nb">super</span><span class="p">(</span><span class="n">Container</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Dewar"><a class="viewcode-back" href="../../modules/models.html#lims.models.Dewar">[docs]</a><span class="k">class</span> <span class="nc">Dewar</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A through-model relating a Beamline object to a Container object. The container referenced here should be the</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A through-model relating a Beamline object to a Container object. The container referenced here should be the</span>
 <span class="sd">    one that samples or containers can be added to during a Project&#39;s beamtime. If a beamline has multiple containers</span>
-<span class="sd">    (ie. Dewar objects), only the current one should be marked &#39;active&#39;.&quot;&quot;&quot;</span>
+<span class="sd">    (ie. Dewar objects), only the current one should be marked &#39;active&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">beamline</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Beamline</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
     <span class="n">container</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Container</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
     <span class="n">staff_comments</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1154,7 +1172,6 @@
     <span class="n">group</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Group</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">sample</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Sample</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">session</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Session</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">first_frame</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">file_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">frames</span> <span class="o">=</span> <span class="n">FrameField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">exposure_time</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FloatField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1184,6 +1201,9 @@
             <span class="k">return</span> <span class="n">val_str</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span>
 
+    <span class="k">def</span> <span class="nf">first_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="mi">1</span>
+
     <span class="k">def</span> <span class="nf">can_download</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="ow">not</span> <span class="n">RESTRICTED_DOWNLOADS</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">download</span>
 
@@ -1208,10 +1228,6 @@
     <span class="k">def</span> <span class="nf">total_angle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meta_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;delta_angle&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_frames</span><span class="p">()</span>
         
-    <span class="k">def</span> <span class="nf">file_extension</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">detector</span> <span class="o">=</span> <span class="s1">&#39;detector&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta_data</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;detector&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">return</span> <span class="s1">&#39;.cbf&#39;</span> <span class="k">if</span> <span class="s1">&#39;PILATUS&#39;</span> <span class="ow">in</span> <span class="n">detector</span> <span class="k">else</span> <span class="s1">&#39;.img&#39;</span>
-
     <span class="k">def</span> <span class="nf">start_angle_for_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">frame</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">first_frame</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_angle</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_angle</span> 
 

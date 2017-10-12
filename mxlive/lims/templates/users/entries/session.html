@@ -2,6 +2,7 @@
 {% load humanize %}
 {% load static %}
 {% load time_extras %}
+{% load data_server %}
 
 {% block extra_css %}
     <link href="{% static "objlist/objlist.css" %}" rel="stylesheet"/>
@@ -85,41 +86,26 @@
                 </div>
             </div>
         </div>
-        <!--div class="col-xs-12 object-list">
-            <table class="table table-hover collapse in" id="group-{{ group.pk }}">
-                <thead>
-                    <tr>
-                        <th>Created</th>
-                        <th>Sample</th>
-                        <th>Barcode</th>
-                        <th>Container</th>
-                        <th>Comments</th>
-                        <th>Data</th>
-                    </tr>
-                </thead>
-                {% for data in object.data_set.all %}
-                    {% if object.sample and sample == object.sample %}
-
-                    {% endif %}
-                    <tr>
-                        <td>{{ data.created }}</td>
-                        <td>{% if object.sample %}<a href="{% url "sample-detail" object.sample.pk %}">{{ object.sample }}</a>{% endif %}</td>
-                        <td>{{ object.sample.barcode }}</td>
-                        <td>{% if object.sample.container.parent %}
-                                <span class="text-muted"><strong>{{ object.sample.dewar }} {{ object.sample.port }}</strong> |</span>
-                            {% endif %}
-                            {{ object.sample.container_and_location }} </td>
-                        <td>{{ sample.comments|default_if_none:"" }}
-                            {% if sample.comments and sample.staff_comments %}<br/>{% endif %}
-                            <span class="highlight">
-                                {% if sample.staff_comments %}<strong>Collection Notes:</strong> {% endif %}
-                                {{ sample.staff_comments|default_if_none:""  }}</span></td>
-                        <td>{% include "users/entries/data-thumbnail.html" with detail=True %}</td>
-                    </tr>
-                {% empty %}
-                    <tr><td colspan="6" class="empty">No data found for this session</td></tr>
-                {% endfor %}
-
-        </div-->
     </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        {% for data in object.data_set.all %}
+            {% if "MX_DATA" in data.kind %}
+                $.ajax({
+                    url: "{% get_cached_image_url data data.first_frame 'xl' %}",
+                    type: "get",
+                    success: function(){
+                        $('.bgimg-{{ data.pk }}').css('background-image', 'url({% get_cached_image_url data data.first_frame "xl" %})');
+                    },
+                    error: function() {
+                        $('.bgimg-{{ data.pk }}').css('background-image', 'url({% get_image data data.first_frame "xl" %})');
+                    }
+                });
+            {% endif %}
+        {% endfor %}
+    });
+</script>
 {% endblock %}

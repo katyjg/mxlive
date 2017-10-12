@@ -196,6 +196,11 @@ class StretchQuerySet(models.QuerySet):
         recently = timezone.now() - timedelta(minutes=5)
         return self.filter(end__gte=recently, **extras)
 
+    def recent_days(self, days):
+        recently = timezone.now() - timedelta(days=days)
+        return self.filter(end__gte=recently)
+
+
     def with_duration(self):
         return self.filter(end__isnull=False).annotate(duration=ExpressionWrapper((F('end')-F('start'))/60000000, output_field=models.IntegerField()))
 
@@ -226,6 +231,9 @@ class Session(models.Model):
     def close(self):
         self.stretches.active().update(end=timezone.now())
 
+    def num_reports(self):
+        return self.project.analysisreport_set.filter(data__in=self.data_set.all()).count()
+
     def is_active(self):
         return self.stretches.active().exists()
 
@@ -239,7 +247,7 @@ class Session(models.Model):
         return self.stretches.last().start
 
     def end(self):
-        return self.stretches.start().end
+        return self.stretches.first().end
 
 
 class Stretch(models.Model):
@@ -546,6 +554,7 @@ class Shipment(ObjectBaseClass):
         if self.is_returnable():
             self.date_returned = timezone.now()
             self.save()
+            self.container_set.all().update(parent=None, location="")
             for obj in self.container_set.all():
                 obj.returned(request=request)
             super(Shipment, self).returned(request=request)
@@ -569,6 +578,19 @@ class Component(models.Model):
 
 
 class ContainerType(models.Model):
+    """
+    A ContainerType should be defined for each container that has a unique layout. (e.g. Uni-Puck, Adaptor, Autmounter, etc.)
+
+    :param envelope: 'rect' or 'circle' are supported.
+        If 'rect', location__name lists are assumed to be [x, y] coordinates relative to width and height.
+        If 'circle', location__name value lists are assumed to be polar coordinates [r, theta], relative to width.
+    :param layout: dictionary with keys:
+
+        - `locations`: dictionary with a key for each location__name mapping to a list with relative coordinates of the center of the location.
+        - `radius`: radius of the circle (in range(0,100)) to draw for each location.
+        - `labels` (optional): If present, takes the same form as the locations dictionary. If missing, a label is drawn for each location__name at the center of the location.
+        - `height` (optional): To adjust dimensions of the envelope, relative to a default width of 1. If missing, height is also assumed to be 1.
+    """
     STATES = Choices(
         (0, 'PENDING', _('Pending')),
         (1, 'LOADED', _('Loaded')),
@@ -642,9 +664,6 @@ class Container(LoadableBaseClass):
     def is_assigned(self):
         return self.shipment is not None
 
-    def capacity(self):
-        return self.kind.container_locations.count()
-
     def groups(self):
         groups = set([])
         for sample in self.sample_set.all():
@@ -658,7 +677,21 @@ class Container(LoadableBaseClass):
             if sample.group not in groups:
                 groups.append(sample.group)
         return groups
-    
+
+    def dewar(self):
+        if self.parent:
+            parents = [self.parent, self.parent.parent or None]
+            return Dewar.objects.filter(container__in=parents).first()
+        return None
+
+    def port(self):
+        return '{}{}'.format(self.parent and self.parent.location or "", self.location or "")
+
+    def get_project(self):
+        if self.children.all():
+            return '/'.join(set(self.children.values_list('project__username', flat=True)))
+        return self.project
+
     def update_priority(self):
         """ Updates the Container's priority to max(group priorities)
         """
@@ -673,13 +706,6 @@ class Container(LoadableBaseClass):
             if priority is not None:
                 setattr(self, field, priority)
     
-    def loc_and_xtal(self):
-        retval = {}
-        xtalset = self.sample_set.all()
-        for xtal in xtalset:
-            retval[xtal.container_location] = xtal        
-        return retval
-
     def delete(self, request=None, cascade=True):
         if self.is_deletable:
             if not cascade:
@@ -688,22 +714,26 @@ class Container(LoadableBaseClass):
                 obj.delete(request=request)
             super(Container, self).delete(request=request)
 
-    def json_dict(self):
-        return {
-            'project_id': self.project.pk,
-            'id': self.pk,
-            'name': self.name,
-            'type': self.kind.name,
-            'load_position': '',
-            'comments': self.comments,
-            'samples': [sample.pk for sample in self.sample_set.all()]
-        }
+
+class LoadHistory(models.Model):
+    start = models.DateTimeField(auto_now_add=True, editable=False)
+    end = models.DateTimeField(null=True, blank=True)
+    child = models.ForeignKey(Container, null=False, blank=False, related_name='parent_history')
+    parent = models.ForeignKey(Container, null=False, blank=False, related_name='children_history')
+    location = models.ForeignKey(ContainerLocation, blank=True, null=True)
+
+    objects = StretchManager()
+
+    class Meta:
+        ordering = ['-start', ]
 
 
 class Dewar(models.Model):
-    """A through-model relating a Beamline object to a Container object. The container referenced here should be the
+    """
+    A through-model relating a Beamline object to a Container object. The container referenced here should be the
     one that samples or containers can be added to during a Project's beamtime. If a beamline has multiple containers
-    (ie. Dewar objects), only the current one should be marked 'active'."""
+    (ie. Dewar objects), only the current one should be marked 'active'.
+    """
     beamline = models.ForeignKey(Beamline, on_delete=models.CASCADE)
     container = models.ForeignKey(Container, on_delete=models.CASCADE)
     staff_comments = models.TextField(blank=True, null=True)
@@ -985,7 +1015,6 @@ class Data(DataBaseClass):
     group = models.ForeignKey(Group, null=True, blank=True)
     sample = models.ForeignKey(Sample, null=True, blank=True)
     session = models.ForeignKey(Session, null=True, blank=True)
-    first_frame = models.IntegerField(default=1)
     file_name = models.CharField(max_length=200, null=True, blank=True)
     frames = FrameField(max_length=200, null=True, blank=True)
     exposure_time = models.FloatField(null=True, blank=True)
@@ -1015,6 +1044,9 @@ class Data(DataBaseClass):
             return val_str
         return self.frames
 
+    def first_frame(self):
+        return len(self.frames) and self.frames[0] or 1
+
     def can_download(self):
         return (not RESTRICTED_DOWNLOADS) or self.download
 
@@ -1039,10 +1071,6 @@ class Data(DataBaseClass):
     def total_angle(self):
         return float(self.meta_data.get('delta_angle', 0)) * self.num_frames()
         
-    def file_extension(self):
-        detector = 'detector' in self.meta_data and self.meta_data['detector'] or ""
-        return '.cbf' if 'PILATUS' in detector else '.img'
-
     def start_angle_for_frame(self, frame):
         return (frame - self.first_frame) * self.delta_angle + self.start_angle 
 
@@ -1068,7 +1096,7 @@ class AnalysisReport(DataBaseClass):
     sample = models.ForeignKey(Sample, null=True, blank=True)
     score = models.FloatField()
     data = models.ForeignKey(Data, related_name="reports")
-    result = models.ForeignKey('Result', related_name="reports")
+    url = models.CharField(max_length=200)
     details = JSONField()
 
     class Meta:

@@ -6,6 +6,7 @@ import json
 import xdi
 import collections
 import requests
+import os
 import matplotlib.pyplot as plt
 
 def get_color(i):
@@ -16,6 +17,7 @@ register = template.Library()
 
 IMAGE_URL = settings.IMAGE_PREPEND or ''
 CACHE_DIR = settings.CACHES.get('default', {}).get('LOCATION', '/tmp')
+CACHE_URL = settings.CACHE_URL or '/cache/'
 
 @register.simple_tag
 def get_frame_name(data, frame):
@@ -40,6 +42,12 @@ def get_image(data, frame, brightness="nm"):
     info = fetch_image(None, url, brightness)
     src = json.loads(info.content)['src']
     return src
+
+
+@register.simple_tag
+def get_cached_image_url(data, frame, brightness='nm'):
+    file_name, _ = os.path.splitext(data.file_name.format(frame))
+    return "{}/{}/{}-{}.png".format(CACHE_URL, data.url, file_name, brightness)
 
 
 @register.simple_tag

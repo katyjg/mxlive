@@ -46,7 +46,7 @@
                         <strong>Report:</strong><span class="text-muted"> {% if object.report %}<a href="{% url "report-detail" object.report.pk %}">{{object.report }}</a>{% else %}None{% endif %}</span>
                     </div>
                     <div class="box-tools col-xs-1 pull-right text-right">
-                        <a class="pull-right" href="{% get_archive_url object %}" download="{{ object.name }}.tar.gz">
+                        <a class="pull-right" href="{% get_archive_url object %}" download="{{ object.name }}.tar.gz" title="Download Full Dataset">
                             <span class="pull-right">
                                 <i class="fa fa-fw fa-2x fa-download"></i><br>
                                 <span class="tool-label">Download</span>

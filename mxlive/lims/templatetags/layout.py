@@ -17,9 +17,9 @@ def kind_json(data, pk):
     try:
         container = Container.objects.get(pk=int(pk))
         for sample in container.sample_set.all():
-            data['locations'][sample.location].extend([sample.name, sample.group.name])
+            data['locations'][sample.location].extend([sample.name, sample.group.name, '', sample.data_set.count()])
         for location in container.kind.container_locations.filter(accepts__isnull=False):
-            data['locations'][location.name].extend([container.children.filter(location=location).exists(), '',
+            data['locations'][location.name].extend([container.children.filter(location=location).exists(), '', '', '',
                                                      ';'.join(location.accepts.values_list('name', flat=True))])
     except:
         pass

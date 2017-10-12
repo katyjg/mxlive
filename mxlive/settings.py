@@ -49,7 +49,6 @@ INSTALLED_APPS = (
     'staff',
     'objlist',
     'remote',
-    'download',
     'stats',
     'reversion',
     'crispy_forms',
@@ -68,7 +67,6 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'urls'
 WSGI_APPLICATION = 'wsgi.application'
-
 
 
 # Database

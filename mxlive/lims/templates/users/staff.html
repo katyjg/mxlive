@@ -12,10 +12,6 @@
             <i class="fa fa-2 ti ti-rss-alt"></i><br>
             <span class="tool-label">Remote</span>
         </a>
-        <a class="pull-right" href="{% url "session-list" %}">
-            <i class="fa fa-2 fa-clock-o"></i><br>
-            <span class="tool-label">Sessions</span>
-        </a>
         <a class="pull-right" href="{% url "user-list" %}">
             <i class="fa fa-2 fa-user"></i><br>
             <span class="tool-label">Users</span>
@@ -47,6 +43,13 @@
                 {% include "users/entries/shipment-list-item.html" with object=object %}
             {% endfor %}
             </div>
+        <h3>Recent Beamline Sessions</h3>
+        <div class="list-group list-group-hover">
+            {% for session in sessions %}
+                {% include "users/entries/session-list-item.html" with session=session %}
+            {% endfor %}
+
+        </div>
         </div>
 
         <div class="col-xs-12 col-md-3">

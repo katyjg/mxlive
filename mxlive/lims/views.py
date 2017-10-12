@@ -1,7 +1,8 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils.text import slugify
+from django.utils import timezone
 from django.contrib.messages.views import SuccessMessageMixin
 from django.views.generic import edit, detail
 from django.db import transaction
@@ -10,109 +11,32 @@ from formtools.wizard.views import SessionWizardView
 
 from objlist.views import FilteredListView
 
-
 from lims import forms, models
 from itertools import chain
 import json
-from django.template.loader import get_template
-from django.http import HttpResponse
-from django.conf import settings
 
-from tempfile import mkdtemp
-import subprocess
-import os
-import shutil
-
-TEMP_PREFIX = getattr(settings, 'TEX_TEMP_PREFIX', 'render_tex-')
-CACHE_PREFIX = getattr(settings, 'TEX_CACHE_PREFIX', 'render-tex')
-CACHE_TIMEOUT = getattr(settings, 'TEX_CACHE_TIMEOUT', 30), # 86400)  # 1 day
-
-
-class OwnerRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
-    """
-    Mixin to limit access to the owner of an object (or superusers).
-    Must be used with an object-based View (e.g. DetailView, EditView)
-    """
-    owner_field = 'project'
-
-    def test_func(self):
-        return self.request.user.is_superuser or getattr(self.get_object(), self.owner_field) == self.request.user
-
-
-class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
-    def test_func(self):
-        return self.request.user.is_superuser
-
-
-class AjaxableResponseMixin(object):
-    """
-    Mixin to add AJAX support to a form.
-    Must be used with an object-based FormView (e.g. CreateView)
-    """
-
-    def form_valid(self, form):
-        # We make sure to call the parent's form_valid() method because
-        # it might do some processing (in the case of CreateView, it will
-        # call form.save() for example).
-        response = super(AjaxableResponseMixin, self).form_valid(form)
-        if self.request.is_ajax():
-            data = {
-                'pk': self.object.pk,
-            }
-            return JsonResponse(data)
-        else:
-            return response
-
-
-class Tex2PdfMixin(object):
-    """
-    Mixin to create a .pdf file from a LaTeX template.
-    """
-
-    def get_template_name(self):
-        return "users/base.html"
-
-    def get(self, request, *args, **kwargs):
-        object = self.get_object()
-        context = self.get_template_context()
-        template = get_template(self.get_template_name())
-
-        rendered_tpl = template.render(context).encode('utf-8')
-
-        tmp = mkdtemp(prefix=TEMP_PREFIX)
-        tex_file = os.path.join(tmp, '%s.tex' % object.name)
-        f = open(tex_file, 'w')
-        f.write(rendered_tpl)
-        f.close()
-        try:
-            FNULL = open(os.devnull, 'w')
-            process = subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], cwd=tmp, stdout=FNULL, stderr=subprocess.STDOUT)
-
-            try:
-                pdf = open("%s/%s.pdf" % (tmp, object.name))
-            except:
-                if request.user.is_superuser:
-                    log = open("%s/%s.log" % (tmp, object.name)).read()
-                    return HttpResponse(log, "text/plain")
-                else:
-                    raise RuntimeError("xelatex error (code %s) in %s/%s" % (process, tmp, object.name))
-
-        finally:
-            shutil.rmtree(tmp)
-
-        res = HttpResponse(pdf, "application/pdf")
-
-        return res
+from mixins import AjaxableResponseMixin, AdminRequiredMixin, Tex2PdfMixin
 
 
 class ProjectDetail(UserPassesTestMixin, detail.DetailView):
+    """
+    This is the "Dashboard" view. Basic information about the Project is displayed:
+
+    :For superusers, direct to staff.html, with context:
+       - shipments: Any Shipments that are Sent or On-site
+       - automounters: Any active Dewar objects (Beamline/Automounter)
+
+    :For Users, direct to project.html, with context:
+       - shipments: All Shipments that are Draft, Sent, or On-site, plus Returned shipments to bring the total displayed up to seven.
+       - sessions: Any recent Session from any beamline
+    """
     model = models.Project
     template_name = "users/project.html"
     slug_field = 'username'
     slug_url_kwarg = 'username'
 
     def test_func(self):
-        """Allow access to admin or owner"""
+        # Allow access to admin or owner
         return self.request.user.is_superuser or self.get_object() == self.request.user
 
     def get_object(self, *args, **kwargs):
@@ -127,21 +51,34 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
         context = super(ProjectDetail, self).get_context_data(**kwargs)
 
         if self.request.user.is_superuser:
-            all = models.Shipment.objects.filter(status__in=[models.Shipment.STATES.ON_SITE,models.Shipment.STATES.SENT])
-            context['shipments'] = all.order_by('status','-modified')
+            sh = models.Shipment.objects.filter(status__in=[models.Shipment.STATES.ON_SITE,models.Shipment.STATES.SENT])
+            context['shipments'] = sh.order_by('status','-modified')
             context['automounters'] = models.Dewar.objects.filter(active=True).order_by('beamline__name')
-
+            context['sessions'] = models.Session.objects.filter(pk__in=models.Stretch.objects.recent_days(30).values_list('session__pk', flat=True)).order_by('-created')
         else:
-            all = self.get_object().shipment_set.filter(status__lt=models.Shipment.STATES.ARCHIVED).order_by('modified')
-            base_set = all.filter(status__lte=models.Shipment.STATES.ON_SITE).distinct()
+            sh = self.get_object().shipment_set.filter(status__lt=models.Shipment.STATES.ARCHIVED).order_by('modified')
+            base_set = sh.filter(status__lte=models.Shipment.STATES.ON_SITE).distinct()
             if base_set.count() < 7:
                 pks = [s.pk for s in list(
-                    chain(base_set, list(all.exclude(pk__in=base_set.values_list('pk')))[0:7 - base_set.count()]))]
+                    chain(base_set, list(sh.exclude(pk__in=base_set.values_list('pk')))[0:7 - base_set.count()]))]
             else:
                 pks = base_set.values_list('pk')
-            context['shipments'] = all.filter(pk__in=pks).order_by('status', '-modified')
+            context['shipments'] = sh.filter(pk__in=pks).order_by('status', '-modified')
+            sessions = self.get_object().sessions.filter(pk__in=models.Stretch.objects.recent_days(365).values_list('session__pk', flat=True)).order_by('-created')
+            context['sessions'] = sessions.count() < 7 and sessions or sessions[:7]
 
         return context
+
+
+class OwnerRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    """
+    Mixin to limit access to the owner of an object (or superusers).
+    Must be used with an object-based View (e.g. DetailView, EditView)
+    """
+    owner_field = 'project'
+
+    def test_func(self):
+        return self.request.user.is_superuser or getattr(self.get_object(), self.owner_field) == self.request.user
 
 
 class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
@@ -283,6 +220,7 @@ class SendShipment(ShipmentEdit):
 
 class ReturnShipment(ShipmentEdit):
     form_class = forms.ShipmentReturnForm
+    success_url = reverse_lazy('dashboard')
 
     def form_valid(self, form):
         obj = form.instance.returned()
@@ -458,6 +396,15 @@ class ContainerLoad(AdminRequiredMixin, ContainerEdit):
     form_class = forms.ContainerLoadForm
     template_name = "users/forms/container_load.html"
 
+    def form_valid(self, form):
+        data = form.cleaned_data
+        if data['parent']:
+            models.LoadHistory.objects.create(child=self.object, parent=data['parent'], location=data['location'])
+        else:
+            print 'unloading', self.object, self.object.parent, self.object.location
+            models.LoadHistory.objects.filter(child=self.object).active().update(end=timezone.now())
+        return super(ContainerLoad, self).form_valid(form)
+
 
 class LocationLoad(AdminRequiredMixin, ContainerEdit):
     form_class = forms.LocationLoadForm
@@ -472,7 +419,9 @@ class LocationLoad(AdminRequiredMixin, ContainerEdit):
 
     def form_valid(self, form):
         data = form.cleaned_data
+        print data
         models.Container.objects.filter(pk=data['child'].pk).update(parent=self.object, location=data['container_location'])
+        models.LoadHistory.objects.create(child=data['child'], parent=self.object, location=data['container_location'])
         return super(LocationLoad, self).form_valid(form)
 
 
@@ -579,14 +528,17 @@ class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
 class DataList(ListViewMixin, FilteredListView):
     model = models.Data
     list_filter = ['modified', 'kind', 'beamline']
-    list_display = ['id', 'name', 'sample', 'frame_sets', 'exposure_time', 'energy', 'beamline', 'kind']
-    search_fields = ['id', 'name', 'beamline__name', 'sample__name', 'frames', 'project__name']
+    list_display = ['id', 'name', 'sample', 'frame_sets', 'exposure_time', 'energy', 'beamline', 'kind', 'modified']
+    search_fields = ['id', 'name', 'beamline__name', 'sample__name', 'frames', 'project__name', 'modified']
     detail_url = 'data-detail'
     detail_ajax = True
     detail_target = '#modal-form'
     order_by = ['-modified']
     ordering_proxies = {}
     list_transforms = {}
+
+    def get_queryset(self):
+        return super(DataList, self).get_queryset().defer('meta_data', 'url')
 
 
 class DataDetail(OwnerRequiredMixin, detail.DetailView):
@@ -603,6 +555,9 @@ class ReportList(ListViewMixin, FilteredListView):
     order_by = ['-modified']
     ordering_proxies = {}
     list_transforms = {}
+
+    def get_queryset(self):
+        return super(ReportList, self).get_queryset().defer('details', 'url')
 
 
 class ReportDetail(OwnerRequiredMixin, detail.DetailView):

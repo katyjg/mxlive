@@ -1,21 +1,21 @@
-from django.http import JsonResponse
-from django.conf import settings
-
-from lims import models
-from download.imageio import read_image, read_header
-from download.imageio.utils import stretch
-
-import requests
 import os
-import numpy
-import urlparse
 import pickle
+import urlparse
+
+import numpy
+import requests
 from PIL import Image
+from django.conf import settings
+from django.http import JsonResponse
+
+from imageio import read_image
+from imageio.utils import stretch
+from lims import models
 
 DATA_DIR = os.path.join(settings.BASE_DIR, 'data')
 COLORMAPS = pickle.load(file(os.path.join(DATA_DIR, 'colormaps.data')))
 
-BRIGHTNESS_VALUES = getattr(settings, 'DOWNLOAD_BRIGHTNESS_VALUES', {'nm': 0.0, 'dk': 1.5, 'lt': -0.5})
+BRIGHTNESS_VALUES = getattr(settings, 'DOWNLOAD_BRIGHTNESS_VALUES', {'xl': -1.5, 'nm': 0.0, 'dk': 1.5, 'lt': -0.5})
 
 # Modify default colormap to add overloaded pixel effect
 COLORMAPS['gist_yarg'][-1] = 0
@@ -79,22 +79,24 @@ def fetch_image(request, url=None, brightness=None):
     url = url or request.GET.get('url', None)
     brightness = brightness or request.GET.get('brightness', 'nm')
     if url:
-        r = requests.get(url)
-        if r.status_code == 200:
-            img_file = ''.join([CACHE_DIR, urlparse.urlparse(r.url).path])
-            path, file_extension = os.path.splitext(img_file)
-            png_file = "{}-{}.png".format(path, brightness)
-            if not os.path.exists(path):
-                os.makedirs(path)
-            with open(img_file, 'w') as f:
-                f.write(r.content)
-            if not os.path.exists(png_file):
-                try:
-                    create_png(img_file, png_file, BRIGHTNESS_VALUES[brightness])
-                except OSError:
-                    pass
-            src = "/cache{}".format(png_file.replace(CACHE_DIR, ""))
-            os.remove(img_file)
+        img_file = '/'.join([CACHE_DIR] + url.split('/')[-2:])
+        path, _ = os.path.splitext(img_file)
+        png_file = "{}-{}.png".format(path, brightness)
+        if not os.path.exists(png_file):
+            r = requests.get(url)
+            if r.status_code == 200:
+                if not os.path.exists(path):
+                    os.makedirs(path)
+                with open(img_file, 'w') as f:
+                    f.write(r.content)
+                if not os.path.exists(png_file):
+                    try:
+                        create_png(img_file, png_file, BRIGHTNESS_VALUES[brightness])
+                        os.remove(img_file)
+                    except OSError:
+                        pass
+        src = "/cache{}".format(png_file.replace(CACHE_DIR, ""))
+
     return JsonResponse({'src': src})
 
 
@@ -102,14 +104,16 @@ def fetch_file(request, url=None):
     url = url or request.GET.get('url', None)
     src = ''
     if url:
-        r = requests.get(url)
-        if r.status_code == 200:
-            f = ''.join([CACHE_DIR, urlparse.urlparse(r.url).path])
-            path, file_extension = os.path.splitext(f)
-            basepath, _ = os.path.splitext(path)
-            if not os.path.exists(basepath):
-                os.makedirs(basepath)
-            src = "/cache{}".format(f.replace(CACHE_DIR, ""))
-            with open(f, 'w') as cached_file:
-                cached_file.write(r.content)
+        f = '/'.join([CACHE_DIR] + url.split('/')[-2:])
+        path, _ = os.path.splitext(f)
+        if not os.path.exists(f):
+            r = requests.get(url)
+            if r.status_code == 200:
+                path, file_extension = os.path.splitext(f)
+                if not os.path.exists(path):
+                    os.makedirs(path)
+
+                with open(f, 'w') as cached_file:
+                    cached_file.write(r.content)
+        src = "/cache{}".format(f.replace(CACHE_DIR, ""))
     return JsonResponse({'src': src})

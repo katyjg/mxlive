@@ -80,7 +80,7 @@
                         </form>
                     </a>
                 </span>
-                <h4 class="list-group-item-heading overflow ellipsis"><a href="{% url "container-detail" pk=container.pk %}"><span class="text-muted">{{ container.project|upper }}</span> | <strong>{{ container.name }}</strong></a></h4>
+                <h4 class="list-group-item-heading overflow ellipsis"><a href="{% url "container-detail" pk=container.pk %}"><span class="text-muted">{{ container.get_project|upper }}</span> | <strong>{{ container.name }}</strong></a></h4>
                 <p class="list-group-item-text overflow ellipsis">
                     <span class="text-muted">{{ container.kind }} | </span><strong>{{ container.sample_set.count }}</strong> sample{{ container.sample_set.count|pluralize }}
                 </p>
@@ -96,7 +96,7 @@
                                 <td>
                                     <strong>{{ container.location }}{{ child.location }}</strong>
                                 </td>
-                                <td><a href="{% url "container-detail" pk=child.pk %}"><span class="text-muted">{{ child.project|upper }}</span> | <strong>{{ child.name }}</strong></a>
+                                <td><a href="{% url "container-detail" pk=child.pk %}"><span class="text-muted">{{ child.get_project|upper }}</span> | <strong>{{ child.name }}</strong></a>
                                 </td>
                                 <td class="text-center"><strong>{{ child.sample_set.count }}</strong></td>
                                 <td class="text-center">

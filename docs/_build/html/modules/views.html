@@ -36,6 +36,7 @@
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="MxLIVE  documentation" href="../index.html"/>
+        <link rel="next" title="Mixins" href="mixins.html"/>
         <link rel="prev" title="Models" href="models.html"/> 
 
   
@@ -65,7 +66,7 @@
             
             
               <div class="version">
-                v3.1.4-18-gc8ef30e
+                v3.1.4-19-g093f9a8
 
               </div>
             
@@ -103,6 +104,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixins.html">Mixins</a></li>
 </ul>
 
             
@@ -169,13 +171,6 @@
   <div class="section" id="module-lims.views">
 <span id="views"></span><h1>Views<a class="headerlink" href="#module-lims.views" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="lims.views.AjaxableResponseMixin">
-<em class="property">class </em><code class="descclassname">lims.views.</code><code class="descname">AjaxableResponseMixin</code><a class="reference internal" href="../_modules/lims/views.html#AjaxableResponseMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.views.AjaxableResponseMixin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mixin to add AJAX support to a form.
-Must be used with an object-based FormView (e.g. CreateView)</p>
-</dd></dl>
-
-<dl class="class">
 <dt id="lims.views.OwnerRequiredMixin">
 <em class="property">class </em><code class="descclassname">lims.views.</code><code class="descname">OwnerRequiredMixin</code><a class="reference internal" href="../_modules/lims/views.html#OwnerRequiredMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.views.OwnerRequiredMixin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mixin to limit access to the owner of an object (or superusers).
@@ -183,9 +178,35 @@ Must be used with an object-based View (e.g. DetailView, EditView)</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="lims.views.Tex2PdfMixin">
-<em class="property">class </em><code class="descclassname">lims.views.</code><code class="descname">Tex2PdfMixin</code><a class="reference internal" href="../_modules/lims/views.html#Tex2PdfMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.views.Tex2PdfMixin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mixin to create a .pdf file from a LaTeX template.</p>
+<dt id="lims.views.ProjectDetail">
+<em class="property">class </em><code class="descclassname">lims.views.</code><code class="descname">ProjectDetail</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/views.html#ProjectDetail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.views.ProjectDetail" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the &#8220;Dashboard&#8221; view. Basic information about the Project is displayed:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">For superusers, direct to staff.html, with context:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><ul class="first simple">
+<li>shipments: Any Shipments that are Sent or On-site</li>
+<li>automounters: Any active Dewar objects (Beamline/Automounter)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">For Users, direct to project.html, with context:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
+<li>shipments: All Shipments that are Draft, Sent, or On-site, plus Returned shipments to bring the total displayed up to seven.</li>
+<li>sessions: Any recent Session from any beamline</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="lims.views.ProjectDetail.model">
+<code class="descname">model</code><a class="headerlink" href="#lims.views.ProjectDetail.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">Project</span></code></p>
+</dd></dl>
+
 </dd></dl>
 
 <span class="target" id="module-lims.ajax_views"></span><dl class="function">
@@ -223,6 +244,8 @@ requested gamma_offset
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mixins.html" class="btn btn-neutral float-right" title="Mixins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="models.html" class="btn btn-neutral" title="Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

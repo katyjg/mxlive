@@ -4,11 +4,11 @@
 
 <link href="{% static "css/css-circular-prog-bar.css" %}" rel="stylesheet">
 
-<div class="thumbnail data-thumbnail" style="margin-bottom: 0px; {% if not detail and "MX" in data.kind %}background-image: url({% get_image data data.first_frame 'lt' %}); background-position: right;{% endif %}">
+<div class="thumbnail data-thumbnail {% if not detail %}bgimg-{{ data.pk }}{% endif %}" style="margin-bottom: 0px; background-position: right;">
     <div class="row">
         <div class="col-xs-12 text-condensed">
             {% if detail %}{% with data|get_meta_data as meta_data %}{% if meta_data %}
-                <span class="box-tools pull-right full-right" style="margin-right: 15px;{% if "MX" in data.kind or "DATA" in data.kind or "RASTER" in data.kind %}background-image: url({% get_image data data.first_frame 'lt' %}); background-position: center; background-size: 100%;{% endif %}">
+                <span class="box-tools pull-right full-right bgimg-{{ data.pk }}" style="margin-right: 15px; background-position: center; background-size: 100%;">
                     <small>
                         {% for k, v in meta_data.items %}
                             <span class="pull-left">{{ k|title }}: <strong>{{ v }}</strong></span><br/>
@@ -73,3 +73,4 @@
         </div>
     {% endif %}
 </div>
+

@@ -1,5 +1,4 @@
 from django.contrib.messages.views import SuccessMessageMixin
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import edit
 from django.core.urlresolvers import reverse_lazy
 from django.contrib.auth import get_user_model
@@ -8,8 +7,8 @@ import forms
 import slap
 
 from objlist.views import FilteredListView
-from lims.views import AjaxableResponseMixin, AdminRequiredMixin
-from lims.models import Project
+from mixins import AjaxableResponseMixin, AdminRequiredMixin
+from lims.models import Project, ActivityLog
 from lims.forms import NewProjectForm
 
 User = get_user_model()
@@ -25,6 +24,11 @@ class AccessList(AdminRequiredMixin, FilteredListView):
     detail_target = '#modal-form'
     order_by = ['name']
     template_name = "users/list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(AccessList, self).get_context_data(**kwargs)
+        context['tool_template'] = "users/tools-staff.html"
+        return context
 
 
 class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
@@ -78,6 +82,11 @@ class ProjectList(AdminRequiredMixin, FilteredListView):
     ordering_proxies = {}
     list_transforms = {}
 
+    def get_context_data(self, **kwargs):
+        context = super(ProjectList, self).get_context_data(**kwargs)
+        context['tool_template'] = "users/tools-staff.html"
+        return context
+
 
 class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
     form_class = NewProjectForm
@@ -111,8 +120,7 @@ class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
         info_msg = 'New Account {} added'.format(proj)
 
         ActivityLog.objects.log_activity(
-            request, obj, ActivityLog.TYPE.CREATE, info_msg
+            self.request, obj, ActivityLog.TYPE.CREATE, info_msg
         )
-        messages.info(request, info_msg)
         # messages are simply passed down to the template via the request context
-        return render_to_response("users/redirect.html", context_instance=RequestContext(request))
+        return render_to_response("users/redirect.html", context_instance=RequestContext(self.request))

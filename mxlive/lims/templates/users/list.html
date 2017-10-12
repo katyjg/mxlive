@@ -6,6 +6,13 @@
 {% endblock %}
 
 {% block page_heading %}<h3>{% objlist_heading %}</h3>{% endblock %}
+
+{% block object_tools %}
+    {% if tool_template %}
+        {% include tool_template %}
+    {% endif %}
+{% endblock %}
+
 {% block full %}
 <div class="row">
         <div class="col-xs-12">

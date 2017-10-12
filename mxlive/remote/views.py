@@ -1,10 +1,8 @@
-import json
 from django import http
 from django.conf import settings
 from middleware import get_client_address
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-import decimal
 import requests
 
 from django.views.generic import View
@@ -53,9 +51,8 @@ class AccessList(View):
     """
     Returns list of usernames that should be able to access the remote server referenced by `ipnumber`.
 
-    :Referenced with:
-     - r'^accesslist/$' (to get access list for requesting location)
-     - r'^accesslist/(?P<ipnumber>)/$'
+    :key: r'^accesslist/$' (IP number inferred from request)
+    :key: r'^accesslist/(?P<ipnumber>)/$'
     """
 
     def get(self, request, *args, **kwargs):
@@ -76,8 +73,7 @@ class UpdateUserKey(View):
     API for adding a public key to an MxLIVE Project. This method will only be allowed if the signature can be verified,
     and the User object does not already have a public key registered.
 
-    :Referenced with:
-     - r'^(?P<signature>(?P<username>):.+)/project/$'
+    :key: r'^(?P<signature>(?P<username>):.+)/project/$'
     """
 
     def post(self, request, *args, **kwargs):
@@ -107,8 +103,7 @@ class LaunchSession(VerificationMixin, View):
     Method to start an MxLIVE Session from the beamline. If a Session with the same name already exists, a new Stretch
     will be added to the Session.
 
-    :Referenced with:
-     - r'^(?P<signature>(?P<username>):.+)/launch/(?P<beamline>)/(?P<session>)/$'
+    :key: r'^(?P<signature>(?P<username>):.+)/launch/(?P<beamline>)/(?P<session>)/$'
     """
 
     def post(self, request, *args, **kwargs):
@@ -140,8 +135,7 @@ class CloseSession(VerificationMixin, View):
     """
     Method to close an MxLIVE Session from the beamline.
 
-    :Referenced with:
-     - r'^(?P<signature>(?P<username>):.+)/close/(?P<beamline>)/(?P<session>)/$'
+    :key: r'^(?P<signature>(?P<username>):.+)/close/(?P<beamline>)/(?P<session>)/$'
     """
 
     def post(self, request, *args, **kwargs):
@@ -191,8 +185,7 @@ class ProjectSamples(VerificationMixin, View):
     """
     :Return: Dictionary for each On-Site sample owned by the User and NOT loaded on another beamline.
 
-    :Referenced with:
-     - r'^(?P<signature>(?P<username>):.+)/samples/(?P<beamline>)/$'
+    :key: r'^(?P<signature>(?P<username>):.+)/samples/(?P<beamline>)/$'
     """
     def get(self, request, *args, **kwargs):
         from lims.models import Project, Beamline, Container
@@ -235,8 +228,7 @@ class AddReport(VerificationMixin, View):
 
     :Return: {'id': < Created AnalysisReport.pk >}
 
-    :Referenced with:
-     - r'^(?P<signature>(?P<username>):.+)/report/(?P<beamline>)/$'
+    :key: r'^(?P<signature>(?P<username>):.+)/report/(?P<beamline>)/$'
     """
 
     def post(self, request, *args, **kwargs):
@@ -298,8 +290,7 @@ class AddData(VerificationMixin, View):
 
     :Return: {'id': < Created Data.pk >}
 
-    :Referenced with:
-     - r'^(?P<signature>(?P<username>):.+)/data/(?P<beamline>)/$'
+    :key: r'^(?P<signature>(?P<username>):.+)/data/(?P<beamline>)/$'
     """
 
     def post(self, request, *args, **kwargs):

@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                v3.1.4-18-gc8ef30e
+                v3.1.4-19-g093f9a8
 
               </div>
             
@@ -103,6 +103,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../modules/views.html">Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/mixins.html">Mixins</a></li>
 </ul>
 
             
@@ -167,19 +168,19 @@
            <div itemprop="articleBody">
             
   <h1>Source code for lims.ajax_views</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">django.http</span> <span class="k">import</span> <span class="n">JsonResponse</span>
-<span class="kn">from</span> <span class="nn">django.conf</span> <span class="k">import</span> <span class="n">settings</span>
-
-<span class="kn">from</span> <span class="nn">lims</span> <span class="k">import</span> <span class="n">models</span>
-<span class="kn">from</span> <span class="nn">download.imageio</span> <span class="k">import</span> <span class="n">read_image</span><span class="p">,</span> <span class="n">read_header</span>
-<span class="kn">from</span> <span class="nn">download.imageio.utils</span> <span class="k">import</span> <span class="n">stretch</span>
-
-<span class="kn">import</span> <span class="nn">requests</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">urlparse</span>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">urlparse</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="k">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">django.http</span> <span class="k">import</span> <span class="n">JsonResponse</span>
+
+<span class="kn">from</span> <span class="nn">imageio</span> <span class="k">import</span> <span class="n">read_image</span>
+<span class="kn">from</span> <span class="nn">imageio.utils</span> <span class="k">import</span> <span class="n">stretch</span>
+<span class="kn">from</span> <span class="nn">lims</span> <span class="k">import</span> <span class="n">models</span>
 
 <span class="n">DATA_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">BASE_DIR</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
 <span class="n">COLORMAPS</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">DATA_DIR</span><span class="p">,</span> <span class="s1">&#39;colormaps.data&#39;</span><span class="p">)))</span>

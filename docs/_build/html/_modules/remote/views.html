@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                v3.1.4-18-gc8ef30e
+                v3.1.4-19-g093f9a8
 
               </div>
             
@@ -103,6 +103,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../modules/views.html">Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/mixins.html">Mixins</a></li>
 </ul>
 
             
@@ -167,13 +168,11 @@
            <div itemprop="articleBody">
             
   <h1>Source code for remote.views</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">django</span> <span class="k">import</span> <span class="n">http</span>
+<span></span><span class="kn">from</span> <span class="nn">django</span> <span class="k">import</span> <span class="n">http</span>
 <span class="kn">from</span> <span class="nn">django.conf</span> <span class="k">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">middleware</span> <span class="k">import</span> <span class="n">get_client_address</span>
 <span class="kn">from</span> <span class="nn">django.views.decorators.csrf</span> <span class="k">import</span> <span class="n">csrf_exempt</span>
 <span class="kn">from</span> <span class="nn">django.utils.decorators</span> <span class="k">import</span> <span class="n">method_decorator</span>
-<span class="kn">import</span> <span class="nn">decimal</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="kn">from</span> <span class="nn">django.views.generic</span> <span class="k">import</span> <span class="n">View</span>
@@ -222,9 +221,8 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns list of usernames that should be able to access the remote server referenced by `ipnumber`.</span>
 
-<span class="sd">    :Referenced with:</span>
-<span class="sd">     - r&#39;^accesslist/$&#39; (to get access list for requesting location)</span>
-<span class="sd">     - r&#39;^accesslist/(?P&lt;ipnumber&gt;)/$&#39;</span>
+<span class="sd">    :key: r&#39;^accesslist/$&#39; (IP number inferred from request)</span>
+<span class="sd">    :key: r&#39;^accesslist/(?P&lt;ipnumber&gt;)/$&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -245,8 +243,7 @@
 <span class="sd">    API for adding a public key to an MxLIVE Project. This method will only be allowed if the signature can be verified,</span>
 <span class="sd">    and the User object does not already have a public key registered.</span>
 
-<span class="sd">    :Referenced with:</span>
-<span class="sd">     - r&#39;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/project/$&#39;</span>
+<span class="sd">    :key: r&#39;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/project/$&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -276,8 +273,7 @@
 <span class="sd">    Method to start an MxLIVE Session from the beamline. If a Session with the same name already exists, a new Stretch</span>
 <span class="sd">    will be added to the Session.</span>
 
-<span class="sd">    :Referenced with:</span>
-<span class="sd">     - r&#39;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/launch/(?P&lt;beamline&gt;)/(?P&lt;session&gt;)/$&#39;</span>
+<span class="sd">    :key: r&#39;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/launch/(?P&lt;beamline&gt;)/(?P&lt;session&gt;)/$&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -309,8 +305,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Method to close an MxLIVE Session from the beamline.</span>
 
-<span class="sd">    :Referenced with:</span>
-<span class="sd">     - r&#39;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/close/(?P&lt;beamline&gt;)/(?P&lt;session&gt;)/$&#39;</span>
+<span class="sd">    :key: r&#39;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/close/(?P&lt;beamline&gt;)/(?P&lt;session&gt;)/$&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -360,8 +355,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :Return: Dictionary for each On-Site sample owned by the User and NOT loaded on another beamline.</span>
 
-<span class="sd">    :Referenced with:</span>
-<span class="sd">     - r&#39;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/samples/(?P&lt;beamline&gt;)/$&#39;</span>
+<span class="sd">    :key: r&#39;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/samples/(?P&lt;beamline&gt;)/$&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">lims.models</span> <span class="k">import</span> <span class="n">Project</span><span class="p">,</span> <span class="n">Beamline</span><span class="p">,</span> <span class="n">Container</span>
@@ -404,8 +398,7 @@
 
 <span class="sd">    :Return: {&#39;id&#39;: &lt; Created AnalysisReport.pk &gt;}</span>
 
-<span class="sd">    :Referenced with:</span>
-<span class="sd">     - r&#39;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/report/(?P&lt;beamline&gt;)/$&#39;</span>
+<span class="sd">    :key: r&#39;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/report/(?P&lt;beamline&gt;)/$&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -467,8 +460,7 @@
 
 <span class="sd">    :Return: {&#39;id&#39;: &lt; Created Data.pk &gt;}</span>
 
-<span class="sd">    :Referenced with:</span>
-<span class="sd">     - r&#39;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/data/(?P&lt;beamline&gt;)/$&#39;</span>
+<span class="sd">    :key: r&#39;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/data/(?P&lt;beamline&gt;)/$&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>

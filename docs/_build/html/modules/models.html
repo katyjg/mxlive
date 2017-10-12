@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                v3.1.4-18-gc8ef30e
+                v3.1.4-19-g093f9a8
 
               </div>
             
@@ -104,6 +104,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="views.html">Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixins.html">Mixins</a></li>
 </ul>
 
             
@@ -174,6 +175,22 @@
 <em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Beamline</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Beamline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Beamline" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Beamline object should be created for every unique facility that will be uploading data or reports,
 or has its own automounter layout.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>name</strong> (<em>CharField</em>) &#8211; Name</li>
+<li><strong>acronym</strong> (<em>CharField</em>) &#8211; Acronym</li>
+<li><strong>energy_lo</strong> (<em>FloatField</em>) &#8211; Energy lo</li>
+<li><strong>energy_hi</strong> (<em>FloatField</em>) &#8211; Energy hi</li>
+<li><strong>contact_phone</strong> (<em>CharField</em>) &#8211; Contact phone</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="lims.models.Beamline.active_automounter">
 <code class="descname">active_automounter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Beamline.active_automounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Beamline.active_automounter" title="Permalink to this definition">¶</a></dt>
@@ -201,12 +218,68 @@ referencing each beamline.</p>
 <dd><p>A through-model relating a Beamline object to a Container object. The container referenced here should be the
 one that samples or containers can be added to during a Project&#8217;s beamtime. If a beamline has multiple containers
 (ie. Dewar objects), only the current one should be marked &#8216;active&#8217;.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>beamline_id</strong> (<em>ForeignKey</em>) &#8211; Beamline</li>
+<li><strong>container_id</strong> (<em>ForeignKey</em>) &#8211; Container</li>
+<li><strong>staff_comments</strong> (<em>TextField</em>) &#8211; Staff comments</li>
+<li><strong>modified</strong> (<em>DateTimeField</em>) &#8211; Date modified</li>
+<li><strong>active</strong> (<em>BooleanField</em>) &#8211; Active</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="class">
 <dt id="lims.models.Project">
 <em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Project</code><span class="sig-paren">(</span><em>id</em>, <em>password</em>, <em>last_login</em>, <em>is_superuser</em>, <em>username</em>, <em>first_name</em>, <em>last_name</em>, <em>email</em>, <em>is_staff</em>, <em>is_active</em>, <em>date_joined</em>, <em>name</em>, <em>contact_person</em>, <em>contact_email</em>, <em>carrier</em>, <em>account_number</em>, <em>department</em>, <em>address</em>, <em>city</em>, <em>province</em>, <em>postal_code</em>, <em>country</em>, <em>contact_phone</em>, <em>contact_fax</em>, <em>organisation</em>, <em>show_archives</em>, <em>key</em>, <em>created</em>, <em>modified</em>, <em>updated</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Project"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Project" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>password</strong> (<em>CharField</em>) &#8211; Password</li>
+<li><strong>last_login</strong> (<em>DateTimeField</em>) &#8211; Last login</li>
+<li><strong>is_superuser</strong> (<em>BooleanField</em>) &#8211; Designates that this user has all permissions without explicitly assigning them.</li>
+<li><strong>username</strong> (<em>CharField</em>) &#8211; Required. 150 characters or fewer. Letters, digits and &#64;/./+/-/_ only.</li>
+<li><strong>first_name</strong> (<em>CharField</em>) &#8211; First name</li>
+<li><strong>last_name</strong> (<em>CharField</em>) &#8211; Last name</li>
+<li><strong>email</strong> (<em>EmailField</em>) &#8211; Email address</li>
+<li><strong>is_staff</strong> (<em>BooleanField</em>) &#8211; Designates whether the user can log into this admin site.</li>
+<li><strong>is_active</strong> (<em>BooleanField</em>) &#8211; Designates whether this user should be treated as active. Unselect this instead of deleting accounts.</li>
+<li><strong>date_joined</strong> (<em>DateTimeField</em>) &#8211; Date joined</li>
+<li><strong>name</strong> (<em>SlugField</em>) &#8211; Account name</li>
+<li><strong>contact_person</strong> (<em>CharField</em>) &#8211; Contact person</li>
+<li><strong>contact_email</strong> (<em>EmailField</em>) &#8211; Contact email</li>
+<li><strong>carrier_id</strong> (<em>ForeignKey</em>) &#8211; Carrier</li>
+<li><strong>account_number</strong> (<em>CharField</em>) &#8211; Account number</li>
+<li><strong>department</strong> (<em>CharField</em>) &#8211; Department</li>
+<li><strong>address</strong> (<em>CharField</em>) &#8211; Address</li>
+<li><strong>city</strong> (<em>CharField</em>) &#8211; City</li>
+<li><strong>province</strong> (<em>CharField</em>) &#8211; Province</li>
+<li><strong>postal_code</strong> (<em>CharField</em>) &#8211; Postal code</li>
+<li><strong>country</strong> (<em>CharField</em>) &#8211; Country</li>
+<li><strong>contact_phone</strong> (<em>CharField</em>) &#8211; Contact phone</li>
+<li><strong>contact_fax</strong> (<em>CharField</em>) &#8211; Contact fax</li>
+<li><strong>organisation</strong> (<em>CharField</em>) &#8211; Organisation</li>
+<li><strong>show_archives</strong> (<em>BooleanField</em>) &#8211; Show archives</li>
+<li><strong>key</strong> (<em>CharField</em>) &#8211; Key</li>
+<li><strong>created</strong> (<em>DateTimeField</em>) &#8211; Date created</li>
+<li><strong>modified</strong> (<em>DateTimeField</em>) &#8211; Date modified</li>
+<li><strong>updated</strong> (<em>BooleanField</em>) &#8211; Updated</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="class">
 <dt id="lims.models.Carrier">
@@ -214,12 +287,50 @@ one that samples or containers can be added to during a Project&#8217;s beamtime
 <dd><p>A Carrier object should be created for each courier company that may be used for shipping to the beamline.
 To link to shipment tracking, provide a URL that can be completed using a tracking number to link to a
 courier-specific tracking page.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>name</strong> (<em>CharField</em>) &#8211; Name</li>
+<li><strong>url</strong> (<em>URLField</em>) &#8211; Url</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="class">
 <dt id="lims.models.Shipment">
 <em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Shipment</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>comments</em>, <em>tracking_code</em>, <em>return_code</em>, <em>date_shipped</em>, <em>date_received</em>, <em>date_returned</em>, <em>carrier</em>, <em>storage_location</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Shipment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Shipment" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>project_id</strong> (<em>ForeignKey</em>) &#8211; Project</li>
+<li><strong>name</strong> (<em>CharField</em>) &#8211; Name</li>
+<li><strong>staff_comments</strong> (<em>TextField</em>) &#8211; Staff comments</li>
+<li><strong>created</strong> (<em>DateTimeField</em>) &#8211; Date created</li>
+<li><strong>modified</strong> (<em>DateTimeField</em>) &#8211; Date modified</li>
+<li><strong>status</strong> (<em>IntegerField</em>) &#8211; Status</li>
+<li><strong>comments</strong> (<em>TextField</em>) &#8211; Comments</li>
+<li><strong>tracking_code</strong> (<em>CharField</em>) &#8211; Tracking code</li>
+<li><strong>return_code</strong> (<em>CharField</em>) &#8211; Return code</li>
+<li><strong>date_shipped</strong> (<em>DateTimeField</em>) &#8211; Date shipped</li>
+<li><strong>date_received</strong> (<em>DateTimeField</em>) &#8211; Date received</li>
+<li><strong>date_returned</strong> (<em>DateTimeField</em>) &#8211; Date returned</li>
+<li><strong>carrier_id</strong> (<em>ForeignKey</em>) &#8211; Carrier</li>
+<li><strong>storage_location</strong> (<em>CharField</em>) &#8211; Storage location</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
 <dt id="lims.models.Shipment.shipping_errors">
 <code class="descname">shipping_errors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Shipment.shipping_errors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Shipment.shipping_errors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of descriptive string error messages indicating the Shipment is not
@@ -230,18 +341,79 @@ in a &#8216;shippable&#8217; state</p>
 
 <dl class="class">
 <dt id="lims.models.ContainerType">
-<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">ContainerType</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>layout</em>, <em>envelope</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#ContainerType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.ContainerType" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">ContainerType</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#ContainerType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.ContainerType" title="Permalink to this definition">¶</a></dt>
+<dd><p>A ContainerType should be defined for each container that has a unique layout. (e.g. Uni-Puck, Adaptor, Autmounter, etc.)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>envelope</strong> (<em>CharField</em>) &#8211; &#8216;rect&#8217; or &#8216;circle&#8217; are supported.
+If &#8216;rect&#8217;, location__name lists are assumed to be [x, y] coordinates relative to width and height.
+If &#8216;circle&#8217;, location__name value lists are assumed to be polar coordinates [r, theta], relative to width.</li>
+<li><strong>layout</strong> (<em>JSONField</em>) &#8211; <p>dictionary with keys:</p>
+<ul>
+<li><cite>locations</cite>: dictionary with a key for each location__name mapping to a list with relative coordinates of the center of the location.</li>
+<li><cite>radius</cite>: radius of the circle (in range(0,100)) to draw for each location.</li>
+<li><cite>labels</cite> (optional): If present, takes the same form as the locations dictionary. If missing, a label is drawn for each location__name at the center of the location.</li>
+<li><cite>height</cite> (optional): To adjust dimensions of the envelope, relative to a default width of 1. If missing, height is also assumed to be 1.</li>
+</ul>
+</li>
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>name</strong> (<em>CharField</em>) &#8211; Name</li>
+<li><strong>layout</strong> &#8211; Layout</li>
+<li><strong>envelope</strong> &#8211; Envelope</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="class">
 <dt id="lims.models.ContainerLocation">
 <em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">ContainerLocation</code><span class="sig-paren">(</span><em>id</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#ContainerLocation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.ContainerLocation" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>name</strong> (<em>CharField</em>) &#8211; Name</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="class">
 <dt id="lims.models.Container">
 <em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Container</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>kind</em>, <em>shipment</em>, <em>comments</em>, <em>priority</em>, <em>parent</em>, <em>location</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Container"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Container" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>project_id</strong> (<em>ForeignKey</em>) &#8211; Project</li>
+<li><strong>name</strong> (<em>CharField</em>) &#8211; Name</li>
+<li><strong>staff_comments</strong> (<em>TextField</em>) &#8211; Staff comments</li>
+<li><strong>created</strong> (<em>DateTimeField</em>) &#8211; Date created</li>
+<li><strong>modified</strong> (<em>DateTimeField</em>) &#8211; Date modified</li>
+<li><strong>status</strong> (<em>IntegerField</em>) &#8211; Status</li>
+<li><strong>kind_id</strong> (<em>ForeignKey</em>) &#8211; Kind</li>
+<li><strong>shipment_id</strong> (<em>ForeignKey</em>) &#8211; Shipment</li>
+<li><strong>comments</strong> (<em>TextField</em>) &#8211; Comments</li>
+<li><strong>priority</strong> (<em>IntegerField</em>) &#8211; Priority</li>
+<li><strong>parent_id</strong> (<em>ForeignKey</em>) &#8211; Parent</li>
+<li><strong>location_id</strong> (<em>ForeignKey</em>) &#8211; Location</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
 <dt id="lims.models.Container.update_priority">
 <code class="descname">update_priority</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Container.update_priority"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Container.update_priority" title="Permalink to this definition">¶</a></dt>
 <dd><p>Updates the Container&#8217;s priority to max(group priorities)</p>
@@ -252,47 +424,234 @@ in a &#8216;shippable&#8217; state</p>
 <dl class="class">
 <dt id="lims.models.Group">
 <em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Group</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>shipment</em>, <em>energy</em>, <em>kind</em>, <em>absorption_edge</em>, <em>plan</em>, <em>comments</em>, <em>priority</em>, <em>sample_count</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Group" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>project_id</strong> (<em>ForeignKey</em>) &#8211; Project</li>
+<li><strong>name</strong> (<em>CharField</em>) &#8211; Name</li>
+<li><strong>staff_comments</strong> (<em>TextField</em>) &#8211; Staff comments</li>
+<li><strong>created</strong> (<em>DateTimeField</em>) &#8211; Date created</li>
+<li><strong>modified</strong> (<em>DateTimeField</em>) &#8211; Date modified</li>
+<li><strong>status</strong> (<em>IntegerField</em>) &#8211; Status</li>
+<li><strong>shipment_id</strong> (<em>ForeignKey</em>) &#8211; Shipment</li>
+<li><strong>energy</strong> (<em>DecimalField</em>) &#8211; Energy</li>
+<li><strong>kind</strong> (<em>IntegerField</em>) &#8211; Exp. type</li>
+<li><strong>absorption_edge</strong> (<em>CharField</em>) &#8211; Absorption edge</li>
+<li><strong>plan</strong> (<em>IntegerField</em>) &#8211; Plan</li>
+<li><strong>comments</strong> (<em>TextField</em>) &#8211; Comments</li>
+<li><strong>priority</strong> (<em>IntegerField</em>) &#8211; Priority</li>
+<li><strong>sample_count</strong> (<em>PositiveIntegerField</em>) &#8211; Number of samples</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="class">
 <dt id="lims.models.Sample">
 <em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Sample</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>barcode</em>, <em>container</em>, <em>location</em>, <em>comments</em>, <em>collect_status</em>, <em>priority</em>, <em>group</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Sample" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>project_id</strong> (<em>ForeignKey</em>) &#8211; Project</li>
+<li><strong>name</strong> (<em>CharField</em>) &#8211; Name</li>
+<li><strong>staff_comments</strong> (<em>TextField</em>) &#8211; Staff comments</li>
+<li><strong>created</strong> (<em>DateTimeField</em>) &#8211; Date created</li>
+<li><strong>modified</strong> (<em>DateTimeField</em>) &#8211; Date modified</li>
+<li><strong>barcode</strong> (<em>SlugField</em>) &#8211; Barcode</li>
+<li><strong>container_id</strong> (<em>ForeignKey</em>) &#8211; Container</li>
+<li><strong>location</strong> (<em>CharField</em>) &#8211; Port</li>
+<li><strong>comments</strong> (<em>TextField</em>) &#8211; Comments</li>
+<li><strong>collect_status</strong> (<em>BooleanField</em>) &#8211; Collect status</li>
+<li><strong>priority</strong> (<em>IntegerField</em>) &#8211; Priority</li>
+<li><strong>group_id</strong> (<em>ForeignKey</em>) &#8211; Group</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="class">
 <dt id="lims.models.Data">
-<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Data</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>group</em>, <em>sample</em>, <em>session</em>, <em>first_frame</em>, <em>file_name</em>, <em>frames</em>, <em>exposure_time</em>, <em>attenuation</em>, <em>energy</em>, <em>beamline</em>, <em>beam_size</em>, <em>url</em>, <em>kind</em>, <em>download</em>, <em>meta_data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Data</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>group</em>, <em>sample</em>, <em>session</em>, <em>file_name</em>, <em>frames</em>, <em>exposure_time</em>, <em>attenuation</em>, <em>energy</em>, <em>beamline</em>, <em>beam_size</em>, <em>url</em>, <em>kind</em>, <em>download</em>, <em>meta_data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Data" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>project_id</strong> (<em>ForeignKey</em>) &#8211; Project</li>
+<li><strong>name</strong> (<em>CharField</em>) &#8211; Name</li>
+<li><strong>staff_comments</strong> (<em>TextField</em>) &#8211; Staff comments</li>
+<li><strong>created</strong> (<em>DateTimeField</em>) &#8211; Date created</li>
+<li><strong>modified</strong> (<em>DateTimeField</em>) &#8211; Date modified</li>
+<li><strong>status</strong> (<em>IntegerField</em>) &#8211; Status</li>
+<li><strong>group_id</strong> (<em>ForeignKey</em>) &#8211; Group</li>
+<li><strong>sample_id</strong> (<em>ForeignKey</em>) &#8211; Sample</li>
+<li><strong>session_id</strong> (<em>ForeignKey</em>) &#8211; Session</li>
+<li><strong>file_name</strong> (<em>CharField</em>) &#8211; File name</li>
+<li><strong>frames</strong> (<em>FrameField</em>) &#8211; Frames</li>
+<li><strong>exposure_time</strong> (<em>FloatField</em>) &#8211; Exposure time</li>
+<li><strong>attenuation</strong> (<em>FloatField</em>) &#8211; Attenuation</li>
+<li><strong>energy</strong> (<em>DecimalField</em>) &#8211; Energy</li>
+<li><strong>beamline_id</strong> (<em>ForeignKey</em>) &#8211; Beamline</li>
+<li><strong>beam_size</strong> (<em>FloatField</em>) &#8211; Beam size</li>
+<li><strong>url</strong> (<em>CharField</em>) &#8211; Url</li>
+<li><strong>kind</strong> (<em>CharField</em>) &#8211; Data type</li>
+<li><strong>download</strong> (<em>BooleanField</em>) &#8211; Download</li>
+<li><strong>meta_data</strong> (<em>JSONField</em>) &#8211; Meta data</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="class">
 <dt id="lims.models.AnalysisReport">
 <em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">AnalysisReport</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>kind</em>, <em>group</em>, <em>sample</em>, <em>score</em>, <em>data</em>, <em>result</em>, <em>details</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#AnalysisReport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.AnalysisReport" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>project_id</strong> (<em>ForeignKey</em>) &#8211; Project</li>
+<li><strong>name</strong> (<em>CharField</em>) &#8211; Name</li>
+<li><strong>staff_comments</strong> (<em>TextField</em>) &#8211; Staff comments</li>
+<li><strong>created</strong> (<em>DateTimeField</em>) &#8211; Date created</li>
+<li><strong>modified</strong> (<em>DateTimeField</em>) &#8211; Date modified</li>
+<li><strong>status</strong> (<em>IntegerField</em>) &#8211; Status</li>
+<li><strong>kind</strong> (<em>CharField</em>) &#8211; Kind</li>
+<li><strong>group_id</strong> (<em>ForeignKey</em>) &#8211; Group</li>
+<li><strong>sample_id</strong> (<em>ForeignKey</em>) &#8211; Sample</li>
+<li><strong>score</strong> (<em>FloatField</em>) &#8211; Score</li>
+<li><strong>data_id</strong> (<em>ForeignKey</em>) &#8211; Data</li>
+<li><strong>result_id</strong> (<em>ForeignKey</em>) &#8211; Result</li>
+<li><strong>details</strong> (<em>JSONField</em>) &#8211; Details</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="class">
 <dt id="lims.models.ActivityLog">
 <em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">ActivityLog</code><span class="sig-paren">(</span><em>id</em>, <em>created</em>, <em>project</em>, <em>user</em>, <em>user_description</em>, <em>ip_number</em>, <em>object_id</em>, <em>content_type</em>, <em>action_type</em>, <em>object_repr</em>, <em>description</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#ActivityLog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.ActivityLog" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>created</strong> (<em>DateTimeField</em>) &#8211; Date/time</li>
+<li><strong>project_id</strong> (<em>ForeignKey</em>) &#8211; Project</li>
+<li><strong>user_id</strong> (<em>ForeignKey</em>) &#8211; User</li>
+<li><strong>user_description</strong> (<em>CharField</em>) &#8211; User name</li>
+<li><strong>ip_number</strong> (<em>GenericIPAddressField</em>) &#8211; Ip address</li>
+<li><strong>object_id</strong> (<em>PositiveIntegerField</em>) &#8211; Object id</li>
+<li><strong>content_type_id</strong> (<em>ForeignKey</em>) &#8211; Content type</li>
+<li><strong>action_type</strong> (<em>IntegerField</em>) &#8211; Action type</li>
+<li><strong>object_repr</strong> (<em>CharField</em>) &#8211; Entity</li>
+<li><strong>description</strong> (<em>TextField</em>) &#8211; Description</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="class">
 <dt id="lims.models.Session">
 <em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Session</code><span class="sig-paren">(</span><em>id</em>, <em>created</em>, <em>name</em>, <em>project</em>, <em>beamline</em>, <em>comments</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Session" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>created</strong> (<em>DateTimeField</em>) &#8211; Date created</li>
+<li><strong>name</strong> (<em>CharField</em>) &#8211; Name</li>
+<li><strong>project_id</strong> (<em>ForeignKey</em>) &#8211; Project</li>
+<li><strong>beamline_id</strong> (<em>ForeignKey</em>) &#8211; Beamline</li>
+<li><strong>comments</strong> (<em>TextField</em>) &#8211; Comments</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="class">
 <dt id="lims.models.Stretch">
 <em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Stretch</code><span class="sig-paren">(</span><em>id</em>, <em>start</em>, <em>end</em>, <em>session</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lims/models.html#Stretch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Stretch" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>start</strong> (<em>DateTimeField</em>) &#8211; Start</li>
+<li><strong>end</strong> (<em>DateTimeField</em>) &#8211; End</li>
+<li><strong>session_id</strong> (<em>ForeignKey</em>) &#8211; Session</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <span class="target" id="module-staff.models"></span><dl class="class">
 <dt id="staff.models.Announcement">
 <em class="property">class </em><code class="descclassname">staff.models.</code><code class="descname">Announcement</code><span class="sig-paren">(</span><em>id</em>, <em>title</em>, <em>description</em>, <em>priority</em>, <em>attachment</em>, <em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/staff/models.html#Announcement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#staff.models.Announcement" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>title</strong> (<em>CharField</em>) &#8211; Title</li>
+<li><strong>description</strong> (<em>TextField</em>) &#8211; Description</li>
+<li><strong>priority</strong> (<em>IntegerField</em>) &#8211; Priority</li>
+<li><strong>attachment</strong> (<em>FileField</em>) &#8211; Attachment</li>
+<li><strong>url</strong> (<em>CharField</em>) &#8211; Url</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="class">
 <dt id="staff.models.UserList">
 <em class="property">class </em><code class="descclassname">staff.models.</code><code class="descname">UserList</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>description</em>, <em>address</em>, <em>active</em>, <em>created</em>, <em>modified</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/staff/models.html#UserList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#staff.models.UserList" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>name</strong> (<em>CharField</em>) &#8211; Name</li>
+<li><strong>description</strong> (<em>TextField</em>) &#8211; Description</li>
+<li><strong>address</strong> (<em>GenericIPAddressField</em>) &#8211; Address</li>
+<li><strong>active</strong> (<em>BooleanField</em>) &#8211; Active</li>
+<li><strong>created</strong> (<em>DateTimeField</em>) &#8211; Date created</li>
+<li><strong>modified</strong> (<em>DateTimeField</em>) &#8211; Date modified</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 

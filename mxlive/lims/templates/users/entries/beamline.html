@@ -17,13 +17,34 @@
     <div class="object-tools">
         <span class="box-tools pull-right">
             <a class="pull-right" data-url="{% url "dewar-edit" pk=object.active_dewar.pk %}">
-                <i class="fa fa-2 fa-fw fa-commenting-o"></i><br>
-                <span class="tool-label">Add Comment</span>
+                <span class="pull-right">
+                    <span class="fa-stack">
+                        <i class="fa-stack-2x fa fa-2 fa-fw fa-commenting-o"></i>
+                    </span><br>
+                    <span class="tool-label">Add Comment</span>
+                </span>
             </a>
+        </span>
+        <span class="box-tools pull-right">
             <a class="pull-right" href="{% url "beamline-history" pk=object.pk %}">
-                <i class="fa fa-2 fa-fw fa-history"></i><br>
-                <span class="tool-label">Sessions</span>
+                <span class="pull-right">
+                    <span class="fa-stack">
+                        <i class="fa-stack-2x fa fa-2 fa-fw fa-clock-o"></i>
+                    </span><br>
+                    <span class="tool-label">Sessions</span>
+                </span>
             </a>
+
+            {% if object.active_dewar.container.children_history.all %}
+                <a class="pull-right" data-url="{% url "automounter-history" object.active_dewar.container.pk %}">
+                    <span class="pull-right">
+                        <span class="fa-stack">
+                            <i class="fa-stack-2x fa fa-2 fa-fw fa-history"></i>
+                        </span><br>
+                        <span class="tool-label">History</span>
+                    </span>
+                </a>
+            {% endif %}
         </span>
     </div>
 {% endblock %}
@@ -50,13 +71,12 @@
 
 {% block full %}
     {% with object.active_automounter as automounter %}
-        <div id="admin-assign" class="col-sm-7">
+        <div {% if user.is_superuser %}id="admin-assign"{% endif %} class="col-sm-7">
             <h3>Automounter Layout</h3>
             <hr />
             <div id="layout-{{ automounter.pk }}" class="layout-lg"></div>
             {% include "users/entries/layout-container.html" with object=automounter.pk kind=automounter.kind %}
         </div>
-
 
     <div class="col-sm-5 col-xs-12">
         {% include "users/entries/loaded-list.html" with object=automounter %}

@@ -27,6 +27,8 @@ urlpatterns = [
 
     url(r'^containers/$', views.ContainerList.as_view(), name='container-list'),
     url(r'^containers/(?P<pk>\d+)/$', views.ContainerDetail.as_view(), name='container-detail'),
+    url(r'^containers/(?P<pk>\d+)/history/$', views.ContainerDetail.as_view(template_name="users/entries/container-history.html"), name='container-history'),
+    url(r'^automounter/(?P<pk>\d+)/history/$', views.ContainerDetail.as_view(template_name="users/entries/automounter-history.html"), name='automounter-history'),
     url(r'^containers/(?P<pk>\d+)/edit/$', views.ContainerEdit.as_view(), name='container-edit'),
     url(r'^containers/(?P<pk>\d+)/delete/$', views.ContainerDelete.as_view(), name='container-delete'),
     url(r'^containers/(?P<pk>\d+)/load/$', views.ContainerLoad.as_view(), name='container-load'),

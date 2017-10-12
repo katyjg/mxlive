@@ -17,7 +17,6 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^staff/', include('staff.urls')),
     url(r'^users/',  include('lims.urls')),
-    url(r'^download/', include('download.urls')),
     url(r'^stats/', include('stats.urls')),
 
     url(r'^login/$',  login_view, {'template_name': 'login.html'}, name="mxlive-login"),

@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                v3.1.4-18-gc8ef30e
+                v3.1.4-19-g093f9a8
 
               </div>
             
@@ -104,6 +104,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/views.html">Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/mixins.html">Mixins</a></li>
 </ul>
 
             
@@ -170,6 +171,7 @@
   <div class="section" id="application-program-interfaces">
 <h1>Application Program Interfaces<a class="headerlink" href="#application-program-interfaces" title="Permalink to this headline">¶</a></h1>
 <p>Several APIs are included for managing Sessions, and adding information like data or reports to MxLIVE.</p>
+<p>All API urls begin with <cite>/api/v2/</cite>.</p>
 <span class="target" id="module-remote.views"></span><dl class="class">
 <dt id="remote.views.AccessList">
 <em class="property">class </em><code class="descclassname">remote.views.</code><code class="descname">AccessList</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/remote/views.html#AccessList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#remote.views.AccessList" title="Permalink to this definition">¶</a></dt>
@@ -178,12 +180,9 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name" colspan="2">Referenced with:</th></tr>
-<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
-<li>r&#8217;^accesslist/$&#8217; (to get access list for requesting location)</li>
-<li>r&#8217;^accesslist/(?P&lt;ipnumber&gt;)/$&#8217;</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Key:</th><td class="field-body">r&#8217;^accesslist/$&#8217; (IP number inferred from request)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Key:</th><td class="field-body">r&#8217;^accesslist/(?P&lt;ipnumber&gt;)/$&#8217;</td>
 </tr>
 </tbody>
 </table>
@@ -217,10 +216,7 @@
 <tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first">{&#8216;id&#8217;: &lt; Created Data.pk &gt;}</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name" colspan="2">Referenced with:</th></tr>
-<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
-<li>r&#8217;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/data/(?P&lt;beamline&gt;)/$&#8217;</li>
-</ul>
+<tr class="field-odd field"><th class="field-name">Key:</th><td class="field-body"><p class="first last">r&#8217;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/data/(?P&lt;beamline&gt;)/$&#8217;</p>
 </td>
 </tr>
 </tbody>
@@ -249,10 +245,7 @@
 <tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first">{&#8216;id&#8217;: &lt; Created AnalysisReport.pk &gt;}</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name" colspan="2">Referenced with:</th></tr>
-<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
-<li>r&#8217;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/report/(?P&lt;beamline&gt;)/$&#8217;</li>
-</ul>
+<tr class="field-odd field"><th class="field-name">Key:</th><td class="field-body"><p class="first last">r&#8217;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/report/(?P&lt;beamline&gt;)/$&#8217;</p>
 </td>
 </tr>
 </tbody>
@@ -267,11 +260,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name" colspan="2">Referenced with:</th></tr>
-<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
-<li>r&#8217;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/close/(?P&lt;beamline&gt;)/(?P&lt;session&gt;)/$&#8217;</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Key:</th><td class="field-body">r&#8217;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/close/(?P&lt;beamline&gt;)/(?P&lt;session&gt;)/$&#8217;</td>
 </tr>
 </tbody>
 </table>
@@ -286,11 +275,7 @@ will be added to the Session.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name" colspan="2">Referenced with:</th></tr>
-<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
-<li>r&#8217;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/launch/(?P&lt;beamline&gt;)/(?P&lt;session&gt;)/$&#8217;</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Key:</th><td class="field-body">r&#8217;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/launch/(?P&lt;beamline&gt;)/(?P&lt;session&gt;)/$&#8217;</td>
 </tr>
 </tbody>
 </table>
@@ -303,14 +288,9 @@ will be added to the Session.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return:</th><td class="field-body"><p class="first">Dictionary for each On-Site sample owned by the User and NOT loaded on another beamline.</p>
-</td>
+<tr class="field-odd field"><th class="field-name">Return:</th><td class="field-body">Dictionary for each On-Site sample owned by the User and NOT loaded on another beamline.</td>
 </tr>
-<tr class="field-even field"><th class="field-name" colspan="2">Referenced with:</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
-<li>r&#8217;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/samples/(?P&lt;beamline&gt;)/$&#8217;</li>
-</ul>
-</td>
+<tr class="field-even field"><th class="field-name">Key:</th><td class="field-body">r&#8217;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/samples/(?P&lt;beamline&gt;)/$&#8217;</td>
 </tr>
 </tbody>
 </table>
@@ -325,11 +305,7 @@ and the User object does not already have a public key registered.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name" colspan="2">Referenced with:</th></tr>
-<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
-<li>r&#8217;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/project/$&#8217;</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Key:</th><td class="field-body">r&#8217;^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/project/$&#8217;</td>
 </tr>
 </tbody>
 </table>

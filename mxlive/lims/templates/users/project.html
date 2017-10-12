@@ -3,14 +3,14 @@
 {% load link_list %}
 
 {% block page_heading %}
-<h2>Welcome, {{ user|title }}</h2>
+<h3 class="overflow ellipsis">Welcome, {{ user.first_name|title }}</h3>
 {% endblock %}
 
 {% block object_tools %}
     <span class="box-tools pull-right">
         <a class="pull-right" href="{% url "session-list" %}">
             <i class="fa fa-2 fa-clock-o"></i><br>
-            <span class="tool-label">Session History</span>
+            <span class="tool-label">Sessions</span>
         </a>
         <a class="pull-right" data-url="{% url "shipment-new" %}">
             <i class="fa fa-2 fa-plus"></i><br>
@@ -20,10 +20,11 @@
 {% endblock %}
 
 {% block full %}
-
-    <div class="col-xs-12 col-md-9 list-group">
+<div class="row">
+    <div class="col-xs-12 col-md-9">
+        <div class="list-group">
             <a data-url="{% url "shipment-new" %}" class="list-group-item empty">
-                <div class="row">
+                <div class="row overflow ellipsis">
                     <div class="col-xs-12">
                         <div class="box-status pull-left">
                             <div class="text-center text-muted">
@@ -33,23 +34,31 @@
                         </div>
                         <div class="box-info pull-left">
                             <h4 class="text-condensed narrow-heading overflow ellipsis">Click here to start a new shipment!</h4>
-                            <span>Follow the steps to enter your sample information</span>
+                            <span class="overflow ellipsis">Follow the steps to enter your sample information</span>
                         </div>
                     </div>
                 </div>
             </a>
-        {% for object in shipments %}
-            {% include "users/entries/shipment-list-item.html" with object=object %}
-        {% endfor %}
+            {% for object in shipments %}
+                {% include "users/entries/shipment-list-item.html" with object=object %}
+            {% endfor %}
+        </div>
+
+        {% if sessions %}
+            <h3>Recent Beamline Sessions</h3>
+            <div class="list-group list-group-hover">
+                {% for session in sessions %}
+                    {% include "users/entries/session-list-item.html" with session=session %}
+                {% endfor %}
+            </div>
+        {% endif %}
     </div>
 
         <!-- left region -->
 	<div id="left-content" class="col-xs-12 col-md-3">
-    {% load_announcements %}
+        {% load_announcements %}
 	</div>
-	<div class="clear spacer"></div>
-    <hr />
-
+</div>
 {% endblock %}	
 
 

@@ -30,7 +30,7 @@
                 x = coords[0]*calc_width;
                 y = coords[1]*calc_height;
             }
-            nodes.push({'id': key, 'x': x, 'y': y, 'sample': coords[2], 'accepts': coords[4], 'group': coords[3]});
+            nodes.push({'id': key, 'x': x, 'y': y, 'sample': coords[2], 'accepts': coords[6], 'group': coords[3], 'started': coords[5]});
         }
         return nodes;
     }
@@ -74,6 +74,9 @@
                     if(d.accepts) {
                         return d.accepts;
                     }
+                    if(d.started) {
+                        return 'started';
+                    }
                     return 'full';
                 }
                 return 'empty';
@@ -113,7 +116,6 @@
         if (accepts) {
             drawLocations(info.parent, info.nodes, info.labels, info.radius, svgLocation);
         }
-
 
         return svgLocation;
     }

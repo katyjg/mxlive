@@ -6,33 +6,34 @@
     <div class="row">
         <div class="col-xs-12">
         {% if object.status >= object.STATES.ON_SITE %}
-            <a href="{% url 'shipment-protocol' object.pk %}" >
-            <div class="pull-right box-tools">
-                <span class="pull-right">
-                    <span class="fa-stack">
-                        <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
-                        {% if object.num_datasets %}
-                        <span class="fa-stack-1x superscript">
-                            <span class="badge progress-bar-info">{{ object.num_datasets }}</span>
+
+            <div class="pull-right box-tools box-tools-min">
+                <a href="{% url 'shipment-protocol' object.pk %}">
+                    <span>
+                        <span class="fa-stack pull-right hidden-xs">
+                            <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
+                            {% if object.num_results %}
+                                <span class="fa-stack-1x superscript">
+                                    <span class="badge progress-bar-info">{{ object.num_results }}</span>
+                                </span>
+                            {% endif %}
                         </span>
-                        {% endif %}
-                    </span>&emsp;&emsp;
-                    <span class="fa-stack">
-                        <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-                        {% if object.num_results %}
-                            <span class="fa-stack-1x superscript">
-                                <span class="badge progress-bar-info">{{ object.num_results }}</span>
-                            </span>
-                        {% endif %}
+                        <span class="fa-stack fa-stack-center-xs">
+                            <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
+                            {% if object.num_datasets %}
+                                <span class="fa-stack-1x superscript">
+                                    <span class="badge progress-bar-info">{{ object.num_datasets }}</span>
+                                </span>
+                            {% endif %}
+                        </span>&emsp;&emsp;
                     </span>
-                    <br><span class="tool-label">Data & Analysis</span>
-                </span>
+                    <br><span>Data<text class="hidden-xs"> & Analysis</text></span>
+                </a>
             </div>
-            </a>
+
         {% endif %}
-        <a href="{% url 'shipment-detail' object.pk %}" >
-            <div class="overflow ellipsis text-muted">
-                <div class="box-status pull-left">
+        <a href="{% url 'shipment-detail' object.pk %}" class="text-muted overflow ellipsis">
+                <div class="box-status pull-left text-muted">
                     <div class="text-center text-muted">
                         <div title="{% if object.status == object.STATES.ON_SITE %}Location: {{ object.storage_location }}
                                     {% elif object.status == object.STATES.SEND %}Sent on {{ object.date_shipped }}
@@ -46,13 +47,12 @@
                     </div>
                 </div>
                 <div class="box-info pull-left">
-                    <h4 class="text-condensed narrow-heading overflow ellipsis">
+                    <h4 class="text-condensed narrow-heading">
                         <strong class="text-muted">{% if user.is_superuser %}{{ object.project }}{% else %}{{ object.identity }}{% endif %}</strong> |
                         {{ object.name }}
                     </h4>
                     <span><strong>{{ object.num_containers }}</strong> Container{{ object.num_containers|pluralize }} / <strong>{{ object.num_samples }}</strong> Sample{{ object.num_samples|pluralize }}</span>
                 </div>
-            </div>
         </a>
         </div>
     </div>

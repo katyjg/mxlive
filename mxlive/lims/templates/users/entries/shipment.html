@@ -109,7 +109,9 @@
                     <div id="layout-{{ container.pk }}" class="layout-lg">
                         <h4 class="text-condensed">
                             <a href="{% url "container-detail" pk=container.pk %}">
-                                <span class="text-muted">{{ container.identity }}</span> | <strong>{{ container.name }}</strong>
+                                {% if container.parent %}
+                                    <span class="text-muted" title="Loaded">{% if container.dewar %}{{ container.dewar.beamline }}{% else %}{{ container.parent.kind.name }} {{ container.parent.name }}{% endif %} {{ container.port }} | </span>{% endif %}
+                                <strong>{{ container.name }}</strong>
                             </a>
                         </h4>
                     </div>

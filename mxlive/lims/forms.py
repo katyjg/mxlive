@@ -296,17 +296,25 @@ class ShipmentSendForm(forms.ModelForm):
 
 
 class ShipmentReturnForm(forms.ModelForm):
+    loaded = forms.BooleanField(label="I have removed these containers from the automounter(s)")
+
     class Meta:
         model = Shipment
         fields = ['carrier', 'return_code', 'staff_comments']
 
     def __init__(self, *args, **kwargs):
         super(ShipmentReturnForm, self).__init__(*args, **kwargs)
+        if self.instance.container_set.filter(parent__isnull=False):
+            self.fields['loaded'].label += ": {}".format(','.join(self.instance.container_set.filter(parent__isnull=False).values_list('name', flat=True)))
+        else:
+            self.fields['loaded'].initial = True
+            self.fields['loaded'].widget = forms.HiddenInput()
         self.helper = FormHelper()
         self.helper.title = u"Add Shipping Information"
         self.helper.form_action = reverse_lazy('shipment-return', kwargs={'pk': self.instance.pk})
         self.helper.layout = Layout(
             Div(
+                Div(Field('loaded'), css_class="col-xs-12"),
                 Div(Field('carrier', css_class="chosen"), css_class="col-xs-6"),
                 Div('return_code', css_class="col-xs-6"),
                 Div('staff_comments', css_class="col-xs-12"),

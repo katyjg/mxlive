@@ -299,12 +299,12 @@ img.line-icon {
 .box-tools-sm a + a {
     margin-right: 1em;
 }
-.box-tools a, .box-tools span {
+.box-tools a, .box-tools span, .box-tools span.a {
     position: relative;
     text-align: center;
     padding: 0 0.65em;
 }
-.box-tools a span {
+.box-tools a span, .box-tools span.a > span {
     padding: 0 0.25em;
 }
 .box-tools a.separator, .box-tools span.separator {
@@ -317,14 +317,29 @@ img.line-icon {
 .box-tools span.separator {
     height: 100%;
 }
+.box-tools-min {
+    min-width: 60px;
+    margin-right: -5px;
+    text-align: center;
+}
 .box-status {
+    position: absolute;
+    left: 0;
+    top: 0;
     width: 65px;
     padding-right: 0.5em;
-    padding-left: 0;
+    padding-left: 0.5em;
+    padding-top: 0.5em;
     border-right: 1px solid rgba(0,0,0,0.15);
 }
 .box-info {
     padding-left: 1em;
+}
+a.text-muted:hover {
+    color: #333;
+}
+.box-status + .box-info {
+    padding-left: 65px;
 }
 .superscript {
     top: -1.5em !important;
@@ -347,6 +362,10 @@ img.line-icon {
     /* hidden tool labels on small screens */
     .btn-label, .tool-label {
         display: none;
+    }
+    .fa-stack-center-xs {
+        display: table;
+        margin: -1em auto;
     }
 }
 table.table {
@@ -532,7 +551,7 @@ svg {
 svg {
     overflow: visible !important;
 }
-.list-group .box-tools a {
+.list-group .box-tools a, .list-group .box-tools span.a {
     padding-right: 0px;
     padding-left: 0px;
 }
@@ -592,6 +611,11 @@ svg {
 }
 .full {
     fill: #7abfd3 !important;
+    opacity: 0.75 !important;
+}
+.started {
+    fill: #7abfd3 !important;
+    opacity: 0.30 !important;
 }
 .selected {
     fill: #883a6a !important;
