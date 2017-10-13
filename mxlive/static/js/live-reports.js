@@ -7,17 +7,42 @@ function draw_xy_chart() {
                 innerwidth = width - margin.left - margin.right,
                 innerheight = height - margin.top - margin.bottom;
 
-            if (xscale == 'ordinal') {
-                var x_scale = d3.scale.ordinal()
-                    .range([0, innerwidth])
-                    .domain(datasets.map(function (d) {
-                        return d.x;
-                    }));
-            } else {
-                var x_scale = d3.scaleLinear()
-                    .range([0, innerwidth])
-                    .domain([ d3.min(datasets, function(d) { return d3.min(d.x); }),
-                              d3.max(datasets, function(d) { return d3.max(d.x); }) ]) ;
+            switch (xscale) {
+                case 'inv-square':
+                    var x_scale = d3.scalePow().exponent(-0.5)
+                                    .range([0, innerwidth])
+                                    .domain([ d3.min(datasets, function(d) { return d3.max(d.x); }),
+                                              d3.max(datasets, function(d) { return d3.min(d.x); }) ]) ;
+                    break;
+                case 'pow':
+                    var x_scale = d3.scalePow()
+                                    .range([0, innerwidth])
+                                    .domain([ d3.min(datasets, function(d) { return d3.min(d.x); }),
+                                              d3.max(datasets, function(d) { return d3.max(d.x); }) ]) ;
+                    break;
+                case 'log':
+                    var x_scale = d3.scaleLog()
+                                    .range([0, innerwidth])
+                                    .domain([ d3.min(datasets, function(d) { return d3.min(d.x); }),
+                                              d3.max(datasets, function(d) { return d3.max(d.x); }) ]) ;
+                    break;
+                case 'identity':
+                    var x_scale = d3.scaleIdentity()
+                                    .range([0, innerwidth])
+                                    .domain([ d3.min(datasets, function(d) { return d3.min(d.x); }),
+                                              d3.max(datasets, function(d) { return d3.max(d.x); }) ]) ;
+                    break;
+                case 'time':
+                    var x_scale = d3.scaleTime()
+                                    .range([0, innerwidth])
+                                    .domain([ d3.min(datasets, function(d) { return d3.min(d.x); }),
+                                              d3.max(datasets, function(d) { return d3.max(d.x); }) ]) ;
+                    break;
+                case 'linear':
+                    var x_scale = d3.scaleLinear()
+                                    .range([0, innerwidth])
+                                    .domain([ d3.min(datasets, function(d) { return d3.min(d.x); }),
+                                              d3.max(datasets, function(d) { return d3.max(d.x); }) ]) ;
             }
 
             var color_scale = d3.scaleOrdinal(d3.schemeCategory10);
@@ -62,7 +87,7 @@ function draw_xy_chart() {
             for (var p = 0; p < datasets.length; p++) {
                 if (datasets[p]['y1']) {
                     y1_draw_line.push(d3.line()
-                        .curve(d3.curveCardinal)
+                        .curve(d3.curveCatmullRom)
                         .x(function (d) {
                             return x_scale(d[0]);
                         })
@@ -71,7 +96,7 @@ function draw_xy_chart() {
                         }));
                 } else if (datasets[p]['y2']) {
                     y2_draw_line.push(d3.line()
-                        .curve(d3.curveCardinal)
+                        .curve(d3.curveCatmullRom)
                         .x(function (d) {
                             return x_scale(d[0]);
                         })

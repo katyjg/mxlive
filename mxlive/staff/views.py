@@ -69,8 +69,8 @@ class ProjectList(AdminRequiredMixin, FilteredListView):
     paginate_by = 25
     template_name = "users/list.html"
     list_filter = ['modified', ]
-    list_display = ['username', 'contact_name', 'contact_phone', 'contact_email', 'shipment_count', 'forms']
-    search_fields = ['username', 'contact_name', 'contact_phone', 'contact_email', 'city', 'province', 'country',
+    list_display = ['username', 'contact_person', 'contact_phone', 'contact_email', 'shipment_count', 'forms']
+    search_fields = ['username', 'contact_person', 'contact_phone', 'contact_email', 'city', 'province', 'country',
                      'department', 'organisation']
     detail_url = 'edit-profile'
     detail_url_kwarg = 'username'

@@ -555,6 +555,7 @@ class Shipment(ObjectBaseClass):
             self.date_returned = timezone.now()
             self.save()
             self.container_set.all().update(parent=None, location="")
+            LoadHistory.objects.filter(child__in=self.container_set.all()).active().update(end=timezone.now())
             for obj in self.container_set.all():
                 obj.returned(request=request)
             super(Shipment, self).returned(request=request)
@@ -648,6 +649,9 @@ class Container(LoadableBaseClass):
 
     def num_samples(self):
         return self.sample_set.count()
+
+    def capacity(self):
+        return self.kind.container_locations.count()
 
     def has_children(self):
         return self.children.count() > 0
@@ -1097,7 +1101,7 @@ class AnalysisReport(DataBaseClass):
     score = models.FloatField()
     data = models.ForeignKey(Data, related_name="reports")
     url = models.CharField(max_length=200)
-    details = JSONField()
+    details = JSONField(default=[])
 
     class Meta:
         ordering = ['-score']

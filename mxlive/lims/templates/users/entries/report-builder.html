@@ -5,28 +5,52 @@
 
 <script type="text/javascript" src="{% static "js/d3.v4.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/d3.legend.js" %}"></script>
+<script type="text/javascript" src="{% static "js/showdown.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/live-reports.js" %}"></script>
 
 <script>
 
 var report = {{ object.details|json_to_dict }};
 
+var converter = new showdown.Converter(),
+    text      = '#hello, markdown!',
+    html      = converter.makeHtml(text);
+
 $.each(report, function(i, section) {
-    $('#report-builder').append('<div id="row-'+i+'"></div>');
+    $('#report-builder').append('<div class="row" id="row-'+i+'"></div>');
     var row = $('#row-'+i);
-    row.append("<h3 class='text-condensed text-center'>"+section['title']+"</h3>");
+
+    row.append("<h3 class='text-condensed col-xs-12'>"+section['title']+"</h3>");
+
+    if (section['style']) {
+        row.addClass(section['style']);
+    }
     if (section['description']) {
-        row.append("<small class='text-muted'>" + section['description'] + "</small>");
-    };
-    $.each(section['data'], function(j, entry) {
+        row.append("<small class='text-muted col-xs-12'>" + converter.makeHtml(section['description']) + "</small>");
+    }
+
+    $.each(section['content'], function(j, entry) {
+        row.append("<div id='entry-"+i+"-"+j+"'></div>");
+        var div = $('#entry-'+i+'-'+j);
+        if (entry['style']) {
+            div.addClass(entry['style']);
+        }
+        if (entry['title']) {
+            if (entry['kind'] == 'table') {
+                div.append("<h4 class='text-center'>Table " + ($('table').length + 1) + '. ' + entry['title'] + "</h4>")
+            } else {
+                div.append("<h4 class='text-center'>Graph " + ($('svg').length + 1) + '. ' + entry['title'] + "</h4>")
+            }
+        }
+        if (entry['description']) {
+            div.append("<span class=text-center text-muted>" + converter.makeHtml(entry['description']) + "</span>")
+        }
         if (entry['kind'] == 'table') {
             if(entry['data']) {
                 var table = $("<table id='table-" + i + "-" + j + "' class='table table-hover report-table'></table>");
                 var thead = $('<thead></thead>');
                 var tbody = $('<tbody></tbody>');
-                if (entry['title']) {
-                    table.append("<thead><tr><th class='table-heading' colspan=" + entry['data'][0].length + ">Table "+ ($('table').length+1) + '. ' + entry['title'] + "</th></tr></thead>")
-                }
+
                 $.each(entry['data'], function (l, line) {
                     if (line) {
                         var tr = $('<tr></tr>');
@@ -47,12 +71,12 @@ $.each(report, function(i, section) {
                 });
                 table.append(thead);
                 table.append(tbody);
-                row.append(table);
+                div.append(table);
             }
         } else if (entry['kind'] == 'lineplot' || entry['kind'] == 'scatterplot') {
             var data = [];
             var xlabel = entry['data']['x'].shift();
-            var xscale = entry['data']['xscale'] || 'linear';
+            var xscale = entry['data']['x-scale'] || 'linear';
             var y1label = '', y2label = '';
             $.each(entry['data']['y1'], function(l, line) {
                 y1label = line.shift();
@@ -75,14 +99,18 @@ $.each(report, function(i, section) {
                 .xscale(xscale)
                 .notes([])
                 .scatter(entry['kind'] == 'scatterplot' && 'scatter' || entry['kind'] == 'lineplot' && 'line');
-            var svg = d3.select('#row-'+i).append("svg").attr('id','plot-' + i + "-" + j)
+            var svg = d3.select('#entry-'+i+'-'+j).append("svg").attr('id','plot-' + i + "-" + j)
                 .datum(data)
                 .call(xy_chart) ;
         }
-        if (entry['data'] && entry['description']) {
-            row.append("<div class='caption'>"+entry['description']+"</div>");
+        if (entry['data'] && entry['notes']) {
+            div.append("<div class='caption'>" + converter.makeHtml(entry['notes']) + "</div>");
         }
     });
+
+    if (section['notes']) {
+        row.append("<small class='col-xs-12 text-muted'>" + convert.makeHtml(section['notes']) + "</small>");
+    }
 });
 
 </script>

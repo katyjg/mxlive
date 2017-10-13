@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                v3.1.4-19-g093f9a8
+                v3.1.4-20-gc6a65f6
 
               </div>
             
@@ -171,6 +171,42 @@
   <div class="section" id="data">
 <h1>Data<a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h1>
 <p>Data objects store meta-data about datasets collected on the beamline, and reference files stored on a file server.</p>
+<span class="target" id="module-lims.models"></span><dl class="class">
+<dt id="lims.models.Data">
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">Data</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>group</em>, <em>sample</em>, <em>session</em>, <em>file_name</em>, <em>frames</em>, <em>exposure_time</em>, <em>attenuation</em>, <em>energy</em>, <em>beamline</em>, <em>beam_size</em>, <em>url</em>, <em>kind</em>, <em>download</em>, <em>meta_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lims/models.html#Data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.Data" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>AutoField</em>) &#8211; Id</li>
+<li><strong>project_id</strong> (<em>ForeignKey</em>) &#8211; Project</li>
+<li><strong>name</strong> (<em>CharField</em>) &#8211; Name</li>
+<li><strong>staff_comments</strong> (<em>TextField</em>) &#8211; Staff comments</li>
+<li><strong>created</strong> (<em>DateTimeField</em>) &#8211; Date created</li>
+<li><strong>modified</strong> (<em>DateTimeField</em>) &#8211; Date modified</li>
+<li><strong>status</strong> (<em>IntegerField</em>) &#8211; Status</li>
+<li><strong>group_id</strong> (<em>ForeignKey</em>) &#8211; Group</li>
+<li><strong>sample_id</strong> (<em>ForeignKey</em>) &#8211; Sample</li>
+<li><strong>session_id</strong> (<em>ForeignKey</em>) &#8211; Session</li>
+<li><strong>file_name</strong> (<em>CharField</em>) &#8211; File name</li>
+<li><strong>frames</strong> (<em>FrameField</em>) &#8211; Frames</li>
+<li><strong>exposure_time</strong> (<em>FloatField</em>) &#8211; Exposure time</li>
+<li><strong>attenuation</strong> (<em>FloatField</em>) &#8211; Attenuation</li>
+<li><strong>energy</strong> (<em>DecimalField</em>) &#8211; Energy</li>
+<li><strong>beamline_id</strong> (<em>ForeignKey</em>) &#8211; Beamline</li>
+<li><strong>beam_size</strong> (<em>FloatField</em>) &#8211; Beam size</li>
+<li><strong>url</strong> (<em>CharField</em>) &#8211; Url</li>
+<li><strong>kind</strong> (<em>CharField</em>) &#8211; Data type</li>
+<li><strong>download</strong> (<em>BooleanField</em>) &#8211; Download</li>
+<li><strong>meta_data</strong> (<em>JSONField</em>) &#8211; Meta data</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 

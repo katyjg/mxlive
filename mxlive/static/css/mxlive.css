@@ -304,7 +304,7 @@ img.line-icon {
     text-align: center;
     padding: 0 0.65em;
 }
-.box-tools a span, .box-tools span.a > span {
+.box-tools a span, .list-group .box-tools span.a > span {
     padding: 0 0.25em;
 }
 .box-tools a.separator, .box-tools span.separator {
@@ -554,9 +554,6 @@ svg {
 .list-group .box-tools a, .list-group .box-tools span.a {
     padding-right: 0px;
     padding-left: 0px;
-}
-.box-tools a[data-toggle="collapse"] {
-    padding: 0;
 }
 .comments {
     background-color: rgba(0,110,182,0.15);

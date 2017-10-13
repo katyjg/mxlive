@@ -39,7 +39,7 @@
                     </div>
                     <div class="box-info pull-left">
                         <h4 class="text-condensed narrow-heading overflow ellipsis">
-                            <strong class="text-muted">{{ session.beamline.acronym }}</strong> | {{ session.name }}{% if user.is_superuser %} | {{ session.project }}{% endif %}
+                            <strong class="text-muted">{{ session.beamline.acronym }}</strong>{% if user.is_superuser %} | {{ session.project }}{% endif %} | {{ session.name }}
                         </h4>
                         <span>Last record {{ session.end|naturalday }}</span>
                     </div>

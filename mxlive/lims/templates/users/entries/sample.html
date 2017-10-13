@@ -60,6 +60,8 @@
             <div class="list-group list-group-hover">
                 {% for data in object.data_set.all %}
                     {% include "users/entries/data-thumbnail.html" with detail=True %}
+                {% empty %}
+                    <div class="list-group-item empty">No data collected for this sample yet.</div>
                 {% endfor %}
             </div>
         </div>

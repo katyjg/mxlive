@@ -63,9 +63,42 @@
         {% if object.status > object.STATES.DRAFT %}
             {% include "users/entries/group-protocol.html" with group=object %}
         {% else %}
-            {% include "objlist/object_list.html" with object_list=object.sample_set.all %}
+            <div class="sortable">
+                {% include "objlist/object_list.html" with object_list=object.sample_set.all %}
+            </div>
         {% endif %}
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+    $(".sortable table").sortable({
+        items: "tr",
+        handle: ".cursor",
+        cursor: 'move',
+        opacity: 0.9,
+        axis: 'y',
+        update: function() {
+            prioritize();
+        }
+    });
+
+    function prioritize() {
+        var order = $(".sortable table").sortable("toArray", {key: 'sample', attribute: 'data-detail-url'} );
+        $.ajax({
+        type: "POST", dataType: "json", url: "{% url 'update-priority' %}",
+        data: {
+            'group': {{ object.pk }},
+            'samples': order
+        },
+        success: function(response) {
+            window.location.reload();
+        }
+        });
+    }
+
+</script>
 {% endblock %}

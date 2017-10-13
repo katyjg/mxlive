@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                v3.1.4-19-g093f9a8
+                v3.1.4-20-gc6a65f6
 
               </div>
             
@@ -725,6 +725,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">date_returned</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">container_set</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">LoadHistory</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">child__in</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">container_set</span><span class="o">.</span><span class="n">all</span><span class="p">())</span><span class="o">.</span><span class="n">active</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">end</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
             <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">container_set</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
                 <span class="n">obj</span><span class="o">.</span><span class="n">returned</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
             <span class="nb">super</span><span class="p">(</span><span class="n">Shipment</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">returned</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
@@ -883,6 +884,19 @@
             <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_set</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
                 <span class="n">obj</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
             <span class="nb">super</span><span class="p">(</span><span class="n">Container</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">LoadHistory</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">child</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Container</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;parent_history&#39;</span><span class="p">)</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Container</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children_history&#39;</span><span class="p">)</span>
+    <span class="n">location</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">ContainerLocation</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">objects</span> <span class="o">=</span> <span class="n">StretchManager</span><span class="p">()</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">ordering</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;-start&#39;</span><span class="p">,</span> <span class="p">]</span>
 
 
 <div class="viewcode-block" id="Dewar"><a class="viewcode-back" href="../../modules/models.html#lims.models.Dewar">[docs]</a><span class="k">class</span> <span class="nc">Dewar</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
@@ -1247,14 +1261,14 @@
         <span class="n">verbose_name</span> <span class="o">=</span> <span class="s1">&#39;Dataset&#39;</span></div>
 
 
-<div class="viewcode-block" id="AnalysisReport"><a class="viewcode-back" href="../../modules/models.html#lims.models.AnalysisReport">[docs]</a><span class="k">class</span> <span class="nc">AnalysisReport</span><span class="p">(</span><span class="n">DataBaseClass</span><span class="p">):</span>
+<div class="viewcode-block" id="AnalysisReport"><a class="viewcode-back" href="../../reports.html#lims.models.AnalysisReport">[docs]</a><span class="k">class</span> <span class="nc">AnalysisReport</span><span class="p">(</span><span class="n">DataBaseClass</span><span class="p">):</span>
     <span class="n">kind</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
     <span class="n">group</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Group</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">sample</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Sample</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">score</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FloatField</span><span class="p">()</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Data</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;reports&quot;</span><span class="p">)</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;Result&#39;</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;reports&quot;</span><span class="p">)</span>
-    <span class="n">details</span> <span class="o">=</span> <span class="n">JSONField</span><span class="p">()</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+    <span class="n">details</span> <span class="o">=</span> <span class="n">JSONField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="p">[])</span>
 
     <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
         <span class="n">ordering</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;-score&#39;</span><span class="p">]</span>

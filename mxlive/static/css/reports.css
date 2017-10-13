@@ -15,17 +15,19 @@ g.axis > text {
     font-size: 125%;
 }
 .caption {
-    background-color: #efefef;
-    padding: 15px;
     max-width: 80%;
     margin: auto;
+    background-color: #efefef;
+    padding: 15px;
     margin-bottom: 30px;
 }
 th.table-heading {
     text-align: center;
 }
-table.report-table {
+div[id^=entry] {
     margin-top: 20px !important;
+}
+table.report-table, table + .caption {
     max-width: 80%;
     margin: auto;
     border: 1px solid #ddd;

@@ -246,6 +246,14 @@ class AddReport(VerificationMixin, View):
         except:
             raise http.Http404("Data does not exist")
 
+        # Download  key
+        url = IMAGE_URL + '/data/create/'
+        r = requests.post(url, data={'path': info.get('directory')})
+        if r.status_code == 200:
+            key = r.json()['key']
+        else:
+            raise http.HttpResponseServerError("Unable to create SecurePath")
+
         sample = data.sample
         group = sample and sample.group or None
         details = {
@@ -256,7 +264,8 @@ class AddReport(VerificationMixin, View):
             'score': info.get('score'),
             'kind': info.get('type'),
             'details': info.get('details'),
-            'name': info.get('name')
+            'name': info.get('name'),
+            'url': key
         }
         report = AnalysisReport.objects.filter(pk=info.get('id')).first()
 

@@ -1,6 +1,11 @@
 import os
 import pickle
 import urlparse
+from django.views.generic import View
+from django import http
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.db import transaction
 
 import numpy
 import requests
@@ -65,6 +70,26 @@ def create_png(filename, output, brightness, resolution=(1024, 1024)):
     if not os.path.exists(dir_name) and dir_name != '':
         os.makedirs(dir_name)
     img_info.save(output, 'PNG')
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class UpdatePriority(View):
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        try:
+            group = models.Group.objects.get(pk=request.POST.get('group'))
+        except models.Group.DoesNotExist:
+            raise http.Http404("Group does not exist.")
+
+        if group.project != request.user:
+            raise http.Http403()
+
+        urls = [u for u in request.POST.getlist('samples[]') if u]
+        for i, url in enumerate(urls):
+            models.Sample.objects.filter(pk=''.join([s for s in url if s.isdigit()])).update(priority=i+1)
+
+        return JsonResponse([], safe=False)
 
 
 def update_locations(request):

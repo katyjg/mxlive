@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils.text import slugify
 from django.utils import timezone
 from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.views.generic import edit, detail
 from django.db import transaction
 
@@ -54,7 +55,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             sh = models.Shipment.objects.filter(status__in=[models.Shipment.STATES.ON_SITE,models.Shipment.STATES.SENT])
             context['shipments'] = sh.order_by('status','-modified')
             context['automounters'] = models.Dewar.objects.filter(active=True).order_by('beamline__name')
-            context['sessions'] = models.Session.objects.filter(pk__in=models.Stretch.objects.recent_days(30).values_list('session__pk', flat=True)).order_by('-created')
+            context['sessions'] = models.Session.objects.filter(pk__in=models.Stretch.objects.recent_days(14).values_list('session__pk', flat=True)).order_by('-created')
         else:
             sh = self.get_object().shipment_set.filter(status__lt=models.Shipment.STATES.ARCHIVED).order_by('modified')
             base_set = sh.filter(status__lte=models.Shipment.STATES.ON_SITE).distinct()
@@ -64,7 +65,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             else:
                 pks = base_set.values_list('pk')
             context['shipments'] = sh.filter(pk__in=pks).order_by('status', '-modified')
-            sessions = self.get_object().sessions.filter(pk__in=models.Stretch.objects.recent_days(365).values_list('session__pk', flat=True)).order_by('-created')
+            sessions = self.get_object().sessions.filter(pk__in=models.Stretch.objects.recent_days(180).values_list('session__pk', flat=True)).order_by('-created')
             context['sessions'] = sessions.count() < 7 and sessions or sessions[:7]
 
         return context
@@ -122,10 +123,15 @@ class DetailListMixin(OwnerRequiredMixin):
     def get_context_data(self, **kwargs):
         c = super(DetailListMixin, self).get_context_data(**kwargs)
         c['object'] = self.get_object()
+        c['total_objects'] = self.get_queryset().count()
         return c
 
     def get_object(self):
         return self.extra_model.objects.get(pk=self.kwargs['pk'])
+
+    def get_queryset(self):
+        qs = super(DetailListMixin, self).get_queryset()
+        return self.get_object().sample_set.all()
 
 
 class ShipmentList(ListViewMixin, FilteredListView):
@@ -152,7 +158,7 @@ class ShipmentDetail(OwnerRequiredMixin, detail.DetailView):
 
 
 class ShipmentLabels(Tex2PdfMixin, ShipmentDetail):
-    template_name = "users/labels-send.html"
+    template_name = "users/tex/send_labels.html"
 
     def get_template_name(self):
         if self.request.user.is_superuser:
@@ -362,6 +368,7 @@ class ContainerDetail(DetailListMixin, SampleList):
         filters = super(ContainerDetail, self).get_filters(request)
         if self.get_object().has_children():
             self.list_display.append('container')
+        self.owner_field = 'project'
         return filters
 
     def get_object(self):
@@ -401,7 +408,6 @@ class ContainerLoad(AdminRequiredMixin, ContainerEdit):
         if data['parent']:
             models.LoadHistory.objects.create(child=self.object, parent=data['parent'], location=data['location'])
         else:
-            print 'unloading', self.object, self.object.parent, self.object.location
             models.LoadHistory.objects.filter(child=self.object).active().update(end=timezone.now())
         return super(ContainerLoad, self).form_valid(form)
 
@@ -419,7 +425,6 @@ class LocationLoad(AdminRequiredMixin, ContainerEdit):
 
     def form_valid(self, form):
         data = form.cleaned_data
-        print data
         models.Container.objects.filter(pk=data['child'].pk).update(parent=self.object, location=data['container_location'])
         models.LoadHistory.objects.create(child=data['child'], parent=self.object, location=data['container_location'])
         return super(LocationLoad, self).form_valid(form)
@@ -442,7 +447,9 @@ class EmptyContainers(AdminRequiredMixin, edit.UpdateView):
 
     def form_valid(self, form):
         data = form.cleaned_data
-        self.object.container_set.filter(parent=data.get('parent')).update(**{'location': None, 'parent': None})
+        containers = self.object.container_set.filter(parent=data.get('parent'))
+        models.LoadHistory.objects.filter(child__in=containers).active().update(end=timezone.now())
+        containers.update(**{'location': None, 'parent': None})
         return HttpResponse()
 
 
@@ -469,10 +476,17 @@ class GroupList(ListViewMixin, FilteredListView):
     list_transforms = {}
 
 
+def movable(val, record):
+    return "<span class='cursor'><i class='fa fa-fw fa-1x fa-grip'></i> {}</span>".format(val)
+
+
 class GroupDetail(DetailListMixin, SampleList):
     extra_model = models.Group
     template_name = "users/entries/group.html"
-    list_display = ['name', 'barcode', 'container_and_location', 'comments']
+    list_display = ['priority', 'name', 'barcode', 'container_and_location', 'comments']
+    list_transforms = {
+        'priority': movable,
+    }
     detail_url = 'sample-edit'
     detail_ajax = True
     detail_target = '#modal-form'
@@ -610,7 +624,8 @@ class BeamlineDetail(AdminRequiredMixin, detail.DetailView):
         return context
 
 
-from django.contrib.humanize.templatetags.humanize import naturaltime
+
+
 
 def format_time(val, record):
     return naturaltime(val) or ""
@@ -681,12 +696,13 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
             elif label == 'groups':
                 if form.cleaned_data['fill']:
                     to_create = []
-                    for c in self.shipment.container_set.all():
+                    for priority, c in enumerate(self.shipment.container_set.all()):
                         data = {
                             'name': slugify(c.name),
                             'sample_count': c.capacity(),
                             'shipment': self.shipment,
                             'project': project,
+                            'priority': priority + 1
                         }
                         group, created = models.Group.objects.get_or_create(**data)
                         for i, location in enumerate(c.kind.container_locations.all()):

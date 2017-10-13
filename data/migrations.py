@@ -146,7 +146,8 @@ for r in Result.objects.filter(kind=1):
             A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64.
             [4] - {}.
             """.format(r.details.get('resolution_method', r.details.get('strategy', {}).get('resolution_reasoning'))),
-        'data': [
+        'style': 'summary',
+        'content': [
             {
                 'title': 'Observed Parameters',
                 'kind': 'table',
@@ -167,9 +168,9 @@ for r in Result.objects.filter(kind=1):
                          r.cc_half and ['CC(1/2)[5]', r.cc_half] or ['R-mrgd-F[5]', getattr(r, 'r_mrgd', 'unknown')],
                          ['Spot deviation', r.sigma_spot],
                          r.ice_rings != -1 and ['Ice Rings', r.ice_rings]
-    ],
+                ],
                 'header': 'column',
-                'description': """[1] - Data Quality Score for comparing similar data sets. Typically, values > 0.8 are excellent, > 0.6 are good, > 0.5 are acceptable, > 0.4 marginal, and < 0.4 are Barely usable
+                'notes': """[1] - Data Quality Score for comparing similar data sets. Typically, values > 0.8 are excellent, > 0.6 are good, > 0.5 are acceptable, > 0.4 marginal, and < 0.4 are Barely usable
                                   [2] - This space group was automatically assigned using POINTLESS (see P.R.Evans, Acta Cryst. D62, 72-82, 2005). This procedure is unreliable for incomplete datasets such as those used for screening. Please Inspect the detailed results below.
                                   [3] - Resolution selected based on a cut-off of I/sigma(I) > 1.0. Statistics presented reflect this resolution.
                                   [4] - Redundancy independent R-factor. (see Diederichs & Karplus, 1997, Nature Struct. Biol. 4, 269-275.)
@@ -197,12 +198,12 @@ for r in Result.objects.filter(kind=1):
                      ]
                     for i, prob in enumerate(r.details['spacegroup_selection']['probability'])],
                 'header': 'row',
-                'description': """The above table contains results from POINTLESS (see Evans, Acta Cryst. D62, 72-82, 2005). Indistinguishable space groups will have similar probabilities. If two or more of the top candidates have the same probability, the one with the fewest symmetry assumptions is chosen. This usually corresponds to the point group,  trying out higher symmetry space groups within the top tier does not require re-indexing the data as they are already in the same setting. For more detailed results, please inspect the output file 'pointless.log'."""
+                'notes': """The above table contains results from POINTLESS (see Evans, Acta Cryst. D62, 72-82, 2005). Indistinguishable space groups will have similar probabilities. If two or more of the top candidates have the same probability, the one with the fewest symmetry assumptions is chosen. This usually corresponds to the point group,  trying out higher symmetry space groups within the top tier does not require re-indexing the data as they are already in the same setting. For more detailed results, please inspect the output file 'pointless.log'."""
             }
         ]
     },{
         'title': 'Standard errors of reflection intensities by resolution',
-        'data': [
+        'content': [
             {
                 'kind': 'lineplot',
                 'data':
@@ -210,7 +211,7 @@ for r in Result.objects.filter(kind=1):
                         'x': ['Resolution Shell']+ r.details['standard_errors']['shell'],
                         'y1': [['Chi^2']+ r.details['standard_errors']['chi_sq']],
                         'y2': [['I/Sigma']+ r.details['standard_errors']['i_sigma']],
-                        'x-scale': 'ordinal'
+                        'x-scale': 'inv-square'
                     }
             }, {
                 'kind': 'lineplot',
@@ -219,7 +220,7 @@ for r in Result.objects.filter(kind=1):
                         'x': ['Resolution Shell'] + r.details['standard_errors']['shell'],
                         'y1': [['R-observed'] + r.details['standard_errors']['r_obs'],['R-expected'] + r.details['standard_errors']['r_exp']],
                         'y1-label': 'R-factors (%)',
-                        'x-scale': 'ordinal'
+                        'x-scale': 'inv-square'
                     }
 
             },],
@@ -230,7 +231,7 @@ for r in Result.objects.filter(kind=1):
 
     },{
         'title': 'Statistics of final reflections by shell',
-        'data': [
+        'content': [
             {
                 'kind': 'lineplot',
                 'data': {
@@ -261,7 +262,7 @@ for r in Result.objects.filter(kind=1):
                      ]
                     for i, shell in enumerate(r.details['shell_statistics']['shell'])],
                 'header': 'row',
-                'description': """[1] - Mean of intensity/Sigma(I) of unique reflections (after merging symmetry-related observations). Where Sigma(I) is the standard deviation of reflection intensity I estimated from sample statistics.
+                'notes': """[1] - Mean of intensity/Sigma(I) of unique reflections (after merging symmetry-related observations). Where Sigma(I) is the standard deviation of reflection intensity I estimated from sample statistics.
                                   [2] - Mean anomalous difference in units of its estimated standard deviation (|F(+)-F(-)|/Sigma). F(+), F(-) are structure factor estimates obtained from the merged intensity observations in each parity class.
                                   [3] - Percentage of correlation between random half-sets of anomalous intensity differences. """
             }
@@ -269,7 +270,7 @@ for r in Result.objects.filter(kind=1):
         ]
     },{
         'title': 'Statistics of final reflections by frame number and frame number difference',
-        'data': [
+        'content': [
             {
                 'kind': 'scatterplot',
                 'data': {
@@ -300,14 +301,14 @@ for r in Result.objects.filter(kind=1):
                            ['Non-Friedel'] + r.details['diff_statistics']['rd_non_friedel']],
                     'x-label': 'Rd'
                 },
-                'description': """The above plot was calculated by XDSSTAT. See Diederichs K. (2006) Acta Cryst D62, 96-101.
+                'notes': """The above plot was calculated by XDSSTAT. See Diederichs K. (2006) Acta Cryst D62, 96-101.
                                 Divergence - Estimated Standard Deviation of Beam divergence
                                 Rd - R-factors as a function of frame difference. An increase in R-d with frame difference is suggestive of radiation damage. """
             }
         ]
     },{
         'title': 'Wilson Plot',
-        'data': [
+        'content': [
             {
                 'kind': 'lineplot',
                 'data': {
@@ -320,7 +321,7 @@ for r in Result.objects.filter(kind=1):
         ]
     },'twinning_l_test' in r.details and {
         'title': 'L Test for twinning',
-        'data': [
+        'content': [
             {
                 'kind': 'lineplot',
                 'data': {
@@ -336,11 +337,12 @@ for r in Result.objects.filter(kind=1):
     ]
     print collect_details, r.pk
     kind = "{}Processing".format(r.details.get('anomalous') and 'Anomalous ' or "")
-    r.reports.update(details=collect_details, kind=kind)
+    AnalysisReport.objects.filter(pk=r.pk).update(details=collect_details, kind=kind)
 
 
 
 for r in Result.objects.filter(kind=0):
+    print r.pk
     if r.kind == 0 and 'standard_errors' not in r.details.keys():
         screen_details = [{
             'title': 'Predicted Quality and Suggested Strategy',
@@ -354,10 +356,12 @@ for r in Result.objects.filter(kind=0):
                 A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64.
                 [4] - {}.
                 """.format(r.details.get('resolution_method', r.details.get('strategy',{}).get('resolution_reasoning'))),
-            'data': [
+            'style': 'summary',
+            'content': [
                 {
                     'title': 'Observed Parameters',
                     'kind': 'table',
+                    'style': 'col-xs-6',
                     'data': [['Score[1]', r.score],
                              ['Wavelength (A)', r.wavelength],
                              ['Space Group[2]', r.space_group.name],
@@ -368,11 +372,11 @@ for r in Result.objects.filter(kind=0):
                              ['Ice Rings', r.ice_rings]
                     ],
                     'header': 'column',
-                    'description': ''
                 },
                 {
                     'title': 'Expected Quality[3]',
                     'kind': 'table',
+                    'style': 'col-xs-6',
                     'data': [['Resolution (A)[4]', r.details.get('strategy',{}).get('resolution')],
                              ['Multiplicity', r.details.get('strategy',{}).get('multiplicity')],
                              ['Completeness', r.details.get('strategy',{}).get('completeness')],
@@ -381,18 +385,19 @@ for r in Result.objects.filter(kind=0):
                              ['Fraction overloaded', r.details.get('strategy',{}).get('frac_overload')],
                              ],
                     'header': 'column',
-                    'description': ''
                 },
                 {
                     'title': "Kappa and Phi angles for re-orienting the crystal",
                     'kind': 'table',
+                    'style': 'col-xs-12',
                     'data': [['Kappa[*]', 'Phi', 'Vectors (v1,v2)[*]']].extend(r.details.get('crystal_alignment',{}).get('solutions',['','',''])),
                     'header': 'row',
-                    'description': """[*] - Alignment is calculated for the goniometer 'CLS MiniKappa'. The alignment method is v1 parallel to omega, v2 perpendicular to the omega-beam plane.""",
+                    'notes': """[*] - Alignment is calculated for the goniometer 'CLS MiniKappa'. The alignment method is v1 parallel to omega, v2 perpendicular to the omega-beam plane.""",
                 },
                 {
                     'title': "Compatible bravais lattice types",
                     'kind': 'table',
+                    'style': 'col-xs-12',
                     'data': [['No.', 'Lattice type', 'Cell Parameters', 'Quality', 'Cell Volume']] + [
                         [id, r.details['compatible_lattices']['type'][i],
                          r.details['compatible_lattices']['unit_cell'][i], r.details['compatible_lattices']['quality'][i],
@@ -404,6 +409,7 @@ for r in Result.objects.filter(kind=0):
                 {
                     'title': "Automatic Space-Group Selection",
                     'kind': 'table',
+                    'style': 'col-xs-12',
                     'data': [['Selected','Candidates','Space Group No.','Probability']] + [
                         [prob == max(r.details['spacegroup_selection']['probability']) and '*' or '',
                          r.details['spacegroup_selection']['name'][i],
@@ -412,20 +418,21 @@ for r in Result.objects.filter(kind=0):
                         ]
                     for i, prob in enumerate(r.details['spacegroup_selection']['probability'])],
                     'header': 'row',
-                    'description': """The above table contains results from POINTLESS (see Evans, Acta Cryst. D62, 72-82, 2005). Indistinguishable space groups will have similar probabilities. If two or more of the top candidates have the same probability, the one with the fewest symmetry assumptions is chosen. This usually corresponds to the point group,  trying out higher symmetry space groups within the top tier does not require re-indexing the data as they are already in the same setting. For more detailed results, please inspect the output file 'pointless.log'."""
+                    'notes': """The above table contains results from POINTLESS (see Evans, Acta Cryst. D62, 72-82, 2005). Indistinguishable space groups will have similar probabilities. If two or more of the top candidates have the same probability, the one with the fewest symmetry assumptions is chosen. This usually corresponds to the point group,  trying out higher symmetry space groups within the top tier does not require re-indexing the data as they are already in the same setting. For more detailed results, please inspect the output file 'pointless.log'."""
                 }
             ]
         },
         {
             'title': "Predicted statistics for suggested strategy by resolution",
-            'data': [
+            'content': [
                 {
                     'kind': 'lineplot',
                     'data':
                         {
                             'x': ['']+ r.details['predicted_quality']['shell'],
                             'y1': [['Completeness (%)']+ r.details['predicted_quality']['completeness']],
-                            'y2': [['R-factor (%)']+ r.details['predicted_quality']['r_factor']]
+                            'y2': [['R-factor (%)']+ r.details['predicted_quality']['r_factor']],
+                            'x-scale': 'inv-square'
                         }
                 },
                 {
@@ -434,9 +441,10 @@ for r in Result.objects.filter(kind=0):
                         {
                             'x': ['Resolution Shell']+ r.details['predicted_quality']['shell'],
                             'y1': [['I/Sigma(I)']+ r.details['predicted_quality']['i_sigma']],
-                            'y2': [['Multiplicity']+ r.details['predicted_quality']['multiplicity']]
+                            'y2': [['Multiplicity']+ r.details['predicted_quality']['multiplicity']],
+                            'x-scale': 'inv-square'
                         },
-                    'description': "The above plot was calculated by BEST. See A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64"
+                    'notes': "The above plot was calculated by BEST. See A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64"
                 },
                 {
                     'kind': 'table',
@@ -445,14 +453,14 @@ for r in Result.objects.filter(kind=0):
                         for i, shell in enumerate(r.details['predicted_quality']['shell'])
                      ],
                     'header': 'row',
-                    'description': """I/Sigma - Mean intensity/Sigma of a reflection in shell
+                    'notes': """I/Sigma - Mean intensity/Sigma of a reflection in shell
                                       R-factor - &Sigma;|I(h,i)-I(h)| / &Sigma;[I(h,i)]"""
                 }
             ],
         },
-        {
+        'angle' in r.details['overlap_analysis'] and {
             'title': "Maximum Oscillation width to avoid overlapped spots at different resolutions",
-            'data': [
+            'content': [
                 {
                     'kind': 'lineplot',
                     'data': {
@@ -460,13 +468,13 @@ for r in Result.objects.filter(kind=0):
                         'y1': [['{}A'.format(k)]+ v for k, v in r.details['overlap_analysis'].items() if k != 'angle'],
                         'y1-label': 'Maximum Delta (deg)'
                     },
-                    'description': "The above plot was calculated by BEST. See A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64 ",
+                    'notes': "The above plot was calculated by BEST. See A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64 ",
                 },
             ]
-        },
+        } or {},
         {
             'title': "Minimal oscillation ranges for different percentages of data completeness",
-            'data': [
+            'content': [
                 {
                     'kind': 'lineplot',
                     'data': {
@@ -474,13 +482,13 @@ for r in Result.objects.filter(kind=0):
                         'y1': [['{}%'.format(k)]+ v for k, v in r.details['wedge_analysis'].items() if k != 'start_angle'],
                         'y1-label': 'Total Oscillation Angle (deg)'
                     },
-                    'description': "The above plot was calculated by BEST. See A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64 ",
+                    'notes': "The above plot was calculated by BEST. See A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64 ",
                 },
             ]
         },
         {
             'title': "Analysis of exposure time required versus resolution attained",
-            'data': [
+            'content': [
                 {
                     'kind': 'lineplot',
                     'data': {
@@ -488,11 +496,11 @@ for r in Result.objects.filter(kind=0):
                         'y1': [['Resolution']+ r.details['exposure_analysis']['resolution']]
                     },
                     'annotations': [],
-                    'description': "The above plot was calculated by BEST. See A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64 ",
+                    'notes': "The above plot was calculated by BEST. <br>See A.N. Popov and G.P. Bourenkov Acta Cryst. (2003). D59, 1145-1153, G.P. Bourenkov and A.N. Popov Acta Cryst. (2006). D62, 58-64 ",
                 },
             ]
         }]
-        print screen_details, r.pk
+
         kind = "{}Screening".format(r.details.get('anomalous') and 'Anomalous ' or "")
-        r.reports.update(details=screen_details, kind=kind)
+        AnalysisReport.objects.filter(pk=r.pk).update(details=screen_details, kind=kind)
 

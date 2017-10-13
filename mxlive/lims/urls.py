@@ -63,5 +63,6 @@ urlpatterns = [
     url(r'^sessions/(?P<pk>\d+)/history/$', views.SessionDetail.as_view(template_name="users/entries/session-history.html"), name='session-history'),
 
     url(r'^ajax/update_locations/$', ajax_views.update_locations, name='update-locations'),
+    url(r'^ajax/update_priority/$', ajax_views.UpdatePriority.as_view(), name='update-priority'),
     url(r'^ajax/fetch_image/$', ajax_views.fetch_image, name='fetch-image'),
 ]
