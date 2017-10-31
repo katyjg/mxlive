@@ -6,7 +6,7 @@
     {% else %}
         {% containers_from_choices form.fields.locations.choices as containers %}
     {% endif %}
-        <div id="layout-{{ field.name }}" class="layout-lg">
+        <div id="layout-{{ field.name }}" class="layout-lg row">
             <span class="group-name" style="display: none"></span>
             <div class="hidden">{{ field }}</div>
             <div class="col-xs-4">
@@ -18,7 +18,7 @@
                     {% endfor %}
                 </ul>
             </div>
-            <div class="col-xs-8 tab-content">
+            <div class="col-xs-8 tab-content no-padding">
                 {% for container in containers %}
                     <div id="form{{ container.0 }}" class="tab-pane fade {% if forloop.first %}in active{% endif %}">
                     <div class="col-xs-12">

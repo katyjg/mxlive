@@ -2,9 +2,28 @@
 
 {% load humanize static %}
 {% load score_colors %}
+{% load data_server %}
 
 {% block extra_css %}
     <link href="{% static "css/reports.css" %}" rel="stylesheet">
+{% endblock %}
+
+{% block object_tools %}
+    <div class="box-tools pull-right">
+        {% if object.url %}
+        <a class="pull-right" href="{% get_archive_url object %}" download="{{ object.name }}.tar.gz" title="Download all output files">
+            <span class="pull-right">
+                <i class="fa fa-fw fa-2x fa-download"></i><br>
+                <span class="tool-label">Download</span>
+            </span>
+        </a>
+        {% else %}
+            <span class="pull-right text-muted not-allowed" title="Download Not Available">
+                <i class="fa fa-fw fa-2x fa-download"></i><br>
+                <span class="tool-label">Download</span>
+            </span>
+        {% endif %}
+    </div>
 {% endblock %}
 
 {% block object_status %}
@@ -15,21 +34,21 @@
                     <span title="Score" class="label label-{{ object.score|label_score }}">{{ object.score|floatformat:2 }}</span>
                 </h3>
             </div>
-            {% if user.is_superuser %}
-                <div class="col-xs-1">
-                    <small class="text-muted text-condensed">Project:</small><br>
-                    {{ object.project }}
-                </div>
-            {% endif %}
             <div class="col-xs-3">
-                <small class="text-muted text-condensed">Sample:</small><br>
-                {% if object.sample %}
-                    <a href="{% url "sample-detail" object.sample.pk %}">{{ object.sample.name }}</a>
+                <small class="text-muted text-condensed">Session:</small><br>
+                {% for session in object.sessions %}
+                    <a href="{% url "session-detail" session.pk %}">{{ session.name }}</a>
+                    {% if not forloop.last %}<span class="text-muted"> | </span>{% endif %}
+                {% empty %}
+                    <span class="text-muted">Unrecorded Session</span>
+                {% endfor %}
+                {% if object.session %}
+                    <a href="{% url "session-detail" object.session.pk %}">{{ object.session.name }}</a>
                 {% endif %}
             </div>
-            <div class="col-xs-3">
+            <div class="col-xs-4">
                 <small class="text-muted text-condensed">Data:</small><br>
-                <a data-url="{% url "data-detail" object.data.pk %}">{{ object.data.name }}</a>
+                {% for data in object.data.all %}<a data-url="{% url "data-detail" data.pk %}">{{ data.name }}</a>{% if not forloop.last %}<span class="text-muted"> | </span>{% endif %}{% endfor %}
             </div>
             <div class="col-xs-3 text-right">
                 <small class="text-muted text-condensed">Uploaded:</small><br>
@@ -42,10 +61,11 @@
 
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
-        <span class="text-muted">{{ object.identity }}</span> | <strong>{{ object.kind }} Report for {{ object.data.name }}</strong>
+        <i class="text-muted fa fa-fw fa-area-chart"></i>
+        <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}{{ object.identity }} | </span><strong>{{ object.name }}</strong>
     </h3>
     <span class="text-muted">
-        Report from {% if object.session %}Session <a href="{% url "session-detail" object.session.pk %}">{{ object.session.name }}</a>{% else %}an unrecorded session{% endif %}
+        {{ object.kind }} Report uploaded from the beamline
     </span>
 {% endblock %}
 

@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                v3.1.4-20-gc6a65f6
+                v3.1.4-21-g6f9a0bb
 
               </div>
             
@@ -171,6 +171,11 @@
 <span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">urlparse</span>
+<span class="kn">from</span> <span class="nn">django.views.generic</span> <span class="k">import</span> <span class="n">View</span>
+<span class="kn">from</span> <span class="nn">django</span> <span class="k">import</span> <span class="n">http</span>
+<span class="kn">from</span> <span class="nn">django.views.decorators.csrf</span> <span class="k">import</span> <span class="n">csrf_exempt</span>
+<span class="kn">from</span> <span class="nn">django.utils.decorators</span> <span class="k">import</span> <span class="n">method_decorator</span>
+<span class="kn">from</span> <span class="nn">django.db</span> <span class="k">import</span> <span class="n">transaction</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">import</span> <span class="nn">requests</span>
@@ -237,11 +242,30 @@
     <span class="n">img_info</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;PNG&#39;</span><span class="p">)</span></div>
 
 
+<span class="nd">@method_decorator</span><span class="p">(</span><span class="n">csrf_exempt</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;dispatch&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">UpdatePriority</span><span class="p">(</span><span class="n">View</span><span class="p">):</span>
+
+    <span class="nd">@transaction</span><span class="o">.</span><span class="n">atomic</span>
+    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">group</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;group&#39;</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">models</span><span class="o">.</span><span class="n">Group</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">http</span><span class="o">.</span><span class="n">Http404</span><span class="p">(</span><span class="s2">&quot;Group does not exist.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">group</span><span class="o">.</span><span class="n">project</span> <span class="o">!=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">http</span><span class="o">.</span><span class="n">Http403</span><span class="p">()</span>
+
+        <span class="n">urls</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">getlist</span><span class="p">(</span><span class="s1">&#39;samples[]&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">u</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">url</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">urls</span><span class="p">):</span>
+            <span class="n">group</span><span class="o">.</span><span class="n">sample_set</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">url</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()]))</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">priority</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">([],</span> <span class="n">safe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+
 <span class="k">def</span> <span class="nf">update_locations</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
     <span class="n">container</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Container</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pk&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
     <span class="n">locations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">container</span><span class="o">.</span><span class="n">kind</span><span class="o">.</span><span class="n">container_locations</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;pk&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">locations</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-
 
 
 <span class="k">def</span> <span class="nf">fetch_image</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brightness</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>

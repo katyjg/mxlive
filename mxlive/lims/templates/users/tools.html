@@ -15,13 +15,16 @@
                     <i class="fa-stack-2x fa fa-2 fa-fw fa-pencil"></i></span><br>
                 <span class="tool-label">Edit</span>
             </a>
-            {% if object.is_sendable %}
-                <a class="pull-right" data-url="{% url "shipment-send" object.pk %}">
-                    <span class="fa-stack">
-                        <i class="fa-stack-2x fa fa-2 fa-fw fa-paper-plane-o"></i></span><br>
-                    <span class="tool-label">Send</span>
-                </a>
-            {% endif %}
+            <a class="pull-right" data-url="{% url "shipment-send" object.pk %}">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-paper-plane-o"></i>
+                    {% if object.shipping_errors %}<span class="fa-stack-1x superscript">
+                        <span class="badge progress-bar-warning">
+                            {{ object.shipping_errors|length }}</span>
+                    </span>{% endif %}
+                </span><br>
+                <span class="tool-label">Send</span>
+            </a>
         {% elif object.status == object.STATES.SENT %}
             <a class="pull-right" data-url="{% url "shipment-update-send" object.pk %}">
                 <span class="fa-stack">
@@ -68,20 +71,7 @@
     {% endif %}
 </span>
 {% endif %}
-
 <span class="box-tools pull-right">
-    {% comment %}Shipment Details{% endcomment %}
-    {% if object.status >= object.STATES.SENT or request.user.is_superuser and object.status == object.STATES.SENT %}
-        <a class="pull-right" href="{% url "shipment-protocol" object.pk %}">
-            <span class="pull-right">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-2 fa-fw fa-file-text-o"></i>
-                </span><br>
-                <span class="tool-label">Progress</span>
-            </span>
-        </a>
-    {% endif %}
-
     {% if object.status <= object.STATES.SENT and request.user == object.project or object.status == object.STATES.ON_SITE and request.user.is_superuser %}
         <a class="pull-right" href="{% url "shipment-labels" object.pk %}">
             <span class="pull-right">
@@ -108,3 +98,38 @@
         </a>
     {% endif %}
 </span>
+{% if object.status >= object.STATES.SENT or request.user.is_superuser and object.status == object.STATES.SENT %}
+<span class="box-tools pull-right">
+    {% comment %}Shipment Details{% endcomment %}
+        <a class="pull-right" href="{% url "shipment-protocol" object.pk %}">
+            <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-file-text-o"></i>
+                </span><br>
+                <span class="tool-label">Progress</span>
+            </span>
+        </a>
+        <a class="pull-right" href="{% url "shipment-data" object.pk %}" title="Go to Data from this shipment">
+            <span class="fa-stack">
+                <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
+                {% if object.num_datasets %}
+                    <span class="fa-stack-1x superscript">
+                        <span class="badge progress-bar-info">{{ object.num_datasets }}</span>
+                    </span>
+                {% endif %}
+            </span><br>
+            <span class="tool-label">Data</span>
+        </a>
+        <a class="pull-right" href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
+            <span class="fa-stack">
+                <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
+                {% if object.num_results %}
+                    <span class="fa-stack-1x superscript">
+                        <span class="badge progress-bar-info">{{ object.num_results }}</span>
+                    </span>
+                {% endif %}
+            </span><br>
+            <span class="tool-label">Reports</span>
+        </a>
+</span>
+{% endif %}

@@ -9,6 +9,16 @@ import requests
 import os
 import matplotlib.pyplot as plt
 
+XRF_COLOR_LIST = ['#800080', '#FF0000', '#008000',
+                  '#FF00FF', '#800000', '#808000',
+                  '#008080', '#00FF00', '#000080',
+                  '#00FFFF', '#0000FF', '#000000',
+                  '#800040', '#BD00BD', '#00FA00',
+                  '#800000', '#FA00FA', '#00BD00',
+                  '#008040', '#804000', '#808000',
+                  '#408000', '#400080', '#004080']
+
+
 def get_color(i):
     color = plt.cm.gnuplot(i)
     return '#%02x%02x%02x' % (color[0]*255, color[1]*255, color[2]*255)
@@ -18,6 +28,7 @@ register = template.Library()
 IMAGE_URL = settings.IMAGE_PREPEND or ''
 CACHE_DIR = settings.CACHES.get('default', {}).get('LOCATION', '/tmp')
 CACHE_URL = settings.CACHE_URL or '/cache/'
+
 
 @register.simple_tag
 def get_frame_name(data, frame):

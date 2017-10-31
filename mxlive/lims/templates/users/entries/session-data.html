@@ -1,0 +1,73 @@
+{% extends "users/base.html" %}
+
+{% load static %}
+{% load humanize %}
+
+{% block extra_css %}
+<link href="{% static "objlist/objlist.css" %}" rel="stylesheet">
+{% endblock %}
+
+{% block page_heading %}
+    <h3 class="text-condensed narrow-heading overflow ellipsis">
+        <i class="text-muted fa fa-fw {% if shipment.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
+        <span class="text-muted">{% if user.is_superuser %}{{ shipment.project }} | {% endif %}{{ shipment.identity }}</span><strong>{{ shipment.name }}</strong>
+    </h3>
+    <span class="text-muted">
+        Data from Beamline Session
+    </span>
+{% endblock %}
+
+{% block object_tools %}
+    <span class="box-tools pull-right">
+        <a class="pull-right" href="{% url "session-reports" shipment.pk %}" title="Go to Reports from this session">
+            <span class="fa-stack">
+                <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
+                {% if shipment.num_reports %}
+                    <span class="fa-stack-1x superscript">
+                        <span class="badge progress-bar-info">{{ shipment.num_reports }}</span>
+                    </span>
+                {% endif %}
+            </span><br>
+            <span class="tool-label">Reports</span>
+        </a>
+    </span>
+{% endblock %}
+
+{% block object_status %}
+    <div class="status-bar">
+        <div class="row">
+            <div class="col-xs-2">
+                <small class="text-muted text-condensed">Session:</small><br>
+                <a href="{% url "session-detail" shipment.pk %}">{{shipment.name}}</a>
+            </div>
+            <div class="col-xs-2 pull-left">
+                <small class="text-muted text-condensed">Datasets:</small><br>
+                {{ shipment.data_set.count }}
+            </div>
+            <div class="col-xs-2 pull-left">
+                <small class="text-muted text-condensed">Reports:</small><br>
+                {{ shipment.num_reports }}
+            </div>
+            <div class="col-xs-3 pull-right text-right">
+                <small class="text-muted text-condensed">Total Time:</small><br>
+                {{ shipment.total_time }} hour{{ shipment.total_time|pluralize }}
+            </div>
+            <div class="col-xs-3 pull-right text-right">
+                <small class="text-muted text-condensed">Start:</small><br>
+                {{ shipment.start|naturalday }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block full %}
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="no-border">
+                {% include "objlist/object_list.html" %}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

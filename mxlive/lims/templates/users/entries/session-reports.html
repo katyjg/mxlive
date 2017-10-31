@@ -1,0 +1,33 @@
+{% extends "users/entries/session-data.html" %}
+
+{% load static %}
+
+{% block extra_css %}
+<link href="{% static "objlist/objlist.css" %}" rel="stylesheet">
+{% endblock %}
+
+{% block page_heading %}
+    <h3 class="text-condensed narrow-heading overflow ellipsis">
+        <i class="text-muted fa fa-fw {% if shipment.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
+        <span class="text-muted">{% if user.is_superuser %}{{ shipment.project }} | {% endif %}{{ shipment.identity }}</span> | <strong>{{ shipment.name }}</strong>
+    </h3>
+    <span class="text-muted">
+        Reports from Beamline Session
+    </span>
+{% endblock %}
+
+{% block object_tools %}
+    <span class="box-tools pull-right">
+        <a class="pull-right" href="{% url "session-data" shipment.pk %}" title="Go to Data from this session">
+            <span class="fa-stack">
+                <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
+                {% if shipment.data_set.count %}
+                    <span class="fa-stack-1x superscript">
+                        <span class="badge progress-bar-info">{{ shipment.data_set.count }}</span>
+                    </span>
+                {% endif %}
+            </span><br>
+            <span class="tool-label">Data</span>
+        </a>
+    </span>
+{% endblock %}

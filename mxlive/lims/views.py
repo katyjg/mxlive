@@ -55,7 +55,9 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             sh = models.Shipment.objects.filter(status__in=[models.Shipment.STATES.ON_SITE,models.Shipment.STATES.SENT])
             context['shipments'] = sh.order_by('status','-modified')
             context['automounters'] = models.Dewar.objects.filter(active=True).order_by('beamline__name')
-            context['sessions'] = models.Session.objects.filter(pk__in=models.Stretch.objects.recent_days(14).values_list('session__pk', flat=True)).order_by('-created')
+            context['sessions'] = models.Session.objects.filter(pk__in=models.Stretch.objects.active().values_list('session__pk', flat=True))
+            kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('containers', flat=True)
+            context['containers'] = [c for c in models.Container.objects.filter(kind__in=kinds).order_by('name') if not c.dewars.first()]
         else:
             sh = self.get_object().shipment_set.filter(status__lt=models.Shipment.STATES.ARCHIVED).order_by('modified')
             base_set = sh.filter(status__lte=models.Shipment.STATES.ON_SITE).distinct()
@@ -321,7 +323,7 @@ class SampleDone(SampleEdit):
     form_class = forms.SampleDoneForm
 
     def get_success_url(self):
-        return reverse_lazy("shipment-protocol", kwargs={'pk': self.object.container.shipment.pk})
+        return reverse_lazy("shipment-protocol", kwargs={'pk': self.object.container.shipment.pk}) + '?q={}'.format(self.object.group.pk)
 
 
 class SampleDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
@@ -362,13 +364,15 @@ class ContainerDetail(DetailListMixin, SampleList):
 
     def get_list_title(self):
         object = self.get_object()
+        if 'project' in self.list_display:
+            self.list_display.pop(0)
         return 'Samples in {}'.format(object.name)
 
     def get_filters(self, request):
         filters = super(ContainerDetail, self).get_filters(request)
         if self.get_object().has_children():
             self.list_display.append('container')
-        self.owner_field = 'project'
+
         return filters
 
     def get_object(self):
@@ -477,7 +481,7 @@ class GroupList(ListViewMixin, FilteredListView):
 
 
 def movable(val, record):
-    return "<span class='cursor'><i class='fa fa-fw fa-1x fa-grip'></i> {}</span>".format(val)
+    return "<span class='cursor'><i class='movable fa fa-fw fa-1x fa-grip'></i> {}</span>".format(val or "")
 
 
 class GroupDetail(DetailListMixin, SampleList):
@@ -493,6 +497,8 @@ class GroupDetail(DetailListMixin, SampleList):
 
     def get_list_title(self):
         object = self.get_object()
+        if 'project' in self.list_display:
+            self.list_display.pop(0)
         return 'Samples in {}'.format(object.name)
 
     def get_object(self):
@@ -560,15 +566,25 @@ class DataDetail(OwnerRequiredMixin, detail.DetailView):
     template_name = "users/entries/data.html"
 
 
+def format_list(val, record):
+    return ' | '.join([item.name for item in val])
+
+def format_score(val, record):
+    return "{:.2f}".format(val)
+
 class ReportList(ListViewMixin, FilteredListView):
     model = models.AnalysisReport
-    list_filter = ['modified']
-    list_display = ['id', 'data__name', 'sample', 'score']
+    list_filter = ['modified', 'kind']
+    list_display = ['data__all', 'kind', 'sample', 'score']
     search_fields = ['project', 'name', 'sample__name']
     detail_url = 'report-detail'
     order_by = ['-modified']
     ordering_proxies = {}
-    list_transforms = {}
+    list_transforms = {
+        'data__all': format_list,
+        'score': format_score
+
+    }
 
     def get_queryset(self):
         return super(ReportList, self).get_queryset().defer('details', 'url')
@@ -577,6 +593,63 @@ class ReportList(ListViewMixin, FilteredListView):
 class ReportDetail(OwnerRequiredMixin, detail.DetailView):
     model = models.AnalysisReport
     template_name = "users/entries/report.html"
+
+
+class DataListDetail(DataList):
+    template_name = "users/entries/shipment-data.html"
+    extra_model = models.Shipment
+
+    def get_object(self, **kwargs):
+        if self.request.user.is_superuser:
+            object = self.extra_model.objects.get(pk=self.kwargs.get('pk'))
+        else:
+            object = self.extra_model.objects.get(project=self.request.user, pk=self.kwargs.get('pk'))
+        return object
+
+    def get_list_title(self):
+        if 'project' in self.list_display:
+            self.list_display.pop(0)
+        object = self.get_object()
+        return 'Data in {}'.format(object.name)
+
+    def get_context_data(self, **kwargs):
+        c = super(DataListDetail, self).get_context_data(**kwargs)
+        c['shipment'] = self.get_object()
+        c['total_objects'] = c['shipment'].datasets().count()
+        return c
+
+    def get_queryset(self):
+        qs = super(DataListDetail, self).get_queryset()
+        return qs.filter(pk__in=self.get_object().datasets().values_list("pk"))
+
+
+class ReportListDetail(ReportList):
+    template_name = "users/entries/shipment-report.html"
+    extra_model = models.Shipment
+
+    def get_object(self, **kwargs):
+        if self.request.user.is_superuser:
+            object = self.extra_model.objects.get(pk=self.kwargs.get('pk'))
+        else:
+            object = self.extra_model.objects.get(project=self.request.user, pk=self.kwargs.get('pk'))
+        return object
+
+    def get_list_title(self):
+        if 'project' in self.list_display:
+            self.list_display.pop(0)
+        object = self.get_object()
+        return 'Analysis Reports in {}'.format(object.name)
+
+    def get_context_data(self, **kwargs):
+        c = super(ReportListDetail, self).get_context_data(**kwargs)
+        c['shipment'] = self.get_object()
+        c['total_objects'] = c['shipment'].reports().count()
+
+        return c
+
+    def get_queryset(self):
+        qs = super(ReportListDetail, self).get_queryset()
+        return qs.filter(pk__in=self.get_object().reports().values_list("pk"))
 
 
 class ActivityLogList(ListViewMixin, FilteredListView):
@@ -596,8 +669,8 @@ class ActivityLogList(ListViewMixin, FilteredListView):
 class SessionList(ListViewMixin, FilteredListView):
     model = models.Session
     list_filter = ['created', 'beamline', ]
-    list_display = ['created', 'name', 'beamline']
-    search_fields = ['beamline','project','name']
+    list_display = ['created', 'name', 'beamline', 'total_time', 'num_datasets', 'num_reports']
+    search_fields = ['beamline__acronym', 'project__username', 'name']
     owner_field = "project__username"
     order_by = ['-created']
     ordering_proxies = {}
@@ -624,9 +697,6 @@ class BeamlineDetail(AdminRequiredMixin, detail.DetailView):
         return context
 
 
-
-
-
 def format_time(val, record):
     return naturaltime(val) or ""
 
@@ -634,7 +704,7 @@ def format_time(val, record):
 class BeamlineHistory(AdminRequiredMixin, ListViewMixin, FilteredListView):
     model = models.Session
     list_filter = ['project', ]
-    list_display = ['name', 'project', 'start', 'end', 'total_time']
+    list_display = ['created', 'name', 'total_time', 'num_datasets', 'num_reports']
     list_transforms = {
         'start': format_time,
         'end': format_time,
@@ -647,6 +717,19 @@ class BeamlineHistory(AdminRequiredMixin, ListViewMixin, FilteredListView):
     def get_queryset(self):
         qs = super(BeamlineHistory, self).get_queryset()
         return qs.filter(beamline__pk=self.kwargs['pk'])
+
+
+class BeamlineStatistics(BeamlineDetail):
+    template_name = "users/entries/beamline-statistics.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(BeamlineStatistics, self).get_context_data(**kwargs)
+        context['data'] = {}
+        context['scans'] = {}
+        for f in ['exposure_time','attenuation','beam_size','energy']:
+            context['data'][f] = [float(e) for e in self.object.data_set.filter(kind__startswith="MX").values_list(f, flat=True) if e != None]
+            context['scans'][f] = [float(e) for e in models.Data.objects.filter(kind__contains="SCAN").values_list(f, flat=True) if e != None]
+        return context
 
 
 class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
@@ -694,48 +777,31 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                     }
                     container, created = models.Container.objects.get_or_create(**data)
             elif label == 'groups':
-                if form.cleaned_data['fill']:
+                sample_locations = json.loads(form.cleaned_data['sample_locations'])
+                for i, name in enumerate(form.cleaned_data['name_set']):
+                    data = {field: form.cleaned_data['{}_set'.format(field)][i]
+                            for field in ['name', 'kind', 'comments', 'plan', 'absorption_edge']}
+                    data.update({
+                        'energy': data.get('energy_set',[]) and float(data['energy_set'][i]) or None,
+                        'sample_count': int(form.cleaned_data['sample_count_set'][i]),
+                        'shipment': self.shipment,
+                        'project': project,
+                        'priority': i + 1
+                    })
+                    group, created = models.Group.objects.get_or_create(**data)
                     to_create = []
-                    for priority, c in enumerate(self.shipment.container_set.all()):
-                        data = {
-                            'name': slugify(c.name),
-                            'sample_count': c.capacity(),
-                            'shipment': self.shipment,
-                            'project': project,
-                            'priority': priority + 1
-                        }
-                        group, created = models.Group.objects.get_or_create(**data)
-                        for i, location in enumerate(c.kind.container_locations.all()):
-                            name = '{0}-{1:02d}'.format(group.name, i)
-                            to_create.append(models.Sample(group=group, container=c, location=location,
-                                                           name=name, project=project))
+                    j = 1
+                    for c, locations in sample_locations.get(group.name, {}).items():
+                        container = models.Container.objects.get(name=c, project=project, shipment=self.shipment)
+                        for k, sample in enumerate(locations):
+                            name = "{0}-{1:02d}".format(group.name, j)
+                            to_create.append(models.Sample(group=group, container=container, location=sample,
+                                                           name=name, project=project, priority=k+1))
+                            j += 1
                     models.Sample.objects.bulk_create(to_create)
-                else:
-                    sample_locations = json.loads(form.cleaned_data['sample_locations'])
-                    for i, name in enumerate(form.cleaned_data['name_set']):
-                        data = {field: form.cleaned_data['{}_set'.format(field)][i]
-                                for field in ['name', 'kind', 'comments', 'plan', 'absorption_edge']}
-                        data.update({
-                            'energy': data.get('energy_set',[]) and float(data['energy_set'][i]) or None,
-                            'sample_count': int(form.cleaned_data['sample_count_set'][i]),
-                            'shipment': self.shipment,
-                            'project': project,
-                            'priority': i + 1
-                        })
-                        group, created = models.Group.objects.get_or_create(**data)
-                        to_create = []
-                        j = 1
-                        for c, locations in sample_locations.get(group.name, {}).items():
-                            container = models.Container.objects.get(name=c, project=project, shipment=self.shipment)
-                            for k, sample in enumerate(locations):
-                                name = "{0}-{1:02d}".format(group.name, j)
-                                to_create.append(models.Sample(group=group, container=container, location=sample,
-                                                               name=name, project=project))
-                                j += 1
-                        models.Sample.objects.bulk_create(to_create)
-                        if group.sample_count < group.sample_set.count():
-                            group.sample_count = group.sample_set.count()
-                            group.save()
+                    if group.sample_count < group.sample_set.count():
+                        group.sample_count = group.sample_set.count()
+                        group.save()
                 if project != self.request.user and self.request.user.is_superuser:
                     self.shipment.send()
                     self.shipment.receive()

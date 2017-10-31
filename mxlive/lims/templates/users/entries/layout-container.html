@@ -11,7 +11,7 @@
         container_height = locations.height;
     }
     var selector = {% if selector %}"#{{ selector }}-"{% else %}"#layout-"{% endif %};
-    var size = {% if size %}{{ size }}{% else %}$(selector+'{{ object }}').parent().width(){% endif %};
+    var size = {% if size %}{{ size }}{% else %}$(selector+'{{ object }}').width(){% endif %};
 
     var svgContainer = d3.select(selector+'{{ object }}').append("svg")
         .attr("width", size * container_width)
@@ -19,7 +19,7 @@
         .attr('id', '{{ object }}')
         .attr('kind', '{{ kind.pk }}');
 
-    function createNodes(data, envelope, calc_width, calc_height) {
+    function createNodes(data, envelope, calc_width, calc_height, detail=true) {
         var nodes = [], x, y;
         for (var key in data) {
             var coords = data[key];
@@ -30,7 +30,24 @@
                 x = coords[0]*calc_width;
                 y = coords[1]*calc_height;
             }
-            nodes.push({'id': key, 'x': x, 'y': y, 'sample': coords[2], 'accepts': coords[6], 'group': coords[3], 'started': coords[5]});
+            if (detail && coords.length > 2) {
+                nodes.push({
+                    'id': key,
+                    'x': x,
+                    'y': y,
+                    'sample': coords[2].sample,
+                    'accepts': coords[2].accepts,
+                    'group': coords[2].group,
+                    'started': coords[2].started
+                });
+            } else {
+                nodes.push({
+                    'id': key,
+                    'x': x,
+                    'y': y
+                });
+            }
+
         }
         return nodes;
     }
@@ -125,7 +142,7 @@
         var height = $(selector+'{{ object }}'+' svg').height();
         var nodes = createNodes(locations.locations, "{{ kind.envelope }}", width, height);
         if (locations.labels) {
-            var labels = createNodes(locations.labels, "{{ kind.envelope }}", width, height);
+            var labels = createNodes(locations.labels, "{{ kind.envelope }}", width, height, false);
         } else {
             var labels = nodes;
         }
@@ -146,9 +163,9 @@
             var child_envelope = '{{ child.kind.envelope }}';
             var child_size = d3.select('#id-{{ child.parent.pk }}-{{child.location }}').node().getBBox();
             var child_nodes = createNodes(child_locations.locations, child_envelope, child_size.width, child_size.height);
-            var child_labels = {% if not child.has_children %}[]{% else %}child_nodes{% endif %};
+            var child_labels = {% if not child.accepts_children %}[]{% else %}child_nodes{% endif %};
             if (child_locations.labels && child_size.width > 100) {
-                var child_labels = createNodes(child_locations.labels, child_envelope, child_size.width, child_size.height);
+                var child_labels = createNodes(child_locations.labels, child_envelope, child_size.width, child_size.height, false);
             }
 
             {% with child.parent.kind|get_coords:child.location as cc %}

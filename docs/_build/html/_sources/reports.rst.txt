@@ -77,7 +77,11 @@ Data Options (Plots)
     'x-label': '',
     'y1-label': '',
     'y2-label': '',
-    'x-scale': 'linear'
+    'x-scale': 'linear',
+    'interpolation': 'linear',
+    'x-limits': [null, null],
+    'y1-limits': [null, null],
+    'y2-limits': [null, null],
 
 **x**: List of x-axis data, with a label in the first entry. If **x-label** is not specified, this will be used to label the x-axis.
 
@@ -85,7 +89,15 @@ Data Options (Plots)
 
 **y2**: List of lists of data to plot on the right y-axis. Each list should be the same length as the list defined in `x`. The first entry in each list is a label for the data.
 
-**x-scale**: Supported scaling includes 'linear', 'pow', 'log', 'identity', 'time', and 'inv-square' (power with exponent -0.5)
+**x-scale**: Supported scaling includes **'linear'**, 'pow', 'log', 'identity', 'time', and 'inv-square' (power with exponent -0.5)
+
+**interpolation**: Supported curve interpolation includes **'linear'**, 'basis', 'cardinal', 'step', 'step-before', 'step-after'.
+
+**x-limits**: Tuple of [min, max] values for the x-axis. If only one value (min or max) is specified, a null value should be provided as a placeholder for the other.
+
+**y1-limits**: Tuple of [min, max] values for the left y-axis. If only one value (min or max) is specified, a null value should be provided as a placeholder for the other.
+
+**y2-limits**: Tuple of [min, max] values for the right y-axis. If only one value (min or max) is specified, a null value should be provided as a placeholder for the other.
 
 
 Model

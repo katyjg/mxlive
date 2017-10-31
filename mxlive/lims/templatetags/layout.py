@@ -12,17 +12,27 @@ def as_json(data):
     return mark_safe(json.dumps(data))
 
 
+from pprint import pprint
+
+
 @register.filter
 def kind_json(data, pk):
     try:
         container = Container.objects.get(pk=int(pk))
-        for sample in container.sample_set.all():
-            data['locations'][sample.location].extend([sample.name, sample.group.name, '', sample.data_set.count()])
-        for location in container.kind.container_locations.filter(accepts__isnull=False):
-            data['locations'][location.name].extend([container.children.filter(location=location).exists(), '', '', '',
-                                                     ';'.join(location.accepts.values_list('name', flat=True))])
+        for loc in data['locations'].keys():
+            sample = container.sample_set.filter(location=loc).first()
+            location = container.kind.container_locations.get(name=loc)
+            child = container.children.filter(location=location).first()
+            loc_info = {
+                'sample': sample and sample.name or child and child.name or '',
+                'group': sample and sample.group.name or '',
+                'started': sample and sample.data_set.count() or 0,
+                'accepts': location and ';'.join(location.accepts.values_list('name', flat=True)) or False
+            }
+            data['locations'][loc].append(loc_info)
     except:
         pass
+
     return mark_safe(json.dumps(data))
 
 

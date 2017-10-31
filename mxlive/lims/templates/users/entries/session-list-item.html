@@ -1,50 +1,51 @@
 {% load humanize %}
 
 <div class="list-group-item">
-    <a href="{% url "session-detail" session.pk %}">
-        <div class="row">
-            <div class="col-xs-12">
-                <div class="pull-right box-tools box-tools-min">
-                <span class="a">
-                    <span>
-                        <span class="fa-stack pull-right hidden-xs">
-                            <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-                            {% if session.num_results %}
-                                <span class="fa-stack-1x superscript">
-                                    <span class="badge progress-bar-info">{{ session.num_results }}</span>
-                                </span>
-                            {% endif %}
-                        </span>
-                        <span class="fa-stack fa-stack-center-xs">
-                            <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
-                            {% if session.data_set.count %}
-                                <span class="fa-stack-1x superscript">
-                                    <span class="badge progress-bar-info">{{ session.data_set.count }}</span>
-                                </span>
-                            {% endif %}
-                        </span>&emsp;&emsp;
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="pull-right box-tools">
+                <a class="pull-right" href="{% url "session-reports" session.pk %}" title="Go to Reports from this session">
+                    <span class="fa-stack">
+                        <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
+                        {% if session.num_reports %}
+                            <span class="fa-stack-1x superscript">
+                                <span class="badge progress-bar-info">{{ session.num_reports }}</span>
+                            </span>
+                        {% endif %}
+                    </span><br>
+                    <span class="tool-label">Reports</span>
+                </a>
+                <a class="pull-right" href="{% url "session-data" session.pk %}" title="Go to Data from this session">
+                    <span class="fa-stack">
+                        <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
+                        {% if session.data_set.count %}
+                            <span class="fa-stack-1x superscript">
+                                <span class="badge progress-bar-info">{{ session.data_set.count }}</span>
+                            </span>
+                        {% endif %}
+                    </span><br>
+                    <span class="tool-label">Data</span>
+                </a>
+            </div>
+            <div class="overflow ellipsis">
+                <div class="box-status pull-left text-center text-muted" title="Total time {{ session.total_time }} hours">
+                    <span class="fa-stack">
+                        <i class="fa-stack-2x fa fa-clock-o"></i>
+                            <span class="fa-stack-1x superscript">
+                                <span class="badge progress-bar-success">{{ session.total_time }}</span>
+                            </span>
                     </span>
-                    <br><span>Data<text class="hidden-xs"> & Analysis</text></span>
-                </span>
+                    <br><span>{{ session.start.date|date:"M j" }}</span>
                 </div>
-                <div class="text-muted overflow ellipsis">
-                    <div class="box-status pull-left text-center text-muted" title="Total time {{ session.total_time }} hours">
-                        <span class="fa-stack">
-                            <i class="fa-stack-2x fa fa-clock-o"></i>
-                                <span class="fa-stack-1x superscript">
-                                    <span class="badge progress-bar-success">{{ session.total_time }}</span>
-                                </span>
-                        </span>
-                        <br><span>{{ session.start.date|date:"M j" }}</span>
-                    </div>
-                    <div class="box-info pull-left">
-                        <h4 class="text-condensed narrow-heading overflow ellipsis">
-                            <strong class="text-muted">{{ session.beamline.acronym }}</strong>{% if user.is_superuser %} | {{ session.project }}{% endif %} | {{ session.name }}
-                        </h4>
-                        <span>Last record {{ session.end|naturalday }}</span>
-                    </div>
+                <div class="box-info">
+                    <h4 class="text-condensed narrow-heading overflow ellipsis">
+                        <a class="text-muted" href="{% url "session-detail" session.pk %}" title='View Session "{{ session.name }}"'>
+                        <strong>{{ session.beamline.acronym }}</strong>{% if user.is_superuser %} | {{ session.project }}{% endif %} | {{ session.name }}
+                        </a>
+                    </h4>
+                    <span class="text-muted overflow ellipsis">Last record {{ session.end|naturalday }}</span>
                 </div>
             </div>
         </div>
-    </a>
+    </div>
 </div>

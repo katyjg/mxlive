@@ -1,18 +1,22 @@
 from django.conf.urls import url
+from django.views.decorators.cache import cache_page
 from lims import views, ajax_views
-from lims import forms
+from lims import forms, models
 
 urlpatterns = [
     url(r'^profile/(?P<username>[\w\-]+)/edit$', views.ProjectEdit.as_view(), name='edit-profile'),
 
     url(r'^beamline/(?P<pk>\d+)/$', views.BeamlineDetail.as_view(), name='beamline-detail'),
     url(r'^beamline/(?P<pk>\d+)/history/$', views.BeamlineHistory.as_view(), name='beamline-history'),
+    url(r'^beamline/(?P<pk>\d+)/statistics/$', views.BeamlineStatistics.as_view(), name='beamline-statistics'),
     url(r'^dewar/(?P<pk>\d+)/edit/$', views.DewarEdit.as_view(), name='dewar-edit'),
 
     url(r'^shipments/$', views.ShipmentList.as_view(), name='shipment-list'),
     url(r'^shipments/new/$', views.ShipmentCreate.as_view(), name='shipment-new'),
     url(r'^shipments/(?P<pk>\d+)/$', views.ShipmentDetail.as_view(), name='shipment-detail'),
     url(r'^shipments/(?P<pk>\d+)/protocol/$', views.ShipmentDetail.as_view(template_name="users/entries/shipment-protocol.html"), name='shipment-protocol'),
+    url(r'^shipments/(?P<pk>\d+)/data/$', views.DataListDetail.as_view(template_name="users/entries/shipment-data.html"), name='shipment-data'),
+    url(r'^shipments/(?P<pk>\d+)/reports/$', views.ReportListDetail.as_view(template_name="users/entries/shipment-reports.html"), name='shipment-reports'),
     url(r'^shipments/(?P<pk>\d+)/edit/$', views.ShipmentEdit.as_view(), name='shipment-edit'),
     url(r'^shipments/(?P<pk>\d+)/delete/$', views.ShipmentDelete.as_view(), name='shipment-delete'),
     url(r'^shipments/(?P<pk>\d+)/send/$', views.SendShipment.as_view(), name='shipment-send'),
@@ -61,8 +65,11 @@ urlpatterns = [
     url(r'^sessions/$', views.SessionList.as_view(), name='session-list'),
     url(r'^sessions/(?P<pk>\d+)/$', views.SessionDetail.as_view(), name='session-detail'),
     url(r'^sessions/(?P<pk>\d+)/history/$', views.SessionDetail.as_view(template_name="users/entries/session-history.html"), name='session-history'),
+    url(r'^sessions/(?P<pk>\d+)/data/$', views.DataListDetail.as_view(template_name="users/entries/session-data.html", extra_model=models.Session), name='session-data'),
+    url(r'^sessions/(?P<pk>\d+)/reports/$', views.ReportListDetail.as_view(template_name="users/entries/session-reports.html", extra_model=models.Session), name='session-reports'),
 
     url(r'^ajax/update_locations/$', ajax_views.update_locations, name='update-locations'),
-    url(r'^ajax/update_priority/$', ajax_views.UpdatePriority.as_view(), name='update-priority'),
+    url(r'^ajax/update_priority/$', cache_page(60*60*24)(ajax_views.UpdatePriority.as_view()), name='update-priority'),
+    url(r'^ajax/fetch_report/(?P<pk>\d+)/$', ajax_views.FetchReport.as_view(), name='fetch-report'),
     url(r'^ajax/fetch_image/$', ajax_views.fetch_image, name='fetch-image'),
 ]

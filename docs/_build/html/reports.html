@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                v3.1.4-20-gc6a65f6
+                v3.1.4-21-g6f9a0bb
 
               </div>
             
@@ -241,19 +241,27 @@ content (tables and/or plots) to display in the section, and notes to go after t
 &#39;x-label&#39;: &#39;&#39;,
 &#39;y1-label&#39;: &#39;&#39;,
 &#39;y2-label&#39;: &#39;&#39;,
-&#39;x-scale&#39;: &#39;linear&#39;
+&#39;x-scale&#39;: &#39;linear&#39;,
+&#39;interpolation&#39;: &#39;linear&#39;,
+&#39;x-limits&#39;: [null, null],
+&#39;y1-limits&#39;: [null, null],
+&#39;y2-limits&#39;: [null, null],
 </pre></div>
 </div>
 <p><strong>x</strong>: List of x-axis data, with a label in the first entry. If <strong>x-label</strong> is not specified, this will be used to label the x-axis.</p>
 <p><strong>y1</strong>: List of lists of data to plot on the left y-axis. Each list should be the same length as the list defined in <cite>x</cite>. The first entry in each list is a label for the data.</p>
 <p><strong>y2</strong>: List of lists of data to plot on the right y-axis. Each list should be the same length as the list defined in <cite>x</cite>. The first entry in each list is a label for the data.</p>
-<p><strong>x-scale</strong>: Supported scaling includes &#8216;linear&#8217;, &#8216;pow&#8217;, &#8216;log&#8217;, &#8216;identity&#8217;, &#8216;time&#8217;, and &#8216;inv-square&#8217; (power with exponent -0.5)</p>
+<p><strong>x-scale</strong>: Supported scaling includes <strong>&#8216;linear&#8217;</strong>, &#8216;pow&#8217;, &#8216;log&#8217;, &#8216;identity&#8217;, &#8216;time&#8217;, and &#8216;inv-square&#8217; (power with exponent -0.5)</p>
+<p><strong>interpolation</strong>: Supported curve interpolation includes <strong>&#8216;linear&#8217;</strong>, &#8216;basis&#8217;, &#8216;cardinal&#8217;, &#8216;step&#8217;, &#8216;step-before&#8217;, &#8216;step-after&#8217;.</p>
+<p><strong>x-limits</strong>: Tuple of [min, max] values for the x-axis. If only one value (min or max) is specified, a null value should be provided as a placeholder for the other.</p>
+<p><strong>y1-limits</strong>: Tuple of [min, max] values for the left y-axis. If only one value (min or max) is specified, a null value should be provided as a placeholder for the other.</p>
+<p><strong>y2-limits</strong>: Tuple of [min, max] values for the right y-axis. If only one value (min or max) is specified, a null value should be provided as a placeholder for the other.</p>
 </div>
 <div class="section" id="module-lims.models">
 <span id="model"></span><h2><a class="toc-backref" href="#id5">Model</a><a class="headerlink" href="#module-lims.models" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="lims.models.AnalysisReport">
-<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">AnalysisReport</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>kind</em>, <em>group</em>, <em>sample</em>, <em>score</em>, <em>data</em>, <em>url</em>, <em>details</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lims/models.html#AnalysisReport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.AnalysisReport" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">AnalysisReport</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>kind</em>, <em>group</em>, <em>sample</em>, <em>score</em>, <em>url</em>, <em>details</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lims/models.html#AnalysisReport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.AnalysisReport" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -270,7 +278,6 @@ content (tables and/or plots) to display in the section, and notes to go after t
 <li><strong>group_id</strong> (<em>ForeignKey</em>) &#8211; Group</li>
 <li><strong>sample_id</strong> (<em>ForeignKey</em>) &#8211; Sample</li>
 <li><strong>score</strong> (<em>FloatField</em>) &#8211; Score</li>
-<li><strong>data_id</strong> (<em>ForeignKey</em>) &#8211; Data</li>
 <li><strong>url</strong> (<em>CharField</em>) &#8211; Url</li>
 <li><strong>details</strong> (<em>JSONField</em>) &#8211; Details</li>
 </ul>

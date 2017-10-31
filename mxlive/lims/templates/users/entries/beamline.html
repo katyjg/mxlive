@@ -34,7 +34,14 @@
                     <span class="tool-label">Sessions</span>
                 </span>
             </a>
-
+            <a class="pull-right" href="{% url "beamline-statistics" pk=object.pk %}">
+                <span class="pull-right">
+                    <span class="fa-stack">
+                        <i class="fa-stack-2x fa fa-2 fa-fw fa-bar-chart"></i>
+                    </span><br>
+                    <span class="tool-label">Statistics</span>
+                </span>
+            </a>
             {% if object.active_dewar.container.children_history.all %}
                 <a class="pull-right" data-url="{% url "automounter-history" object.active_dewar.container.pk %}">
                     <span class="pull-right">
@@ -71,16 +78,17 @@
 
 {% block full %}
     {% with object.active_automounter as automounter %}
-        <div {% if user.is_superuser %}id="admin-assign"{% endif %} class="col-sm-7">
-            <h3>Automounter Layout</h3>
-            <hr />
-            <div id="layout-{{ automounter.pk }}" class="layout-lg"></div>
-            {% include "users/entries/layout-container.html" with object=automounter.pk kind=automounter.kind %}
+        <div class="row">
+            <div {% if user.is_superuser %}id="admin-assign"{% endif %} class="col-sm-7">
+                <h3>Automounter Layout</h3>
+                <hr />
+                <div id="layout-{{ automounter.pk }}" class="layout-lg"></div>
+                {% include "users/entries/layout-container.html" with object=automounter.pk kind=automounter.kind %}
+            </div>
+
+            <div class="col-sm-5 col-xs-12">
+                {% include "users/entries/loaded-list.html" with object=automounter %}
+            </div>
         </div>
-
-    <div class="col-sm-5 col-xs-12">
-        {% include "users/entries/loaded-list.html" with object=automounter %}
-    </div>
-
     {% endwith %}
 {% endblock %}

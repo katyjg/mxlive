@@ -1,11 +1,105 @@
 [
 {
+  "model": "lims.beamline",
+  "pk": 1,
+  "fields": {
+    "name": "Canadian Macromolecular Crystallography Facility - Insertion Device",
+    "acronym": "CMCF-ID",
+    "energy_lo": 6.0,
+    "energy_hi": 18.5,
+    "contact_phone": "306-657-3610"
+  }
+},
+{
+  "model": "lims.beamline",
+  "pk": 2,
+  "fields": {
+    "name": "Canadian Macromolecular Crystallography Facility - Bending Magnet",
+    "acronym": "CMCF-BM",
+    "energy_lo": 4.0,
+    "energy_hi": 18.5,
+    "contact_phone": "306-657-3619"
+  }
+},
+{
+  "model": "lims.beamline",
+  "pk": 3,
+  "fields": {
+    "name": "Simulator Beamline",
+    "acronym": "SIM-1",
+    "energy_lo": 4.0,
+    "energy_hi": 18.5,
+    "contact_phone": "306-657-3758"
+  }
+},
+{
+  "model": "lims.componenttype",
+  "pk": 1,
+  "fields": {
+    "name": "External Hard Drive"
+  }
+},
+{
+  "model": "lims.componenttype",
+  "pk": 2,
+  "fields": {
+    "name": "Uni-Puck Tools"
+  }
+},
+{
+  "model": "lims.carrier",
+  "pk": 1,
+  "fields": {
+    "name": "UPS",
+    "url": "http://wwwapps.ups.com/etracking/tracking.cgi?TypeOfInquiryNumber=T&AcceptUPSLicenseAgreement=yes&submit=Track&InquiryNumber1="
+  }
+},
+{
+  "model": "lims.carrier",
+  "pk": 2,
+  "fields": {
+    "name": "Canada Post",
+    "url": "https://obc.canadapost.ca/emo/basicPin.do?trackingCode=PIN&action=query&language=en&sblid=dcsubmitted&trackingId="
+  }
+},
+{
+  "model": "lims.carrier",
+  "pk": 3,
+  "fields": {
+    "name": "FedEx",
+    "url": "http://www.fedex.com/Tracking?action=track&tracknumbers="
+  }
+},
+{
+  "model": "lims.carrier",
+  "pk": 4,
+  "fields": {
+    "name": "USPS",
+    "url": "http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum="
+  }
+},
+{
+  "model": "lims.carrier",
+  "pk": 5,
+  "fields": {
+    "name": "DHL",
+    "url": "http://track.dhl-usa.com/TrackByNbr.asp?ShipmentNumber="
+  }
+},
+{
+  "model": "lims.carrier",
+  "pk": 6,
+  "fields": {
+    "name": "Purolator",
+    "url": "http://shipnow.purolator.com/shiponline/track/purolatortrack.asp?pinno="
+  }
+},
+{
   "model": "lims.containertype",
   "pk": 1,
   "fields": {
     "name": "Uni-Puck",
-    "kind": 1,
-    "layout": "{\"radius\":9,\"locations\":{\"11\":[0.75,0.28559933],\"10\":[0.75,0.856798],\"13\":[0.75,-0.856798],\"12\":[0.75,-0.28559933],\"15\":[0.75,-1.99919533],\"14\":[0.75,-1.42799666],\"16\":[0.75,-2.57039399],\"1\":[0.36,3.14159265],\"3\":[0.36,0.62831853],\"2\":[0.36,1.88495559],\"5\":[0.36,-1.88495559],\"4\":[0.36,-0.62831853],\"7\":[0.75,2.57039399],\"6\":[0.75,3.14159265],\"9\":[0.75,1.42799666],\"8\":[0.75,1.99919533]}}",
+    "layout": "{\"radius\":9,\"locations\":{\"11\":[0.75,-0.28559933],\"10\":[0.75,-0.856798],\"13\":[0.75,0.856798],\"12\":[0.75,0.28559933],\"15\":[0.75,1.99919533],\"14\":[0.75,1.42799666],\"16\":[0.75,2.57039399],\"1\":[0.36,3.14159265],\"3\":[0.36,-0.62831853],\"2\":[0.36,-1.88495559],\"5\":[0.36,1.88495559],\"4\":[0.36,0.62831853],\"7\":[0.75,-2.57039399],\"6\":[0.75,3.14159265],\"9\":[0.75,-1.42799666],\"8\":[0.75,-1.99919533]}}",
     "envelope": "circle",
     "container_locations": [
       1,
@@ -32,8 +126,7 @@
   "pk": 2,
   "fields": {
     "name": "Cassette",
-    "kind": 0,
-    "layout": "{\"width\":1.5,\"labels\":{\"A\":[0.08,0.03],\"C\":[0.24000000000000005,0.03],\"B\":[0.16,0.03],\"E\":[0.4,0.03],\"D\":[0.32000000000000006,0.03],\"G\":[0.56,0.03],\"F\":[0.48000000000000004,0.03],\"I\":[0.7200000000000002,0.03],\"H\":[0.6400000000000001,0.03],\"K\":[0.88,0.03],\"J\":[0.8,0.03],\"L\":[0.96,0.03],\"1\":[0.01,0.11875],\"3\":[0.01,0.35374999999999995],\"2\":[0.01,0.23625],\"5\":[0.01,0.5887499999999999],\"4\":[0.01,0.47125],\"7\":[0.01,0.82375],\"6\":[0.01,0.70625],\"8\":[0.01,0.9412499999999999]},\"radius\":4.5,\"locations\":{\"G7\":[0.56,0.82375],\"G6\":[0.56,0.70625],\"G5\":[0.56,0.5887499999999999],\"G4\":[0.56,0.47125],\"G3\":[0.56,0.35374999999999995],\"G2\":[0.56,0.23625],\"G1\":[0.56,0.11875],\"G8\":[0.56,0.9412499999999999],\"J8\":[0.8,0.9412499999999999],\"J4\":[0.8,0.47125],\"J5\":[0.8,0.5887499999999999],\"J6\":[0.8,0.70625],\"J7\":[0.8,0.82375],\"J1\":[0.8,0.11875],\"J2\":[0.8,0.23625],\"J3\":[0.8,0.35374999999999995],\"B4\":[0.16,0.47125],\"B5\":[0.16,0.5887499999999999],\"B6\":[0.16,0.70625],\"B7\":[0.16,0.82375],\"B1\":[0.16,0.11875],\"B2\":[0.16,0.23625],\"B3\":[0.16,0.35374999999999995],\"B8\":[0.16,0.9412499999999999],\"E8\":[0.4,0.9412499999999999],\"E5\":[0.4,0.5887499999999999],\"E4\":[0.4,0.47125],\"E7\":[0.4,0.82375],\"E6\":[0.4,0.70625],\"E1\":[0.4,0.11875],\"E3\":[0.4,0.35374999999999995],\"E2\":[0.4,0.23625],\"H8\":[0.6400000000000001,0.9412499999999999],\"H2\":[0.6400000000000001,0.23625],\"H3\":[0.6400000000000001,0.35374999999999995],\"H1\":[0.6400000000000001,0.11875],\"H6\":[0.6400000000000001,0.70625],\"H7\":[0.6400000000000001,0.82375],\"H4\":[0.6400000000000001,0.47125],\"H5\":[0.6400000000000001,0.5887499999999999],\"K3\":[0.88,0.35374999999999995],\"K2\":[0.88,0.23625],\"K1\":[0.88,0.11875],\"K7\":[0.88,0.82375],\"K6\":[0.88,0.70625],\"K5\":[0.88,0.5887499999999999],\"K4\":[0.88,0.47125],\"K8\":[0.88,0.9412499999999999],\"C8\":[0.24000000000000005,0.9412499999999999],\"C3\":[0.24000000000000005,0.35374999999999995],\"C2\":[0.24000000000000005,0.23625],\"C1\":[0.24000000000000005,0.11875],\"C7\":[0.24000000000000005,0.82375],\"C6\":[0.24000000000000005,0.70625],\"C5\":[0.24000000000000005,0.5887499999999999],\"C4\":[0.24000000000000005,0.47125],\"F1\":[0.48000000000000004,0.11875],\"F2\":[0.48000000000000004,0.23625],\"F3\":[0.48000000000000004,0.35374999999999995],\"F4\":[0.48000000000000004,0.47125],\"F5\":[0.48000000000000004,0.5887499999999999],\"F6\":[0.48000000000000004,0.70625],\"F7\":[0.48000000000000004,0.82375],\"F8\":[0.48000000000000004,0.9412499999999999],\"I8\":[0.7200000000000002,0.9412499999999999],\"I1\":[0.7200000000000002,0.11875],\"I3\":[0.7200000000000002,0.35374999999999995],\"I2\":[0.7200000000000002,0.23625],\"I5\":[0.7200000000000002,0.5887499999999999],\"I4\":[0.7200000000000002,0.47125],\"I7\":[0.7200000000000002,0.82375],\"I6\":[0.7200000000000002,0.70625],\"A1\":[0.08,0.11875],\"A3\":[0.08,0.35374999999999995],\"A2\":[0.08,0.23625],\"A5\":[0.08,0.5887499999999999],\"A4\":[0.08,0.47125],\"A7\":[0.08,0.82375],\"A6\":[0.08,0.70625],\"A8\":[0.08,0.9412499999999999],\"L6\":[0.96,0.70625],\"L7\":[0.96,0.82375],\"L4\":[0.96,0.47125],\"L5\":[0.96,0.5887499999999999],\"L2\":[0.96,0.23625],\"L3\":[0.96,0.35374999999999995],\"L1\":[0.96,0.11875],\"L8\":[0.96,0.9412499999999999],\"D8\":[0.32000000000000006,0.9412499999999999],\"D6\":[0.32000000000000006,0.70625],\"D7\":[0.32000000000000006,0.82375],\"D4\":[0.32000000000000006,0.47125],\"D5\":[0.32000000000000006,0.5887499999999999],\"D2\":[0.32000000000000006,0.23625],\"D3\":[0.32000000000000006,0.35374999999999995],\"D1\":[0.32000000000000006,0.11875]}}",
+    "layout": "{\"labels\":{\"A\":[0.08,0.03],\"C\":[0.24000000000000005,0.03],\"B\":[0.16,0.03],\"E\":[0.4,0.03],\"D\":[0.32000000000000006,0.03],\"G\":[0.56,0.03],\"F\":[0.48000000000000004,0.03],\"I\":[0.7200000000000002,0.03],\"H\":[0.6400000000000001,0.03],\"K\":[0.88,0.03],\"J\":[0.8,0.03],\"L\":[0.96,0.03],\"1\":[0.01,0.11875],\"3\":[0.01,0.35374999999999995],\"2\":[0.01,0.23625],\"5\":[0.01,0.5887499999999999],\"4\":[0.01,0.47125],\"7\":[0.01,0.82375],\"6\":[0.01,0.70625],\"8\":[0.01,0.9412499999999999]},\"radius\":4.5,\"locations\":{\"G7\":[0.56,0.82375],\"G6\":[0.56,0.70625],\"G5\":[0.56,0.5887499999999999],\"G4\":[0.56,0.47125],\"G3\":[0.56,0.35374999999999995],\"G2\":[0.56,0.23625],\"G1\":[0.56,0.11875],\"G8\":[0.56,0.9412499999999999],\"J8\":[0.8,0.9412499999999999],\"J4\":[0.8,0.47125],\"J5\":[0.8,0.5887499999999999],\"J6\":[0.8,0.70625],\"J7\":[0.8,0.82375],\"J1\":[0.8,0.11875],\"J2\":[0.8,0.23625],\"J3\":[0.8,0.35374999999999995],\"B4\":[0.16,0.47125],\"B5\":[0.16,0.5887499999999999],\"B6\":[0.16,0.70625],\"B7\":[0.16,0.82375],\"B1\":[0.16,0.11875],\"B2\":[0.16,0.23625],\"B3\":[0.16,0.35374999999999995],\"B8\":[0.16,0.9412499999999999],\"E8\":[0.4,0.9412499999999999],\"E5\":[0.4,0.5887499999999999],\"E4\":[0.4,0.47125],\"E7\":[0.4,0.82375],\"E6\":[0.4,0.70625],\"E1\":[0.4,0.11875],\"E3\":[0.4,0.35374999999999995],\"E2\":[0.4,0.23625],\"H8\":[0.6400000000000001,0.9412499999999999],\"H2\":[0.6400000000000001,0.23625],\"H3\":[0.6400000000000001,0.35374999999999995],\"H1\":[0.6400000000000001,0.11875],\"H6\":[0.6400000000000001,0.70625],\"H7\":[0.6400000000000001,0.82375],\"H4\":[0.6400000000000001,0.47125],\"H5\":[0.6400000000000001,0.5887499999999999],\"K3\":[0.88,0.35374999999999995],\"K2\":[0.88,0.23625],\"K1\":[0.88,0.11875],\"K7\":[0.88,0.82375],\"K6\":[0.88,0.70625],\"K5\":[0.88,0.5887499999999999],\"K4\":[0.88,0.47125],\"K8\":[0.88,0.9412499999999999],\"C8\":[0.24000000000000005,0.9412499999999999],\"C3\":[0.24000000000000005,0.35374999999999995],\"C2\":[0.24000000000000005,0.23625],\"C1\":[0.24000000000000005,0.11875],\"C7\":[0.24000000000000005,0.82375],\"C6\":[0.24000000000000005,0.70625],\"C5\":[0.24000000000000005,0.5887499999999999],\"C4\":[0.24000000000000005,0.47125],\"F1\":[0.48000000000000004,0.11875],\"F2\":[0.48000000000000004,0.23625],\"F3\":[0.48000000000000004,0.35374999999999995],\"F4\":[0.48000000000000004,0.47125],\"F5\":[0.48000000000000004,0.5887499999999999],\"F6\":[0.48000000000000004,0.70625],\"F7\":[0.48000000000000004,0.82375],\"F8\":[0.48000000000000004,0.9412499999999999],\"I8\":[0.7200000000000002,0.9412499999999999],\"I1\":[0.7200000000000002,0.11875],\"I3\":[0.7200000000000002,0.35374999999999995],\"I2\":[0.7200000000000002,0.23625],\"I5\":[0.7200000000000002,0.5887499999999999],\"I4\":[0.7200000000000002,0.47125],\"I7\":[0.7200000000000002,0.82375],\"I6\":[0.7200000000000002,0.70625],\"A1\":[0.08,0.11875],\"A3\":[0.08,0.35374999999999995],\"A2\":[0.08,0.23625],\"A5\":[0.08,0.5887499999999999],\"A4\":[0.08,0.47125],\"A7\":[0.08,0.82375],\"A6\":[0.08,0.70625],\"A8\":[0.08,0.9412499999999999],\"L6\":[0.96,0.70625],\"L7\":[0.96,0.82375],\"L4\":[0.96,0.47125],\"L5\":[0.96,0.5887499999999999],\"L2\":[0.96,0.23625],\"L3\":[0.96,0.35374999999999995],\"L1\":[0.96,0.11875],\"L8\":[0.96,0.9412499999999999],\"D8\":[0.32000000000000006,0.9412499999999999],\"D6\":[0.32000000000000006,0.70625],\"D7\":[0.32000000000000006,0.82375],\"D4\":[0.32000000000000006,0.47125],\"D5\":[0.32000000000000006,0.5887499999999999],\"D2\":[0.32000000000000006,0.23625],\"D3\":[0.32000000000000006,0.35374999999999995],\"D1\":[0.32000000000000006,0.11875]},\"height\":0.67}",
     "envelope": "rect",
     "container_locations": [
       17,
@@ -140,8 +233,7 @@
   "pk": 3,
   "fields": {
     "name": "Cane",
-    "kind": 2,
-    "layout": "{\"width\":0.25,\"radius\":8,\"locations\":{\"1\":[0.5,0.1],\"3\":[0.5,0.42],\"2\":[0.5,0.26],\"5\":[0.5,0.74],\"4\":[0.5,0.58],\"6\":[0.5,0.9]}}",
+    "layout": "{\"radius\":8,\"locations\":{\"1\":[0.1,0.1],\"3\":[0.42,0.42],\"2\":[0.26,0.26],\"5\":[0.74,0.74],\"4\":[0.58,0.58],\"6\":[0.9,0.9]},\"height\":0.75}",
     "envelope": "rect",
     "container_locations": [
       1,
@@ -158,7 +250,6 @@
   "pk": 4,
   "fields": {
     "name": "Basket",
-    "kind": 3,
     "layout": "{\"radius\":9,\"locations\":{\"10\":[0.75,-1.99919533],\"1\":[0.75,3.14159265],\"3\":[0.75,1.99919533],\"2\":[0.75,2.57039399],\"5\":[0.75,0.856798],\"4\":[0.75,1.42799666],\"7\":[0.75,-0.28559933],\"6\":[0.75,0.28559933],\"9\":[0.75,-1.42799666],\"8\":[0.75,-0.856798]}}",
     "envelope": "circle",
     "container_locations": [
@@ -172,6 +263,75 @@
       8,
       9,
       10
+    ]
+  }
+},
+{
+  "model": "lims.containertype",
+  "pk": 5,
+  "fields": {
+    "name": "Adaptor",
+    "layout": "{\"radius\":25,\"locations\":{\"A\":[0.25,0.25],\"C\":[0.75,0.25],\"B\":[0.25,0.75],\"D\":[0.75,0.75]}}",
+    "envelope": "rect",
+    "container_locations": [
+      113,
+      114,
+      115,
+      116
+    ]
+  }
+},
+{
+  "model": "lims.containertype",
+  "pk": 6,
+  "fields": {
+    "name": "SAM Automounter",
+    "layout": "{\"radius\":20,\"locations\":{\"R\":[0.825,0.5],\"M\":[0.5,0.5],\"L\":[0.175,0.5]},\"height\":0.33}",
+    "envelope": "rect",
+    "container_locations": [
+      117,
+      118,
+      119
+    ]
+  }
+},
+{
+  "model": "lims.containertype",
+  "pk": 7,
+  "fields": {
+    "name": "ISARA Automounter",
+    "layout": "{\"radius\":8,\"locations\":{\"1A\":[0.1667,0.0833],\"5E\":[0.8333,0.6667],\"1C\":[0.1667,0.375],\"1B\":[0.0833,0.2292],\"1E\":[0.1667,0.6667],\"1D\":[0.0833,0.5208],\"1F\":[0.4167,0.8125],\"3C\":[0.5,0.375],\"5D\":[0.75,0.5208],\"3A\":[0.5,0.0833],\"5A\":[0.8333,0.0833],\"5C\":[0.8333,0.375],\"5B\":[0.75,0.2292],\"3E\":[0.5,0.6667],\"3B\":[0.4167,0.2292],\"3D\":[0.4167,0.5208],\"2D\":[0.25,0.5208],\"2E\":[0.3333,0.6667],\"2F\":[0.5833,0.8125],\"2A\":[0.3333,0.0833],\"2B\":[0.25,0.2292],\"2C\":[0.3333,0.375],\"4D\":[0.5833,0.5208],\"4E\":[0.6667,0.6667],\"4B\":[0.5833,0.2292],\"4C\":[0.6667,0.375],\"4A\":[0.6667,0.0833],\"6B\":[0.9167,0.2292],\"6D\":[0.9167,0.5208]},\"height\":0.9}",
+    "envelope": "rect",
+    "container_locations": [
+      147,
+      148,
+      149,
+      150,
+      151,
+      152,
+      153,
+      154,
+      155,
+      156,
+      157,
+      158,
+      159,
+      160,
+      161,
+      162,
+      163,
+      164,
+      165,
+      166,
+      167,
+      168,
+      169,
+      170,
+      171,
+      172,
+      173,
+      174,
+      175
     ]
   }
 },
@@ -308,9 +468,7 @@
   "pk": 17,
   "fields": {
     "name": "A1",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -318,9 +476,7 @@
   "pk": 18,
   "fields": {
     "name": "A2",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -328,9 +484,7 @@
   "pk": 19,
   "fields": {
     "name": "A3",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -338,9 +492,7 @@
   "pk": 20,
   "fields": {
     "name": "A4",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -348,9 +500,7 @@
   "pk": 21,
   "fields": {
     "name": "A5",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -358,9 +508,7 @@
   "pk": 22,
   "fields": {
     "name": "A6",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -368,9 +516,7 @@
   "pk": 23,
   "fields": {
     "name": "A7",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -378,9 +524,7 @@
   "pk": 24,
   "fields": {
     "name": "A8",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -388,9 +532,7 @@
   "pk": 25,
   "fields": {
     "name": "B1",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -398,9 +540,7 @@
   "pk": 26,
   "fields": {
     "name": "B2",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -408,9 +548,7 @@
   "pk": 27,
   "fields": {
     "name": "B3",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -418,9 +556,7 @@
   "pk": 28,
   "fields": {
     "name": "B4",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -428,9 +564,7 @@
   "pk": 29,
   "fields": {
     "name": "B5",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -438,9 +572,7 @@
   "pk": 30,
   "fields": {
     "name": "B6",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -448,9 +580,7 @@
   "pk": 31,
   "fields": {
     "name": "B7",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -458,9 +588,7 @@
   "pk": 32,
   "fields": {
     "name": "B8",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -468,9 +596,7 @@
   "pk": 33,
   "fields": {
     "name": "C1",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -478,9 +604,7 @@
   "pk": 34,
   "fields": {
     "name": "C2",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -488,9 +612,7 @@
   "pk": 35,
   "fields": {
     "name": "C3",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -498,9 +620,7 @@
   "pk": 36,
   "fields": {
     "name": "C4",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -508,9 +628,7 @@
   "pk": 37,
   "fields": {
     "name": "C5",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -518,9 +636,7 @@
   "pk": 38,
   "fields": {
     "name": "C6",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -528,9 +644,7 @@
   "pk": 39,
   "fields": {
     "name": "C7",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -538,9 +652,7 @@
   "pk": 40,
   "fields": {
     "name": "C8",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -548,9 +660,7 @@
   "pk": 41,
   "fields": {
     "name": "D1",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -558,9 +668,7 @@
   "pk": 42,
   "fields": {
     "name": "D2",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -568,9 +676,7 @@
   "pk": 43,
   "fields": {
     "name": "D3",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -578,9 +684,7 @@
   "pk": 44,
   "fields": {
     "name": "D4",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -588,9 +692,7 @@
   "pk": 45,
   "fields": {
     "name": "D5",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -598,9 +700,7 @@
   "pk": 46,
   "fields": {
     "name": "D6",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -608,9 +708,7 @@
   "pk": 47,
   "fields": {
     "name": "D7",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -618,9 +716,7 @@
   "pk": 48,
   "fields": {
     "name": "D8",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -628,9 +724,7 @@
   "pk": 49,
   "fields": {
     "name": "E1",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -638,9 +732,7 @@
   "pk": 50,
   "fields": {
     "name": "E2",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -648,9 +740,7 @@
   "pk": 51,
   "fields": {
     "name": "E3",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -658,9 +748,7 @@
   "pk": 52,
   "fields": {
     "name": "E4",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -668,9 +756,7 @@
   "pk": 53,
   "fields": {
     "name": "E5",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -678,9 +764,7 @@
   "pk": 54,
   "fields": {
     "name": "E6",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -688,9 +772,7 @@
   "pk": 55,
   "fields": {
     "name": "E7",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -698,9 +780,7 @@
   "pk": 56,
   "fields": {
     "name": "E8",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -708,9 +788,7 @@
   "pk": 57,
   "fields": {
     "name": "F1",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -718,9 +796,7 @@
   "pk": 58,
   "fields": {
     "name": "F2",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -728,9 +804,7 @@
   "pk": 59,
   "fields": {
     "name": "F3",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -738,9 +812,7 @@
   "pk": 60,
   "fields": {
     "name": "F4",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -748,9 +820,7 @@
   "pk": 61,
   "fields": {
     "name": "F5",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -758,9 +828,7 @@
   "pk": 62,
   "fields": {
     "name": "F6",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -768,9 +836,7 @@
   "pk": 63,
   "fields": {
     "name": "F7",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -778,9 +844,7 @@
   "pk": 64,
   "fields": {
     "name": "F8",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -788,9 +852,7 @@
   "pk": 65,
   "fields": {
     "name": "G1",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -798,9 +860,7 @@
   "pk": 66,
   "fields": {
     "name": "G2",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -808,9 +868,7 @@
   "pk": 67,
   "fields": {
     "name": "G3",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -818,9 +876,7 @@
   "pk": 68,
   "fields": {
     "name": "G4",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -828,9 +884,7 @@
   "pk": 69,
   "fields": {
     "name": "G5",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -838,9 +892,7 @@
   "pk": 70,
   "fields": {
     "name": "G6",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -848,9 +900,7 @@
   "pk": 71,
   "fields": {
     "name": "G7",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -858,9 +908,7 @@
   "pk": 72,
   "fields": {
     "name": "G8",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -868,9 +916,7 @@
   "pk": 73,
   "fields": {
     "name": "H1",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -878,9 +924,7 @@
   "pk": 74,
   "fields": {
     "name": "H2",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -888,9 +932,7 @@
   "pk": 75,
   "fields": {
     "name": "H3",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -898,9 +940,7 @@
   "pk": 76,
   "fields": {
     "name": "H4",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -908,9 +948,7 @@
   "pk": 77,
   "fields": {
     "name": "H5",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -918,9 +956,7 @@
   "pk": 78,
   "fields": {
     "name": "H6",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -928,9 +964,7 @@
   "pk": 79,
   "fields": {
     "name": "H7",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -938,9 +972,7 @@
   "pk": 80,
   "fields": {
     "name": "H8",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -948,9 +980,7 @@
   "pk": 81,
   "fields": {
     "name": "I1",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -958,9 +988,7 @@
   "pk": 82,
   "fields": {
     "name": "I2",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -968,9 +996,7 @@
   "pk": 83,
   "fields": {
     "name": "I3",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -978,9 +1004,7 @@
   "pk": 84,
   "fields": {
     "name": "I4",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -988,9 +1012,7 @@
   "pk": 85,
   "fields": {
     "name": "I5",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -998,9 +1020,7 @@
   "pk": 86,
   "fields": {
     "name": "I6",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1008,9 +1028,7 @@
   "pk": 87,
   "fields": {
     "name": "I7",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1018,9 +1036,7 @@
   "pk": 88,
   "fields": {
     "name": "I8",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1028,9 +1044,7 @@
   "pk": 89,
   "fields": {
     "name": "J1",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1038,9 +1052,7 @@
   "pk": 90,
   "fields": {
     "name": "J2",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1048,9 +1060,7 @@
   "pk": 91,
   "fields": {
     "name": "J3",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1058,9 +1068,7 @@
   "pk": 92,
   "fields": {
     "name": "J4",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1068,9 +1076,7 @@
   "pk": 93,
   "fields": {
     "name": "J5",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1078,9 +1084,7 @@
   "pk": 94,
   "fields": {
     "name": "J6",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1088,9 +1092,7 @@
   "pk": 95,
   "fields": {
     "name": "J7",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1098,9 +1100,7 @@
   "pk": 96,
   "fields": {
     "name": "J8",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1108,9 +1108,7 @@
   "pk": 97,
   "fields": {
     "name": "K1",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1118,9 +1116,7 @@
   "pk": 98,
   "fields": {
     "name": "K2",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1128,9 +1124,7 @@
   "pk": 99,
   "fields": {
     "name": "K3",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1138,9 +1132,7 @@
   "pk": 100,
   "fields": {
     "name": "K4",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1148,9 +1140,7 @@
   "pk": 101,
   "fields": {
     "name": "K5",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1158,9 +1148,7 @@
   "pk": 102,
   "fields": {
     "name": "K6",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1168,9 +1156,7 @@
   "pk": 103,
   "fields": {
     "name": "K7",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1178,9 +1164,7 @@
   "pk": 104,
   "fields": {
     "name": "K8",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1188,9 +1172,7 @@
   "pk": 105,
   "fields": {
     "name": "L1",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1198,9 +1180,7 @@
   "pk": 106,
   "fields": {
     "name": "L2",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1208,9 +1188,7 @@
   "pk": 107,
   "fields": {
     "name": "L3",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1218,9 +1196,7 @@
   "pk": 108,
   "fields": {
     "name": "L4",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1228,9 +1204,7 @@
   "pk": 109,
   "fields": {
     "name": "L5",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1238,9 +1212,7 @@
   "pk": 110,
   "fields": {
     "name": "L6",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1248,9 +1220,7 @@
   "pk": 111,
   "fields": {
     "name": "L7",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1258,9 +1228,7 @@
   "pk": 112,
   "fields": {
     "name": "L8",
-    "accepts": [
-      2
-    ]
+    "accepts": []
   }
 },
 {
@@ -1304,99 +1272,1188 @@
   }
 },
 {
-  "model": "lims.carrier",
+  "model": "lims.containerlocation",
+  "pk": 117,
+  "fields": {
+    "name": "L",
+    "accepts": [
+      2,
+      5
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 118,
+  "fields": {
+    "name": "M",
+    "accepts": [
+      2,
+      5
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 119,
+  "fields": {
+    "name": "R",
+    "accepts": [
+      5
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 147,
+  "fields": {
+    "name": "1A",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 148,
+  "fields": {
+    "name": "1B",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 149,
+  "fields": {
+    "name": "1C",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 150,
+  "fields": {
+    "name": "1D",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 151,
+  "fields": {
+    "name": "1E",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 152,
+  "fields": {
+    "name": "1F",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 153,
+  "fields": {
+    "name": "2A",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 154,
+  "fields": {
+    "name": "2B",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 155,
+  "fields": {
+    "name": "2C",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 156,
+  "fields": {
+    "name": "2D",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 157,
+  "fields": {
+    "name": "2E",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 158,
+  "fields": {
+    "name": "2F",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 159,
+  "fields": {
+    "name": "3A",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 160,
+  "fields": {
+    "name": "3B",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 161,
+  "fields": {
+    "name": "3C",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 162,
+  "fields": {
+    "name": "3D",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 163,
+  "fields": {
+    "name": "3E",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 164,
+  "fields": {
+    "name": "4A",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 165,
+  "fields": {
+    "name": "4B",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 166,
+  "fields": {
+    "name": "4C",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 167,
+  "fields": {
+    "name": "4D",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 168,
+  "fields": {
+    "name": "4E",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 169,
+  "fields": {
+    "name": "5A",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 170,
+  "fields": {
+    "name": "5B",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 171,
+  "fields": {
+    "name": "5C",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 172,
+  "fields": {
+    "name": "5D",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 173,
+  "fields": {
+    "name": "5E",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 174,
+  "fields": {
+    "name": "6B",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.containerlocation",
+  "pk": 175,
+  "fields": {
+    "name": "6D",
+    "accepts": [
+      1
+    ]
+  }
+},
+{
+  "model": "lims.container",
   "pk": 1,
   "fields": {
-    "name": "UPS",
-    "phone_number": "800-742-5877",
-    "fax_number": "",
-    "code_regex": "^(1Z)",
-    "url": "http://wwwapps.ups.com/etracking/tracking.cgi?TypeOfInquiryNumber=T&AcceptUPSLicenseAgreement=yes&submit=Track&InquiryNumber1="
+    "project": 49,
+    "name": "CMCF-ID Automounter",
+    "staff_comments": "",
+    "created": "2017-10-19T15:13:08.271Z",
+    "modified": "2017-10-19T15:21:30.084Z",
+    "status": 2,
+    "kind": 7,
+    "shipment": null,
+    "comments": "",
+    "priority": 0,
+    "parent": null,
+    "location": null
   }
 },
 {
-  "model": "lims.carrier",
+  "model": "lims.container",
   "pk": 2,
   "fields": {
-    "name": "Canada Post",
-    "phone_number": "866-607-6301",
-    "fax_number": "",
-    "code_regex": "(CA)$",
-    "url": "https://obc.canadapost.ca/emo/basicPin.do?trackingCode=PIN&action=query&language=en&sblid=dcsubmitted&trackingId="
+    "project": 49,
+    "name": "CMCF-BM Automounter",
+    "staff_comments": "",
+    "created": "2017-10-19T15:12:40.748Z",
+    "modified": "2017-10-26T21:46:27.615Z",
+    "status": 2,
+    "kind": 6,
+    "shipment": null,
+    "comments": "",
+    "priority": 0,
+    "parent": null,
+    "location": null
   }
 },
 {
-  "model": "lims.carrier",
+  "model": "lims.container",
   "pk": 3,
   "fields": {
-    "name": "FedEx",
-    "phone_number": "800-463-3339",
-    "fax_number": "",
-    "code_regex": "^\\d{12,19}$",
-    "url": "http://www.fedex.com/Tracking?action=track&tracknumbers="
+    "project": 49,
+    "name": "SIM SAM",
+    "staff_comments": "",
+    "created": "2017-10-19T15:15:25.425Z",
+    "modified": "2017-10-26T15:55:22.222Z",
+    "status": 2,
+    "kind": 6,
+    "shipment": null,
+    "comments": "",
+    "priority": 0,
+    "parent": null,
+    "location": null
   }
 },
 {
-  "model": "lims.carrier",
+  "model": "lims.container",
   "pk": 4,
   "fields": {
-    "name": "USPS",
-    "phone_number": "800-222-1811",
-    "fax_number": "",
-    "code_regex": "\\d{20,}",
-    "url": "http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum="
+    "project": 49,
+    "name": "CLS-0001",
+    "staff_comments": "",
+    "created": "2017-10-19T15:15:25.425Z",
+    "modified": "2017-10-27T15:50:57.394Z",
+    "status": 2,
+    "kind": 5,
+    "shipment": null,
+    "comments": "",
+    "priority": 0,
+    "parent": null,
+    "location": null
   }
 },
 {
-  "model": "lims.carrier",
+  "model": "lims.container",
   "pk": 5,
   "fields": {
-    "name": "DHL",
-    "phone_number": "800-225-5345",
-    "fax_number": "",
-    "code_regex": "^\\d{10,11}$",
-    "url": "http://track.dhl-usa.com/TrackByNbr.asp?ShipmentNumber="
+    "project": 49,
+    "name": "CLS-0002",
+    "staff_comments": "",
+    "created": "2017-10-19T15:15:25.425Z",
+    "modified": "2017-10-26T21:48:55.602Z",
+    "status": 2,
+    "kind": 5,
+    "shipment": null,
+    "comments": "",
+    "priority": 0,
+    "parent": 2,
+    "location": 117
   }
 },
 {
-  "model": "lims.carrier",
+  "model": "lims.container",
   "pk": 6,
   "fields": {
-    "name": "Purolator",
-    "phone_number": "888-744-7123",
-    "fax_number": "",
-    "code_regex": "*",
-    "url": "http://shipnow.purolator.com/shiponline/track/purolatortrack.asp?pinno="
+    "project": 49,
+    "name": "CLS-0003",
+    "staff_comments": "",
+    "created": "2017-10-19T15:15:25.425Z",
+    "modified": "2017-10-19T15:15:25.425Z",
+    "status": 2,
+    "kind": 5,
+    "shipment": null,
+    "comments": "",
+    "priority": 0,
+    "parent": null,
+    "location": null
   }
 },
 {
-  "model": "lims.beamline",
+  "model": "lims.container",
+  "pk": 7,
+  "fields": {
+    "project": 49,
+    "name": "CLS-0004",
+    "staff_comments": "",
+    "created": "2017-10-19T15:15:25.425Z",
+    "modified": "2017-10-19T15:15:25.425Z",
+    "status": 2,
+    "kind": 5,
+    "shipment": null,
+    "comments": "",
+    "priority": 0,
+    "parent": null,
+    "location": null
+  }
+},
+{
+  "model": "lims.container",
+  "pk": 8,
+  "fields": {
+    "project": 49,
+    "name": "CLS-0005",
+    "staff_comments": "",
+    "created": "2017-10-19T15:15:25.425Z",
+    "modified": "2017-10-19T15:15:25.425Z",
+    "status": 2,
+    "kind": 5,
+    "shipment": null,
+    "comments": "",
+    "priority": 0,
+    "parent": null,
+    "location": null
+  }
+},
+{
+  "model": "lims.container",
+  "pk": 9,
+  "fields": {
+    "project": 49,
+    "name": "CLS-0006",
+    "staff_comments": "",
+    "created": "2017-10-19T15:15:25.425Z",
+    "modified": "2017-10-19T15:15:25.425Z",
+    "status": 2,
+    "kind": 5,
+    "shipment": null,
+    "comments": "",
+    "priority": 0,
+    "parent": null,
+    "location": null
+  }
+},
+{
+  "model": "lims.container",
+  "pk": 10,
+  "fields": {
+    "project": 49,
+    "name": "CLS-0007",
+    "staff_comments": "",
+    "created": "2017-10-19T15:15:25.425Z",
+    "modified": "2017-10-19T15:15:25.425Z",
+    "status": 2,
+    "kind": 5,
+    "shipment": null,
+    "comments": "",
+    "priority": 0,
+    "parent": null,
+    "location": null
+  }
+},
+{
+  "model": "lims.container",
+  "pk": 11,
+  "fields": {
+    "project": 49,
+    "name": "CLS-0008",
+    "staff_comments": "",
+    "created": "2017-10-19T15:15:25.425Z",
+    "modified": "2017-10-19T15:15:25.425Z",
+    "status": 2,
+    "kind": 5,
+    "shipment": null,
+    "comments": "",
+    "priority": 0,
+    "parent": null,
+    "location": null
+  }
+},
+{
+  "model": "lims.container",
+  "pk": 12,
+  "fields": {
+    "project": 49,
+    "name": "CLS-0009",
+    "staff_comments": "",
+    "created": "2017-10-19T15:15:25.425Z",
+    "modified": "2017-10-19T15:15:25.425Z",
+    "status": 2,
+    "kind": 5,
+    "shipment": null,
+    "comments": "",
+    "priority": 0,
+    "parent": null,
+    "location": null
+  }
+},
+{
+  "model": "lims.container",
+  "pk": 13,
+  "fields": {
+    "project": 49,
+    "name": "SIM ISARA",
+    "staff_comments": "",
+    "created": "2017-10-26T19:45:49.848Z",
+    "modified": "2017-10-26T21:13:04.031Z",
+    "status": 2,
+    "kind": 7,
+    "shipment": null,
+    "comments": "",
+    "priority": 0,
+    "parent": null,
+    "location": null
+  }
+},
+{
+  "model": "lims.dewar",
   "pk": 1,
   "fields": {
-    "name": "08ID-1",
-    "energy_lo": 6.0,
-    "energy_hi": 18.5,
-    "contact_phone": "306-657-3610"
+    "beamline": 1,
+    "container": 1,
+    "staff_comments": "",
+    "modified": "2017-10-19T15:15:47.291Z",
+    "active": true
   }
 },
 {
-  "model": "lims.beamline",
+  "model": "lims.dewar",
   "pk": 2,
   "fields": {
-    "name": "08B1-1",
-    "energy_lo": 4.0,
-    "energy_hi": 18.5,
-    "contact_phone": "306-657-3619"
+    "beamline": 2,
+    "container": 2,
+    "staff_comments": "",
+    "modified": "2017-10-19T15:14:12.810Z",
+    "active": true
   }
 },
 {
-  "model": "lims.beamline",
+  "model": "lims.dewar",
   "pk": 3,
   "fields": {
-    "name": "SIM-1",
-    "energy_lo": 4.0,
-    "energy_hi": 18.5,
-    "contact_phone": "306-657-3758"
+    "beamline": 3,
+    "container": 13,
+    "staff_comments": "",
+    "modified": "2017-10-26T19:45:54.818Z",
+    "active": true
+  }
+},
+{
+  "model": "lims.dewar",
+  "pk": 4,
+  "fields": {
+    "beamline": 3,
+    "container": 3,
+    "staff_comments": "",
+    "modified": "2017-10-27T16:27:00.147Z",
+    "active": false
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 1,
+  "fields": {
+    "name": "P1",
+    "crystal_system": "a",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 3,
+  "fields": {
+    "name": "P2",
+    "crystal_system": "m",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 4,
+  "fields": {
+    "name": "P2(1)",
+    "crystal_system": "m",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 5,
+  "fields": {
+    "name": "C2",
+    "crystal_system": "m",
+    "lattice_type": "C"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 16,
+  "fields": {
+    "name": "P222",
+    "crystal_system": "o",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 17,
+  "fields": {
+    "name": "P222(1)",
+    "crystal_system": "o",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 18,
+  "fields": {
+    "name": "P2(1)2(1)2",
+    "crystal_system": "o",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 19,
+  "fields": {
+    "name": "P2(1)2(1)2(1)",
+    "crystal_system": "o",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 20,
+  "fields": {
+    "name": "C222(1)",
+    "crystal_system": "o",
+    "lattice_type": "C"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 21,
+  "fields": {
+    "name": "C222",
+    "crystal_system": "o",
+    "lattice_type": "C"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 22,
+  "fields": {
+    "name": "F222",
+    "crystal_system": "o",
+    "lattice_type": "F"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 23,
+  "fields": {
+    "name": "I222",
+    "crystal_system": "o",
+    "lattice_type": "I"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 24,
+  "fields": {
+    "name": "I2(1)2(1)2(1)",
+    "crystal_system": "o",
+    "lattice_type": "I"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 75,
+  "fields": {
+    "name": "P4",
+    "crystal_system": "t",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 76,
+  "fields": {
+    "name": "P4(1)",
+    "crystal_system": "t",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 77,
+  "fields": {
+    "name": "P4(2)",
+    "crystal_system": "t",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 78,
+  "fields": {
+    "name": "P4(3)",
+    "crystal_system": "t",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 79,
+  "fields": {
+    "name": "I4",
+    "crystal_system": "t",
+    "lattice_type": "I"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 80,
+  "fields": {
+    "name": "I4(1)",
+    "crystal_system": "t",
+    "lattice_type": "I"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 89,
+  "fields": {
+    "name": "P422",
+    "crystal_system": "t",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 90,
+  "fields": {
+    "name": "P42(1)2",
+    "crystal_system": "t",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 91,
+  "fields": {
+    "name": "P4(1)22",
+    "crystal_system": "t",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 92,
+  "fields": {
+    "name": "P4(1)2(1)2",
+    "crystal_system": "t",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 93,
+  "fields": {
+    "name": "P4(2)22",
+    "crystal_system": "t",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 94,
+  "fields": {
+    "name": "P4(2)2(1)2",
+    "crystal_system": "t",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 95,
+  "fields": {
+    "name": "P4(3)22",
+    "crystal_system": "t",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 96,
+  "fields": {
+    "name": "P4(3)2(1)2",
+    "crystal_system": "t",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 97,
+  "fields": {
+    "name": "I422",
+    "crystal_system": "t",
+    "lattice_type": "I"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 98,
+  "fields": {
+    "name": "I4(1)22",
+    "crystal_system": "t",
+    "lattice_type": "I"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 143,
+  "fields": {
+    "name": "P3",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 144,
+  "fields": {
+    "name": "P3(1)",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 145,
+  "fields": {
+    "name": "P3(2)",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 146,
+  "fields": {
+    "name": "R3",
+    "crystal_system": "h",
+    "lattice_type": "R"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 149,
+  "fields": {
+    "name": "P312",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 150,
+  "fields": {
+    "name": "P321",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 151,
+  "fields": {
+    "name": "P3(1)12",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 152,
+  "fields": {
+    "name": "P3(1)21",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 153,
+  "fields": {
+    "name": "P3(2)12",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 154,
+  "fields": {
+    "name": "P3(2)21",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 155,
+  "fields": {
+    "name": "R32",
+    "crystal_system": "h",
+    "lattice_type": "R"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 168,
+  "fields": {
+    "name": "P6",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 169,
+  "fields": {
+    "name": "P6(1)",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 170,
+  "fields": {
+    "name": "P6(5)",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 171,
+  "fields": {
+    "name": "P6(2)",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 172,
+  "fields": {
+    "name": "P6(4)",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 173,
+  "fields": {
+    "name": "P6(3)",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 177,
+  "fields": {
+    "name": "P622",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 178,
+  "fields": {
+    "name": "P6(1)22",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 179,
+  "fields": {
+    "name": "P6(5)22",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 180,
+  "fields": {
+    "name": "P6(2)22",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 181,
+  "fields": {
+    "name": "P6(4)22",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 182,
+  "fields": {
+    "name": "P6(3)22",
+    "crystal_system": "h",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 195,
+  "fields": {
+    "name": "P23",
+    "crystal_system": "c",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 196,
+  "fields": {
+    "name": "F23",
+    "crystal_system": "c",
+    "lattice_type": "F"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 197,
+  "fields": {
+    "name": "I23",
+    "crystal_system": "c",
+    "lattice_type": "I"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 198,
+  "fields": {
+    "name": "P2(1)3",
+    "crystal_system": "c",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 199,
+  "fields": {
+    "name": "I2(1)3",
+    "crystal_system": "c",
+    "lattice_type": "I"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 207,
+  "fields": {
+    "name": "P432",
+    "crystal_system": "c",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 208,
+  "fields": {
+    "name": "P4(2)32",
+    "crystal_system": "c",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 209,
+  "fields": {
+    "name": "F432",
+    "crystal_system": "c",
+    "lattice_type": "F"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 210,
+  "fields": {
+    "name": "F4(1)32",
+    "crystal_system": "c",
+    "lattice_type": "F"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 211,
+  "fields": {
+    "name": "I432",
+    "crystal_system": "c",
+    "lattice_type": "I"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 212,
+  "fields": {
+    "name": "P4(3)32",
+    "crystal_system": "c",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 213,
+  "fields": {
+    "name": "P4(1)32",
+    "crystal_system": "c",
+    "lattice_type": "P"
+  }
+},
+{
+  "model": "lims.spacegroup",
+  "pk": 214,
+  "fields": {
+    "name": "I4(1)32",
+    "crystal_system": "c",
+    "lattice_type": "I"
   }
 }
 ]

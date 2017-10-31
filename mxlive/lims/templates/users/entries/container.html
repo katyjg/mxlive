@@ -5,14 +5,13 @@
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading">
         <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
-        <strong class="text-muted">{{ object.identity }}</strong> | {{ object.name }}
+        <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}{{ object.identity }} | </span><strong>{{ object.name }}</strong>
     </h3>
     <span class="text-muted">
-        Container
         {% if object.shipment %}
-            in Shipment <a href="{% url "shipment-detail" object.shipment.pk %}">{{object.shipment.name}}</a>
+            <strong>1</strong> of <strong>{{ object.shipment.container_set.count }}</strong> Container{{ object.shipment.container_set.count|pluralize }} in Shipment {{object.shipment.name}}
         {% else %}
-            not in a shipment.
+            Container not in a shipment.
         {% endif %}
     </span>
 {% endblock %}
@@ -38,7 +37,7 @@
                     <span class="fa-stack">
                         <i class="fa-stack-2x fa fa-2 fa-fw fa-history"></i>
                     </span><br>
-                    <span class="tool-label">History</span>
+                    <span class="tool-label">Container History</span>
                 </span>
             </a>
         </span>
@@ -57,10 +56,15 @@
                                 {% else %}default{% endif %}">{% if object.parent %}Loaded{% else %}{{ object.get_status_display }}{% endif %}</span>
                 </h3>
             </div>
-            {% if user.is_superuser %}<div class="col-xs-1">
-                <small class="text-muted text-condensed">Project:</small><br>
-                {{ object.project }}
-            </div>{% endif %}
+            <div class="col-xs-3">
+            {% if object.accepts_children %}
+                <small class="text-muted text-condensed">Beamline:</small><br>
+                {% if object.dewar %}<a href="{% url "beamline-detail" object.dewar.beamline.pk %}">{{ object.dewar.beamline.acronym }}</a>{% endif %}
+            {% else %}
+                <small class="text-muted text-condensed">Shipment:</small><br>
+                {% if object.shipment %}<a href="{% url "shipment-detail" object.shipment.pk %}">{{object.shipment.name}}</a>{% endif %}
+            {% endif %}
+            </div>
             <div class="col-xs-2 pull-right text-right">
                 <small class="text-muted text-condensed">Number of {% if object.accepts_children %}Containers{% else %}Samples{% endif %}:</small><br>
                 <strong>{% if object.accepts_children %}{{ object.children.count }}{% else %}{{ object.num_samples }}{% endif %}</strong> / {{ object.kind.container_locations.count }}
@@ -69,12 +73,13 @@
                 <div class="col-xs-3 pull-right text-right">
                     <small class="text-muted text-condensed">Location:</small><br>
                     {% if object.dewar %}
-                        {% if user.is_superuser %}<a href="{% url "beamline-detail" object.dewar.beamline.pk %}">{% endif %}{{ object.dewar.beamline }}
+                        {{ object.dewar.beamline }}
                     {% else %}
-                        {% if user.is_superuser %}<a href="{% url "container-detail" object.parent.pk %}">{% endif %}{{ object.parent.kind.name }} {{ object.parent.name }}
-                    {% endif %} | <strong>{{ object.port }}</strong>{% if user.is_superuser %}</a>{% endif %}
+                        {{ object.parent.kind.name }} {{ object.parent.name }}
+                    {% endif %} | <strong>{{ object.port }}</strong>
                 </div>
             {% endif %}
+
             <div class="col-xs-2 pull-left">
                 <small class="text-muted text-condensed">Type:</small><br>
                 {{ object.kind }}
@@ -88,16 +93,16 @@
 {% block full %}
 
     <div class="row">
-        <div {% if object.accepts_children %}id="admin-assign"{% endif %} class="col-sm-4 pull-right">
-            <div id="layout-{{ object.pk }}" class="layout-lg"></div>
-            {% include "users/entries/layout-container.html" with object=object.pk kind=object.kind %}
-        </div>
-        <div class="col-sm-8">
+        <div class="col-sm-8 col-xs-12">
             {% if object.accepts_children %}
                 {% include "users/entries/loaded-list.html" with object=object %}
             {% else %}
                 {% include "objlist/object_list.html" with object_list=object.sample_set.all %}
             {% endif %}
+        </div>
+        <div {% if object.accepts_children %}id="admin-assign"{% endif %} class="col-sm-4 col-xs-12 pull-right">
+            <div id="layout-{{ object.pk }}" class="layout-lg"></div>
+            {% include "users/entries/layout-container.html" with object=object.pk kind=object.kind %}
         </div>
     </div>
 

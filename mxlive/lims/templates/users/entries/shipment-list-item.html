@@ -5,55 +5,55 @@
             {% else %}default{% endif %}">
     <div class="row">
         <div class="col-xs-12">
-        {% if object.status >= object.STATES.ON_SITE %}
-
-            <div class="pull-right box-tools box-tools-min">
-                <a href="{% url 'shipment-protocol' object.pk %}">
-                    <span>
-                        <span class="fa-stack pull-right hidden-xs">
+            {% if object.status >= object.STATES.ON_SITE %}
+                <div class="pull-right box-tools">
+                    <a class="pull-right" href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
+                        <span class="fa-stack">
                             <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
                             {% if object.num_results %}
                                 <span class="fa-stack-1x superscript">
                                     <span class="badge progress-bar-info">{{ object.num_results }}</span>
                                 </span>
                             {% endif %}
-                        </span>
-                        <span class="fa-stack fa-stack-center-xs">
+                        </span><br>
+                        <span class="tool-label">Reports</span>
+                    </a>
+                    <a class="pull-right" href="{% url "shipment-data" object.pk %}" title="Go to Data from this shipment">
+                        <span class="fa-stack">
                             <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
                             {% if object.num_datasets %}
                                 <span class="fa-stack-1x superscript">
                                     <span class="badge progress-bar-info">{{ object.num_datasets }}</span>
                                 </span>
                             {% endif %}
-                        </span>&emsp;&emsp;
-                    </span>
-                    <br><span>Data<text class="hidden-xs"> & Analysis</text></span>
-                </a>
+                        </span><br>
+                        <span class="tool-label">Data</span>
+                    </a>
+                </div>
+            {% endif %}
+            <div class="box-status pull-left text-muted">
+                <div class="text-center text-muted">
+                    <div title="{% if object.status == object.STATES.ON_SITE %}Location: {{ object.storage_location }}
+                                {% elif object.status == object.STATES.SENT %}Sent on {{ object.date_shipped }}
+                                {% elif object.status == object.STATES.RETURNED %}Returned on {{ object.date_returned }}{% endif %}"
+                         class="fa fa-2x {% if object.status == object.STATES.DRAFT %}fa-clipboard
+                                         {% elif object.status == object.STATES.SENT %}fa-plane
+                                         {% elif object.status == object.STATES.ON_SITE %}fa-map-marker
+                                         {% elif object.status == object.STATES.RETURNED %}fa-plane
+                                         {% elif object.status == object.STATES.ARCHIVED %}fa-archive{% endif %}"></div>
+                    <div><small>{{ object.get_status_display|upper }}</small></div>
+                </div>
             </div>
-
-        {% endif %}
-        <a href="{% url 'shipment-detail' object.pk %}" class="text-muted overflow ellipsis">
-                <div class="box-status pull-left text-muted">
-                    <div class="text-center text-muted">
-                        <div title="{% if object.status == object.STATES.ON_SITE %}Location: {{ object.storage_location }}
-                                    {% elif object.status == object.STATES.SEND %}Sent on {{ object.date_shipped }}
-                                    {% elif object.status == object.STATES.RETURNED %}Returned on {{ object.date_returned }}{% endif %}"
-                             class="fa fa-2x {% if object.status == object.STATES.DRAFT %}fa-clipboard
-                                             {% elif object.status == object.STATES.SENT %}fa-plane
-                                             {% elif object.status == object.STATES.ON_SITE %}fa-map-marker
-                                             {% elif object.status == object.STATES.RETURNED %}fa-plane
-                                             {% elif object.status == object.STATES.ARCHIVED %}fa-archive{% endif %}"></div>
-                        <div><small>{{ object.get_status_display|upper }}</small></div>
-                    </div>
-                </div>
-                <div class="box-info pull-left">
-                    <h4 class="text-condensed narrow-heading">
-                        <strong class="text-muted">{% if user.is_superuser %}{{ object.project }}{% else %}{{ object.identity }}{% endif %}</strong> |
-                        {{ object.name }}
-                    </h4>
-                    <span><strong>{{ object.num_containers }}</strong> Container{{ object.num_containers|pluralize }} / <strong>{{ object.num_samples }}</strong> Sample{{ object.num_samples|pluralize }}</span>
-                </div>
-        </a>
+            <div class="box-info text-muted">
+                <h4 class="text-condensed narrow-heading overflow ellipsis"><a class="text-muted" href="{% url "shipment-detail" object.pk %}" title='View Shipment "{{ object.name }}"'>
+                    <strong>{% if user.is_superuser %}{{ object.project }}{% else %}{{ object.identity }}{% endif %}</strong> |
+                    {{ object.name }}
+                </a></h4>
+                <span class="overflow ellipsis">
+                    <strong>{{ object.num_containers }}</strong> Container{{ object.num_containers|pluralize }} /
+                    <strong>{{ object.groups.count }}</strong> Group{{ object.groups.count|pluralize }} /
+                    <strong>{{ object.num_samples }}</strong> Sample{{ object.num_samples|pluralize }}</span>
+            </div>
         </div>
     </div>
 </div>

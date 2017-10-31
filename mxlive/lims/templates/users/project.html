@@ -3,17 +3,22 @@
 {% load link_list %}
 
 {% block page_heading %}
-<h3 class="overflow ellipsis">Welcome, {{ user.first_name|title }}</h3>
+<h3 class="text-condensed narrow-heading overflow ellipsis">Welcome {{ user.username|title }}!</h3>
+    <span class="text-muted">Find your current or recent shipments listed here.</span>
 {% endblock %}
 
 {% block object_tools %}
     <span class="box-tools pull-right">
         <a class="pull-right" href="{% url "session-list" %}">
-            <i class="fa fa-2 fa-clock-o"></i><br>
+            <span class="fa-stack">
+                <i class="fa fa-stack-2x fa-2 fa-clock-o"></i>
+            </span><br/>
             <span class="tool-label">Sessions</span>
         </a>
         <a class="pull-right" data-url="{% url "shipment-new" %}">
-            <i class="fa fa-2 fa-plus"></i><br>
+            <span class="fa-stack">
+                <i class="fa fa-stack-2x fa-2 fa-plus"></i>
+            </span><br/>
             <span class="tool-label">New Shipment</span>
         </a>
     </span>
@@ -24,16 +29,19 @@
     <div class="col-xs-12 col-md-9">
         <div class="list-group">
             <a data-url="{% url "shipment-new" %}" class="list-group-item empty">
-                <div class="row overflow ellipsis">
+                <div class="row">
                     <div class="col-xs-12">
-                        <div class="box-status pull-left">
+                        <div class="box-status pull-left text-muted">
                             <div class="text-center text-muted">
-                                <div title="Create a Shipment" class="fa fa-2x fa-plus"></div>
+                                <div title="Create a Shipment"
+                                     class="fa fa-2x fa-plus"></div>
                                 <div><small>Start Now</small></div>
                             </div>
                         </div>
-                        <div class="box-info pull-left">
-                            <h4 class="text-condensed narrow-heading overflow ellipsis">Click here to start a new shipment!</h4>
+                        <div class="box-info text-muted">
+                            <h4 class="text-condensed narrow-heading overflow ellipsis">
+                                Click here to start a new shipment!
+                            </h4>
                             <span class="overflow ellipsis">Follow the steps to enter your sample information</span>
                         </div>
                     </div>
@@ -46,6 +54,7 @@
 
         {% if sessions %}
             <h3>Recent Beamline Sessions</h3>
+            <hr/>
             <div class="list-group list-group-hover">
                 {% for session in sessions %}
                     {% include "users/entries/session-list-item.html" with session=session %}
@@ -54,8 +63,8 @@
         {% endif %}
     </div>
 
-        <!-- left region -->
-	<div id="left-content" class="col-xs-12 col-md-3">
+    <!-- right region -->
+	<div class="col-xs-12 col-md-3">
         {% load_announcements %}
 	</div>
 </div>

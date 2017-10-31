@@ -1,0 +1,27 @@
+
+    <div class="col-lg-4 col-sm-6 list-group-item mini-thumbnail sm-padding" style="padding-left: 15px;">
+        <div class="row">
+            <div class="col-xs-12">
+            <a href="{% url "container-detail" pk=container.pk %}" style="overflow: auto;">
+                <h4 class="underline text-muted text-center text-condensed overflow ellipsis">
+                    {% if container.dewars.first.active %}<i title="Active Automounter" class="text-muted fa fa-fw fa-check"></i>{% endif %}
+                    <strong><span class="text-muted">{{ container.name }}</span></strong>
+                </h4>
+            </a></div>
+        </div>
+        <div class="row text-muted">
+            <div class="col-xs-12">
+                <div id="layout-{{ container.pk }}" class="layout-lg"></div>
+                {% include "users/entries/layout-container.html" with object=container.pk kind=container.kind %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 text-center">
+                {% if container.dewar %}
+                    <h4><span class="label label-info">{{ container.dewar.beamline.acronym }}</span></h4>
+                {% else %}
+                    <h4><span class="text-muted"><small>Not loaded</small> </span></h4>
+                {% endif %}
+            </div>
+        </div>
+    </div>

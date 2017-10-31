@@ -42,6 +42,29 @@ function selectAll(container) {
     }
 };
 
+function fillContainers() {
+
+    $.each($('.repeat-row[class!="template"]'), function() {
+       if (!($(this).hasClass('template'))) {
+           $(this).find('.remove').trigger('click');
+       }
+    });
+
+    $.each( $('[id^="formlayout"] svg'), function() {
+        $('.add').trigger('click');
+        var container = $(this).attr('id');
+        var row = $('.repeat-row[class!="template"]').last();
+        row.find('input[name$="name"]').val(container).trigger('change');
+        $('span.group-name').html(container);
+        selectAll(container);
+        var num = $('[id^="formlayout"] circle[group="'+container+'"]').length;
+        row.find('input[name$="sample_count"]').val(num);
+    });
+
+    $('#group-select circle.selected').addClass('full').removeClass('selected');
+
+}
+
 $('text[port]').hover(function() {
     $.each($(this).parents('svg').find('circle[port*="'+$(this).attr('port')+'"]').not('.full'), function() {
        $(this).addClass('hover');

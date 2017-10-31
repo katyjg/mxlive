@@ -1,0 +1,41 @@
+{% extends "users/entries/shipment-data.html" %}
+
+{% load static %}
+
+{% block extra_css %}
+<link href="{% static "objlist/objlist.css" %}" rel="stylesheet">
+{% endblock %}
+
+{% block page_heading %}
+    <h3 class="text-condensed narrow-heading overflow ellipsis">
+        <i class="text-muted fa fa-fw {% if shipment.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
+        <span class="text-muted">{% if user.is_superuser %}{{ shipment.project }} | {% endif %}{{ shipment.identity }}</span> | <strong>{{ shipment.name }}</strong>
+    </h3>
+    <span class="text-muted">
+        Reports from Shipment
+    </span>
+{% endblock %}
+
+{% block object_tools %}
+    <span class="box-tools pull-right">
+        <a class="pull-right" href="{% url "shipment-protocol" shipment.pk %}">
+            <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-file-text-o"></i>
+                </span><br>
+                <span class="tool-label">Progress</span>
+            </span>
+        </a>
+        <a class="pull-right" href="{% url "shipment-data" shipment.pk %}" title="Go to Data from this shipment">
+            <span class="fa-stack">
+                <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
+                {% if shipment.num_datasets %}
+                    <span class="fa-stack-1x superscript">
+                        <span class="badge progress-bar-info">{{ shipment.num_datasets }}</span>
+                    </span>
+                {% endif %}
+            </span><br>
+            <span class="tool-label">Data</span>
+        </a>
+    </span>
+{% endblock %}

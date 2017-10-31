@@ -1,19 +1,17 @@
-{% extends "base.html" %}
+{% extends "users/base.html" %}
 
-{% block headline %}<h2>Oops...</h2>{% endblock %}
+{% block page_heading %}<h2>Oops...</h2>{% endblock %}
 
-{% block content-override %}
+{% block full %}
 
 <div id="content" class="col-12">
-    <ul id="news">
-        <li class="title"><h2>Sorry, we couldn't find {{request_path}}</h2></li>
-    </ul>
+        <h2>Sorry, we couldn't find {{request_path}}</h2>
     <div class="clear"><br></div>
     <h2>Things to try:</h2><br>
     <ul>
         <li>Check that the URL you entered is correct.</li>
         <li>Use the navigation menu tabs to find what you need.</li>
-        <li>If you have an idea about how we can make your LIMS experience more enjoyable, <a class="modal-form"  href="{% url "users-feedback-new" %}">give us some feedback</a>.</li>
+        <li>If you have an idea about how we can make your LIMS experience more enjoyable, contact us at cmcf-support@lightsource.ca.</li>
         <li><a href="http://cmcf.lightsource.ca/contact-us/">Contact us</a> and we'll see if we can point you in the right direction</li>
     </ul>
 </div>

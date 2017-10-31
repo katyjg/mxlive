@@ -38,16 +38,35 @@
                     </div>
                 {% endif %}
 
-                <div class="frame-list col-xs-12">
-                    <h4 class="text-condensed">{{ object.num_frames }} Frames ({{ object.frame_sets }})</h4>
-                    <ul class="scrollbar-inner {% if not snapshot %}tall{% endif %}">
-                        {% for frame_id in object.frames %}
-                            <li frame-id="{{ frame_id }}" frame-name="{% get_frame_name data frame_id %}">
-                                <a onclick="toFrame('{% get_frame_name data frame_id %}', {{ frame_id }});">{% get_frame_name data frame_id %}</a>&nbsp;
-                                <a class="pull-right download-tool" href="{% get_image_url object frame_id %}" title="Download this image"><i class="fa fa-fw fa-download"></i></a>
-                            </li>
-                        {% endfor %}
+                <div class="col-xs-12">
+                    <ul class="nav nav-tabs text-condensed">
+                        <li class="active"><a data-toggle="pill" href="#frames">{{ object.num_frames }} Frames ({{ object.frame_sets }})</a></li>
+                        <li><a data-toggle="pill" href="#meta-data">Meta-Data</a></li>
                     </ul>
+                </div>
+                <div class="frame-list col-xs-12">
+                    <!--h4 class="text-condensed">{{ object.num_frames }} Frames ({{ object.frame_sets }})</h4-->
+                    <div class="tab-content">
+                        <div id="frames" class="tab-pane fade active in">
+                            <ul class="scrollbar-inner {% if not snapshot %}tall{% endif %}">
+                                {% for frame_id in object.frames %}
+                                    <li frame-id="{{ frame_id }}" frame-name="{% get_frame_name data frame_id %}">
+                                        <a onclick="toFrame('{% get_frame_name data frame_id %}', {{ frame_id }});">{% get_frame_name data frame_id %}</a>&nbsp;
+                                        <a class="pull-right download-tool" href="{% get_image_url object frame_id %}" title="Download this image"><i class="fa fa-fw fa-download"></i></a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div id="meta-data" class="tab-pane fade">
+                            <ul class="scrollbar-inner {% if not snapshot %}tall{% endif %}">
+                                {% with data|get_meta_data as meta_data %}
+                                    {% for k, v in meta_data.items %}
+                                        <li><strong>{{ k|title }}: </strong> {{ v }}</li>
+                                    {% endfor %}
+                                {% endwith %}
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

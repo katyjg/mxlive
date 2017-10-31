@@ -12,12 +12,12 @@
 	Created, {{object.created}}<br/>
 	Last Modified, {{object.modified}}<br/>
 </div-->
-<div class="row">
-	<div class="modal-footer">
+<div class="row form-action">
   		<form action="{% if form_action %}{{ form_action }}{% else %}delete/{% endif %}" method="post">{% csrf_token %}
    			<input type="hidden" name="post" value="yes" />
-			<button type="submit" value="Submit" class="btn btn-danger">Yes, I'm sure</button>
+            <div class="col-xs-12">
+			    <button type="submit" value="Submit" class="btn btn-danger pull-right">Yes, I'm sure</button>
+            </div>
 		</form>
-	</div>
 </div>
 {% endblock %}

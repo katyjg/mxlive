@@ -1,0 +1,110 @@
+{% extends "users/base.html" %}
+
+{% load static %}
+{% load json_to_dict %}
+
+{% block page_heading %}
+    <h3 class="text-condensed narrow-heading">
+        <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
+        <strong class="text-muted">{{ object.acronym }}</strong> | {{ object.active_automounter.kind }}
+    </h3>
+    <span class="text-muted">
+        {{ object.name }}
+    </span>
+{% endblock %}
+
+{% block object_status %}
+    <div class="status-bar">
+        <div class="row">
+            <div class="col-xs-6 col-sm-4">
+                <h3 class="no-vmargin">
+                    <span class="label label-info">{{ object.contact_phone }}</span>
+                </h3>
+            </div>
+            <div class="col-xs-3 col-sm-4">
+                <small class="text-muted text-condensed">Energy Range:</small><br>
+                {{ object.energy_lo }} - {{ object.energy_hi }}
+            </div>
+            <div class="col-xs-3 col-sm-4 pull-right text-right">
+                <small class="text-muted text-condensed">Staff Comments:</small><br>
+                {{ object.active_dewar.staff_comments|safe }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block full %}
+
+<div class="row">
+    <div class="col-xs-6">
+        <h4 class="underline">MX Data Statistics</h4>
+        {% for parameter in data.keys %}
+            <div id="data-{{ parameter }}-{{ object.pk }}"></div>
+        {% endfor %}
+    </div>
+    <div class="col-xs-6">
+        <h4 class="underline">Scan Statistics</h4>
+        {% for parameter in scans.keys %}
+            <div id="scan-{{ parameter }}-{{ object.pk }}"></div>
+        {% endfor %}
+    </div>
+
+</div>
+
+
+<link href="{% static "css/reports.css" %}" rel="stylesheet">
+
+<script type="text/javascript" src="{% static "js/d3.v4.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/d3.legend.js" %}"></script>
+<script type="text/javascript" src="{% static "js/live-reports.js" %}"></script>
+<script>
+    {% for parameter, values in scans.items %}
+        var raw = {{ values|dict_to_dict }};
+        var info = {'data': raw,
+            'color': "{% cycle '#FFDD57' '#7DCF7D' '#57A8FF' '#A857FF' '#FF6461' %}" };
+        var annotations = [];
+        var width = $('#scan-{{ parameter }}-{{ object.pk }}').parent().width();
+        var xy_chart = draw_xy_chart()
+            .width(width)
+            .height(300)
+            .xlabel("{{ parameter|title }}")
+            .y1label("Number of Scans")
+            .y2label("{{ data.y2label }}")
+            .xscale('linear')
+            .xlimits([null, null])
+            .y1limits([null, null])
+            .y2limits([null, null])
+            .interpolation('linear')
+            .notes(annotations)
+            .scatter('bar');
+        var svg = d3.select('#scan-{{ parameter }}-{{ object.pk }}').append("svg")
+            .datum(info)
+            .call(xy_chart);
+    {% endfor %}
+    {% for parameter, values in data.items %}
+        var raw = {{ values|dict_to_dict }};
+        var info = {'data': raw,
+        'color': "{% cycle '#FFDD57' '#7DCF7D' '#57A8FF' '#A857FF' '#FF6461' %}" };
+        var annotations = [];
+        var width = $('#data-{{ parameter }}-{{ object.pk }}').parent().width();
+        var xy_chart = draw_xy_chart()
+            .width(width)
+            .height(300)
+            .xlabel("{{ parameter|title }}")
+            .y1label("Number of Datasets")
+            .y2label("{{ data.y2label }}")
+            .xscale('linear')
+            .xlimits([null, null])
+            .y1limits([null, null])
+            .y2limits([null, null])
+            .interpolation('linear')
+            .notes(annotations)
+            .scatter('bar');
+        var svg = d3.select('#data-{{ parameter }}-{{ object.pk }}').append("svg")
+            .datum(info)
+            .call(xy_chart);
+    {% endfor %}
+</script>
+
+{% endblock %}

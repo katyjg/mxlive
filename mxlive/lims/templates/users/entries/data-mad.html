@@ -2,6 +2,7 @@
 {% load static %}
 {% load json_to_dict %}
 
+{% if object.url %}
 {% get_mad_data object as data %}
 
 <div class="row">
@@ -10,30 +11,51 @@
             <div id="mad-{{ object.pk }}"></div>
         </div>
     {% endif %}
+</div>
+<div class="row">
     {% if data.choices %}
         <div class="col-xs-12">
-            <table class="pull-right table table-hover">
-                {% for e in data.choices %}
-                    {% if forloop.first %}
-                        <thead>
+            <ul class="nav nav-tabs text-condensed">
+                <li class="active"><a data-toggle="pill" href="#choices">Results</a></li>
+                <li><a data-toggle="pill" href="#meta-data">Meta-Data</a></li>
+            </ul>
+        </div>
+        <div class="col-xs-12">
+            <div class="tab-content">
+                <div id="choices" class="tab-pane fade active in">
+                    <table class="pull-right table table-hover">
+                        {% for e in data.choices %}
+                            {% if forloop.first %}
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        {% for k in e.keys %}
+                                            <th>{{ k|title }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                            {% endif %}
                             <tr>
-                                <th></th>
-                                {% for k in e.keys %}
-                                    <th>{{ k|title }}</th>
+                                <td>
+                                    <input type="checkbox" onclick="$('.{{ e.label }}').toggleClass('hidden').toggleClass('visible');" checked />
+                                </td>
+                                {% for v in e.values %}
+                                    <td>{{ v }}</td>
                                 {% endfor %}
                             </tr>
-                        </thead>
-                    {% endif %}
-                    <tr>
-                        <td>
-                            <input type="checkbox" onclick="$('.{{ e.label }}').toggleClass('hidden').toggleClass('visible');" checked />
-                        </td>
-                        {% for v in e.values %}
-                            <td>{{ v }}</td>
                         {% endfor %}
-                    </tr>
-                {% endfor %}
-            </table>
+                    </table>
+                </div>
+                <div id="meta-data" class="tab-pane fade">
+                    <ul class="scrollbar-inner {% if not snapshot %}tall{% endif %}">
+                        {% with object|get_meta_data as meta_data %}
+                            {% for k, v in meta_data.items %}
+                                <li><strong>{{ k|title }}: </strong> {{ v }}</li>
+                            {% endfor %}
+                        {% endwith %}
+                    </ul>
+                </div>
+            </div>
         </div>
     {% endif %}
 </div>
@@ -45,6 +67,7 @@
 <script type="text/javascript" src="{% static "js/live-reports.js" %}"></script>
 <script>
     var data = {{ data|dict_to_dict }};
+    console.log(data);
     var annotations = [];
     for (i=0; i < data['choices'].length; i++) {
         annotations.push({
@@ -59,9 +82,14 @@
         .y1label("{{ data.y1label }}")
         .y2label("{{ data.y2label }}")
         .xscale('linear')
+        .xlimits([null, null])
+        .y1limits([null, null])
+        .y2limits([null, null])
+        .interpolation('linear')
         .notes(annotations)
         .scatter('line');
     var svg = d3.select('#mad-{{ object.pk }}').append("svg")
         .datum(data.data)
         .call(xy_chart);
 </script>
+{% endif %}

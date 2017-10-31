@@ -1,5 +1,5 @@
 from django.contrib.messages.views import SuccessMessageMixin
-from django.views.generic import edit
+from django.views.generic import edit, TemplateView
 from django.core.urlresolvers import reverse_lazy
 from django.contrib.auth import get_user_model
 import models
@@ -8,7 +8,7 @@ import slap
 
 from objlist.views import FilteredListView
 from mixins import AjaxableResponseMixin, AdminRequiredMixin
-from lims.models import Project, ActivityLog
+from lims.models import Project, ActivityLog, ContainerLocation, ContainerType, Container
 from lims.forms import NewProjectForm
 
 User = get_user_model()
@@ -25,11 +25,6 @@ class AccessList(AdminRequiredMixin, FilteredListView):
     order_by = ['name']
     template_name = "users/list.html"
 
-    def get_context_data(self, **kwargs):
-        context = super(AccessList, self).get_context_data(**kwargs)
-        context['tool_template'] = "users/tools-staff.html"
-        return context
-
 
 class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.AccessForm
@@ -42,6 +37,14 @@ class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin,
 
     def get_object(self):
         return self.model.objects.get(address=self.kwargs.get('address'))
+
+
+class AnnouncementCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
+    form_class = forms.AnnouncementForm
+    template_name = "forms/modal.html"
+    model = models.Announcement
+    success_url = reverse_lazy('dashboard')
+    success_message = "Announcement has been created"
 
 
 class AnnouncementEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
@@ -81,11 +84,6 @@ class ProjectList(AdminRequiredMixin, FilteredListView):
     order_by = ['name']
     ordering_proxies = {}
     list_transforms = {}
-
-    def get_context_data(self, **kwargs):
-        context = super(ProjectList, self).get_context_data(**kwargs)
-        context['tool_template'] = "users/tools-staff.html"
-        return context
 
 
 class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):

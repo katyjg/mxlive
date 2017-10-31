@@ -2,6 +2,7 @@
 {% load static %}
 {% load json_to_dict %}
 
+{% if object.url %}
 {% get_xrf_data object as data %}
 
 <div class="row">
@@ -35,30 +36,50 @@
                 </table>
             </div>
         </div>
-
+</div>
+        <div class="row">
         <div class="col-xs-12">
-            <h4>Detailed Summary</h4>
-            <div class="scroll-details scrollbar-inner">
-                <table class="table table-hover">
-                    <tr>
-                        <th>Element</th>
-                        <th>Reliability (%)</th>
-                        <th>Edge <span class="pull-right">Energy (keV)</span></th>
-                    </tr>
-                    {% for e in data.assignments %}
-                        <tr>
-                            <td class="text-medium" style="vertical-align: middle;">{{ e.label }}</td>
-                            <td class="text-medium" style="vertical-align: middle;">{{ e.reliability|floatformat:2 }}</td>
-                            <td>
-                                {% for edge in e.edges %}
-                                    {{ edge.label }} <span class="pull-right">{{ edge.energy }}</span><br/>
-                                {% endfor %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </table>
+            <ul class="nav nav-tabs text-condensed">
+                <li class="active"><a data-toggle="pill" href="#summary">Detailed Summary</a></li>
+                <li><a data-toggle="pill" href="#meta-data">Meta-Data</a></li>
+            </ul>
+        </div>
+        <div class="col-xs-12">
+            <div class="tab-content">
+                <div id="summary" class="tab-pane fade active in">
+                    <div class="scroll-details scrollbar-inner">
+                        <table class="table table-hover">
+                            <tr>
+                                <th>Element</th>
+                                <th>Reliability (%)</th>
+                                <th>Edge <span class="pull-right">Energy (keV)</span></th>
+                            </tr>
+                            {% for e in data.assignments %}
+                                <tr>
+                                    <td class="text-medium" style="vertical-align: middle;">{{ e.label }}</td>
+                                    <td class="text-medium" style="vertical-align: middle;">{{ e.reliability|floatformat:2 }}</td>
+                                    <td>
+                                        {% for edge in e.edges %}
+                                            {{ edge.label }} <span class="pull-right">{{ edge.energy }}</span><br/>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+                <div id="meta-data" class="tab-pane fade">
+                    <ul class="scrollbar-inner {% if not snapshot %}tall{% endif %}">
+                        {% with object|get_meta_data as meta_data %}
+                            {% for k, v in meta_data.items %}
+                                <li><strong>{{ k|title }}: </strong> {{ v }}</li>
+                            {% endfor %}
+                        {% endwith %}
+                    </ul>
+                </div>
             </div>
         </div>
+
     {% endif %}
 
 </div>
@@ -90,9 +111,14 @@
         .y1label("{{ data.y1label }}")
         .y2label("{{ data.y2label }}")
         .xscale('linear')
+        .xlimits([null, {{ object.energy }}])
+        .y1limits([null, null])
+        .y2limits([null, null])
+        .interpolation('linear')
         .notes(annotations)
         .scatter('line');
     var svg = d3.select('#xrf-{{ object.pk }}').append("svg")
         .datum(data.data)
         .call(xy_chart);
 </script>
+{% endif %}

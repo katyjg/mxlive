@@ -73,6 +73,21 @@ def create_png(filename, output, brightness, resolution=(1024, 1024)):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class FetchReport(View):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            report = models.AnalysisReport.objects.get(pk=kwargs.get('pk'))
+        except models.AnalysisReport.DoesNotExist:
+            raise http.Http404("Report does not exist.")
+
+        if report.project != request.user and not request.user.is_superuser:
+            raise http.Http404()
+
+        return JsonResponse({'details': report.details}, safe=False)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class UpdatePriority(View):
 
     @transaction.atomic
@@ -83,11 +98,11 @@ class UpdatePriority(View):
             raise http.Http404("Group does not exist.")
 
         if group.project != request.user:
-            raise http.Http403()
+            raise http.Http404()
 
         urls = [u for u in request.POST.getlist('samples[]') if u]
         for i, url in enumerate(urls):
-            models.Sample.objects.filter(pk=''.join([s for s in url if s.isdigit()])).update(priority=i+1)
+            group.sample_set.filter(pk=''.join([s for s in url if s.isdigit()])).update(priority=i+1)
 
         return JsonResponse([], safe=False)
 
@@ -96,7 +111,6 @@ def update_locations(request):
     container = models.Container.objects.get(pk=request.GET.get('pk', None))
     locations = list(container.kind.container_locations.values_list('pk', 'name'))
     return JsonResponse(locations, safe=False)
-
 
 
 def fetch_image(request, url=None, brightness=None):

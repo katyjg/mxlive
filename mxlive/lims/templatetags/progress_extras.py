@@ -1,25 +1,29 @@
-
 from django.template import Library
+from django.db.models import Q
 register = Library()
 
 
-@register.filter("get_sample_set")
-def get_sample_set(shipment):
-    try:
-        return shipment.sample_set.filter(**shipment.project.get_archive_filter()).order_by('-experiment__priority','-priority')
-    except AttributeError:
-        return shipment.project.sample_set.filter(container__dewar__shipment__exact=shipment).filter(**shipment.project.get_archive_filter()).order_by('-experiment__priority','-priority')
+@register.filter
+def num_session_samples(group, session):
+    return group.sample_set.filter(pk__in=session.data_set.values_list('sample__pk')).count()
 
-@register.filter("get_data_set")  
-def get_data_set(crystal, kind):  
-    return crystal.get_data_set().filter(kind__exact=kind)
 
-@register.filter("get_obj_type")
-def get_obj_type(shipment):
-    return str(shipment.__class__.__name__)
+@register.simple_tag
+def group_samples(group, session=None):
+    if session:
+        return group.sample_set.filter(pk__in=session.data_set.values_list('sample__pk'))
+    return group.sample_set.all()
 
-@register.filter("object_url")
-def object_url(handler):
-    return handler.split('progress/')[0]
 
+@register.simple_tag
+def sample_data(sample, session=None):
+    if session:
+        return {
+            'data': sample.data_set.filter(session=session),
+            'reports': sample.reports().filter(Q(data__in=sample.data_set.filter(session=session)) | Q(data__isnull=True))
+        }
+    return {
+        'data': sample.data_set.all(),
+        'reports': sample.reports().all()
+    }
 

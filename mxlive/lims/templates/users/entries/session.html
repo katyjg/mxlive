@@ -10,10 +10,10 @@
 
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
-        <span class="text-muted">{{ object.project.username.upper }}</span> | <strong>Session {{ object.name }}</strong>
+        <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}{{ object.beamline.acronym }}</span> | <strong>{{ object.name }}</strong>
     </h3>
     <span class="text-muted">
-        Started {{ object.created|naturalday }}
+        Beamline Session started {{ object.created|naturalday }}
     </span>
 {% endblock %}
 
@@ -26,6 +26,28 @@
             </span><br>
             <span class="tool-label">History</span>
         </span>
+    </a>
+    <a class="pull-right" href="{% url "session-data" object.pk %}" title="Go to Data from this session">
+        <span class="fa-stack">
+            <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
+            {% if object.data_set.count %}
+                <span class="fa-stack-1x superscript">
+                    <span class="badge progress-bar-info">{{ object.data_set.count }}</span>
+                </span>
+            {% endif %}
+        </span><br>
+        <span class="tool-label">Data</span>
+    </a>
+    <a class="pull-right" href="{% url "session-reports" object.pk %}" title="Go to Reports from this session">
+        <span class="fa-stack">
+            <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
+            {% if object.num_reports %}
+                <span class="fa-stack-1x superscript">
+                    <span class="badge progress-bar-info">{{ object.num_reports }}</span>
+                </span>
+            {% endif %}
+        </span><br>
+        <span class="tool-label">Reports</span>
     </a>
 </span>
 {% endblock %}
@@ -40,19 +62,19 @@
                     </h3>
                 </div>
             {% endif %}
-            {% if user.is_superuser %}<div class="col-xs-2">
-                <small class="text-muted text-condensed">Project:</small><br>
-                {{ object.project }}
-            </div>{% endif %}
             <div class="col-xs-2 pull-left">
                 <small class="text-muted text-condensed">Datasets:</small><br>
                 {{ object.data_set.count }}
             </div>
-            <div class="col-xs-2 pull-right text-right">
+            <div class="col-xs-2 pull-left">
+                <small class="text-muted text-condensed">Reports:</small><br>
+                {{ object.num_reports }}
+            </div>
+            <div class="col-xs-3 pull-right text-right">
                 <small class="text-muted text-condensed">Total Time:</small><br>
                 {{ object.total_time }} hour{{ object.total_time|pluralize }}
             </div>
-            <div class="col-xs-4 pull-right text-right">
+            <div class="col-xs-3 pull-right text-right">
                 <small class="text-muted text-condensed">Start:</small><br>
                 {{ object.start|naturalday }}
             </div>
@@ -62,6 +84,30 @@
 {% endblock %}
 
 {% block full %}
+
+    <div class="row">
+        <div class="col-xs-4 col-lg-3 col-xl-2">
+            <h3>Groups</h3>
+            <hr/>
+            <div class="list-group">
+            {% for group in object.groups %}
+                {% include "users/entries/group-nav.html" with session=object %}
+            {% endfor %}
+            </div>
+        </div>
+        <div class="col-xs-8 col-lg-9 col-xl-10">
+            <div class="tab-content" style="border-left: 1px solid #ddd; padding-left: 15px;">
+                {% for group in object.groups %}
+                    {% include "users/entries/group-tab.html" with session=object %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block fulls %}
+
     <div class="row">
         <div class="col-xs-12">
             <div class="list-group list-group-hover">
@@ -89,23 +135,3 @@
     </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-    $(document).ready(function() {
-        {% for data in object.data_set.all %}
-            {% if "MX_DATA" in data.kind %}
-                $.ajax({
-                    url: "{% get_cached_image_url data data.first_frame 'xl' %}",
-                    type: "get",
-                    success: function(){
-                        $('.bgimg-{{ data.pk }}').css('background-image', 'url({% get_cached_image_url data data.first_frame "xl" %})');
-                    },
-                    error: function() {
-                        $('.bgimg-{{ data.pk }}').css('background-image', 'url({% get_image data data.first_frame "xl" %})');
-                    }
-                });
-            {% endif %}
-        {% endfor %}
-    });
-</script>
-{% endblock %}

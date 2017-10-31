@@ -3,6 +3,7 @@ from django.conf import settings
 from middleware import get_client_address
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.db.models import Q
 import requests
 
 from django.views.generic import View
@@ -85,7 +86,7 @@ class UpdateUserKey(View):
 
         if value == kwargs.get('username'):
             User = get_user_model()
-            modified = User.objects.filter(username=kwargs['username'], key__isnull=True).update(key=public)
+            modified = User.objects.filter(username=kwargs['username']).filter(Q(key__isnull=True) | Q(key='')).update(key=public)
 
             if not modified:
                 return http.HttpResponseNotModified()
@@ -213,13 +214,15 @@ TRANSFORMS = {
     'kind': 'type',
 }
 
+import msgpack
+
 
 class AddReport(VerificationMixin, View):
     """
     Method to add meta-data and JSON details about an AnalysisReport.
 
     :param username: User__username
-    :param data_id: Data object referenced
+    :param data_id: Data objects referenced
     :param score: float
     :param type: str
     :param details: JSON dict
@@ -232,7 +235,7 @@ class AddReport(VerificationMixin, View):
     """
 
     def post(self, request, *args, **kwargs):
-        info = request.POST.copy()
+        info = msgpack.loads(request.body)
 
         from lims.models import Project, Data, AnalysisReport
         project_name = kwargs.get('username')
@@ -242,7 +245,7 @@ class AddReport(VerificationMixin, View):
             raise http.Http404("Project does not exist.")
 
         try:
-            data = Data.objects.get(pk=info.get('data_id'))
+            data = Data.objects.filter(pk__in=info.get('data_id'))
         except:
             raise http.Http404("Data does not exist")
 
@@ -254,28 +257,28 @@ class AddReport(VerificationMixin, View):
         else:
             raise http.HttpResponseServerError("Unable to create SecurePath")
 
-        sample = data.sample
-        group = sample and sample.group or None
+        kind = info.get('title').strip(' Report')
         details = {
             'project': project,
-            'data': data,
-            'sample': sample,
-            'group': group,
-            'score': info.get('score'),
-            'kind': info.get('type'),
+            'score': info.get('score') or 0,
+            'kind': kind,
             'details': info.get('details'),
-            'name': info.get('name'),
+            'name': info.get('title'),
             'url': key
         }
         report = AnalysisReport.objects.filter(pk=info.get('id')).first()
 
         if report:
-            project.reports.filter(pk=data.pk).update(**details)
+            project.analysisreport_set.filter(pk=report.pk).update(**details)
         else:
             report, created = AnalysisReport.objects.get_or_create(**details)
 
+        for d in data:
+            print d.name
+            report.data.add(d)
+
         ActivityLog.objects.log_activity(request, report, ActivityLog.TYPE.CREATE, "{} uploaded from {}".format(
-            data.get_kind_display(), kwargs.get('beamline', 'beamline')))
+            report.name, kwargs.get('beamline', 'beamline')))
         return JsonResponse({'id': report.pk})
 
 
@@ -303,7 +306,7 @@ class AddData(VerificationMixin, View):
     """
 
     def post(self, request, *args, **kwargs):
-        info = request.POST.copy()
+        info = msgpack.loads(request.body)
 
         from lims.models import Project, Beamline, Data
         project_name = kwargs.get('username')
@@ -331,7 +334,7 @@ class AddData(VerificationMixin, View):
         data = Data.objects.filter(pk=info.get('id')).first()
 
         details = {
-            'session': session.project == project and session or None,
+            'session': (session and session.project == project) and session or None,
             'project': project,
             'beamline': beamline,
             'url': key,

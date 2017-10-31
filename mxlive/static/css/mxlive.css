@@ -152,6 +152,12 @@ nav li a {
 .align-middle i {
     padding: 10px 5px;
 }
+.form-offset {
+    padding-top: 13px;
+}
+.form-offset i {
+    padding-top: 10px;
+}
 .hidden-modal {
     display: none;
 }
@@ -210,6 +216,26 @@ img.line-icon {
     transition: padding 500ms ease 0s;
 }
 
+.pagelet .pagelet {
+    box-shadow: none;
+    transition: none;
+    padding-top: 0;
+    padding-left: 0;
+}
+.pagelet .object-list .pagelet {
+    border-right: 1px solid #ddd;
+}
+@media(max-width: 768px) {
+    .pagelet .col-xs-12 .pagelet {
+        border-right: none;
+        padding-right: 0;
+    }
+}
+.pagelet .no-border .object-list .pagelet {
+    border: none;
+    padding-right: 0;
+}
+
 .pagelet-body {
     padding: 15px;
 }
@@ -259,7 +285,7 @@ img.line-icon {
     white-space: nowrap;
     overflow: hidden;
     display: block;
-    padding-bottom: 0.1em;
+    padding-bottom: 0.15em;
 }
 .narrow-heading {
     margin: 0 !important;
@@ -274,6 +300,9 @@ img.line-icon {
     position: absolute;
     top: 0;
     float: left;
+}
+.list-group-item .box-tools, .panel-heading .box-tools {
+    margin-right: -15px;
 }
 .box-tools {
     border-left: 1px solid rgba(0, 0, 0, 0.15);
@@ -317,11 +346,6 @@ img.line-icon {
 .box-tools span.separator {
     height: 100%;
 }
-.box-tools-min {
-    min-width: 60px;
-    margin-right: -5px;
-    text-align: center;
-}
 .box-status {
     position: absolute;
     left: 0;
@@ -332,6 +356,12 @@ img.line-icon {
     padding-top: 0.5em;
     border-right: 1px solid rgba(0,0,0,0.15);
 }
+.panel-heading .box-status {
+    position: relative;
+    padding-left: 0;
+    padding-top: 0;
+    margin-left: -5px;
+}
 .box-info {
     padding-left: 1em;
 }
@@ -340,6 +370,9 @@ a.text-muted:hover {
 }
 .box-status + .box-info {
     padding-left: 65px;
+}
+.panel-heading .box-status + .box-info {
+    padding-left: 75px;
 }
 .superscript {
     top: -1.5em !important;
@@ -370,6 +403,9 @@ a.text-muted:hover {
 }
 table.table {
     margin-bottom: 0px;
+}
+table.table-sm td {
+    padding: 4px 8px 4px 8px !important;
 }
 .table-hover tr[data-url]:hover {
     cursor: pointer;
@@ -407,6 +443,13 @@ table.table {
 .underline {
     border-bottom: 1px solid #ddd;
 }
+.indent {
+    padding-left: 24px;
+}
+.not-allowed {
+    cursor: not-allowed;
+}
+
 .modal-body .status-bar {
     margin-top: -15px;
     margin-bottom: 10px;
@@ -531,6 +574,10 @@ p.empty {
     }
 }
 
+.modal-header .modal-subtitle {
+    margin-bottom: -10px;
+}
+
 #group-select .modal-content {
     overflow: auto;
 }
@@ -542,18 +589,22 @@ p.empty {
 }
 .form-action {
     float: none;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+}
+.repeat-group + .form-action {
+    margin-top: -20px;
+}
+form .list-group-item {
+    border: none;
+    border-top: 1px solid #ddd;
+    padding-top: 5px;
 }
 svg {
     transition: all 1s;
     transform-origin: 0% 0%;
     max-width: 100%;
-}
-svg {
-    overflow: visible !important;
-}
-.list-group .box-tools a, .list-group .box-tools span.a {
-    padding-right: 0px;
-    padding-left: 0px;
 }
 .comments {
     background-color: rgba(0,110,182,0.15);
@@ -748,48 +799,10 @@ a[data-url], .back text[port], .cursor {
     cursor: move;
 }
 .repeat-row {
-    padding: 0 15px;
+    padding: 0;
 }
 .list-group-item .alert {
     margin: 10px 0;
-}
-div.crystal.droppable, div.experiment.droppable, div.shipment.droppable, div.dewar-img.droppable, div.runlist.droppable {
-    float: right;
-    margin-top: 0;
-    clear: right;
-    margin: 1em;
-}
-
-div.crystal.droppable {
-    background: url(/static/img/crystal.png) no-repeat center center;
-    height: 125px;
-    width: 100px;
-}
-
-div.experiment.droppable {
-    background: url(/static/img/experiment.png) no-repeat center center;
-    height: 125px;
-    width: 100px;
-}
-
-div.shipment.droppable {
-    background: url(/static/img/shipment.png) no-repeat center center;
-    height: 125px;
-    width: 100px;
-}
-
-div.dewar-img.droppable {
-    background: url(/static/img/dewar.png) no-repeat center center;
-    height: 125px;
-    width: 100px;
-}
-
-div.runlist.droppable {
-    background: url(/static/img/runlist.png) no-repeat center center;
-    height: 60px;
-    width: 100px;
-    margin: 0 10px;
-    padding: 12px 0;
 }
 
 /* data viewer */
@@ -871,7 +884,7 @@ div.runlist.droppable {
     overflow-x: hidden;
     overflow-y: scroll;
     padding: 5px;
-    max-height: 226px;
+    max-height: 221px;
     margin-bottom: 0;
     padding-right: 12px;
 }
@@ -1018,6 +1031,13 @@ span.label-unusable-score {
     font-style: italic;
     color: #883a6a;
 }
+.movable {
+    display: none;
+}
+.sortable .movable {
+    display: block;
+    float: left;
+}
 
 /*************** SCROLLBAR BASE CSS ***************/
 
@@ -1091,8 +1111,6 @@ span.label-unusable-score {
 }
 
 
-
-
 /*************** SIMPLE INNER SCROLLBAR ***************/
 
 .scrollbar-inner > .scroll-element,
@@ -1160,3 +1178,52 @@ span.label-unusable-score {
 
 .scrollbar-inner > .scroll-element.scroll-x.scroll-scrolly_visible .scroll-element_size { left: -12px; }
 .scrollbar-inner > .scroll-element.scroll-y.scroll-scrollx_visible .scroll-element_size { top: -12px; }
+
+.mini-thumbnail .list-group-item {
+    padding: 5px 10px;
+}
+.text-superscript {
+    position: absolute !important;
+    right: -4px !important;
+    top: 4px !important;
+}
+/* Bootstrap margin fixes */
+.row [class^=col-] + [class^=col-] {
+    padding-left: 0;
+}
+@media (max-width: 768px) {
+    .row [class^=col-] + .col-xs-12 {
+        padding-left: 15px;
+    }
+    #objlist-search + ul.nav-pills {
+        padding-left: 15px;
+    }
+}
+.modal-md form .row [class^=col-] + .col-xs-12 {
+    padding-left: 15px;
+}
+.row .mini-thumbnail[class^=col-] {
+    padding: 5px;
+}
+
+.chosen-choices, .chosen-single {
+    border-radius: 4px !important;
+}
+.row .col-xs-12 + .col-xs-12 {
+    padding-left: 15px;
+}
+.btn-margin {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+.no-padding {
+    padding-left: 0;
+    padding-right: 0;
+}
+.no-left-padding {
+    padding-left: 0;
+}
+.sm-padding {
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+}

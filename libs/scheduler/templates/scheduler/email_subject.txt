@@ -1,1 +1,0 @@
-{%if visit%}{% if print %}**PR** {% endif %}Schedule Change: {{visit.start_date}}{%else%}CMCF: Week of {{date}}{%endif%}

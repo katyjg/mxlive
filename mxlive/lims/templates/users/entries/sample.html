@@ -3,11 +3,11 @@
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading">
         <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
-        <strong class="text-muted">{{ object.identity }}</strong> | {{ object.name }}
+        <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}{{ object.identity }}</span> | <strong>{{ object.name }}</strong>
     </h3>
     <span class="text-muted">
         {% if object.container.shipment %}
-            Sample in Shipment <a href="{% url "shipment-detail" object.container.shipment.pk %}">{{object.container.shipment.name}}</a>
+            <strong>1</strong> of <strong>{{ object.container.shipment.num_samples }}</strong> Sample{{ object.container.shipment.num_samples|pluralize }} in Shipment {{object.container.shipment.name}}
         {% else %}
             Sample not in a shipment.
         {% endif %}
@@ -32,10 +32,10 @@
                     </span>
                 </h3>
             </div>
-            {% if user.is_superuser %}<div class="col-xs-1">
-                <small class="text-muted text-condensed">Project:</small><br>
-                {{ object.project }}
-            </div>{% endif %}
+            <div class="col-xs-3">
+                <small class="text-muted text-condensed">Shipment:</small><br>
+                <a href="{% url "shipment-detail" object.container.shipment.pk %}">{{object.container.shipment.name}}</a>
+            </div>
             <div class="col-xs-2 pull-right text-right">
                 <small class="text-muted text-condensed">Location:</small><br>
                 <strong>{{ object.dewar|default_if_none:"" }} {{ object.port }}</strong>
@@ -44,9 +44,9 @@
                 <small class="text-muted text-condensed">Group:</small><br>
                 <a href="{% url "group-detail" object.group.pk %}">{{ object.group }}</a>
             </div>
-            <div class="col-xs-4 pull-left">
+            <div class="col-xs-2 pull-left">
                 <small class="text-muted text-condensed">Container:</small><br>
-                <a href="{% url "container-detail" object.container.pk %}">{{ object.container }}</a>
+                <a href="{% url "container-detail" object.container.pk %}">{{ object.container.name }}</a>
             </div>
 
         </div>

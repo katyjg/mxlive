@@ -6,12 +6,12 @@
 {% load crispy_forms_tags %}
 
 {% block form_title %}
-    Create a Shipment: Easy as {% for i in wizard.steps.all %}
-        {% if forloop.counter == wizard.steps.step1 %}
+    Create a Shipment: <span class="text-muted">Step <strong style="color: dodgerblue;">{{ wizard.steps.step1 }}</strong> of {{ wizard.steps.count }}</span>
+        {% comment %}Easy as {% for i in wizard.steps.all %}{% if forloop.counter == wizard.steps.step1 %}
             <strong style="color: dodgerblue;">{{ forloop.counter }}</strong>
         {% else %}{{ forloop.counter }}
         {% endif %}
-        {% if not forloop.last %} - {% endif %}{% endfor %}!
+        {% if not forloop.last %} - {% endif %}{% endfor %}!{% endcomment %}
 {% endblock %}
 
 {% block form_body %}

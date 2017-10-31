@@ -3,10 +3,11 @@
 {% load crispy_forms_tags %}
 
 <link rel="stylesheet" href="{% static "css/chosen.css" %}" media="screen" />
-<link href="{% static "fontawesome/css/font-awesome.min.css" %}" rel="stylesheet">
-<link rel="stylesheet" href="{% static "css/font-awesome-animation.min.css" %}">
+<link rel="stylesheet" href="{% static "css/mxlive.css" %}" media="screen" />
 <link rel="stylesheet" href="{% static "css/jquery.scrollbar.css" %}">
-<link rel="stylesheet" href="{% static "themify-icons/themify-icons.css" %}">
+<!--link rel="stylesheet" href="{% static "themify-icons/themify-icons.css" %}">
+<link href="{% static "fontawesome/css/font-awesome.min.css" %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static "css/font-awesome-animation.min.css" %}"-->
 
 <script src="{% static "jquery/jquery.min.js" %}"></script>
 <script src="{% static "jquery/jquery-ui.min.js" %}"></script>
@@ -29,7 +30,6 @@
                 {% block form_title_tools %}{% endblock %}
                 <h3 class="modal-title">
                     {% block form_title %}{{ form.helper.title }}{% endblock %}
-
                 </h3>
             </div>
             <div class="modal-body"  id="form-content">

@@ -17,16 +17,29 @@ class AnnouncementForm(forms.ModelForm):
         super(AnnouncementForm, self).__init__(*args, **kwargs)
 
         self.helper = FormHelper()
-        self.helper.title = u"Edit Announcement"
-        self.helper.form_action = reverse_lazy('announcement-edit', kwargs={'pk': self.instance.pk})
+        if self.instance.pk:
+            self.helper.title = u"Edit Announcement"
+            self.helper.form_action = reverse_lazy('announcement-edit', kwargs={'pk': self.instance.pk})
+        else:
+            self.helper.title = u"New Announcement"
+            self.helper.form_action = reverse_lazy('new-announcement')
         self.helper.layout = Layout(
             Div(
                 Div('priority', css_class="col-xs-2"),
                 Div('title', css_class="col-xs-10"),
+                css_class="row"
+            ),
+            Div(
                 Div('description', css_class="col-xs-12"),
+                css_class="row"
+            ),
+            Div(
                 Div('url', css_class="col-xs-12"),
+                css_class="row"
+            ),
+            Div(
                 Div('attachment', css_class="col-xs-12"),
-
+                css_class="row"
             ),
             FormActions(
                 Div(
@@ -38,7 +51,7 @@ class AnnouncementForm(forms.ModelForm):
                     ),
                     css_class="col-xs-12"
                 ),
-                css_class="row"
+                css_class="form-action row"
             )
         )
 
@@ -59,18 +72,25 @@ class AccessForm(forms.ModelForm):
                     Field('users', css_class="chosen"),
                     css_class="col-xs-12"
                 ),
+                css_class="row"
+            ),
+            Div(
                 Div(
                     HTML("""It may take a few minutes for your changes to be updated on the server.<br/>
-                            Changes are pulled every 5 minutes.<br/><br/><br/><br/><br/>&nbsp;"""),
+                            Changes are pulled every 5 minutes."""),
                     css_class="col-xs-12"
                 ),
                 css_class="row"
             ),
             FormActions(
                 Div(
-                    StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
-                    css_class='pull-right'
+                    Div(
+                        StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+                        css_class='pull-right'
+                    ),
+                    css_class="col-xs-12"
                 ),
+                css_class="form-action row"
             )
         )
 

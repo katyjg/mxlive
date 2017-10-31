@@ -128,6 +128,9 @@ class Project(AbstractUser):
         else:
             return {'status__lt': LimsBaseClass.STATES.ARCHIVED}
 
+    def onsite_containers(self):
+        return self.container_set.filter(status=Container.STATES.ON_SITE).count()
+
     def shifts_used_by_year(self, year, blname):
         shifts = []
         for d in self.data_set.filter(created__year=year).filter(beamline=Beamline.objects.get(name=blname)):
@@ -222,6 +225,10 @@ class Session(models.Model):
     beamline = models.ForeignKey(Beamline, related_name="sessions")
     comments = models.TextField()
 
+    def identity(self):
+        return 'SE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
+
     def launch(self):
         Stretch.objects.active(extras={'session__beamline':self.beamline}).exclude(session=self).update(end=timezone.now())
         self.stretches.recent().update(end=None)
@@ -231,8 +238,23 @@ class Session(models.Model):
     def close(self):
         self.stretches.active().update(end=timezone.now())
 
+    def groups(self):
+        return self.project.group_set.filter(pk__in=self.data_set.values_list('sample__group__pk'))
+
+    def datasets(self):
+        return self.data_set.all()
+
+    def reports(self):
+        pks = list(itertools.chain.from_iterable([d.reports.values_list('pk', flat=True) for d in self.data_set.all()]))
+        return self.project.analysisreport_set.filter(pk__in=pks)
+
+    def num_datasets(self):
+        return self.datasets().count()
+    num_datasets.short_description = "Datasets"
+
     def num_reports(self):
-        return self.project.analysisreport_set.filter(data__in=self.data_set.all()).count()
+        return self.reports().count()
+    num_reports.short_description = "Reports"
 
     def is_active(self):
         return self.stretches.active().exists()
@@ -242,12 +264,13 @@ class Session(models.Model):
         if self.is_active():
             t += int((timezone.now() - self.stretches.active().first().start).total_seconds())/60
         return t/60
+    total_time.short_description = "Duration (h)"
 
     def start(self):
         return self.stretches.last().start
 
     def end(self):
-        return self.stretches.first().end
+        return self.data_set.order_by('created').last().created
 
 
 class Stretch(models.Model):
@@ -437,13 +460,20 @@ class Shipment(ObjectBaseClass):
     def num_samples(self):
         return sum([c.sample_set.count() for c in self.container_set.all()])
 
+    def datasets(self):
+        return self.project.data_set.filter(sample__in=self.project.sample_set.filter(container__pk__in=self.container_set.values_list('pk')))
+
     def num_datasets(self):
         samples = self.project.sample_set.filter(container__pk__in=self.container_set.values_list('pk'))
         return sum([c.data_set.count() for c in samples])
 
+    def reports(self):
+        pks = itertools.chain.from_iterable([[report.pk for report in samples.reports()] for samples in self.project.sample_set.filter(container__pk__in=self.container_set.values_list('pk'))])
+        return self.project.analysisreport_set.filter(pk__in=pks)
+
     def num_results(self):
         samples = self.project.sample_set.filter(container__pk__in=self.container_set.values_list('pk'))
-        return sum([c.result_set.count() for c in samples])
+        return sum([s.reports().count() for s in samples])
 
     def is_sendable(self):
         return self.status == self.STATES.DRAFT and not self.shipping_errors()
@@ -500,10 +530,9 @@ class Shipment(ObjectBaseClass):
         """
         errors = []
         if self.num_containers() == 0:
-            errors.append("no Containers")
-        for container in self.container_set.all():
-            if container.num_samples() == 0:
-                errors.append("empty Container (%s)" % container.name)
+            errors.append("No Containers")
+        if not self.num_samples():
+            errors.append("No Samples in any Container")
         return errors
     
     def groups(self):
@@ -636,7 +665,8 @@ class Container(LoadableBaseClass):
     identity.admin_order_field = 'pk'
 
     def __unicode__(self):
-        return "{} | {} | {}".format(self.project.username, self.kind.name.title(), self.name.title())
+        base = not self.project.is_superuser and "{} | ".format(self.project.username) or ""
+        return "{}{} | {}".format(base, self.kind.name.title(), self.name)
 
     class Meta:
         unique_together = (
@@ -684,8 +714,8 @@ class Container(LoadableBaseClass):
 
     def dewar(self):
         if self.parent:
-            parents = [self.parent, self.parent.parent or None]
-            return Dewar.objects.filter(container__in=parents).first()
+            dewars = list(itertools.chain.from_iterable([list(self.dewars.all()), self.parent and list(self.parent.dewars.all()), self.parent.parent and list(self.parent.parent.dewars.all()) or []]))
+            return Dewar.objects.filter(pk__in=[d.pk for d in dewars]).first()
         return None
 
     def port(self):
@@ -739,7 +769,7 @@ class Dewar(models.Model):
     (ie. Dewar objects), only the current one should be marked 'active'.
     """
     beamline = models.ForeignKey(Beamline, on_delete=models.CASCADE)
-    container = models.ForeignKey(Container, on_delete=models.CASCADE)
+    container = models.ForeignKey(Container, on_delete=models.CASCADE, related_name="dewars")
     staff_comments = models.TextField(blank=True, null=True)
     modified = models.DateTimeField('date modified', auto_now=True, editable=False)
     active = models.BooleanField(default=False)
@@ -747,6 +777,9 @@ class Dewar(models.Model):
     def identity(self):
         return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
+
+    def __unicode__(self):
+        return "{} | {}".format(self.beamline.acronym, self.container.name)
 
     def json_dict(self):
         return {
@@ -841,6 +874,9 @@ class Group(LimsBaseClass):
     def num_samples(self):
         return self.sample_set.count()
 
+    def complete(self):
+        return not self.sample_set.filter(collect_status=False).exists()
+
     def best_sample(self):
         # need to change to [id, score]
         if self.plan == Group.EXP_PLANS.RANK_AND_COLLECT_BEST:
@@ -904,7 +940,13 @@ class Sample(LimsBaseClass):
         try:
             return self.container.parent.parent.dewar_set.first().beamline
         except:
-            return self.container.parent and self.container.parent.dewar_set.first() and (self.container.parent.dewar_set.first().beamline)
+            return self.container.parent and self.container.parent.dewars.first() and (self.container.parent.dewars.first().beamline) or None
+
+    def reports(self):
+        reports = []
+        for d in self.data_set.all():
+            reports.extend(list(d.reports.all().values_list('pk', flat=True)))
+        return self.project.analysisreport_set.filter(pk__in=reports)
 
     def container_and_location(self):
         return "{} - {}".format(self.container.name, self.location)
@@ -916,7 +958,7 @@ class Sample(LimsBaseClass):
         return '{}{}{}'.format(self.container.parent and self.container.parent.location or "", self.container.location or "", self.location)
 
     def is_editable(self):
-        return True
+        return self.container.status == self.container.STATES.DRAFT
 
     def delete(self, request=None, cascade=True):
         if self.is_deletable:
@@ -983,18 +1025,6 @@ class FrameField(models.CharField):
         return value
 
 
-class DataQueryset(models.QuerySet):
-    def screening(self):
-        return self.filter(kind='MX_SCREEN')
-
-    def collection(self):
-        return self.filter(kind='MX_DATA')
-
-
-class DataManager(models.Manager.from_queryset(DataQueryset)):
-    use_for_related_fields = True
-
-
 class Data(DataBaseClass):
     DATA_TYPES = Choices(
         ('MX_SCREEN', 'MX Screening'),
@@ -1016,22 +1046,20 @@ class Data(DataBaseClass):
                             'detector_size', 'pixel_size', 'beam_x', 'beam_y','inverse_beam'],
         DATA_TYPES.XRD_DATA: [],
     }
-    group = models.ForeignKey(Group, null=True, blank=True)
-    sample = models.ForeignKey(Sample, null=True, blank=True)
-    session = models.ForeignKey(Session, null=True, blank=True)
+    group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL)
+    sample = models.ForeignKey(Sample, null=True, blank=True, on_delete=models.SET_NULL)
+    session = models.ForeignKey(Session, null=True, blank=True, on_delete=models.SET_NULL)
     file_name = models.CharField(max_length=200, null=True, blank=True)
     frames = FrameField(max_length=200, null=True, blank=True)
     exposure_time = models.FloatField(null=True, blank=True)
-    attenuation = models.FloatField()
-    energy = models.DecimalField(decimal_places=4, max_digits=6)
-    beamline = models.ForeignKey(Beamline)
+    attenuation = models.FloatField(default=0.0)
+    energy = models.DecimalField(decimal_places=4, max_digits=10)
+    beamline = models.ForeignKey(Beamline, on_delete=models.PROTECT)
     beam_size = models.FloatField(null=True, blank=True)
     url = models.CharField(max_length=200)
     kind = models.CharField('Data type', choices=DATA_TYPES, default=DATA_TYPES.MX_SCREEN, max_length=20)
     download = models.BooleanField(default=False)
     meta_data = JSONField(default={})
-
-    objects = DataManager()
 
     def identity(self):
         return 'DA%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -1096,10 +1124,8 @@ class Data(DataBaseClass):
 
 class AnalysisReport(DataBaseClass):
     kind = models.CharField(max_length=100)
-    group = models.ForeignKey(Group, null=True, blank=True)
-    sample = models.ForeignKey(Sample, null=True, blank=True)
     score = models.FloatField()
-    data = models.ForeignKey(Data, related_name="reports")
+    data = models.ManyToManyField(Data, blank=True, related_name="reports")
     url = models.CharField(max_length=200)
     details = JSONField(default=[])
 
@@ -1110,129 +1136,8 @@ class AnalysisReport(DataBaseClass):
         return 'AR%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
 
-
-class Result(DataBaseClass):
-    RESULT_TYPES = Choices(
-        (0, 'SCREENING', 'Screening'),
-        (1, 'COLLECTION', 'Collection'),
-    )
-    group = models.ForeignKey(Group, null=True, blank=True)
-    sample = models.ForeignKey(Sample, null=True, blank=True)
-    data = models.ForeignKey(Data)
-    score = models.FloatField()
-    space_group = models.ForeignKey(SpaceGroup)
-    cell_a = models.FloatField('a')
-    cell_b = models.FloatField('b')
-    cell_c = models.FloatField('c')
-    cell_alpha = models.FloatField('alpha')
-    cell_beta = models.FloatField('beta')
-    cell_gamma = models.FloatField('gamma')
-    resolution = models.FloatField()
-    reflections = models.IntegerField()
-    unique = models.IntegerField()
-    multiplicity = models.FloatField()
-    completeness = models.FloatField()
-    mosaicity = models.FloatField()
-    wavelength = models.FloatField(blank=True, null=True)
-    i_sigma = models.FloatField('I/Sigma')
-    r_meas = models.FloatField('R-meas')
-    r_mrgdf = models.FloatField('R-mrgd-F', blank=True, null=True)
-    cc_half = models.FloatField('CC-1/2', blank=True, null=True)
-    sigma_spot = models.FloatField('Sigma(spot)')
-    sigma_angle = models.FloatField('Sigma(angle)')
-    ice_rings = models.IntegerField()
-    url = models.CharField(max_length=200)
-    kind = models.IntegerField('Result type', choices=RESULT_TYPES)
-    details = JSONField()
-
-    def identity(self):
-        return 'RT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-
-    def archive(self, request=None):
-        super(Result, self).archive(request=request)
-        self.data.archive(request=request)
-
-    def trash(self, request=None):
-        super(Result, self).trash(request=request)
-        self.data.trash(request=request)
-
-    def frames(self):
-        return self.data and self.data.num_frames() or ""
-
-    class Meta:
-        ordering = ['-score']
-        verbose_name = 'Analysis Report'
-
-
-class ScanResult(DataBaseClass):
-    XRF_COLOR_LIST = ['#800080', '#FF0000', '#008000',
-                      '#FF00FF', '#800000', '#808000',
-                      '#008080', '#00FF00', '#000080',
-                      '#00FFFF', '#0000FF', '#000000',
-                      '#800040', '#BD00BD', '#00FA00',
-                      '#800000', '#FA00FA', '#00BD00',
-                      '#008040', '#804000', '#808000',
-                      '#408000', '#400080', '#004080']
-    SCAN_TYPES = Choices(
-        (0, 'MAD_SCAN', 'MAD Scan'),
-        (1, 'EXCITATION_SCAN', 'Excitation Scan'),
-    )
-    group = models.ForeignKey(Group, null=True, blank=True)
-    sample = models.ForeignKey(Sample, null=True, blank=True)
-    edge = models.CharField(max_length=20)
-    details = JSONField()
-    kind = models.IntegerField('Scan type', choices=SCAN_TYPES)
-    
-    energy = models.FloatField(null=True, blank=True)
-    exposure_time = models.FloatField(null=True, blank=True)
-    attenuation = models.FloatField(null=True, blank=True)
-    beamline = models.ForeignKey(Beamline)
-    
-    def identity(self):
-        return 'SC%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-    
-    def summarize_lines(self):
-        name_dict = {
-            'L1M2,3,L2M4': 'L1,2M',
-            'L1M3,L2M4': 'L1,2M',       
-            'L1M,L2M4': 'L1,2M',
-        }
-        peaks = self.details['peaks']
-        if peaks is None:
-            return
-        data = peaks.items()
-        line_data = []
-        for el in data:
-            line_data.append(el)
-            
-        def join(a, b):
-            if a == b:
-                return [a]
-            if abs(b[1]-a[1]) < 0.200:
-                if a[0][:-1] == b[0][:-1]:
-                    nm = b[0][:-1]
-                else:
-                    nm = '%s,%s' % (a[0], b[0])
-                nm = name_dict.get(nm, nm)
-                ht = (a[2] + b[2])
-                pos = (a[1]*a[2] + b[1]*b[2])/ht
-                return [(nm, round(pos, 4), round(ht, 2))]
-            else:
-                return [a, b]
-            
-        new_lines = []
-        for entry in line_data:
-            new_data = [entry[1][1][0]]
-            for edge in entry[1][1]:
-                old = new_data[-1]
-                _new = join(old, edge)
-                new_data.remove(old)
-                new_data.extend(_new)
-            new_lines.append((entry[0], new_data, self.XRF_COLOR_LIST[line_data.index(entry)]))
-        
-        return new_lines
+    def sessions(self):
+        return self.project.sessions.filter(pk__in=self.data.values_list('session__pk', flat=True)).distinct()
 
 
 class ActivityLogManager(models.Manager):

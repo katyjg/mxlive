@@ -27,7 +27,7 @@ SITE_ID = 1
 SECRET_KEY = 'z)&x^!63wtp82h2^sfl@ny#%e2ryy_a=gcy(4g!%f(!_!v^fi7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 INTERNAL_URLS = ['^/json', '^/api']
@@ -49,7 +49,6 @@ INSTALLED_APPS = (
     'staff',
     'objlist',
     'remote',
-    'stats',
     'reversion',
     'crispy_forms',
     'formtools',

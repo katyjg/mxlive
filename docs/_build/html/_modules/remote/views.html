@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                v3.1.4-20-gc6a65f6
+                v3.1.4-21-g6f9a0bb
 
               </div>
             
@@ -389,7 +389,7 @@
 <span class="sd">    Method to add meta-data and JSON details about an AnalysisReport.</span>
 
 <span class="sd">    :param username: User__username</span>
-<span class="sd">    :param data_id: Data object referenced</span>
+<span class="sd">    :param data_id: Data objects referenced</span>
 <span class="sd">    :param score: float</span>
 <span class="sd">    :param type: str</span>
 <span class="sd">    :param details: JSON dict</span>
@@ -412,7 +412,7 @@
             <span class="k">raise</span> <span class="n">http</span><span class="o">.</span><span class="n">Http404</span><span class="p">(</span><span class="s2">&quot;Project does not exist.&quot;</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">Data</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_id&#39;</span><span class="p">))</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">Data</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk__in</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_id&#39;</span><span class="p">))</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">http</span><span class="o">.</span><span class="n">Http404</span><span class="p">(</span><span class="s2">&quot;Data does not exist&quot;</span><span class="p">)</span>
 

@@ -1,76 +1,15 @@
-{% load data_server %}
-{% load score_colors %}
-{% load static %}
+<div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mini-thumbnail pull-right">
+    <a data-url="{% url 'data-detail' data.pk %}">
+    <div class="list-group-item list-group-item-success text-condensed">
+        <span class="pull-right label label-default">{{ data.beamline.acronym }}</span>
+        <span class="overflow ellipsis"><strong>{{ data.name }} </strong> | {{ data.get_kind_display }}</span>
+        <span class="text-muted overflow ellipsis">
+            {% if 'MX' in data.kind or data.kind == 'XRD_DATA' %}
+                {{ data.total_angle }}&#176; total | {{ data.exposure_time }}s &middot; {{ data.meta_data.delta_angle }}&#176;/frame<br/>
+            {% else %}
 
-<link href="{% static "css/css-circular-prog-bar.css" %}" rel="stylesheet">
-
-<div class="thumbnail data-thumbnail {% if not detail %}bgimg-{{ data.pk }}{% endif %}" style="margin-bottom: 0px; background-position: right;">
-    <div class="row">
-        <div class="col-xs-12 text-condensed">
-            {% if detail %}{% with data|get_meta_data as meta_data %}{% if meta_data %}
-                <span class="box-tools pull-right full-right bgimg-{{ data.pk }}" style="margin-right: 15px; background-position: center; background-size: 100%;">
-                    <small>
-                        {% for k, v in meta_data.items %}
-                            <span class="pull-left">{{ k|title }}: <strong>{{ v }}</strong></span><br/>
-                        {% endfor %}
-                </small></span>
-            {% endif %}{% endwith %}{% endif %}
-
-            <div style="margin-left: 5px;">
-                {% if data.reports.all %}
-                    <span class="box-tools pull-right" style="padding-left: 0;">
-                    {% for report in data.reports.all %}
-                        <span class="pull-right" style="padding: 0;">
-                            <a href="{% url "report-detail" report.pk %}" title="View {{ report.kind }} Report">
-                                <span class="fa-stack">
-                                    <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-                                    <span class="fa-stack-1x superscript">
-                                        <span class="badge label-{{ report.score|label_score }}">{{ report.score|floatformat:2 }}</span>
-                                    </span>
-                                </span><br>
-                                {% if detail %}<span>{{ report.kind }}</span>{% endif %}
-                            </a>
-                        </span>
-
-                    {% endfor %}
-                    </span>
-                {% endif %}
-                <span class="absolute-right hidden">
-                    <div class="pull-right progress-circle p{% widthratio data.total_angle 360 100 %}">
-                        <div class="left-half-clipper">
-                            <div class="first50-bar"></div>
-                            <div class="value-bar"></div>
-                        </div>
-                    </div>
-                </span>
-            <a title="View {{ data.name }}" data-url="{% url "data-detail" data.pk %}">
-                <h4 class="overflow ellipsis">
-                    <span class="text-muted">{{ data.get_kind_display }} | </span> <strong>&nbsp;{{ data.name }}</strong>
-                </h4>
-                {% if not detail %}<small>{% endif %}
-                <p class="text-muted overflow ellipsis"><strong>{{ data.beamline.acronym }}: {{ data.modified }}</strong></p>
-                <span class="text-muted overflow ellipsis">
-                    <strong>{{ data.meta_data.delta_angle }}&#176;</strong> / <strong>{{ data.exposure_time }}s</strong> per frame<br/>
-                    <strong>{{ data.num_frames }} frames</strong> ({{ data.total_angle }}&#176; total)<br/>
-                    <strong>{{ data.meta_data.resolution }}&#8491;</strong> res. limit</span>
-                {% if not detail %}</small>{% endif %}
-            </a>
-            </div>
-        </div>
+            {% endif %}
+        </span>
     </div>
+    </a>
 </div>
-<div class="thumbnail thumbnail-print" style="margin-bottom: 0px;">
-    <strong>{{ data.name }}</strong>
-    <p><span class="pull-left">
-        ({{ data.num_frames }} frames / {{ data.total_angle }}&#176; total)
-    </span>
-    <span class="pull-right">{{ data.resolution }}&#8491; res. limit</span>
-
-    </p>
-    {% if data.staff_comments %}
-        <div class="alert alert-info" title="Notes" style="margin-bottom: 0px;">
-            {{ data.staff_comments|default_if_none:"" }}
-        </div>
-    {% endif %}
-</div>
-

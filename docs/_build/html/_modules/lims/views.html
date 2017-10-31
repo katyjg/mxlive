@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                v3.1.4-20-gc6a65f6
+                v3.1.4-21-g6f9a0bb
 
               </div>
             
@@ -174,6 +174,7 @@
 <span class="kn">from</span> <span class="nn">django.utils.text</span> <span class="k">import</span> <span class="n">slugify</span>
 <span class="kn">from</span> <span class="nn">django.utils</span> <span class="k">import</span> <span class="n">timezone</span>
 <span class="kn">from</span> <span class="nn">django.contrib.messages.views</span> <span class="k">import</span> <span class="n">SuccessMessageMixin</span>
+<span class="kn">from</span> <span class="nn">django.contrib.humanize.templatetags.humanize</span> <span class="k">import</span> <span class="n">naturaltime</span>
 <span class="kn">from</span> <span class="nn">django.views.generic</span> <span class="k">import</span> <span class="n">edit</span><span class="p">,</span> <span class="n">detail</span>
 <span class="kn">from</span> <span class="nn">django.db</span> <span class="k">import</span> <span class="n">transaction</span>
 
@@ -292,10 +293,15 @@
     <span class="k">def</span> <span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">c</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">DetailListMixin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">c</span><span class="p">[</span><span class="s1">&#39;object&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;total_objects&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_queryset</span><span class="p">()</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">c</span>
 
     <span class="k">def</span> <span class="nf">get_object</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_model</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pk&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">qs</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">DetailListMixin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_queryset</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span><span class="o">.</span><span class="n">sample_set</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 
 
 <span class="k">class</span> <span class="nc">ShipmentList</span><span class="p">(</span><span class="n">ListViewMixin</span><span class="p">,</span> <span class="n">FilteredListView</span><span class="p">):</span>
@@ -532,6 +538,7 @@
         <span class="n">filters</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">ContainerDetail</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_filters</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span><span class="o">.</span><span class="n">has_children</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">list_display</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;container&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">owner_field</span> <span class="o">=</span> <span class="s1">&#39;project&#39;</span>
         <span class="k">return</span> <span class="n">filters</span>
 
     <span class="k">def</span> <span class="nf">get_object</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -639,10 +646,17 @@
     <span class="n">list_transforms</span> <span class="o">=</span> <span class="p">{}</span>
 
 
+<span class="k">def</span> <span class="nf">movable</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s2">&quot;&lt;span class=&#39;cursor&#39;&gt;&lt;i class=&#39;fa fa-fw fa-1x fa-grip&#39;&gt;&lt;/i&gt; </span><span class="si">{}</span><span class="s2">&lt;/span&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+
 <span class="k">class</span> <span class="nc">GroupDetail</span><span class="p">(</span><span class="n">DetailListMixin</span><span class="p">,</span> <span class="n">SampleList</span><span class="p">):</span>
     <span class="n">extra_model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Group</span>
     <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;users/entries/group.html&quot;</span>
-    <span class="n">list_display</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;barcode&#39;</span><span class="p">,</span> <span class="s1">&#39;container_and_location&#39;</span><span class="p">,</span> <span class="s1">&#39;comments&#39;</span><span class="p">]</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;priority&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;barcode&#39;</span><span class="p">,</span> <span class="s1">&#39;container_and_location&#39;</span><span class="p">,</span> <span class="s1">&#39;comments&#39;</span><span class="p">]</span>
+    <span class="n">list_transforms</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="n">movable</span><span class="p">,</span>
+    <span class="p">}</span>
     <span class="n">detail_url</span> <span class="o">=</span> <span class="s1">&#39;sample-edit&#39;</span>
     <span class="n">detail_ajax</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">detail_target</span> <span class="o">=</span> <span class="s1">&#39;#modal-form&#39;</span>
@@ -719,7 +733,7 @@
 <span class="k">class</span> <span class="nc">ReportList</span><span class="p">(</span><span class="n">ListViewMixin</span><span class="p">,</span> <span class="n">FilteredListView</span><span class="p">):</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">AnalysisReport</span>
     <span class="n">list_filter</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;modified&#39;</span><span class="p">]</span>
-    <span class="n">list_display</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;data__name&#39;</span><span class="p">,</span> <span class="s1">&#39;sample&#39;</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">]</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;sample&#39;</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">]</span>
     <span class="n">search_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;sample__name&#39;</span><span class="p">]</span>
     <span class="n">detail_url</span> <span class="o">=</span> <span class="s1">&#39;report-detail&#39;</span>
     <span class="n">order_by</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;-modified&#39;</span><span class="p">]</span>
@@ -780,7 +794,8 @@
         <span class="k">return</span> <span class="n">context</span>
 
 
-<span class="kn">from</span> <span class="nn">django.contrib.humanize.templatetags.humanize</span> <span class="k">import</span> <span class="n">naturaltime</span>
+
+
 
 <span class="k">def</span> <span class="nf">format_time</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">naturaltime</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
@@ -851,12 +866,13 @@
             <span class="k">elif</span> <span class="n">label</span> <span class="o">==</span> <span class="s1">&#39;groups&#39;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;fill&#39;</span><span class="p">]:</span>
                     <span class="n">to_create</span> <span class="o">=</span> <span class="p">[]</span>
-                    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shipment</span><span class="o">.</span><span class="n">container_set</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                    <span class="k">for</span> <span class="n">priority</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shipment</span><span class="o">.</span><span class="n">container_set</span><span class="o">.</span><span class="n">all</span><span class="p">()):</span>
                         <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
                             <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">slugify</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
                             <span class="s1">&#39;sample_count&#39;</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">capacity</span><span class="p">(),</span>
                             <span class="s1">&#39;shipment&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">shipment</span><span class="p">,</span>
                             <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">project</span><span class="p">,</span>
+                            <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="n">priority</span> <span class="o">+</span> <span class="mi">1</span>
                         <span class="p">}</span>
                         <span class="n">group</span><span class="p">,</span> <span class="n">created</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">location</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">kind</span><span class="o">.</span><span class="n">container_locations</span><span class="o">.</span><span class="n">all</span><span class="p">()):</span>
