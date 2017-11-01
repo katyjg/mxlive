@@ -42,6 +42,15 @@ function selectAll(container) {
     }
 };
 
+var slug = function(str) {
+    var $slug = '';
+    var trimmed = $.trim(str);
+    $slug = trimmed.replace(/[^a-z0-9-]/gi, '-').
+    replace(/-+/g, '-').
+    replace(/^-|-$/g, '');
+    return $slug.toLowerCase();
+}
+
 function fillContainers() {
 
     $.each($('.repeat-row[class!="template"]'), function() {
@@ -54,10 +63,10 @@ function fillContainers() {
         $('.add').trigger('click');
         var container = $(this).attr('id');
         var row = $('.repeat-row[class!="template"]').last();
-        row.find('input[name$="name"]').val(container).trigger('change');
-        $('span.group-name').html(container);
-        selectAll(container);
-        var num = $('[id^="formlayout"] circle[group="'+container+'"]').length;
+        row.find('input[name$="name"]').val(slug(container)).trigger('change');
+        $('span.group-name').html(slug(container));
+        selectAll(slug(container));
+        var num = $('[id^="formlayout"] circle[group="'+slug(container)+'"]').length;
         row.find('input[name$="sample_count"]').val(num);
     });
 

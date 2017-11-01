@@ -11,12 +11,15 @@
         container_height = locations.height;
     }
     var selector = {% if selector %}"#{{ selector }}-"{% else %}"#layout-"{% endif %};
-    var size = {% if size %}{{ size }}{% else %}$(selector+'{{ object }}').width(){% endif %};
+    var obj_selector = selector + '{{ object|slugify }}';
+    var size = {% if size %}{{ size }}{% else %}$(obj_selector).width(){% endif %};
 
-    var svgContainer = d3.select(selector+'{{ object }}').append("svg")
+
+
+    var svgContainer = d3.select(obj_selector).append("svg")
         .attr("width", size * container_width)
         .attr("height", size * container_height)
-        .attr('id', '{{ object }}')
+        .attr('id', '{{ object|slugify }}')
         .attr('kind', '{{ kind.pk }}');
 
     function createNodes(data, envelope, calc_width, calc_height, detail=true) {
@@ -138,8 +141,8 @@
     }
 
     if (locations) {
-        var width = $(selector+'{{ object }}'+' svg').width();
-        var height = $(selector+'{{ object }}'+' svg').height();
+        var width = $(obj_selector + ' svg').width();
+        var height = $(obj_selector + ' svg').height();
         var nodes = createNodes(locations.locations, "{{ kind.envelope }}", width, height);
         if (locations.labels) {
             var labels = createNodes(locations.labels, "{{ kind.envelope }}", width, height, false);

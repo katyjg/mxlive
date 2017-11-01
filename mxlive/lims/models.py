@@ -270,7 +270,7 @@ class Session(models.Model):
         return self.stretches.last().start
 
     def end(self):
-        return self.data_set.order_by('created').last().created
+        return self.data_set.order_by('created').last() and self.data_set.order_by('created').last().created
 
 
 class Stretch(models.Model):

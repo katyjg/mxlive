@@ -27,7 +27,7 @@
                                 <a onclick="selectAll('{{ container.0 }}');" class="select-button btn btn-success">Select All</a>
                             </span>
                         </div><br>
-                        <div id="formlayout-{{ container.0 }}"></div>
+                        <div id="formlayout-{{ container.0|slugify }}"></div>
                         {% include "users/entries/layout-container.html" with selector="formlayout" object=container.0 kind=container.2 size=300 %}
                     </div>
                     </div>

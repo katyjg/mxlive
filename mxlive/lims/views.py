@@ -791,8 +791,9 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                     group, created = models.Group.objects.get_or_create(**data)
                     to_create = []
                     j = 1
+                    slug_map = {slugify(c.name): c.name for c in self.shipment.container_set.all()}
                     for c, locations in sample_locations.get(group.name, {}).items():
-                        container = models.Container.objects.get(name=c, project=project, shipment=self.shipment)
+                        container = self.shipment.container_set.get(name__iexact=slug_map[c])
                         for k, sample in enumerate(locations):
                             name = "{0}-{1:02d}".format(group.name, j)
                             to_create.append(models.Sample(group=group, container=container, location=sample,
