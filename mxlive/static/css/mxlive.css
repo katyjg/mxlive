@@ -1195,8 +1195,16 @@ span.label-unusable-score {
     .row [class^=col-] + .col-xs-12 {
         padding-left: 15px;
     }
+    .row .col-xs-12 {
+        padding-left: 15px !important;
+    }
     #objlist-search + ul.nav-pills {
         padding-left: 15px;
+    }
+}
+@media (max-width: 992px) {
+    .row .col-sm-12 {
+        padding-left: 15px !important;
     }
 }
 .modal-md form .row [class^=col-] + .col-xs-12 {

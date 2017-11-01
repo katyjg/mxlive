@@ -4,7 +4,7 @@
 
 {% block page_heading %}
 <h3 class="text-condensed narrow-heading overflow ellipsis">Welcome {{ user.username|title }}!</h3>
-    <span class="text-muted">Find your current or recent shipments listed here.</span>
+    <span class="text-muted hidden-xs">Find your current or recent shipments listed here.</span>
 {% endblock %}
 
 {% block object_tools %}
@@ -26,7 +26,7 @@
 
 {% block full %}
 <div class="row">
-    <div class="col-xs-12 col-md-9">
+    <div class="col-md-9">
         <div class="list-group">
             <a data-url="{% url "shipment-new" %}" class="list-group-item empty">
                 <div class="row">
@@ -64,7 +64,7 @@
     </div>
 
     <!-- right region -->
-	<div class="col-xs-12 col-md-3">
+	<div class="col-sm-12 col-md-3">
         {% load_announcements %}
 	</div>
 </div>
