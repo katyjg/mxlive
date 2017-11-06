@@ -114,13 +114,13 @@ class Project(AbstractUser):
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified', auto_now=True, editable=False)
     updated = models.BooleanField(default=False)    
-    
+
+    def __unicode__(self):
+        return self.name
+
     def identity(self):
         return 'PR%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
-        
-    def __unicode__(self):
-        return self.name
 
     def get_archive_filter(self):
         if self.show_archives:
@@ -201,8 +201,7 @@ class StretchQuerySet(models.QuerySet):
 
     def recent_days(self, days):
         recently = timezone.now() - timedelta(days=days)
-        return self.filter(end__gte=recently)
-
+        return self.filter(Q(end__isnull=True) | Q(end__gte=recently))
 
     def with_duration(self):
         return self.filter(end__isnull=False).annotate(duration=ExpressionWrapper((F('end')-F('start'))/60000000, output_field=models.IntegerField()))
@@ -635,7 +634,7 @@ class ContainerType(models.Model):
     envelope = models.CharField(max_length=200, blank=True)
 
     def __unicode__(self):
-        return self.name.title()
+        return self.name
 
 
 class ContainerLocation(models.Model):
@@ -660,19 +659,19 @@ class Container(LoadableBaseClass):
     parent = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True, related_name="children")
     location = models.ForeignKey(ContainerLocation, blank=True, null=True)
 
-    def identity(self):
-        return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-
-    def __unicode__(self):
-        base = not self.project.is_superuser and "{} | ".format(self.project.username) or ""
-        return "{}{} | {}".format(base, self.kind.name.title(), self.name)
-
     class Meta:
         unique_together = (
             ("project", "name", "shipment"),
         )
         ordering = ('kind', 'location')
+
+    def __unicode__(self):
+        base = not self.project.is_superuser and "{} | ".format(self.project.username) or ""
+        return "{}{} | {}".format(base, self.kind.name.title(), self.name)
+
+    def identity(self):
+        return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+    identity.admin_order_field = 'pk'
 
     def barcode(self):
         return self.name
@@ -774,12 +773,12 @@ class Dewar(models.Model):
     modified = models.DateTimeField('date modified', auto_now=True, editable=False)
     active = models.BooleanField(default=False)
 
+    def __unicode__(self):
+        return "{} | {}".format(self.beamline.acronym, self.container.name)
+
     def identity(self):
         return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
-
-    def __unicode__(self):
-        return "{} | {}".format(self.beamline.acronym, self.container.name)
 
     def json_dict(self):
         return {
@@ -1061,13 +1060,19 @@ class Data(DataBaseClass):
     download = models.BooleanField(default=False)
     meta_data = JSONField(default={})
 
+    class Meta:
+        verbose_name = 'Dataset'
+        
+    def __unicode__(self):
+        return '%s (%d)' % (self.name, self.num_frames())
+
     def identity(self):
         return 'DA%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
 
     # need a method to determine how many frames are in item
     def num_frames(self):
-        return len(self.frames)
+        return len(self.frames) if self.frames else 0
 
     def frame_sets(self):
         if isinstance(self.frames, list):
@@ -1078,12 +1083,6 @@ class Data(DataBaseClass):
 
     def first_frame(self):
         return len(self.frames) and self.frames[0] or 1
-
-    def can_download(self):
-        return (not RESTRICTED_DOWNLOADS) or self.download
-
-    def __unicode__(self):
-        return '%s (%d)' % (self.name, self.num_frames())
 
     def report(self):
         return self.reports.first()
@@ -1117,9 +1116,6 @@ class Data(DataBaseClass):
             if obj.status not in [GLOBAL_STATES.TRASHED]:
                 obj.trash(request=request)
         super(Data, self).trash(request=request)
-
-    class Meta:
-        verbose_name = 'Dataset'
 
 
 class AnalysisReport(DataBaseClass):

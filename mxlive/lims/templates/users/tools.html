@@ -1,5 +1,5 @@
 
-{% if object.status != object.STATES.ON_SITE and object.status != object.STATES.ARCHIVED and request.user == object.project or request.user.is_superuser and object.status >= object.STATES.SENT and object.status < object.STATES.ARCHIVED %}
+{% if object.status != object.STATES.ON_SITE and object.status < object.STATES.RETURNED and request.user == object.project or request.user.is_superuser and object.status >= object.STATES.SENT and object.status < object.STATES.ARCHIVED %}
 <span class="box-tools pull-right">
     {% comment %}Shipment Actions{% endcomment %}
     {% if request.user == object.project %}
@@ -34,12 +34,6 @@
                     </span>
                 </span><br>
                 <span class="tool-label">Recall</span>
-            </a>
-        {% elif object.status == object.STATES.RETURNED %}
-            <a class="pull-right" data-url="{{ handler }}close/">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-2 fa-fw fa-archive"></i></span><br>
-                <span class="tool-label">Archive</span>
             </a>
         {% endif %}
     {% elif request.user.is_superuser %}

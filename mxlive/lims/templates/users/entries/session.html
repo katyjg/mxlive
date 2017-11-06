@@ -87,13 +87,15 @@
 
     <div class="row">
         <div class="col-xs-4 col-lg-3 col-xl-2">
-            <h3>Groups</h3>
-            <hr/>
-            <div class="list-group">
-            {% for group in object.groups %}
-                {% include "users/entries/group-nav.html" with session=object %}
-            {% endfor %}
-            </div>
+            {% if object.groups %}
+                <h3>Groups</h3>
+                <hr/>
+                <div class="list-group">
+                {% for group in object.groups %}
+                    {% include "users/entries/group-nav.html" with session=object %}
+                {% endfor %}
+                </div>
+            {% endif %}
         </div>
         <div class="col-xs-8 col-lg-9 col-xl-10">
             <div class="tab-content" style="border-left: 1px solid #ddd; padding-left: 15px;">

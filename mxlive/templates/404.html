@@ -1,18 +1,35 @@
 {% extends "users/base.html" %}
 
-{% block page_heading %}<h2>Oops...</h2>{% endblock %}
+{% load static %}
+{% load get_version %}
 
 {% block full %}
 
-<div id="content" class="col-12">
-        <h2>Sorry, we couldn't find {{request_path}}</h2>
-    <div class="clear"><br></div>
-    <h2>Things to try:</h2><br>
-    <ul>
-        <li>Check that the URL you entered is correct.</li>
-        <li>Use the navigation menu tabs to find what you need.</li>
-        <li>If you have an idea about how we can make your LIMS experience more enjoyable, contact us at cmcf-support@lightsource.ca.</li>
-        <li><a href="http://cmcf.lightsource.ca/contact-us/">Contact us</a> and we'll see if we can point you in the right direction</li>
-    </ul>
+
+<div id="content" class="row">
+    <div class="col-xs-6 visible-xs">
+        <h1><span class="text-muted text-large">404</span></h1>
+        <span class="text-muted">Sorry, we couldn't find <span class="text-muted">{{request_path}}</span></span>
+    </div>
+    <div class="col-xs-6 visible-xs">
+        <img src="{% static 'img/cls-unplugged.png' %}" style="max-width: 100%;"/>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-5 col-lg-8">
+        <h1 class="hidden-xs"><span class="text-muted text-large">404</span></h1>
+        <span class="hidden-xs text-muted">Sorry, we couldn't find <span class="text-muted">{{request_path}}</span></span>
+        <hr/>
+        <span class="text-condensed">
+            <h3>Here are some things to try:</h3>
+
+        <h5>Check that the URL you entered is correct.</h5>
+        <h5>Go back <a href="{% url 'dashboard' %}">home</a> and try again.</h5>
+        <h5>If you have an idea about how we can make your MxLIVE experience more enjoyable, contact us at {{ "SUPPORT_EMAIL"|get_from_settings }}.</h5>
+            </span>
+    </div>
+    <div class="col-sm-7 col-lg-4 hidden-xs">
+        <img src="{% static 'img/cls-unplugged.png' %}" style="max-width: 100%;"/>
+    </div>
 </div>
 {% endblock %}

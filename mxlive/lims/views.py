@@ -149,8 +149,7 @@ class ShipmentList(ListViewMixin, FilteredListView):
     def get_queryset(self):
         if self.request.user.is_superuser:
             return super(ShipmentList, self).get_queryset().filter(
-                status__gte=models.Shipment.STATES.SENT).filter(
-                status__lt=models.Shipment.STATES.ARCHIVED)
+                status__gte=models.Shipment.STATES.SENT)
         return super(ShipmentList, self).get_queryset()
 
 

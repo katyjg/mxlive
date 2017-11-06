@@ -260,7 +260,7 @@ class AddReport(VerificationMixin, View):
         kind = info.get('title').strip(' Report')
         details = {
             'project': project,
-            'score': info.get('score') or 0,
+            'score': info.get('score') if info.get('score') else 0,
             'kind': kind,
             'details': info.get('details'),
             'name': info.get('title'),
@@ -274,7 +274,6 @@ class AddReport(VerificationMixin, View):
             report, created = AnalysisReport.objects.get_or_create(**details)
 
         for d in data:
-            print d.name
             report.data.add(d)
 
         ActivityLog.objects.log_activity(request, report, ActivityLog.TYPE.CREATE, "{} uploaded from {}".format(

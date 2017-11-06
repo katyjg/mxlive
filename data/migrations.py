@@ -3,6 +3,8 @@ from lims.models import Data, AnalysisReport, SpaceGroup, Session, Project, Beam
 import json
 import itertools
 import collections
+import datetime
+
 
 _h = 4.13566733e-15  # eV.s
 _c = 299792458e10  # A/s
@@ -227,9 +229,26 @@ def build_sessions(directory_map):
                 name = directory.split('/')[-1]
                 session, created = Session.objects.get_or_create(project=project, name=name, beamline=bl)
                 data.update(session=session)
-                stretch = Stretch.objects.create(session=session, start=data.order_by('created').first().created, end=data.order_by('created').last().created)
+                records = list(data.order_by('created').values_list('created', flat=True))
+                to_create = []
+                info = {
+                    'session': session,
+                    'start': records[0],
+                    'end': None,
+                }
+                create = False
+                for i, record in enumerate(records):
+                    if record > (info['start'] + datetime.timedelta(hours=4)):
+                        info['end'] = records[i-1]
+                        create = True
+                    if create:
+                        to_create.append(Stretch(**info))
+                        info['start'] = record
+                        create = False
+                Stretch.objects.bulk_create(to_create)
+
         except:
-            print "Unable to create", directory
+            print "Unable to create session for", directory
     return "Done building sessions"
 
 
