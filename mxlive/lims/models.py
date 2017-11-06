@@ -1062,7 +1062,7 @@ class Data(DataBaseClass):
 
     class Meta:
         verbose_name = 'Dataset'
-        
+
     def __unicode__(self):
         return '%s (%d)' % (self.name, self.num_frames())
 

@@ -25,3 +25,5 @@ tmp
 /local/templates
 /local/cache
 /static/
+/local/mxlive.db
+share

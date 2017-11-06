@@ -1,5 +1,5 @@
-FROM fedora:22
-MAINTAINER Michel Fodje <michel.fodje@lightsource.ca>
+FROM fedora:26
+MAINTAINER Kathryn Janzen <kathryn.janzen@lightsource.ca>
 
 RUN dnf -y update && \
   dnf -y install httpd python-pip mod_wsgi python-ipaddr python-pillow  python-dateutil python-markdown \
@@ -7,7 +7,7 @@ RUN dnf -y update && \
   texlive-graphics sil-gentium-basic-fonts numpy scipy python-ldap python-crypto python-memcached \
   texlive-pst-barcode texlive-multirow mod_ssl python-docutils unzip tar gzip ImageMagick && dnf clean all
 
-RUN pip install --upgrade pip &&  pip install 'Django==1.6.11'
+RUN pip install --upgrade pip &&  pip install 'Django==1.11'
 
 EXPOSE 443
 
@@ -24,7 +24,6 @@ RUN /bin/cp /mxlive/deploy/mxlive.conf /etc/httpd/conf.d/
 
 RUN /mxlive/manage.py collectstatic --noinput
 
-VOLUME ["/mxlive/local", "/users"]
+VOLUME ["/mxlive/local"]
 
 CMD ["/run-server.sh"]
-
