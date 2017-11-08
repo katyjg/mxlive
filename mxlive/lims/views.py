@@ -574,8 +574,8 @@ def format_score(val, record):
 class ReportList(ListViewMixin, FilteredListView):
     model = models.AnalysisReport
     list_filter = ['modified', 'kind']
-    list_display = ['data__all', 'kind', 'sample', 'score']
-    search_fields = ['project', 'name', 'sample__name']
+    list_display = ['data__all', 'kind', 'score']
+    search_fields = ['project__username', 'name', 'data__name']
     detail_url = 'report-detail'
     order_by = ['-modified']
     ordering_proxies = {}
@@ -643,7 +643,6 @@ class ReportListDetail(ReportList):
         c = super(ReportListDetail, self).get_context_data(**kwargs)
         c['shipment'] = self.get_object()
         c['total_objects'] = c['shipment'].reports().count()
-
         return c
 
     def get_queryset(self):

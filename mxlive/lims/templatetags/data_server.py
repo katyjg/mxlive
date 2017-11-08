@@ -40,6 +40,10 @@ def get_archive_url(data):
     url = IMAGE_URL + "/files/{}/{}.tar.gz".format(data.url, data.name)
     return url
 
+@register.simple_tag
+def get_session_archive(session):
+    url = IMAGE_URL + "/files/{}.tar.gz".format(session.name)
+    return url
 
 @register.simple_tag
 def get_image_url(data, frame):

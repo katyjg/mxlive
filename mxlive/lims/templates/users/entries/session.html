@@ -18,6 +18,18 @@
 {% endblock %}
 
 {% block object_tools %}
+{% if object.data_set.all %}
+<span class="box-tools pull-right">
+    <a class="pull-right" href="{% get_session_archive object %}?{% for d in object.data_set.all %}urls%5B%5D={{ d.url }}{% if not forloop.last %}&{% endif %}{% endfor %}"><!-- onclick="download_all({{ object.data_set.all|get_data_keys }});"-->
+        <span class="pull-right">
+            <span class="fa-stack">
+                <i class="fa-stack-2x fa fa-2 fa-fw fa-download"></i>
+            </span><br>
+            <span class="tool-label">Download</span>
+        </span>
+    </a>
+</span>
+{% endif %}
 <span class="box-tools pull-right">
     <a class="pull-right" data-url="{% url "session-history" object.pk %}">
         <span class="pull-right">
@@ -108,32 +120,10 @@
 
 {% endblock %}
 
-{% block fulls %}
-
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="list-group list-group-hover">
-                <div class="row">
-                    {% for data in object.data_set.all %}
-                        {% if forloop.first %}
-                            <h2 class="col-xs-12 underline">{{ data.modified|date:"F j, Y" }}</h2>
-                            <h3 class="col-xs-12">{{ data.modified|date:"P" }}</h3>
-                            {% save_time data.modified as time %}
-                        {% endif %}
-                        {% if data.modified|check_time:time %}
-                            {% if data.modified|date:"N j" != time|date:"N j" %}
-                                <h2 class="col-xs-12 underline">{{ data.modified|date:"F j, Y" }}</h2>
-                            {% endif %}
-                            <h3 class="col-xs-12">{{ data.modified|date:"P" }}</h3>
-                        {% endif %}
-                        {% save_time data.modified as time %}
-                        <div class="col-xs-12 col-sm-6">
-                            {% include "users/entries/data-thumbnail.html" with detail=True %}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
+{% block extra_js %}
+<script>
+    function download_all(urls) {
+        $.get("{% get_session_archive object %}", {'urls': urls}, null, 'attachment');
+    }
+</script>
 {% endblock %}
-

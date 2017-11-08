@@ -56,25 +56,4 @@ ol {
 	margin-left:0; /* Remove the default left margin */
 	padding-left:0; /* Remove the default left padding */
 }
-ol > li {
-	position:relative; /* Create a positioning context */
-	margin-left: 2em; /* Give each list item a left margin to make room for the numbers */
-	padding:0.25em 0.5em; /* Add some spacing around the content */
-	list-style:none; /* Disable the normal item numbering */
-}
-ol > li:before {
-	content:counter(li); /* Use the counter as content */
-	counter-increment:li; /* Increment the counter by 1 */
-	position:absolute;
-	left:-2em;
-	-moz-box-sizing:border-box;
-	-webkit-box-sizing:border-box;
-	box-sizing:border-box;
-	width:2em;
-	margin-right:0.5em;
-	font-weight: 600;
-	text-align:center;
-	border-radius: 10%;
-	background: rgba(0,0,0,0.05);
-}
-ol li:last-child {margin-bottom:0;}
+
