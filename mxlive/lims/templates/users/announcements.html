@@ -22,9 +22,7 @@
                 </strong>
             </h5>
             {% if a.has_image %}
-                <a href="{{ a.attachment.url }}">
                     <img style="max-width: 100%;" src="{{ a.attachment.url }}" />
-                </a>
             {% endif %}
             <span class="text-condensed">{{ a.description }}</span>
         </div>

@@ -60,7 +60,14 @@
             </main>
             {% endblock %}
             <div id="modal-form"></div>
-
+            {% if user.is_authenticated %}
+            <div class="footer text-muted">
+                <div class="footer-wrapper">
+                    <div class="footer-item">&copy; {% now "Y" %}</div>
+                    <div class="footer-item"><a class="text-muted" href="http://cmcf.lightsource.ca">CMCF Home</a></div>
+                </div>
+            </div>
+        {% endif %}
         </div>
         {% include "users/messages.html" %}
 
@@ -109,10 +116,13 @@
                 }
             });
 
+            {% if show_help %}
+                $('#modal-form').load("{% url 'user-guide' %}");
+            {% endif %}
 
-        // configure pretty scrollbars
-        $('.scrollbar-outer').scrollbar();
-        $('.scrollbar-inner').scrollbar();
+            // configure pretty scrollbars
+            $('.scrollbar-outer').scrollbar();
+            $('.scrollbar-inner').scrollbar();
             {% if request.user.is_authenticated %}
                 //setInterval(serverHeartBeat, 3000);
             {% endif %}

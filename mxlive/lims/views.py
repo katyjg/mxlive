@@ -15,6 +15,7 @@ from objlist.views import FilteredListView
 from lims import forms, models
 from itertools import chain
 import json
+import re
 
 from mixins import AjaxableResponseMixin, AdminRequiredMixin, Tex2PdfMixin
 
@@ -50,7 +51,6 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(ProjectDetail, self).get_context_data(**kwargs)
-
         if self.request.user.is_superuser:
             sh = models.Shipment.objects.filter(status__in=[models.Shipment.STATES.ON_SITE,models.Shipment.STATES.SENT])
             context['shipments'] = sh.order_by('status','-modified')
@@ -59,6 +59,11 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('containers', flat=True)
             context['containers'] = [c for c in models.Container.objects.filter(kind__in=kinds).order_by('name') if not c.dewars.first()]
         else:
+            referrer = self.request.META.get('HTTP_REFERER')
+            if re.sub('^https?:\/\/', '', referrer).split('/')[1] == 'login':
+                context['show_help'] = self.request.user.show_archives
+                if context['show_help']:
+                    models.Project.objects.filter(username=self.request.user.username).update(show_archives=False)
             sh = self.get_object().shipment_set.filter(status__lt=models.Shipment.STATES.ARCHIVED).order_by('modified')
             base_set = sh.filter(status__lte=models.Shipment.STATES.ON_SITE).distinct()
             if base_set.count() < 7:

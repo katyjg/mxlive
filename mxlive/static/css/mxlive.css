@@ -910,6 +910,8 @@ a[data-url], .back text[port], .cursor {
 #data-viewer .frame-list li {
     line-height: 24px;
     border-bottom: 1px dotted #ccc;
+}
+#data-viewer .frame-list #frames li {
     cursor: pointer;
 }
 
@@ -928,7 +930,7 @@ a[data-url], .back text[port], .cursor {
 }
 
 #data-image-loading div {
-    background-image: url("/static/img/fancybox/fancybox.png");
+    background-image: url("/static/img/fancybox.png");
     height: 480px;
     left: 0;
     position: absolute;
@@ -1260,4 +1262,21 @@ span.label-unusable-score {
 .carousel-indicators li, .carousel-indicators li.active {
     height: 15px;
     width: 15px;
+}
+
+.footer {
+    text-align: center;
+    position: absolute;
+    left: 50%;
+}
+.footer-wrapper {
+    left: -50%;
+    position: relative;
+}
+.footer-item {
+    padding: 15px;
+    float: left;
+}
+.footer-item + .footer-item {
+    border-left: 1px solid #ddd;
 }

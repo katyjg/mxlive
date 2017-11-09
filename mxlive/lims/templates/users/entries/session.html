@@ -20,7 +20,7 @@
 {% block object_tools %}
 {% if object.data_set.all %}
 <span class="box-tools pull-right">
-    <a class="pull-right" href="{% get_session_archive object %}?{% for d in object.data_set.all %}urls%5B%5D={{ d.url }}{% if not forloop.last %}&{% endif %}{% endfor %}"><!-- onclick="download_all({{ object.data_set.all|get_data_keys }});"-->
+    <a class="pull-right" href="{% get_session_archive object %}?{% for d in object.data_set.all %}urls%5B%5D={{ d.url }}{% if not forloop.last %}&{% endif %}{% endfor %}">
         <span class="pull-right">
             <span class="fa-stack">
                 <i class="fa-stack-2x fa fa-2 fa-fw fa-download"></i>

@@ -1,6 +1,7 @@
 {% extends "users/base.html" %}
 
 {% load link_list %}
+{% load msgs %}
 
 {% block page_heading %}
 <h3 class="text-condensed narrow-heading overflow ellipsis">Welcome {{ user.username|title }}!</h3>
@@ -21,6 +22,7 @@
             </span><br/>
             <span class="tool-label">New Shipment</span>
         </a>
+
     </span>
 {% endblock %}
 
@@ -28,6 +30,7 @@
 <div class="row">
     <div class="col-md-9">
         <div class="list-group">
+            {{ show_info }}
             <a data-url="{% url "shipment-new" %}" class="list-group-item empty">
                 <div class="row">
                     <div class="col-xs-12">
@@ -68,6 +71,7 @@
         {% load_announcements %}
 	</div>
 </div>
+
 {% endblock %}	
 
 

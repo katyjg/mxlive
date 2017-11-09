@@ -310,7 +310,7 @@ class ShipmentSendForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ShipmentSendForm, self).__init__(*args, **kwargs)
-        errors = ""
+        errors = Div()
         if self.instance.shipping_errors():
             errors = Div(
                 Div(

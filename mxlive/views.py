@@ -34,5 +34,5 @@ def login_view(request, *args, **kwargs):
             messages.info(request, message)
         elif not request.user.is_staff:
             message = 'You are logging in for the first time. Please make sure your profile is updated.'
-            messages.info(request, message)          
+            messages.info(request, message)
     return res
