@@ -29,6 +29,117 @@ function inv_sqrt(a) {
 
 
 // Live Reports from MxLIVE
+function draw_pie_chart() {
+
+    function chart(selection) {
+        selection.each(function (data) {
+            var margin = {out: 10, left: width * 0.1};
+
+            var svg = d3.select(this)
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.left + ")");
+
+            var radius = width/2 - margin.left;
+
+            var arc = d3.arc()
+                    .innerRadius((radius)*innerRadius)
+                    .outerRadius(radius)
+                    .startAngle(function(d, i) {
+                        return deg2rad(data[i]['start']);
+                    })
+                    .endAngle(function(d, i) {
+                        return deg2rad(data[i]['start'] + data[i]['value']);
+                    });
+
+            function deg2rad(deg) {
+                return deg * Math.PI / 180;
+            }
+
+
+            function centerTranslation() {
+                return 'translate('+radius +','+ radius +')';
+            }
+
+            var centerTx = centerTranslation();
+
+            var arcs = svg.append('g')
+                    .attr('class', 'arc')
+                .attr('transform', centerTx);
+            arcs.selectAll('path')
+                    .data(data)
+                    .enter().append('path')
+                    .attr('fill', function(d, i) {
+                        return data[i]['color'];
+                    })
+                    .attr('d', arc);
+
+            var lg = svg.append('g')
+                    .attr('class', 'label')
+                    .attr('transform', centerTx);
+
+            var labels = [];
+            $.each(data, function(i, d) {
+                if (d['label']) {
+                    labels.push(d['label']);
+                }
+            });
+
+            if (labels.length > 1) {
+                lg.selectAll('text')
+                    .data(data)
+                    .enter().append('text')
+                    .attr('transform', function (d, i) {
+                        var r = radius + margin.out;
+                        var alpha = deg2rad((data[i]['value'] / 2) + data[i]['start'] - 90);
+                        var x = r * Math.cos(alpha);
+                        var y = r * Math.sin(alpha);
+                        return 'translate(' + (x) + ',' + (y) + ')';
+                    })
+                    .text(function (d, i) {
+                        return data[i]['label'];
+                    })
+                    .style("text-anchor", function (d, i) {
+                        var r = radius + margin.out;
+                        var alpha = deg2rad((data[i]['value'] / 2) + data[i]['start'] - 90);
+                        var x = r * Math.cos(alpha);
+                        if (x > 0) {
+                            return 'start';
+                        } else {
+                            return 'end';
+                        }
+                    })
+                    .attr('fill', function (d, i) {
+                        return data[i]['color'];
+                    });
+            } else {
+                lg.append('text').text(labels[0]).attr('class', 'text-large').attr('text-anchor', 'middle').attr('alignment-baseline', 'middle');
+            }
+        });
+    }
+
+    chart.width = function (value) {
+        if (!arguments.length) return width;
+        width = value;
+        return chart;
+    };
+
+    chart.height = function (value) {
+        if (!arguments.length) return height;
+        height = value;
+        return chart;
+    };
+
+    chart.innerRadius = function (value) {
+        if (!arguments.length) return innerRadius;
+        innerRadius = value;
+        return chart;
+    };
+
+    return chart;
+}
+
 function draw_xy_chart() {
 
     function chart(selection) {
@@ -43,8 +154,6 @@ function draw_xy_chart() {
                 .attr("height", height)
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-
 
             var color_scale = d3.scaleOrdinal(d3.schemeCategory10);
             var y1data = [], y2data = [];
@@ -462,9 +571,6 @@ function draw_xy_chart() {
 
         });
 
-
-
-
     }
 
     chart.width = function (value) {
@@ -480,7 +586,7 @@ function draw_xy_chart() {
     };
 
     chart.xlabel = function (value) {
-        if (!arguments.length) return xlabel;
+        if (!arguments.length) return xlabel || '';
         xlabel = value;
         return chart;
     };
@@ -628,6 +734,32 @@ function build_report(selector, report) {
                 var svg = d3.select('#figure-' + i + '-' + j).append("svg").attr('id', 'plot-' + i + "-" + j)
                     .datum(data)
                     .call(xy_chart);
+                if (entry['title']) {
+                    $('#figure-' + i + '-' + j).append("<figcaption class='text-center'>Figure " + ($('figure').length + 1) + '. ' + entry['title'] + "</figcaption>")
+                }
+            } else if (entry['kind'] === 'pie' || entry['kind'] === 'gauge') {
+                $("#entry-" + i + "-" + j).append("<figure id='figure-" + i + "-" + j + "'></figure>");
+                var data = [];
+                var width = entry_row.width();
+                var totalAngle = 0;
+
+                $.each(entry['data'], function (l, wedge) {
+                    if ((entry['data'][l]['start'] || totalAngle) != totalAngle) {
+                        data.push({'start': totalAngle, 'value': entry['data'][l]['start'] - totalAngle, 'color': '#ffffff'});
+                        totalAngle += entry['data'][l]['start'] - totalAngle;
+                    }
+                    wedge['start'] = wedge['start'] || totalAngle;
+                    data.push(wedge);
+                    totalAngle += entry['data'][l]['value'];
+                });
+
+                var pie_chart = draw_pie_chart()
+                    .width(width)
+                    .height(400)
+                    .innerRadius(entry['kind'] === 'gauge' && 0.5 || 0);
+                var svg = d3.select('#figure-' + i + '-' + j).append("svg").attr('id', 'plot-' + i + "-" + j).attr('class', 'gauge')
+                    .datum(data)
+                    .call(pie_chart);
                 if (entry['title']) {
                     $('#figure-' + i + '-' + j).append("<figcaption class='text-center'>Figure " + ($('figure').length + 1) + '. ' + entry['title'] + "</figcaption>")
                 }

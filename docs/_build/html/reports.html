@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                v3.1.4-21-g6f9a0bb
+                v3.1.4-28-g8f79691
 
               </div>
             
@@ -101,7 +101,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#section-options">Section Options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#content-options">Content Options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#annotation-options-plots">Annotation Options (Plots)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#data-options-plots">Data Options (Plots)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-options-plots-scatterplot-lineplot">Data Options (Plots - scatterplot, lineplot)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-options-charts-pie-gauge">Data Options (Charts - pie, gauge)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-lims.models">Model</a></li>
 </ul>
 </li>
@@ -183,8 +184,9 @@
 <li><a class="reference internal" href="#section-options" id="id1">Section Options</a></li>
 <li><a class="reference internal" href="#content-options" id="id2">Content Options</a></li>
 <li><a class="reference internal" href="#annotation-options-plots" id="id3">Annotation Options (Plots)</a></li>
-<li><a class="reference internal" href="#data-options-plots" id="id4">Data Options (Plots)</a></li>
-<li><a class="reference internal" href="#module-lims.models" id="id5">Model</a></li>
+<li><a class="reference internal" href="#data-options-plots-scatterplot-lineplot" id="id4">Data Options (Plots - scatterplot, lineplot)</a></li>
+<li><a class="reference internal" href="#data-options-charts-pie-gauge" id="id5">Data Options (Charts - pie, gauge)</a></li>
+<li><a class="reference internal" href="#module-lims.models" id="id6">Model</a></li>
 </ul>
 </div>
 <p>Analysis Reports are built dynamically based on information in the <cite>details</cite> JSONField, which is stored as a list of dictionaries.</p>
@@ -215,11 +217,12 @@ content (tables and/or plots) to display in the section, and notes to go after t
 &#39;data&#39;: {} (for plots) or [] (for tables)
 </pre></div>
 </div>
-<p><strong>kind</strong>: Supported types are &#8216;scatterplot&#8217;, &#8216;lineplot&#8217;, or &#8216;table&#8217;</p>
+<p><strong>kind</strong>: Supported types are &#8216;scatterplot&#8217;, &#8216;lineplot&#8217;, &#8216;pie&#8217;, &#8216;gauge&#8217;, or &#8216;table&#8217;</p>
 <p><strong>header</strong> (tables): Used if kind=&#8217;table&#8217;. If &#8216;row&#8217;, the first list in the list of data contains the headers; if &#8216;column&#8217;, the first item in each list is a header.</p>
 <p><strong>annotations</strong> (plots): list of dictionaries used to draw vertical lines and text on a plot.</p>
 <p><strong>data</strong> (tables): list of lists to arrange in rows</p>
 <p><strong>data</strong> (plots): dictionary containing the data to display</p>
+<p><strong>data</strong> (charts): list of dictionaries container information about each wedge in the pie or gauge chart</p>
 <p><strong>style</strong>: CSS class to be applied to the content</p>
 </div>
 <div class="section" id="annotation-options-plots">
@@ -233,8 +236,8 @@ content (tables and/or plots) to display in the section, and notes to go after t
 </pre></div>
 </div>
 </div>
-<div class="section" id="data-options-plots">
-<h2><a class="toc-backref" href="#id4">Data Options (Plots)</a><a class="headerlink" href="#data-options-plots" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="data-options-plots-scatterplot-lineplot">
+<h2><a class="toc-backref" href="#id4">Data Options (Plots - scatterplot, lineplot)</a><a class="headerlink" href="#data-options-plots-scatterplot-lineplot" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-html"><div class="highlight"><pre><span></span>&#39;x&#39;: [],
 &#39;y1&#39;: [],
 &#39;y2&#39;: [],
@@ -257,11 +260,24 @@ content (tables and/or plots) to display in the section, and notes to go after t
 <p><strong>y1-limits</strong>: Tuple of [min, max] values for the left y-axis. If only one value (min or max) is specified, a null value should be provided as a placeholder for the other.</p>
 <p><strong>y2-limits</strong>: Tuple of [min, max] values for the right y-axis. If only one value (min or max) is specified, a null value should be provided as a placeholder for the other.</p>
 </div>
+<div class="section" id="data-options-charts-pie-gauge">
+<h2><a class="toc-backref" href="#id5">Data Options (Charts - pie, gauge)</a><a class="headerlink" href="#data-options-charts-pie-gauge" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-html"><div class="highlight"><pre><span></span>&#39;start&#39;: ,
+&#39;value&#39;: ,
+&#39;label&#39;: &#39;&#39;,
+&#39;color&#39;: ,
+</pre></div>
+</div>
+<p><strong>start</strong>: (optional) Number in degrees at which to start the wedge.</p>
+<p><strong>value</strong>: Width in degrees to define the size of the wedge.</p>
+<p><strong>label</strong>: Label to be applied to the wedge. If there is only one wedge with a label, the label will be placed in the middle of the chart instead of at the perimeter.</p>
+<p><strong>color</strong>: (required) Color of the wedge.</p>
+</div>
 <div class="section" id="module-lims.models">
-<span id="model"></span><h2><a class="toc-backref" href="#id5">Model</a><a class="headerlink" href="#module-lims.models" title="Permalink to this headline">¶</a></h2>
+<span id="model"></span><h2><a class="toc-backref" href="#id6">Model</a><a class="headerlink" href="#module-lims.models" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="lims.models.AnalysisReport">
-<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">AnalysisReport</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>kind</em>, <em>group</em>, <em>sample</em>, <em>score</em>, <em>url</em>, <em>details</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lims/models.html#AnalysisReport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.AnalysisReport" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">lims.models.</code><code class="descname">AnalysisReport</code><span class="sig-paren">(</span><em>id</em>, <em>project</em>, <em>name</em>, <em>staff_comments</em>, <em>created</em>, <em>modified</em>, <em>status</em>, <em>kind</em>, <em>score</em>, <em>url</em>, <em>details</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lims/models.html#AnalysisReport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lims.models.AnalysisReport" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -275,8 +291,6 @@ content (tables and/or plots) to display in the section, and notes to go after t
 <li><strong>modified</strong> (<em>DateTimeField</em>) &#8211; Date modified</li>
 <li><strong>status</strong> (<em>IntegerField</em>) &#8211; Status</li>
 <li><strong>kind</strong> (<em>CharField</em>) &#8211; Kind</li>
-<li><strong>group_id</strong> (<em>ForeignKey</em>) &#8211; Group</li>
-<li><strong>sample_id</strong> (<em>ForeignKey</em>) &#8211; Sample</li>
 <li><strong>score</strong> (<em>FloatField</em>) &#8211; Score</li>
 <li><strong>url</strong> (<em>CharField</em>) &#8211; Url</li>
 <li><strong>details</strong> (<em>JSONField</em>) &#8211; Details</li>

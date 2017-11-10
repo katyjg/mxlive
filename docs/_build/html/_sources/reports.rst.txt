@@ -41,7 +41,7 @@ Content Options
     'annotations': [],
     'data': {} (for plots) or [] (for tables)
 
-**kind**: Supported types are 'scatterplot', 'lineplot', or 'table'
+**kind**: Supported types are 'scatterplot', 'lineplot', 'pie', 'gauge', or 'table'
 
 **header** (tables): Used if kind='table'. If 'row', the first list in the list of data contains the headers; if 'column', the first item in each list is a header.
 
@@ -50,6 +50,8 @@ Content Options
 **data** (tables): list of lists to arrange in rows
 
 **data** (plots): dictionary containing the data to display
+
+**data** (charts): list of dictionaries container information about each wedge in the pie or gauge chart
 
 **style**: CSS class to be applied to the content
 
@@ -66,7 +68,7 @@ Annotation Options (Plots)
     'display': True
 
 
-Data Options (Plots)
+Data Options (Plots - scatterplot, lineplot)
 ^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: html
@@ -99,6 +101,24 @@ Data Options (Plots)
 
 **y2-limits**: Tuple of [min, max] values for the right y-axis. If only one value (min or max) is specified, a null value should be provided as a placeholder for the other.
 
+
+Data Options (Charts - pie, gauge)
+^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: html
+
+    'start': ,
+    'value': ,
+    'label': '',
+    'color': ,
+
+**start**: (optional) Number in degrees at which to start the wedge.
+
+**value**: Width in degrees to define the size of the wedge.
+
+**label**: Label to be applied to the wedge. If there is only one wedge with a label, the label will be placed in the middle of the chart instead of at the perimeter.
+
+**color**: (required) Color of the wedge.
 
 Model
 ^^^^^

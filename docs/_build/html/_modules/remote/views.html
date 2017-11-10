@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                v3.1.4-21-g6f9a0bb
+                v3.1.4-28-g8f79691
 
               </div>
             
@@ -173,6 +173,7 @@
 <span class="kn">from</span> <span class="nn">middleware</span> <span class="k">import</span> <span class="n">get_client_address</span>
 <span class="kn">from</span> <span class="nn">django.views.decorators.csrf</span> <span class="k">import</span> <span class="n">csrf_exempt</span>
 <span class="kn">from</span> <span class="nn">django.utils.decorators</span> <span class="k">import</span> <span class="n">method_decorator</span>
+<span class="kn">from</span> <span class="nn">django.db.models</span> <span class="k">import</span> <span class="n">Q</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="kn">from</span> <span class="nn">django.views.generic</span> <span class="k">import</span> <span class="n">View</span>
@@ -255,7 +256,7 @@
 
         <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">):</span>
             <span class="n">User</span> <span class="o">=</span> <span class="n">get_user_model</span><span class="p">()</span>
-            <span class="n">modified</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">],</span> <span class="n">key__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">public</span><span class="p">)</span>
+            <span class="n">modified</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">key__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">|</span> <span class="n">Q</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">public</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">modified</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">http</span><span class="o">.</span><span class="n">HttpResponseNotModified</span><span class="p">()</span>
@@ -383,6 +384,8 @@
     <span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span>
 <span class="p">}</span>
 
+<span class="kn">import</span> <span class="nn">msgpack</span>
+
 
 <div class="viewcode-block" id="AddReport"><a class="viewcode-back" href="../../apis.html#remote.views.AddReport">[docs]</a><span class="k">class</span> <span class="nc">AddReport</span><span class="p">(</span><span class="n">VerificationMixin</span><span class="p">,</span> <span class="n">View</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -402,7 +405,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">info</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">msgpack</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
 
         <span class="kn">from</span> <span class="nn">lims.models</span> <span class="k">import</span> <span class="n">Project</span><span class="p">,</span> <span class="n">Data</span><span class="p">,</span> <span class="n">AnalysisReport</span>
         <span class="n">project_name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">)</span>
@@ -424,28 +427,27 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">http</span><span class="o">.</span><span class="n">HttpResponseServerError</span><span class="p">(</span><span class="s2">&quot;Unable to create SecurePath&quot;</span><span class="p">)</span>
 
-        <span class="n">sample</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">sample</span>
-        <span class="n">group</span> <span class="o">=</span> <span class="n">sample</span> <span class="ow">and</span> <span class="n">sample</span><span class="o">.</span><span class="n">group</span> <span class="ow">or</span> <span class="kc">None</span>
+        <span class="n">kind</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39; Report&#39;</span><span class="p">)</span>
         <span class="n">details</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">project</span><span class="p">,</span>
-            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span>
-            <span class="s1">&#39;sample&#39;</span><span class="p">:</span> <span class="n">sample</span><span class="p">,</span>
-            <span class="s1">&#39;group&#39;</span><span class="p">:</span> <span class="n">group</span><span class="p">,</span>
-            <span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;score&#39;</span><span class="p">),</span>
-            <span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;score&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;score&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="n">kind</span><span class="p">,</span>
             <span class="s1">&#39;details&#39;</span><span class="p">:</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;details&#39;</span><span class="p">),</span>
-            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">),</span>
             <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="n">key</span>
         <span class="p">}</span>
         <span class="n">report</span> <span class="o">=</span> <span class="n">AnalysisReport</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">report</span><span class="p">:</span>
-            <span class="n">project</span><span class="o">.</span><span class="n">reports</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">details</span><span class="p">)</span>
+            <span class="n">project</span><span class="o">.</span><span class="n">analysisreport_set</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">report</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">details</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">report</span><span class="p">,</span> <span class="n">created</span> <span class="o">=</span> <span class="n">AnalysisReport</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="o">**</span><span class="n">details</span><span class="p">)</span>
 
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
         <span class="n">ActivityLog</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">log_activity</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">ActivityLog</span><span class="o">.</span><span class="n">TYPE</span><span class="o">.</span><span class="n">CREATE</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> uploaded from </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">data</span><span class="o">.</span><span class="n">get_kind_display</span><span class="p">(),</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;beamline&#39;</span><span class="p">,</span> <span class="s1">&#39;beamline&#39;</span><span class="p">)))</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;beamline&#39;</span><span class="p">,</span> <span class="s1">&#39;beamline&#39;</span><span class="p">)))</span>
         <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">({</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">report</span><span class="o">.</span><span class="n">pk</span><span class="p">})</span></div>
 
 
@@ -473,7 +475,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">info</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">msgpack</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
 
         <span class="kn">from</span> <span class="nn">lims.models</span> <span class="k">import</span> <span class="n">Project</span><span class="p">,</span> <span class="n">Beamline</span><span class="p">,</span> <span class="n">Data</span>
         <span class="n">project_name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">)</span>
@@ -501,7 +503,7 @@
         <span class="n">data</span> <span class="o">=</span> <span class="n">Data</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
 
         <span class="n">details</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;session&#39;</span><span class="p">:</span> <span class="n">session</span><span class="o">.</span><span class="n">project</span> <span class="o">==</span> <span class="n">project</span> <span class="ow">and</span> <span class="n">session</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;session&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">session</span> <span class="ow">and</span> <span class="n">session</span><span class="o">.</span><span class="n">project</span> <span class="o">==</span> <span class="n">project</span><span class="p">)</span> <span class="ow">and</span> <span class="n">session</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">project</span><span class="p">,</span>
             <span class="s1">&#39;beamline&#39;</span><span class="p">:</span> <span class="n">beamline</span><span class="p">,</span>
             <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span>

@@ -606,7 +606,7 @@ svg {
     transform-origin: 0% 0%;
     max-width: 100%;
 }
-svg[kind] {
+svg[kind], svg.gauge {
     overflow: visible;
 }
 .comments {
