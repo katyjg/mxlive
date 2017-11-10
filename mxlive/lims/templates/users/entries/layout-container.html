@@ -3,8 +3,7 @@
 
 <script type="text/javascript" src="{% static "js/d3.v3.min.js" %}"></script>
 <script>
-    var locations = {{ kind.layout|kind_json:object }};
-
+    var locations = {% get_kind_json kind.layout object create %};
     var container_width = 1;
     var container_height = 1;
     if (locations.height) {
@@ -13,8 +12,6 @@
     var selector = {% if selector %}"#{{ selector }}-"{% else %}"#layout-"{% endif %};
     var obj_selector = selector + '{{ object|slugify }}';
     var size = {% if size %}{{ size }}{% else %}$(obj_selector).width(){% endif %};
-
-
 
     var svgContainer = d3.select(obj_selector).append("svg")
         .attr("width", size * container_width)
@@ -160,65 +157,67 @@
                                     .style("stroke", {% if kind.envelope == 'circle' %}"#bbb"{% else %}"none"{% endif %})
                                     .style("fill", "none");
 
-        {% for child in object|get_children %}
+        {% if not create %}
+            {% for child in object|get_children %}
 
-            var child_locations = {{ child.kind.layout|kind_json:child.pk }};
-            var child_envelope = '{{ child.kind.envelope }}';
-            var child_size = d3.select('#id-{{ child.parent.pk }}-{{child.location }}').node().getBBox();
-            var child_nodes = createNodes(child_locations.locations, child_envelope, child_size.width, child_size.height);
-            var child_labels = {% if not child.accepts_children %}[]{% else %}child_nodes{% endif %};
-            if (child_locations.labels && child_size.width > 100) {
-                var child_labels = createNodes(child_locations.labels, child_envelope, child_size.width, child_size.height, false);
-            }
+                var child_locations = {{ child.kind.layout|kind_json:child.pk }};
+                var child_envelope = '{{ child.kind.envelope }}';
+                var child_size = d3.select('#id-{{ child.parent.pk }}-{{child.location }}').node().getBBox();
+                var child_nodes = createNodes(child_locations.locations, child_envelope, child_size.width, child_size.height);
+                var child_labels = {% if not child.accepts_children %}[]{% else %}child_nodes{% endif %};
+                if (child_locations.labels && child_size.width > 100) {
+                    var child_labels = createNodes(child_locations.labels, child_envelope, child_size.width, child_size.height, false);
+                }
 
-            {% with child.parent.kind|get_coords:child.location as cc %}
-                var cx = size * container_width * {{ cc.0 }} - child_size.width / 2;
-                var cy = size * container_height * {{ cc.1 }} - child_size.height / 2;
-            {% endwith %}
-
-            var child_info = {
-                'nodes': child_nodes,
-                'envelope': '{{ child.kind.envelope }}',
-                'size': child_size,
-                'labels': child_labels,
-                'radius': {{ child.kind.layout.radius }},
-                'name': "{{ child.project.username|upper }} | {{ child.name }}",
-                'coords': [cx, cy],
-                'location': "{{ child.location }}",
-                'parent': "{{ child.parent.pk }}-{{ child.pk }}",
-            };
-
-            var child_accepts = {% if child.accepts_children %}true{% else %}false{% endif %};
-
-            var svgChild = drawChild(svgContainer, child_info, child_accepts);
-
-            {% for grandchild in child.pk|get_children %}
-                var grand_locations = {{ grandchild.kind.layout|kind_json:grandchild.pk }};
-                var grand_envelope = '{{ grandchild.kind.envelope }}';
-                var grand_size = d3.select('#id-{{ child.parent.pk }}-{{ child.pk }}-{{ grandchild.location }}').node().getBBox();
-                var grand_nodes = createNodes(grand_locations.locations, grand_envelope, grand_size.width, grand_size.height);
-
-                {% with child.kind|get_coords:grandchild.location as cc %}
-                    var gx = child_size.width * {{ cc.0 }} - grand_size.width / 2;
-                    var gy = child_size.height * {{ cc.1 }} - grand_size.height / 2;
+                {% with child.parent.kind|get_coords:child.location as cc %}
+                    var cx = size * container_width * {{ cc.0 }} - child_size.width / 2;
+                    var cy = size * container_height * {{ cc.1 }} - child_size.height / 2;
                 {% endwith %}
 
-                var grandchild_info = {
-                    'nodes': grand_nodes,
-                    'envelope': '{{ grandchild.kind.envelope }}',
-                    'size': grand_size,
-                    'labels': [],
-                    'radius': {{ grandchild.kind.layout.radius }},
-                    'name': "{{ grandchild.project.username|upper }} | {{ grandchild.name }}",
-                    'coords': [gx, gy],
-                    'location': "{{ grandchild.location }}",
-                    'parent': "{{ child.pk }}-{{ grandchild.pk }}",
+                var child_info = {
+                    'nodes': child_nodes,
+                    'envelope': '{{ child.kind.envelope }}',
+                    'size': child_size,
+                    'labels': child_labels,
+                    'radius': {{ child.kind.layout.radius }},
+                    'name': "{{ child.project.username|upper }} | {{ child.name }}",
+                    'coords': [cx, cy],
+                    'location': "{{ child.location }}",
+                    'parent': "{{ child.parent.pk }}-{{ child.pk }}",
                 };
 
-                drawChild(svgChild, grandchild_info);
+                var child_accepts = {% if child.accepts_children %}true{% else %}false{% endif %};
 
+                var svgChild = drawChild(svgContainer, child_info, child_accepts);
+
+                {% for grandchild in child.pk|get_children %}
+                    var grand_locations = {{ grandchild.kind.layout|kind_json:grandchild.pk }};
+                    var grand_envelope = '{{ grandchild.kind.envelope }}';
+                    var grand_size = d3.select('#id-{{ child.parent.pk }}-{{ child.pk }}-{{ grandchild.location }}').node().getBBox();
+                    var grand_nodes = createNodes(grand_locations.locations, grand_envelope, grand_size.width, grand_size.height);
+
+                    {% with child.kind|get_coords:grandchild.location as cc %}
+                        var gx = child_size.width * {{ cc.0 }} - grand_size.width / 2;
+                        var gy = child_size.height * {{ cc.1 }} - grand_size.height / 2;
+                    {% endwith %}
+
+                    var grandchild_info = {
+                        'nodes': grand_nodes,
+                        'envelope': '{{ grandchild.kind.envelope }}',
+                        'size': grand_size,
+                        'labels': [],
+                        'radius': {{ grandchild.kind.layout.radius }},
+                        'name': "{{ grandchild.project.username|upper }} | {{ grandchild.name }}",
+                        'coords': [gx, gy],
+                        'location': "{{ grandchild.location }}",
+                        'parent': "{{ child.pk }}-{{ grandchild.pk }}",
+                    };
+
+                    drawChild(svgChild, grandchild_info);
+
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
+        {% endif %}
     }
 
 </script>

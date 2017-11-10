@@ -5,6 +5,7 @@
         {% containers_from_queryset form.fields.containers.queryset as containers %}
     {% else %}
         {% containers_from_choices form.fields.locations.choices as containers %}
+        {% stop_propagation 'true' as create %}
     {% endif %}
         <div id="layout-{{ field.name }}" class="layout-lg row">
             <span class="group-name" style="display: none"></span>
@@ -13,22 +14,22 @@
                 <ul class="nav nav-pills nav-stacked">
                     {% for container in containers %}
                         <li class="{% if forloop.first %}active{% endif %} overflow ellipsis">
-                            <a data-toggle="pill" href="#form{{ container.0 }}"><strong>{{ container.1 }}</strong> | {{ container.2.name }}</a>
+                            <a data-toggle="pill" href="#form{{ container.0|slugify }}"><strong>{{ container.1 }}</strong> | {{ container.2.name }}</a>
                         </li>
                     {% endfor %}
                 </ul>
             </div>
             <div class="col-xs-8 tab-content no-padding">
                 {% for container in containers %}
-                    <div id="form{{ container.0 }}" class="tab-pane fade {% if forloop.first %}in active{% endif %}">
+                    <div id="form{{ container.0|slugify }}" class="tab-pane fade {% if forloop.first %}in active{% endif %}">
                     <div class="col-xs-12">
                         <div class="row">
                             <span class="col-xs-12 pull-right">
-                                <a onclick="selectAll('{{ container.0 }}');" class="select-button btn btn-success">Select All</a>
+                                <a onclick="selectAll('{{ container.0|slugify }}');" class="select-button btn btn-success">Select All</a>
                             </span>
                         </div><br>
                         <div id="formlayout-{{ container.0|slugify }}"></div>
-                        {% include "users/entries/layout-container.html" with selector="formlayout" object=container.0 kind=container.2 size=300 %}
+                        {% include "users/entries/layout-container.html" with selector="formlayout" object=container.0 kind=container.2 size=300 create=create %}
                     </div>
                     </div>
                 {% endfor %}

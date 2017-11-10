@@ -12,8 +12,26 @@ def as_json(data):
     return mark_safe(json.dumps(data))
 
 
-from pprint import pprint
+@register.simple_tag
+def get_kind_json(data, pk, create=False):
+    if not create:
+        try:
+            container = Container.objects.get(pk=int(pk))
+            for loc in data['locations'].keys():
+                sample = container.sample_set.filter(location=loc).first()
+                location = container.kind.container_locations.get(name=loc)
+                child = container.children.filter(location=location).first()
+                loc_info = {
+                    'sample': sample and sample.name or child and child.name or '',
+                    'group': sample and sample.group.name or '',
+                    'started': sample and sample.data_set.count() or 0,
+                    'accepts': location and ';'.join(location.accepts.values_list('name', flat=True)) or False
+                }
+                data['locations'][loc].append(loc_info)
+        except:
+            pass
 
+    return mark_safe(json.dumps(data))
 
 @register.filter
 def kind_json(data, pk):
@@ -82,3 +100,7 @@ def containers_from_choices(data):
 @register.simple_tag
 def containers_from_queryset(data):
     return [(c.pk, c.name, c.kind) for c in data]
+
+@register.simple_tag
+def stop_propagation(b):
+    return b

@@ -31,6 +31,7 @@ function selectOne(e, group, data) {
 
 function selectAll(container) {
     var group = $('span.group-name').html();
+    var containerid = slug(container);
     if($('#group-select #'+container+' circle.empty').length) {
         $.each( $('#group-select #'+container+' circle.empty'), function() {
             selectOne(this, group);
@@ -65,7 +66,7 @@ function fillContainers() {
         var row = $('.repeat-row[class!="template"]').last();
         row.find('input[name$="name"]').val(slug(container)).trigger('change');
         $('span.group-name').html(slug(container));
-        selectAll(slug(container));
+        selectAll(container);
         var num = $('[id^="formlayout"] circle[group="'+slug(container)+'"]').length;
         row.find('input[name$="sample_count"]').val(num);
     });
