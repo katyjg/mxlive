@@ -1,4 +1,4 @@
-function selectOne(e, group, data) {
+function selectOne(e, group) {
     var locations = $('input[id$=sample_locations]');
     var data = $.parseJSON(locations.val());
     var assigned_group = $(e).attr('group');
@@ -6,7 +6,7 @@ function selectOne(e, group, data) {
 
         $(e).toggleClass('empty').toggleClass('selected');
         var port = $(e).attr('port');
-        var container = $(e).closest('svg').attr('id');
+        var container = slug($(e).closest('svg').attr('id'));
         if (!(group in data)) {
             data[group] = {};
         }
@@ -184,10 +184,25 @@ jQuery(function() {
                     var dropdown = $($(this).attr('href'));
                     dropdown.slideToggle().toggleClass('in');
                 });
-                $('input[name$="name"]').on('change', function(f) {
-                    var row = f.target.closest('.repeat-row');
-                    $(row).find($('a.disabled')).removeClass('disabled').attr('group',f.target.value);
-                });
+                if ($('input[id$=sample_locations]').length) {
+                    $('input[name$="name"]').on('focusin', function (e) {
+                        $(this).data('val', $(this).val());
+                    });
+                    $('input[name$="name"]').on('change', function (f) {
+                        f.stopImmediatePropagation();
+                        var row = f.target.closest('.repeat-row');
+                        $(row).find($('a[href="#group-select"]')).removeClass('disabled').attr('group', $(this).val());
+                        $('circle[group='+$(this).data('val')+']').attr("group", $(this).val());
+
+                        var locations = $('input[id$=sample_locations]');
+                        var data = $.parseJSON(locations.val());
+                        data[$(this).val()] = data[$(this).data('val')];
+                        if ($(this).data('val') in data) {
+                            delete data[$(this).data('val')];
+                        }
+                        locations.val(JSON.stringify(data));
+                    });
+                }
                 $('.safe-remove').on('click', function(e) {
                     var row = e.target.closest('.repeat-row');
                     $(this).hide();
@@ -198,6 +213,24 @@ jQuery(function() {
                     }
                     setTimeout(protect, 3000);
                 });
+            },
+            before_remove: function(container, row) {
+                if ($('input[id$=sample_locations]').length) {
+                    var group = $(row).find($('input[name$="name"]')).val();
+
+                    if (group) {
+                        $.each($('#group-select circle[group='+group+']'), function () {
+                            $(this).removeClass('full').addClass('selected');
+                            selectOne(this, group);
+                        });
+                        var locations = $('input[id$=sample_locations]');;
+                        var data = $.parseJSON(locations.val());
+                        if (group in data) {
+                            delete data[group];
+                        }
+                        locations.val(JSON.stringify(data));
+                    }
+                }
             }
         });
 		$('.add').trigger('click');
