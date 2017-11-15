@@ -87,7 +87,7 @@ CACHES = {
 CACHES = {
    'default': {
       'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-      'LOCATION': '/home/janzen/code/projects/mxlive/cache',
+      'LOCATION': os.path.join(BASE_DIR, 'local', 'cache'),
    }
 }
 
@@ -193,14 +193,9 @@ LDAP_SEND_EMAILS    = True
 AUTH_LDAP_SERVER_URI = 'ldap://vm-cmcfweb-01.clsi.ca'
 
 
-#LDAP_BASE_DN      = "dc=example,dc=com"
-#LDAP_MANAGER_CN     = "cn=Directory Manager"
-#LDAP_MANAGER_SECRET = "Admin123"
 LDAP_ADMIN_GROUP = "admin"
-#LDAP_USER_ROOT    = "/home"
 LDAP_USER_TABLE   = "ou=People"
 LDAP_GROUP_TABLE    = "ou=Groups"
-#AUTH_LDAP_SERVER_URI = 'ldaps://ldap.example.com'
 AUTH_LDAP_START_TLS = True
 AUTH_LDAP_GLOBAL_OPTIONS = {
      ldap.OPT_X_TLS_REQUIRE_CERT: ldap.OPT_X_TLS_NEVER
