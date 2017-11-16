@@ -17,7 +17,7 @@ fi
 
 if [ ! -f /mxlive/local/.dbinit ]; then
     ./wait-for-it.sh mxlive-db:3306 -t 60 &&
-    /mxlive/manage.py syncdb --noinput &&
+    /mxlive/manage.py migrate --noinput &&
     touch /mxlive/local/.dbinit
     chown -R apache:apache /mxlive/local/media /mxlive/local/cache
 fi

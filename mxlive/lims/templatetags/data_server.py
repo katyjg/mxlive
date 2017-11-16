@@ -85,10 +85,12 @@ def get_meta_data(data):
 @register.simple_tag
 def get_snapshot_url(data):
     url = IMAGE_URL + "/files/{}/{}.gif".format(data.url, data.name)
-    r = requests.get(url)
-    if r.ok:
-        return url
-    return None
+    r = fetch_file(None, url)
+    try:
+        fname = json.loads(r.content)['src']
+    except:
+        fname = None
+    return fname
 
 
 def get_file_info(data):
