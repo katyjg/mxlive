@@ -121,7 +121,7 @@ def fetch_image(request, url=None, brightness=None):
         img_file = '/'.join([CACHE_DIR] + url.split('/')[-2:])
         path, _ = os.path.splitext(img_file)
         png_file = "{}-{}.png".format(path, brightness)
-        if not os.path.exists(png_file):
+        if not os.path.isfile(png_file):
             r = requests.get(url)
             if r.status_code == 200:
                 if not os.path.exists(path):
@@ -145,7 +145,7 @@ def fetch_file(request, url=None):
     if url:
         f = '/'.join([CACHE_DIR] + url.split('/')[-2:])
         path, _ = os.path.splitext(f)
-        if not os.path.exists(f):
+        if not os.path.isfile(f):
             r = requests.get(url)
             if r.status_code == 200:
                 path, file_extension = os.path.splitext(f)
