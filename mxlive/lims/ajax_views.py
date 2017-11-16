@@ -162,6 +162,7 @@ def fetch_archive(request, path=None, name=None):
     url = IMAGE_URL + "/files/{}/{}.tar.gz".format(path, name)
     r = requests.get(url, stream=True)
 
-    resp = http.StreamingHttpResponse(streaming_content=r)
+    resp = http.StreamingHttpResponse(r, content_type='application/x-gzip')
+
     resp['Content-Disposition'] = 'attachment; filename={0}.tar.gz'.format(name)
     return resp
