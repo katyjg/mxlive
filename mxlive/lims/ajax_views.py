@@ -156,3 +156,12 @@ def fetch_file(request, url=None):
                     cached_file.write(r.content)
         src = "/cache{}".format(f.replace(CACHE_DIR, ""))
     return JsonResponse({'src': src})
+
+
+def fetch_archive(request, path=None, name=None):
+    url = IMAGE_URL + "/files/{}/{}.tar.gz".format(path, name)
+    r = requests.get(url, stream=True)
+
+    resp = http.StreamingHttpResponse(streaming_content=r)
+    resp['Content-Disposition'] = 'attachment; filename={0}.tar.gz'.format(name)
+    return resp
