@@ -79,19 +79,12 @@ DATABASES = {
 }
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-    }
-}
-
-CACHES = {
    'default': {
       'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
       'LOCATION': os.path.join(BASE_DIR, 'local', 'cache'),
    }
 }
 
-DOWNLOAD_FRONTEND = "xsendfile"
 DOWNLOAD_CACHE_DIR =  os.path.join(BASE_DIR, 'local', 'cache')
 
 # Internationalization
