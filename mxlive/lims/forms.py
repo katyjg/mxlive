@@ -568,8 +568,7 @@ class GroupForm(forms.ModelForm):
         self.helper.layout = Layout(
             'project',
             Div(
-                Div('name', css_class="col-xs-6"),
-                Div('sample_count', css_class="col-xs-6"),
+                Div('name', css_class="col-xs-12"),
                 css_class="row"
             ),
             Div(
@@ -607,7 +606,7 @@ class GroupForm(forms.ModelForm):
 
     class Meta:
         model = Group
-        fields = ('project', 'name', 'kind', 'plan', 'energy', 'absorption_edge', 'sample_count', 'comments')
+        fields = ('project', 'name', 'kind', 'plan', 'energy', 'absorption_edge', 'comments')
         widgets = {'project': disabled_widget}
 
 

@@ -143,7 +143,15 @@
                         {% if group.unassigned_samples %}
                             <div class="alert alert-{% if group.sample_set.count %}warning{% else %}danger{% endif %}">
                                 <p class="list-group-item-text">
-                                    <strong>{{ group.unassigned_samples }}</strong> sample{{ group.unassigned_samples|pluralize }} not assigned a location
+                                    {% if group.sample_set.count %}
+                                        {% if group.unassigned_samples > 0 %}
+                                            <strong>{{ group.unassigned_samples }}</strong> sample{{ group.unassigned_samples|pluralize }} not assigned a location
+                                        {% else %}
+                                            <strong>{% widthratio group.unassigned_samples 1 -1 %}</strong> too many samples assigned a location
+                                        {% endif %}
+                                    {% else %}
+                                        <strong>No samples assigned to any location</strong>
+                                    {% endif %}
                                 </p>
                             </div>
                         {% endif %}

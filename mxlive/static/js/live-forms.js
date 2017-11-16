@@ -11,6 +11,7 @@ function selectOne(e, group) {
             data[group] = {};
         }
         if (assigned_group == group) {
+            console.log('here');
             $(e).attr('group','');
             data[group][container] = $.grep(data[group][container], function (value) {
                 return value != port;
@@ -228,7 +229,11 @@ jQuery(function() {
                         if (group in data) {
                             delete data[group];
                         }
+                        console.log(data);
                         locations.val(JSON.stringify(data));
+                        console.log($('circle[group=' + group + ']'));
+                        console.log('c', container, 'r', row, group);
+                        console.log($('input[name$="name"]'));
                     }
                 }
             }

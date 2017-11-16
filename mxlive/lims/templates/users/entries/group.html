@@ -17,6 +17,14 @@
 {% endblock %}
 
 {% block object_tools %}
+    {% if object.status == object.STATES.DRAFT %}
+        <span class="box-tools pull-right">
+            <a class="pull-right" data-url="{% url "group-select" object.pk %}" title="Sample Seat Selection">
+                <i class="fa fa-2 fa-fw fa-plus-circle"></i>
+                <br><span class="tool-label">Samples</span>
+            </a>
+        </span>
+    {% endif %}
     {% include "users/tools-base.html" %}
 {% endblock %}
 

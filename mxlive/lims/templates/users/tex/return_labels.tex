@@ -60,7 +60,7 @@
             \colorbox[gray]{0.7}{
                 \begin{tabular*}{0.9\textwidth}{@{\extracolsep{\fill}} | p{.3\textwidth} | p{.5\textwidth} |}
                 \hline
-                Shipment name & {{shipment.name}} \\ \hline 
+                Shipment & {{project.first_name}} {{project.last_name}} ({{shipment.name}}) \\ \hline
                 \hline
                  From: &  {\large {{ admin_project.department|texsafe|default:"" }} } \\
                  & {\large {{ admin_project.organisation|texsafe|default:"" }} } \\

@@ -60,7 +60,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             context['containers'] = [c for c in models.Container.objects.filter(kind__in=kinds).order_by('name') if not c.dewars.first()]
         else:
             referrer = self.request.META.get('HTTP_REFERER')
-            if re.sub('^https?:\/\/', '', referrer).split('/')[1] == 'login':
+            if referrer and re.sub('^https?:\/\/', '', referrer).split('/')[1] == 'login':
                 context['show_help'] = self.request.user.show_archives
                 if context['show_help']:
                     models.Project.objects.filter(username=self.request.user.username).update(show_archives=False)
@@ -774,7 +774,7 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                 for i, name in enumerate(form.cleaned_data['name_set']):
                     data = {
                         'kind': models.ContainerType.objects.get(pk=form.cleaned_data['kind_set'][i]),
-                        'name': name,
+                        'name': name.upper(),
                         'shipment': self.shipment,
                         'project': project
                     }
@@ -782,30 +782,31 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
             elif label == 'groups':
                 sample_locations = json.loads(form.cleaned_data['sample_locations'])
                 for i, name in enumerate(form.cleaned_data['name_set']):
-                    data = {field: form.cleaned_data['{}_set'.format(field)][i]
-                            for field in ['name', 'kind', 'comments', 'plan', 'absorption_edge']}
-                    data.update({
-                        'energy': data.get('energy_set',[]) and float(data['energy_set'][i]) or None,
-                        'sample_count': int(form.cleaned_data['sample_count_set'][i]),
-                        'shipment': self.shipment,
-                        'project': project,
-                        'priority': i + 1
-                    })
-                    group, created = models.Group.objects.get_or_create(**data)
-                    to_create = []
-                    j = 1
-                    slug_map = {slugify(c.name): c.name for c in self.shipment.container_set.all()}
-                    for c, locations in sample_locations.get(group.name, {}).items():
-                        container = self.shipment.container_set.get(name__iexact=slug_map[c])
-                        for k, sample in enumerate(locations):
-                            name = "{0}-{1:02d}".format(group.name, j)
-                            to_create.append(models.Sample(group=group, container=container, location=sample,
-                                                           name=name, project=project, priority=k+1))
-                            j += 1
-                    models.Sample.objects.bulk_create(to_create)
-                    if group.sample_count < group.sample_set.count():
-                        group.sample_count = group.sample_set.count()
-                        group.save()
+                    if name:
+                        data = {field: form.cleaned_data['{}_set'.format(field)][i]
+                                for field in ['name', 'kind', 'comments', 'plan', 'absorption_edge']}
+                        data.update({
+                            'energy': data.get('energy_set',[]) and float(data['energy_set'][i]) or None,
+                            'sample_count': int(form.cleaned_data['sample_count_set'][i]),
+                            'shipment': self.shipment,
+                            'project': project,
+                            'priority': i + 1
+                        })
+                        group, created = models.Group.objects.get_or_create(**data)
+                        to_create = []
+                        j = 1
+                        slug_map = {slugify(c.name): c.name for c in self.shipment.container_set.all()}
+                        for c, locations in sample_locations.get(group.name, {}).items():
+                            container = self.shipment.container_set.get(name__iexact=slug_map[c])
+                            for k, sample in enumerate(locations):
+                                name = "{0}-{1:02d}".format(group.name, j)
+                                to_create.append(models.Sample(group=group, container=container, location=sample,
+                                                               name=name, project=project, priority=k+1))
+                                j += 1
+                        models.Sample.objects.bulk_create(to_create)
+                        if group.sample_count < group.sample_set.count():
+                            group.sample_count = group.sample_set.count()
+                            group.save()
                 if project != self.request.user and self.request.user.is_superuser:
                     self.shipment.send()
                     self.shipment.receive()
@@ -833,7 +834,7 @@ class ShipmentAddContainer(LoginRequiredMixin, SuccessMessageMixin, AjaxableResp
             else:
                 info = {
                     'kind': models.ContainerType.objects.get(pk=form.cleaned_data['kind_set'][i]),
-                    'name': name,
+                    'name': name.upper(),
                     'shipment': data['shipment'],
                     'project': self.request.user
                 }

@@ -999,7 +999,7 @@ def frame_ranges(frame_list):
         yield b[0][1], b[-1][1]
 
 
-class FrameField(models.CharField):
+class FrameField(models.TextField):
     description = _("List of frames")
 
     def get_prep_value(self, value):
@@ -1020,6 +1020,12 @@ class FrameField(models.CharField):
         if value is None or isinstance(value, list):
             return value
         if isinstance(value, basestring):
+            try:
+                v = json.loads(value)
+                if isinstance(v, list):
+                    return v
+            except:
+                pass
             return parse_frames(value)
         return value
 
@@ -1049,7 +1055,7 @@ class Data(DataBaseClass):
     sample = models.ForeignKey(Sample, null=True, blank=True, on_delete=models.SET_NULL)
     session = models.ForeignKey(Session, null=True, blank=True, on_delete=models.SET_NULL)
     file_name = models.CharField(max_length=200, null=True, blank=True)
-    frames = FrameField(max_length=200, null=True, blank=True)
+    frames = FrameField(null=True, blank=True)
     exposure_time = models.FloatField(null=True, blank=True)
     attenuation = models.FloatField(default=0.0)
     energy = models.DecimalField(decimal_places=4, max_digits=10)

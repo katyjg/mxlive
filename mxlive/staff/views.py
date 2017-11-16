@@ -2,13 +2,14 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.views.generic import edit, TemplateView
 from django.core.urlresolvers import reverse_lazy
 from django.contrib.auth import get_user_model
+from django.shortcuts import render
 import models
 import forms
 import slap
 
 from objlist.views import FilteredListView
 from mixins import AjaxableResponseMixin, AdminRequiredMixin
-from lims.models import Project, ActivityLog, ContainerLocation, ContainerType, Container
+from lims.models import Project, ActivityLog
 from lims.forms import NewProjectForm
 
 User = get_user_model()
@@ -121,4 +122,4 @@ class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
             self.request, obj, ActivityLog.TYPE.CREATE, info_msg
         )
         # messages are simply passed down to the template via the request context
-        return render_to_response("users/redirect.html", context_instance=RequestContext(self.request))
+        return render(self.request, "users/redirect.html")
