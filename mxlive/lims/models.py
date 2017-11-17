@@ -267,7 +267,7 @@ class Session(models.Model):
     total_time.short_description = "Duration (h)"
 
     def start(self):
-        return self.stretches.last().start
+        return self.stretches.last() and self.stretches.last().start or 'Never'
 
     def end(self):
         return self.data_set.order_by('created').last() and self.data_set.order_by('created').last().created
