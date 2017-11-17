@@ -14,11 +14,10 @@ def energy_to_wavelength(energy):
 
 
 @register.filter("humanize_minutes")
-def humanize_duration(mins):
-    dur = max(0, mins)
-    days = (dur / 60) / 24
-    hours = (dur / 60) % 24
-    minutes = max(0, dur % 60)
+def humanize_duration(hours):
+    days = int(hours / 24)
+    minutes = max(0, int((hours % 1) * 60))
+    hours = max(0, int(hours))
     return "{d}{sepd}{h}{seph}{m}".format(**{
         'd': days and "{} day{}".format(days, days > 1 and 's' or '') or "",
         'sepd': days and hours and ', ' or '',
