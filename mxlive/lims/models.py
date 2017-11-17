@@ -204,7 +204,7 @@ class StretchQuerySet(models.QuerySet):
         return self.filter(Q(end__isnull=True) | Q(end__gte=recently))
 
     def with_duration(self):
-        return self.filter(end__isnull=False).annotate(duration=ExpressionWrapper((F('end')-F('start'))/60000000, output_field=models.IntegerField()))
+        return self.filter(end__isnull=False).annotate(duration=Hours((F('end')-F('start')), output_field=models.IntegerField()))
 
     def with_hours(self):
         return self.annotate(hours=Hours(F('end'), F('start'), output_field=models.FloatField()))
@@ -260,6 +260,7 @@ class Session(models.Model):
 
     def total_time(self):
         t = sum(self.stretches.with_duration().values_list("duration", flat=True))
+
         if self.is_active():
             t += int((timezone.now() - self.stretches.active().first().start).total_seconds())/60
         return t/60
