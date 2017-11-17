@@ -73,7 +73,8 @@ urlpatterns = [
     url(r'^ajax/update_priority/$', cache_page(60*60*24)(ajax_views.UpdatePriority.as_view()), name='update-priority'),
     url(r'^ajax/fetch_report/(?P<pk>\d+)/$', ajax_views.FetchReport.as_view(), name='fetch-report'),
     url(r'^ajax/fetch_image/$', ajax_views.fetch_image, name='fetch-image'),
-    url(r'^ajax/fetch_archive/(?P<path>\w+)/(?P<name>\w+)/$', ajax_views.fetch_archive, name='fetch-archive'),
+    url(r'^ajax/fetch_archive/(?P<path>\w+)/(?P<name>.*)/$', ajax_views.fetch_archive, name='fetch-archive'),
+    url(r'^ajax/fetch_session_archive/(?P<name>.*)/$', ajax_views.fetch_archive, name='fetch-session-archive'),
 
     url(r'^quick-guide/$', TemplateView.as_view(template_name='users/help.html'), name='user-guide'),
 ]

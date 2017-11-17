@@ -55,7 +55,7 @@
 
                         <div class="box-tools col-xs-1 pull-right text-right">
                             {% if object.url %}
-                            <a class="pull-right" href="{% url 'fetch-archive' path=object.url name=object.name %}" download="{{ object.name }}.tar.gz" title="Download Full Dataset">
+                            <a class="pull-right" href="{% url 'fetch-archive' path=object.url name=object.name|format_archive_name %}" download="{{ object.name }}.tar.gz" title="Download Full Dataset">
                                 <span class="pull-right">
                                     <i class="fa fa-fw fa-2x fa-download"></i><br>
                                     <span class="tool-label">Download</span>

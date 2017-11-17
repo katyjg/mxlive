@@ -52,7 +52,7 @@
                                 {% for frame_id in object.frames %}
                                     <li frame-id="{{ frame_id }}" frame-name="{% get_frame_name data frame_id %}">
                                         <a onclick="toFrame('{% get_frame_name data frame_id %}', {{ frame_id }});">{% get_frame_name data frame_id %}</a>&nbsp;
-                                        <a class="pull-right download-tool" href="{% get_image_url object frame_id %}" title="Download this image"><i class="fa fa-fw fa-download"></i></a>
+                                        <a class="pull-right download-tool" href="{% url 'fetch-archive' path=object.url name=object|format_frame_name:frame_id %}" title="Download this image"><i class="fa fa-fw fa-download"></i></a>
                                     </li>
                                 {% endfor %}
                             </ul>

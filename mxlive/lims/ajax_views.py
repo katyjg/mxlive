@@ -159,10 +159,16 @@ def fetch_file(request, url=None):
 
 
 def fetch_archive(request, path=None, name=None):
-    url = IMAGE_URL + "/files/{}/{}.tar.gz".format(path, name)
-    r = requests.get(url, stream=True)
+    if path:
+        url = IMAGE_URL + "/files/{}/{}".format(path, name)
+        r = requests.get(url, stream=True)
+    else:
+        url = IMAGE_URL + "/files/{}?{}".format(name, request.GET.urlencode())
+        r = requests.get(url, stream=True)
 
-    resp = http.StreamingHttpResponse(r, content_type='application/x-gzip')
-
-    resp['Content-Disposition'] = 'attachment; filename={0}.tar.gz'.format(name)
+    if 'tar.gz' in name:
+        resp = http.StreamingHttpResponse(r, content_type='application/x-gzip')
+        resp['Content-Disposition'] = 'attachment; filename={0}'.format(name)
+    else:
+        resp = http.HttpResponse(r)
     return resp

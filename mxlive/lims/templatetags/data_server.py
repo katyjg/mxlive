@@ -51,6 +51,16 @@ def get_image_url(data, frame):
     return url
 
 
+@register.filter
+def format_frame_name(data, frame):
+    return data.file_name.format(frame)
+
+
+@register.filter
+def format_archive_name(name):
+    return '{}.tar.gz'.format(name)
+
+
 @register.simple_tag
 def get_image(data, frame, brightness="nm"):
     url = get_image_url(data, frame)
