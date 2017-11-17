@@ -18,7 +18,7 @@ NX_TEMPLATE = "# --------- Allowed NX Users on %s ---------\n# This file is gene
 
 
 def fetch_userlist():
-    url = "%s/api/accesslist/" % SERVER_URL
+    url = "%s/api/v2/accesslist/" % SERVER_URL
     if not SSL_VERIFY:
         r = requests.get(url, verify=SSL_VERIFY)
     else:
