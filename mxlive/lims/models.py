@@ -109,7 +109,7 @@ class Project(AbstractUser):
     contact_fax = models.CharField(max_length=60, blank=True, null=True)
     organisation = models.CharField(max_length=600, blank=True, null=True)
     show_archives = models.BooleanField(default=False)
-    key = models.CharField(max_length=100, blank=True, null=True)
+    key = models.TextField(blank=True)
 
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified', auto_now=True, editable=False)
