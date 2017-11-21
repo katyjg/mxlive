@@ -20,6 +20,8 @@ if [ ! -f /mxlive/local/.dbinit ]; then
     /mxlive/manage.py migrate --noinput &&
     touch /mxlive/local/.dbinit
     chown -R apache:apache /mxlive/local/media /mxlive/local/cache
+else
+    /mxlive/manage.py migrate --noinput
 fi
 
 exec /usr/sbin/httpd -DFOREGROUND -e debug
