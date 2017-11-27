@@ -6,7 +6,7 @@
         <div class="navbar-header-menu navbar-right pull-right">
             <ul class="nav navbar-nav pull-right">
                 {% if user.is_superuser %}
-                   <li><a href="/admin/" target="_blank"><i class="fa fa-unlock fa-fw"></i><span class="hidden-xs">Admin</span> </a></li>
+                   <li class="hidden-xs"><a href="/admin/" target="_blank"><i class="fa fa-unlock fa-fw"></i><span class="hidden-xs">Admin</span> </a></li>
                 {% endif %}
                 <li><a href="{% url "dashboard" %}"><i class="fa fa-home fa-fw"></i><span class="hidden-xs">Dashboard</span> </a></li>
 
