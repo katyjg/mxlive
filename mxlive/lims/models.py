@@ -713,13 +713,10 @@ class Container(LoadableBaseClass):
         return groups
 
     def dewar(self):
-        if self.parent:
-            dewars = list(itertools.chain.from_iterable([list(self.dewars.all()), self.parent and list(self.parent.dewars.all()), self.parent.parent and list(self.parent.parent.dewars.all()) or []]))
-            return Dewar.objects.filter(pk__in=[d.pk for d in dewars]).first()
-        return None
+        return self.dewars.filter(active=True).first() or self.parent and self.parent.dewar() or None
 
     def port(self):
-        return '{}{}'.format(self.parent and self.parent.location or "", self.location or "")
+        return '{}{}'.format(self.parent and self.parent.port() or "", self.location or "")
 
     def get_project(self):
         if self.children.all():
@@ -937,6 +934,7 @@ class Sample(LimsBaseClass):
     identity.admin_order_field = 'pk'
 
     def dewar(self):
+        return self.container.dewar()
         try:
             return self.container.parent.parent.dewar_set.first().beamline
         except:
@@ -955,7 +953,7 @@ class Sample(LimsBaseClass):
     def port(self):
         if not self.dewar():
             return ""
-        return '{}{}{}'.format(self.container.parent and self.container.parent.location or "", self.container.location or "", self.location)
+        return '{}{}'.format(self.container.port(), self.location)
 
     def is_editable(self):
         return self.container.status == self.container.STATES.DRAFT

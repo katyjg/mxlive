@@ -204,8 +204,9 @@ class ProjectSamples(VerificationMixin, View):
             raise http.Http404("Beamline does not exist")
 
         sample_list = project.sample_set.filter(container__status=Container.STATES.ON_SITE).order_by('priority')
+        dewar = beamline.active_dewar()
 
-        return JsonResponse([s.json_dict() for s in sample_list if not s.dewar() or s.dewar() == beamline], safe=False)
+        return JsonResponse([s.json_dict() for s in sample_list if not s.dewar() or s.dewar() == dewar], safe=False)
 
 
 TRANSFORMS = {
