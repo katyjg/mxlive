@@ -40,7 +40,7 @@
 
 {% block full %}
     <div class="row">
-        <div class="col-xs-6 col-sm-3">
+        <div class="col-xs-12 col-sm-6 col-md-3">
             <div class="list-group">
                 {% for am in automounters %}
                     <a href="{% url "beamline-detail" pk=am.pk %}" class="text-center list-group-item" style="overflow: auto;">
@@ -61,7 +61,7 @@
                 {% include "users/entries/container-item.html" %}
             {% endfor %}
         </div>
-        <div class="col-xs-6 col-sm-6">
+        <div class="col-xs-12 col-sm-6">
             <div class="list-group">
                 {% for object in shipments %}
                     {% include "users/entries/shipment-list-item.html" with object=object %}

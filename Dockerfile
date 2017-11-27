@@ -2,9 +2,9 @@ FROM fedora:26
 MAINTAINER Kathryn Janzen <kathryn.janzen@lightsource.ca>
 
 RUN dnf -y update && \
-  dnf -y install httpd python-pip mod_wsgi python-ipaddr python-pillow  python-dateutil python-markdown \
+  dnf -y install httpd python-pip mod_wsgi python-ipaddr python-pillow  python-dateutil python-markdown python-slugify \
   postgresql-libs python-psycopg2 mod_xsendfile texlive texlive-xetex texlive-xetex-def texlive-collection-xetex \
-  texlive-graphics sil-gentium-basic-fonts numpy scipy python-ldap python-crypto python-memcached \
+  texlive-graphics sil-gentium-basic-fonts numpy scipy python-ldap python-crypto python-memcached texlive-newtx \
   texlive-pst-barcode texlive-multirow mod_ssl python-docutils python-unicodecsv unzip tar gzip ImageMagick \
   python-requests python-msgpack python-matplotlib && dnf clean all
 

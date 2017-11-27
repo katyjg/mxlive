@@ -4,6 +4,7 @@ from django.template.loader import get_template
 from django.conf import settings
 
 from tempfile import mkdtemp
+from slugify import slugify
 import subprocess
 import os
 import shutil
@@ -50,13 +51,14 @@ class Tex2PdfMixin(object):
 
     def get(self, request, *args, **kwargs):
         object = self.get_object()
+        name = slugify(object.name)
         context = self.get_template_context()
         template = get_template(self.get_template_name())
 
         rendered_tpl = template.render(context).encode('utf-8')
 
         tmp = mkdtemp(prefix=TEMP_PREFIX)
-        tex_file = os.path.join(tmp, '%s.tex' % object.name)
+        tex_file = os.path.join(tmp, '%s.tex' % name)
         f = open(tex_file, 'w')
         f.write(rendered_tpl)
         f.close()
@@ -65,13 +67,13 @@ class Tex2PdfMixin(object):
             process = subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], cwd=tmp, stdout=FNULL, stderr=subprocess.STDOUT)
 
             try:
-                pdf = open("%s/%s.pdf" % (tmp, object.name))
+                pdf = open("%s/%s.pdf" % (tmp, name))
             except:
                 if request.user.is_superuser:
-                    log = open("%s/%s.log" % (tmp, object.name)).read()
+                    log = open("%s/%s.log" % (tmp, name)).read()
                     return HttpResponse(log, "text/plain")
                 else:
-                    raise RuntimeError("xelatex error (code %s) in %s/%s" % (process, tmp, object.name))
+                    raise RuntimeError("xelatex error (code %s) in %s/%s" % (process, tmp, name))
 
         finally:
             shutil.rmtree(tmp)
