@@ -16,7 +16,6 @@ test-*.json
 *.sqlite?
 junk
 .dbinit
-build.sh
 settings_local.py
 temp
 tmp

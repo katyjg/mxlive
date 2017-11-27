@@ -94,7 +94,7 @@ class UpdateUserKey(View):
             ActivityLog.objects.log_activity(request, User.objects.get(username=kwargs['username']),
                                          ActivityLog.TYPE.MODIFY, 'User Key Initialized')
         else:
-            return http.HttpResponseNotAllowed()
+            return http.HttpResponseForbidden()
 
         return JsonResponse({})
 
@@ -255,7 +255,7 @@ class AddReport(VerificationMixin, View):
         if r.status_code == 200:
             key = r.json()['key']
         else:
-            raise http.HttpResponseServerError("Unable to create SecurePath")
+            return http.HttpResponseServerError("Unable to create SecurePath")
 
         kind = info.get('title').strip(' Report')
         details = {
@@ -326,7 +326,7 @@ class AddData(VerificationMixin, View):
         if r.status_code == 200:
             key = r.json()['key']
         else:
-            raise http.HttpResponseServerError("Unable to create SecurePath")
+            return http.HttpResponseServerError("Unable to create SecurePath")
 
         session = beamline.active_session()
         sample = project.sample_set.filter(pk=info.get('sample_id')).first()
