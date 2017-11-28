@@ -935,10 +935,6 @@ class Sample(LimsBaseClass):
 
     def dewar(self):
         return self.container.dewar()
-        try:
-            return self.container.parent.parent.dewar_set.first().beamline
-        except:
-            return self.container.parent and self.container.parent.dewars.first() and (self.container.parent.dewars.first().beamline) or None
 
     def reports(self):
         reports = []

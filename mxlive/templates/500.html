@@ -3,33 +3,41 @@
 {% load static %}
 {% load get_version %}
 
-{% block full %}
+{% block body %}
+    <main id="main-content" class="content">
+        <div class="pad-wrapper">
+            <div class="pagelet">
+                <div class="pagelet-body">
+                    <div id="content" class="row">
+                        <div class="col-xs-6 visible-xs">
+                            <h1><span class="text-muted text-large">500</span></h1>
+                            <span class="text-muted">We've encountered an Internal Server Error.</span>
+                        </div>
+                        <div class="col-xs-6 visible-xs">
+                            <img src="{% static 'img/cls-unplugged.png' %}" style="max-width: 100%;"/>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-5 col-lg-8">
+                            <h1 class="hidden-xs"><span class="text-muted text-large">500</span></h1>
+                            <span class="text-muted hidden-xs">We've encountered an Internal Server Error.</span>
+                            <hr/>
+                            <span class="text-condensed">
+                                <h3>Sorry for the inconvenience!</h3>
 
-    <div id="content" class="row">
-        <div class="col-xs-6 visible-xs">
-            <h1><span class="text-muted text-large">500</span></h1>
-            <span class="text-muted">We've encountered an Internal Server Error.</span>
+                            <h5>A notification has been sent, and we will try to sort out the problem as soon as possible.</h5>
+                            <h5>If you would like to help, contact us at {{ "SUPPORT_EMAIL"|get_from_settings }} to let us know what you were trying to do when the error occurred.</h5>
+                                </span>
+                        </div>
+                        <div class="col-sm-7 col-lg-4 hidden-xs">
+                            <img src="{% static 'img/cls-unplugged.png' %}" style="max-width: 100%;"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="col-xs-6 visible-xs">
-            <img src="{% static 'img/cls-unplugged.png' %}" style="max-width: 100%;"/>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-5 col-lg-8">
-            <h1 class="hidden-xs"><span class="text-muted text-large">500</span></h1>
-            <span class="text-muted hidden-xs">We've encountered an Internal Server Error.</span>
-            <hr/>
-            <span class="text-condensed">
-                <h3>Sorry for the inconvenience!</h3>
+    </main>
 
-            <h5>A notification has been sent, and we will try to sort out the problem as soon as possible.</h5>
-            <h5>If you would like to help, contact us at {{ "SUPPORT_EMAIL"|get_from_settings }} to let us know what you were trying to do when the error occurred.</h5>
-                </span>
-        </div>
-        <div class="col-sm-7 col-lg-4 hidden-xs">
-            <img src="{% static 'img/cls-unplugged.png' %}" style="max-width: 100%;"/>
-        </div>
-    </div>
 
 {% endblock %}
 
