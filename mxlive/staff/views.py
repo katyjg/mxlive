@@ -106,20 +106,18 @@ class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
             user_info.pop('username', '')
 
         info = slap.add_user(user_info)
-        info['email'] = data.get('contact_email', '')
+        info['name'] = info.get('username')
+        for k in ['contact_email', 'contact_person', 'contact_phone']:
+            info[k] = data.get(k, '')
         info.pop('password')
 
         # create local user
-        obj = User.objects.create(**info)
-        data['user'] = obj
-        data['name'] = obj.username
-
-        proj = Project.objects.create(**data)
+        proj = Project.objects.create(**info)
 
         info_msg = 'New Account {} added'.format(proj)
 
         ActivityLog.objects.log_activity(
-            self.request, obj, ActivityLog.TYPE.CREATE, info_msg
+            self.request, proj, ActivityLog.TYPE.CREATE, info_msg
         )
         # messages are simply passed down to the template via the request context
         return render(self.request, "users/redirect.html")

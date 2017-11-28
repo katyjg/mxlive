@@ -108,7 +108,7 @@ class Project(AbstractUser):
     contact_phone = models.CharField(max_length=60, blank=True, null=True)
     contact_fax = models.CharField(max_length=60, blank=True, null=True)
     organisation = models.CharField(max_length=600, blank=True, null=True)
-    show_archives = models.BooleanField(default=False)
+    show_archives = models.BooleanField(default=True)
     key = models.TextField(blank=True)
 
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
@@ -146,10 +146,6 @@ class Project(AbstractUser):
         return Shipment.objects.filter(project__exact=self).filter(date_shipped__year=this_year).count()
     shipment_count.short_description = "Shipments in {}".format(datetime.now().year)
 
-    def delete(self, *args, **kwargs):
-        self.user.delete()
-        return super(self.__class__, self).delete(*args, **kwargs)
-    
     class Meta:
         verbose_name = "Project Account"
 
@@ -1220,12 +1216,10 @@ def populate_user_handler(sender, user, ldap_user, **kwargs):
         user.is_staff = True
     if not Project.objects.filter(name=user.username).exists():
         Project.objects.create(
-            user=user, name=user.username, contact_person=user.get_full_name(),
+            name=user.username,
         )
 
 
 @receiver(post_delete, sender=Project)
 def on_project_delete(sender, instance, **kwargs):
-    if instance.user.pk:
-        instance.user.delete()
     slap.del_user(instance.name)

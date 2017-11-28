@@ -83,15 +83,15 @@ class ProjectForm(forms.ModelForm):
 
 
 class NewProjectForm(forms.ModelForm):
+    password = forms.CharField(required=False, help_text='A password will be auto-generated for this account')
 
     class Meta:
         model = Project
-        fields = ('first_name', 'last_name', 'contact_person', 'contact_email', 'contact_phone', 'username', 'password')
+        fields = ('first_name', 'last_name', 'contact_person', 'contact_email', 'contact_phone', 'username')
 
     def __init__(self, *args, **kwargs):
         super(NewProjectForm, self).__init__(*args, **kwargs)
 
-        self.fields['password'].help_text = 'A password will be auto-generated for this account'
         if getattr(settings, 'LDAP_SEND_EMAILS', False):
             self.fields['password'].help_text += ' and sent to staff once this form is submitted'
 
