@@ -104,6 +104,25 @@ class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AjaxableResponseMixi
         return self.request.user.is_superuser or self.get_object() == self.request.user
 
 
+class ProjectLabels(AdminRequiredMixin, Tex2PdfMixin, detail.DetailView):
+    template_name = "users/tex/return_labels.tex"
+    model = models.Project
+    slug_field = 'username'
+    slug_url_kwarg = 'username'
+
+    def get_template_name(self):
+        return self.template_name
+
+    def get_template_context(self):
+        object = self.get_object()
+        context = {
+            'project': object,
+            'shipment': object,
+            'admin_project': models.Project.objects.filter(is_superuser=True).first()
+        }
+        return context
+
+
 class ListViewMixin(LoginRequiredMixin):
     paginate_by = 25
     owner_field = 'project__username'

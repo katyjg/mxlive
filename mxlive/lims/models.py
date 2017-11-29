@@ -140,7 +140,20 @@ class Project(AbstractUser):
 
     def label_hash(self):
         return self.name
-    
+
+    def active_status(self):
+        try:
+            if not self.sessions.count():
+                return 'New'
+            if self.last_session() >= (timezone.now() - timedelta(days=365)):
+                return 'Active'
+        except TypeError:
+            return 'Active'
+        return 'Idle'
+
+    def last_session(self):
+        return self.sessions.order_by('created').last().start() if self.sessions.order_by('created').last() else None
+
     def shipment_count(self):
         this_year = datetime.now().year
         return Shipment.objects.filter(project__exact=self).filter(date_shipped__year=this_year).count()

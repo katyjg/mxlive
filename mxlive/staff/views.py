@@ -1,5 +1,5 @@
 from django.contrib.messages.views import SuccessMessageMixin
-from django.views.generic import edit, TemplateView
+from django.views.generic import edit, detail
 from django.core.urlresolvers import reverse_lazy
 from django.contrib.auth import get_user_model
 from django.shortcuts import render
@@ -73,18 +73,27 @@ class ProjectList(AdminRequiredMixin, FilteredListView):
     paginate_by = 25
     template_name = "users/list.html"
     list_filter = ['modified', ]
-    list_display = ['username', 'contact_person', 'contact_phone', 'contact_email', 'shipment_count', 'forms']
+    list_display = ['username', 'contact_person', 'contact_phone', 'contact_email', 'shipment_count']
     search_fields = ['username', 'contact_person', 'contact_phone', 'contact_email', 'city', 'province', 'country',
                      'department', 'organisation']
-    detail_url = 'edit-profile'
+    #detail_url = 'edit-profile'
+    detail_url = 'user-detail'
     detail_url_kwarg = 'username'
-    detail_ajax = True
-    detail_target = '#modal-form'
+    #detail_ajax = True
+    #detail_target = '#modal-form'
     add_url = 'new-project'
     add_ajax = True
     order_by = ['name']
     ordering_proxies = {}
     list_transforms = {}
+
+
+class UserDetail(AdminRequiredMixin, detail.DetailView):
+    model = Project
+    template_name = "users/entries/user.html"
+
+    def get_object(self):
+        return Project.objects.get(username=self.kwargs.get('username'))
 
 
 class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):

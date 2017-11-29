@@ -1,0 +1,109 @@
+{% extends "users/base.html" %}
+{% load humanize %}
+
+{% block page_heading %}
+    <h3 class="text-condensed narrow-heading overflow ellipsis">
+        <span class="text-muted">{{ object.name }}</span> | <strong>{{ object.first_name }} {{ object.last_name }}</strong>
+    </h3>
+    <span class="text-muted">
+        Beamline User since {{ object.created|naturalday }}
+    </span>
+{% endblock %}
+
+{% block object_tools %}
+<span class="box-tools pull-right">
+    <a class="pull-right" data-url="{% url "edit-profile" object.username %}" title="Edit Profile">
+        <span class="fa-stack">
+            <i class="fa-stack-2x fa fa-2 fa-fw fa-pencil"></i>
+        </span><br>
+        <span class="tool-label">Edit</span>
+    </a>
+    <a class="pull-right" href="{% url "project-labels" object.username %}" title="Get Shipping Labels">
+        <span class="fa-stack">
+            <i class="fa-stack-2x fa fa-2 fa-fw fa-tags"></i>
+        </span><br>
+        <span class="tool-label">Labels</span>
+    </a>
+</span>
+<span class="box-tools pull-right hidden-xs">
+    <a class="pull-right" href="{% url "data-list" %}?q={{ object.username }}" title="Go to Data for {{ object.username }}">
+        <span class="fa-stack">
+            <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
+            {% if object.data_set.count %}
+                <span class="fa-stack-1x superscript">
+                    <span class="badge progress-bar-info">{{ object.data_set.count }}</span>
+                </span>
+            {% endif %}
+        </span><br>
+        <span class="tool-label">Data</span>
+    </a>
+    <a class="pull-right" href="{% url "result-list" %}?q={{ object.username }}" title="Go to Reports for {{ object.username }}">
+        <span class="fa-stack">
+            <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
+            {% if object.analysisreport_set.count %}
+                <span class="fa-stack-1x superscript">
+                    <span class="badge progress-bar-info">{{ object.analysisreport_set.count }}</span>
+                </span>
+            {% endif %}
+        </span><br>
+        <span class="tool-label">Reports</span>
+    </a>
+    <a class="pull-right" href="{% url "session-list" %}?q={{ object.username }}" title="Go to Sessions for {{ object.username }}">
+        <span class="fa-stack">
+            <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
+            {% if object.sessions.count %}
+                <span class="fa-stack-1x superscript">
+                    <span class="badge progress-bar-info">{{ object.sessions.count }}</span>
+                </span>
+            {% endif %}
+        </span><br>
+        <span class="tool-label">Sessions</span>
+    </a>
+</span>
+{% endblock %}
+
+{% block object_status %}
+    <div class="status-bar">
+        <div class="row">
+            <div class="col-xs-2">
+                <h3 class="no-vmargin">
+                    <span class="label label-{% if object.active_status == 'Active' %}info{% else %}{% if object.active_status == 'Idle' %}default{% else %}success{% endif %}{% endif %}" title="Last session on {{ object.last_session }}">{{ object.active_status }}</span>
+                </h3>
+            </div>
+            <div class="col-xs-3 pull-right text-right">
+                <small class="text-muted text-condensed">Groups:</small><br>
+                {{ object.group_set.count }}
+            </div>
+            <div class="col-xs-2 pull-right text-right">
+                <small class="text-muted text-condensed">Shipments:</small><br>
+                {{ object.shipment_set.count }}
+            </div>
+            <div class="col-xs-2 pull-right text-right">
+                <small class="text-muted text-condensed">Samples:</small><br>
+                {{ object.sample_set.count }}
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block full %}
+
+    <div class="row">
+        <div class="col-xs-12 col-sm-9">
+            {% include "users/address.html" with user=object %}
+            <span class="text-info">{{ object.contact_email|default_if_none:"" }}<br/>
+                {{ object.contact_phone|default_if_none:"" }}</span>
+            <br/>
+        </div>
+        <div class="col-xs-12 col-sm-3 text-center">
+            {% if object.carrier %}
+                <img src="/static/img/{{ object.carrier|slugify }}.png" title="{{ object.carrier|default_if_none:'User'|title }}">
+            {% else %}
+                <img src="/static/img/walking.png" title="{{ object.carrier|default_if_none:'User'|title }}">
+            {% endif %}
+            <h5><span class="text-muted">{{ object.account_number|default:"No account number" }}</span></h5>
+        </div>
+    </div>
+
+{% endblock %}
