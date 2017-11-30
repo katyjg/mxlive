@@ -978,7 +978,7 @@ class Sample(LimsBaseClass):
             'id': self.pk,
             'name': self.name,
             'barcode': self.barcode,
-            'priority': self.priority if self.priority else 1,
+            'priority': (self.group.priority, self.priority if self.priority else 1),
             'comments': self.comments,
             'location': self.location,
             'port': self.port(),

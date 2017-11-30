@@ -33,3 +33,58 @@ table.report-table, table + .caption {
     border: 1px solid #ddd;
     box-shadow: 2px 2px 10px #ddd;
 }
+
+@media print {
+    .label-excellent-score, .label-good-score, .label-fair-score, .label-unusable-score {
+        color: #fff !important;
+    }
+    main.content {
+        margin-top: 0;
+        padding-bottom: 0;
+    }
+    .box-tools, .footer {
+        display: none;
+    }
+    .status-bar {
+        background-color: #ddd;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    }
+    body {
+        font-size: 11px;
+    }
+    h3 {
+        font-size: 15px;
+    }
+    span.label-excellent-score {
+        border-color: #0c0 !important;
+    }
+
+    span.label-good-score {
+        border-color: #9c0 !important;
+    }
+
+    span.label-fair-score {
+        border-color: #cc0 !important;
+    }
+
+    span.label-usable-score {
+        border-color: #a96 !important;
+    }
+    span.label-unusable-score {
+        border-color: #933 !important;
+    }
+    .container {
+        width: 675px;
+        margin: 0;
+    }
+    .pagelet-body, section, .container {
+        padding-left: 0;
+        padding-right: 0;
+    }
+    .pagelet-body {
+        overflow: hidden;
+    }
+    section {
+        width: 675px;
+    }
+}

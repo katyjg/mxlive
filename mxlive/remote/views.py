@@ -203,10 +203,14 @@ class ProjectSamples(VerificationMixin, View):
         except:
             raise http.Http404("Beamline does not exist")
 
-        sample_list = project.sample_set.filter(container__status=Container.STATES.ON_SITE).order_by('priority')
+        sample_list = project.sample_set.filter(container__status=Container.STATES.ON_SITE).order_by('group__priority', 'priority')
         dewar = beamline.active_dewar()
 
-        return JsonResponse([s.json_dict() for s in sample_list if not s.dewar() or s.dewar() == dewar], safe=False)
+        samples = [s.json_dict() for s in sample_list if not s.dewar() or s.dewar() == dewar]
+        for i, s in enumerate(samples):
+            samples[i]['priority'] = i+1
+
+        return JsonResponse(samples, safe=False)
 
 
 TRANSFORMS = {
