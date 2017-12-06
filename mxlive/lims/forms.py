@@ -1,6 +1,5 @@
 from django import forms
 from django.core.urlresolvers import reverse_lazy
-from django.utils.text import slugify
 
 from models import *
 import re
@@ -599,7 +598,6 @@ class GroupForm(forms.ModelForm):
 
     def clean_name(self):
         name = self.cleaned_data.get('name')
-        name = slugify(name)
         if self.instance.shipment.group_set.filter(name=name).exclude(pk=self.instance.pk).exists():
             self.add_error('name', forms.ValidationError("Groups in a shipment must each have a unique name"))
         return name
@@ -1096,7 +1094,6 @@ class ShipmentGroupForm(forms.ModelForm):
             else:
                 cleaned_data['{}_set'.format(field)] = self.data.getlist(field)
 
-        cleaned_data['name_set'] = [slugify(name) for name in cleaned_data.get('name_set', [])]
         if len(set(cleaned_data['name_set'])) != len(cleaned_data['name_set']):
             self.add_error(None, forms.ValidationError("Groups in a shipment must each have a unique name"))
         if not self.is_valid():

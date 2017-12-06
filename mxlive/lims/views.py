@@ -52,12 +52,11 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
     def get_context_data(self, **kwargs):
         context = super(ProjectDetail, self).get_context_data(**kwargs)
         if self.request.user.is_superuser:
-            sh = models.Shipment.objects.filter(status__in=[models.Shipment.STATES.ON_SITE,models.Shipment.STATES.SENT])
-            context['shipments'] = sh.order_by('status','-modified')
+            context['shipments'] = models.Shipment.objects.filter(status__in=[models.Shipment.STATES.ON_SITE,models.Shipment.STATES.SENT]).order_by('status','-modified')
             context['automounters'] = models.Dewar.objects.filter(active=True).order_by('beamline__name')
             context['sessions'] = models.Session.objects.filter(pk__in=models.Stretch.objects.active().values_list('session__pk', flat=True))
             kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('containers', flat=True)
-            context['containers'] = [c for c in models.Container.objects.filter(kind__in=kinds).order_by('name') if not c.dewars.first()]
+            context['containers'] = models.Container.objects.filter(kind__in=kinds).filter(dewars__isnull=True).order_by('name')
         else:
             referrer = self.request.META.get('HTTP_REFERER')
             if referrer and re.sub('^https?:\/\/', '', referrer).split('/')[1] == 'login':
@@ -539,7 +538,7 @@ class GroupDetail(DetailListMixin, SampleList):
 
 class GroupEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.GroupForm
-    template_name = "forms/modal.html"
+    template_name = "users/forms/group-edit.html"
     model = models.Group
     success_message = "Group has been updated."
     success_url = reverse_lazy('group-list')
@@ -551,7 +550,7 @@ class GroupEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, 
     def form_valid(self, form):
         resp = super(GroupEdit, self).form_valid(form)
         for s in self.object.sample_set.all():
-            if self.original_name in s.name.split('-'):
+            if self.original_name in s.name:
                 models.Sample.objects.filter(pk=s.pk).update(name=s.name.replace(self.original_name, self.object.name))
         return resp
 
@@ -597,8 +596,8 @@ def format_score(val, record):
 
 class ReportList(ListViewMixin, FilteredListView):
     model = models.AnalysisReport
-    list_filter = ['modified', 'kind']
-    list_display = ['data__all', 'kind', 'score']
+    list_filter = ['modified',]
+    list_display = ['id', 'data__all', 'kind', 'score', 'modified']
     search_fields = ['project__username', 'name', 'data__name']
     detail_url = 'report-detail'
     order_by = ['-modified']
@@ -960,6 +959,7 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
         group = models.Group.objects.get(pk=int(data['id']))
         to_create = []
         j = 1
+        priority = group.sample_set.count() + 1
         for c, locations in sample_locations.get(group.name, {}).items():
             container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
             names = []
@@ -974,7 +974,8 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
                         break
                     to_create.append(
                         models.Sample(group=group, container=container, location=location, name=name,
-                                      project=self.request.user))
+                                      project=self.request.user, priority=priority))
+                    priority += 1
 
         models.Sample.objects.bulk_create(to_create)
         if group.sample_count < group.sample_set.count():

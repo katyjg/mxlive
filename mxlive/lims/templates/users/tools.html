@@ -65,8 +65,9 @@
     {% endif %}
 </span>
 {% endif %}
+{% if object.status <= object.STATES.SENT and request.user == object.project or object.status == object.STATES.ON_SITE and user.is_superuser or object.comments or object.staff_comments %}
 <span class="box-tools pull-right">
-    {% if object.status <= object.STATES.SENT and request.user == object.project or object.status == object.STATES.ON_SITE and request.user.is_superuser %}
+    {% if object.status <= object.STATES.SENT and request.user == object.project or object.status == object.STATES.ON_SITE and user.is_superuser %}
         <a class="pull-right" href="{% url "shipment-labels" object.pk %}">
             <span class="pull-right">
                 <span class="fa-stack">
@@ -92,6 +93,7 @@
         </a>
     {% endif %}
 </span>
+{% endif %}
 {% if object.status >= object.STATES.SENT or request.user.is_superuser and object.status == object.STATES.SENT %}
 <span class="box-tools pull-right">
     {% comment %}Shipment Details{% endcomment %}

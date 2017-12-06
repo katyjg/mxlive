@@ -109,7 +109,9 @@
             .attr('id', 'id-'+info.parent+'-'+info.location);
 
         if (!(accepts)) {
-            drawLocations(info.parent, info.nodes, info.labels, info.radius, svgLocation);
+            {% if not brief %}
+                drawLocations(info.parent, info.nodes, info.labels, info.radius, svgLocation);
+            {% endif %}
         }
 
         var svgLocationEnvelope = svgLocation.append(info.envelope)
@@ -132,6 +134,10 @@
 
         if (accepts) {
             drawLocations(info.parent, info.nodes, info.labels, info.radius, svgLocation);
+        } else {
+            {% if brief %}
+                $(info.envelope + '#envelope-'+info.parent + '-' + info.location).addClass('started').css('stroke', 'none');
+            {% endif %}
         }
 
         return svgLocation;
@@ -160,10 +166,10 @@
         {% if not create %}
             {% for child in object|get_children %}
 
-                var child_locations = {{ child.kind.layout|kind_json:child.pk }};
+                var child_locations = {% if not child.accepts_children and brief %}[]{% else %}{{ child.kind.layout|kind_json:child.pk }}{% endif %};
                 var child_envelope = '{{ child.kind.envelope }}';
                 var child_size = d3.select('#id-{{ child.parent.pk }}-{{child.location }}').node().getBBox();
-                var child_nodes = createNodes(child_locations.locations, child_envelope, child_size.width, child_size.height);
+                var child_nodes = createNodes(child_locations.locations, child_envelope, child_size.width, child_size.height, {% if brief %}false{% endif %});
                 var child_labels = {% if not child.accepts_children %}[]{% else %}child_nodes{% endif %};
                 if (child_locations.labels && child_size.width > 100) {
                     var child_labels = createNodes(child_locations.labels, child_envelope, child_size.width, child_size.height, false);

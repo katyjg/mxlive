@@ -27,3 +27,7 @@ urlpatterns += static(settings.CACHE_URL, document_root=settings.CACHES['default
 
 if settings.DEBUG:
     urlpatterns += staticfiles_urlpatterns()
+    if settings.DEBUG_TOOLBAR:
+        import debug_toolbar
+
+        urlpatterns = [url(r'^__debug__/', include(debug_toolbar.urls)),] + urlpatterns

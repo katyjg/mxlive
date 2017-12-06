@@ -3,7 +3,7 @@ from django.utils.translation import ugettext as _
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Q, F, ExpressionWrapper
+from django.db.models import Q, F, Avg, Count
 from django.utils import dateformat, timezone
 from django.contrib.auth.models import AbstractUser
 
@@ -253,8 +253,7 @@ class Session(models.Model):
         return self.data_set.all()
 
     def reports(self):
-        pks = list(itertools.chain.from_iterable([d.reports.values_list('pk', flat=True) for d in self.data_set.all()]))
-        return self.project.analysisreport_set.filter(pk__in=pks)
+        return self.project.analysisreport_set.filter(data__in=self.data_set.all())
 
     def num_datasets(self):
         return self.datasets().count()
@@ -268,8 +267,8 @@ class Session(models.Model):
         return self.stretches.active().exists()
 
     def total_time(self):
-        t = sum(self.stretches.with_duration().values_list("duration", flat=True))
-
+        d = self.stretches.with_duration().aggregate(Avg('duration'), Count('duration'))
+        t = int((d['duration__count'] if d.get('duration__count') else 0) * (d['duration__avg'] if d.get('duration__avg') else 0))
         if self.is_active():
             t += int((timezone.now() - self.stretches.active().first().start).total_seconds())/3600
         return int(t)
@@ -306,7 +305,7 @@ class LimsBaseClass(models.Model):
 
     STATES = GLOBAL_STATES
     TRANSITIONS = {
-        STATES.DRAFT: [STATES.SENT],
+        STATES.DRAFT: [STATES.SENT, STATES.ON_SITE],
         STATES.SENT: [STATES.ON_SITE, STATES.DRAFT],
         STATES.ON_SITE: [STATES.RETURNED],
         STATES.LOADED: [STATES.ON_SITE],
@@ -452,7 +451,7 @@ class Shipment(ObjectBaseClass):
     date_returned = models.DateTimeField(null=True, blank=True)
     carrier = models.ForeignKey(Carrier, null=True, blank=True)
     storage_location = models.CharField(max_length=60, null=True, blank=True)
-   
+
     def identity(self):
         return 'SH%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
@@ -467,22 +466,19 @@ class Shipment(ObjectBaseClass):
         return self.container_set.count()
 
     def num_samples(self):
-        return sum([c.sample_set.count() for c in self.container_set.all()])
+        return self.container_set.aggregate(Count('sample'))['sample__count']
 
     def datasets(self):
-        return self.project.data_set.filter(sample__in=self.project.sample_set.filter(container__pk__in=self.container_set.values_list('pk')))
+        return self.project.data_set.filter(sample__container__shipment__pk=self.pk)
 
     def num_datasets(self):
-        samples = self.project.sample_set.filter(container__pk__in=self.container_set.values_list('pk'))
-        return sum([c.data_set.count() for c in samples])
+        return self.datasets().count()
 
     def reports(self):
-        pks = itertools.chain.from_iterable([[report.pk for report in samples.reports()] for samples in self.project.sample_set.filter(container__pk__in=self.container_set.values_list('pk'))])
-        return self.project.analysisreport_set.filter(pk__in=pks)
+        return self.project.analysisreport_set.filter(data__sample__container__shipment__pk=self.pk)
 
     def num_results(self):
-        samples = self.project.sample_set.filter(container__pk__in=self.container_set.values_list('pk'))
-        return sum([s.reports().count() for s in samples])
+        return self.reports().count()
 
     def is_sendable(self):
         return self.status == self.STATES.DRAFT and not self.shipping_errors()
@@ -845,13 +841,14 @@ class Group(LimsBaseClass):
         (0, 'NATIVE', 'Native'),
         (1, 'MAD', 'MAD'),
         (2, 'SAD', 'SAD'),
+        (3, 'S_SAD', 'S-SAD')
     )
     EXP_PLANS = Choices(
-        (0, 'RANK_AND_COLLECT_BEST', 'Rank and collect best'),
+        (0, 'COLLECT_BEST', 'Collect best'),
         (1, 'COLLECT_FIRST_GOOD', 'Collect first good'),
         (2, 'SCREEN_AND_CONFIRM', 'Screen and confirm'),
         (3, 'SCREEN_AND_COLLECT', 'Screen and collect'),
-        (4, 'JUST_COLLECT', 'Just collect'),
+        (4, 'JUST_COLLECT', 'Collect all'),
     )
     TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
     TRANSITIONS[LimsBaseClass.STATES.DRAFT] = [LimsBaseClass.STATES.ACTIVE]
@@ -861,7 +858,7 @@ class Group(LimsBaseClass):
     energy = models.DecimalField(null=True, max_digits=10, decimal_places=4, blank=True)
     kind = models.IntegerField('exp. type', choices=EXP_TYPES, default=EXP_TYPES.NATIVE)
     absorption_edge = models.CharField(max_length=5, null=True, blank=True)
-    plan = models.IntegerField(choices=EXP_PLANS, default=EXP_PLANS.SCREEN_AND_CONFIRM)
+    plan = models.IntegerField(choices=EXP_PLANS, default=EXP_PLANS.COLLECT_BEST)
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(blank=True, null=True)
     sample_count = models.PositiveIntegerField('Number of Samples', default=1)
@@ -885,7 +882,7 @@ class Group(LimsBaseClass):
 
     def best_sample(self):
         # need to change to [id, score]
-        if self.plan == Group.EXP_PLANS.RANK_AND_COLLECT_BEST:
+        if self.plan == Group.EXP_PLANS.COLLECT_BEST:
             results = self.project.result_set.filter(group=self, sample__in=self.sample_set.all()).order_by('-score')
             if results:
                 return [results[0].sample.pk, results[0].score]

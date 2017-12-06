@@ -28,6 +28,7 @@ SECRET_KEY = 'z)&x^!63wtp82h2^sfl@ny#%e2ryy_a=gcy(4g!%f(!_!v^fi7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+DEBUG_TOOLBAR = False
 
 ALLOWED_HOSTS = ['*']
 INTERNAL_URLS = ['^/json', '^/api']
@@ -210,3 +211,6 @@ AUTH_LDAP_GROUP_TYPE = PosixGroupType(name_attr='cn')
 AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,{},{}".format(LDAP_USER_TABLE, LDAP_BASE_DN)
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(LDAP_BASE_DN, ldap.SCOPE_SUBTREE, "(objectClass=posixGroup)")
 
+if DEBUG and DEBUG_TOOLBAR:
+    INSTALLED_APPS += ('debug_toolbar',)
+    MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware',)

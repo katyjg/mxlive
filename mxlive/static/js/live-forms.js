@@ -50,7 +50,7 @@ var slug = function(str) {
     $slug = trimmed.replace(/[^a-z0-9-]/gi, '-').
     replace(/-+/g, '-').
     replace(/^-|-$/g, '');
-    return $slug.toLowerCase();
+    return $slug;
 }
 
 function fillContainers() {
@@ -65,10 +65,10 @@ function fillContainers() {
         $('.add').trigger('click');
         var container = $(this).attr('id');
         var row = $('.repeat-row[class!="template"]').last();
-        row.find('input[name$="name"]').val(slug(container)).trigger('change');
-        $('span.group-name').html(slug(container));
+        row.find('input[name$="name"]').val(slug(container).toLowerCase()).trigger('focusin').trigger('change');
+        $('span.group-name').html(slug(container).toLowerCase());
         selectAll(container);
-        var num = $('[id^="formlayout"] circle[group="'+slug(container)+'"]').length;
+        var num = $('[id^="formlayout"] circle[group="'+slug(container).toLowerCase()+'"]').length;
         row.find('input[name$="sample_count"]').val(num);
     });
 
@@ -185,14 +185,19 @@ jQuery(function() {
                     var dropdown = $($(this).attr('href'));
                     dropdown.slideToggle().toggleClass('in');
                 });
+                new_row.find("input[name$='name']").focus();
+
                 if ($('input[id$=sample_locations]').length) {
                     $('input[name$="name"]').on('focusin', function (e) {
                         $(this).data('val', $(this).val());
                     });
-                    $('input[name$="name"]').on('change', function (f) {
-                        f.stopImmediatePropagation();
+                    $('input[name$="name"]').on('input paste change', function(f) {
                         var row = f.target.closest('.repeat-row');
                         $(row).find($('a[href="#group-select"]')).removeClass('disabled').attr('group', $(this).val());
+                    });
+                    $('input[name$="name"]').on('change', function (f) {
+                        f.stopImmediatePropagation();
+                        $(this).val(slug($(this).val()));
                         $('circle[group='+$(this).data('val')+']').attr("group", $(this).val());
 
                         var locations = $('input[id$=sample_locations]');
@@ -229,11 +234,7 @@ jQuery(function() {
                         if (group in data) {
                             delete data[group];
                         }
-                        console.log(data);
                         locations.val(JSON.stringify(data));
-                        console.log($('circle[group=' + group + ']'));
-                        console.log('c', container, 'r', row, group);
-                        console.log($('input[name$="name"]'));
                     }
                 }
             }

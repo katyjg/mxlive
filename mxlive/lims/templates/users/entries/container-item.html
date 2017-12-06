@@ -12,7 +12,7 @@
         <div class="row text-muted">
             <div class="col-xs-12">
                 <div id="layout-{{ container.pk }}" class="layout-lg"></div>
-                {% include "users/entries/layout-container.html" with object=container.pk kind=container.kind %}
+                {% include "users/entries/layout-container.html" with object=container.pk kind=container.kind brief=True %}
             </div>
         </div>
         <div class="row">
