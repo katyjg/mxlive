@@ -11,7 +11,6 @@ function selectOne(e, group) {
             data[group] = {};
         }
         if (assigned_group == group) {
-            console.log('here');
             $(e).attr('group','');
             data[group][container] = $.grep(data[group][container], function (value) {
                 return value != port;

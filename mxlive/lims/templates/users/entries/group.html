@@ -51,9 +51,8 @@
             <div class="col-xs-2">
                 <small class="text-muted text-condensed">Type:</small><br>
                 {{ object.get_kind_display }}
-                {% if object.absorption_edge or object.energy %}
-                    ({% if object.energy %}{{ object.energy }} keV {% if object.absorption_edge %}/{% endif %}{% endif %}
-                    {{ object.absorption_edge }}){% endif %}
+                {% if object.absorption_edge %}
+                    ({{ object.absorption_edge }}){% endif %}
             </div>
             <div class="col-xs-2 pull-right text-right">
                 <small class="text-muted text-condensed">Number of Samples:</small><br>

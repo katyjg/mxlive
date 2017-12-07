@@ -847,7 +847,6 @@ class Group(LimsBaseClass):
         (0, 'COLLECT_BEST', 'Collect best'),
         (1, 'COLLECT_FIRST_GOOD', 'Collect first good'),
         (2, 'SCREEN_AND_CONFIRM', 'Screen and confirm'),
-        (3, 'SCREEN_AND_COLLECT', 'Screen and collect'),
         (4, 'JUST_COLLECT', 'Collect all'),
     )
     TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
@@ -856,6 +855,7 @@ class Group(LimsBaseClass):
     status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
     shipment = models.ForeignKey(Shipment, null=True, blank=True)
     energy = models.DecimalField(null=True, max_digits=10, decimal_places=4, blank=True)
+    resolution = models.FloatField('Desired Resolution (&#8491;)', null=True, blank=True)
     kind = models.IntegerField('exp. type', choices=EXP_TYPES, default=EXP_TYPES.NATIVE)
     absorption_edge = models.CharField(max_length=5, null=True, blank=True)
     plan = models.IntegerField(choices=EXP_PLANS, default=EXP_PLANS.COLLECT_BEST)

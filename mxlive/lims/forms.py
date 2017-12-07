@@ -578,8 +578,9 @@ class GroupForm(forms.ModelForm):
                 css_class="row"
             ),
             Div(
-                Div(Field('energy', css_id="energy"), css_class="col-xs-6"),
                 Div(Field('absorption_edge', css_id="absorption_edge"),
+                    css_class="col-xs-6"),
+                Div(Field('resolution', css_id="resolution"),
                     css_class="col-xs-6"),
                 Div('comments', css_class="col-xs-12"),
                 css_class="row"
@@ -604,7 +605,7 @@ class GroupForm(forms.ModelForm):
 
     class Meta:
         model = Group
-        fields = ('project', 'name', 'kind', 'plan', 'energy', 'absorption_edge', 'comments')
+        fields = ('project', 'name', 'kind', 'plan', 'resolution', 'absorption_edge', 'comments')
         widgets = {'project': disabled_widget}
 
 
@@ -913,7 +914,7 @@ class ShipmentGroupForm(forms.ModelForm):
 
     class Meta:
         model = Group
-        fields = ['shipment', 'id', 'priority', 'kind', 'energy', 'absorption_edge', 'name', 'sample_count', 'plan', 'comments', 'locations']
+        fields = ['shipment', 'id', 'priority', 'kind', 'resolution', 'absorption_edge', 'name', 'sample_count', 'plan', 'comments', 'locations']
         widgets = {
             'comments': forms.Textarea(attrs={'rows': "4"}),
             'priority': forms.TextInput(attrs={'readonly': True}),
@@ -956,7 +957,11 @@ class ShipmentGroupForm(forms.ModelForm):
                 'name_set': [str(group.name) for group in groups],
                 'priority_set': [group.priority or 0 for group in groups],
                 'id_set': [group.pk for group in groups],
-                'sample_count_set': [group.sample_count for group in groups]
+                'sample_count_set': [group.sample_count for group in groups],
+                'plan_set': [str(group.plan) for group in groups],
+                'kind_set': [str(group.kind) for group in groups],
+                'absorption_edge_set': [str(group.absorption_edge) for group in groups],
+                'resolution_set': [group.resolution or '' for group in groups],
             }
             action_row.append(Div(
                 Div(
@@ -1012,10 +1017,13 @@ class ShipmentGroupForm(forms.ModelForm):
                                                               css_id="kind"), css_class="col-xs-6"),
                                                     Div(Field('plan', css_class="tab-chosen chosen-select",
                                                               css_id="plan"), css_class="col-xs-6"),
-                                                    Div(Field('energy', css_id="energy"), css_class="col-xs-6"),
+                                                    css_class="row"
+                                                ),
+                                                Div(
                                                     Div(Field('absorption_edge', css_id="absorption_edge"),
                                                         css_class="col-xs-6"),
-                                                    css_class="col-xs-12"
+                                                    Div(Field('resolution', css_id="resolution"), css_class="col-xs-6"),
+                                                    css_class="row"
                                                 ),
                                                 css_class="row-fluid"
                                             )

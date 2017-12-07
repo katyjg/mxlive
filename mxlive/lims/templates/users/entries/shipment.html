@@ -134,6 +134,10 @@
                                 <i class="fa fa-2 fa-fw fa-plus-circle"></i>
                                 <br><span class="tool-label">Samples</span>
                             </a>
+                            <a class="pull-right" data-url="{% url "group-edit" group.pk %}" title="Edit Group Parameters">
+                                <i class="fa fa-2 fa-fw fa-pencil"></i>
+                                <br><span class="tool-label">Edit</span>
+                            </a>
                         </span>
                         {% endif %}
                         <h4 class="list-group-item-heading ellipsis overflow text-condensed"><a href="{% url "group-detail" pk=group.pk %}"><span class="text-muted">{{ group.identity }}</span> | <strong>{{ group.name }}</strong></a></h4>

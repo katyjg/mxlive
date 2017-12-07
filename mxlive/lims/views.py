@@ -804,7 +804,7 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                         data = {field: form.cleaned_data['{}_set'.format(field)][i]
                                 for field in ['name', 'kind', 'comments', 'plan', 'absorption_edge']}
                         data.update({
-                            'energy': data.get('energy_set',[]) and float(data['energy_set'][i]) or None,
+                            'resolution': data.get('resolution_set',[]) and float(data['resolution_set'][i]) or None,
                             'sample_count': int(form.cleaned_data['sample_count_set'][i]),
                             'shipment': self.shipment,
                             'project': project,
@@ -894,7 +894,7 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
             info = {field: data['{}_set'.format(field)][i] for field in ['name', 'kind', 'plan',
                                                                          'comments', 'absorption_edge']}
             info.update({
-                'energy': data['energy_set'][i] and float(data['energy_set'][i]) or None,
+                'resolution': data['resolution_set'][i] and float(data['resolution_set'][i]) or None,
                 'sample_count': int(data['sample_count_set'][i]),
                 'shipment': data['shipment'],
                 'project': self.request.user,
