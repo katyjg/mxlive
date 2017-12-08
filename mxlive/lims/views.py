@@ -804,7 +804,7 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                         data = {field: form.cleaned_data['{}_set'.format(field)][i]
                                 for field in ['name', 'kind', 'comments', 'plan', 'absorption_edge']}
                         data.update({
-                            'resolution': data.get('resolution_set',[]) and float(data['resolution_set'][i]) or None,
+                            'resolution': form.cleaned_data.get('resolution_set') and form.cleaned_data['resolution_set'][i] and float(form.cleaned_data['resolution_set'][i]) or None,
                             'sample_count': int(form.cleaned_data['sample_count_set'][i]),
                             'shipment': self.shipment,
                             'project': project,

@@ -131,30 +131,37 @@
                         {% if object.is_editable %}
                         <span class="box-tools pull-right">
                             <a class="pull-right" data-url="{% url "group-select" group.pk %}" title="Sample Seat Selection">
-                                <i class="fa fa-2 fa-fw fa-plus-circle"></i>
-                                <br><span class="tool-label">Samples</span>
+                                <span class="fa-stack">
+                                    <i class="fa-stack-2x fa fa-fw fa-plus-circle"></i>
+                                        <span class="fa-stack-1x superscript">
+                                            <span class="badge progress-bar-{% if group.unassigned_samples %}{% if group.sample_set.count %}warning{% else %}danger{% endif %}{% else %}info{% endif %}">{{ group.sample_set.count }}</span>
+                                        </span>
+                                </span><br>
+                                <span class="tool-label hidden-sm">Samples</span>
                             </a>
                             <a class="pull-right" data-url="{% url "group-edit" group.pk %}" title="Edit Group Parameters">
                                 <i class="fa fa-2 fa-fw fa-pencil"></i>
-                                <br><span class="tool-label">Edit</span>
+                                <br><span class="tool-label hidden-sm">Edit</span>
                             </a>
                         </span>
                         {% endif %}
                         <h4 class="list-group-item-heading ellipsis overflow text-condensed"><a href="{% url "group-detail" pk=group.pk %}"><span class="text-muted">{{ group.identity }}</span> | <strong>{{ group.name }}</strong></a></h4>
-                        <p class="list-group-item-text">
-                            Priority <strong>#{{ group.priority }}</strong> / <strong>{{ group.sample_count }}</strong> sample{{ group.sample_set.count|pluralize }}
+                        <p class="list-group-item-text text-condensed">
+                            <span class="badge" title="Priority #{{ group.priority }}">{{ group.priority }}</span>
+                             {{ group.get_kind_display }} {% if group.absorption_edge %}({{ group.absorption_edge }}){% endif %}
+                            | {{ group.get_plan_display }} {% if group.resolution %}<span title="Desired Resolution">({{ group.resolution }}Å)</span>{% endif %}
                         </p>
                         {% if group.unassigned_samples %}
                             <div class="alert alert-{% if group.sample_set.count %}warning{% else %}danger{% endif %}">
                                 <p class="list-group-item-text">
                                     {% if group.sample_set.count %}
                                         {% if group.unassigned_samples > 0 %}
-                                            <strong>{{ group.unassigned_samples }}</strong> sample{{ group.unassigned_samples|pluralize }} not assigned a location
+                                            <strong>{{ group.unassigned_samples }}/{{ group.sample_count }}</strong> sample{{ group.sample_count|pluralize }} not assigned a location
                                         {% else %}
                                             <strong>{% widthratio group.unassigned_samples 1 -1 %}</strong> too many samples assigned a location
                                         {% endif %}
                                     {% else %}
-                                        <strong>No samples assigned to any location</strong>
+                                        <strong>No samples assigned to any locations yet</strong>
                                     {% endif %}
                                 </p>
                             </div>
