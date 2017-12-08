@@ -46,13 +46,11 @@
             </div>
             <div class="col-xs-3">
                 <small class="text-muted text-condensed">Plan:</small><br>
-                {{ object.get_plan_display }}
+                {{ object.get_plan_display }} {% if object.resolution %}({{ object.resolution }}Å){% endif %}
             </div>
             <div class="col-xs-2">
                 <small class="text-muted text-condensed">Type:</small><br>
-                {{ object.get_kind_display }}
-                {% if object.absorption_edge %}
-                    ({{ object.absorption_edge }}){% endif %}
+                {{ object.get_kind_display }} {% if object.absorption_edge %}({{ object.absorption_edge }}){% endif %}
             </div>
             <div class="col-xs-2 pull-right text-right">
                 <small class="text-muted text-condensed">Number of Samples:</small><br>
