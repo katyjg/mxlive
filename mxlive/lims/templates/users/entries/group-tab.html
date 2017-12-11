@@ -2,7 +2,7 @@
 
 {% group_samples group session as samples %}
 
-<div id="group-{{ group.pk }}" class="tab-pane fade {% if request.GET.q %}{% if request.GET.q == group.pk|safe %}in active{% endif %}{% else %}{% if forloop.first %}in active{% endif %}{% endif %}">
+<div id="group-{{ group.pk }}" class="tab-pane fade {% if request.GET.q %}{% if request.GET.q == group.pk|safe %}in active{% endif %}{% else %}{% if forloop.first or active %}in active{% endif %}{% endif %}">
     <span class="box-tools pull-right" style="max-width: 75%;">
         <small>{{ group.comments|default:"No comments" }}</small>
     </span>
@@ -37,20 +37,12 @@
                             <a href="{% url "sample-detail" sample.pk %}"><strong>{{ sample.name }}</strong></a>
                         <span/>
                         <small class="overflow ellipsis">
-                            {% if sample.container.parent %}<span class="text-muted"><strong>{{ sample.dewar }} {{ sample.port }}</strong> |</span>{% endif %}
+                            {% if sample.dewar %}<span class="text-muted"><strong>{{ sample.dewar.beamline.acronym }} {{ sample.port }}</strong> |</span>{% endif %}
                             {{ sample.container_and_location }}
                         </small>
                         </td>
                     <td class="col-xs-8">
-                        <div class="row">
-                            {% sample_data sample session as details %}
-                            {% for data in details.data %}
-                                {% include "users/entries/data-thumbnail.html" %}
-                            {% endfor %}
-                            {% for report in details.reports %}
-                                {% include "users/entries/report-thumbnail.html" %}
-                            {% endfor %}
-                        </div>
+                        {% include "users/entries/sample-data.html" %}
                     </td>
                 </tr>
                 {% if sample.comments or sample.staff_comments %}

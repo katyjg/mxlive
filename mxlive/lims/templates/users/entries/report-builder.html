@@ -10,10 +10,8 @@
 
 <script>
 
-//var report = {{ object.details|json_to_dict }};
 $.getJSON("{% url 'fetch-report' object.pk %}", function(json) {
         build_report('#report-builder', json);
-    });
-//build_report('#report-builder', report);
+});
 
 </script>

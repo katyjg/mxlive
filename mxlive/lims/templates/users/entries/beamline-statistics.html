@@ -2,6 +2,7 @@
 
 {% load static %}
 {% load json_to_dict %}
+{% load stats %}
 
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading">
@@ -37,18 +38,9 @@
 {% block full %}
 
 <div class="row">
-    <div class="col-xs-6">
-        <h4 class="underline">MX Data Statistics</h4>
-        {% for parameter in data.keys %}
-            <div id="data-{{ parameter }}-{{ object.pk }}"></div>
-        {% endfor %}
-    </div>
-    <div class="col-xs-6">
-        <h4 class="underline">Scan Statistics</h4>
-        {% for parameter in scans.keys %}
-            <div id="scan-{{ parameter }}-{{ object.pk }}"></div>
-        {% endfor %}
-    </div>
+    <div id="data-stats" class="col-xs-7"></div>
+    <div id="data-plot" class="col-xs-5"></div>
+
 
 </div>
 
@@ -57,54 +49,228 @@
 
 <script type="text/javascript" src="{% static "js/d3.v4.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/d3.legend.js" %}"></script>
+<script type="text/javascript" src="{% static "js/showdown.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/live-reports.js" %}"></script>
-<script>
-    {% for parameter, values in scans.items %}
-        var raw = {{ values|dict_to_dict }};
-        var info = {'data': raw,
-            'color': "{% cycle '#FFDD57' '#7DCF7D' '#57A8FF' '#A857FF' '#FF6461' %}" };
-        var annotations = [];
-        var width = $('#scan-{{ parameter }}-{{ object.pk }}').parent().width();
-        var xy_chart = draw_xy_chart()
-            .width(width)
-            .height(300)
-            .xlabel("{{ parameter|title }}")
-            .y1label("Number of Scans")
-            .y2label("{{ data.y2label }}")
-            .xscale('linear')
-            .xlimits([null, null])
-            .y1limits([null, null])
-            .y2limits([null, null])
-            .interpolation('linear')
-            .notes(annotations)
-            .scatter('bar');
-        var svg = d3.select('#scan-{{ parameter }}-{{ object.pk }}').append("svg")
-            .datum(info)
-            .call(xy_chart);
-    {% endfor %}
-    {% for parameter, values in data.items %}
-        var raw = {{ values|dict_to_dict }};
-        var info = {'data': raw,
-        'color': "{% cycle '#FFDD57' '#7DCF7D' '#57A8FF' '#A857FF' '#FF6461' %}" };
-        var annotations = [];
-        var width = $('#data-{{ parameter }}-{{ object.pk }}').parent().width();
-        var xy_chart = draw_xy_chart()
-            .width(width)
-            .height(300)
-            .xlabel("{{ parameter|title }}")
-            .y1label("Number of Datasets")
-            .y2label("{{ data.y2label }}")
-            .xscale('linear')
-            .xlimits([null, null])
-            .y1limits([null, null])
-            .y2limits([null, null])
-            .interpolation('linear')
-            .notes(annotations)
-            .scatter('bar');
-        var svg = d3.select('#data-{{ parameter }}-{{ object.pk }}').append("svg")
-            .datum(info)
-            .call(xy_chart);
-    {% endfor %}
-</script>
 
+<script>
+    var json = {% get_data_stats object %};
+    build_report('#data-stats', json);
+
+    var raw = json.details[0].content[0].data
+    var data = []
+    $.each(raw[0], function(i, year) {
+       var row = {"Year": year}
+       if (year && year !== "All") {
+           for (j = 1; j < raw.length; j++) {
+               if (raw[j][0] !== "Total") {
+                   row[raw[j][0]] = raw[j][i];
+               }
+           }
+           data.push(row);
+       }
+    });
+
+    //Draw Stack Chart
+    var marginStackChart = { top: 20, right: 20, bottom: 30, left: 40 },
+            widthStackChart = 500 - marginStackChart.left - marginStackChart.right,
+            heightStackChart = 300 - marginStackChart.top - marginStackChart.bottom;
+
+    var xStackChart = d3.scaleBand()
+            .range([0, widthStackChart])
+            .padding(0.1);
+    var yStackChart = d3.scaleLinear()
+                .range([heightStackChart, 0]);
+
+
+    var colorStackChart = d3.scaleOrdinal(["#883A6A", "#C27844", "#551863", "#CBEFB6", "#5BC0DE"])
+
+
+    var canvasStackChart = d3.select("#data-plot").append("svg")
+        .attr("width", widthStackChart + marginStackChart.left + marginStackChart.right)
+        .attr("height", heightStackChart + marginStackChart.top + marginStackChart.bottom)
+        .append("g")
+        .attr("transform", "translate(" + marginStackChart.left + "," + marginStackChart.top + ")");
+
+    drawStackChart(data);
+
+    function drawStackChart(rawdata) {
+
+        colorStackChart.domain(d3.keys(data[0]).filter(function (key) { return key !== "Year"; }));
+
+        data.forEach(function (d) {
+            var y0 = 0;
+            d.ages = colorStackChart.domain().map(function (name) { return { name: name, y0: y0, y1: y0 += +d[name] }; });
+            d.total = d.ages[d.ages.length - 1].y1;
+        });
+
+        xStackChart.domain(data.map(function (d) { return d.Year; }));
+        yStackChart.domain([0, d3.max(data, function (d) { return d.total; })]);
+
+        canvasStackChart.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + heightStackChart + ")")
+            .call(d3.axisBottom(xStackChart));
+
+        var state = canvasStackChart.selectAll(".Year")
+            .data(data)
+            .enter().append("g")
+            .attr("class", "g")
+            .attr("transform", function (d) { return "translate(" + xStackChart(d.Year) + ",0)"; });
+
+        var active_link = "0";
+        var legendClassArray = [];
+        var legend = canvasStackChart.selectAll(".legend")
+            .data(colorStackChart.domain().slice().reverse())
+            .enter().append("g")
+            .attr("class", function (d) {
+                legendClassArray.push(d.replace(/\s/g, '')); //remove spaces
+                return "legend";
+            })
+            .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+        //reverse order to match order in which bars are stacked
+        legendClassArray = legendClassArray.reverse();
+
+        state.selectAll("rect")
+            .data(function (d) { return d.ages; })
+            .enter().append("rect")
+            .attr("width", xStackChart.bandwidth())
+            .attr("class", function(i, d) { return 'class' + legendClassArray[d]; })
+            .attr("y", function (d) { return yStackChart(d.y1); })
+            .attr("height", function (d) { return yStackChart(d.y0) - yStackChart(d.y1); })
+            .style("fill", function (d) { return colorStackChart(d.name); });
+
+        legend.append("rect")
+            .attr("x", 0)
+            .attr("width", 18)
+            .attr("height", 18)
+            .style("fill", colorStackChart)
+            .attr("id", function (d, i) {
+                return "id" + d.replace(/\s/g, '');
+            })
+            .on("mouseover",function(){
+                if (active_link === "0") d3.select(this).style("cursor", "pointer");
+                else {
+                    if (active_link.split("class").pop() === this.id.split("id").pop()) {
+                        d3.select(this).style("cursor", "pointer");
+                    } else d3.select(this).style("cursor", "auto");
+                }
+            })
+            .on("click",function(d){
+                if (active_link === "0") { //nothing selected, turn on this selection
+                    d3.select(this)
+                        .style("stroke", "black")
+                        .style("stroke-width", 2);
+
+                    active_link = this.id.split("id").pop();
+                    plotSingle(this);
+
+                    //gray out the others
+                    for (i = 0; i < legendClassArray.length; i++) {
+                        if (legendClassArray[i] != active_link) {
+                            d3.select("#id" + legendClassArray[i])
+                                .style("opacity", 0.5);
+                        }
+                    }
+
+                } else { //deactivate
+                    if (active_link === this.id.split("id").pop()) {//active square selected; turn it OFF
+                        d3.select(this)
+                            .style("stroke", "none");
+
+                        active_link = "0"; //reset
+
+                        //restore remaining boxes to normal opacity
+                        for (i = 0; i < legendClassArray.length; i++) {
+                            d3.select("#id" + legendClassArray[i])
+                              .style("opacity", 1);
+                        }
+                        restorePlot(this);
+                    }
+                }
+            });
+
+        legend.append("text")
+            .attr("x", 24)
+            .attr("y", 9)
+            .attr("dy", ".35em")
+            .style("text-anchor", "start")
+            .text(function(d) { return d; });
+
+        function restorePlot(d) {
+            class_keep = d.id.split("id").pop();
+            idx = legendClassArray.indexOf(class_keep);
+
+            $.each(state.selectAll("rect"), function (i, d) {
+                //get height and y posn of base bar and selected bar
+
+                $.each(d, function(j, r) {
+                    if (r[idx]) {
+                        d3.select(r[idx])
+                            .transition()
+                            .ease(d3.easeBounce)
+                            .duration(500)
+                            .delay(100)
+                            .attr("y", y_orig[j]);
+                    }
+                });
+
+            });
+
+            //restore opacity of erased bars
+            for (i = 0; i < legendClassArray.length; i++) {
+              if (legendClassArray[i] != class_keep) {
+                d3.selectAll(".class" + legendClassArray[i])
+                  .transition()
+                  .duration(500)
+                  .delay(100)
+                  .style("opacity", 1);
+              }
+            }
+
+        }
+
+        function plotSingle(d) {
+            class_keep = d.id.split("id").pop();
+            idx = legendClassArray.indexOf(class_keep);
+
+            for (i = 0; i < legendClassArray.length; i++) {
+                if (legendClassArray[i] != class_keep) {
+                    d3.selectAll(".class" + legendClassArray[i])
+                        .transition()
+                        .duration(500)
+                        .style("opacity", 0);
+                }
+            }
+            y_orig = [];
+            $.each(state.selectAll("rect"), function (i, d) {
+                //get height and y posn of base bar and selected bar
+
+                $.each(d, function(j, r) {
+                    if (r[idx]) {
+                        h_keep = d3.select(r[idx]).attr("height");
+                        y_keep = d3.select(r[idx]).attr("y");
+                        y_orig.push(y_keep);
+
+                        h_base = d3.select(r[0]).attr("height");
+                        y_base = d3.select(r[0]).attr("y");
+
+                        h_shift = h_keep - h_base;
+                        y_new = y_base - h_shift;
+
+                        d3.select(r[idx])
+                            .transition()
+                            .ease(d3.easeBounce)
+                            .duration(500)
+                            .delay(100)
+                            .attr("y", y_new);
+                    }
+                });
+
+            });
+
+        }
+    }
+
+</script>
 {% endblock %}

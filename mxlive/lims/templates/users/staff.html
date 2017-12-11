@@ -84,16 +84,15 @@
                 </a>
             </div>
             <h3 class="underline">Active Beamline Sessions</h3>
-                <div class="list-group list-group-hover">
-                    {% for session in sessions %}
-                        {% include "users/entries/session-list-item.html" with session=session %}
-                    {% empty %}
-                        <div class="list-group-item empty">
-                            No active sessions at the moment.
-                        </div>
-                    {% endfor %}
-                </div>
-
+            <div class="list-group list-group-hover">
+                {% for session in sessions %}
+                    {% include "users/entries/session-list-item.html" with session=session %}
+                {% empty %}
+                    <div class="list-group-item empty">
+                        No active sessions at the moment.
+                    </div>
+                {% endfor %}
+            </div>
         </div>
 
         <div class="col-xs-12 col-sm-3">

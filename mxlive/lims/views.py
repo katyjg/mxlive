@@ -743,15 +743,6 @@ class BeamlineHistory(AdminRequiredMixin, ListViewMixin, FilteredListView):
 class BeamlineStatistics(BeamlineDetail):
     template_name = "users/entries/beamline-statistics.html"
 
-    def get_context_data(self, **kwargs):
-        context = super(BeamlineStatistics, self).get_context_data(**kwargs)
-        context['data'] = {}
-        context['scans'] = {}
-        for f in ['exposure_time','attenuation','beam_size','energy']:
-            context['data'][f] = [float(e) for e in self.object.data_set.filter(kind__startswith="MX").values_list(f, flat=True) if e != None]
-            context['scans'][f] = [float(e) for e in models.Data.objects.filter(kind__contains="SCAN").values_list(f, flat=True) if e != None]
-        return context
-
 
 class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.DewarForm
@@ -798,6 +789,7 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                     }
                     container, created = models.Container.objects.get_or_create(**data)
             elif label == 'groups':
+                print form.cleaned_data
                 sample_locations = json.loads(form.cleaned_data['sample_locations'])
                 for i, name in enumerate(form.cleaned_data['name_set']):
                     if name:
@@ -815,7 +807,7 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                         j = 1
                         slug_map = {slugify(c.name): c.name for c in self.shipment.container_set.all()}
                         for c, locations in sample_locations.get(group.name, {}).items():
-                            container = self.shipment.container_set.get(name__iexact=slug_map[c])
+                            container = self.shipment.container_set.get(name__iexact=slug_map.get(c,''))
                             for k, sample in enumerate(locations):
                                 name = "{0}-{1:02d}".format(group.name, j)
                                 to_create.append(models.Sample(group=group, container=container, location=sample,
