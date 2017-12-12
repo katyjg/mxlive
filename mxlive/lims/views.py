@@ -794,7 +794,6 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                     }
                     container, created = models.Container.objects.get_or_create(**data)
             elif label == 'groups':
-                print form.cleaned_data
                 sample_locations = json.loads(form.cleaned_data['sample_locations'])
                 for i, name in enumerate(form.cleaned_data['name_set']):
                     if name:
