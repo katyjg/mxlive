@@ -51,7 +51,7 @@ def get_session_stats(data):
                     'title': '',
                     'kind': 'table',
                     'data': [['Total Time', humanize_duration(data.first().session.total_time())],
-                             ['First Login', data.first().session.start() and datetime.strftime(data.first().session.start(), '%c') or ''],
+                             ['First Login', data.first().session.stretches.last() and datetime.strftime(data.first().session.start(), '%c') or ''],
                              ['Datasets', data.filter(kind="MX_DATA").count()],
                              ['Screens', data.filter(kind="MX_SCREEN").count()]],
                     'header': 'column',
