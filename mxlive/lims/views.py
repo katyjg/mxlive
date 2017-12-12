@@ -704,6 +704,11 @@ class SessionDetail(OwnerRequiredMixin, detail.DetailView):
     template_name = "users/entries/session.html"
 
 
+class SessionStatistics(AdminRequiredMixin, detail.DetailView):
+    model = models.Session
+    template_name = "users/entries/session-statistics.html"
+
+
 class BeamlineDetail(AdminRequiredMixin, detail.DetailView):
     model = models.Beamline
     template_name = "users/entries/beamline.html"

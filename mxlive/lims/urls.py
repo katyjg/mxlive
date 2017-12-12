@@ -67,6 +67,7 @@ urlpatterns = [
     url(r'^sessions/$', views.SessionList.as_view(), name='session-list'),
     url(r'^sessions/(?P<pk>\d+)/$', views.SessionDetail.as_view(), name='session-detail'),
     url(r'^sessions/(?P<pk>\d+)/history/$', views.SessionDetail.as_view(template_name="users/entries/session-history.html"), name='session-history'),
+    url(r'^sessions/(?P<pk>\d+)/statistics/$', views.SessionStatistics.as_view(template_name="users/entries/session-statistics.html"), name='session-statistics'),
     url(r'^sessions/(?P<pk>\d+)/data/$', views.DataListDetail.as_view(template_name="users/entries/session-data.html", extra_model=models.Session), name='session-data'),
     url(r'^sessions/(?P<pk>\d+)/reports/$', views.ReportListDetail.as_view(template_name="users/entries/session-reports.html", extra_model=models.Session), name='session-reports'),
 

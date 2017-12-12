@@ -1,0 +1,178 @@
+{% extends "users/entries/session.html" %}
+
+{% load static %}
+{% load json_to_dict %}
+{% load stats %}
+
+{% block object_tools %}
+    <span class="box-tools pull-right">
+        <a class="pull-right" data-url="{% url "session-history" object.pk %}">
+            <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-history"></i>
+                </span><br>
+                <span class="tool-label">History</span>
+            </span>
+        </a>
+    </span>
+
+{% endblock %}
+
+{% block full %}
+
+<div class="row">
+    <div id="data-stats" class="col-xs-7"></div>
+    <div id="data-plot" class="col-xs-5"></div>
+</div>
+<div class="row">
+    <div class="col-xs-12">
+        <section class="container col-xs-12">
+            <div class="col-xs-12">
+                <h3 class="section-title">{{ object.start|date }} {% ifnotequal object.start|date object.end|date %}to {{ object.end|date }}{% endifnotequal %}</h3>
+                <div width="100%" id="timeline" data-toggle="tooltip" title="Session Timeline"></div>
+            </div>
+        </section>
+    </div>
+    {% get_session_gaps object.data_set.all as gaps %}
+    <div class="col-xs-12">
+        <section class="container col-xs-12">
+            <div class="col-xs-12">
+                <h3 class="section-title">Time Gaps</h3>
+            </div>
+            <div class="col-xs-12">
+                <p>Periods of possible inactivity greater than 10 minutes</p>
+            </div>
+            <div class="col-xs-12">
+                <table class="table table-hover table-condensed">
+                    <thead>
+                    <tr><th>Start</th><th>End</th><th>Duration</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for gap in gaps %}
+                        <tr><td>{{ gap.0 }}</td><td>{{ gap.1 }}</td><td>{{ gap.2 }}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+
+
+<link href="{% static "css/reports.css" %}" rel="stylesheet">
+
+<script type="text/javascript" src="{% static "js/d3.v4.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/d3.legend.js" %}"></script>
+<script type="text/javascript" src="{% static "js/showdown.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/live-reports.js" %}"></script>
+
+<script>
+    var json = {% get_session_stats object.data_set.all %};
+    build_report('#data-stats', json);
+
+    var raw = json.details[0].content[0].data
+    var data = []
+    $.each(raw[0], function(i, year) {
+       var row = {"Year": year}
+       if (year && year !== "All") {
+           for (j = 1; j < raw.length; j++) {
+               if (raw[j][0] !== "Total") {
+                   row[raw[j][0]] = raw[j][i];
+               }
+           }
+           data.push(row);
+       }
+    });
+
+    //Draw Stack Chart
+    var margin = { top: 20, right: 20, bottom: 30, left: 40 },
+        width = 500 - margin.left - margin.right,
+        height = 300 - margin.top - margin.bottom;
+
+    var x = d3.scaleBand().range([0, width]).padding(0.1);
+    var y = d3.scaleLinear().range([height, 0]);
+    var colors = d3.scaleOrdinal(["#883A6A", "#C27844", "#551863", "#CBEFB6", "#5BC0DE"])
+
+    var canvas = d3.select("#data-plot").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    drawStackChart(data, canvas, colors, x, y, height);
+</script>
+
+
+<script src="/static/js/d3-timeline.js"></script>
+<script>
+    var endDate = {{ object.end|date:'U' }}000;
+    var cycleData = [
+        {% for stretch in object.stretches.with_duration %}
+        {
+            times: [{
+                "starting_time": {{ stretch.start|date:'U' }}000,
+                "ending_time": {{ stretch.end|date:'U' }}000,
+                "color": "rgb(174,199,232)"
+            }],
+            hover: "Beamline Stretch ({{ stretch.duration }})"
+        },
+        {% endfor %}
+        {% for data in object.datasets %}
+            {
+                times: [{
+                    "starting_time": {{ data|started|date:'U' }}000,
+                    "ending_time": {{ data.created|date:'U' }}000,
+                    "y": {{ data.num_frames }},
+                    "color": "rgb(31,119,180)"
+                }],
+                hover: "{{ data.get_kind_display }} | {{ data }} | {{ data.created }}"
+            },
+        {% endfor %}
+        {% if object.due_date %}
+            {
+                times: [{
+                    "starting_time": {{ object.due_date|date:'U' }}000,
+                    "display": "circle",
+                    "color": "rgb(31,119,180)"
+                }],
+                hover: "Reviews Due {{ object.due_date|date:'D, M j' }}"
+            },
+        {% endif %}
+    ];
+
+    function cycleTimeline() {
+        var chart = d3.timeline()
+                .margin({left: 15, right: 15, top: 15, bottom: 15})
+                .itemHeight(100)
+                .tickFormat({
+                    format: d3.timeFormat("%-I %p"),
+                    tickTime: d3.timeHour,
+                    tickInterval: {{ timeline_width|default:1 }},
+                    tickSize: 5
+                })
+                .mouseover(function(d, i, datum) {
+                    $(i).addClass('full');
+                })
+            .mouseout(function(d, i, datum) {
+                $(i).removeClass('full');
+            })
+                .showToday()
+                .showTodayFormat({width: 2, marginTop: 2, marginBottom: 0, color: "rgba(254,128,40,0.5)"})
+                .hover(function (d, i, datum){
+                    $('#timeline').attr("title", datum.hover);
+                });
+        var width = $("#timeline").width();
+        var svg = d3.select("#timeline")
+                .append("svg")
+                .attr("width", width)
+                .datum(cycleData).call(chart);
+
+        function resize(e){
+            var width = $('#timeline').width();
+        }
+        $(window).on('resize', resize);
+    }
+    cycleTimeline();
+</script>
+
+{% endblock %}

@@ -31,6 +31,16 @@
 </span>
 {% endif %}
 <span class="box-tools pull-right">
+    {% if user.is_superuser %}
+        <a class="pull-right" href="{% url "session-statistics" pk=object.pk %}">
+            <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-bar-chart"></i>
+                </span><br>
+                <span class="tool-label">Statistics</span>
+            </span>
+        </a>
+    {% endif %}
     <a class="pull-right" data-url="{% url "session-history" object.pk %}">
         <span class="pull-right">
             <span class="fa-stack">

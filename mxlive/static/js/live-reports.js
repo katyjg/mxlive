@@ -140,6 +140,189 @@ function draw_pie_chart() {
     return chart;
 }
 
+function drawStackChart(rawdata, canvasStackChart, colorStackChart, xStackChart, yStackChart, heightStackChart) {
+
+    colorStackChart.domain(d3.keys(data[0]).filter(function (key) { return key !== "Year"; }));
+
+    data.forEach(function (d) {
+        var y0 = 0;
+        d.ages = colorStackChart.domain().map(function (name) { return { name: name, y0: y0, y1: y0 += +d[name] }; });
+        d.total = d.ages[d.ages.length - 1].y1;
+    });
+
+    xStackChart.domain(data.map(function (d) { return d.Year; }));
+    yStackChart.domain([0, d3.max(data, function (d) { return d.total; })]);
+
+    canvasStackChart.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + heightStackChart + ")")
+        .call(d3.axisBottom(xStackChart));
+
+    var state = canvasStackChart.selectAll(".Year")
+        .data(data)
+        .enter().append("g")
+        .attr("class", "g")
+        .attr("transform", function (d) { return "translate(" + xStackChart(d.Year) + ",0)"; });
+
+    var active_link = "0";
+    var legendClassArray = [];
+    var legend = canvasStackChart.selectAll(".legend")
+        .data(colorStackChart.domain().slice().reverse())
+        .enter().append("g")
+        .attr("class", function (d) {
+            legendClassArray.push(d.replace(/\s/g, '')); //remove spaces
+            return "legend";
+        })
+        .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+    //reverse order to match order in which bars are stacked
+    legendClassArray = legendClassArray.reverse();
+
+    state.selectAll("rect")
+        .data(function (d) { return d.ages; })
+        .enter().append("rect")
+        .attr("width", xStackChart.bandwidth())
+        .attr("class", function(i, d) { return 'class' + legendClassArray[d]; })
+        .attr("y", function (d) { return yStackChart(d.y1); })
+        .attr("height", function (d) { return yStackChart(d.y0) - yStackChart(d.y1); })
+        .style("fill", function (d) { return colorStackChart(d.name); });
+
+    if (legendClassArray.length > 1) {
+        legend.append("rect")
+            .attr("x", 0)
+            .attr("width", 18)
+            .attr("height", 18)
+            .style("fill", colorStackChart)
+            .attr("id", function (d, i) {
+                return "id" + d.replace(/\s/g, '');
+            })
+            .on("mouseover", function () {
+                if (active_link === "0") d3.select(this).style("cursor", "pointer");
+                else {
+                    if (active_link.split("class").pop() === this.id.split("id").pop()) {
+                        d3.select(this).style("cursor", "pointer");
+                    } else d3.select(this).style("cursor", "auto");
+                }
+            })
+            .on("click", function (d) {
+                if (active_link === "0") { //nothing selected, turn on this selection
+                    d3.select(this)
+                        .style("stroke", "black")
+                        .style("stroke-width", 2);
+
+                    active_link = this.id.split("id").pop();
+                    plotSingle(this);
+
+                    //gray out the others
+                    for (i = 0; i < legendClassArray.length; i++) {
+                        if (legendClassArray[i] != active_link) {
+                            d3.select("#id" + legendClassArray[i])
+                                .style("opacity", 0.5);
+                        }
+                    }
+
+                } else { //deactivate
+                    if (active_link === this.id.split("id").pop()) {//active square selected; turn it OFF
+                        d3.select(this)
+                            .style("stroke", "none");
+
+                        active_link = "0"; //reset
+
+                        //restore remaining boxes to normal opacity
+                        for (i = 0; i < legendClassArray.length; i++) {
+                            d3.select("#id" + legendClassArray[i])
+                                .style("opacity", 1);
+                        }
+                        restorePlot(this);
+                    }
+                }
+            });
+
+        legend.append("text")
+            .attr("x", 24)
+            .attr("y", 9)
+            .attr("dy", ".35em")
+            .style("text-anchor", "start")
+            .text(function (d) {
+                return d;
+            });
+    }
+
+    function restorePlot(d) {
+        class_keep = d.id.split("id").pop();
+        idx = legendClassArray.indexOf(class_keep);
+
+        $.each(state.selectAll("rect"), function (i, d) {
+            //get height and y posn of base bar and selected bar
+
+            $.each(d, function(j, r) {
+                if (r[idx]) {
+                    d3.select(r[idx])
+                        .transition()
+                        .ease(d3.easeBounce)
+                        .duration(500)
+                        .delay(100)
+                        .attr("y", y_orig[j]);
+                }
+            });
+
+        });
+
+        //restore opacity of erased bars
+        for (i = 0; i < legendClassArray.length; i++) {
+          if (legendClassArray[i] != class_keep) {
+            d3.selectAll(".class" + legendClassArray[i])
+              .transition()
+              .duration(500)
+              .delay(100)
+              .style("opacity", 1);
+          }
+        }
+
+    }
+
+    function plotSingle(d) {
+        class_keep = d.id.split("id").pop();
+        idx = legendClassArray.indexOf(class_keep);
+
+        for (i = 0; i < legendClassArray.length; i++) {
+            if (legendClassArray[i] != class_keep) {
+                d3.selectAll(".class" + legendClassArray[i])
+                    .transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            }
+        }
+        y_orig = [];
+        $.each(state.selectAll("rect"), function (i, d) {
+            //get height and y posn of base bar and selected bar
+
+            $.each(d, function(j, r) {
+                if (r[idx]) {
+                    h_keep = d3.select(r[idx]).attr("height");
+                    y_keep = d3.select(r[idx]).attr("y");
+                    y_orig.push(y_keep);
+
+                    h_base = d3.select(r[0]).attr("height");
+                    y_base = d3.select(r[0]).attr("y");
+
+                    h_shift = h_keep - h_base;
+                    y_new = y_base - h_shift;
+
+                    d3.select(r[idx])
+                        .transition()
+                        .ease(d3.easeBounce)
+                        .duration(500)
+                        .delay(100)
+                        .attr("y", y_new);
+                }
+            });
+
+        });
+
+    }
+}
+
 function draw_xy_chart() {
 
     function chart(selection) {

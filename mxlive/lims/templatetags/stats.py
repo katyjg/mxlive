@@ -2,6 +2,7 @@ from django import template
 from django.utils.safestring import mark_safe
 
 from lims.models import *
+from converter import humanize_duration
 
 from collections import defaultdict
 import json
@@ -28,6 +29,61 @@ def get_data_stats(bl):
         }
     ]}
     return mark_safe(json.dumps(stats))
+
+
+@register.assignment_tag(takes_context=False)
+def get_session_stats(data):
+    table = [[k for k, _ in Data.DATA_TYPES], [data.filter(kind=k).count() for k, _ in Data.DATA_TYPES]]
+    stats = {'details': [
+        {
+            'title': 'Session Statistics',
+            'description': 'Data Collection Summary',
+            'style': "col-xs-12",
+            'content': [
+                {
+                    'title': '',
+                    'kind': 'table',
+                    'data': table,
+                    'header': 'row'
+                },
+                {
+                    'title': '',
+                    'kind': 'table',
+                    'data': [['Total Time', data.first().session.total_time()],
+                             ['First Login', datetime.strftime(data.first().session.start(), '%c')],
+                             ['Avg Frames/Dataset', sum([len(d.frames) for d in data.filter(kind="MX_DATA")]) / data.filter(
+                                  kind="MX_DATA").count() if data.filter(kind="MX_DATA").count() else 0]],
+                    'header': 'column',
+                    'style': 'col-xs-6',
+                },
+                {
+                    'title': '',
+                    'kind': 'table',
+                    'data': [['Shutter Open', humanize_duration(hours=sum([d.exposure_time * d.num_frames() for d in data.all()]) / 3600., sec=True)],
+                             ['Last Dataset', datetime.strftime(data.last().created, '%c')],
+                             ['Avg Frames/Screen', sum([len(d.frames) for d in data.filter(kind="MX_SCREEN")]) / data.filter(
+                                  kind="MX_SCREEN").count() if data.filter(kind="MX_SCREEN").count() else 0]],
+                    'header': 'column',
+                    'style': 'col-xs-6',
+                },
+            ]
+        }
+    ]}
+    return mark_safe(json.dumps(stats))
+
+
+@register.assignment_tag(takes_context=False)
+def get_session_gaps(data):
+    gaps = []
+    for i in range(data.count()-1):
+        if data[i].created <= (started(data[i+1]) - timedelta(minutes=10)):
+            gaps.append([data[i].created, started(data[i+1]), humanize_duration((started(data[i+1])-data[i].created).total_seconds()/3600.)])
+    return gaps
+
+
+@register.filter
+def started(data):
+    return data.created - timedelta(seconds=(data.exposure_time*data.num_frames()))
 
 
 def summarize_activity(qset):
