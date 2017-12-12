@@ -34,6 +34,7 @@
         </section>
     </div>
     {% get_session_gaps object.data_set.all as gaps %}
+    {% if gaps %}
     <div class="col-xs-12">
         <section class="container col-xs-12">
             <div class="col-xs-12">
@@ -56,6 +57,7 @@
             </div>
         </section>
     </div>
+    {% endif %}
 </div>
 
 

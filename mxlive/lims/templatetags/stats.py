@@ -44,15 +44,16 @@ def get_session_stats(data):
                     'title': '',
                     'kind': 'table',
                     'data': table,
-                    'header': 'row'
+                    'header': 'row',
+                    'style': 'hidden'
                 },
                 {
                     'title': '',
                     'kind': 'table',
-                    'data': [['Total Time', data.first().session.total_time()],
+                    'data': [['Total Time', humanize_duration(data.first().session.total_time())],
                              ['First Login', datetime.strftime(data.first().session.start(), '%c')],
-                             ['Avg Frames/Dataset', sum([len(d.frames) for d in data.filter(kind="MX_DATA")]) / data.filter(
-                                  kind="MX_DATA").count() if data.filter(kind="MX_DATA").count() else 0]],
+                             ['Datasets', data.filter(kind="MX_DATA").count()],
+                             ['Screens', data.filter(kind="MX_SCREEN").count()]],
                     'header': 'column',
                     'style': 'col-xs-6',
                 },
@@ -61,6 +62,8 @@ def get_session_stats(data):
                     'kind': 'table',
                     'data': [['Shutter Open', humanize_duration(hours=sum([d.exposure_time * d.num_frames() for d in data.all()]) / 3600., sec=True)],
                              ['Last Dataset', datetime.strftime(data.last().created, '%c')],
+                             ['Avg Frames/Dataset', sum([len(d.frames) for d in data.filter(kind="MX_DATA")]) / data.filter(
+                                  kind="MX_DATA").count() if data.filter(kind="MX_DATA").count() else 0],
                              ['Avg Frames/Screen', sum([len(d.frames) for d in data.filter(kind="MX_SCREEN")]) / data.filter(
                                   kind="MX_SCREEN").count() if data.filter(kind="MX_SCREEN").count() else 0]],
                     'header': 'column',
@@ -74,6 +77,7 @@ def get_session_stats(data):
 
 @register.assignment_tag(takes_context=False)
 def get_session_gaps(data):
+    data = data.order_by('created')
     gaps = []
     for i in range(data.count()-1):
         if data[i].created <= (started(data[i+1]) - timedelta(minutes=10)):
