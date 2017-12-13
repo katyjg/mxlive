@@ -279,7 +279,8 @@
               return colorCycle(index);
             })
             .on("mousemove", function (d, i) {
-              hover(d, index, datum);
+              var mouse = d3.mouse(this);
+              hover(d, index, datum, mouse[0], xScale.invert(mouse[0]));
             })
             .on("mouseover", function (d, i) {
                 if (d.y) {
@@ -287,7 +288,7 @@
                 }
             })
             .on("mouseout", function (d, i) {
-              mouseout(d, this, datum);
+              mouseout(d, i, datum);
             })
             .on("click", function (d, i) {
               click(d, index, datum);
@@ -453,11 +454,15 @@
       function appendLine(lineScale, lineFormat) {
         gParent.append("svg:line")
           .attr("x1", lineScale)
-          .attr("y1", lineFormat.marginTop)
+          .attr("y1", margin.top)
           .attr("x2", lineScale)
-          .attr("y2", height - lineFormat.marginBottom)
+          .attr("y2", height + margin.bottom + 10)
           .style("stroke", lineFormat.color)//"rgb(6,120,155)")
           .style("stroke-width", lineFormat.width);
+        gParent.append("rect").attr("rx", 4).attr("class", "indicator-box");
+        gParent.append("text")
+            .attr("class", "indicator")
+            .style("opacity", 0);
       }
 
     }

@@ -32,7 +32,7 @@ def get_data_stats(bl):
 
 
 @register.assignment_tag(takes_context=False)
-def get_session_stats(data):
+def get_session_stats(data, session):
     table = [[k for k, _ in Data.DATA_TYPES], [data.filter(kind=k).count() for k, _ in Data.DATA_TYPES]]
     stats = {'details': [
         {
@@ -50,8 +50,8 @@ def get_session_stats(data):
                 {
                     'title': '',
                     'kind': 'table',
-                    'data': [['Total Time', humanize_duration(data.first().session.total_time())],
-                             ['First Login', data.first().session.stretches.last() and datetime.strftime(data.first().session.start(), '%c') or ''],
+                    'data': [['Total Time', humanize_duration(session.total_time())],
+                             ['First Login', session.stretches.last() and timezone.datetime.strftime(session.start(), '%c') or ''],
                              ['Datasets', data.filter(kind="MX_DATA").count()],
                              ['Screens', data.filter(kind="MX_SCREEN").count()]],
                     'header': 'column',
@@ -61,7 +61,7 @@ def get_session_stats(data):
                     'title': '',
                     'kind': 'table',
                     'data': [['Shutter Open', humanize_duration(hours=sum([d.exposure_time * d.num_frames() for d in data.all()]) / 3600., sec=True)],
-                             ['Last Dataset', datetime.strftime(data.last().created, '%c')],
+                             ['Last Dataset', data.last() and timezone.datetime.strftime(data.last().created, '%c') or ''],
                              ['Avg Frames/Dataset', sum([len(d.frames) for d in data.filter(kind="MX_DATA")]) / data.filter(
                                   kind="MX_DATA").count() if data.filter(kind="MX_DATA").count() else 0],
                              ['Avg Frames/Screen', sum([len(d.frames) for d in data.filter(kind="MX_SCREEN")]) / data.filter(

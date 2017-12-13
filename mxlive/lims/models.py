@@ -3,7 +3,7 @@ from django.utils.translation import ugettext as _
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Q, F, Avg, Count
+from django.db.models import Q, F, Avg, Count, ExpressionWrapper
 from django.utils import dateformat, timezone
 from django.contrib.auth.models import AbstractUser
 
@@ -278,7 +278,7 @@ class Session(models.Model):
         return self.stretches.last() and self.stretches.last().start or 'Never'
 
     def end(self):
-        return self.data_set.order_by('created').last() and self.data_set.order_by('created').last().created
+        return self.stretches.first() and self.stretches.first().end or None
 
 
 class Stretch(models.Model):

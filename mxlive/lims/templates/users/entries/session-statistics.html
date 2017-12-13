@@ -3,6 +3,7 @@
 {% load static %}
 {% load json_to_dict %}
 {% load stats %}
+{% load tz %}
 
 {% block object_tools %}
     <span class="box-tools pull-right">
@@ -21,14 +22,14 @@
 {% block full %}
 
 <div class="row">
-    <div id="data-stats" class="col-xs-7"></div>
-    <div id="data-plot" class="col-xs-5"></div>
+    <div id="data-stats" class="col-sm-7 col-xs-12"></div>
+    <div id="data-plot" class="col-sm-5 col-xs-12"></div>
 </div>
 <div class="row">
     <div class="col-xs-12">
         <section class="container col-xs-12">
             <div class="col-xs-12">
-                <h3 class="section-title">{{ object.start|date }} {% ifnotequal object.start|date object.end|date %}to {{ object.end|date }}{% endifnotequal %}</h3>
+                <h3 class="section-title">{{ object.start|date }} {% if object.is_active %}to {% now "N j, Y"%}{% else %}{% ifnotequal object.start|date object.end|date %}to {{ object.end|date }}{% endifnotequal %}{% endif %}</h3>
                 <div width="100%" id="timeline" data-toggle="tooltip" title="Session Timeline"></div>
             </div>
         </section>
@@ -67,9 +68,15 @@
 <script type="text/javascript" src="{% static "js/d3.legend.js" %}"></script>
 <script type="text/javascript" src="{% static "js/showdown.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/live-reports.js" %}"></script>
+<style> /* set the CSS */
 
+.indicator, .indicator-box {
+  position: absolute;
+}
+
+</style>
 <script>
-    var json = {% get_session_stats object.data_set.all %};
+    var json = {% get_session_stats object.data_set.all object %};
     build_report('#data-stats', json);
 
     var raw = json.details[0].content[0].data
@@ -105,7 +112,7 @@
 </script>
 
 
-<script src="/static/js/d3-timeline.js"></script>
+<script src="{% static 'js/d3-timeline.js' %}"></script>
 <script>
     var endDate = {{ object.end|date:'U' }}000;
     var cycleData = [
@@ -119,6 +126,16 @@
             hover: "Beamline Stretch ({{ stretch.duration }})"
         },
         {% endfor %}
+        {% if object.is_active %}
+            {
+                times: [{
+                    "starting_time": {{ object.stretches.last.start|date:'U' }}000,
+                    "ending_time": {{ now|date:'U' }}000,
+                    "color": "rgb(174, 199, 232)"
+                }],
+                hover: "Active Beamline Stretch"
+            },
+        {% endif %}
         {% for data in object.datasets %}
             {
                 times: [{
@@ -127,7 +144,7 @@
                     "y": {{ data.num_frames }},
                     "color": "rgb(31,119,180)"
                 }],
-                hover: "{{ data.get_kind_display }} | {{ data }} | {{ data.created }}"
+                hover: "{{ data.get_kind_display }} | {{ data }}"
             },
         {% endfor %}
         {% if object.due_date %}
@@ -149,19 +166,40 @@
                 .tickFormat({
                     format: d3.timeFormat("%-I %p"),
                     tickTime: d3.timeHour,
-                    tickInterval: {{ timeline_width|default:1 }},
+                    numTicks: Math.min({{ object.total_time }}, 24),
+                    tickInterval: 1,
                     tickSize: 5
                 })
-                .mouseover(function(d, i, datum) {
-                    $(i).addClass('full');
-                })
-            .mouseout(function(d, i, datum) {
-                $(i).removeClass('full');
-            })
                 .showToday()
                 .showTodayFormat({width: 2, marginTop: 2, marginBottom: 0, color: "rgba(254,128,40,0.5)"})
-                .hover(function (d, i, datum){
-                    $('#timeline').attr("title", datum.hover);
+                .hover(function (d, i, datum, x, t){
+                    var format = d3.timeFormat("%-I:%M %p");
+                    $('line[x1]').attr('x1', x).attr('x2', x);
+
+                    d3.select('.indicator').style("opacity", 1);
+                    d3.select('.indicator-box').style("opacity", 1);
+                    if (datum.times[0].y) {
+                        var text = format(t);
+                        var fill = "rgb(31, 110, 180)";
+                        $('#timeline').attr("title", datum.hover);
+                    } else {
+                        var text = format(t);
+                        var fill = "black";
+                    }
+
+                    d3.select('.indicator').html(text);
+                    var boxwidth = $('.indicator').width() + 10;
+                    d3.select('.indicator')
+                        .attr('x', Math.max(x - boxwidth/2, 0) + 7)
+                        .attr('y', 137)
+                        .attr('fill', 'white');
+
+                   d3.select('.indicator-box')
+                       .attr('x', Math.max(x - boxwidth/2, 0))
+                       .attr('y', 120)
+                       .attr('fill', fill)
+                       .attr('width', boxwidth)
+                       .attr('height', 25);
                 });
         var width = $("#timeline").width();
         var svg = d3.select("#timeline")
