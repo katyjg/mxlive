@@ -1101,7 +1101,7 @@ class ShipmentGroupForm(forms.ModelForm):
                 cleaned_data['{}_set'.format(field)] = self.data.getlist('groups-{}'.format(field))
             else:
                 cleaned_data['{}_set'.format(field)] = self.data.getlist(field)
-
+        cleaned_data['sample_count'] = cleaned_data.get('sample_count') or 0
         if len(set(cleaned_data['name_set'])) != len(cleaned_data['name_set']):
             self.add_error(None, forms.ValidationError("Groups in a shipment must each have a unique name"))
         if not self.is_valid():

@@ -51,7 +51,7 @@ def get_session_stats(data, session):
                     'title': '',
                     'kind': 'table',
                     'data': [['Total Time', humanize_duration(session.total_time())],
-                             ['First Login', session.stretches.last() and timezone.datetime.strftime(session.start(), '%c') or ''],
+                             ['First Login', session.stretches.last() and datetime.strftime(timezone.localtime(session.start()), '%B %d, %Y %H:%M') or ''],
                              ['Datasets', data.filter(kind="MX_DATA").count()],
                              ['Screens', data.filter(kind="MX_SCREEN").count()]],
                     'header': 'column',
@@ -61,7 +61,7 @@ def get_session_stats(data, session):
                     'title': '',
                     'kind': 'table',
                     'data': [['Shutter Open', humanize_duration(hours=sum([d.exposure_time * d.num_frames() for d in data.all()]) / 3600., sec=True)],
-                             ['Last Dataset', data.last() and timezone.datetime.strftime(data.last().created, '%c') or ''],
+                             ['Last Dataset', data.last() and datetime.strftime(timezone.localtime(data.last().modified), '%c') or ''],
                              ['Avg Frames/Dataset', sum([len(d.frames) for d in data.filter(kind="MX_DATA")]) / data.filter(
                                   kind="MX_DATA").count() if data.filter(kind="MX_DATA").count() else 0],
                              ['Avg Frames/Screen', sum([len(d.frames) for d in data.filter(kind="MX_SCREEN")]) / data.filter(
@@ -87,7 +87,7 @@ def get_session_gaps(data):
 
 @register.filter
 def started(data):
-    return data.created - timedelta(seconds=(data.exposure_time*data.num_frames()))
+    return data.modified - timedelta(seconds=(data.exposure_time*data.num_frames()))
 
 
 def summarize_activity(qset):
