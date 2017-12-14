@@ -36,7 +36,7 @@ def get_session_stats(data, session):
     table = [[k for k, _ in Data.DATA_TYPES], [data.filter(kind=k).count() for k, _ in Data.DATA_TYPES]]
     stats = {'details': [
         {
-            'title': 'Session Statistics',
+            'title': 'Beamline Control Statistics',
             'description': 'Data Collection Summary',
             'style': "col-xs-12",
             'content': [

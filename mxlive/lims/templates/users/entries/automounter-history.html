@@ -30,7 +30,7 @@
                         <td class="col-xs-3">{{ stretch.child.project }} | {{ stretch.child.name }} <strong>{{ stretch.location }}</strong></td>
                         <td class="col-xs-3">{{ stretch.start }}</td>
                         <td class="col-xs-3 text-right">{{ stretch.end }}</td>
-                        <td class="col-xs-3 text-right">{{ stretch.duration|humanize_minutes|default:"0 minutes" }}</td>
+                        <td class="col-xs-3 text-right">{{ stretch.duration|humanize_duration|default:"0 minutes" }}</td>
                     </tr>
                 {% endfor %}
             </table>

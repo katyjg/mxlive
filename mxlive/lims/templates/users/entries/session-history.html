@@ -25,7 +25,7 @@
                     <tr>
                         <td class="col-xs-4">{{ stretch.start }}</td>
                         <td class="col-xs-4 text-right">{{ stretch.end }}</td>
-                        <td class="col-xs-4 text-right">{{ stretch.duration|humanize_minutes|default:"0 minutes" }}</td>
+                        <td class="col-xs-4 text-right">{{ stretch.duration|humanize_duration|default:"0 minutes" }}</td>
                     </tr>
                 {% endfor %}
             </table>

@@ -13,7 +13,7 @@ def energy_to_wavelength(energy):
     return (_h*_c)/(energy*1000.0)
 
 
-@register.filter("humanize_minutes")
+@register.filter("humanize_duration")
 def humanize_duration(hours, sec=False):
     if hours:
         days = int(hours / 24)

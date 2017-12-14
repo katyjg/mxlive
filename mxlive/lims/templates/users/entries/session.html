@@ -1,5 +1,6 @@
 {% extends "users/base.html" %}
 {% load humanize %}
+{% load converter %}
 {% load static %}
 {% load time_extras %}
 {% load data_server %}
@@ -94,7 +95,7 @@
             </div>
             <div class="col-xs-3 pull-right text-right">
                 <small class="text-muted text-condensed">Total Time:</small><br>
-                {{ object.total_time }} hour{{ object.total_time|pluralize }}
+                {{ object.total_time|humanize_duration }}
             </div>
             <div class="col-xs-3 pull-right text-right">
                 <small class="text-muted text-condensed">Start:</small><br>

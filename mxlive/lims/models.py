@@ -181,6 +181,24 @@ class Hours(models.Func):
         return self.as_sql(compiler, connection, function="strftime", template="%(function)s(\"%%%%H\",%(expressions)s)")
 
 
+class Minutes(models.Func):
+    function = 'MINUTE'
+    template = '%(function)s(%(expressions)s)'
+
+    def as_postgresql(self, compiler, connection):
+        self.arg_joiner = " - "
+        return self.as_sql(compiler, connection, function="EXTRACT", template="%(function)s(epoch FROM %(expressions)s)/60")
+
+    def as_mysql(self, compiler, connection):
+        self.arg_joiner = " , "
+        return self.as_sql(compiler, connection, function="TIMESTAMPDIFF", template="-%(function)s(MINUTE,%(expressions)s)")
+
+    def as_sqlite(self, compiler, connection):
+        # the template string needs to escape '%Y' to make sure it ends up in the final SQL. Because two rounds of
+        # template parsing happen, it needs double-escaping ("%%%%").
+        return self.as_sql(compiler, connection, function="strftime", template="%(function)s(\"%%%%M\",%(expressions)s)")
+
+
 class Shifts(models.Func):
     function = 'HOUR'
     template = '%(function)s(%(expressions)s)'
@@ -213,7 +231,7 @@ class StretchQuerySet(models.QuerySet):
         return self.filter(Q(end__isnull=True) | Q(end__gte=recently))
 
     def with_duration(self):
-        return self.filter(end__isnull=False).annotate(duration=Hours((F('end')-F('start')), output_field=models.FloatField()))
+        return self.filter(end__isnull=False).annotate(duration=Minutes((F('end')-F('start'))/60, output_field=models.FloatField()))
 
     def with_hours(self):
         return self.annotate(hours=Hours(F('end'), F('start'), output_field=models.FloatField()))
@@ -268,11 +286,11 @@ class Session(models.Model):
 
     def total_time(self):
         d = self.stretches.with_duration().aggregate(Avg('duration'), Count('duration'))
-        t = int((d['duration__count'] if d.get('duration__count') else 0) * (d['duration__avg'] if d.get('duration__avg') else 0))
+        t = d['duration__count'] * d['duration__avg'] if (d.get('duration__count') and d.get('duration__avg')) else 0
         if self.is_active():
-            t += int((timezone.now() - self.stretches.active().first().start).total_seconds())/3600
-        return int(t)
-    total_time.short_description = "Duration (h)"
+            t += int((timezone.now() - self.stretches.active().first().start).total_seconds())/3600.0
+        return t
+    total_time.short_description = "Duration"
 
     def start(self):
         return self.stretches.last() and self.stretches.last().start or 'Never'
