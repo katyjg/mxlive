@@ -938,7 +938,7 @@ function build_report(selector, report) {
 
                 var pie_chart = draw_pie_chart()
                     .width(width)
-                    .height(400)
+                    .height(width)
                     .innerRadius(entry['kind'] === 'gauge' && 0.5 || 0);
                 var svg = d3.select('#figure-' + i + '-' + j).append("svg").attr('id', 'plot-' + i + "-" + j).attr('class', 'gauge')
                     .datum(data)

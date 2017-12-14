@@ -28,11 +28,11 @@
                 </a>
             </div>
             <div class="overflow ellipsis">
-                <div class="box-status pull-left text-center text-muted" title="Total time {{ session.total_time }} hours">
+                <div class="box-status pull-left text-center text-muted" title="Total time {{ session.total_time|floatformat:0 }} hours">
                     <span class="fa-stack">
                         <i class="fa-stack-2x fa fa-clock-o"></i>
                             <span class="fa-stack-1x superscript">
-                                <span class="badge progress-bar-success">{{ session.total_time }}</span>
+                                <span class="badge progress-bar-success">{{ session.total_time|floatformat:0 }}</span>
                             </span>
                     </span>
                     <br><span>{{ session.start.date|date:"M j" }}</span>

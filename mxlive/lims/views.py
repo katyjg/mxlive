@@ -687,6 +687,10 @@ class ActivityLogList(ListViewMixin, FilteredListView):
     detail_target = '#modal-form'
 
 
+def format_total_time(val, record):
+    return int(val) or ""
+
+
 class SessionList(ListViewMixin, FilteredListView):
     model = models.Session
     list_filter = ['created', 'beamline', ]
@@ -695,7 +699,9 @@ class SessionList(ListViewMixin, FilteredListView):
     owner_field = "project__username"
     order_by = ['-created']
     ordering_proxies = {}
-    list_transforms = {}
+    list_transforms = {
+        'total_time': format_total_time
+    }
     detail_url = 'session-detail'
 
 
