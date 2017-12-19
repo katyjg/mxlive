@@ -680,7 +680,7 @@ class Container(LoadableBaseClass):
     shipment = models.ForeignKey(Shipment, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(default=0)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True, related_name="children")
+    parent = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, related_name="children")
     location = models.ForeignKey(ContainerLocation, blank=True, null=True)
 
     class Meta:
@@ -940,7 +940,7 @@ class Sample(LimsBaseClass):
         'container': 'This field is optional here.  Samples can also be added to a container on the containers page.',
     }
     barcode = models.SlugField(null=True, blank=True)
-    container = models.ForeignKey(Container, null=True, blank=True)
+    container = models.ForeignKey(Container, null=True, blank=True, on_delete=models.CASCADE)
     location = models.CharField(max_length=10, null=True, blank=True, verbose_name='port')
     comments = models.TextField(blank=True, null=True)
     collect_status = models.BooleanField(default=False)

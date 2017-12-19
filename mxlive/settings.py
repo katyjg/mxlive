@@ -36,6 +36,10 @@ INTERNAL_IPS = [
     '127.0.0.1/32',
 ]
 
+BL_NAME = "CMCF"
+BL_WEB = "http://cmcf.lightsource.ca"
+APP_LABEL = "MxLIVE"
+
 # Application definition
 INSTALLED_APPS = (
     'django.contrib.admin',

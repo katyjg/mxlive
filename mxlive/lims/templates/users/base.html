@@ -1,4 +1,5 @@
 {% load static %}
+{% load get_version %}
 
 <!DOCTYPE html>
 <html lang="en" class="{% block html_class %}{% endblock %}">
@@ -6,7 +7,7 @@
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{% block page_title %}MxLIVE{% endblock %}</title>
+        <title>{% block page_title %}{{ "APP_LABEL"|get_from_settings }}{% endblock %}</title>
 
         <link href="{% static "img/logo.ico" %}" rel="SHORTCUT ICON">
         <link href="{% static "css/reset.css" %}" rel="stylesheet"> <!-- CSS reset -->
@@ -64,7 +65,7 @@
             <div class="footer text-muted">
                 <div class="footer-wrapper">
                     <div class="footer-item">&copy; {% now "Y" %}</div>
-                    <div class="footer-item"><a class="text-muted" href="http://cmcf.lightsource.ca">CMCF Home</a></div>
+                    <div class="footer-item"><a class="text-muted" href="{{ 'BL_WEB'|get_from_settings }}">{{ 'BL_NAME'|get_from_settings }} Home</a></div>
                 </div>
             </div>
         {% endif %}

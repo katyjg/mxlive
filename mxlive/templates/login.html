@@ -1,6 +1,7 @@
 {% extends "users/base.html" %}
 
 {% load static %}
+{% load get_version %}
 
 {% block extra_css %}
 <style>
@@ -117,10 +118,10 @@
         <div class="container">
             <div class="row">
                 <div class="col-xs-12 text-center text">
-                    <h1><strong>MxLIVE</strong> Login</h1>
+                    <h1><strong>{{ 'APP_LABEL'|get_from_settings }}</strong> Login</h1>
                     <div class="description">
                         <p>
-                            Your portal to CMCF, from sample prep to data analysis.
+                            Your portal to <a href="{{ 'BL_WEB'|get_from_settings }}">{{ 'BL_NAME'|get_from_settings }}</a>, from sample prep to data analysis.
                         </p>
                     </div>
                 </div>
@@ -129,7 +130,7 @@
                 <div class="col-sm-6 col-sm-offset-3 form-box">
                     <div class="form-top">
                         <div class="form-top-left">
-                            <h3>Login to MxLIVE</h3>
+                            <h3>Login to {{ 'APP_LABEL'|get_from_settings }}</h3>
                             <p>Enter your beamline username and password to log on:</p>
                         </div>
                         <div class="form-top-right">
