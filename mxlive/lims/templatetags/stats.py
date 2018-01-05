@@ -95,7 +95,6 @@ def get_data_stats(bl, year):
 @register.assignment_tag(takes_context=False)
 def get_usage_stats(bl, year):
     data = bl.data_set.all()
-    kinds = [k for k in Data.DATA_TYPES if data.filter(kind=k[0]).exists()]
     sessions = bl.sessions.filter(created__year=year).order_by('project')
     data = [[Project.objects.get(pk=p).username,
               sessions.filter(project=p).count(),
@@ -114,7 +113,7 @@ def get_usage_stats(bl, year):
                     'kind': 'histogram',
                     'data': {
                         'x-label': 'User',
-                        'data': [{'User': u[0], 'Efficiency': u[5]} for u in sorted(data, key=lambda x: int(x[5]))],
+                        'data': [{'User': u[0], 'Efficiency': u[5]} for u in sorted(data, key=lambda x: float(x[5]))],
                     },
                     'style': 'col-sm-12'
                 },
@@ -123,7 +122,7 @@ def get_usage_stats(bl, year):
                     'kind': 'histogram',
                     'data': {
                         'x-label': 'User',
-                        'data': [{'User': u[0], 'Efficiency': u[4]} for u in sorted(data, key=lambda x: int(x[4]))],
+                        'data': [{'User': u[0], 'Efficiency': u[4]} for u in sorted(data, key=lambda x: float(x[4]))],
                     },
                     'style': 'col-sm-12'
                 },
