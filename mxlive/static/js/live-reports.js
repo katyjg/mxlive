@@ -156,7 +156,13 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
     canvasStackChart.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + heightStackChart + ")")
-        .call(d3.axisBottom(xStackChart));
+        .call(d3.axisBottom(xStackChart))
+        .selectAll("text")
+        .attr("y", 10)
+        .attr("x", -10)
+        .attr("dy", ".35em")
+        .attr("transform", "rotate(-45)")
+        .style("text-anchor", "end");
 
     var state = canvasStackChart.selectAll("."+label+"")
         .data(data)
@@ -888,7 +894,7 @@ function build_report(selector, report) {
                 $("#entry-" + i + "-" + j).append("<figure id='figure-" + i + "-" + j + "'></figure>");
                 var data = entry['data']['data'];
                 //Draw Stack Chart
-                var margin = { top: 20, right: 20, bottom: 30, left: 40 },
+                var margin = { top: 20, right: 20, bottom: 50, left: 40 },
                     width = $('#figure-' + i + "-" + j).width() - margin.left - margin.right,
                     height = width/2;
 

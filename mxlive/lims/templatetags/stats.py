@@ -97,22 +97,41 @@ def get_usage_stats(bl, year):
     data = bl.data_set.all()
     kinds = [k for k in Data.DATA_TYPES if data.filter(kind=k[0]).exists()]
     sessions = bl.sessions.filter(created__year=year).order_by('project')
+    data = [[Project.objects.get(pk=p).username,
+              sessions.filter(project=p).count(),
+              total_shifts(sessions, p),
+              int(total_time(sessions, p) / (total_shifts(sessions, p) * SHIFT) * 100),
+              "{:.2f}".format(Project.objects.get(pk=p).data_set.filter(session__in=sessions).count() / total_time(sessions, p)) if total_time(sessions, p) else "N/A",
+              Project.objects.get(pk=p).data_set.filter(session__in=sessions).count() / total_shifts(sessions, p)]
+            for p in sessions.values_list('project', flat=True).distinct()]
     stats = {'details': [
         {
             'title': 'Usage Metrics',
             'style': 'col-xs-12',
             'content': [
                 {
+                    'title': 'Average Datasets per Shift',
+                    'kind': 'histogram',
+                    'data': {
+                        'x-label': 'User',
+                        'data': [{'User': u[0], 'Efficiency': u[5]} for u in sorted(data, key=lambda x: int(x[5]))],
+                    },
+                    'style': 'col-sm-12'
+                },
+                {
+                    'title': 'Average Datasets per Hour',
+                    'kind': 'histogram',
+                    'data': {
+                        'x-label': 'User',
+                        'data': [{'User': u[0], 'Efficiency': u[4]} for u in sorted(data, key=lambda x: int(x[4]))],
+                    },
+                    'style': 'col-sm-12'
+                },
+                {
                     'kind': 'table',
                     'header': 'row',
-                    'data': [['User', 'Sessions', 'Shifts', 'Used Time (%)', 'Datasets/Hour', 'Datasets/Shift']] +
-                        [[Project.objects.get(pk=p).username,
-                          sessions.filter(project=p).count(),
-                          total_shifts(sessions, p),
-                          int(total_time(sessions, p) / (total_shifts(sessions, p) * SHIFT) * 100),
-                          "{:.2f}".format(Project.objects.get(pk=p).data_set.filter(session__in=sessions).count() / total_time(sessions, p)) if total_time(sessions, p) else "N/A",
-                          Project.objects.get(pk=p).data_set.filter(session__in=sessions).count() / total_shifts(sessions, p)]
-                        for p in sessions.values_list('project', flat=True).distinct()]}
+                    'data': [['User', 'Sessions', 'Shifts', 'Used Time (%)', 'Datasets/Hour', 'Datasets/Shift']] + data
+                }
             ]
         }
     ]}
