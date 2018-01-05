@@ -34,12 +34,21 @@
                     <span class="tool-label">Sessions</span>
                 </span>
             </a>
-            <a class="pull-right" href="{% url "beamline-statistics" pk=object.pk %}">
+            {% now "Y" as current_year %}
+            <a class="pull-right" href="{% url "usage-statistics" object.pk current_year %}">
+                <span class="pull-right">
+                    <span class="fa-stack">
+                        <i class="fa-stack-2x fa fa-2 fa-fw fa-calendar-check-o"></i>
+                    </span><br>
+                    <span class="tool-label">Usage Stats</span>
+                </span>
+            </a>
+            <a class="pull-right" href="{% url "beamline-statistics" object.pk current_year %}">
                 <span class="pull-right">
                     <span class="fa-stack">
                         <i class="fa-stack-2x fa fa-2 fa-fw fa-bar-chart"></i>
                     </span><br>
-                    <span class="tool-label">Statistics</span>
+                    <span class="tool-label">Beam Stats</span>
                 </span>
             </a>
             {% if object.active_dewar.container.children_history.all %}

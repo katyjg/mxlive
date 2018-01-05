@@ -10,7 +10,8 @@ urlpatterns = [
 
     url(r'^beamline/(?P<pk>\d+)/$', views.BeamlineDetail.as_view(), name='beamline-detail'),
     url(r'^beamline/(?P<pk>\d+)/history/$', views.BeamlineHistory.as_view(), name='beamline-history'),
-    url(r'^beamline/(?P<pk>\d+)/statistics/$', views.BeamlineStatistics.as_view(), name='beamline-statistics'),
+    url(r'^beamline/(?P<pk>\d+)/statistics/(?P<year>\d+)/$', views.BeamlineStatistics.as_view(template_name="users/entries/beamline-statistics.html"), name='beamline-statistics'),
+    url(r'^beamline/(?P<pk>\d+)/usage/(?P<year>\d+)/$', views.BeamlineStatistics.as_view(), name='usage-statistics'),
     url(r'^dewar/(?P<pk>\d+)/edit/$', views.DewarEdit.as_view(), name='dewar-edit'),
 
     url(r'^shipments/$', views.ShipmentList.as_view(), name='shipment-list'),
@@ -22,6 +23,7 @@ urlpatterns = [
     url(r'^shipments/(?P<pk>\d+)/edit/$', views.ShipmentEdit.as_view(), name='shipment-edit'),
     url(r'^shipments/(?P<pk>\d+)/delete/$', views.ShipmentDelete.as_view(), name='shipment-delete'),
     url(r'^shipments/(?P<pk>\d+)/send/$', views.SendShipment.as_view(), name='shipment-send'),
+    url(r'^shipments/(?P<pk>\d+)/comments/$', views.ShipmentComments.as_view(), name='shipment-comments'),
     url(r'^shipments/(?P<pk>\d+)/labels/$', views.ShipmentLabels.as_view(), name='shipment-labels'),
     url(r'^shipments/(?P<pk>\d+)/send/update/$', views.RecallSendShipment.as_view(), name='shipment-update-send'),
     url(r'^shipments/(?P<pk>\d+)/receive/$', views.ReceiveShipment.as_view(), name='shipment-receive'),

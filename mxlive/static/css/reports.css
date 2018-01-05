@@ -87,4 +87,7 @@ table.report-table, table + .caption {
     section {
         width: 675px;
     }
+    .hidden-print {
+        display: none;
+    }
 }

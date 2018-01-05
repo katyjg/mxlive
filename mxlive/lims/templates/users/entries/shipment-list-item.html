@@ -5,6 +5,27 @@
             {% else %}default{% endif %}">
     <div class="row">
         <div class="col-xs-12">
+            {% if user.is_superuser and object.status <= object.STATES.ON_SITE and object.status >= object.STATES.SENT %}
+                {% if object.status == object.STATES.ON_SITE %}
+                    <div class="pull-right box-tools">
+                        <a class="pull-right" data-url="{% url "shipment-return" object.pk %}" title="Return shipment">
+                            <span class="fa-stack">
+                                <i class="fa-stack-2x fa fa-2 fa-fw fa-paper-plane"></i>
+                            </span><br/>
+                            <span class="tool-label">Return</span>
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="pull-right box-tools">
+                        <a class="pull-right" data-url="{% url "shipment-receive" object.pk %}" title="Receive shipment" style="padding-left: 0.25em">
+                            <span class="fa-stack">
+                                <i class="fa-stack-2x fa fa-2 fa-handshake-o"></i>
+                            </span><br/>
+                            <span class="tool-label">Receive</span>
+                        </a>
+                    </div>
+                {% endif %}
+            {% endif %}
             {% if object.status >= object.STATES.ON_SITE %}
                 <div class="pull-right box-tools">
                     <a class="pull-right" href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
@@ -31,6 +52,7 @@
                     </a>
                 </div>
             {% endif %}
+
             <div class="box-status pull-left text-muted">
                 <div class="text-center text-muted">
                     <div title="{% if object.status == object.STATES.ON_SITE %}Location: {{ object.storage_location }}

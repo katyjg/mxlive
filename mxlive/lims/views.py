@@ -214,6 +214,14 @@ class ShipmentEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixi
         return initial
 
 
+class ShipmentComments(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+    form_class = forms.ShipmentCommentsForm
+    template_name = "forms/modal.html"
+    model = models.Shipment
+    success_message = "Shipment has been edited by staff."
+    success_url = reverse_lazy('shipment-list')
+
+
 class ShipmentDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
     template_name = "forms/delete.html"
     model = models.Shipment
@@ -752,7 +760,12 @@ class BeamlineHistory(AdminRequiredMixin, ListViewMixin, FilteredListView):
 
 
 class BeamlineStatistics(BeamlineDetail):
-    template_name = "users/entries/beamline-statistics.html"
+    template_name = "users/entries/usage-statistics.html"
+
+    def get_context_data(self, **kwargs):
+        c = super(BeamlineStatistics, self).get_context_data(**kwargs)
+        c['year'] = self.kwargs.get('year', timezone.now().year)
+        return c
 
 
 class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):

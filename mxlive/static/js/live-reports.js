@@ -140,9 +140,9 @@ function draw_pie_chart() {
     return chart;
 }
 
-function drawStackChart(rawdata, canvasStackChart, colorStackChart, xStackChart, yStackChart, heightStackChart) {
+function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackChart, yStackChart, heightStackChart) {
 
-    colorStackChart.domain(d3.keys(data[0]).filter(function (key) { return key !== "Year"; }));
+    colorStackChart.domain(d3.keys(data[0]).filter(function (key) { return key !== label; }));
 
     data.forEach(function (d) {
         var y0 = 0;
@@ -150,7 +150,7 @@ function drawStackChart(rawdata, canvasStackChart, colorStackChart, xStackChart,
         d.total = d.ages[d.ages.length - 1].y1;
     });
 
-    xStackChart.domain(data.map(function (d) { return d.Year; }));
+    xStackChart.domain(data.map(function (d) { return d[label]; }));
     yStackChart.domain([0, d3.max(data, function (d) { return d.total; })]);
 
     canvasStackChart.append("g")
@@ -158,11 +158,11 @@ function drawStackChart(rawdata, canvasStackChart, colorStackChart, xStackChart,
         .attr("transform", "translate(0," + heightStackChart + ")")
         .call(d3.axisBottom(xStackChart));
 
-    var state = canvasStackChart.selectAll(".Year")
+    var state = canvasStackChart.selectAll("."+label+"")
         .data(data)
         .enter().append("g")
         .attr("class", "g")
-        .attr("transform", function (d) { return "translate(" + xStackChart(d.Year) + ",0)"; });
+        .attr("transform", function (d) { return "translate(" + xStackChart(d[label]) + ",0)"; });
 
     var active_link = "0";
     var legendClassArray = [];
@@ -328,7 +328,12 @@ function draw_xy_chart() {
     function chart(selection) {
         selection.each(function (datasets) {
             var xoffset = notes.length && 40 || 0;
-            var margin = {top: 20, right: width * 0.1, bottom: 50, left: width * 0.1},
+            if (xlabel) {
+                var bmargin = 50;
+            } else {
+                var bmargin = 20;
+            }
+            var margin = {top: 20, right: width * 0.1, bottom: bmargin, left: width * 0.1},
                 innerwidth = width - margin.left - margin.right,
                 innerheight = height - margin.top - margin.bottom;
 
@@ -879,31 +884,57 @@ function build_report(selector, report) {
                     table.append(tbody);
                     entry_row.append(table);
                 }
-            } else if (entry['kind'] === 'lineplot' || entry['kind'] === 'scatterplot') {
+            } else if (entry['kind'] === 'histogram') {
+                $("#entry-" + i + "-" + j).append("<figure id='figure-" + i + "-" + j + "'></figure>");
+                var data = entry['data']['data'];
+                //Draw Stack Chart
+                var margin = { top: 20, right: 20, bottom: 30, left: 40 },
+                    width = $('#figure-' + i + "-" + j).width() - margin.left - margin.right,
+                    height = width/2;
+
+                var x = d3.scaleBand().range([0, width]).padding(0.1);
+                var y = d3.scaleLinear().range([height, 0]);
+                var colors = d3.scaleOrdinal(entry['data']['colors'] || ["#883A6A", "#C27844", "#551863", "#CBEFB6", "#5BC0DE"])
+
+                var canvas = d3.select('#figure-' + i + '-' + j).append("svg").attr('id', 'plot-' + i + "-" + j)
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                drawStackChart(data, entry['data']['x-label'], canvas, colors, x, y, height);
+
+                if (entry['title']) {
+                    $('#figure-' + i + '-' + j).append("<figcaption class='text-center'>Figure " + ($('figure').length + 1) + '. ' + entry['title'] + "</figcaption>")
+                }
+            } else if (entry['kind'] === 'lineplot' || entry['kind'] === 'scatterplot' || entry['kind'] === 'barchart') {
                 $("#entry-" + i + "-" + j).append("<figure id='figure-" + i + "-" + j + "'></figure>");
                 var data = [];
-                var xlabel = entry['data']['x'].shift();
+                var xlabel = entry['data']['x-label'] || (entry['data']['x'] && entry['data']['x'].shift()) || null;
                 var xscale = entry['data']['x-scale'] || 'linear';
                 var xlimits = entry['data']['x-limits'] || [null, null];
                 var y1limits = entry['data']['y1-limits'] || [null, null];
                 var y2limits = entry['data']['y2-limits'] || [null, null];
                 var interpolation = entry['data']['interpolation'] || 'linear';
                 var y1label = '', y2label = '';
-                $.each(entry['data']['y1'], function (l, line) {
-                    y1label = line.shift();
-                    data.push({'label': y1label, 'x': entry['data']['x'], 'y1': line});
-                });
-                $.each(entry['data']['y2'], function (l, line) {
-                    y2label = line.shift();
-                    data.push({'label': y2label, 'x': entry['data']['x'], 'y2': line});
-                });
-                var width = section_box.width();
+                if (entry['kind'] === 'barchart') {
+                    data = {'data': entry['data']['data'], 'color': entry['data']['color']};
+                } else {
+                    $.each(entry['data']['y1'], function (l, line) {
+                        y1label = line.shift();
+                        data.push({'label': y1label, 'x': entry['data']['x'], 'y1': line});
+                    });
+                    $.each(entry['data']['y2'], function (l, line) {
+                        y2label = line.shift();
+                        data.push({'label': y2label, 'x': entry['data']['x'], 'y2': line});
+                    });
+                }
+                var width = $('#figure-' + i + "-" + j).width();
                 y1label = entry['data']['y1-label'] || y1label;
                 y2label = entry['data']['y2-label'] || y2label;
-
                 var xy_chart = draw_xy_chart()
                     .width(width)
-                    .height(400)
+                    .height(width/2)
                     .xlabel(xlabel)
                     .y1label(y1label)
                     .y2label(y2label)
@@ -913,7 +944,7 @@ function build_report(selector, report) {
                     .xscale(xscale)
                     .notes([])
                     .interpolation(interpolation)
-                    .scatter(entry['kind'] === 'scatterplot' && 'scatter' || entry['kind'] === 'lineplot' && 'line');
+                    .scatter(entry['kind'] === 'scatterplot' && 'scatter' || entry['kind'] === 'lineplot' && 'line' || entry['kind'] === 'barchart' && 'bar');
                 var svg = d3.select('#figure-' + i + '-' + j).append("svg").attr('id', 'plot-' + i + "-" + j)
                     .datum(data)
                     .call(xy_chart);

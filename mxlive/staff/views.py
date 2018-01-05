@@ -1,8 +1,9 @@
 from django.contrib.messages.views import SuccessMessageMixin
-from django.views.generic import edit, detail
+from django.views.generic import edit, detail, TemplateView
 from django.core.urlresolvers import reverse_lazy
 from django.contrib.auth import get_user_model
 from django.shortcuts import render
+from django.utils import timezone
 import models
 import forms
 import slap
@@ -76,11 +77,8 @@ class ProjectList(AdminRequiredMixin, FilteredListView):
     list_display = ['username', 'contact_person', 'contact_phone', 'contact_email', 'shipment_count']
     search_fields = ['username', 'contact_person', 'contact_phone', 'contact_email', 'city', 'province', 'country',
                      'department', 'organisation']
-    #detail_url = 'edit-profile'
     detail_url = 'user-detail'
     detail_url_kwarg = 'username'
-    #detail_ajax = True
-    #detail_target = '#modal-form'
     add_url = 'new-project'
     add_ajax = True
     order_by = ['name']

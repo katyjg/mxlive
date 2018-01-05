@@ -39,6 +39,7 @@ INTERNAL_IPS = [
 BL_NAME = "CMCF"
 BL_WEB = "http://cmcf.lightsource.ca"
 APP_LABEL = "MxLIVE"
+SHIFT_LENGTH = 8
 
 # Application definition
 INSTALLED_APPS = (

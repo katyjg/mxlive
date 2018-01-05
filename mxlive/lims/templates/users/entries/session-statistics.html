@@ -22,8 +22,7 @@
 {% block full %}
 
 <div class="row">
-    <div id="data-stats" class="col-sm-7 col-xs-12"></div>
-    <div id="data-plot" class="col-sm-5 col-xs-12"></div>
+    <div id="data-stats" class="col-xs-12"></div>
 </div>
 <div class="row">
     <div class="col-xs-12">
@@ -85,36 +84,7 @@
     var json = {% get_session_stats object.data_set.all object %};
     build_report('#data-stats', json);
 
-    var raw = json.details[0].content[0].data
-    var data = []
-    $.each(raw[0], function(i, year) {
-       var row = {"Year": year}
-       if (year && year !== "All") {
-           for (j = 1; j < raw.length; j++) {
-               if (raw[j][0] !== "Total") {
-                   row[raw[j][0]] = raw[j][i];
-               }
-           }
-           data.push(row);
-       }
-    });
 
-    //Draw Stack Chart
-    var margin = { top: 20, right: 20, bottom: 30, left: 40 },
-        width = 500 - margin.left - margin.right,
-        height = 300 - margin.top - margin.bottom;
-
-    var x = d3.scaleBand().range([0, width]).padding(0.1);
-    var y = d3.scaleLinear().range([height, 0]);
-    var colors = d3.scaleOrdinal(["#883A6A", "#C27844", "#551863", "#CBEFB6", "#5BC0DE"])
-
-    var canvas = d3.select("#data-plot").append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-    drawStackChart(data, canvas, colors, x, y, height);
 </script>
 
 

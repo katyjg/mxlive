@@ -3,8 +3,8 @@ from django.utils.translation import ugettext as _
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Q, F, Avg, Count, ExpressionWrapper
-from django.utils import dateformat, timezone
+from django.db.models import Q, F, Avg, Count
+from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 
 #from django.contrib.postgres.fields import JSONField
@@ -18,13 +18,14 @@ from datetime import datetime, timedelta
 import json
 import itertools
 
-from django_auth_ldap.backend import populate_user, populate_user_profile
-from django.db.models.signals import pre_delete, post_delete
+from django_auth_ldap.backend import populate_user
+from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from staff import slap
 
 IDENTITY_FORMAT = '-%y%m'
 RESTRICTED_DOWNLOADS = getattr(settings, 'RESTRICTED_DOWNLOADS', False)
+SHIFT_HRS = getattr(settings, 'SHIFT_LENGTH', 8)
 
 DRAFT = 0
 SENT = 1
@@ -284,6 +285,34 @@ class Session(models.Model):
     def is_active(self):
         return self.stretches.active().exists()
 
+    def shifts(self):
+        shifts = []
+        for stretch in self.stretches.all():
+            st = timezone.localtime(stretch.start) - timedelta(hours=timezone.localtime(stretch.start).hour % SHIFT_HRS,
+                                                               minutes=stretch.start.minute,
+                                                               seconds=stretch.start.second)
+            end = timezone.localtime(stretch.end) if stretch.end else timezone.now()
+            et = end - timedelta(hours=end.hour % SHIFT_HRS, minutes=end.minute, seconds=end.second)
+            shifts.append(st)
+            while st < et:
+                st += timedelta(hours=SHIFT_HRS)
+                shifts.append(st)
+        return shifts
+
+    def shift_parts(self):
+        shifts = set()
+        for stretch in self.stretches.all():
+            st = timezone.localtime(stretch.start) - timedelta(hours=timezone.localtime(stretch.start).hour % SHIFT_HRS,
+                                                               minutes=stretch.start.minute,
+                                                               seconds=stretch.start.second)
+            end = timezone.localtime(stretch.end) if stretch.end else timezone.now()
+            et = end - timedelta(hours=end.hour % SHIFT_HRS, minutes=end.minute, seconds=end.second)
+            shifts.add(st)
+            while st < et:
+                st += timedelta(hours=SHIFT_HRS)
+                shifts.add(st)
+            return len(shifts)
+
     def total_time(self):
         d = self.stretches.with_duration().aggregate(Avg('duration'), Count('duration'))
         t = d['duration__count'] * d['duration__avg'] if (d.get('duration__count') and d.get('duration__avg')) else 0
@@ -293,10 +322,10 @@ class Session(models.Model):
     total_time.short_description = "Duration"
 
     def start(self):
-        return self.stretches.last() and self.stretches.last().start or 'Never'
+        return self.stretches.last().start
 
     def end(self):
-        return self.stretches.first() and self.stretches.first().end or None
+        return self.stretches.first().end
 
 
 class Stretch(models.Model):
@@ -411,24 +440,6 @@ class ObjectBaseClass(LimsBaseClass):
         (LimsBaseClass.STATES.RETURNED, _('Returned')),
         (LimsBaseClass.STATES.ARCHIVED, _('Archived'))
     )
-    status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
-
-    class Meta:
-        abstract = True
-
-
-class LoadableBaseClass(LimsBaseClass):
-    STATUS_CHOICES = (
-        (LimsBaseClass.STATES.DRAFT, _('Draft')),
-        (LimsBaseClass.STATES.SENT, _('Sent')),
-        (LimsBaseClass.STATES.ON_SITE, _('On-site')),
-        (LimsBaseClass.STATES.LOADED, _('Loaded')),
-        (LimsBaseClass.STATES.RETURNED, _('Returned')),
-        (LimsBaseClass.STATES.ARCHIVED, _('Archived'))
-    )
-    TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
-    TRANSITIONS[LimsBaseClass.STATES.ON_SITE] = [LimsBaseClass.STATES.RETURNED, LimsBaseClass.STATES.LOADED]
-
     status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
 
     class Meta:
@@ -669,7 +680,7 @@ class ContainerLocation(models.Model):
         return self.name
 
 
-class Container(LoadableBaseClass):
+class Container(ObjectBaseClass):
     HELP = {
         'name': "A visible label on the container. If there is a barcode on the container, scan it here",
         'capacity': "The maximum number of samples this container can hold",

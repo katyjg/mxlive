@@ -62,6 +62,14 @@
                 <span class="tool-label">Recall</span>
             </a>
         {% endif %}
+        <a class="pull-right" data-url="{% url "shipment-comments" object.pk %}">
+            <span class="pull-right">
+                <span class="fa-stack">
+                    <i class="fa-stack-2x fa fa-2 fa-fw fa-pencil"></i>
+                </span><br>
+                <span class="tool-label">Edit</span>
+            </span>
+        </a>
     {% endif %}
 </span>
 {% endif %}

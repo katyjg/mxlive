@@ -6,8 +6,7 @@
 
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading">
-        <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
-        <strong class="text-muted">{{ object.acronym }}</strong> | {{ year }} Beamline Statistics
+        <strong class="text-muted">{{ object.acronym }}</strong> | {{ year }} Usage Statistics
     </h3>
     <span class="text-muted">
         {{ object.name }}
@@ -15,14 +14,14 @@
 {% endblock %}
 
 {% block object_status %}
-    <div class="status-bar hidden-print">
+    <div class="status-bar">
         <div class="row">
             <div class="col-xs-1">
                 Yearly Statistics:
             </div>
             <div class="col-xs-11">
                 {% for yr in object|get_years %}
-                    <a href="{% url "beamline-statistics" object.pk yr %}"><span class="label label-info">{{ yr }}</span></a>&nbsp;
+                    <a href="{% url "usage-statistics" object.pk yr %}"><span class="label label-info">{{ yr }}</span></a>&nbsp;
                 {% endfor %}
             </div>
         </div>
@@ -34,8 +33,6 @@
 
 <div class="row">
     <div id="data-stats" class="col-xs-12"></div>
-
-
 </div>
 
 
@@ -47,7 +44,7 @@
 <script type="text/javascript" src="{% static "js/live-reports.js" %}"></script>
 
 <script>
-    var json = {% get_data_stats object year %};
+    var json = {% get_usage_stats object year %};
     build_report('#data-stats', json);
 </script>
 {% endblock %}

@@ -171,6 +171,36 @@ class ShipmentForm(forms.ModelForm):
                    'comments': forms.Textarea(attrs={'rows': "2"})}
 
 
+class ShipmentCommentsForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(ShipmentCommentsForm, self).__init__(*args, **kwargs)
+        pk = self.instance.pk
+
+        self.helper = FormHelper()
+        self.helper.title = u"Add comments to shipment"
+        self.helper.form_action = reverse_lazy('shipment-comments', kwargs={'pk': pk})
+        self.helper.layout = Layout(
+            'storage_location', 'staff_comments',
+            FormActions(
+                Div(
+                    Div(
+                        StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-default"),
+                        StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+                        css_class='pull-right'
+                    ),
+                    css_class="col-xs-12"
+                ),
+                css_class="form-action row"
+            )
+        )
+
+    class Meta:
+        model = Shipment
+        fields = ('staff_comments', 'storage_location')
+        widgets = {'staff_comments': forms.Textarea(attrs={'rows': "2"})}
+
+
 class DewarForm(forms.ModelForm):
 
     class Meta:
