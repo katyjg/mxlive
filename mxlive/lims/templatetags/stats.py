@@ -103,7 +103,7 @@ def get_usage_stats(bl, year):
             datasets.filter(kind='MX_DATA', project__pk=p).count(), # Full Datasets
             round(sum([d.total_angle() for d in datasets.filter(project__pk=p)])/360., 2), # Images
             total_shifts(sessions, p), # Shifts
-            round(total_time(sessions, p),2), # Total Time
+            round(total_time(sessions, p), 2), # Total Time
             humanize_duration(total_time(sessions, p)), # Total Time
             int(total_time(sessions, p) / (total_shifts(sessions, p) * SHIFT) * 100), # Used Time (%)
             round(datasets.filter(kind='MX_DATA', project__pk=p).count() / total_time(sessions, p), 2) if total_time(sessions, p) else 0, # Datasets/Hour
@@ -122,16 +122,16 @@ def get_usage_stats(bl, year):
                     'kind': 'table',
                     'data': [['Shifts (or parts of shifts) Used', sum([u[4] for u in data])],
                              ['Datasets Collected', datasets.filter(kind='MX_DATA').count()],
-                             ['Normalized Datasets', sum([float(u[3]) for u in data])]],
+                             ['Normalized Datasets', round(sum([u[3] for u in data]), 2)]],
                     'style': 'col-sm-6',
                     'header': 'column'
                 },
                 {
                     'title': 'Average Efficiency',
                     'kind': 'table',
-                    'data': [['Actual Time Used', "{} ({:.1f}%)".format(ttime, sum([u[4] for u in data])*8/ttime if ttime else 0)],
-                             ['Datasets/Hour', datasets.filter(kind='MX_DATA').count() / ttime if ttime else 0],
-                             ['Norm Data/Hour', sum([float(u[3]) for u in data]) / ttime if ttime else 0]],
+                    'data': [['Actual Time Used (h)', "{} ({:.1f}%)".format(ttime, sum([u[4] for u in data])*8/ttime if ttime else 0)],
+                             ['Datasets/Hour', round(datasets.filter(kind='MX_DATA').count() / ttime, 2) if ttime else 0],
+                             ['Norm Data/Hour', round(sum([u[3] for u in data]) / ttime, 2) if ttime else 0]],
                     'style': 'col-sm-6',
                     'header': 'column'
                 },
@@ -140,7 +140,7 @@ def get_usage_stats(bl, year):
                     'kind': 'histogram',
                     'data': {
                         'x-label': 'User',
-                        'data': [{'User': u[0], 'Efficiency': float(u[7]) / 100.} for u in sorted(data, key=lambda x: float(x[8]))],
+                        'data': [{'User': u[0], 'Efficiency': float(u[7]) / 100.} for u in sorted(data, key=lambda x: float(x[7]))],
                     },
                     'style': 'col-sm-12'
                 },
