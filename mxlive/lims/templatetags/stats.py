@@ -94,42 +94,71 @@ def get_data_stats(bl, year):
 
 @register.assignment_tag(takes_context=False)
 def get_usage_stats(bl, year):
-    data = bl.data_set.all()
     sessions = bl.sessions.filter(created__year=year).order_by('project')
-    data = [[Project.objects.get(pk=p).username,
-              sessions.filter(project=p).count(),
-              total_shifts(sessions, p),
-              int(total_time(sessions, p) / (total_shifts(sessions, p) * SHIFT) * 100),
-              "{:.2f}".format(Project.objects.get(pk=p).data_set.filter(session__in=sessions).count() / total_time(sessions, p)) if total_time(sessions, p) else "N/A",
-              Project.objects.get(pk=p).data_set.filter(session__in=sessions).count() / total_shifts(sessions, p)]
-            for p in sessions.values_list('project', flat=True).distinct()]
+    datasets = bl.data_set.filter(session__in=sessions)
+    data = [
+        [
+            Project.objects.get(pk=p).username, # User
+            sessions.filter(project=p).count(), # Sessions
+            datasets.filter(kind='MX_DATA', project__pk=p).count(), # Full Datasets
+            round(sum([d.total_angle() for d in datasets.filter(project__pk=p)])/360., 2), # Images
+            total_shifts(sessions, p), # Shifts
+            round(total_time(sessions, p),2), # Total Time
+            humanize_duration(total_time(sessions, p)), # Total Time
+            int(total_time(sessions, p) / (total_shifts(sessions, p) * SHIFT) * 100), # Used Time (%)
+            round(datasets.filter(kind='MX_DATA', project__pk=p).count() / total_time(sessions, p), 2) if total_time(sessions, p) else 0, # Datasets/Hour
+        ]
+        for p in sessions.values_list('project', flat=True).distinct()
+    ]
+
+    ttime = sum([u[5] for u in data])
     stats = {'details': [
         {
             'title': 'Usage Metrics',
             'style': 'col-xs-12',
             'content': [
                 {
-                    'title': 'Average Datasets per Shift',
+                    'title': 'Total Activity',
+                    'kind': 'table',
+                    'data': [['Shifts (or parts of shifts) Used', sum([u[4] for u in data])],
+                             ['Datasets Collected', datasets.filter(kind='MX_DATA').count()],
+                             ['Normalized Datasets', sum([float(u[3]) for u in data])]],
+                    'style': 'col-sm-6',
+                    'header': 'column'
+                },
+                {
+                    'title': 'Average Efficiency',
+                    'kind': 'table',
+                    'data': [['Actual Time Used', "{} ({:.1f}%)".format(ttime, sum([u[4] for u in data])*8/ttime if ttime else 0)],
+                             ['Datasets/Hour', datasets.filter(kind='MX_DATA').count() / ttime if ttime else 0],
+                             ['Norm Data/Hour', sum([float(u[3]) for u in data]) / ttime if ttime else 0]],
+                    'style': 'col-sm-6',
+                    'header': 'column'
+                },
+                {
+                    'title': 'Time Used',
                     'kind': 'histogram',
                     'data': {
                         'x-label': 'User',
-                        'data': [{'User': u[0], 'Efficiency': u[5]} for u in sorted(data, key=lambda x: float(x[5]))],
+                        'data': [{'User': u[0], 'Efficiency': float(u[7]) / 100.} for u in sorted(data, key=lambda x: float(x[8]))],
                     },
                     'style': 'col-sm-12'
                 },
                 {
-                    'title': 'Average Datasets per Hour',
+                    'title': 'Average Datasets* per Hour',
                     'kind': 'histogram',
                     'data': {
                         'x-label': 'User',
-                        'data': [{'User': u[0], 'Efficiency': u[4]} for u in sorted(data, key=lambda x: float(x[4]))],
+                        'data': [{'User': u[0], 'Normalized Datasets': u[3], 'Full Datasets': u[8]} for u in
+                                 sorted(data, key=lambda x: float(x[3]))],
                     },
                     'style': 'col-sm-12'
                 },
                 {
                     'kind': 'table',
+                    'description': "<td>*One normalized dataset is equivalent to 360 frames collected and uploaded</td>",
                     'header': 'row',
-                    'data': [['User', 'Sessions', 'Shifts', 'Used Time (%)', 'Datasets/Hour', 'Datasets/Shift']] + data
+                    'data': [['User', 'Sessions', 'Full Datasets', 'Norm Datasets*', 'Shifts', 'Total Time', 'Used Time (%)', 'Datasets/Hour']] + [d[:5] + d[6:] for d in sorted(data, key=lambda x: x[7])]
                 }
             ]
         }
@@ -159,7 +188,7 @@ def get_session_stats(data, session):
                 {
                     'title': '',
                     'kind': 'table',
-                    'data': [['Shutter Open', "{} ({:.2f}%)".format(humanize_duration(hours=shutters), shutters / session.total_time() if session.total_time() else 0 )],
+                    'data': [['Shutter Open', "{} ({:.2f}%)".format(humanize_duration(hours=shutters), shutters * 100 / session.total_time() if session.total_time() else 0 )],
                              ['Last Dataset', data.last() and datetime.strftime(timezone.localtime(data.last().modified), '%c') or ''],
                              ['Avg Frames/Dataset', sum([len(d.frames) for d in data.filter(kind="MX_DATA")]) / data.filter(
                                   kind="MX_DATA").count() if data.filter(kind="MX_DATA").count() else 0],
