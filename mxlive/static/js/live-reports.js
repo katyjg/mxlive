@@ -333,7 +333,15 @@ function draw_xy_chart() {
 
     function chart(selection) {
         selection.each(function (datasets) {
-            var xoffset = notes.length && 40 || 0;
+            var notes_labels = [];
+            if (notes.length) {
+                $.each(notes, function(i, note) {
+                    if (note['label']) {
+                        notes_labels.push(note['label']);
+                    }
+                })
+            }
+            var xoffset = notes_labels.length && 40 || 0;
             if (xlabel) {
                 var bmargin = 50;
             } else {
@@ -640,26 +648,7 @@ function draw_xy_chart() {
                     }
                 }
 
-                for (i = 0; i < notes.length; i++) {
-                    var xpos = notes[i]['x'] && x_scale(notes[i]['x']) || 0,
-                        ystart = notes[i]['ystart'] && y1_scale(notes[i]['ystart']) || 0,
-                        yend = notes[i]['yend'] && y1_scale(notes[i]['yend']) || innerheight - xoffset;
 
-                    svg.append("path")
-                        .attr('class', notes[i]['label'] + ' ' + (notes[i]['class'] || '') + ' ' + (notes[i]['display'] !== null && (notes[i]['display'] === true && 'visible ' || 'hidden')) || 'visible')
-                        .style("stroke", notes[i]['color'] || "#333")
-                        .attr("d", function () {
-                            var d = "M" + xpos + "," + yend;
-                            d += " " + xpos + "," + ystart;
-                            return d;
-                        });
-                    svg.append("text")
-                        .attr('class', notes[i]['label'] + ' ' + (notes[i]['class'] || '') + ' ' + (notes[i]['display'] !== null && (notes[i]['display'] === true && 'visible ' || 'hidden')) || 'visible')
-                        .text(notes[i]['label'])
-                        .style("fill", notes[i]['color'] || "#333")
-                        .attr("transform", "translate(" + (xpos + 3) + "," + (y1_scale(0) + xoffset / 2) + "), rotate(-90)")
-                        .style("text-anchor", "middle");
-                }
 
                 legend = svg.append("g")
                     .attr("class", "legend")
@@ -761,6 +750,26 @@ function draw_xy_chart() {
                             });
                     });
                 /* End of interactive stuff */
+            }
+            for (i = 0; i < notes.length; i++) {
+                var xstart = notes[i]['xstart'] && x_scale(notes[i]['xstart']) || notes[i]['x'] && x_scale(notes[i]['x']) || 0,
+                    xend = notes[i]['xend'] && x_scale(notes[i]['xend']) || notes[i]['x'] && x_scale(notes[i]['x']) || 0,
+                    ystart = notes[i]['ystart'] && y1_scale(notes[i]['ystart']) || 0,
+                    yend = notes[i]['yend'] && y1_scale(notes[i]['yend']) || innerheight - xoffset;
+                svg.append("path")
+                    .attr('class', notes[i]['label'] + ' ' + (notes[i]['class'] || '') + ' ' + (notes[i]['display'] !== null && (notes[i]['display'] === true && 'visible ' || 'hidden')) || 'visible')
+                    .style("stroke", notes[i]['color'] || "#333")
+                    .attr("d", function () {
+                        var d = "M" + xstart + "," + yend;
+                        d += " " + xend + "," + ystart;
+                        return d;
+                    });
+                svg.append("text")
+                    .attr('class', notes[i]['label'] + ' ' + (notes[i]['class'] || '') + ' ' + (notes[i]['display'] !== null && (notes[i]['display'] === true && 'visible ' || 'hidden')) || 'visible')
+                    .text(notes[i]['label'])
+                    .style("fill", notes[i]['color'] || "#333")
+                    .attr("transform", "translate(" + (xstart + 3) + "," + (y1_scale(0) + xoffset / 2) + "), rotate(-90)")
+                    .style("text-anchor", "middle");
             }
 
         });
@@ -922,6 +931,7 @@ function build_report(selector, report) {
                 var y1limits = entry['data']['y1-limits'] || [null, null];
                 var y2limits = entry['data']['y2-limits'] || [null, null];
                 var interpolation = entry['data']['interpolation'] || 'linear';
+                var annotations = entry['data']['annotations'] || [];
                 var y1label = '', y2label = '';
                 if (entry['kind'] === 'barchart') {
                     data = {'data': entry['data']['data'], 'color': entry['data']['color']};
@@ -948,7 +958,7 @@ function build_report(selector, report) {
                     .y1limits(y1limits)
                     .y2limits(y2limits)
                     .xscale(xscale)
-                    .notes([])
+                    .notes(annotations)
                     .interpolation(interpolation)
                     .scatter(entry['kind'] === 'scatterplot' && 'scatter' || entry['kind'] === 'lineplot' && 'line' || entry['kind'] === 'barchart' && 'bar');
                 var svg = d3.select('#figure-' + i + '-' + j).append("svg").attr('id', 'plot-' + i + "-" + j)
