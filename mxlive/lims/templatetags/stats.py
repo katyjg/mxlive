@@ -98,10 +98,10 @@ def get_usage_stats(bl, year):
     KIND_COLORS = { "11": {"color": "#0275d8", "name": '/'.join(UserCategory.objects.filter(pk__in=[1]).values_list('name', flat=True))},
                     "12": {"color": "#883a6a", "name": '/'.join(UserCategory.objects.filter(pk__in=[2]).values_list('name', flat=True))},
                     "13": {"color": "#E9953B", "name": '/'.join(UserCategory.objects.filter(pk__in=[3]).values_list('name', flat=True))},
-                    "14": {"color": "#cccccc", "name": '/'.join(UserCategory.objects.filter(pk__in=[4]).values_list('name', flat=True))},
+                    "14": {"color": "#999999", "name": '/'.join(UserCategory.objects.filter(pk__in=[4]).values_list('name', flat=True))},
                     "23": {"color": "#A28EB4", "name": '/'.join(UserCategory.objects.filter(pk__in=[1, 2]).values_list('name', flat=True))},
-                    "24": {"color": "#5cb85c", "name": '/'.join(UserCategory.objects.filter(pk__in=[1, 3]).values_list('name', flat=True))},
-                    "25": {"color": "#D5976F", "name": '/'.join(UserCategory.objects.filter(pk__in=[2, 3]).values_list('name', flat=True))}}
+                    "24": {"color": "#DBC814", "name": '/'.join(UserCategory.objects.filter(pk__in=[1, 3]).order_by('-name').values_list('name', flat=True))},
+                    "25": {"color": "#B36255", "name": '/'.join(UserCategory.objects.filter(pk__in=[2, 3]).values_list('name', flat=True))}}
     sessions = bl.sessions.filter(created__year=year).order_by('project')
     datasets = bl.data_set.filter(session__in=sessions)
     data = [
@@ -154,7 +154,7 @@ def get_usage_stats(bl, year):
                                   } for u in sorted(data, key=lambda x: x['used_time'])],
                     },
                     'notes': "&nbsp;".join(
-                        ["<span class='label' style='background-color: {}; color: white;'>{}</span>".format(v['color'], v['name']) for v in KIND_COLORS.values()]
+                        ["<span class='label' style='background-color: {}; color: white;'>{}</span>".format(v['color'], v['name']) for v in sorted(KIND_COLORS.values(), key=lambda x: x['name'])]
                     ),
                     'style': 'col-sm-12'
                 },
@@ -190,7 +190,7 @@ def get_usage_stats(bl, year):
                     'notes': "&nbsp;".join(
                         ["<span class='label' style='background-color: {}; color: white;'>{}</span>".format(v['color'],
                                                                                                             v['name'])
-                         for v in KIND_COLORS.values()]
+                         for v in sorted(KIND_COLORS.values(), key=lambda x: x['name'])]
                     ),
                     'style': 'col-sm-12'
                 },

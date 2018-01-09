@@ -94,6 +94,7 @@ class ProjectList(AdminRequiredMixin, FilteredListView):
     model = Project
     paginate_by = 25
     template_name = "users/list.html"
+    tools_template = "users/tools-user.html"
     list_filter = ['modified', ]
     list_display = ['username', 'contact_person', 'contact_phone', 'contact_email', 'shipment_count']
     search_fields = ['username', 'contact_person', 'contact_phone', 'contact_email', 'city', 'province', 'country',
