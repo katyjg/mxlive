@@ -164,15 +164,6 @@ class Project(AbstractUser):
         verbose_name = "Project Account"
 
 
-class ProjectCategory(models.Model):
-    name = models.CharField(max_length=100)
-    projects = models.ManyToManyField(Project, blank=True, related_name="categories")
-
-    class Meta:
-        verbose_name = u"User Category"
-        verbose_name_plural = u"User Categories"
-
-
 class Hours(models.Func):
     function = 'HOUR'
     template = '%(function)s(%(expressions)s)'

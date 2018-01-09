@@ -1,4 +1,4 @@
-from models import UserList, Announcement
+from models import UserList, UserCategory, Announcement
 from django import forms
 from django.core.urlresolvers import reverse_lazy
 
@@ -97,3 +97,38 @@ class AccessForm(forms.ModelForm):
     class Meta:
         model = UserList
         fields = ('users',)
+
+
+class CategoryForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(CategoryForm, self).__init__(*args, **kwargs)
+        self.fields['projects'].label = "%s Users" % format(self.instance)
+        self.fields['projects'].queryset = self.fields['projects'].queryset.order_by('name')
+
+        self.helper = FormHelper()
+        self.helper.title = u"Edit User Categories"
+        self.helper.form_action = reverse_lazy('category-edit', kwargs={'pk': self.instance.pk})
+        self.helper.layout = Layout(
+            Div(
+                Div(
+                    Field('projects', css_class="chosen"),
+                    css_class="col-xs-12"
+                ),
+                css_class="row"
+            ),
+            FormActions(
+                Div(
+                    Div(
+                        StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+                        css_class='pull-right'
+                    ),
+                    css_class="col-xs-12"
+                ),
+                css_class="form-action row"
+            )
+        )
+
+    class Meta:
+        model = UserCategory
+        fields = ('projects',)

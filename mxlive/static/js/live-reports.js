@@ -142,11 +142,11 @@ function draw_pie_chart() {
 
 function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackChart, yStackChart, heightStackChart) {
 
-    colorStackChart.domain(d3.keys(data[0]).filter(function (key) { return key !== label; }));
+    colorStackChart.domain(d3.keys(data[0]).filter(function (key) { return key !== label && key !== 'color'; }));
 
     data.forEach(function (d) {
         var y0 = 0;
-        d.ages = colorStackChart.domain().map(function (name) { return { name: name, y0: y0, y1: y0 += +d[name] }; });
+        d.ages = colorStackChart.domain().map(function (name) { return { name: name, y0: y0, y1: y0 += +d[name], color: d['color'] || null }; });
         d.total = d.ages[d.ages.length - 1].y1;
     });
 
@@ -191,7 +191,7 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
         .attr("class", function(i, d) { return 'class' + legendClassArray[d]; })
         .attr("y", function (d) { return yStackChart(d.y1); })
         .attr("height", function (d) { return yStackChart(d.y0) - yStackChart(d.y1); })
-        .style("fill", function (d) { return colorStackChart(d.name); });
+        .style("fill", function (d) { return d.color && d.color || colorStackChart(d.name); });
 
     if (legendClassArray.length > 1) {
         legend.append("rect")

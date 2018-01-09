@@ -60,3 +60,22 @@ class UserList(StaffBaseClass):
 
     class Meta:
         verbose_name = "Access List"
+
+
+class UserCategory(models.Model):
+    name = models.CharField(max_length=100)
+    projects = models.ManyToManyField("lims.Project", blank=True, related_name="categories")
+
+    def current_users(self):
+        return '; '.join(self.projects.values_list('username', flat=True))
+
+    def num_users(self):
+        return self.projects.count()
+    num_users.short_description = 'Number'
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "User Category"
+        verbose_name_plural = "User Categories"

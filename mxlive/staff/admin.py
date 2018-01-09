@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import UserList, Announcement
+from models import UserList, UserCategory, Announcement
 from lims.models import Group, Container, Sample
 
 from django import forms
@@ -20,3 +20,4 @@ class UserListAdmin(admin.ModelAdmin):
     ordering = ['-created']
 
 admin.site.register(UserList, UserListAdmin)
+admin.site.register(UserCategory)

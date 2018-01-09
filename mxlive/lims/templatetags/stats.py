@@ -2,6 +2,7 @@ from django import template
 from django.utils.safestring import mark_safe
 
 from lims.models import *
+from staff.models import UserCategory
 from converter import humanize_duration
 
 import json
@@ -94,11 +95,18 @@ def get_data_stats(bl, year):
 
 @register.assignment_tag(takes_context=False)
 def get_usage_stats(bl, year):
+    KIND_COLORS = { "11": {"color": "#0275d8", "name": '/'.join(UserCategory.objects.filter(pk__in=[1]).values_list('name', flat=True))},
+                    "12": {"color": "#883a6a", "name": '/'.join(UserCategory.objects.filter(pk__in=[2]).values_list('name', flat=True))},
+                    "13": {"color": "#E9953B", "name": '/'.join(UserCategory.objects.filter(pk__in=[3]).values_list('name', flat=True))},
+                    "14": {"color": "#cccccc", "name": '/'.join(UserCategory.objects.filter(pk__in=[4]).values_list('name', flat=True))},
+                    "23": {"color": "#A28EB4", "name": '/'.join(UserCategory.objects.filter(pk__in=[1, 2]).values_list('name', flat=True))},
+                    "24": {"color": "#5cb85c", "name": '/'.join(UserCategory.objects.filter(pk__in=[1, 3]).values_list('name', flat=True))},
+                    "25": {"color": "#D5976F", "name": '/'.join(UserCategory.objects.filter(pk__in=[2, 3]).values_list('name', flat=True))}}
     sessions = bl.sessions.filter(created__year=year).order_by('project')
     datasets = bl.data_set.filter(session__in=sessions)
     data = [
         {
-            'project': Project.objects.get(pk=p).username, # User
+            'project': Project.objects.get(pk=p), # User
             'sessions': sessions.filter(project=p).count(), # Sessions
             'num_data': datasets.filter(kind='MX_DATA', project__pk=p).count(), # Full Datasets
             'shutters': sum([d.num_frames() * d.exposure_time for d in datasets.filter(project__pk=p)]), # Shutters Open
@@ -121,7 +129,7 @@ def get_usage_stats(bl, year):
                     'title': 'Total Activity',
                     'kind': 'table',
                     'data': [['Shifts (or parts of shifts) Used', '{} ({})'.format(shifts, humanize_duration(shifts * 8))],
-                             ['Actual Time Used (h)', "{} ({:.1f}%)".format(humanize_duration(ttime), ttime * 100 / (shifts * 8))],
+                             ['Actual Time Used (h)', "{} ({:.1f}%)".format(humanize_duration(ttime), ttime * 100 / (shifts * 8) if shifts else 0)],
                              ['Shutters Open', humanize_duration(sum([u['shutters']/3600. for u in data]))]],
                     'style': 'col-sm-6',
                     'header': 'column'
@@ -140,8 +148,14 @@ def get_usage_stats(bl, year):
                     'kind': 'histogram',
                     'data': {
                         'x-label': 'User',
-                        'data': [{'User': u['project'], 'Efficiency': u['used_time'] / 100.} for u in sorted(data, key=lambda x: x['used_time'])],
+                        'data': [{'User': u['project'].username,
+                                  'Efficiency': u['used_time'] / 100.,
+                                  'color': KIND_COLORS.get("{}{}".format(u['project'].categories.count(), sum(u['project'].categories.values_list('pk', flat=True))), {}).get('color', '#333333')
+                                  } for u in sorted(data, key=lambda x: x['used_time'])],
                     },
+                    'notes': "&nbsp;".join(
+                        ["<span class='label' style='background-color: {}; color: white;'>{}</span>".format(v['color'], v['name']) for v in KIND_COLORS.values()]
+                    ),
                     'style': 'col-sm-12'
                 },
                 {
@@ -153,9 +167,9 @@ def get_usage_stats(bl, year):
                             'y1': [['Number of Datasets'] + [d['num_data'] for d in data]],
                             'annotations': [{
                                 'xstart': 0,
-                                'xend': max([u['total_time'] for u in data]),
+                                'xend': max([u['total_time'] for u in data] or [0]),
                                 'yend': 0,
-                                'ystart': max([u['total_time'] for u in data]) * datasets.filter(kind='MX_DATA').count() / ttime,
+                                'ystart': max([u['total_time'] for u in data] or [0]) * datasets.filter(kind='MX_DATA').count() / ttime if ttime else 0,
                                 'color': '#883a6a',
                                 'display': None
                             }]
@@ -168,16 +182,23 @@ def get_usage_stats(bl, year):
                     'kind': 'histogram',
                     'data': {
                         'x-label': 'User',
-                        'data': [{'User': u['project'], 'Shutters': u['shutters']} for u in
-                                 sorted(data, key=lambda x: x['shutters'])],
+                        'data': [{'User': u['project'].username,
+                                  'Shutters': u['shutters'],
+                                  'color': KIND_COLORS.get("{}{}".format(u['project'].categories.count(), sum(u['project'].categories.values_list('pk', flat=True))), {}).get('color', '#333333')
+                                  } for u in sorted(data, key=lambda x: x['shutters'])],
                     },
+                    'notes': "&nbsp;".join(
+                        ["<span class='label' style='background-color: {}; color: white;'>{}</span>".format(v['color'],
+                                                                                                            v['name'])
+                         for v in KIND_COLORS.values()]
+                    ),
                     'style': 'col-sm-12'
                 },
                 {
                     'kind': 'table',
                     'header': 'row',
                     'data': [['User', 'Sessions', 'Shifts', 'Shutters Open', 'Total Time', 'Used Time (%)', 'Full Datasets', 'Full Datasets/Hour']] +
-                            [[u['project'], u['sessions'], u['shifts'], humanize_duration(u['shutters']), humanize_duration(u['total_time']), u['used_time'], u['num_data'], u['data_rate']] for u in sorted(data, key=lambda x: x['shutters'])]
+                            [[u['project'].username, u['sessions'], u['shifts'], humanize_duration(u['shutters']), humanize_duration(u['total_time']), u['used_time'], u['num_data'], u['data_rate']] for u in sorted(data, key=lambda x: x['shutters'])]
                 }
             ]
         }

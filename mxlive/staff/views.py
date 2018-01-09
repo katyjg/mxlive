@@ -41,6 +41,27 @@ class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin,
         return self.model.objects.get(address=self.kwargs.get('address'))
 
 
+class CategoryList(AdminRequiredMixin, FilteredListView):
+    model = models.UserCategory
+    list_filter = []
+    list_display = ['name', 'current_users', 'num_users']
+    detail_url = 'category-edit'
+    detail_ajax = True
+    detail_target = '#modal-form'
+    order_by = ['name']
+    template_name = "users/list.html"
+
+
+class CategoryEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+    form_class = forms.CategoryForm
+    template_name = "forms/modal.html"
+    model = models.UserCategory
+    success_url = reverse_lazy('category-list')
+    success_message = "User category has been updated."
+    allowed_roles = ['owner', 'admin']
+    admin_roles = ['admin']
+
+
 class AnnouncementCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
     form_class = forms.AnnouncementForm
     template_name = "forms/modal.html"
