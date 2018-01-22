@@ -363,15 +363,24 @@ function draw_xy_chart() {
 
             if (scatter === 'bar') {
                 var color = datasets['color'];
-                var x_scale = d3.scaleLinear()
-                    .range([0, innerwidth])
-                    .domain([d3.min(datasets.data), d3.max(datasets.data)]);
+                switch (xscale) {
+                    case 'time':
+                        var x_scale = d3.scaleTime()
+                            .range([0, innerwidth])
+                            .domain([d3.min(datasets.data), d3.max(datasets.data)]);
+                        break;
+                    case 'linear':
+                        var x_scale = d3.scaleLinear()
+                            .range([0, innerwidth])
+                            .domain([d3.min(datasets.data), d3.max(datasets.data)]);
+                        break;
+                }
                 var bins = d3.histogram()
                     .value(function (d) {
                         return d;
                     })
-                    .domain(x_scale.domain())
-                    .thresholds(x_scale.ticks(50))(datasets['data']);
+                    .domain([d3.min(datasets.data), d3.max(datasets.data)])
+                    .thresholds(x_scale.ticks(binning))(datasets['data']);
                 var y1_scale = d3.scaleLinear()
                     .domain([0, d3.max(bins, function (d) {
                         return d.length;
@@ -466,9 +475,10 @@ function draw_xy_chart() {
                 .scale(x_scale)
                 .tickSize(-innerheight);
             if (xscale === 'inv-square') {
-
                 var ticks = inv_sqrt(Array.cleanspace(Math.pow(xmax, -2), Math.pow(xmin, -2), 8));
                 x_axis.tickValues(ticks).tickFormat(d3.format(".3"));
+            } else if (xscale === 'time' && timeformat) {
+                x_axis.ticks(7).tickFormat(d3.timeFormat(timeformat));
             }
 
             var y1_axis = d3.axisLeft()
@@ -514,7 +524,11 @@ function draw_xy_chart() {
 
                 bar.append("rect")
                     .attr("x", 1)
-                    .attr("title", function(d) { return d.x0 + '-' + d.x1 + ': ' + d.length + ' entries'; })
+                    .attr("title", function(d) { if (xscale === 'time' && timeformat) {
+                        return d3.timeFormat(timeformat)(d.x0) + '-' + d3.timeFormat(timeformat)(d.x1) + ': ' + d.length + 'entries';
+                    } else {
+                        return d.x0 + '-' + d.x1 + ': ' + d.length + ' entries';
+                    } })
                     .attr("width", x_scale(bins[0].x1) - (Math.max(0, x_scale(bins[0].x0) - 1)))
                     .attr("height", function(d) { return innerheight - y1_scale(d.length); });
 
@@ -841,6 +855,16 @@ function draw_xy_chart() {
         y2limits = value;
         return chart;
     };
+    chart.binning = function (value) {
+        if (!arguments.length) return binning;
+        binning = value;
+        return chart;
+    };
+    chart.timeformat = function (value) {
+        if (!arguments.length) return timeformat;
+        timeformat = value;
+        return chart;
+    };
 
     return chart;
 }
@@ -932,9 +956,16 @@ function build_report(selector, report) {
                 var y2limits = entry['data']['y2-limits'] || [null, null];
                 var interpolation = entry['data']['interpolation'] || 'linear';
                 var annotations = entry['data']['annotations'] || [];
+                var binning = entry['data']['bins'] || 50;
+                var timeformat = entry['data']['time-format'] || null;
                 var y1label = '', y2label = '';
                 if (entry['kind'] === 'barchart') {
                     data = {'data': entry['data']['data'], 'color': entry['data']['color']};
+                    if (xscale == 'time') {
+                        $.each(data['data'], function(i, d) {
+                            data['data'][i] = new Date(d)
+                        });
+                    }
                 } else {
                     $.each(entry['data']['y1'], function (l, line) {
                         y1label = line.shift();
@@ -959,6 +990,8 @@ function build_report(selector, report) {
                     .y2limits(y2limits)
                     .xscale(xscale)
                     .notes(annotations)
+                    .binning(binning)
+                    .timeformat(timeformat)
                     .interpolation(interpolation)
                     .scatter(entry['kind'] === 'scatterplot' && 'scatter' || entry['kind'] === 'lineplot' && 'line' || entry['kind'] === 'barchart' && 'bar');
                 var svg = d3.select('#figure-' + i + '-' + j).append("svg").attr('id', 'plot-' + i + "-" + j)

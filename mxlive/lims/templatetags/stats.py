@@ -106,14 +106,15 @@ def get_usage_stats(bl, year):
     datasets = bl.data_set.filter(session__in=sessions)
     data = [
         {
-            'project': Project.objects.get(pk=p), # User
-            'sessions': sessions.filter(project=p).count(), # Sessions
-            'num_data': datasets.filter(kind='MX_DATA', project__pk=p).count(), # Full Datasets
-            'shutters': sum([d.num_frames() * d.exposure_time for d in datasets.filter(project__pk=p)]), # Shutters Open
-            'shifts': total_shifts(sessions, p), # Shifts
-            'total_time': round(total_time(sessions, p), 2), # Total Time
-            'used_time': int(total_time(sessions, p) / (total_shifts(sessions, p) * SHIFT) * 100), # Used Time (%)
-            'data_rate': round(datasets.filter(kind='MX_DATA', project__pk=p).count() / total_time(sessions, p), 2) if total_time(sessions, p) else 0, # Datasets/Hour
+            'project': Project.objects.get(pk=p),  # User
+            'sessions': sessions.filter(project=p).count(),  # Sessions
+            'num_data': datasets.filter(kind='MX_DATA', project__pk=p).count(),  # Full Datasets
+            'shutters': sum([d.num_frames() * d.exposure_time for d in datasets.filter(project__pk=p)]),  # Shutter Open
+            'shifts': total_shifts(sessions, p),  # Shifts
+            'total_time': round(total_time(sessions, p), 2),  # Total Time
+            'used_time': int(total_time(sessions, p) / (total_shifts(sessions, p) * SHIFT) * 100),  # Used Time (%)
+            'data_rate': round(datasets.filter(kind='MX_DATA', project__pk=p).count() / total_time(sessions, p), 2) if total_time(sessions, p) else 0,  # Datasets/Hour
+            'samples': sum([s.samples().count() for s in sessions.filter(project=p)]) / total_time(sessions, p) if total_time(sessions, p) else 0,  # Sample Rate
         }
         for p in sessions.values_list('project', flat=True).distinct()
     ]
@@ -184,6 +185,8 @@ def get_usage_stats(bl, year):
                         'x-label': 'User',
                         'data': [{'User': u['project'].username,
                                   'Shutters': u['shutters'],
+                                  'Data Rate': u['data_rate'],
+                                  'Sample Rate': u['samples'],
                                   'color': KIND_COLORS.get("{}{}".format(u['project'].categories.count(), sum(u['project'].categories.values_list('pk', flat=True))), {}).get('color', '#333333')
                                   } for u in sorted(data, key=lambda x: x['shutters'])],
                     },
@@ -193,6 +196,28 @@ def get_usage_stats(bl, year):
                          for v in sorted(KIND_COLORS.values(), key=lambda x: x['name'])]
                     ),
                     'style': 'col-sm-12'
+                },
+                # {
+                #     'title': 'Datasets by Time of Day',
+                #     'kind': 'barchart',
+                #     'data': {
+                #         'data': [float(d.hour) + float(d.minute)/60. for d in [timezone.localtime(ds.created) for ds in datasets.all()]],
+                #         'color': ["#883a6a"]
+                #     },
+                #     'style': 'col-xs-12'
+                # },
+                {
+                    'title': 'Datasets by Time of Week',
+                    'kind': 'barchart',
+                    'data': {
+                        'data': [datetime.strftime(datetime(2018, 01, d.isoweekday(), d.hour, d.minute ), '%c') for d in
+                                 [timezone.localtime(ds.created) for ds in datasets.all()]],
+                        'color': ["#883a6a"],
+                        'x-scale': 'time',
+                        'bins': 100,
+                        'time-format': "%A %H:00"
+                    },
+                    'style': 'col-xs-12'
                 },
                 {
                     'kind': 'table',
@@ -221,7 +246,9 @@ def get_session_stats(data, session):
                     'data': [['Total Time', humanize_duration(session.total_time())],
                              ['First Login', session.stretches.last() and datetime.strftime(timezone.localtime(session.start()), '%B %d, %Y %H:%M') or ''],
                              ['Datasets', data.filter(kind="MX_DATA").count()],
-                             ['Screens', data.filter(kind="MX_SCREEN").count()]],
+                             ['Screens', data.filter(kind="MX_SCREEN").count()],
+                             ['Samples', session.samples().count()]
+                             ],
                     'header': 'column',
                     'style': 'col-xs-4',
                 },

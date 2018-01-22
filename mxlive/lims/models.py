@@ -282,6 +282,9 @@ class Session(models.Model):
         return self.reports().count()
     num_reports.short_description = "Reports"
 
+    def samples(self):
+        return self.project.sample_set.filter(pk__in=self.data_set.values_list('sample__pk', flat=True))
+
     def is_active(self):
         return self.stretches.active().exists()
 
