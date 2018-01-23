@@ -189,16 +189,16 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
         .enter().append("rect")
         .attr("width", xStackChart.bandwidth())
         .attr("class", function(i, d) { return 'class' + legendClassArray[d]; })
-        .attr("title", function(d) { return d.label + '-' + d.y1;})
+        .attr("title", function(d) { return d.label + ': ' + d.y1;})
         .attr("y", function (d) { return yStackChart(d.y1); })
         .attr("height", function (d) { return yStackChart(d.y0) - yStackChart(d.y1); })
         .style("fill", function (d) { return d.color && d.color || colorStackChart(d.name); });
 
+
     if (legendClassArray.length > 1) {
-        legend.append("rect")
-            .attr("x", 0)
-            .attr("width", 18)
-            .attr("height", 18)
+        legend.append("circle")
+            .attr("cy", 9)
+            .attr("r", 9)
             .style("fill", colorStackChart)
             .attr("id", function (d, i) {
                 return "id" + d.replace(/\s/g, '');
@@ -258,7 +258,7 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
     function restorePlot(d) {
         class_keep = d.id.split("id").pop();
         idx = legendClassArray.indexOf(class_keep);
-
+        yStackChart.domain([0, d3.max(data, function (d) { return d.total; })]);
         $.each(state.selectAll("rect"), function (i, d) {
             //get height and y posn of base bar and selected bar
 
@@ -269,7 +269,8 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
                         .ease(d3.easeBounce)
                         .duration(500)
                         .delay(100)
-                        .attr("y", y_orig[j]);
+                        .attr("y", y_orig[j])
+                        .attr("height", h_orig[j]);
                 }
             });
 
@@ -292,6 +293,8 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
         class_keep = d.id.split("id").pop();
         idx = legendClassArray.indexOf(class_keep);
 
+        ySingleChart = d3.scaleLinear().range([heightStackChart, 0]).domain([0, d3.max(data, function (d) { return d[class_keep]; })]);
+
         for (i = 0; i < legendClassArray.length; i++) {
             if (legendClassArray[i] != class_keep) {
                 d3.selectAll(".class" + legendClassArray[i])
@@ -300,7 +303,8 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
                     .style("opacity", 0);
             }
         }
-        y_orig = [];
+
+        y_orig = [], h_orig = [];
         $.each(state.selectAll("rect"), function (i, d) {
             //get height and y posn of base bar and selected bar
 
@@ -309,6 +313,7 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
                     h_keep = d3.select(r[idx]).attr("height");
                     y_keep = d3.select(r[idx]).attr("y");
                     y_orig.push(y_keep);
+                    h_orig.push(h_keep);
 
                     h_base = d3.select(r[0]).attr("height");
                     y_base = d3.select(r[0]).attr("y");
@@ -321,7 +326,9 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
                         .ease(d3.easeBounce)
                         .duration(500)
                         .delay(100)
-                        .attr("y", y_new);
+                        .attr("y", function (d) { return heightStackChart - (ySingleChart(d.y0) - ySingleChart(d.y1)); })
+                        .attr("height", function (d) { return ySingleChart(d.y0) - ySingleChart(d.y1);})
+                        .call(yStackChart);
                 }
             });
 
