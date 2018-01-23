@@ -52,7 +52,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
     def get_context_data(self, **kwargs):
         context = super(ProjectDetail, self).get_context_data(**kwargs)
         if self.request.user.is_superuser:
-            context['shipments'] = models.Shipment.objects.filter(status__in=[models.Shipment.STATES.ON_SITE,models.Shipment.STATES.SENT]).order_by('status','-modified')
+            context['shipments'] = models.Shipment.objects.filter(status__in=[models.Shipment.STATES.ON_SITE,models.Shipment.STATES.SENT]).order_by('status','-date_received','-date_shipped')
             context['automounters'] = models.Dewar.objects.filter(active=True).order_by('beamline__name')
             context['sessions'] = models.Session.objects.filter(pk__in=models.Stretch.objects.active().values_list('session__pk', flat=True))
             kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('containers', flat=True)

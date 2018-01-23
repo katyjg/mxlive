@@ -55,7 +55,7 @@
 
             <div class="box-status pull-left text-muted">
                 <div class="text-center text-muted">
-                    <div title="{% if object.status == object.STATES.ON_SITE %}Location: {{ object.storage_location }}
+                    <div title="{% if object.status == object.STATES.ON_SITE %}On-site with location: {{ object.storage_location }}
                                 {% elif object.status == object.STATES.SENT %}Sent on {{ object.date_shipped }}
                                 {% elif object.status == object.STATES.RETURNED %}Returned on {{ object.date_returned }}{% endif %}"
                          class="fa fa-2x {% if object.status == object.STATES.DRAFT %}fa-clipboard
@@ -63,7 +63,10 @@
                                          {% elif object.status == object.STATES.ON_SITE %}fa-map-marker
                                          {% elif object.status == object.STATES.RETURNED %}fa-plane
                                          {% elif object.status == object.STATES.ARCHIVED %}fa-archive{% endif %}"></div>
-                    <div><small>{{ object.get_status_display|upper }}</small></div>
+                    <div><small>{% if object.status == object.STATES.DRAFT %}DRAFT
+                                {% elif object.status == object.STATES.SENT %}{{ object.date_shipped|date:"M d"|upper }}
+                                {% elif object.status == object.STATES.ON_SITE %}{{ object.date_received|date:"M d"|upper }}
+                                {% elif object.status >= object.STATES.RETURNED %}{{ object.date_returned|date:"M d"|upper }}{% endif %}</small></div>
                 </div>
             </div>
             <div class="box-info text-muted">
