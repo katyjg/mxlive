@@ -109,7 +109,7 @@ def get_usage_stats(bl, year):
             'project': Project.objects.get(pk=p),  # User
             'sessions': sessions.filter(project=p).count(),  # Sessions
             'num_data': datasets.filter(kind='MX_DATA', project__pk=p).count(),  # Full Datasets
-            'shutters': sum([d.num_frames() * d.exposure_time for d in datasets.filter(project__pk=p)]),  # Shutter Open
+            'shutters': sum([d.num_frames() * d.exposure_time for d in datasets.filter(project__pk=p)]) / total_time(sessions, p) if total_time(sessions, p) else 0,  # Shutter Open
             'shifts': total_shifts(sessions, p),  # Shifts
             'total_time': round(total_time(sessions, p), 2),  # Total Time
             'used_time': int(total_time(sessions, p) / (total_shifts(sessions, p) * SHIFT) * 100),  # Used Time (%)
@@ -145,21 +145,6 @@ def get_usage_stats(bl, year):
                     'header': 'column'
                 },
                 {
-                    'title': 'Percentage of Time Used',
-                    'kind': 'histogram',
-                    'data': {
-                        'x-label': 'User',
-                        'data': [{'User': u['project'].username,
-                                  'Efficiency': u['used_time'] / 100.,
-                                  'color': KIND_COLORS.get("{}{}".format(u['project'].categories.count(), sum(u['project'].categories.values_list('pk', flat=True))), {}).get('color', '#333333')
-                                  } for u in sorted(data, key=lambda x: x['used_time'])],
-                    },
-                    'notes': "&nbsp;".join(
-                        ["<span class='label' style='background-color: {}; color: white;'>{}</span>".format(v['color'], v['name']) for v in sorted(KIND_COLORS.values(), key=lambda x: x['name'])]
-                    ),
-                    'style': 'col-sm-12'
-                },
-                {
                     'title': 'Average Datasets per Hour',
                     'kind': 'scatterplot',
                     'data':
@@ -175,7 +160,26 @@ def get_usage_stats(bl, year):
                                 'display': None
                             }]
                          },
-                    'notes': 'The line plotted shows the average number of full datasets collected per hour.',
+                    'description': 'The line plotted shows the average number of full datasets collected per hour.',
+                    'style': 'col-sm-12'
+                },
+                {
+                    'title': 'Percentage of Time Used',
+                    'kind': 'histogram',
+                    'data': {
+                        'x-label': 'User',
+                        'data': [{'User': u['project'].username,
+                                  'Efficiency': u['used_time'] / 100.,
+                                  'color': KIND_COLORS.get("{}{}".format(u['project'].categories.count(), sum(
+                                      u['project'].categories.values_list('pk', flat=True))), {}).get('color',
+                                                                                                      '#333333')
+                                  } for u in sorted(data, key=lambda x: x['used_time'])],
+                    },
+                    'notes': "&nbsp;".join(
+                        ["<span class='label' style='background-color: {}; color: white;'>{}</span>".format(v['color'],
+                                                                                                            v['name'])
+                         for v in sorted(KIND_COLORS.values(), key=lambda x: x['name'])]
+                    ),
                     'style': 'col-sm-12'
                 },
                 {
@@ -185,8 +189,6 @@ def get_usage_stats(bl, year):
                         'x-label': 'User',
                         'data': [{'User': u['project'].username,
                                   'Shutters': u['shutters'],
-                                  'Data Rate': u['data_rate'],
-                                  'Sample Rate': u['samples'],
                                   'color': KIND_COLORS.get("{}{}".format(u['project'].categories.count(), sum(u['project'].categories.values_list('pk', flat=True))), {}).get('color', '#333333')
                                   } for u in sorted(data, key=lambda x: x['shutters'])],
                     },
@@ -197,15 +199,44 @@ def get_usage_stats(bl, year):
                     ),
                     'style': 'col-sm-12'
                 },
-                # {
-                #     'title': 'Datasets by Time of Day',
-                #     'kind': 'barchart',
-                #     'data': {
-                #         'data': [float(d.hour) + float(d.minute)/60. for d in [timezone.localtime(ds.created) for ds in datasets.all()]],
-                #         'color': ["#883a6a"]
-                #     },
-                #     'style': 'col-xs-12'
-                # },
+                {
+                    'title': 'Datasets per Hour',
+                    'kind': 'histogram',
+                    'data': {
+                        'x-label': 'User',
+                        'data': [{'User': u['project'].username,
+                                  'Datasets': u['data_rate'],
+                                  'color': KIND_COLORS.get("{}{}".format(u['project'].categories.count(), sum(
+                                      u['project'].categories.values_list('pk', flat=True))), {}).get('color',
+                                                                                                      '#333333')
+                                  } for u in sorted(data, key=lambda x: x['data_rate'])],
+                    },
+                    'notes': "&nbsp;".join(
+                        ["<span class='label' style='background-color: {}; color: white;'>{}</span>".format(v['color'],
+                                                                                                            v['name'])
+                         for v in sorted(KIND_COLORS.values(), key=lambda x: x['name'])]
+                    ),
+                    'style': 'col-sm-6'
+                },
+                {
+                    'title': 'Samples per Hour',
+                    'kind': 'histogram',
+                    'data': {
+                        'x-label': 'User',
+                        'data': [{'User': u['project'].username,
+                                  'Samples': u['samples'],
+                                  'color': KIND_COLORS.get("{}{}".format(u['project'].categories.count(), sum(
+                                      u['project'].categories.values_list('pk', flat=True))), {}).get('color',
+                                                                                                      '#333333')
+                                  } for u in sorted(data, key=lambda x: x['samples'])],
+                    },
+                    'notes': "&nbsp;".join(
+                        ["<span class='label' style='background-color: {}; color: white;'>{}</span>".format(v['color'],
+                                                                                                            v['name'])
+                         for v in sorted(KIND_COLORS.values(), key=lambda x: x['name'])]
+                    ),
+                    'style': 'col-sm-6'
+                },
                 {
                     'title': 'Datasets by Time of Week',
                     'kind': 'barchart',
@@ -222,7 +253,7 @@ def get_usage_stats(bl, year):
                 {
                     'kind': 'table',
                     'header': 'row',
-                    'data': [['User', 'Sessions', 'Shifts', 'Shutters Open', 'Total Time', 'Used Time (%)', 'Full Datasets', 'Full Datasets/Hour']] +
+                    'data': [['User', 'Sessions', 'Shifts', 'Shutters Open/Hour', 'Total Time', 'Used Time (%)', 'Full Datasets', 'Full Datasets/Hour']] +
                             [[u['project'].username, u['sessions'], u['shifts'], humanize_duration(u['shutters']), humanize_duration(u['total_time']), u['used_time'], u['num_data'], u['data_rate']] for u in sorted(data, key=lambda x: x['shutters'])]
                 }
             ]

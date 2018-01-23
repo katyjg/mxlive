@@ -146,7 +146,7 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
 
     data.forEach(function (d) {
         var y0 = 0;
-        d.ages = colorStackChart.domain().map(function (name) { return { name: name, y0: y0, y1: y0 += +d[name], color: d['color'] || null }; });
+        d.ages = colorStackChart.domain().map(function (name) { return { name: name, y0: y0, y1: y0 += +d[name], color: d['color'] || null, label: d[label] }; });
         d.total = d.ages[d.ages.length - 1].y1;
     });
 
@@ -189,6 +189,7 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
         .enter().append("rect")
         .attr("width", xStackChart.bandwidth())
         .attr("class", function(i, d) { return 'class' + legendClassArray[d]; })
+        .attr("title", function(d) { return d.label + '-' + d.y1;})
         .attr("y", function (d) { return yStackChart(d.y1); })
         .attr("height", function (d) { return yStackChart(d.y0) - yStackChart(d.y1); })
         .style("fill", function (d) { return d.color && d.color || colorStackChart(d.name); });
