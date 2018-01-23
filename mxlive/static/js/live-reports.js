@@ -258,7 +258,7 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
     function restorePlot(d) {
         class_keep = d.id.split("id").pop();
         idx = legendClassArray.indexOf(class_keep);
-        yStackChart.domain([0, d3.max(data, function (d) { return d.total; })]);
+
         $.each(state.selectAll("rect"), function (i, d) {
             //get height and y posn of base bar and selected bar
 
@@ -292,7 +292,6 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
     function plotSingle(d) {
         class_keep = d.id.split("id").pop();
         idx = legendClassArray.indexOf(class_keep);
-
         ySingleChart = d3.scaleLinear().range([heightStackChart, 0]).domain([0, d3.max(data, function (d) { return d[class_keep]; })]);
 
         for (i = 0; i < legendClassArray.length; i++) {

@@ -171,7 +171,7 @@ def get_usage_stats(bl, year):
                     'style': 'col-sm-12'
                 },
                 {
-                    'title': 'Shutters Open (%)',
+                    'title': 'User Statistics',
                     'kind': 'histogram',
                     'data': {
                         'x-label': 'User',
