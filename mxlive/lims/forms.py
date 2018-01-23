@@ -302,7 +302,10 @@ class SampleAdminForm(forms.ModelForm):
         self.helper.form_action = reverse_lazy('sample-admin-edit', kwargs={'pk': pk})
 
         self.helper.layout = Layout(
-            Div('staff_comments', css_class='col-xs-12'),
+            Div(
+                Div('staff_comments', css_class='col-xs-12'),
+                css_class="row"
+            ),
             FormActions(
                 Div(
                     Div(
