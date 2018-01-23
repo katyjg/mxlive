@@ -109,7 +109,7 @@ def get_usage_stats(bl, year):
             'project': Project.objects.get(pk=p),  # User
             'sessions': sessions.filter(project=p).count(),  # Sessions
             'num_data': datasets.filter(kind='MX_DATA', project__pk=p).count(),  # Full Datasets
-            'shutters': sum([d.num_frames() * d.exposure_time for d in datasets.filter(project__pk=p)]) / total_time(sessions, p) if total_time(sessions, p) else 0,  # Shutter Open
+            'shutters': round((sum([d.num_frames() * d.exposure_time for d in datasets.filter(project__pk=p)]) / 3600) / total_time(sessions, p), 2) if total_time(sessions, p) else 0,  # Shutter Open
             'shifts': total_shifts(sessions, p),  # Shifts
             'total_time': round(total_time(sessions, p), 2),  # Total Time
             'used_time': int(total_time(sessions, p) / (total_shifts(sessions, p) * SHIFT) * 100),  # Used Time (%)
@@ -183,7 +183,7 @@ def get_usage_stats(bl, year):
                     'style': 'col-sm-12'
                 },
                 {
-                    'title': 'Shutters Open per Hour',
+                    'title': 'Shutters Open per Hour (%)',
                     'kind': 'histogram',
                     'data': {
                         'x-label': 'User',
@@ -253,8 +253,8 @@ def get_usage_stats(bl, year):
                 {
                     'kind': 'table',
                     'header': 'row',
-                    'data': [['User', 'Sessions', 'Shifts', 'Shutters Open/Hour', 'Total Time', 'Used Time (%)', 'Full Datasets', 'Full Datasets/Hour']] +
-                            [[u['project'].username, u['sessions'], u['shifts'], humanize_duration(u['shutters']), humanize_duration(u['total_time']), u['used_time'], u['num_data'], u['data_rate']] for u in sorted(data, key=lambda x: x['shutters'])]
+                    'data': [['User', 'Sessions', 'Shifts', 'Shutters Open', 'Total Time', 'Used Time (%)', 'Full Datasets', 'Full Datasets/Hour']] +
+                            [[u['project'].username, u['sessions'], u['shifts'], "{}%".format(u['shutters'] * 100), humanize_duration(u['total_time']), u['used_time'], u['num_data'], u['data_rate']] for u in sorted(data, key=lambda x: x['shutters'])]
                 }
             ]
         }
