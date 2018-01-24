@@ -178,12 +178,16 @@ class ShipmentCommentsForm(forms.ModelForm):
         pk = self.instance.pk
 
         self.helper = FormHelper()
-        self.helper.title = u"Add comments to shipment"
+        self.helper.title = u"Edit shipment"
         self.helper.form_action = reverse_lazy('shipment-comments', kwargs={'pk': pk})
         self.helper.layout = Layout(
             'storage_location', 'staff_comments',
             FormActions(
                 Div(
+                    Div(
+                        StrictButton('Unreceive', type='recall', value='Recall', css_class="btn btn-danger"),
+                        css_class='pull-left'
+                    ),
                     Div(
                         StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-default"),
                         StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),

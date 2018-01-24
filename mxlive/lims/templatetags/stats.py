@@ -177,7 +177,7 @@ def get_usage_stats(bl, year):
                         'x-label': 'User',
                         'data': [{'User': u['project'].username,
                                   'Shutters': round(u['shutters'] / 36 / u['total_time'], 2) if u['total_time'] else 0,
-                                  'Samples': u['samples'] / u['total_time'] if u['total_time'] else 0,
+                                  'Samples': u['samples'],
                                   'Datasets': u['data_rate'],
                                   'Time': u['used_time'],
                                   'color': KIND_COLORS.get("{}{}".format(u['project'].categories.count(), sum(
@@ -195,7 +195,7 @@ def get_usage_stats(bl, year):
                     'title': 'Datasets by Time of Week',
                     'kind': 'barchart',
                     'data': {
-                        'data': [datetime.strftime(datetime(2018, 01, d.isoweekday(), d.hour, d.minute ), '%c') for d in
+                        'data': [datetime.strftime(datetime(2018, 01, d.isoweekday(), d.hour, d.minute), '%c') for d in
                                  [timezone.localtime(ds.created) for ds in datasets.all()]],
                         'color': ["#883a6a"],
                         'x-scale': 'time',
@@ -212,7 +212,7 @@ def get_usage_stats(bl, year):
                               'Samples/Hour']] +
                             [[u['project'].username, u['sessions'], u['shifts'], humanize_duration(u['shutters']/3600),
                               humanize_duration(u['total_time']), u['used_time'], u['num_data'], u['data_rate'],
-                              u['samples'] / u['total_time'] if u['total_time'] else 0]
+                              u['samples']]
                              for u in sorted(data, key=lambda x: x['total_time'] / x['shutters'] if x['shutters'] else 0)]
                 }
             ]

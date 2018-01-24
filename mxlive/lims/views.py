@@ -221,6 +221,14 @@ class ShipmentComments(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponse
     success_message = "Shipment has been edited by staff."
     success_url = reverse_lazy('shipment-list')
 
+    def form_valid(self, form):
+        obj = form.instance
+        if form.data.get('submit') == 'Recall':
+            obj.unreceive()
+            message = "Shipment un-received by staff"
+            models.ActivityLog.objects.log_activity(self.request, obj, models.ActivityLog.TYPE.MODIFY, message)
+        return super(ShipmentComments, self).form_valid(form)
+
 
 class ShipmentDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
     template_name = "forms/delete.html"
@@ -288,7 +296,6 @@ class RecallSendShipment(ShipmentEdit):
             message = "Shipping recalled"
             models.ActivityLog.objects.log_activity(self.request, obj, models.ActivityLog.TYPE.MODIFY, message)
         return super(RecallSendShipment, self).form_valid(form)
-
 
 
 class RecallReturnShipment(ShipmentEdit):

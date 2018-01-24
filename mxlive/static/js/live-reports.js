@@ -370,16 +370,18 @@ function draw_xy_chart() {
 
             if (scatter === 'bar') {
                 var color = datasets['color'];
+                var xmin = xlimits[0] || d3.min(datasets.data);
+                var xmax = xlimits[1] || d3.max(datasets.data);
                 switch (xscale) {
                     case 'time':
                         var x_scale = d3.scaleTime()
                             .range([0, innerwidth])
-                            .domain([d3.min(datasets.data), d3.max(datasets.data)]);
+                            .domain([xmin, xmax]);
                         break;
                     case 'linear':
                         var x_scale = d3.scaleLinear()
                             .range([0, innerwidth])
-                            .domain([d3.min(datasets.data), d3.max(datasets.data)]);
+                            .domain([xmin, xmax]);
                         break;
                 }
                 var bins = d3.histogram()

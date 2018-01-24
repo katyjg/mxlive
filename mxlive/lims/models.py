@@ -357,7 +357,7 @@ class LimsBaseClass(models.Model):
     TRANSITIONS = {
         STATES.DRAFT: [STATES.SENT, STATES.ON_SITE],
         STATES.SENT: [STATES.ON_SITE, STATES.DRAFT],
-        STATES.ON_SITE: [STATES.RETURNED],
+        STATES.ON_SITE: [STATES.SENT, STATES.RETURNED],
         STATES.LOADED: [STATES.ON_SITE],
         STATES.RETURNED: [STATES.ARCHIVED, STATES.ON_SITE],
         STATES.ACTIVE: [STATES.PROCESSING, STATES.COMPLETE, STATES.ARCHIVED],
@@ -401,6 +401,9 @@ class LimsBaseClass(models.Model):
 
     def unreturn(self, request=None):
         self.change_status(self.STATES.ON_SITE)
+
+    def unreceive(self, request=None):
+        self.change_status(self.STATES.SENT)
 
     def receive(self, request=None):
         self.change_status(self.STATES.ON_SITE) 
@@ -615,6 +618,14 @@ class Shipment(ObjectBaseClass):
             self.save()
             for obj in self.container_set.all():
                 obj.unreturn()
+
+    def unreceive(self, request=None):
+        if self.status == self.STATES.ON_SITE:
+            self.date_received = None
+            self.status = self.STATES.SENT
+            self.save()
+            for obj in self.container_set.all():
+                obj.unreceive()
 
     def returned(self, request=None):
         if self.is_returnable():
