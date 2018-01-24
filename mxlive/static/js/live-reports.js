@@ -292,7 +292,14 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
     function plotSingle(d) {
         class_keep = d.id.split("id").pop();
         idx = legendClassArray.indexOf(class_keep);
-        ySingleChart = d3.scaleLinear().range([heightStackChart, 0]).domain([0, d3.max(data, function (d) { return d[class_keep]; })]);
+        key_keep = class_keep;
+        $.each(data[0], function(k) {
+            if (k.replace(/\s/g, '') === class_keep) {
+                key_keep = k;
+                return false;
+            }
+        });
+        ySingleChart = d3.scaleLinear().range([heightStackChart, 0]).domain([0, d3.max(data, function (d) { return d[key_keep]; })]);
 
         for (i = 0; i < legendClassArray.length; i++) {
             if (legendClassArray[i] != class_keep) {
