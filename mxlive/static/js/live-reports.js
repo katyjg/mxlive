@@ -696,7 +696,7 @@ function draw_xy_chart() {
                     .style("stroke-width", "0.5px")
                     .style("opacity", "0");
 
-                var lines = this.getElementsByClassName('line');
+                var lines = $(this).find('.line');
 
                 if (y2datasets) {
                     var dualdatasets = [];
