@@ -155,6 +155,10 @@ class Project(AbstractUser):
     def last_session(self):
         return self.sessions.order_by('created').last().start() if self.sessions.order_by('created').last() else None
 
+    def delete_warning(self):
+        return "Shipments ({}), Samples ({}), Sessions ({}), Datasets ({}), and Reports ({}) will be deleted.".format(
+            self.shipment_set.count(), self.sample_set.count(), self.sessions.count(), self.data_set.count(), self.analysisreport_set.count())
+
     def shipment_count(self):
         this_year = datetime.now().year
         return Shipment.objects.filter(project__exact=self).filter(date_shipped__year=this_year).count()

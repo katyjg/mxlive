@@ -11,7 +11,14 @@
 {% endblock %}
 
 {% block object_tools %}
+{% if user.is_superuser %}
 <span class="box-tools pull-right">
+    <a class="pull-right" data-url="{% url "user-delete" object.username %}" title="Delete User">
+        <span class="fa-stack">
+            <i class="fa-stack-2x fa fa-2 fa-fw fa-remove"></i>
+        </span><br>
+        <span class="tool-label">Delete</span>
+    </a>
     <a class="pull-right" data-url="{% url "edit-profile" object.username %}" title="Edit Profile">
         <span class="fa-stack">
             <i class="fa-stack-2x fa fa-2 fa-fw fa-pencil"></i>
@@ -25,6 +32,7 @@
         <span class="tool-label">Labels</span>
     </a>
 </span>
+{% endif %}
 <span class="box-tools pull-right hidden-xs">
     <a class="pull-right" href="{% url "data-list" %}?q={{ object.username }}" title="Go to Data for {{ object.username }}">
         <span class="fa-stack">

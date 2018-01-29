@@ -5,13 +5,7 @@
 {% block form_title %}Delete?{% endblock %}
 {% block form_body %}
 <h5>Are you sure you want to delete the following {{ object|verbose_name|title }} "{{object}}"?</h5>
-<!--div class="minitron">
-	<h4><strong>{{object.title}}</strong></h4>
-	{% for member in object.details.team_members %}{{member.last_name}}, {{member.first_name}}{% if not forloop.last %} &middot; {% endif %}{% endfor %}
-	<hr/>
-	Created, {{object.created}}<br/>
-	Last Modified, {{object.modified}}<br/>
-</div-->
+<p>{{ object.delete_warning }}</p>
 <div class="row form-action">
   		<form action="{% if form_action %}{{ form_action }}{% else %}delete/{% endif %}" method="post">{% csrf_token %}
    			<input type="hidden" name="post" value="yes" />

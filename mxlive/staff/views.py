@@ -4,6 +4,8 @@ from django.core.urlresolvers import reverse_lazy
 from django.contrib.auth import get_user_model
 from django.shortcuts import render
 from django.utils import timezone
+from django.http import HttpResponseRedirect, JsonResponse
+
 import models
 import forms
 import slap
@@ -150,3 +152,27 @@ class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
         )
         # messages are simply passed down to the template via the request context
         return render(self.request, "users/redirect.html")
+
+
+class ProjectDelete(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
+    template_name = "forms/delete.html"
+    model = User
+    success_url = reverse_lazy('user-list')
+    success_message = "Account has been deleted"
+
+    def get_object(self):
+        obj = self.model.objects.get(username=self.kwargs.get('username'))
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super(ProjectDelete, self).get_context_data(**kwargs)
+        context['form_action'] = reverse_lazy('user-delete', kwargs={'username': self.object.username})
+        return context
+
+    def delete(self, *args, **kwargs):
+        obj = self.get_object()
+        info = slap.del_user(obj.username)
+        obj.delete()
+        self.success_message = "{} account has been deleted".format(kwargs.get('username'))
+        return JsonResponse({'url': self.success_url}, safe=False)
+
