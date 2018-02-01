@@ -65,9 +65,10 @@
 
 <div class="row">
     <div class="col-sm-12">
+        <h3>Samples in {{ object.name }}</h3>
         {% if object.status == object.STATES.DRAFT %}
             <div class="sortable">
-                {% include "objlist/object_list.html" with object_list=object.sample_set.all %}
+                {% include "objlist/list.html" with object_list=object.sample_set.all %}
             </div>
         {% else %}
             {% load progress_extras %}
@@ -114,6 +115,10 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="/static/objlist/objlist.css" type="text/css" media="screen" />
 {% endblock %}
 
 {% block extra_js %}
