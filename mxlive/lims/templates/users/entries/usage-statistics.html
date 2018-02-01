@@ -46,5 +46,17 @@
 <script>
     var json = {% get_usage_stats object year %};
     build_report('#data-stats', json);
+
+    $(document).ready(function() {
+        $('.hover-label').hover(function(e) {
+            $.each($("rect[style*='" + $(this).css('background-color') + "']"), function() {
+                $(this).css('stroke', '#ff0000').css('stroke-width', '3px');
+            })
+        }, function(e) {
+            $.each($("rect[style*='" + $(this).css('background-color') + "']"), function() {
+                $(this).css('stroke', 'none');
+            });
+        });
+    });
 </script>
 {% endblock %}

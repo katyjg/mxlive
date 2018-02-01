@@ -10,6 +10,7 @@ import json
 register = template.Library()
 
 COLOR_SCHEME = ["#883a6a", "#1f77b4", "#aec7e8", "#5cb85c", "#f0ad4e"]
+GRAY_SCALE = ["#000000", "#555555", "#888888", "#cccccc", "#eeeeee"]
 SHIFT = getattr(settings, "SHIFT_LENGTH", 8)
 
 @register.assignment_tag(takes_context=False)
@@ -129,12 +130,13 @@ def get_project_stats(user):
             'kind': 'histogram',
             'data': {
                 'x-label': 'User',
+                'colors': GRAY_SCALE,
                 'data': [{'User': u['project'].username if u['project'] == user else '{}'.format(i),
                           'Shutters': round(u['shutters'] / 36 / u['total_time'], 2) if u['total_time'] else 0,
                           'Samples': u['samples'],
                           'Datasets': u['data_rate'],
                           'Time': u['used_time'],
-                          'color': 'orange' if u['project'] == user else None,
+                          'color': '#ff8c00' if u['project'] == user else None,
                           } for i, u in
                          enumerate(sorted(info, key=lambda x: x['shutters'] / x['total_time'] if x['total_time'] else 0))],
             },
@@ -285,6 +287,7 @@ def get_usage_stats(bl, year):
                     'kind': 'histogram',
                     'data': {
                         'x-label': 'User',
+                        'colors': GRAY_SCALE,
                         'data': [{'User': u['project'].username,
                                   'Shutters': round(u['shutters'] / 36 / u['total_time'], 2) if u['total_time'] else 0,
                                   'Samples': u['samples'],
@@ -295,7 +298,7 @@ def get_usage_stats(bl, year):
                                   } for u in sorted(data, key=lambda x: x['shutters'] / x['total_time'] if x['total_time'] else 0)],
                     },
                     'notes': "&nbsp;".join(
-                        ["<span class='label' style='background-color: {}; color: white;'>{}</span>".format(v['color'],
+                        ["<span class='label hover-label' style='background-color: {}; color: white;'>{}</span>".format(v['color'],
                                                                                                             v['name'])
                          for v in sorted(KIND_COLORS.values(), key=lambda x: x['name'])]) +
                          "<dl><dt>Shutters</dt><dd>Percentage of time used when the shutter was open</dd><dt>Samples</dt><dd>Average number of samples collected or screened per hour</dd><dt>Datasets</dt><dd>Average number of full datasets collected per hour</dd><dt>Time</dt><dd>Percentage of time used ([actual time used] / [shifts used * 8])</dd></dl>",

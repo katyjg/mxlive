@@ -189,10 +189,11 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
         .enter().append("rect")
         .attr("width", xStackChart.bandwidth())
         .attr("class", function(i, d) { return 'class' + legendClassArray[d]; })
-        .attr("title", function(d) { return d.label + ': ' + d.y1;})
+        .attr("title", function(d, i) { return legendClassArray[i] + ' (' + d.label + '): ' + (d.y1 - d.y0);})
         .attr("y", function (d) { return yStackChart(d.y1); })
         .attr("height", function (d) { return yStackChart(d.y0) - yStackChart(d.y1); })
-        .style("fill", function (d) { return d.color && d.color || colorStackChart(d.name); });
+        .style("fill", function (d) { return d.color && d.color || colorStackChart(d.name); })
+        .style("opacity", function (d, i) { return d.color && 1 - ((0.75/legendClassArray.length) * i) || 1});
 
 
     if (legendClassArray.length > 1) {
@@ -223,7 +224,7 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
                     //gray out the others
                     for (i = 0; i < legendClassArray.length; i++) {
                         if (legendClassArray[i] != active_link) {
-                            d3.select("#id" + legendClassArray[i])
+                            state.select("#id" + legendClassArray[i])
                                 .style("opacity", 0.5);
                         }
                     }
@@ -279,11 +280,11 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
         //restore opacity of erased bars
         for (i = 0; i < legendClassArray.length; i++) {
           if (legendClassArray[i] != class_keep) {
-            d3.selectAll(".class" + legendClassArray[i])
+            state.selectAll(".class" + legendClassArray[i])
               .transition()
               .duration(500)
               .delay(100)
-              .style("opacity", 1);
+                .style('display', 'block');
           }
         }
 
@@ -303,10 +304,10 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
 
         for (i = 0; i < legendClassArray.length; i++) {
             if (legendClassArray[i] != class_keep) {
-                d3.selectAll(".class" + legendClassArray[i])
+                state.selectAll(".class" + legendClassArray[i])
                     .transition()
                     .duration(500)
-                    .style("opacity", 0);
+                    .style("display", "none");
             }
         }
 
