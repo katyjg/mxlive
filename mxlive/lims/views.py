@@ -839,7 +839,7 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                         for c, locations in sample_locations.get(group.name, {}).items():
                             container = self.shipment.container_set.get(name__iexact=slug_map.get(c,''))
                             for k, sample in enumerate(locations):
-                                name = "{0}-{1:02d}".format(group.name, j)
+                                name = "{0}_{1:02d}".format(group.name, j)
                                 to_create.append(models.Sample(group=group, container=container, location=sample,
                                                                name=name, project=project, priority=k+1))
                                 j += 1
@@ -935,7 +935,7 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
                 for location in locations:
                     if not models.Sample.objects.filter(container=container, location=location).exists():
                         while True:
-                            name = "{0}-{1:02d}".format(group.name, j)
+                            name = "{0}_{1:02d}".format(group.name, j)
                             if models.Sample.objects.filter(group=group, name=name).exists() or name in names:
                                 j += 1
                                 continue
@@ -988,7 +988,7 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
             for location in locations:
                 if not models.Sample.objects.filter(container=container, location=location).exists():
                     while True:
-                        name = "{0}-{1:02d}".format(group.name, j)
+                        name = "{0}_{1:02d}".format(group.name, j)
                         if models.Sample.objects.filter(group=group, name=name).exists() or name in names:
                             j += 1
                             continue
