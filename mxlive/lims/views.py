@@ -929,9 +929,9 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
                 group, created = models.Group.objects.get_or_create(**info)
             to_create = []
             j = 1
+            names = []
             for c, locations in sample_locations.get(group.name, {}).items():
                 container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
-                names = []
                 for location in locations:
                     if not models.Sample.objects.filter(container=container, location=location).exists():
                         while True:
@@ -982,9 +982,9 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
         to_create = []
         j = 1
         priority = group.sample_set.count() + 1
+        names = []
         for c, locations in sample_locations.get(group.name, {}).items():
             container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
-            names = []
             for location in locations:
                 if not models.Sample.objects.filter(container=container, location=location).exists():
                     while True:
