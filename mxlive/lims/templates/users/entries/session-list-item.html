@@ -43,7 +43,7 @@
                         <strong>{{ session.beamline.acronym }}</strong>{% if user.is_superuser %} | {{ session.project }}{% endif %} | {{ session.name }}
                         </a>
                     </h4>
-                    <span class="text-muted overflow ellipsis">Last record {{ session.end|naturalday }}</span>
+                    <span class="text-muted overflow ellipsis">Last record {{ session.data_set.last.modified|naturaltime }}</span>
                 </div>
             </div>
         </div>
