@@ -6,7 +6,7 @@ RUN dnf -y update && \
   postgresql-libs python-psycopg2 mod_xsendfile texlive texlive-xetex texlive-xetex-def texlive-collection-xetex \
   texlive-graphics sil-gentium-basic-fonts numpy scipy python-ldap python-crypto python-memcached \
   texlive-pst-barcode texlive-multirow mod_ssl python-docutils python-unicodecsv unzip tar gzip ImageMagick \
-  python-requests python-msgpack python-matplotlib && dnf clean all
+  python-requests python-msgpack python-matplotlib certbot-apache && dnf clean all
 
 RUN pip install --upgrade pip &&  pip install 'Django==1.11'
 
@@ -25,6 +25,6 @@ RUN /bin/cp /mxlive/deploy/mxlive.conf /etc/httpd/conf.d/
 
 RUN /mxlive/manage.py collectstatic --noinput
 
-VOLUME ["/mxlive/local"]
+VOLUME ["/mxlive/local", "/etc/letsencrypt"]
 
 CMD ["/run-server.sh"]
