@@ -54,7 +54,7 @@ mxlive:
     SERVER_NAME: cmcf.local
   volumes:
     - ./mxlive:/mxlive/local:Z
-    - ./certbot:/etc/letsencrypt:Z
+    - ./certs:/etc/letsencrypt:Z
     - /users:/users:ro
   ports:
     - 443:443
