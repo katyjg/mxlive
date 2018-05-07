@@ -1,4 +1,5 @@
 import os
+import re
 import pickle
 import urlparse
 from django.views.generic import View
@@ -100,12 +101,48 @@ class UpdatePriority(View):
         if group.project != request.user:
             raise http.Http404()
 
-        urls = [u for u in request.POST.getlist('samples[]') if u]
-        for i, url in enumerate(urls):
-            group.sample_set.filter(pk=''.join([s for s in url if s.isdigit()])).update(priority=i+1)
+        pks = [u for u in request.POST.getlist('samples[]') if u]
+        for i, pk in enumerate(pks):
+            group.sample_set.filter(pk=pk).update(priority=i+1)
 
         return JsonResponse([], safe=False)
 
+
+@method_decorator(csrf_exempt, name='dispatch')
+class BulkSampleEdit(View):
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        errors = []
+
+        group = request.POST.get('group')
+        if models.Group.objects.get(pk=group).project.username != self.request.user.username:
+            errors.append('You do not have permission to modify these samples.')
+            return JsonResponse(errors, safe=False)
+
+        data = {}
+        i = 0
+        while request.POST.getlist('samples[{}][]'.format(i)):
+            info = request.POST.getlist('samples[{}][]'.format(i))
+            data[info[0]] = {'name': info[1], 'barcode': info[2], 'comments': info[3]}
+            i += 1
+
+        for name in set([v['name'] for v in data.values()]):
+            if not re.compile('^[a-zA-Z0-9-_]+$').match(name):
+                errors.append('{}: Names cannot contain any spaces or special characters'.format(name.encode('utf-8')))
+
+        names = list(models.Sample.objects.filter(group__pk=group).exclude(pk__in=data.keys()).values_list('name', flat=True))
+        names.extend([v['name'] for v in data.values()])
+
+        duplicates = set([name for name in names if names.count(name) > 1])
+        for name in duplicates:
+            errors.append('{}: Each sample in the group must have a unique name'.format(name))
+
+        if not errors:
+            for pk, info in data.items():
+                models.Sample.objects.filter(pk=pk).update(**info)
+
+        return JsonResponse(errors, safe=False)
 
 def update_locations(request):
     container = models.Container.objects.get(pk=request.GET.get('pk', None))

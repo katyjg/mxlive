@@ -1283,3 +1283,15 @@ span.label-unusable-score {
 .footer-item + .footer-item {
     border-left: 1px solid #ddd;
 }
+
+.bulk-edit input {
+    height: 26px;
+    border: 1px solid #a0c4e3;
+    outline: 0 none;
+    padding-left: 3px;
+    width: 100%;
+}
+.bulk-edit .input {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}

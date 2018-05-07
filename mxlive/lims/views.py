@@ -838,10 +838,10 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                         slug_map = {slugify(c.name): c.name for c in self.shipment.container_set.all()}
                         for c, locations in sample_locations.get(group.name, {}).items():
                             container = self.shipment.container_set.get(name__iexact=slug_map.get(c,''))
-                            for k, sample in enumerate(locations):
+                            for sample in locations:
                                 name = "{0}_{1:02d}".format(group.name, j)
                                 to_create.append(models.Sample(group=group, container=container, location=sample,
-                                                               name=name, project=project, priority=k+1))
+                                                               name=name, project=project, priority=j))
                                 j += 1
                         models.Sample.objects.bulk_create(to_create)
                         if group.sample_count < group.sample_set.count():
@@ -929,6 +929,7 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
                 group, created = models.Group.objects.get_or_create(**info)
             to_create = []
             j = 1
+            priority = max(group.sample_set.values_list('priority', flat=True) or [0]) + 1
             names = []
             for c, locations in sample_locations.get(group.name, {}).items():
                 container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
@@ -943,7 +944,8 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
                             break
                         to_create.append(
                             models.Sample(group=group, container=container, location=location, name=name,
-                                          project=self.request.user))
+                                          project=self.request.user, priority=priority))
+                        priority += 1
 
             models.Sample.objects.bulk_create(to_create)
             if group.sample_count < group.sample_set.count():
@@ -981,7 +983,7 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
         group = models.Group.objects.get(pk=int(data['id']))
         to_create = []
         j = 1
-        priority = group.sample_set.count() + 1
+        priority = max(group.sample_set.values_list('priority', flat=True) or [0]) + 1
         names = []
         for c, locations in sample_locations.get(group.name, {}).items():
             container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])

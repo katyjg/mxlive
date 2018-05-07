@@ -7,6 +7,7 @@ from lims import forms, models
 urlpatterns = [
     url(r'^profile/(?P<username>[\w\-]+)/edit$', views.ProjectEdit.as_view(), name='edit-profile'),
     url(r'^profile/(?P<username>[\w\-]+)/labels$', views.ProjectLabels.as_view(), name='project-labels'),
+    url(r'^profile/(?P<username>[\w\-]+)/statistics/$', views.ProjectDetail.as_view(template_name="users/entries/project-statistics.html"), name='project-statistics'),
 
     url(r'^beamline/(?P<pk>\d+)/$', views.BeamlineDetail.as_view(), name='beamline-detail'),
     url(r'^beamline/(?P<pk>\d+)/history/$', views.BeamlineHistory.as_view(), name='beamline-history'),
@@ -79,6 +80,7 @@ urlpatterns = [
     url(r'^ajax/fetch_image/$', ajax_views.fetch_image, name='fetch-image'),
     url(r'^ajax/fetch_archive/(?P<path>\w+)/(?P<name>.*)/$', ajax_views.fetch_archive, name='fetch-archive'),
     url(r'^ajax/fetch_session_archive/(?P<name>.*)/$', ajax_views.fetch_archive, name='fetch-session-archive'),
+    url(r'^ajax/bulk_edit/$', ajax_views.BulkSampleEdit.as_view(), name='bulk-edit'),
 
     url(r'^quick-guide/$', TemplateView.as_view(template_name='users/help.html'), name='user-guide'),
 ]
