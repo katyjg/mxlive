@@ -262,7 +262,7 @@ class AddReport(VerificationMixin, View):
         else:
             return http.HttpResponseServerError("Unable to create SecurePath")
 
-        kind = info.get('title').strip(' Report')
+        kind = info.get('title').replace(' Report', '')
         details = {
             'project': project,
             'score': info.get('score') if info.get('score') else 0,
