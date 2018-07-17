@@ -96,6 +96,41 @@ def get_data_stats(bl, year):
 
 
 @register.assignment_tag(takes_context=False)
+def get_yearly_sessions(user):
+    yr = timezone.localtime() - timedelta(days=365)
+    return user.sessions.filter(pk__in=Stretch.objects.filter(end__gte=yr).values_list('session__pk', flat=True).distinct())
+
+
+@register.assignment_tag(takes_context=False)
+def samples_per_hour(user, sessions):
+    ttime = total_time(sessions, user)
+    samples = sum([s.samples().count() for s in sessions])
+    return round(samples / ttime, 2) if ttime else 'None'
+
+
+@register.filter
+def samples_per_hour_all(category):
+    yr = timezone.localtime() - timedelta(days=365)
+    sessions = Session.objects.filter(pk__in=Stretch.objects.filter(end__gte=yr).values_list('session__pk', flat=True).distinct())
+    ttime = sum([s.total_time() for s in sessions.filter(project__pk__in=category.projects.values_list('pk', flat=True))])
+    samples = sum([s.samples().count() for s in sessions.filter(project__pk__in=category.projects.values_list('pk', flat=True))])
+    return round(samples / ttime, 2) if ttime else 'None'
+
+
+@register.filter
+def samples_per_hour_percentile(category, user):
+    yr = timezone.localtime() - timedelta(days=365)
+    sessions = Session.objects.filter(pk__in=Stretch.objects.filter(end__gte=yr).values_list('session__pk', flat=True).distinct())
+    data = {project.username: {'samples': sum([s.samples().count() for s in sessions.filter(project=project)]),
+                               'total_time': sum([s.total_time() for s in sessions.filter(project=project)])}
+            for project in category.projects.all()}
+    averages = sorted([round(v['samples'] / v['total_time'], 2) if v['total_time'] else 0 for v in data.values()])
+    my_avg = round(data[user.username]['samples'] / data[user.username]['total_time'], 2) if data[user.username]['total_time'] else 0
+
+    return round((averages.index(my_avg) + 0.5 * averages.count(my_avg)) * 100 / len(averages))
+
+
+@register.assignment_tag(takes_context=False)
 def get_project_stats(user):
     data = user.data_set.all()
     years = sorted({v['created'].year for v in Data.objects.values("created").order_by("created").distinct()})
@@ -109,39 +144,39 @@ def get_project_stats(user):
     ttime = total_time(user.sessions.all(), user)
     shutters = round(sum([d.num_frames() * d.exposure_time for d in data if d.exposure_time]), 2)/3600.
 
-    blstats = []
-    bls = data.values_list('beamline__acronym', flat=True).distinct()
-    yr = yrs[-1]['Year']
-    for bl in bls:
-        sessions = Beamline.objects.get(acronym=bl).sessions.filter(created__year=yr)
-        info = [
-            {
-                'project': Project.objects.get(pk=p),  # User
-                'shutters': round(sum([d.num_frames() * d.exposure_time for d in data.filter(project__pk=p) if d.exposure_time]), 2),  # Shutter Open
-                'total_time': round(total_time(sessions, p), 2),  # Total Time
-                'used_time': int(total_time(sessions, p) / (total_shifts(sessions, p) * SHIFT) * 100),  # Used Time (%)
-                'data_rate': round(data.filter(kind__contains='DATA', project__pk=p).count() / total_time(sessions, p), 2) if total_time(sessions, p) else 0,  # Datasets/Hour
-                'samples': sum([s.samples().count() for s in sessions.filter(project=p)]) / total_time(sessions, p) if total_time(sessions, p) else 0,  # Sample Rate
-            }
-            for p in sessions.values_list('project', flat=True).distinct()
-        ]
-        blstats.append({
-            'title': 'User Statistics for {}'.format(bl),
-            'kind': 'histogram',
-            'data': {
-                'x-label': 'User',
-                'colors': GRAY_SCALE,
-                'data': [{'User': u['project'].username if u['project'] == user else '{}'.format(i),
-                          'Shutters': round(u['shutters'] / 36 / u['total_time'], 2) if u['total_time'] else 0,
-                          'Samples': u['samples'],
-                          'Datasets': u['data_rate'],
-                          'Time': u['used_time'],
-                          'color': '#ff8c00' if u['project'] == user else None,
-                          } for i, u in
-                         enumerate(sorted(info, key=lambda x: x['shutters'] / x['total_time'] if x['total_time'] else 0))],
-            },
-            'style': 'col-sm-12' if len(bls) == 1 else 'col-sm-6'
-        })
+    # blstats = []
+    # bls = data.values_list('beamline__acronym', flat=True).distinct()
+    # yr = yrs[-1]['Year']
+    # for bl in bls:
+    #     sessions = Beamline.objects.get(acronym=bl).sessions.filter(created__year=yr)
+    #     info = [
+    #         {
+    #             'project': Project.objects.get(pk=p),  # User
+    #             'shutters': round(sum([d.num_frames() * d.exposure_time for d in data.filter(project__pk=p) if d.exposure_time]), 2),  # Shutter Open
+    #             'total_time': round(total_time(sessions, p), 2),  # Total Time
+    #             'used_time': int(total_time(sessions, p) / (total_shifts(sessions, p) * SHIFT) * 100),  # Used Time (%)
+    #             'data_rate': round(data.filter(kind__contains='DATA', project__pk=p).count() / total_time(sessions, p), 2) if total_time(sessions, p) else 0,  # Datasets/Hour
+    #             'samples': sum([s.samples().count() for s in sessions.filter(project=p)]) / total_time(sessions, p) if total_time(sessions, p) else 0,  # Sample Rate
+    #         }
+    #         for p in sessions.values_list('project', flat=True).distinct()
+    #     ]
+    #     blstats.append({
+    #         'title': 'User Statistics for {}'.format(bl),
+    #         'kind': 'histogram',
+    #         'data': {
+    #             'x-label': 'User',
+    #             'colors': GRAY_SCALE,
+    #             'data': [{'User': u['project'].username if u['project'] == user else '{}'.format(i),
+    #                       'Shutters': round(u['shutters'] / 36 / u['total_time'], 2) if u['total_time'] else 0,
+    #                       'Samples': u['samples'],
+    #                       'Datasets': u['data_rate'],
+    #                       'Time': u['used_time'],
+    #                       'color': '#ff8c00' if u['project'] == user else None,
+    #                       } for i, u in
+    #                      enumerate(sorted(info, key=lambda x: x['shutters'] / x['total_time'] if x['total_time'] else 0))],
+    #         },
+    #         'style': 'col-sm-12' if len(bls) == 1 else 'col-sm-6'
+    #     })
 
     stats = {'details': [
         {
@@ -165,7 +200,9 @@ def get_project_stats(user):
                     'kind': 'table',
                     'data': [
                         ['Sessions', user.sessions.count()],
-                        ['Shipments', user.shipment_set.count()],
+                        ['Shipments / Containers', "{} / {}".format(
+                            user.shipment_set.count(),
+                            user.container_set.filter(status__gte=Container.STATES.ON_SITE).count())],
                         ['Groups / Samples', "{} / {}".format(
                             user.group_set.filter(shipment__status__gte=Shipment.STATES.ON_SITE).count(),
                             user.sample_set.filter(container__status__gte=Container.STATES.ON_SITE).count())],
@@ -191,17 +228,17 @@ def get_project_stats(user):
                 }
             ]
         },
-        {
-            'title': '{} User Efficiency Statistics'.format(yr),
-            'style': 'col-xs-12',
-            'content': blstats,
-            'description': """<dl>
-                <dt>Shutters</dt><dd>Percentage of time used when the shutter was open ([shutter open] / [actual time used])</dd>
-                <dt>Samples</dt><dd>Average number of samples collected or screened per hour</dd>
-                <dt>Datasets</dt><dd>Average number of full datasets collected per hour</dd>
-                <dt>Time</dt><dd>Percentage of time used ([actual time used] / [shifts used * {}])</dd></dl>""".format(
-                SHIFT),
-        }
+        # {
+        #     'title': '{} User Efficiency Statistics'.format(yr),
+        #     'style': 'col-xs-12',
+        #     'content': blstats,
+        #     'description': """<dl>
+        #         <dt>Shutters</dt><dd>Percentage of time used when the shutter was open ([shutter open] / [actual time used])</dd>
+        #         <dt>Samples</dt><dd>Average number of samples collected or screened per hour</dd>
+        #         <dt>Datasets</dt><dd>Average number of full datasets collected per hour</dd>
+        #         <dt>Time</dt><dd>Percentage of time used ([actual time used] / [shifts used * {}])</dd></dl>""".format(
+        #         SHIFT),
+        # }
         ]}
     return mark_safe(json.dumps(stats))
 

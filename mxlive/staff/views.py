@@ -3,7 +3,6 @@ from django.views.generic import edit, detail, TemplateView
 from django.core.urlresolvers import reverse_lazy
 from django.contrib.auth import get_user_model
 from django.shortcuts import render
-from django.utils import timezone
 from django.http import HttpResponseRedirect, JsonResponse
 
 import models
@@ -21,13 +20,19 @@ User = get_user_model()
 class AccessList(AdminRequiredMixin, FilteredListView):
     model = models.UserList
     list_filter = []
-    list_display = ['name', 'description', 'current_users', 'address', 'active']
+    list_display = ['name', 'description', 'current_users', 'allowed_users', 'address', 'active']
+    tool_template = "users/tools-access.html"
     detail_url = 'access-edit'
     detail_url_kwarg = 'address'
     detail_ajax = True
     detail_target = '#modal-form'
     order_by = ['name']
     template_name = "users/list.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super(AccessList, self).get_context_data(**kwargs)
+        ctx['tool_template'] = self.tool_template
+        return ctx
 
 
 class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
@@ -41,6 +46,22 @@ class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin,
 
     def get_object(self):
         return self.model.objects.get(address=self.kwargs.get('address'))
+
+
+class RemoteConnectionList(AdminRequiredMixin, FilteredListView):
+    model = models.RemoteConnection
+    list_filter = []
+    list_display = ['user', 'name', 'list', 'status', 'created', 'end']
+    order_by = ['created']
+    template_name = "users/list.html"
+    detail_url = 'connection-detail'
+    detail_ajax = True
+    detail_target = '#modal-form'
+
+
+class RemoteConnectionDetail(AdminRequiredMixin, detail.DetailView):
+    model = models.RemoteConnection
+    template_name = "users/entries/connection.html"
 
 
 class CategoryList(AdminRequiredMixin, FilteredListView):

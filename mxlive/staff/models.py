@@ -1,6 +1,7 @@
 # define models here
 from django.db import models
 from lims.models import ActivityLog, Beamline, Container, Sample, Group
+from model_utils import Choices
 import imghdr
 import os
 
@@ -49,8 +50,12 @@ class UserList(StaffBaseClass):
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified', auto_now_add=True, editable=False)
 
-    def current_users(self):
+    def allowed_users(self):
         return ';'.join(self.users.values_list('username', flat=True))
+
+    def current_users(self):
+        return ';'.join(self.connections.filter(status__in=['Connected', 'Disconnected'])
+                        .values_list('user__username', flat=True).distinct())
 
     def identity(self):
         return self.name
@@ -79,3 +84,25 @@ class UserCategory(models.Model):
     class Meta:
         verbose_name = "User Category"
         verbose_name_plural = "User Categories"
+
+
+class RemoteConnection(StaffBaseClass):
+    STATES = Choices(
+        ('CONNECTED', 'Connected'),
+        ('DISCONNECTED', 'Disconnected'),
+        ('FAILED', 'Failed'),
+        ('FINISHED', 'Finished'),
+    )
+    name = models.CharField(max_length=48)
+    user = models.ForeignKey("lims.Project")
+    list = models.ForeignKey(UserList, related_name="connections")
+    status = models.CharField(choices=STATES, default=STATES.CONNECTED, max_length=20)
+    created = models.DateTimeField('date created', auto_now_add=True, editable=True)
+    end = models.DateTimeField('date ended', null=True, blank=True)
+
+    def is_active(self):
+        return self.status in ['Connected', 'Disconnected']
+
+    def total_time(self):
+        return (self.end - self.created).total_seconds()/3600.
+    total_time.short_description = "Duration"

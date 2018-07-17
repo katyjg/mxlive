@@ -67,6 +67,40 @@ class AccessList(View):
         else:
             return JsonResponse([], safe=False)
 
+    def post(self, request, *args, **kwargs):
+
+        from lims.models import Project
+        from staff.models import UserList, RemoteConnection
+        from django.utils import timezone
+        from datetime import datetime
+
+        client_addr = kwargs.get('ipnumber', get_client_address(request))
+        list = UserList.objects.filter(address=client_addr, active=True).first()
+
+        tz = timezone.get_current_timezone()
+        errors = []
+
+        if list:
+            data = msgpack.loads(request.body)
+            for conn in data:
+                try:
+                    project = Project.objects.get(username=conn['project'])
+                except:
+                    errors.append("User '{}' not found.".format(conn['project']))
+                status = conn['status']
+                dt = tz.localize(datetime.strptime(conn['date'], "%Y-%m-%d %H:%M:%S"))
+                r, created = RemoteConnection.objects.get_or_create(name=conn['name'], list=list, user=project)
+                r.status = status
+                if created:
+                    r.created = dt
+                else:
+                    r.end = dt
+                r.save()
+
+            return JsonResponse([p.username for p in list.users.all()], safe=False)
+        else:
+            return JsonResponse([], safe=False)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class UpdateUserKey(View):

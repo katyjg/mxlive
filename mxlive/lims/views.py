@@ -77,6 +77,34 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
         return context
 
 
+class ProjectStatistics(UserPassesTestMixin, detail.DetailView):
+    """
+    This is the "Dashboard" view. Basic information about the Project is displayed:
+
+    :For superusers, direct to staff.html, with context:
+       - shipments: Any Shipments that are Sent or On-site
+       - automounters: Any active Dewar objects (Beamline/Automounter)
+
+    :For Users, direct to project.html, with context:
+       - shipments: All Shipments that are Draft, Sent, or On-site, plus Returned shipments to bring the total displayed up to seven.
+       - sessions: Any recent Session from any beamline
+    """
+    model = models.Project
+    template_name = "users/entries/project-statistics.html"
+    slug_field = 'username'
+    slug_url_kwarg = 'username'
+
+    def test_func(self):
+        # Allow access to admin or owner
+        return self.request.user.is_superuser or self.get_object() == self.request.user
+
+    def get_object(self, *args, **kwargs):
+        # inject username in to kwargs if not already present
+        if not self.kwargs.get('username'):
+            self.kwargs['username'] = self.request.user
+        return super(ProjectStatistics, self).get_object(*args, **kwargs)
+
+
 class OwnerRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     """
     Mixin to limit access to the owner of an object (or superusers).

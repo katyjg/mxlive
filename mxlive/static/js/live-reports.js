@@ -213,36 +213,21 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
                 }
             })
             .on("click", function (d) {
-                if (active_link === "0") { //nothing selected, turn on this selection
+                var active_id = '#id' + active_link;
+                d3.select(active_id).style("stroke", "none");
+                if (active_link !== this.id.split("id").pop()) {
+                    if (active_link !== "0") {
+                        restorePlot($(active_id)[0], duration = 0, delay = 0);
+                    }
                     d3.select(this)
                         .style("stroke", "black")
                         .style("stroke-width", 2);
 
                     active_link = this.id.split("id").pop();
                     plotSingle(this);
-
-                    //gray out the others
-                    for (i = 0; i < legendClassArray.length; i++) {
-                        if (legendClassArray[i] != active_link) {
-                            state.select("#id" + legendClassArray[i])
-                                .style("opacity", 0.5);
-                        }
-                    }
-
-                } else { //deactivate
-                    if (active_link === this.id.split("id").pop()) {//active square selected; turn it OFF
-                        d3.select(this)
-                            .style("stroke", "none");
-
-                        active_link = "0"; //reset
-
-                        //restore remaining boxes to normal opacity
-                        for (i = 0; i < legendClassArray.length; i++) {
-                            d3.select("#id" + legendClassArray[i])
-                                .style("opacity", 1);
-                        }
-                        restorePlot(this);
-                    }
+                } else {
+                    restorePlot($(active_id)[0], duration=500, delay=100);
+                    active_link = "0";
                 }
             });
 
@@ -256,25 +241,23 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
             });
     }
 
-    function restorePlot(d) {
+    function restorePlot(d, duration=500, delay=100) {
         class_keep = d.id.split("id").pop();
         idx = legendClassArray.indexOf(class_keep);
 
-        $.each(state.selectAll("rect"), function (i, d) {
+        $.each(state.selectAll("rect"), function (i, e) {
             //get height and y posn of base bar and selected bar
-
-            $.each(d, function(j, r) {
+            $.each(e, function(j, r) {
                 if (r[idx]) {
                     d3.select(r[idx])
                         .transition()
                         .ease(d3.easeBounce)
-                        .duration(500)
-                        .delay(100)
+                        .duration(duration)
+                        .delay(delay)
                         .attr("y", y_orig[j])
                         .attr("height", h_orig[j]);
                 }
             });
-
         });
 
         //restore opacity of erased bars
@@ -282,9 +265,9 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
           if (legendClassArray[i] != class_keep) {
             state.selectAll(".class" + legendClassArray[i])
               .transition()
-              .duration(500)
-              .delay(100)
-                .style('display', 'block');
+              .duration(duration)
+              .delay(delay)
+              .style('display', 'block');
           }
         }
 

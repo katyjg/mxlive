@@ -221,7 +221,7 @@
             'samples': order
         },
         success: function(response) {
-            window.location.reload();
+            window.location.href=window.location.href;
         }
         });
     }
@@ -252,7 +252,7 @@
                         $('.error-panel').html(response.join('<br/>')).css('display', 'block');
                     }
                 } else {
-                    window.location.reload();
+                    window.location.href=window.location.href;
                 }
             }
         });

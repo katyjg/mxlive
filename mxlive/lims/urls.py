@@ -7,7 +7,7 @@ from lims import forms, models
 urlpatterns = [
     url(r'^profile/(?P<username>[\w\-]+)/edit$', views.ProjectEdit.as_view(), name='edit-profile'),
     url(r'^profile/(?P<username>[\w\-]+)/labels$', views.ProjectLabels.as_view(), name='project-labels'),
-    url(r'^profile/(?P<username>[\w\-]+)/statistics/$', views.ProjectDetail.as_view(template_name="users/entries/project-statistics.html"), name='project-statistics'),
+    url(r'^profile/(?P<username>[\w\-]+)/statistics/$', views.ProjectStatistics.as_view(), name='project-statistics'),
 
     url(r'^beamline/(?P<pk>\d+)/$', views.BeamlineDetail.as_view(), name='beamline-detail'),
     url(r'^beamline/(?P<pk>\d+)/history/$', views.BeamlineHistory.as_view(), name='beamline-history'),
