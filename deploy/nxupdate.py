@@ -4,7 +4,7 @@
 # it should be copied to the nomachine server, updated to match the cerverand a cron entry should be created to run the script as often as needed
 #
 
-SERVER_URL = "https://cmcf.lightsource.ca" # Address of MxLIVE Server
+SERVER_URL = "https://mxlive.lightsource.ca" # Address of MxLIVE Server
 SSL_VERIFY = False   # Set to False to allow self-signed certificates
 
 
@@ -14,6 +14,9 @@ import requests
 import socket
 import subprocess
 import msgpack
+
+import warnings
+warnings.filterwarnings("ignore")
 
 
 NX_TEMPLATE = "# --------- Allowed NX Users on %s ---------\n# This file is generated automatically, do not edit. Use MxLIVE!\n\n%s\n"

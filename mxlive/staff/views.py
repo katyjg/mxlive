@@ -50,9 +50,10 @@ class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin,
 
 class RemoteConnectionList(AdminRequiredMixin, FilteredListView):
     model = models.RemoteConnection
-    list_filter = []
     list_display = ['user', 'name', 'list', 'status', 'created', 'end']
-    order_by = ['created']
+    list_filter = ['created', 'list']
+    search_fields = ['user__username', 'name', 'status', 'list__name', 'created']
+    order_by = ['-created']
     template_name = "users/list.html"
     detail_url = 'connection-detail'
     detail_ajax = True

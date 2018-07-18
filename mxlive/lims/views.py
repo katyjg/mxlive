@@ -434,7 +434,7 @@ class ContainerDetail(DetailListMixin, SampleList):
         return 'Samples in {}'.format(object.name)
 
     def get_filters(self, request):
-        filters = super(ContainerDetail, self).get_filters(request)
+        filters = super(ListViewMixin, self).get_filters(request)
         if self.get_object().has_children():
             self.list_display.append('container')
 

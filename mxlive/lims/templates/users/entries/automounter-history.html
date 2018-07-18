@@ -25,7 +25,7 @@
                         <td class="col-xs-3 text-right">{{ stretch.duration|default:"Active" }} {% if stretch.duration %}minutes{% endif %}</td>
                     </tr>
                 {% endfor %}
-                {% for stretch in object.children_history.with_duration %}
+                {% for stretch in object.children_history.with_duration|slice:"50" %}
                     <tr>
                         <td class="col-xs-3">{{ stretch.child.project }} | {{ stretch.child.name }} <strong>{{ stretch.location }}</strong></td>
                         <td class="col-xs-3">{{ stretch.start }}</td>
