@@ -171,7 +171,8 @@ def fetch_image(request, url=None, brightness=None):
                         os.remove(img_file)
                     except OSError:
                         pass
-        src = "/cache{}".format(png_file.replace(CACHE_DIR, ""))
+        if os.path.isfile(png_file):
+            src = "/cache{}".format(png_file.replace(CACHE_DIR, ""))
 
     return JsonResponse({'src': src})
 
