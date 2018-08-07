@@ -204,9 +204,12 @@ def fetch_archive(request, path=None, name=None):
         url = IMAGE_URL + "/files/{}?{}".format(name, request.GET.urlencode())
         r = requests.get(url, stream=True)
 
-    if 'tar.gz' in name:
-        resp = http.StreamingHttpResponse(r, content_type='application/x-gzip')
-        resp['Content-Disposition'] = 'attachment; filename={0}'.format(name)
+    if r.status_code == 200:
+        if 'tar.gz' in name:
+            resp = http.StreamingHttpResponse(r, content_type='application/x-gzip')
+            resp['Content-Disposition'] = 'attachment; filename={0}'.format(name)
+        else:
+            resp = http.HttpResponse(r)
     else:
         resp = http.HttpResponse(r)
     return resp
