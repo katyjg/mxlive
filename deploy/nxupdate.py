@@ -42,14 +42,24 @@ def update_userlist():
         r = requests.post(url, data=data)
 
     if r.status_code == requests.codes.ok:
-        users = r.json()
+        authorized_users = r.json()
         hostname = socket.gethostname()
-        users_text = "\n".join(users)
+        users_text = "\n".join(authorized_users)
+
+        # Find currently connected users.
+        cmd = "/usr/NX/bin/nxserver --list"
+        outp = subprocess.check_output(cmd.split())
+        info = [o.split() for o in outp.split('\n')[4:] if o]
+        current_users = [conn[1] for conn in info]
+
+        # Terminate unauthorized connections.
+        to_close = set(current_users) - set(authorized_users)
+        for user in to_close:
+            cmd = "/usr/NX/bin/nxserver --terminate {}".format(user)
+            outp = subprocess.check_output(cmd.split())
+
         return NX_TEMPLATE % (hostname, users_text)
 
-
-
-    #TODO: Terminate unauthorized connections now.
     return ""
 
 
