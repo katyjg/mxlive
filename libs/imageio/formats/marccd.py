@@ -1,10 +1,17 @@
+'''
+Created on Nov 25, 2010
+
+@author: michel
+'''
 import math
 import struct
+
 import numpy
 from PIL import Image
-from utils import calc_gamma
+from ..utils import calc_gamma
 
-class RAXISImageFile(object):
+
+class MarCCDImageFile(object):
     def __init__(self, filename, header_only=False):
         self.filename = filename
         self._read_header()
@@ -14,30 +21,35 @@ class RAXISImageFile(object):
     def _read_header(self):
         header = {}
 
-        # Read RAXIS header
-        header = [
-             '10s10s20s12s6f12s1f80s84x',
-            '12s20s4s1f20s1f20s4s1f1f1f12s80s1l1f56x',
-            '4s4s3f1l1f2f4f205x',
-            '2l2f4l3f10s10s3l2f2l15f5f5f5f1l40s',
-            '16s20s20s9l20l20l1i768s',
-        ]
+        # Read MarCCD header
+        header_format = 'I16s39I80x'  # 256 bytes
+        statistics_format = '3Q7I9I40x128H'  # 128 + 256 bytes
+        goniostat_format = '28i16x'  # 128 bytes
+        detector_format = '5i9i9i9i'  # 128 bytes
+        source_format = '10i16x10i32x'  # 128 bytes
+        file_format = '128s128s64s32s32s32s512s96x'  # 1024 bytes
+        dataset_format = '512s'  # 512 bytes
+        # image_format = '9437184H'
 
-
+        marccd_header_format = header_format + statistics_format
+        marccd_header_format += goniostat_format + detector_format + source_format
+        marccd_header_format += file_format + dataset_format + '512x'
         myfile = open(self.filename, 'rb')
 
-        params = [
-            struct.unpack(fmt, myfile.read(struct.calcsize(fmt)))
-            for fmt in header
-        ]
-        import json
-        print json.dumps(params[3], indent=4)
+        tiff_header = myfile.read(1024)
+        del tiff_header
+        header_pars = struct.unpack(header_format, myfile.read(256))
+        statistics_pars = struct.unpack(statistics_format, myfile.read(128 + 256))
+        goniostat_pars = struct.unpack(goniostat_format, myfile.read(128))
+        detector_pars = struct.unpack(detector_format, myfile.read(128))
+        source_pars = struct.unpack(source_format, myfile.read(128))
+        # file_pars = struct.unpack(file_format, myfile.read(1024))
+        # dataset_pars = struct.unpack(dataset_format, myfile.read(512))
         myfile.close()
-        import sys
-        sys.exit()
+
         # extract some values from the header
         # use image center if detector origin is (0,0)
-        if params[1] / 1e3 + goniostat_pars[2] / 1e3 < 0.1:
+        if goniostat_pars[1] / 1e3 + goniostat_pars[2] / 1e3 < 0.1:
             header['beam_center'] = header_pars[17] / 2.0, header_pars[18] / 2.0
         else:
             header['beam_center'] = goniostat_pars[1] / 1e3, goniostat_pars[2] / 1e3
@@ -66,12 +78,13 @@ class RAXISImageFile(object):
     def _read_image(self):
         raw_img = Image.open(self.filename)
         self.raw_data = raw_img.load()
+        self.data = numpy.fromstring(raw_img.tobytes(), 'H').reshape(*self.header['detector_size']).transpose()
 
         # recalculate average intensity if not present within file
         if self.header['average_intensity'] < 0.01:
-            self.header['average_intensity'] = numpy.mean(numpy.fromstring(raw_img.tostring(), 'H'))
+            self.header['average_intensity'] = max(0.0, numpy.mean(self.data))
         self.header['gamma'] = calc_gamma(self.header['average_intensity'])
         self.image = raw_img.convert('I')
 
 
-__all__ = ['RAXISImageFile']
+__all__ = ['MarCCDImageFile']

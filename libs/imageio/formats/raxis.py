@@ -5,12 +5,13 @@ Created on Nov 25, 2010
 '''
 import math
 import struct
-from PIL import Image 
+
 import numpy
-from utils import calc_gamma
+from PIL import Image
+from ..utils import calc_gamma
 
 
-class MarCCDImageFile(object):
+class RAXISImageFile(object):
     def __init__(self, filename, header_only=False):
         self.filename = filename
         self._read_header()
@@ -19,22 +20,22 @@ class MarCCDImageFile(object):
 
     def _read_header(self):
         header = {}
-        
+
         # Read MarCCD header
-        header_format = 'I16s39I80x' # 256 bytes
-        statistics_format = '3Q7I9I40x128H' #128 + 256 bytes
-        goniostat_format = '28i16x' #128 bytes
-        detector_format = '5i9i9i9i' #128 bytes
-        source_format = '10i16x10i32x' #128 bytes
-        file_format = '128s128s64s32s32s32s512s96x' # 1024 bytes
-        dataset_format = '512s' # 512 bytes
-        #image_format = '9437184H'
-        
-        marccd_header_format = header_format + statistics_format 
-        marccd_header_format += goniostat_format + detector_format + source_format 
+        header_format = 'I16s39I80x'  # 256 bytes
+        statistics_format = '3Q7I9I40x128H'  # 128 + 256 bytes
+        goniostat_format = '28i16x'  # 128 bytes
+        detector_format = '5i9i9i9i'  # 128 bytes
+        source_format = '10i16x10i32x'  # 128 bytes
+        file_format = '128s128s64s32s32s32s512s96x'  # 1024 bytes
+        dataset_format = '512s'  # 512 bytes
+        # image_format = '9437184H'
+
+        marccd_header_format = header_format + statistics_format
+        marccd_header_format += goniostat_format + detector_format + source_format
         marccd_header_format += file_format + dataset_format + '512x'
         myfile = open(self.filename, 'rb')
-        
+
         tiff_header = myfile.read(1024)
         del tiff_header
         header_pars = struct.unpack(header_format, myfile.read(256))
@@ -42,17 +43,17 @@ class MarCCDImageFile(object):
         goniostat_pars = struct.unpack(goniostat_format, myfile.read(128))
         detector_pars = struct.unpack(detector_format, myfile.read(128))
         source_pars = struct.unpack(source_format, myfile.read(128))
-        #file_pars = struct.unpack(file_format, myfile.read(1024))
-        #dataset_pars = struct.unpack(dataset_format, myfile.read(512))
+        # file_pars = struct.unpack(file_format, myfile.read(1024))
+        # dataset_pars = struct.unpack(dataset_format, myfile.read(512))
         myfile.close()
-        
+
         # extract some values from the header
         # use image center if detector origin is (0,0)
         if goniostat_pars[1] / 1e3 + goniostat_pars[2] / 1e3 < 0.1:
             header['beam_center'] = header_pars[17] / 2.0, header_pars[18] / 2.0
         else:
             header['beam_center'] = goniostat_pars[1] / 1e3, goniostat_pars[2] / 1e3
-    
+
         header['distance'] = goniostat_pars[0] / 1e3
         header['wavelength'] = source_pars[3] / 1e5
         header['pixel_size'] = detector_pars[1] / 1e6
@@ -69,11 +70,10 @@ class MarCCDImageFile(object):
         header['detector_size'] = (header_pars[17], header_pars[18])
         header['filename'] = self.filename
 
-        det_mm = int(round(header['pixel_size']*header['detector_size'][0]))
+        det_mm = int(round(header['pixel_size'] * header['detector_size'][0]))
         header['detector_type'] = 'mar%d' % det_mm
         header['file_format'] = 'TIFF'
         self.header = header
-
 
     def _read_image(self):
         raw_img = Image.open(self.filename)
@@ -81,9 +81,9 @@ class MarCCDImageFile(object):
 
         # recalculate average intensity if not present within file
         if self.header['average_intensity'] < 0.01:
-            self.header['average_intensity'] = numpy.mean(numpy.fromstring(raw_img.tobytes(), 'H'))
-        self.header['gamma'] = calc_gamma(self.header['average_intensity'])    
+            self.header['average_intensity'] = numpy.mean(numpy.fromstring(raw_img.tostring(), 'H'))
+        self.header['gamma'] = calc_gamma(self.header['average_intensity'])
         self.image = raw_img.convert('I')
-        
 
-__all__ = ['MarCCDImageFile']
+
+__all__ = ['RAXISImageFile']

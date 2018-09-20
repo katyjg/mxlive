@@ -1,24 +1,26 @@
-'''
-Created on Nov 26, 2010
+"""
+Utilties
 
-@author: michel
-'''
+"""
 
 import numpy
+from scipy import interpolate
 
 
 def stretch(gamma):
-    lut = numpy.zeros(65536, dtype=numpy.uint)
-    lut[65280:] = 255
-    for i in xrange(65280):
-        v = int(i*gamma)
-        if v >= 255:
-            lut[i] = 254
-        else:
-            lut[i] = v
+    lut = (gamma * numpy.arange(65536)).astype(numpy.uint)
+    lut[lut > 254] = 254
     return lut
 
 
 def calc_gamma(avg_int):
-    return 29.378 * avg_int ** -0.86
-            
+    return 2.7 if avg_int == 0.0 else 29.378 * avg_int ** -0.86
+
+
+def interp_array(a, size=25):
+    x, y = numpy.mgrid[-1:1:9j, -1:1:9j]
+    z = a
+    xnew, ynew = numpy.mgrid[-1:1:size * j, -1:1:size * j]
+    tck = interpolate.bisplrep(x, y, z, s=0)
+    znew = interpolate.bisplev(xnew[:, 0], ynew[0, :], tck)
+    return znew

@@ -19,16 +19,16 @@ author      Adam Hupp <adam@hupp.org>
 date     Sun Jun 29 22:52:32 2008 +0100 (14 months ago)
 """
 
-
-import os.path
-import ctypes
 import ctypes.util
-
+import os.path
 from ctypes import c_char_p, c_int, c_size_t, c_void_p
 
 MAGIC_FILE = os.path.join(os.path.dirname(__file__), 'data', 'magic')
 
-class MagicException(Exception): pass
+
+class MagicException(Exception):
+    pass
+
 
 class Magic:
     """
@@ -47,11 +47,10 @@ class Magic:
         flags = MAGIC_NONE
         if mime:
             flags |= MAGIC_MIME
-            
+
         self.cookie = magic_open(flags)
 
         magic_load(self.cookie, magic_file)
-
 
     def from_buffer(self, buf):
         """
@@ -66,19 +65,20 @@ class Magic:
         """
         if not os.path.exists(filename):
             raise IOError("File does not exist: " + filename)
-        
+
         return magic_file(self.cookie, filename)
 
     def __del__(self):
         try:
             magic_close(self.cookie)
         except Exception, e:
-            #print "got thig: ", e
+            # print "got thig: ", e
             pass
 
 
 _magic_mime = None
 _magic = None
+
 
 def _get_magic_mime():
     global _magic_mime
@@ -86,11 +86,13 @@ def _get_magic_mime():
         _magic_mime = Magic(mime=True)
     return _magic_mime
 
+
 def _get_magic():
     global _magic
     if not _magic:
         _magic = Magic()
     return _magic
+
 
 def _get_magic_type(mime):
     if mime:
@@ -98,20 +100,21 @@ def _get_magic_type(mime):
     else:
         return _get_magic()
 
+
 def from_file(filename, mime=False):
     m = _get_magic_type(mime)
     return m.from_file(filename)
+
 
 def from_buffer(buffer, mime=False):
     m = _get_magic_type(mime)
     return m.from_buffer(buffer)
 
 
-
-
 libmagic = cbflib = ctypes.cdll.LoadLibrary('libmagic.so.1')
 
 magic_t = ctypes.c_void_p
+
 
 def errorcheck(result, func, args):
     err = magic_error(args[0])
@@ -119,6 +122,7 @@ def errorcheck(result, func, args):
         raise MagicException(err)
     else:
         return result
+
 
 magic_open = libmagic.magic_open
 magic_open.restype = magic_t
@@ -141,7 +145,6 @@ magic_file = libmagic.magic_file
 magic_file.restype = c_char_p
 magic_file.argtypes = [magic_t, c_char_p]
 magic_file.errcheck = errorcheck
-
 
 _magic_buffer = libmagic.magic_buffer
 _magic_buffer.restype = c_char_p
@@ -170,44 +173,42 @@ magic_compile = libmagic.magic_compile
 magic_compile.restype = c_int
 magic_compile.argtypes = [magic_t, c_char_p]
 
+MAGIC_NONE = 0x000000  # No flags
 
+MAGIC_DEBUG = 0x000001  # Turn on debugging
 
-MAGIC_NONE = 0x000000 # No flags
+MAGIC_SYMLINK = 0x000002  # Follow symlinks
 
-MAGIC_DEBUG = 0x000001 # Turn on debugging
+MAGIC_COMPRESS = 0x000004  # Check inside compressed files
 
-MAGIC_SYMLINK = 0x000002 # Follow symlinks
+MAGIC_DEVICES = 0x000008  # Look at the contents of devices
 
-MAGIC_COMPRESS = 0x000004 # Check inside compressed files
+MAGIC_MIME = 0x000010  # Return a mime string
 
-MAGIC_DEVICES = 0x000008 # Look at the contents of devices
+MAGIC_CONTINUE = 0x000020  # Return all matches
 
-MAGIC_MIME = 0x000010 # Return a mime string
+MAGIC_CHECK = 0x000040  # Print warnings to stderr
 
-MAGIC_CONTINUE = 0x000020 # Return all matches
+MAGIC_PRESERVE_ATIME = 0x000080  # Restore access time on exit
 
-MAGIC_CHECK = 0x000040 # Print warnings to stderr
+MAGIC_RAW = 0x000100  # Don't translate unprintable chars
 
-MAGIC_PRESERVE_ATIME = 0x000080 # Restore access time on exit
+MAGIC_ERROR = 0x000200  # Handle ENOENT etc as real errors
 
-MAGIC_RAW = 0x000100 # Don't translate unprintable chars
+MAGIC_NO_CHECK_COMPRESS = 0x001000  # Don't check for compressed files
 
-MAGIC_ERROR = 0x000200 # Handle ENOENT etc as real errors
+MAGIC_NO_CHECK_TAR = 0x002000  # Don't check for tar files
 
-MAGIC_NO_CHECK_COMPRESS = 0x001000 # Don't check for compressed files
+MAGIC_NO_CHECK_SOFT = 0x004000  # Don't check magic entries
 
-MAGIC_NO_CHECK_TAR = 0x002000 # Don't check for tar files
+MAGIC_NO_CHECK_APPTYPE = 0x008000  # Don't check application type
 
-MAGIC_NO_CHECK_SOFT = 0x004000 # Don't check magic entries
+MAGIC_NO_CHECK_ELF = 0x010000  # Don't check for elf details
 
-MAGIC_NO_CHECK_APPTYPE = 0x008000 # Don't check application type
+MAGIC_NO_CHECK_ASCII = 0x020000  # Don't check for ascii files
 
-MAGIC_NO_CHECK_ELF = 0x010000 # Don't check for elf details
+MAGIC_NO_CHECK_TROFF = 0x040000  # Don't check ascii/troff
 
-MAGIC_NO_CHECK_ASCII = 0x020000 # Don't check for ascii files
+MAGIC_NO_CHECK_FORTRAN = 0x080000  # Don't check ascii/fortran
 
-MAGIC_NO_CHECK_TROFF = 0x040000 # Don't check ascii/troff
-
-MAGIC_NO_CHECK_FORTRAN = 0x080000 # Don't check ascii/fortran
-
-MAGIC_NO_CHECK_TOKENS = 0x100000 # Don't check ascii/tokens
+MAGIC_NO_CHECK_TOKENS = 0x100000  # Don't check ascii/tokens

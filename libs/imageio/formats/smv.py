@@ -3,12 +3,12 @@ Created on Nov 25, 2010
 
 @author: michel
 '''
-import numpy
-import re
 import ctypes
-from PIL import Image
-from utils import calc_gamma
+import re
 
+import numpy
+from PIL import Image
+from ..utils import calc_gamma
 
 DECODER_DICT = {
     "unsigned_short": (ctypes.c_uint16, 'F;16','F;16B'),
@@ -65,9 +65,10 @@ class SMVImageFile(object):
         info['exposure_time'] = float(tmp_info['time'])
         info['pixel_size'] = float(tmp_info['pixel_size'])
         orgx = float(tmp_info['beam_center_x'])/info['pixel_size']
-        orgy =float(tmp_info['beam_center_y'])/info['pixel_size']
+        orgy =float(tmp_info['beam_center_x'])/info['pixel_size']
         info['detector_size'] = (int(tmp_info['size1']), int(tmp_info['size2']))
         info['beam_center'] = (orgx, info['detector_size'][1] - orgy)
+
         # use image center if detector origin is (0,0)
         if sum(info['beam_center']) <  0.1:
             info['beam_center'] = (info['detector_size'][0]/2.0, info['detector_size'][1]/2.0)
@@ -104,12 +105,12 @@ class SMVImageFile(object):
         data = myfile.read(data_size)
         myfile.close()
         
-        self.image = Image.fromstring('F', self.header['detector_size'], data, 'raw', self._raw_decoder)
-        arr = numpy.fromstring(data, dtype=self._el_type)
+        self.image = Image.frombytes('F', self.header['detector_size'], data, 'raw', self._raw_decoder)
+        self.data = numpy.fromstring(data, dtype=self._el_type).reshape(*self.header['detector_size'])
         self.image = self.image.convert('I')
-        self.header['average_intensity'] = arr.mean()
-        self.header['min_intensity'], self.header['max_intensity'] = arr.min(), arr.max()
+        self.header['average_intensity'] = max(0.0, self.data.mean())
+        self.header['min_intensity'], self.header['max_intensity'] = self.data.min(), self.data.max()
         self.header['gamma'] = calc_gamma(self.header['average_intensity'])
-        self.header['overloads'] = len(numpy.where(arr >= self.header['saturated_value'])[0])
+        self.header['overloads'] = len(numpy.where(self.data >= self.header['saturated_value'])[0])
 
 __all__ = ['SMVImageFile']
