@@ -1089,10 +1089,10 @@ class Data(DataBaseClass):
         ('MAD_SCAN', 'MAD Scan'),
     )
     METADATA = {
-        DATA_TYPES.MX_SCREEN:  ['delta_angle', 'start_angle', 'resolution', 'detector', 'detector_size', 'pixel_size',
-                                'beam_x', 'beam_y', 'two_theta'],
-        DATA_TYPES.MX_DATA: ['delta_angle', 'start_angle', 'resolution', 'detector', 'detector_size', 'pixel_size',
-                             'beam_x', 'beam_y', 'two_theta'],
+        DATA_TYPES.MX_SCREEN: ['delta_angle', 'start_angle', 'resolution', 'detector', 'detector_type', 'detector_size',
+                               'pixel_size', 'beam_x', 'beam_y', 'two_theta'],
+        DATA_TYPES.MX_DATA: ['delta_angle', 'start_angle', 'resolution', 'detector', 'detector_type', 'detector_size',
+                             'pixel_size', 'beam_x', 'beam_y', 'two_theta'],
         DATA_TYPES.MAD_SCAN: ['roi', 'edge'],
         DATA_TYPES.XRF_SCAN: [],
         DATA_TYPES.RASTER: ['grid_points', 'grid_origin', 'start_angle', 'delta_angle', 'detector_type',
