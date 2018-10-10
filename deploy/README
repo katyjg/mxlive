@@ -1,6 +1,6 @@
 To deploy the test environment do the following:
 ------------------------------------------------
-1. Copy settings_local.py.example iin the "local/" folder to settings_local.py and customize it according to your
+1. Copy settings_local.py.example in the "local/" folder to settings_local.py and customize it according to your
    environment
 2. Run ./manage.py collectstatic from the top-level directory (not needed with Docker)
 3. Copy mxlive.crontasks to /etc/cron.d and edit it to make sure the path to
@@ -58,6 +58,7 @@ To deploy a full production production environment including docker, mail-relay,
    To monitor the logs use the command:
 
         docker-compose logs -f
+
 7. Done! After a few seconds all your services should be up and ready. You can then connect to mxlive on
 
    https://localhost/
