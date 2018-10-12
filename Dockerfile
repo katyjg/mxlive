@@ -4,7 +4,7 @@ MAINTAINER Kathryn Janzen <kathryn.janzen@lightsource.ca>
 RUN dnf -y update && \
   dnf -y install httpd python-pip mod_wsgi python-ipaddr python-pillow  python-dateutil python-markdown python-slugify \
   postgresql-libs python-psycopg2 mod_xsendfile numpy scipy python-ldap python-crypto python-memcached \
-  mod_ssl python-docutils python-unicodecsv unzip tar gzip ImageMagick wkhtmltopdf\
+  mod_ssl python-docutils python-unicodecsv unzip tar gzip ImageMagick wkhtmltopdf \
   python-requests python-msgpack python-matplotlib certbot-apache PyYAML python-twisted python-zope-interface \
   && dnf clean all
 

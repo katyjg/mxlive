@@ -9,9 +9,9 @@ import subprocess
 import os
 import shutil
 
-TEMP_PREFIX = getattr(settings, 'TEX_TEMP_PREFIX', 'render_tex-')
-CACHE_PREFIX = getattr(settings, 'TEX_CACHE_PREFIX', 'render-tex')
-CACHE_TIMEOUT = getattr(settings, 'TEX_CACHE_TIMEOUT', 30), # 86400)  # 1 day
+TEMP_PREFIX = getattr(settings, 'PDF_TEMP_PREFIX', 'render_pdf-')
+CACHE_PREFIX = getattr(settings, 'PDF_CACHE_PREFIX', 'render-pdf')
+CACHE_TIMEOUT = getattr(settings, 'PDF_CACHE_TIMEOUT', 30), # 86400)  # 1 day
 
 class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     """
@@ -67,7 +67,7 @@ class HTML2PdfMixin(object):
 
         try:
             FNULL = open(os.devnull, 'w')
-            cmd = 'wkhtmltopdf -L 25mm -R 25mm -T 20mm -B 20mm -s Letter {0}.html {0}.pdf'.format(name)
+            cmd = 'xvfb-run wkhtmltopdf -L 25mm -R 25mm -T 20mm -B 20mm -s Letter {0}.html {0}.pdf'.format(name)
             process = subprocess.call(cmd.split(), cwd=tmp, stdout=FNULL, stderr=subprocess.STDOUT)
 
             pdf = open("{}/{}.pdf".format(tmp, name))
