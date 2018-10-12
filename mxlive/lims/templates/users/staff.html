@@ -43,7 +43,7 @@
         <div class="col-xs-12 col-sm-6 col-md-3">
             <div class="list-group">
                 {% for am in automounters %}
-                    <a href="{% url "beamline-detail" pk=am.pk %}" class="text-center list-group-item" style="overflow: auto;">
+                    <a href="{% url "beamline-detail" pk=am.beamline.pk %}" class="text-center list-group-item" style="overflow: auto;">
                         <div class="col-xs12">
                             <div id="layout-{{ am.container.pk }}" class="layout-lg">
                                 <h4 class="text-condensed">
