@@ -7,18 +7,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1063, initial-scale=1">
     <title>Ship to {{ "BL_NAME"|get_from_settings }}</title>
-    <base href="{{ request.META.REQUEST_SCHEME }}{% if not request.META.REQUEST_SCHEME %}http{% endif %}://{{ request.META.HTTP_HOST }}">
 
-    <link href="{% static "img/logo.ico" %}" rel="SHORTCUT ICON">
-    <link href="{% static "css/reset.css" %}" rel="stylesheet"> <!-- CSS reset -->
-    <link href="{% static "css/fonts.css" %}" rel="stylesheet">
-    <link href="{% static "bootstrap/css/bootstrap.min.css" %}" rel="stylesheet">
-    <link href="{% static "fontawesome/css/font-awesome.min.css" %}" rel="stylesheet">
+    <link href="{{ "BASE_DIR"|get_from_settings }}{% static "img/logo.ico" %}" rel="SHORTCUT ICON">
+    <link href="{{ "BASE_DIR"|get_from_settings }}{% static "css/reset.css" %}" rel="stylesheet"> <!-- CSS reset -->
+    <link href="{{ "BASE_DIR"|get_from_settings }}{% static "css/fonts.css" %}" rel="stylesheet">
+    <link href="{{ "BASE_DIR"|get_from_settings }}{% static "bootstrap/css/bootstrap.min.css" %}" rel="stylesheet">
 
-    <link href="{% static "css/mxlive.css" %}" rel="stylesheet">
-    <link href="{% static "css/pdfs.css" %}" rel="stylesheet">
-
-    <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+    <link href="{{ "BASE_DIR"|get_from_settings }}{% static "css/mxlive.css" %}" rel="stylesheet">
+    <link href="{{ "BASE_DIR"|get_from_settings }}{% static "css/pdfs.css" %}" rel="stylesheet">
 
 </head>
 <body>

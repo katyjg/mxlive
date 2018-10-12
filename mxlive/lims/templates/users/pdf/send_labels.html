@@ -8,15 +8,15 @@
 <div class="container">
     <div class="row">
         <h2 class="heading text-condensed narrow-heading">
-            <img src="{% static "img/bl_logo.png" %}" style="width: 300px;"/>
+            <img src="{{ "BASE_DIR"|get_from_settings }}{% static "img/bl_logo.png" %}" style="width: 300px;"/>
             <span class="pull-right">SHIPPINGLABEL</span>
         </h2>
         <p>Print this document and cut out the label to affix to the outside of your transport container (dewar) for shipment.</p>
         <div class="panel panel-main">
             <div class="label-sidebar">
-                <img src="{% static "img/bl_logo-min.png" %}"/>
+                <img src="{{ "BASE_DIR"|get_from_settings }}{% static "img/bl_logo-min.png" %}"/>
                 <br><br>
-                <img src="{% static "img/fragile_sign.png" %}"/>
+                <img src="{{ "BASE_DIR"|get_from_settings }}{% static "img/fragile_sign.png" %}"/>
                 <br><br>
                 <strong class="emphasize">Non-Hazardous Frozen Samples In Dry-Shipper</strong>
             </div>
