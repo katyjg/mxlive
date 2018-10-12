@@ -41,9 +41,10 @@ class AjaxableResponseMixin(object):
         else:
             return response
 
-class Tex2PdfMixin(object):
+
+class HTML2PdfMixin(object):
     """
-    Mixin to create a .pdf file from a LaTeX template.
+    Mixin to create a .pdf file from a HTML template.
     """
 
     def get_template_name(self):
@@ -53,31 +54,26 @@ class Tex2PdfMixin(object):
         object = self.get_object()
         name = slugify(object.name)
         context = self.get_template_context()
+        context['request'] = request
         template = get_template(self.get_template_name())
 
         rendered_tpl = template.render(context).encode('utf-8')
 
         tmp = mkdtemp(prefix=TEMP_PREFIX)
-        tex_file = os.path.join(tmp, '%s.tex' % name)
-        f = open(tex_file, 'w')
+        html_file = os.path.join(tmp, '{}.html'.format(name))
+        f = open(html_file, 'w')
         f.write(rendered_tpl)
         f.close()
+
         try:
             FNULL = open(os.devnull, 'w')
-            process = subprocess.call(['xelatex', '-interaction=nonstopmode', tex_file], cwd=tmp, stdout=FNULL, stderr=subprocess.STDOUT)
+            cmd = 'wkhtmltopdf -L 25mm -R 25mm -T 20mm -B 20mm -s Letter {0}.html {0}.pdf'.format(name)
+            process = subprocess.call(cmd.split(), cwd=tmp, stdout=FNULL, stderr=subprocess.STDOUT)
 
-            try:
-                pdf = open("%s/%s.pdf" % (tmp, name))
-            except:
-                if request.user.is_superuser:
-                    log = open("%s/%s.log" % (tmp, name)).read()
-                    return HttpResponse(log, "text/plain")
-                else:
-                    raise RuntimeError("xelatex error (code %s) in %s/%s" % (process, tmp, name))
+            pdf = open("{}/{}.pdf".format(tmp, name))
 
         finally:
             shutil.rmtree(tmp)
 
         res = HttpResponse(pdf, "application/pdf")
-
         return res

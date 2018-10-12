@@ -17,7 +17,7 @@ from itertools import chain
 import json
 import re
 
-from mixins import AjaxableResponseMixin, AdminRequiredMixin, Tex2PdfMixin
+from mixins import AjaxableResponseMixin, AdminRequiredMixin, HTML2PdfMixin
 
 
 class ProjectDetail(UserPassesTestMixin, detail.DetailView):
@@ -131,8 +131,8 @@ class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AjaxableResponseMixi
         return self.request.user.is_superuser or self.get_object() == self.request.user
 
 
-class ProjectLabels(AdminRequiredMixin, Tex2PdfMixin, detail.DetailView):
-    template_name = "users/tex/return_labels.tex"
+class ProjectLabels(AdminRequiredMixin, HTML2PdfMixin, detail.DetailView):
+    template_name = "users/pdf/return_labels.html"
     model = models.Project
     slug_field = 'username'
     slug_url_kwarg = 'username'
@@ -209,14 +209,14 @@ class ShipmentDetail(OwnerRequiredMixin, detail.DetailView):
     template_name = "users/entries/shipment.html"
 
 
-class ShipmentLabels(Tex2PdfMixin, ShipmentDetail):
-    template_name = "users/tex/send_labels.html"
+class ShipmentLabels(HTML2PdfMixin, ShipmentDetail):
+    template_name = "users/pdf/send_labels.html"
 
     def get_template_name(self):
         if self.request.user.is_superuser:
-            template = 'users/tex/return_labels.tex'
+            template = 'users/pdf/return_labels.html'
         else:
-            template = 'users/tex/send_labels.tex'
+            template = 'users/pdf/send_labels.html'
         return template
 
     def get_template_context(self):

@@ -1,0 +1,71 @@
+{% load static %}
+{% load get_version %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1063, initial-scale=1">
+    <title>Ship to {{ "BL_NAME"|get_from_settings }}</title>
+    <base href="http://{{ request.META.HTTP_HOST }}">
+
+    <link href="{% static "img/logo.ico" %}" rel="SHORTCUT ICON">
+    <link href="{% static "css/reset.css" %}" rel="stylesheet"> <!-- CSS reset -->
+    <link href="{% static "css/fonts.css" %}" rel="stylesheet">
+    <link href="{% static "bootstrap/css/bootstrap.min.css" %}" rel="stylesheet">
+    <link href="{% static "fontawesome/css/font-awesome.min.css" %}" rel="stylesheet">
+
+    <link href="{% static "css/mxlive.css" %}" rel="stylesheet">
+    <link href="{% static "css/pdfs.css" %}" rel="stylesheet">
+
+    <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+
+</head>
+<body>
+<!-- Content goes here -->
+<div class="container">
+    <div class="row">
+        <h2 class="heading text-condensed narrow-heading">
+            <img src="{% static "img/bl_logo.png" %}" style="width: 300px;"/>
+            <span class="pull-right">SHIPPINGLABEL</span>
+        </h2>
+        <p>Print this document and cut out the label to affix to the outside of your transport container (dewar) for shipment.</p>
+        <div class="panel panel-main">
+            <div class="label-sidebar">
+                <img src="{% static "img/bl_logo-min.png" %}"/>
+                <br><br>
+                <img src="{% static "img/fragile_sign.png" %}"/>
+                <br><br>
+                <strong class="emphasize">Non-Hazardous Frozen Samples In Dry-Shipper</strong>
+            </div>
+            <table class="table table-sm">
+                <tr><td>To:</td><td>{{ admin_project.contact_person|default:"" }}</td></tr>
+                <tr><td></td><td>c/o Shipping and Receiving</td></tr>
+                <tr><td></td><td>{{ admin_project.organisation|default:"" }}</td></tr>
+                <tr><td></td><td>{{ admin_project.address|default:"" }}</td></tr>
+                <tr><td></td><td>{{ admin_project.city|default:"" }}</td></tr>
+                <tr><td></td><td>{{ admin_project.country|default:"" }}</td></tr>
+                <tr><td></td><td>Phone: {{admin_project.contact_phone|default:""}}</td></tr>
+                {% if admin_project.contact_fax %}
+                    <tr><td></td><td>Fax: {{admin_project.contact_fax|default:""}}</td></tr>
+                {% endif %}
+            </table>
+            <div class="panel panel-default">
+                <table class="table table-sm">
+                    <tr class="border-bottom"><td>ID:</td><td>{{project.first_name}} {{project.last_name}} ({{shipment.name}})</td></tr>
+                    <tr><td>From:</td><td>{{ project.contact_person|default:"" }}</td></tr>
+                    {% if project.department %}<tr><td></td><td>{{ project.department|default:"" }}</td></tr>{% endif %}
+                    <tr><td></td><td>{{ project.organisation|default:"" }}</td></tr>
+                    <tr><td></td><td>{{ project.address|default:"" }}</td></tr>
+                    <tr><td></td><td>{{ project.city|default:"" }}, {{ project.province|default:"" }}  {{project.postal_code|default:"" }}</td></tr>
+                    <tr><td></td><td>{{ project.country|default:"" }}</td></tr>
+                    <tr><td></td><td>Phone: {{ project.contact_phone|default:"" }}</td></tr>
+                    {% if project.contact_fax %}<tr><td></td><td>Fax: {{ project.contact_fax|default:"" }}</td></tr>{% endif %}
+                </table>
+            </div>
+        <span class="emphasize">Not restricted, as per Special Provision A152</span>
+        </div>
+    </div>
+</div>
+</body>
+</html>

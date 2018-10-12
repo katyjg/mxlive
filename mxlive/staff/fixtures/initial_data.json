@@ -9,9 +9,7 @@
     "active": true,
     "created": "2016-11-09T19:18:19Z",
     "modified": "2016-11-09T19:18:19Z",
-    "users": [
-      5
-    ]
+    "users": []
   }
 },
 {
@@ -32,16 +30,12 @@
   "pk": 3,
   "fields": {
     "name": "CMCF-ID NX1",
-    "description": "Remote Access to CMCF-ID NX1\r\nport 2221",
+    "description": "Remote Access to CMCF-ID NX1 port 2221",
     "address": "10.52.28.28",
     "active": true,
     "created": "2016-11-09T19:20:00Z",
     "modified": "2016-11-09T19:20:00Z",
-    "users": [
-      43,
-      62,
-      132
-    ]
+    "users": []
   }
 },
 {
@@ -54,9 +48,7 @@
     "active": true,
     "created": "2016-11-09T19:20:31Z",
     "modified": "2016-11-09T19:20:31Z",
-    "users": [
-      2
-    ]
+    "users": []
   }
 }
 ]

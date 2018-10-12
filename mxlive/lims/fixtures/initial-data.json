@@ -1,100 +1,5 @@
 [
 {
-  "model": "lims.beamline",
-  "pk": 1,
-  "fields": {
-    "name": "Canadian Macromolecular Crystallography Facility - Insertion Device",
-    "acronym": "CMCF-ID",
-    "energy_lo": 6.0,
-    "energy_hi": 18.5,
-    "contact_phone": "306-657-3610"
-  }
-},
-{
-  "model": "lims.beamline",
-  "pk": 2,
-  "fields": {
-    "name": "Canadian Macromolecular Crystallography Facility - Bending Magnet",
-    "acronym": "CMCF-BM",
-    "energy_lo": 4.0,
-    "energy_hi": 18.5,
-    "contact_phone": "306-657-3619"
-  }
-},
-{
-  "model": "lims.beamline",
-  "pk": 3,
-  "fields": {
-    "name": "Simulator Beamline",
-    "acronym": "SIM-1",
-    "energy_lo": 4.0,
-    "energy_hi": 18.5,
-    "contact_phone": "306-657-3758"
-  }
-},
-{
-  "model": "lims.componenttype",
-  "pk": 1,
-  "fields": {
-    "name": "External Hard Drive"
-  }
-},
-{
-  "model": "lims.componenttype",
-  "pk": 2,
-  "fields": {
-    "name": "Uni-Puck Tools"
-  }
-},
-{
-  "model": "lims.carrier",
-  "pk": 1,
-  "fields": {
-    "name": "UPS",
-    "url": "http://wwwapps.ups.com/etracking/tracking.cgi?TypeOfInquiryNumber=T&AcceptUPSLicenseAgreement=yes&submit=Track&InquiryNumber1="
-  }
-},
-{
-  "model": "lims.carrier",
-  "pk": 2,
-  "fields": {
-    "name": "Canada Post",
-    "url": "https://obc.canadapost.ca/emo/basicPin.do?trackingCode=PIN&action=query&language=en&sblid=dcsubmitted&trackingId="
-  }
-},
-{
-  "model": "lims.carrier",
-  "pk": 3,
-  "fields": {
-    "name": "FedEx",
-    "url": "http://www.fedex.com/Tracking?action=track&tracknumbers="
-  }
-},
-{
-  "model": "lims.carrier",
-  "pk": 4,
-  "fields": {
-    "name": "USPS",
-    "url": "http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum="
-  }
-},
-{
-  "model": "lims.carrier",
-  "pk": 5,
-  "fields": {
-    "name": "DHL",
-    "url": "http://track.dhl-usa.com/TrackByNbr.asp?ShipmentNumber="
-  }
-},
-{
-  "model": "lims.carrier",
-  "pk": 6,
-  "fields": {
-    "name": "Purolator",
-    "url": "http://shipnow.purolator.com/shiponline/track/purolatortrack.asp?pinno="
-  }
-},
-{
   "model": "lims.containertype",
   "pk": 1,
   "fields": {
@@ -233,7 +138,7 @@
   "pk": 3,
   "fields": {
     "name": "Cane",
-    "layout": "{\"radius\":8,\"locations\":{\"1\":[0.1,0.1],\"3\":[0.42,0.42],\"2\":[0.26,0.26],\"5\":[0.74,0.74],\"4\":[0.58,0.58],\"6\":[0.9,0.9]},\"height\":0.75}",
+    "layout": "{\"radius\":8,\"locations\":{\"1\":[0.9,0.9],\"3\":[0.58,0.58],\"2\":[0.74,0.74],\"5\":[0.26,0.26],\"4\":[0.42,0.42],\"6\":[0.1,0.1]},\"height\":0.75}",
     "envelope": "rect",
     "container_locations": [
       1,
@@ -332,6 +237,26 @@
       173,
       174,
       175
+    ]
+  }
+},
+{
+  "model": "lims.containertype",
+  "pk": 8,
+  "fields": {
+    "name": "CATS Automounter",
+    "layout": "{\"radius\":8,\"locations\":{\"L2A\":[0.5,0.6667],\"L2C\":[0.5822,0.8125],\"L2B\":[0.4167,0.8125],\"L3B\":[0.75,0.2292],\"L3C\":[0.9167,0.2292],\"L3A\":[0.8333,0.0833],\"L1A\":[0.1667,0.0833],\"L1B\":[0.0833,0.2292],\"L1C\":[0.25,0.2292]},\"height\":1}",
+    "envelope": "",
+    "container_locations": [
+      176,
+      177,
+      178,
+      179,
+      180,
+      181,
+      182,
+      183,
+      184
     ]
   }
 },
@@ -1594,281 +1519,91 @@
   }
 },
 {
-  "model": "lims.container",
-  "pk": 1,
+  "model": "lims.containerlocation",
+  "pk": 176,
   "fields": {
-    "project": 49,
-    "name": "CMCF-ID Automounter",
-    "staff_comments": "",
-    "created": "2017-10-19T15:13:08.271Z",
-    "modified": "2017-10-19T15:21:30.084Z",
-    "status": 2,
-    "kind": 7,
-    "shipment": null,
-    "comments": "",
-    "priority": 0,
-    "parent": null,
-    "location": null
+    "name": "L1A",
+    "accepts": [
+      4
+    ]
   }
 },
 {
-  "model": "lims.container",
-  "pk": 2,
+  "model": "lims.containerlocation",
+  "pk": 177,
   "fields": {
-    "project": 49,
-    "name": "CMCF-BM Automounter",
-    "staff_comments": "",
-    "created": "2017-10-19T15:12:40.748Z",
-    "modified": "2017-10-26T21:46:27.615Z",
-    "status": 2,
-    "kind": 6,
-    "shipment": null,
-    "comments": "",
-    "priority": 0,
-    "parent": null,
-    "location": null
+    "name": "L1B",
+    "accepts": [
+      4
+    ]
   }
 },
 {
-  "model": "lims.container",
-  "pk": 3,
+  "model": "lims.containerlocation",
+  "pk": 178,
   "fields": {
-    "project": 49,
-    "name": "SIM SAM",
-    "staff_comments": "",
-    "created": "2017-10-19T15:15:25.425Z",
-    "modified": "2017-10-26T15:55:22.222Z",
-    "status": 2,
-    "kind": 6,
-    "shipment": null,
-    "comments": "",
-    "priority": 0,
-    "parent": null,
-    "location": null
+    "name": "L1C",
+    "accepts": []
   }
 },
 {
-  "model": "lims.container",
-  "pk": 4,
+  "model": "lims.containerlocation",
+  "pk": 179,
   "fields": {
-    "project": 49,
-    "name": "CLS-0001",
-    "staff_comments": "",
-    "created": "2017-10-19T15:15:25.425Z",
-    "modified": "2017-10-27T15:50:57.394Z",
-    "status": 2,
-    "kind": 5,
-    "shipment": null,
-    "comments": "",
-    "priority": 0,
-    "parent": null,
-    "location": null
+    "name": "L2A",
+    "accepts": [
+      4
+    ]
   }
 },
 {
-  "model": "lims.container",
-  "pk": 5,
+  "model": "lims.containerlocation",
+  "pk": 180,
   "fields": {
-    "project": 49,
-    "name": "CLS-0002",
-    "staff_comments": "",
-    "created": "2017-10-19T15:15:25.425Z",
-    "modified": "2017-10-26T21:48:55.602Z",
-    "status": 2,
-    "kind": 5,
-    "shipment": null,
-    "comments": "",
-    "priority": 0,
-    "parent": 2,
-    "location": 117
+    "name": "L2B",
+    "accepts": [
+      4
+    ]
   }
 },
 {
-  "model": "lims.container",
-  "pk": 6,
+  "model": "lims.containerlocation",
+  "pk": 181,
   "fields": {
-    "project": 49,
-    "name": "CLS-0003",
-    "staff_comments": "",
-    "created": "2017-10-19T15:15:25.425Z",
-    "modified": "2017-10-19T15:15:25.425Z",
-    "status": 2,
-    "kind": 5,
-    "shipment": null,
-    "comments": "",
-    "priority": 0,
-    "parent": null,
-    "location": null
+    "name": "L2C",
+    "accepts": [
+      4
+    ]
   }
 },
 {
-  "model": "lims.container",
-  "pk": 7,
+  "model": "lims.containerlocation",
+  "pk": 182,
   "fields": {
-    "project": 49,
-    "name": "CLS-0004",
-    "staff_comments": "",
-    "created": "2017-10-19T15:15:25.425Z",
-    "modified": "2017-10-19T15:15:25.425Z",
-    "status": 2,
-    "kind": 5,
-    "shipment": null,
-    "comments": "",
-    "priority": 0,
-    "parent": null,
-    "location": null
+    "name": "L3A",
+    "accepts": [
+      4
+    ]
   }
 },
 {
-  "model": "lims.container",
-  "pk": 8,
+  "model": "lims.containerlocation",
+  "pk": 183,
   "fields": {
-    "project": 49,
-    "name": "CLS-0005",
-    "staff_comments": "",
-    "created": "2017-10-19T15:15:25.425Z",
-    "modified": "2017-10-19T15:15:25.425Z",
-    "status": 2,
-    "kind": 5,
-    "shipment": null,
-    "comments": "",
-    "priority": 0,
-    "parent": null,
-    "location": null
+    "name": "L3B",
+    "accepts": [
+      4
+    ]
   }
 },
 {
-  "model": "lims.container",
-  "pk": 9,
+  "model": "lims.containerlocation",
+  "pk": 184,
   "fields": {
-    "project": 49,
-    "name": "CLS-0006",
-    "staff_comments": "",
-    "created": "2017-10-19T15:15:25.425Z",
-    "modified": "2017-10-19T15:15:25.425Z",
-    "status": 2,
-    "kind": 5,
-    "shipment": null,
-    "comments": "",
-    "priority": 0,
-    "parent": null,
-    "location": null
-  }
-},
-{
-  "model": "lims.container",
-  "pk": 10,
-  "fields": {
-    "project": 49,
-    "name": "CLS-0007",
-    "staff_comments": "",
-    "created": "2017-10-19T15:15:25.425Z",
-    "modified": "2017-10-19T15:15:25.425Z",
-    "status": 2,
-    "kind": 5,
-    "shipment": null,
-    "comments": "",
-    "priority": 0,
-    "parent": null,
-    "location": null
-  }
-},
-{
-  "model": "lims.container",
-  "pk": 11,
-  "fields": {
-    "project": 49,
-    "name": "CLS-0008",
-    "staff_comments": "",
-    "created": "2017-10-19T15:15:25.425Z",
-    "modified": "2017-10-19T15:15:25.425Z",
-    "status": 2,
-    "kind": 5,
-    "shipment": null,
-    "comments": "",
-    "priority": 0,
-    "parent": null,
-    "location": null
-  }
-},
-{
-  "model": "lims.container",
-  "pk": 12,
-  "fields": {
-    "project": 49,
-    "name": "CLS-0009",
-    "staff_comments": "",
-    "created": "2017-10-19T15:15:25.425Z",
-    "modified": "2017-10-19T15:15:25.425Z",
-    "status": 2,
-    "kind": 5,
-    "shipment": null,
-    "comments": "",
-    "priority": 0,
-    "parent": null,
-    "location": null
-  }
-},
-{
-  "model": "lims.container",
-  "pk": 13,
-  "fields": {
-    "project": 49,
-    "name": "SIM ISARA",
-    "staff_comments": "",
-    "created": "2017-10-26T19:45:49.848Z",
-    "modified": "2017-10-26T21:13:04.031Z",
-    "status": 2,
-    "kind": 7,
-    "shipment": null,
-    "comments": "",
-    "priority": 0,
-    "parent": null,
-    "location": null
-  }
-},
-{
-  "model": "lims.dewar",
-  "pk": 1,
-  "fields": {
-    "beamline": 1,
-    "container": 1,
-    "staff_comments": "",
-    "modified": "2017-10-19T15:15:47.291Z",
-    "active": true
-  }
-},
-{
-  "model": "lims.dewar",
-  "pk": 2,
-  "fields": {
-    "beamline": 2,
-    "container": 2,
-    "staff_comments": "",
-    "modified": "2017-10-19T15:14:12.810Z",
-    "active": true
-  }
-},
-{
-  "model": "lims.dewar",
-  "pk": 3,
-  "fields": {
-    "beamline": 3,
-    "container": 13,
-    "staff_comments": "",
-    "modified": "2017-10-26T19:45:54.818Z",
-    "active": true
-  }
-},
-{
-  "model": "lims.dewar",
-  "pk": 4,
-  "fields": {
-    "beamline": 3,
-    "container": 3,
-    "staff_comments": "",
-    "modified": "2017-10-27T16:27:00.147Z",
-    "active": false
+    "name": "L3C",
+    "accepts": [
+      4
+    ]
   }
 },
 {
