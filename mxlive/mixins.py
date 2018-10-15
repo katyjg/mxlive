@@ -13,6 +13,7 @@ TEMP_PREFIX = getattr(settings, 'PDF_TEMP_PREFIX', 'render_pdf-')
 CACHE_PREFIX = getattr(settings, 'PDF_CACHE_PREFIX', 'render-pdf')
 CACHE_TIMEOUT = getattr(settings, 'PDF_CACHE_TIMEOUT', 30), # 86400)  # 1 day
 
+
 class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     """
     Mixin to allow access through a view only if the user is a superuser.
