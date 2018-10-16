@@ -195,7 +195,6 @@ class ShipmentList(ListViewMixin, FilteredListView):
     detail_url = 'shipment-detail'
     add_url = 'shipment-new'
     order_by = ['status', '-modified']
-    # grid_template = "users/grids/shipment_grid.html"
 
     def get_queryset(self):
         if self.request.user.is_superuser:
@@ -360,7 +359,7 @@ class ReceiveShipment(ShipmentEdit):
 class SampleList(ListViewMixin, FilteredListView):
     model = models.Sample
     list_filter = ['modified']
-    list_display = ['identity', 'name', 'comments', '_Container', 'location']
+    list_display = ['identity', 'name', 'comments', 'container', 'location']
     search_fields = ['project__name', 'name', 'barcode', 'comments']
     detail_url = 'sample-detail'
     order_by = ['-created', '-priority']

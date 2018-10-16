@@ -65,6 +65,7 @@
 
 <div class="row">
     <div class="col-sm-12 bulk-edit">
+        {% if object.is_editable %}
         <div class="box-tools pull-right">
             <button type="submit" name="submit" onclick="submit_changes();" value="submit" disabled class="btn btn btn-primary">Submit</button>
             <a class="pull-right not-active" title="Reset" onclick="reset_inputs();" href="#">
@@ -75,6 +76,7 @@
                 </span>
             </a>
         </div>
+        {% endif %}
         <h3>Samples in {{ object.name }}</h3>
         <div class="error-panel alert alert-warning" style="display: none;">
         </div>

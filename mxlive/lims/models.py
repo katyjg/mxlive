@@ -719,8 +719,7 @@ class Container(ObjectBaseClass):
         ordering = ('kind', 'location')
 
     def __unicode__(self):
-        base = not self.project.is_superuser and "{} | ".format(self.project.username) or ""
-        return "{}{} | {}".format(base, self.kind.name.title(), self.name)
+        return "{} | {}".format(self.kind.name.title(), self.name)
 
     def identity(self):
         return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))

@@ -1,7 +1,8 @@
 from django import forms
+from django.conf import settings
 from django.core.urlresolvers import reverse_lazy
 
-from models import *
+from .models import Project, Shipment, Dewar, Sample, ComponentType, Container, Group, ContainerLocation, ContainerType
 import re
 
 from crispy_forms.helper import FormHelper
