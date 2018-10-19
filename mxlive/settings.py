@@ -159,26 +159,6 @@ RESTRUCTUREDTEXT_FILTER_SETTINGS = {
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-SUIT_CONFIG = {
-    'ADMIN_NAME': 'MxLIVE Administration',
-    'CONFIRM_UNSAVED_CHANGES': False,
-    'MENU_ICONS': {
-        'sites': 'icon-leaf',
-        'auth': 'icon-lock',
-    },
-    'MENU': (
-        {'app': 'lims', 'label': 'User Objects', 'icon': 'icon-user'},
-        {'app': 'staff', 'label': 'Staff Objects', 'icon': 'icon-star','models':('post','category')},
-        {'app': 'api', 'label': 'API Keys', 'icon': 'icon-key'},
-        '-',
-        {'app': 'auth', 'label': 'Accounts', 'icon':'icon-lock'},
-        {'app': 'apikey', 'label': 'API Access', 'icon':'icon-key'},
-        '-',
-        {'label': 'MxLIVE', 'icon':'icon-leaf', 'url': '/'},
-    ),
-    'LIST_PER_PAGE': 25
-}
-
 RESTRICTED_DOWNLOADS = True
 
 # LDAP

@@ -8,14 +8,16 @@ RUN dnf -y update && \
   python-requests python-msgpack python-matplotlib certbot-apache PyYAML python-twisted python-zope-interface \
   && dnf clean all
 
-RUN pip install --upgrade pip &&  pip install 'Django==1.11'
+ADD requirements.txt /
+
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
 EXPOSE 443
 
 RUN curl https://www.fontsquirrel.com/fonts/download/alegreya -o /tmp/alegreya.zip && \
     unzip /tmp/alegreya.zip -d /usr/share/fonts/alegreya && /bin/rm -f /tmp/alegreya.zip
 
-RUN dnf -y install CBFlib texlive-newtx && dnf clean all
+RUN dnf -y install CBFlib && dnf clean all
 ADD . /mxlive
 ADD ./local /mxlive/local
 ADD deploy/run-server.sh /run-server.sh
