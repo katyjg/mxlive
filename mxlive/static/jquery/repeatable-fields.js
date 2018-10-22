@@ -1,9 +1,9 @@
 /*
- * jQuery Repeatable Fields v1.0
+ * jQuery Repeatable Fields v1.0.1
  * http://www.rhyzz.com/repeatable-fields.html
  *
  * Copyright (c) 2013 Rhyzz
- * License GPL
+ * License MIT
 */
 
 (function($) {
@@ -92,10 +92,10 @@
 			var row_count = $(container).children(settings.row).filter(function() {
 				return !jQuery(this).hasClass(settings.template.replace('.', ''));
 			}).length;
+
 			$('*', new_row).each(function() {
 				$.each(this.attributes, function(index, element) {
-					this.value = this.value.replace(/row-count-placeholder/, row_count - 1);
-
+					this.value = this.value.replace(/{{row-count-placeholder}}/, row_count - 1);
 				});
 			});
 		}
