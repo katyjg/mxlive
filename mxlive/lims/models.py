@@ -1270,10 +1270,9 @@ def populate_user_handler(sender, user, ldap_user, **kwargs):
     if user_uids & admin_uids:
         user.is_superuser = True
         user.is_staff = True
-    if not Project.objects.filter(name=user.username).exists():
-        Project.objects.create(
-            name=user.username,
-        )
+    if not user.name:
+        user.name = user.username
+        user.save()
 
 
 @receiver(post_delete, sender=Project)
