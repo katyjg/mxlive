@@ -1,67 +1,65 @@
 database:
-  image: opi2051-002:5000/postgres:backup
+  image: mariadb
+  hostname: sql.example.com
   volumes:
-    - ./database:/var/lib/postgresql/data:Z
-    - ./db-init:/docker-entrypoint-initdb.d:Z
-    - ./backups:/backups:Z
+    - ./database:/var/lib/mysql:Z
   environment:
-    POSTGRES_PASSWORD: nievoo8Oe3HuYoh1ahkiemei
-    DATABASE_USER: postgres
-    BACKUP_DATABASE_USER: postgres
-  ports:
-    - 5432:5432
+    MYSQL_ROOT_PASSWORD: secret
+    MYSQL_DATABASE: mxlive
   restart: always
+
+dataproxy:
+  image: mxlive-dataproxy:latest
+  environment:
+    SERVER_NAME: data.local
+  restart: always
+  volumes:
+    - ./data-local:/dataserver/local:Z
+    - ./data-cache:/cache:Z
+    - /users:/users:ro
+    - /archive:/archive:ro
+  links:
+    - database:data-db
 
 mail:
-  image: opi2051-002:5000/mail-server
+  image: postfix
   restart: always
   environment:
-    maildomain:  mail.cmcf
-    smtp_user: system:MjMzYTY3NzcyYzc0ZWE3YjVjOTcyYjFl
+    maildomain:  mail.mxlive
+    smtp_user: system:secret
 
 ldap:
-  image: docker.io/minkwe/389ds:latest
-  hostname: ldap.clsi.ca
+  image: minkwe/389ds:latest
+  hostname: ldap.example.com
   volumes:
     - ./ldap/data:/var/lib/dirsrv:Z
     - ./ldap/config:/etc/dirsrv:Z
     - ./ldap/logs:/var/log/dirsrv:Z
     - ./ldap/certs:/certs:Z
   environment:
-    DIR_SUFFIX: "dc=cmcf,dc=cls"
-    DIR_ADMIN_USERNAME: "cmcfadmin"
-    DIR_MANAGER_PASSWORD: "appl4Str"
-    DIR_ADMIN_UID: "2000"
+    DIR_SUFFIX: "dc=example,dc=com"
+    DIR_ADMIN_USERNAME: "admin"
+    DIR_MANAGER_PASSWORD: "secret"
+    DIR_ADMIN_UID: "10000"
     DIR_USERS_HOME: "/users"
   ports:
     - "389:389"
     - "636:636"
   restart: always
 
-dataserver:
-  image: opi2051-002:5000/dataserver:latest
-  restart: always
-  volumes:
-    - ./dataserver:/dataserver/local:Z
-    - /users:/users:ro
-    - /archive:/archive:ro
-  links:
-    - database:data-db
-
-mxlive:
-  image: opi2051-002:5000/mxlive:mxlive-refresh
+app:
+  image: mxlive:latest
+  hostname: mxlive.example.ca
   environment:
-    SERVER_NAME: cmcf.local
+    SERVER_NAME: mxlive.example.ca
   volumes:
-    - ./mxlive:/mxlive/local:Z
+    - ./app:/mxlive/local:Z
     - ./certs:/etc/letsencrypt:Z
-    - /users:/users:ro
   ports:
     - 443:443
   links:
     - database:mxlive-db
+    - dataproxy:mxlive-data
     - ldap:mxlive-ldap
     - mail:mxlive-mail
-    - dataserver:mxlive-data
   restart: always
-

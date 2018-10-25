@@ -15,7 +15,7 @@ INTERNAL_IPS = [
 DEBUG = True
 DOWNLOAD_CACHE_DIR = "/mxlive/local/cache"
 
-
+# This should be a url pointing to an active deployment of the data-proxy server
 IMAGE_PREPEND = ''
 
 DATABASES = {
@@ -45,9 +45,8 @@ EMAIL_HOST_PASSWORD = "secret"
 EMAIL_PORT = 25
 EMAIL_HOST = "mail.example.com"
 
-#
+
 # Uncomment the following two lines to enable trusting self-signed certificates
-#
 
 #import ssl
 #ssl._create_default_https_context = ssl._create_unverified_context
