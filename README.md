@@ -4,7 +4,8 @@ MxLIVE
 MxLIVE (Macromolecular Crystallography Laboratory Information Virtual Environment) is an organizational tool for Mx
 synchrotron users allowing easy management of shipments for visits to the CLS, remote monitoring of data collection
 sessions at the beamlines with easy viewing of data and analysis reports, as well as convenient options for on demand
-data transfer. MxLIVE is fully integrated with MxDC, and, when coupled with the mxlive-dataproxy, provides a secure
+data transfer. MxLIVE is fully integrated with MxDC, and, when coupled with the mxlive-dataproxy, provides secure access 
+to users' data and results.
 
 Some of the Features:
 - Create a Shipment to send to the lab following the steps right from your MxLIVE dashboard - no specially formatted spreadsheets required!
