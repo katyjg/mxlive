@@ -794,10 +794,19 @@ class BeamlineHistory(AdminRequiredMixin, ListViewMixin, FilteredListView):
 
 
 class BeamlineStatistics(BeamlineDetail):
-    template_name = "users/entries/usage-statistics.html"
+    template_name = "users/entries/beamline-usage-yearly.html"
 
     def get_context_data(self, **kwargs):
         c = super(BeamlineStatistics, self).get_context_data(**kwargs)
+        c['year'] = self.kwargs.get('year', timezone.now().year)
+        return c
+
+
+class BeamlineUsage(BeamlineDetail):
+    template_name = "users/entries/beamline-usage.html"
+
+    def get_context_data(self, **kwargs):
+        c = super(BeamlineUsage, self).get_context_data(**kwargs)
         c['year'] = self.kwargs.get('year', timezone.now().year)
         return c
 

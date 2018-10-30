@@ -749,7 +749,11 @@ function draw_xy_chart() {
                             })
                             .attr("transform", function (d, n) {
                                 var xPos = x_scale.invert(mouse[0]);
-                                mouseX.text("X = " + xPos.toFixed(2));
+                                if (xscale === 'time') {
+                                    mouseX.text("X = " + d3.timeFormat(timeformat)(xPos));
+                                } else {
+                                    mouseX.text("X = " + xPos.toFixed(2));
+                                }
                                 var closest = d['x'].reduce(function (prev, curr) {
                                     return (Math.abs(curr - xPos) < Math.abs(prev - xPos) ? curr : prev);
                                 });
@@ -967,6 +971,11 @@ function build_report(selector, report) {
                         });
                     }
                 } else {
+                    if (xscale == 'time') {
+                        $.each(entry['data']['x'], function(l, line) {
+                           entry['data']['x'][l] = new Date(line);
+                        });
+                    }
                     $.each(entry['data']['y1'], function (l, line) {
                         y1label = line.shift();
                         data.push({'label': y1label, 'x': entry['data']['x'], 'y1': line});

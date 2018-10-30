@@ -35,7 +35,7 @@
                 </span>
             </a>
             {% now "Y" as current_year %}
-            <a class="pull-right" href="{% url "usage-statistics" object.pk current_year %}">
+            <a class="pull-right" href="{% url "usage-statistics" object.pk %}">
                 <span class="pull-right">
                     <span class="fa-stack">
                         <i class="fa-stack-2x fa fa-2 fa-fw fa-calendar-check-o"></i>

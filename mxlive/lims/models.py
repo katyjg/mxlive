@@ -321,6 +321,7 @@ class Session(models.Model):
             return len(shifts)
 
     def total_time(self):
+        """Returns total time the session was active, in hours"""
         d = self.stretches.with_duration().aggregate(Avg('duration'), Count('duration'))
         t = d['duration__count'] * d['duration__avg'] if (d.get('duration__count') and d.get('duration__avg')) else 0
         if self.is_active():

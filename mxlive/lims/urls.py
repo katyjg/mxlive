@@ -12,7 +12,8 @@ urlpatterns = [
     url(r'^beamline/(?P<pk>\d+)/$', views.BeamlineDetail.as_view(), name='beamline-detail'),
     url(r'^beamline/(?P<pk>\d+)/history/$', views.BeamlineHistory.as_view(), name='beamline-history'),
     url(r'^beamline/(?P<pk>\d+)/statistics/(?P<year>\d+)/$', views.BeamlineStatistics.as_view(template_name="users/entries/beamline-statistics.html"), name='beamline-statistics'),
-    url(r'^beamline/(?P<pk>\d+)/usage/(?P<year>\d+)/$', views.BeamlineStatistics.as_view(), name='usage-statistics'),
+    url(r'^beamline/(?P<pk>\d+)/usage/$', views.BeamlineUsage.as_view(), name='usage-statistics'),
+    url(r'^beamline/(?P<pk>\d+)/usage/(?P<year>\d+)/$', views.BeamlineStatistics.as_view(), name='usage-yearly-statistics'),
     url(r'^dewar/(?P<pk>\d+)/edit/$', views.DewarEdit.as_view(), name='dewar-edit'),
 
     url(r'^shipments/$', views.ShipmentList.as_view(), name='shipment-list'),
