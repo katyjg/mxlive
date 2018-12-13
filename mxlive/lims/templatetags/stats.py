@@ -222,12 +222,14 @@ def get_beamline_usage(bl):
         samples = [s.count() for s in samples]
 
     shifts = [len(set([y for x in [s.shifts() for s in sessions[i]] for y in x])) for i, _ in enumerate(years)]
-    datasets = [bl.data_set.filter(kind__contains='DATA').filter(session__in=sessions[i]).count() for i, _ in
+    datasets = [bl.data_set.filter(session__in=sessions[i]) for i, _ in
                 enumerate(years)]
+    full_data = [d.filter(kind__contains='DATA') for d in datasets]
+    full_data_count = [d.count() for d in full_data]
     total_time = [round(sum([s.total_time() for s in sessions[i]]), 2) for i, _ in enumerate(years)]
-    data_rate = [round(float(datasets[i]) / shifts[i], 2) if shifts[i] else 0 for i, _ in enumerate(years)]
-    data_time = [round(total_time[i] / datasets[i], 2) if datasets[i] else 0 for i, _ in enumerate(years)]
-
+    data_rate = [round(float(full_data_count[i]) / shifts[i], 2) if shifts[i] else 0 for i, _ in enumerate(years)]
+    data_duration = [round(sum([d.exposure_time for d in ds]) / ds.count(), 2) if ds.count() else 0 for ds in full_data]
+    data_time = [round(total_time[i] / full_data_count[i], 2) if full_data_count[i] else 0 for i, _ in enumerate(years)]
 
     stats = {'details': [
         {
@@ -242,9 +244,10 @@ def get_beamline_usage(bl):
                         ['Samples On-site'] + samples,
                         ['Shifts (or parts of shifts) Used'] + shifts,
                         ['Total Time (h)'] + total_time,
-                        ['Datasets Collected'] + datasets,
+                        ['Datasets Collected'] + full_data_count,
                         ['Datasets / Shift'] + data_rate,
-                        ['Time / Dataset (h)'] + data_time
+                        ['Average Exposure Time (s)'] + data_duration,
+                        ['Time (h)/ Dataset'] + data_time
                     ],
                     'style': 'col-sm-6',
                     'header': 'column',
@@ -258,7 +261,7 @@ def get_beamline_usage(bl):
                         'colors': COLOR_SCHEME,
                         'data': [{'Year': years[i],
                                   'Samples': samples[i],
-                                  'Datasets': datasets[i],
+                                  'Datasets': full_data_count[i],
                                   'Total Time': total_time[i],
                                   } for i, _ in enumerate(years)
                                  ]
@@ -272,7 +275,7 @@ def get_beamline_usage(bl):
                         {
                             'x': ['Year'] + [datetime.strftime(datetime(yr, 1, 1, 0, 0), '%c') for yr in years],
                             'y1': [['Datasets / Shift'] + data_rate],
-                            'y2': [['Time / Dataset (h)'] + data_time],
+                            'y2': [['Average Exposure Time'] + data_duration],
                             'x-scale': 'time',
                             'time-format': "%Y"
                         },
