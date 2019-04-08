@@ -13,7 +13,7 @@ import requests
 from PIL import Image
 from django.conf import settings
 from django.http import JsonResponse
-
+from urlparse import urlparse
 from imageio import read_image
 from imageio.utils import stretch
 from lims import models
@@ -155,24 +155,31 @@ def fetch_image(request, url=None, brightness=None):
     url = url or request.GET.get('url', None)
     brightness = brightness or request.GET.get('brightness', 'nm')
     if url:
-        img_file = '/'.join([CACHE_DIR] + url.split('/')[-2:])
-        path, _ = os.path.splitext(img_file)
-        png_file = "{}-{}.png".format(path, brightness)
-        if not os.path.isfile(png_file):
+        path = urlparse(url).path
+        img_file = os.path.basename(path)
+        key = key = os.path.join(os.path.dirname(path).split(os.sep)[2:])
+        img_path = os.path.join(CACHE_DIR, key)
+        img_name = os.path.splitext(img_file)[0]
+
+        png_file = "{}-{}.png".format(img_name, brightness)
+        src_img = os.path.join(img_path, img_file)
+        dst_png = os.path.join(img_path, png_file)
+        if not os.path.isfile(dst_png):
             r = requests.get(url)
             if r.status_code == 200:
-                if not os.path.exists(path):
-                    os.makedirs(path)
-                with open(img_file, 'w') as f:
+                if not os.path.exists(img_path):
+                    os.makedirs(img_path)
+                with open(src_img, 'w') as f:
                     f.write(r.content)
-                if not os.path.exists(png_file):
+
+                if not os.path.exists(dst_png):
                     try:
-                        create_png(img_file, png_file, BRIGHTNESS_VALUES[brightness])
-                        os.remove(img_file)
+                        create_png(src_img, dst_png, BRIGHTNESS_VALUES[brightness])
+                        os.remove(src_img)
                     except OSError:
                         pass
-        if os.path.isfile(png_file):
-            src = "/cache{}".format(png_file.replace(CACHE_DIR, ""))
+        if os.path.isfile(dst_png):
+            src = "/cache/{}/{}".format(key, png_file)
 
     return JsonResponse({'src': src})
 
@@ -181,18 +188,20 @@ def fetch_file(request, url=None):
     url = url or request.GET.get('url', None)
     src = ''
     if url:
-        f = '/'.join([CACHE_DIR] + url.split('/')[-2:])
-        path, _ = os.path.splitext(f)
-        if not os.path.isfile(f):
+        path = urlparse(url).path
+        file_name = os.path.basename(path)
+        key = os.path.join(os.path.dirname(path).split(os.sep)[2:])
+        file_path = os.path.join(CACHE_DIR, key)
+        full_path = os.path.join(file_path, file_name)
+        if not os.path.isfile(full_path):
             r = requests.get(url)
             if r.status_code == 200:
-                path, file_extension = os.path.splitext(f)
-                if not os.path.exists(path):
+                if not os.path.exists(file_path):
                     os.makedirs(path)
 
-                with open(f, 'w') as cached_file:
+                with open(full_path, 'w') as cached_file:
                     cached_file.write(r.content)
-        src = "/cache{}".format(f.replace(CACHE_DIR, ""))
+        src = "/cache/{}/{}".format(key, file_name)
     return JsonResponse({'src': src})
 
 
