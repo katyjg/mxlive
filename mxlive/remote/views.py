@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db.models import Q
 import requests
-
+import os
 from django.views.generic import View
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
@@ -15,7 +15,18 @@ from lims.templatetags.converter import humanize_duration
 
 from signing import Signer
 
-IMAGE_URL = settings.IMAGE_PREPEND or ''
+IMAGE_URL = getattr(settings, 'IMAGE_PREPEND', '')
+
+
+def make_secure_path(path):
+    # Download  key
+    url = IMAGE_URL + '/data/create/'
+    r = requests.post(url, data={'path': path})
+    if r.status_code == 200:
+        key = r.json()['key']
+        return key
+    else:
+        raise ValueError('Unable to create SecurePath')
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -157,6 +168,14 @@ class LaunchSession(VerificationMixin, View):
             raise http.Http404("Beamline does not exist.")
 
         session, created = Session.objects.get_or_create(project=project, beamline=beamline, name=session_name)
+        if created:
+            # Download  key
+            try:
+                key = make_secure_path(os.path.join(project_name, session.name))
+                session.url = key
+                session.save()
+            except ValueError:
+                return http.HttpResponseServerError("Unable to create SecurePath")
         session.launch()
         if created:
             ActivityLog.objects.log_activity(request, session, ActivityLog.TYPE.CREATE, 'Session launched')
@@ -289,11 +308,10 @@ class AddReport(VerificationMixin, View):
             raise http.Http404("Data does not exist")
 
         # Download  key
-        url = IMAGE_URL + '/data/create/'
-        r = requests.post(url, data={'path': info.get('directory')})
-        if r.status_code == 200:
-            key = r.json()['key']
-        else:
+        # Download  key
+        try:
+            key = make_secure_path(info.get('directory'))
+        except ValueError:
             return http.HttpResponseServerError("Unable to create SecurePath")
 
         kind = info.get('title').replace(' Report', '')
@@ -360,11 +378,9 @@ class AddData(VerificationMixin, View):
             raise http.Http404("Beamline does not exist")
 
         # Download  key
-        url = IMAGE_URL + '/data/create/'
-        r = requests.post(url, data={'path': info.get('directory')})
-        if r.status_code == 200:
-            key = r.json()['key']
-        else:
+        try:
+            key = make_secure_path(info.get('directory'))
+        except ValueError:
             return http.HttpResponseServerError("Unable to create SecurePath")
 
         session = beamline.active_session()

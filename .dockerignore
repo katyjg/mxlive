@@ -10,3 +10,4 @@ local/settings_local.*
 temp/
 */*/historical-*.json
 */*/test-*.json
+venv

@@ -5,19 +5,21 @@ from django.utils.text import slugify
 from django.utils import timezone
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.humanize.templatetags.humanize import naturaltime
-from django.views.generic import edit, detail
+from django.views.generic import edit, detail, View
 from django.db import transaction
-
+from django.conf import settings
 from formtools.wizard.views import SessionWizardView
 
 from objlist.views import FilteredListView
-
+from proxy.views import proxy_view
 from lims import forms, models
 from itertools import chain
 import json
 import re
 
 from mixins import AjaxableResponseMixin, AdminRequiredMixin, HTML2PdfMixin
+
+IMAGE_URL = getattr(settings, 'IMAGE_PREPEND', '')
 
 
 class ProjectDetail(UserPassesTestMixin, detail.DetailView):
@@ -1042,3 +1044,9 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
             group.sample_count = group.sample_set.count()
             group.save()
         return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': data['shipment'].pk})})
+
+
+class ProxyView(View):
+    def get(self, request, path=''):
+        remote_url = IMAGE_URL + path
+        return proxy_view(request, remote_url)

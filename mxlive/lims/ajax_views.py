@@ -29,48 +29,8 @@ COLORMAPS['gist_yarg'][-2] = 0
 COLORMAPS['gist_yarg'][-3] = 255
 GAMMA_SHIFT = 3.5
 
-IMAGE_URL = settings.IMAGE_PREPEND or ''
+IMAGE_URL = getattr(settings, 'IMAGE_PREPEND', '')
 CACHE_DIR = settings.CACHES.get('default', {}).get('LOCATION', '/tmp')
-
-
-def load_image(filename, gamma_offset=0.0, resolution=(1024, 1024)):
-    """
-    Read file and return an PIL image of desired resolution histogram stretched by the
-    requested gamma_offset
-    :param filename: Image File (e.g. filename.img, filename.cbf)
-    :param gamma_offset: default 0.0
-    :param resolution: output size
-    :return: resized PIL image
-    """
-
-    image_obj = read_image(filename)
-    gamma = image_obj.header['gamma']
-    disp_gamma = gamma * numpy.exp(gamma_offset + GAMMA_SHIFT)/30.0
-    raw_img = image_obj.image.convert('I')
-    lut = stretch(disp_gamma)
-    raw_img = raw_img.point(list(lut), 'L')
-    raw_img.putpalette(COLORMAPS['gist_yarg'])
-    return raw_img.resize(resolution, Image.ANTIALIAS)  # slow but nice Image.NEAREST is very fast but ugly
-
-
-def create_png(filename, output, brightness, resolution=(1024, 1024)):
-    """
-    Generate png in output using filename as input with specified brightness
-    and resolution. default resolution is 1024x1024
-    creates a directory for output if none exists
-    :param filename: Image File (e.g. filename.img, filename.cbf)
-    :param output: PNG Image Filename
-    :param brightness: float (1.5=dark; -0.5=light)
-    :param resolution: output size
-    :return: PNG Image
-    """
-
-    img_info = load_image(filename, brightness, resolution)
-
-    dir_name = os.path.dirname(output)
-    if not os.path.exists(dir_name) and dir_name != '':
-        os.makedirs(dir_name)
-    img_info.save(output, 'PNG')
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -144,26 +104,64 @@ class BulkSampleEdit(View):
 
         return JsonResponse(errors, safe=False)
 
+
 def update_locations(request):
     container = models.Container.objects.get(pk=request.GET.get('pk', None))
     locations = list(container.kind.container_locations.values_list('pk', 'name'))
     return JsonResponse(locations, safe=False)
 
 
-def fetch_image(request, url=None, brightness=None):
-    src = ""
-    url = url or request.GET.get('url', None)
-    brightness = brightness or request.GET.get('brightness', 'nm')
+def load_image(filename, gamma_offset=0.0, resolution=(1024, 1024)):
+    """
+    Read file and return an PIL image of desired resolution histogram stretched by the
+    requested gamma_offset
+    :param filename: Image File (e.g. filename.img, filename.cbf)
+    :param gamma_offset: default 0.0
+    :param resolution: output size
+    :return: resized PIL image
+    """
+
+    image_obj = read_image(filename)
+    gamma = image_obj.header['gamma']
+    disp_gamma = gamma * numpy.exp(gamma_offset + GAMMA_SHIFT)/30.0
+    raw_img = image_obj.image.convert('I')
+    lut = stretch(disp_gamma)
+    raw_img = raw_img.point(list(lut), 'L')
+    raw_img.putpalette(COLORMAPS['gist_yarg'])
+    return raw_img.resize(resolution, Image.ANTIALIAS)  # slow but nice Image.NEAREST is very fast but ugly
+
+
+def create_png(filename, output, brightness, resolution=(1024, 1024)):
+    """
+    Generate png in output using filename as input with specified brightness
+    and resolution. default resolution is 1024x1024
+    creates a directory for output if none exists
+    :param filename: Image File (e.g. filename.img, filename.cbf)
+    :param output: PNG Image Filename
+    :param brightness: float (1.5=dark; -0.5=light)
+    :param resolution: output size
+    :return: PNG Image
+    """
+
+    img_info = load_image(filename, brightness, resolution)
+    dir_name = os.path.dirname(output)
+    if not os.path.exists(dir_name) and dir_name != '':
+        os.makedirs(dir_name)
+    img_info.save(output, 'PNG')
+
+
+def get_png_src(url, brightness):
     if url:
         path = urlparse(url).path
         img_file = os.path.basename(path)
-        key = key = os.path.join(os.path.dirname(path).split(os.sep)[2:])
+        key = os.path.join(os.path.dirname(path).split(os.sep)[2:])
         img_path = os.path.join(CACHE_DIR, key)
         img_name = os.path.splitext(img_file)[0]
 
         png_file = "{}-{}.png".format(img_name, brightness)
         src_img = os.path.join(img_path, img_file)
         dst_png = os.path.join(img_path, png_file)
+
         if not os.path.isfile(dst_png):
             r = requests.get(url)
             if r.status_code == 200:
@@ -173,20 +171,15 @@ def fetch_image(request, url=None, brightness=None):
                     f.write(r.content)
 
                 if not os.path.exists(dst_png):
-                    try:
-                        create_png(src_img, dst_png, BRIGHTNESS_VALUES[brightness])
-                        os.remove(src_img)
-                    except OSError:
-                        pass
+                    create_png(src_img, dst_png, BRIGHTNESS_VALUES[brightness])
+                    os.remove(src_img)
+
         if os.path.isfile(dst_png):
-            src = "/cache/{}/{}".format(key, png_file)
+            return "/cache/{}/{}".format(key, png_file)
+    return ""
 
-    return JsonResponse({'src': src})
 
-
-def fetch_file(request, url=None):
-    url = url or request.GET.get('url', None)
-    src = ''
+def get_file_src(url):
     if url:
         path = urlparse(url).path
         file_name = os.path.basename(path)
@@ -201,8 +194,19 @@ def fetch_file(request, url=None):
 
                 with open(full_path, 'w') as cached_file:
                     cached_file.write(r.content)
-        src = "/cache/{}/{}".format(key, file_name)
-    return JsonResponse({'src': src})
+            return "/cache/{}/{}".format(key, file_name)
+    return ""
+
+
+def fetch_image(request, url=None, brightness=None):
+    url = url or request.GET.get('url', None)
+    brightness = brightness or request.GET.get('brightness', 'nm')
+    return JsonResponse({'src': get_png_src(url, brightness)})
+
+
+def fetch_file(request, url=None):
+    url = url or request.GET.get('url', None)
+    return JsonResponse({'src': get_file_src(url)})
 
 
 def fetch_archive(request, path=None, name=None):

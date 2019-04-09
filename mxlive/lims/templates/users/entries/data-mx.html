@@ -27,16 +27,13 @@
         </div>
 
         <div class="row col-xs-3 col-meta">
-            {% get_snapshot_url object as snapshot %}
             <!-- Display of metaData -->
             <div class="row">
-                {% if snapshot %}
-                    <div class="meta-data col-xs-12">
-                        <div class="row">
-                            <div class="xtal-pic col-xs-12" style="background-image: url('{{ snapshot }}');" title="Snapshot from beamline">&nbsp;</div>
-                        </div>
+                <div class="meta-data col-xs-12">
+                    <div class="row">
+                        <div class="xtal-pic col-xs-12" style="background-image: url('{% get_snapshot_url object %}');" title="Snapshot from beamline">&nbsp;</div>
                     </div>
-                {% endif %}
+                </div>
 
                 <div class="col-xs-12">
                     <ul class="nav nav-tabs text-condensed">

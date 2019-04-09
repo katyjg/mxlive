@@ -26,3 +26,5 @@ tmp
 /static/
 /local/mxlive.db
 share
+venv/
+

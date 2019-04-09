@@ -84,4 +84,5 @@ urlpatterns = [
     url(r'^ajax/bulk_edit/$', ajax_views.BulkSampleEdit.as_view(), name='bulk-edit'),
 
     url(r'^quick-guide/$', TemplateView.as_view(template_name='users/help.html'), name='user-guide'),
+    url(r'^files/(?P<path>\w+)/(?P<name>.*)$', views.ProxyView.as_view(), name='files-proxy'),
 ]

@@ -255,6 +255,7 @@ class Session(models.Model):
     project = models.ForeignKey(Project, related_name="sessions")
     beamline = models.ForeignKey(Beamline, related_name="sessions")
     comments = models.TextField()
+    url = models.CharField(max_length=200, null=True)
 
     def identity(self):
         return 'SE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))

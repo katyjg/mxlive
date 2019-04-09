@@ -1,7 +1,7 @@
 from django import template
 from django.conf import settings
 
-from lims.ajax_views import fetch_image, fetch_file
+from lims.ajax_views import get_png_src, get_file_src
 import json
 import xdi
 import collections
@@ -22,6 +22,7 @@ XRF_COLOR_LIST = ['#800080', '#FF0000', '#008000',
 def get_color(i):
     color = plt.cm.gnuplot(i)
     return '#%02x%02x%02x' % (color[0]*255, color[1]*255, color[2]*255)
+
 
 register = template.Library()
 
@@ -64,9 +65,7 @@ def format_archive_name(name):
 @register.simple_tag
 def get_image(data, frame, brightness="nm"):
     url = get_image_url(data, frame)
-    info = fetch_image(None, url, brightness)
-    src = json.loads(info.content)['src']
-    return src
+    return get_png_src(url, brightness)
 
 
 @register.simple_tag
@@ -94,31 +93,26 @@ def get_meta_data(data):
 
 @register.simple_tag
 def get_snapshot_url(data):
-    url = IMAGE_URL + "/files/{}/{}.gif".format(data.url, data.name)
-    r = fetch_file(None, url)
-    try:
-        fname = json.loads(r.content)['src']
-    except:
-        fname = None
-    return fname
+    return IMAGE_URL + "/files/{}/{}.gif".format(data.url, data.name)
 
 
 def get_file_info(data):
     url = IMAGE_URL + "/files/{}/{}".format(data.url, data.file_name)
     url = url.replace('xdi', data.kind.split('_')[0].lower())
-    r = fetch_file(None, url)
+    path = get_file_src(url)
     try:
-        f = open(json.loads(r.content)['src'].replace('/cache', CACHE_DIR))
-        info = json.load(f)
-    except:
+        with open(path.replace('/cache', CACHE_DIR), 'r') as f:
+            info = json.load(f)
+    except IOError:
+        print "File not found: {}".format(path)
         info = None
     return info
 
 
 def get_xdi_info(data):
     url = IMAGE_URL + "/files/{}/{}".format(data.url, data.file_name)
-    r = fetch_file(None, url)
-    filename = json.loads(r.content)['src'].replace('/cache', CACHE_DIR)
+    path = get_file_src(url)
+    filename = path.replace('/cache', CACHE_DIR)
     info = xdi.read_xdi(filename)
     return info
 
