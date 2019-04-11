@@ -1,24 +1,13 @@
-import os
 import re
-import pickle
-import urlparse
-from django.views.generic import View
+
 from django import http
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.db import transaction
-
-import numpy
-import requests
-from PIL import Image
-from django.conf import settings
 from django.http import JsonResponse
-from urlparse import urlparse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import View
+
 from lims import models
-
-IMAGE_URL = getattr(settings, 'IMAGE_PREPEND', "http://mxlive-data/download")
-CACHE_DIR = settings.CACHES.get('default', {}).get('LOCATION', '/tmp')
-
 
 @method_decorator(csrf_exempt, name='dispatch')
 class FetchReport(View):
@@ -50,7 +39,7 @@ class UpdatePriority(View):
 
         pks = [u for u in request.POST.getlist('samples[]') if u]
         for i, pk in enumerate(pks):
-            group.sample_set.filter(pk=pk).update(priority=i+1)
+            group.sample_set.filter(pk=pk).update(priority=i + 1)
 
         return JsonResponse([], safe=False)
 
@@ -78,7 +67,8 @@ class BulkSampleEdit(View):
             if not re.compile('^[a-zA-Z0-9-_]+$').match(name):
                 errors.append('{}: Names cannot contain any spaces or special characters'.format(name.encode('utf-8')))
 
-        names = list(models.Sample.objects.filter(group__pk=group).exclude(pk__in=data.keys()).values_list('name', flat=True))
+        names = list(
+            models.Sample.objects.filter(group__pk=group).exclude(pk__in=data.keys()).values_list('name', flat=True))
         names.extend([v['name'] for v in data.values()])
 
         duplicates = set([name for name in names if names.count(name) > 1])

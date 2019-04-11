@@ -55,7 +55,6 @@ INSTALLED_APPS = (
     'staff',
     'objlist',
     'remote',
-    'reversion',
     'crispy_forms',
     'formtools',
 )

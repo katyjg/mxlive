@@ -1,3 +1,0 @@
-[submodule "libs/imageio"]
-	path = libs/imageio
-	url = git@github.com:michel4j/imageio.git

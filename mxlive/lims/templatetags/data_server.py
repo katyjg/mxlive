@@ -1,58 +1,36 @@
+import collections
+import json
+
+import requests
 from django import template
 from django.conf import settings
 from django.core.urlresolvers import reverse
 
-import json
 import xdi
-import collections
-import requests
-import os
-import matplotlib.pyplot as plt
 
-XRF_COLOR_LIST = ['#800080', '#FF0000', '#008000',
-                  '#FF00FF', '#800000', '#808000',
-                  '#008080', '#00FF00', '#000080',
-                  '#00FFFF', '#0000FF', '#000000',
-                  '#800040', '#BD00BD', '#00FA00',
-                  '#800000', '#FA00FA', '#00BD00',
-                  '#008040', '#804000', '#808000',
-                  '#408000', '#400080', '#004080']
-
-
-def get_color(i):
-    color = plt.cm.gnuplot(i)
-    return '#%02x%02x%02x' % (color[0]*255, color[1]*255, color[2]*255)
-
+GOOG20_COLORS = [
+    "#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e",
+    "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262",
+    "#5574a6", "#3b3eac"
+]
+IMAGE_URL = getattr(settings, 'IMAGE_PREPEND', "http://mxlive-data/download")
 
 register = template.Library()
-
-IMAGE_URL = settings.IMAGE_PREPEND or ''
-CACHE_DIR = settings.CACHES.get('default', {}).get('LOCATION', '/tmp')
-CACHE_URL = settings.CACHE_URL or '/cache/'
 
 
 @register.simple_tag
 def get_frame_name(data, frame):
     return data.file_name.format(frame)
 
+
 @register.simple_tag
 def get_frame_url(data, frame):
     return '{}/{}'.format(data.url, data.file_name.format(frame))
 
+
 @register.filter
 def format_frame_name(data, frame):
     return data.file_name.format(frame)
-
-
-@register.simple_tag
-def get_cached_image_url(data, frame, brightness='nm'):
-    file_name, _ = os.path.splitext(data.file_name.format(frame))
-    return "{}/{}/{}-{}.png".format(CACHE_URL, data.url, file_name, brightness)
-
-
-@register.simple_tag
-def get_base_url(data):
-    return IMAGE_URL + "/files/{}/".format(data.url)
 
 
 @register.filter("second_view")
@@ -64,7 +42,8 @@ def second_view(angle):
 
 @register.filter
 def get_meta_data(data):
-    return collections.OrderedDict([(k, data.meta_data.get(k)) for k in data.METADATA[data.kind] if k in data.meta_data])
+    return collections.OrderedDict(
+        [(k, data.meta_data.get(k)) for k in data.METADATA[data.kind] if k in data.meta_data])
 
 
 def get_json_info(path):
@@ -101,16 +80,16 @@ def get_mad_data(data):
             'data': [
                 {
                     'label': '',
-                     'x': list(raw.data['energy']),
-                     'y1': list(raw.data['normfluor'])},
+                    'x': list(raw.data['energy']),
+                    'y1': list(raw.data['normfluor'])},
                 {
                     'label': 'f`',
-                     'x': analysis['esf']['energy'],
-                     'y2': analysis['esf']['fp']},
+                    'x': analysis['esf']['energy'],
+                    'y2': analysis['esf']['fp']},
                 {
                     'label': 'f``',
-                     'x': analysis['esf']['energy'],
-                     'y2': analysis['esf']['fpp']},
+                    'x': analysis['esf']['energy'],
+                    'y2': analysis['esf']['fpp']},
             ],
             'choices': [dict((str(k), isinstance(v, unicode) and str(v) or v) for k, v in choice.items())
                         for choice in analysis['choices']]
@@ -134,8 +113,8 @@ def get_xrf_data(data):
                 'label': "{}-{}".format(el, edge[0]),
                 'energy': edge[1],
                 'amplitude': edge[2]
-                } for edge in values[1]]
-            }
+            } for edge in values[1]]
+        }
             for el, values in analysis.get('assignments', {}).items()]
         info = {
             'xlabel': 'Energy ({})'.format(raw['column.1'].units),
@@ -147,14 +126,13 @@ def get_xrf_data(data):
                     'y1': analysis.get('counts', [])},
                 {
                     'label': 'Fit',
-                    'x': analysis.get('energy',[]),
-                    'y1': analysis.get('fit',[])},
+                    'x': analysis.get('energy', []),
+                    'y1': analysis.get('fit', [])},
             ],
             'assignments': sorted(assignments, key=lambda x: -x['reliability'])
         }
         for i, a in enumerate(info['assignments']):
-            info['assignments'][i]['color'] = get_color(i*12)
+            info['assignments'][i]['color'] = GOOG20_COLORS[i % 20]
     else:
         info = {'assignments': [], 'data': []}
     return info
-
