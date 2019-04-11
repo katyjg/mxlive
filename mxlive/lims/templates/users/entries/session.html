@@ -21,7 +21,7 @@
 {% block object_tools %}
 {% if object.data_set.all %}
 <span class="box-tools pull-right">
-    <a class="pull-right" href="{% url 'fetch-session-archive' name=object.name|format_archive_name %}?{% for d in object.data_set.all %}urls%5B%5D={{ d.url }}{% if not forloop.last %}&{% endif %}{% endfor %}">
+    <a class="pull-right" href="{% url 'files-proxy' section='archive' path=object.download_url %}">
         <span class="pull-right">
             <span class="fa-stack">
                 <i class="fa-stack-2x fa fa-2 fa-fw fa-download"></i>
@@ -134,7 +134,7 @@
 {% block extra_js %}
 <script>
     function download_all(urls) {
-        $.get("{% get_session_archive object %}", {'urls': urls}, null, 'attachment');
+        $.get("", {'urls': urls}, null, 'attachment');
     }
 </script>
 {% endblock %}

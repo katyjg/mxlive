@@ -288,7 +288,10 @@ class XDIData(object):
     def parse(self, filename):
         opener = gzip.open if filename.endswith('.gz') else open
         with opener(filename, 'rb') as handle:
-            raw = XDI_PATTERN.match(handle.read()).groupdict()
+            return self.load(handle.read())
+
+    def load(self, data):
+        raw = XDI_PATTERN.match(data).groupdict()
         self.version = raw['version_text']
 
         self.header = collections.OrderedDict()
@@ -344,4 +347,10 @@ class XDIData(object):
 def read_xdi(filename):
     obj = XDIData()
     obj.parse(filename)
+    return obj
+
+
+def read_xdi_data(data):
+    obj = XDIData()
+    obj.load(data)
     return obj

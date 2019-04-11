@@ -17,6 +17,7 @@ from model_utils import Choices
 from datetime import datetime, timedelta
 import json
 import itertools
+from collections import OrderedDict
 
 from django_auth_ldap.backend import populate_user
 from django.db.models.signals import post_delete
@@ -260,6 +261,9 @@ class Session(models.Model):
     def identity(self):
         return 'SE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
     identity.admin_order_field = 'pk'
+
+    def download_url(self):
+        return '{}/{}.tar.gz'.format(self.url, self.name)
 
     def launch(self):
         Stretch.objects.active(extras={'session__beamline':self.beamline}).exclude(session=self).update(end=timezone.now())
@@ -1129,6 +1133,9 @@ class Data(DataBaseClass):
     def num_frames(self):
         return len(self.frames) if self.frames else 0
 
+    def download_url(self):
+        return "{}/{}.tar.gz".format(self.url, self.name)
+
     def frame_sets(self):
         if isinstance(self.frames, list):
             val_str = ",".join([r[0] == r[1] and "{}".format(r[0]) or "{}-{}".format(r[0], r[1])
@@ -1137,7 +1144,16 @@ class Data(DataBaseClass):
         return self.frames
 
     def first_frame(self):
-        return len(self.frames) and self.frames[0] or 1
+        return 1 if not len(self.frames) else self.frames[0]
+
+    def first_file(self):
+        return self.file_name.format(self.first_frame())
+
+    def snapshot_url(self):
+        return "{}/{}.gif".format(self.url, self.name)
+
+    def get_meta_data(self):
+        return OrderedDict([(k, self.meta_data.get(k)) for k in self.METADATA[self.kind] if k in self.meta_data])
 
     def report(self):
         return self.reports.first()
@@ -1152,7 +1168,7 @@ class Data(DataBaseClass):
         _c = 299792458e10  # A/s
         if float(self.energy) == 0.0:
             return 0.0
-        return (_h * _c) / (float(self.energy) * 1000.0)
+        return round((_h * _c) / (float(self.energy) * 1000.0),4)
 
     def total_angle(self):
         return float(self.meta_data.get('delta_angle', 0)) * self.num_frames()
@@ -1182,6 +1198,10 @@ class AnalysisReport(DataBaseClass):
 
     class Meta:
         ordering = ['-score']
+
+    def download_url(self):
+        dataset = self.data.first()
+        return '{}/{}-report-{}.tar.gz'.format(self.url, dataset.name, self.pk)
 
     def identity(self):
         return 'AR%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))

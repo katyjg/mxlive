@@ -9,17 +9,19 @@ from django.views.generic import edit, detail, View
 from django.db import transaction
 from django.conf import settings
 from formtools.wizard.views import SessionWizardView
+from django import http
 
 from objlist.views import FilteredListView
 from proxy.views import proxy_view
 from lims import forms, models
 from itertools import chain
 import json
+import requests
 import re
 
 from mixins import AjaxableResponseMixin, AdminRequiredMixin, HTML2PdfMixin
 
-IMAGE_URL = getattr(settings, 'IMAGE_PREPEND', '')
+IMAGE_URL = getattr(settings, 'IMAGE_PREPEND', "http://mxlive-data/download")
 
 
 class ProjectDetail(UserPassesTestMixin, detail.DetailView):
@@ -1047,6 +1049,18 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
 
 
 class ProxyView(View):
-    def get(self, request, path=''):
-        remote_url = IMAGE_URL + path
+    def get(self, request, *args, **kwargs):
+        remote_url = IMAGE_URL + request.path
+        if kwargs.get('section') == 'archive':
+            return fetch_archive(request, remote_url)
         return proxy_view(request, remote_url)
+
+
+def fetch_archive(request, url):
+    r = requests.get(url, stream=True)
+    if r.status_code == 200:
+        resp = http.StreamingHttpResponse(r, content_type='application/x-gzip')
+        resp['Content-Disposition'] = r.headers.get('Content-Disposition', 'attachment; filename=archive.tar.gz')
+        return resp
+    else:
+        return http.HttpResponseNotFound()

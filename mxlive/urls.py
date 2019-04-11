@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 
 from views import logout_view, login_view
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from lims.views import ProjectDetail
+from lims.views import ProjectDetail, ProxyView
 
 admin.autodiscover()
 
@@ -16,6 +16,7 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls), name="admin"),
     url(r'^staff/', include('staff.urls')),
     url(r'^users/',  include('lims.urls')),
+    url(r'^files/(?P<section>[^/]+)/(?P<path>.*)$', ProxyView.as_view(), name='files-proxy'),
 
     url(r'^login/$',  login_view, {'template_name': 'login.html'}, name="mxlive-login"),
     url(r'^logout/$', logout_view, name='mxlive-logout'),

@@ -1,7 +1,7 @@
 from django import template
 from django.conf import settings
+from django.core.urlresolvers import reverse
 
-from lims.ajax_views import get_png_src, get_file_src
 import json
 import xdi
 import collections
@@ -35,37 +35,13 @@ CACHE_URL = settings.CACHE_URL or '/cache/'
 def get_frame_name(data, frame):
     return data.file_name.format(frame)
 
-
 @register.simple_tag
-def get_archive_url(data):
-    url = IMAGE_URL + "/files/{}/{}.tar.gz".format(data.url, data.name)
-    return url
-
-@register.simple_tag
-def get_session_archive(session):
-    url = IMAGE_URL + "/files/{}.tar.gz".format(session.name)
-    return url
-
-@register.simple_tag
-def get_image_url(data, frame):
-    url = IMAGE_URL + "/files/%s/%s" % (data.url, data.file_name.format(frame))
-    return url
-
+def get_frame_url(data, frame):
+    return '{}/{}'.format(data.url, data.file_name.format(frame))
 
 @register.filter
 def format_frame_name(data, frame):
     return data.file_name.format(frame)
-
-
-@register.filter
-def format_archive_name(name):
-    return '{}.tar.gz'.format(name)
-
-
-@register.simple_tag
-def get_image(data, frame, brightness="nm"):
-    url = get_image_url(data, frame)
-    return get_png_src(url, brightness)
 
 
 @register.simple_tag
@@ -91,36 +67,32 @@ def get_meta_data(data):
     return collections.OrderedDict([(k, data.meta_data.get(k)) for k in data.METADATA[data.kind] if k in data.meta_data])
 
 
-@register.simple_tag
-def get_snapshot_url(data):
-    return IMAGE_URL + "/files/{}/{}.gif".format(data.url, data.name)
-
-
-def get_file_info(data):
-    url = IMAGE_URL + "/files/{}/{}".format(data.url, data.file_name)
-    url = url.replace('xdi', data.kind.split('_')[0].lower())
-    path = get_file_src(url)
-    try:
-        with open(path.replace('/cache', CACHE_DIR), 'r') as f:
-            info = json.load(f)
-    except IOError:
+def get_json_info(path):
+    url = IMAGE_URL + reverse('files-proxy', kwargs={'section': 'raw', 'path': path})
+    r = requests.get(url)
+    if r.status_code == 200:
+        return json.loads(r.content)
+    else:
         print "File not found: {}".format(path)
-        info = None
-    return info
+        return {}
 
 
-def get_xdi_info(data):
-    url = IMAGE_URL + "/files/{}/{}".format(data.url, data.file_name)
-    path = get_file_src(url)
-    filename = path.replace('/cache', CACHE_DIR)
-    info = xdi.read_xdi(filename)
-    return info
+def get_xdi_info(path):
+    url = IMAGE_URL + reverse('files-proxy', kwargs={'section': 'raw', 'path': path})
+    r = requests.get(url)
+    if r.status_code == 200:
+        return xdi.read_xdi_data(r.content)
+    else:
+        print "File not found: {}".format(url)
+        return {}
 
 
 @register.simple_tag
 def get_mad_data(data):
-    raw = get_xdi_info(data)
-    analysis = get_file_info(data)
+    xdi_path = '{}/{}'.format(data.url, data.file_name)
+    mad_path = '{}/{}.mad'.format(data.url, data.name)
+    raw = get_xdi_info(xdi_path)
+    analysis = get_json_info(mad_path)
     if raw and analysis:
         info = {
             'xlabel': 'Energy ({})'.format(raw['column.1'].units),
@@ -150,8 +122,10 @@ def get_mad_data(data):
 
 @register.simple_tag
 def get_xrf_data(data):
-    raw = get_xdi_info(data)
-    analysis = get_file_info(data)
+    xdi_path = '{}/{}'.format(data.url, data.file_name)
+    xrf_path = '{}/{}.xrf'.format(data.url, data.name)
+    raw = get_xdi_info(xdi_path)
+    analysis = get_json_info(xrf_path)
     if analysis:
         assignments = [{
             'label': str(el),

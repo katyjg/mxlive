@@ -1,7 +1,14 @@
 {% load data_server %}
 {% load static %}
 
-<div id="data-viewer">
+<div id='data-viewer'
+     data-first-file='{{ object.first_file }}'
+     data-first-frame='{{ object.first_frame }}'
+     data-base-url='{% url "files-proxy" section="frame" path=object.url %}'
+     data-frame-set='{{ object.frames }}'
+     data-wavelength='{{ object.wavelength }}'
+     data-resolution='{{ object.meta_data.resolution|default:0 }}'
+>
     <div class="row">
         <div class="col-xs-9" style="width: 542px;">
             <!-- image viewer aspect -->
@@ -31,7 +38,8 @@
             <div class="row">
                 <div class="meta-data col-xs-12">
                     <div class="row">
-                        <div class="xtal-pic col-xs-12" style="background-image: url('{% get_snapshot_url object %}');" title="Snapshot from beamline">&nbsp;</div>
+                        <div class="xtal-pic col-xs-12" style="background-image: url('{% url 'files-proxy' section='snapshot' path=object.snapshot_url %}');"
+                             title="Snapshot from beamline">&nbsp;</div>
                     </div>
                 </div>
 
@@ -45,22 +53,24 @@
                     <!--h4 class="text-condensed">{{ object.num_frames }} Frames ({{ object.frame_sets }})</h4-->
                     <div class="tab-content">
                         <div id="frames" class="tab-pane fade active in">
-                            <ul class="scrollbar-inner {% if not snapshot %}tall{% endif %}">
+                            <ul class="scrollbar-inner">
                                 {% for frame_id in object.frames %}
-                                    <li frame-id="{{ frame_id }}" frame-name="{% get_frame_name data frame_id %}">
-                                        <a onclick="toFrame('{% get_frame_name data frame_id %}', {{ frame_id }});">{% get_frame_name data frame_id %}</a>&nbsp;
-                                        <a class="pull-right download-tool" href="{% url 'fetch-archive' path=object.url name=object|format_frame_name:frame_id %}" title="Download this image"><i class="fa fa-fw fa-download"></i></a>
+                                    {% get_frame_url object frame_id  as frame_url %}
+                                    {% get_frame_name object frame_id  as frame_name %}
+                                    <li data-frame-id="{{ frame_id }}" data-frame-name="{{ frame_name }}">
+                                        <a onclick="toFrame('{{ frame_name }}', {{ frame_id }});">{{ frame_name }}</a>&nbsp;
+                                        <a class="pull-right download-tool" download="{{ frame_name }}"
+                                           href="{% url 'files-proxy' section='raw' path=frame_url %}"
+                                           title="Download this image"><i class="fa fa-fw fa-download"></i></a>
                                     </li>
                                 {% endfor %}
                             </ul>
                         </div>
                         <div id="meta-data" class="tab-pane fade">
-                            <ul class="scrollbar-inner {% if not snapshot %}tall{% endif %}">
-                                {% with data|get_meta_data as meta_data %}
-                                    {% for k, v in meta_data.items %}
-                                        <li><strong>{{ k|title }}: </strong> {{ v }}</li>
-                                    {% endfor %}
-                                {% endwith %}
+                            <ul class="scrollbar-inner">
+                                {% for k, v in object.get_meta_data.items %}
+                                    <li><strong>{{ k|title }}: </strong> <span class="pull-right">{{ v }}</span></li>
+                                {% endfor %}
                             </ul>
                         </div>
                     </div>
@@ -113,12 +123,12 @@
             }
         }
     }();
-
-	var $current_frame_to_display = "{% get_frame_name object object.first_frame %}";
-	var $current_frame_id = {{ object.first_frame }};
+    var $viewer = $('#data-viewer');
+	var $current_frame_to_display = $viewer.data('first-file');
+	var $current_frame_id = $viewer.data('first-frame');
 	var $current_brightness_to_display = 'nm';
-	var $expanded_frame_set = {{ object.frames }};
-    dataViewer.setPars({{object.wavelength}}, {{object.meta_data.resolution|default:0}});
+	var $expanded_frame_set = $viewer.data('frames');
+    dataViewer.setPars($viewer.data('wavelength'), $viewer.data('resolution'));
 
     $('[data-target="#parameters"]').click(function(e){
         e.preventDefault();
@@ -139,49 +149,31 @@
     });
 
 	function changeBrightness(brightness) {
-		if (brightness == $current_brightness_to_display) {
+		if (brightness === $current_brightness_to_display) {
 			return;
 		}
 		$('.active-brightness').removeClass('active-brightness');
 		$('.btn-'+brightness).addClass('active-brightness');
 		$current_brightness_to_display = brightness;
         updateFrame();
-	};
+	}
 
 	function updateFrame() {
-		url = '{% get_base_url object %}';
-		url = url + $current_frame_to_display;
-		var src;
-        $.ajax({
-            url: '{% url "fetch-image" %}',
-            data: {
-                'url': url,
-                'brightness': $current_brightness_to_display
-            },
-            success: function (response) {
-                if (response['src']) {
-                    src = response['src']
-                } else {
-                    src = "/static/img/image-not-found.png";
-                }
-                $("#diffviewer").diffviewer('loadImage', src);
-                updateFrameDetails();
-            }
-        });
+	    var url = $viewer.data('base-url') + '/' + $current_frame_to_display + '/' + $current_brightness_to_display + '.png';
+	    $("#diffviewer").diffviewer('loadImage', url);
+	    updateFrameDetails();
 	}
 
 	$(document).ready( function() {
-		$current_frame_to_display = "{% get_frame_name object object.first_frame %}";
-		$current_frame_id = {{ object.first_frame }};
+        $current_frame_to_display = $viewer.data('first-file');
+	    $current_frame_id = $viewer.data('first-frame');
 		$current_brightness_to_display = "nm";
+		var url = $viewer.data('base-url') + '/' + $current_frame_to_display + '/' + $current_brightness_to_display + '.png';
 		updateFrameDetails();
-		var img_src = "{% get_image object object.first_frame 'nm' %}";
-		if (!img_src) {
-            img_src = "/static/img/image-not-found.png";
-        }
-		$expanded_frame_set = {{ object.frames }};
+
+		$expanded_frame_set = $viewer.data('frame-set');
         $("#diffviewer").diffviewer({
-            src: img_src,
+            src: url,
             //update_on_resize: false,
             zoom: 50,
             zoom_min: 50,
@@ -201,7 +193,7 @@
 
 	function updateFrameDetails() {
 		// use jQuery to find and update the frame specific elements.
-		element = $('#framename');
+		var element = $('#framename');
 		element.text($current_frame_to_display);
         if (element.width() > parseInt($('.loaded-image').css('maxWidth'))) {
             $('.loaded-image').addClass('reverse-ellipsis');
@@ -217,35 +209,32 @@
 
 	function nextClicked() {
 		// get next frame in set.
-        index = $.inArray($current_frame_id, $expanded_frame_set);
-		if ((index != -1) && (index < $expanded_frame_set.length -1)) {
+        var index = $.inArray($current_frame_id, $expanded_frame_set);
+		if ((index !== -1) && (index < $expanded_frame_set.length -1)) {
 			index++;
 			$current_frame_id = $expanded_frame_set[index];
-            $current_frame_to_display = $('[frame-id="'+$current_frame_id+'"]').attr('frame-name');
+            $current_frame_to_display = $('[data-frame-id="'+$current_frame_id+'"]').data('frame-name');
             updateFrame();
 		}
-		return;
 	}
 
 	function prevClicked() {
 		// get previous frame in set
-		index = $.inArray($current_frame_id, $expanded_frame_set);
-		if ((index != -1) && (index > 0)) {
+		var index = $.inArray($current_frame_id, $expanded_frame_set);
+		if ((index !== -1) && (index > 0)) {
 			index--;
 			$current_frame_id = $expanded_frame_set[index];
-			$current_frame_to_display = $('[frame-id="'+$current_frame_id+'"]').attr('frame-name');
+			$current_frame_to_display = $('[data-frame-id="'+$current_frame_id+'"]').data('frame-name');
             updateFrame();
 		}
-		return;
 	}
 
 	function toFrame(frame, frame_id) {
-        index = $.inArray(frame_id, $expanded_frame_set);
-		if (index != -1) {
+        var index = $.inArray(frame_id, $expanded_frame_set);
+		if (index !== -1) {
 			$current_frame_to_display = frame;
 			$current_frame_id = frame_id;
 			updateFrame();
 		}
-		return;
 	}
 </script>

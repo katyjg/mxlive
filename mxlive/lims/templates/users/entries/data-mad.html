@@ -16,14 +16,14 @@
     {% if data.choices %}
         <div class="col-xs-12">
             <ul class="nav nav-tabs text-condensed">
-                <li class="active"><a data-toggle="pill" href="#choices">Results</a></li>
+                <li class="active"><a data-toggle="pill" href="#choices">Analysis</a></li>
                 <li><a data-toggle="pill" href="#meta-data">Meta-Data</a></li>
             </ul>
         </div>
         <div class="col-xs-12">
             <div class="tab-content">
                 <div id="choices" class="tab-pane fade active in">
-                    <table class="pull-right table table-hover">
+                    <table class="pull-right table table-hover table-condensed">
                         {% for e in data.choices %}
                             {% if forloop.first %}
                                 <thead>
@@ -67,7 +67,6 @@
 <script type="text/javascript" src="{% static "js/live-reports.js" %}"></script>
 <script>
     var data = {{ data|dict_to_dict }};
-    console.log(data);
     var annotations = [];
     for (i=0; i < data['choices'].length; i++) {
         annotations.push({
@@ -78,7 +77,7 @@
     }
     var xy_chart = draw_xy_chart()
         .width(868)
-        .height(500)
+        .height(400)
         .xlabel("{{ data.xlabel }}")
         .y1label("{{ data.y1label }}")
         .y2label("{{ data.y2label }}")
