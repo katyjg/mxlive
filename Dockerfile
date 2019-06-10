@@ -1,11 +1,11 @@
-FROM fedora:28
+FROM fedora:27
 MAINTAINER Kathryn Janzen <kathryn.janzen@lightsource.ca>
 
 RUN dnf -y update && \
   dnf -y install httpd python-pip mod_wsgi python-dateutil python-markdown \
   postgresql-libs python-psycopg2 numpy scipy python-crypto python-memcached wget \
   mod_ssl python-docutils wkhtmltopdf xorg-x11-server-Xvfb which\
-  certbot-apache python-ldap\
+  certbot-apache python-ldap openssl\
   && dnf clean all
 
 ADD requirements.txt /

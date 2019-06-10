@@ -2,6 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import get_template
 from django.conf import settings
+from django.core.files.base import ContentFile
 
 from tempfile import mkdtemp
 from slugify import slugify
@@ -65,16 +66,17 @@ class HTML2PdfMixin(object):
         f = open(html_file, 'w')
         f.write(rendered_tpl)
         f.close()
-
+        pdf_filename = "{}/{}.pdf".format(tmp, name)
         try:
-            FNULL = open(os.devnull, 'w')
             cmd = 'xvfb-run wkhtmltopdf -L 25mm -R 25mm -T 20mm -B 20mm -s Letter {0}.html {0}.pdf'.format(name)
-            process = subprocess.call(cmd.split(), cwd=tmp, stdout=FNULL, stderr=subprocess.STDOUT)
-
-            pdf = open("{}/{}.pdf".format(tmp, name))
+            subprocess.call(cmd.split(), cwd=tmp)
+            pdf = open(pdf_filename).read()
 
         finally:
             shutil.rmtree(tmp)
 
-        res = HttpResponse(pdf, "application/pdf")
+        pdf_file = ContentFile(pdf)
+        res = HttpResponse(pdf_file, "application/pdf")
+        res['Content-Length'] = pdf_file.size
+        res['Content-Disposition'] = 'attachment; filename="{}"'.format(os.path.basename(pdf_filename))
         return res
