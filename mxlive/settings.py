@@ -120,7 +120,7 @@ LOGIN_REDIRECT_URL = '/'
 
 
 AUTHENTICATION_BACKENDS = (
- 'django_auth_ldap.backend.LDAPBackend',
+ 'django_python3_ldap.auth.LDAPBackend',
  'django.contrib.auth.backends.ModelBackend',
 )
 
@@ -160,40 +160,76 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 RESTRICTED_DOWNLOADS = True
 
-# LDAP
-LDAP_BASE_DN        = "dc=cmcf,dc=cls"
-LDAP_ADMIN_UIDS      = [2000]
+# NEW LDAP
+# ========
+
+
+def clean_user(user, data):
+    # A function to clean up user data from ldap information
+    first_name = data['gecos'][0].split()[0]
+    last_name = data['gecos'][0].split(' ', 1)[1].strip()
+    email = data.get('mail', [''])[0]
+    if (first_name, last_name, email) != (user.first_name, user.last_name, user.email):
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.save()
+
+
+LDAP_AUTH_URL = "ldap://vm-cmcfweb-01.clsi.ca:389"  # The URL of the LDAP server.
+LDAP_AUTH_USE_TLS = True                            # Initiate TLS on connection.
+LDAP_AUTH_SEARCH_BASE = "s"  # The LDAP search base for looking up users.
+LDAP_AUTH_OBJECT_CLASS = "posixAccount"             # The LDAP class that represents a user.
+LDAP_AUTH_USER_LOOKUP_FIELDS = ("username",)        # A tuple of django model fields used to uniquely identify a user.
+
+# User model fields mapped to the LDAP
+LDAP_AUTH_USER_FIELDS = {"username": "uid", "first_name": "givenName", "last_name": "sn", "email": "mail"}
+LDAP_AUTH_SYNC_USER_RELATIONS = clean_user
+
+# Extra defaults
 LDAP_MANAGER_CN     = "cn=Directory Manager"
 LDAP_MANAGER_SECRET = "appl4Str"
 LDAP_USER_ROOT      = "/users"
 LDAP_USER_SHELL     = "/bin/tcsh"
 LDAP_SEND_EMAILS    = True
-AUTH_LDAP_SERVER_URI = 'ldap://vm-cmcfweb-01.clsi.ca'
-
-
 LDAP_ADMIN_GROUP = "admin"
 LDAP_USER_TABLE   = "ou=People"
 LDAP_GROUP_TABLE    = "ou=Groups"
 AUTH_LDAP_START_TLS = True
-AUTH_LDAP_GLOBAL_OPTIONS = {
-     ldap.OPT_X_TLS_REQUIRE_CERT: ldap.OPT_X_TLS_NEVER
-}
-_version_file = os.path.join(BASE_DIR, 'VERSION')
-if os.path.exists(_version_file):
-    VERSION = (file(_version_file)).readline().strip()
-else:
-    VERSION = '- Development -'
+
+
+# # LDAP OLD
+# LDAP_BASE_DN        = "dc=cmcf,dc=cls"
+# LDAP_ADMIN_UIDS      = [2000]
+# LDAP_MANAGER_CN     = "cn=Directory Manager"
+# LDAP_MANAGER_SECRET = "appl4Str"
+# LDAP_USER_ROOT      = "/users"
+# LDAP_USER_SHELL     = "/bin/tcsh"
+# LDAP_SEND_EMAILS    = True
+# AUTH_LDAP_SERVER_URI = 'ldap://vm-cmcfweb-01.clsi.ca'
+#
+#
+# LDAP_ADMIN_GROUP = "admin"
+# LDAP_USER_TABLE   = "ou=People"
+# LDAP_GROUP_TABLE    = "ou=Groups"
+# AUTH_LDAP_START_TLS = True
+# AUTH_LDAP_GLOBAL_OPTIONS = {
+#      ldap.OPT_X_TLS_REQUIRE_CERT: ldap.OPT_X_TLS_NEVER
+# }
+
+VERSION = 'v2019.04'
 
 try:
     from settings_local import *
 except ImportError:
     pass
 
-from django_auth_ldap.config import LDAPSearch, PosixGroupType
 
-AUTH_LDAP_GROUP_TYPE = PosixGroupType(name_attr='cn')
-AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,{},{}".format(LDAP_USER_TABLE, LDAP_BASE_DN)
-AUTH_LDAP_GROUP_SEARCH = LDAPSearch(LDAP_BASE_DN, ldap.SCOPE_SUBTREE, "(objectClass=posixGroup)")
+# from django_auth_ldap.config import LDAPSearch, PosixGroupType
+# AUTH_LDAP_GROUP_TYPE = PosixGroupType(name_attr='cn')
+# AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,{},{}".format(LDAP_USER_TABLE, LDAP_BASE_DN)
+# AUTH_LDAP_GROUP_SEARCH = LDAPSearch(LDAP_BASE_DN, ldap.SCOPE_SUBTREE, "(objectClass=posixGroup)")
+
 
 if DEBUG and DEBUG_TOOLBAR:
     INSTALLED_APPS += ('debug_toolbar',)
