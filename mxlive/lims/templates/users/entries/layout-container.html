@@ -1,7 +1,7 @@
 {% load static %}
 {% load layout %}
 
-<script type="text/javascript" src="{% static "js/d3.v3.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/d3.min.js" %}"></script>
 <script>
     var locations = {% get_kind_json kind.layout object create %};
     var container_width = 1;

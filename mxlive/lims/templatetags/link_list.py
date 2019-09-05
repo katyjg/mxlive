@@ -1,6 +1,6 @@
 from django.template import Library
 
-from staff import models
+from mxlive.staff import models
 
 register = Library()
 

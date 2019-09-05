@@ -10,7 +10,7 @@
         <strong class="text-muted">{{ object.username|upper }}</strong> | Statistics
     </h3>
     <span class="text-muted">
-        Your history at {{ "BL_NAME"|get_from_settings }} in numbers
+        Your history in numbers
     </span>
 {% endblock %}
 
@@ -69,8 +69,8 @@
                         <td>{{ s.start }}</td>
                         <td>{{ s.samples.count }} / {{ s.total_time }}</td>
                         <td>{{ s.shift_parts }}</td>
-                        <td>{{ s.total_time }}</td>
-                        <td>{{ s.shift_parts }} * 8 - {{ s.total_time }}</td>
+                        <td>{{ s.total_time | floatformat:2 }}</td>
+                        <td>{{ s.shift_parts }} * 8 - {{ s.total_time | floatformat:2 }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -80,7 +80,7 @@
 
 <link href="{% static "css/reports.css" %}" rel="stylesheet">
 
-<script type="text/javascript" src="{% static "js/d3.v4.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/d3.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/d3.legend.js" %}"></script>
 <script type="text/javascript" src="{% static "js/showdown.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/live-reports.js" %}"></script>

@@ -4,16 +4,16 @@ import json
 import requests
 from django import template
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
-import xdi
+from mxlive.utils import xdi
 
 GOOG20_COLORS = [
     "#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e",
     "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262",
     "#5574a6", "#3b3eac"
 ]
-IMAGE_URL = getattr(settings, 'IMAGE_PREPEND', "http://mxlive-data/download")
+PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', "http://mxlive-data/download")
 
 register = template.Library()
 
@@ -47,22 +47,22 @@ def get_meta_data(data):
 
 
 def get_json_info(path):
-    url = IMAGE_URL + reverse('files-proxy', kwargs={'section': 'raw', 'path': path})
+    url = PROXY_URL + reverse('files-proxy', kwargs={'section': 'raw', 'path': path})
     r = requests.get(url)
     if r.status_code == 200:
         return json.loads(r.content)
     else:
-        print "File not found: {}".format(path)
+        print("File not found: {}".format(path))
         return {}
 
 
 def get_xdi_info(path):
-    url = IMAGE_URL + reverse('files-proxy', kwargs={'section': 'raw', 'path': path})
+    url = PROXY_URL + reverse('files-proxy', kwargs={'section': 'raw', 'path': path})
     r = requests.get(url)
     if r.status_code == 200:
         return xdi.read_xdi_data(r.content)
     else:
-        print "File not found: {}".format(url)
+        print("File not found: {}".format(url))
         return {}
 
 
@@ -91,7 +91,7 @@ def get_mad_data(data):
                     'x': analysis['esf']['energy'],
                     'y2': analysis['esf']['fpp']},
             ],
-            'choices': [dict((str(k), isinstance(v, unicode) and str(v) or v) for k, v in choice.items())
+            'choices': [dict((str(k), isinstance(v, str) and str(v) or v) for k, v in choice.items())
                         for choice in analysis['choices']]
         }
     else:

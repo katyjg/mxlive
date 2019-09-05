@@ -1,23 +1,28 @@
-from django.contrib.messages.views import SuccessMessageMixin
-from django.views.generic import edit, detail, TemplateView
-from django.core.urlresolvers import reverse_lazy
+from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth import logout, login
+from django.contrib.messages.views import SuccessMessageMixin
+from django.http import HttpResponseRedirect
+from django.http import JsonResponse
 from django.shortcuts import render
-from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import render_to_response
+from django.urls import reverse_lazy
+from django.utils import dateformat, timezone
+from django.views.generic import edit, detail
+from django.contrib.auth.signals import user_logged_in, user_logged_out
 
-import models
-import forms
-import slap
+from itemlist.views import ItemListView
 
-from objlist.views import FilteredListView
-from mixins import AjaxableResponseMixin, AdminRequiredMixin
-from lims.models import Project, ActivityLog
-from lims.forms import NewProjectForm
+from mxlive.lims.forms import NewProjectForm
+from mxlive.lims.models import Project, ActivityLog
+from mxlive.utils import slap
+from mxlive.utils.mixins import AjaxableResponseMixin, AdminRequiredMixin
+from . import models, forms
 
 User = get_user_model()
 
 
-class AccessList(AdminRequiredMixin, FilteredListView):
+class AccessList(AdminRequiredMixin, ItemListView):
     model = models.UserList
     list_filter = []
     list_display = ['name', 'description', 'current_users', 'allowed_users', 'address', 'active']
@@ -48,7 +53,7 @@ class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin,
         return self.model.objects.get(address=self.kwargs.get('address'))
 
 
-class RemoteConnectionList(AdminRequiredMixin, FilteredListView):
+class RemoteConnectionList(AdminRequiredMixin, ItemListView):
     model = models.RemoteConnection
     list_display = ['user', 'name', 'list', 'status', 'created', 'end']
     list_filter = ['created', 'list']
@@ -65,7 +70,7 @@ class RemoteConnectionDetail(AdminRequiredMixin, detail.DetailView):
     template_name = "users/entries/connection.html"
 
 
-class CategoryList(AdminRequiredMixin, FilteredListView):
+class CategoryList(AdminRequiredMixin, ItemListView):
     model = models.UserCategory
     list_filter = []
     list_display = ['name', 'current_users', 'num_users']
@@ -114,17 +119,17 @@ class AnnouncementDelete(AdminRequiredMixin, SuccessMessageMixin, AjaxableRespon
         return context
 
 
-class ProjectList(AdminRequiredMixin, FilteredListView):
+class ProjectList(AdminRequiredMixin, ItemListView):
     model = Project
     paginate_by = 25
     template_name = "users/list.html"
     tools_template = "users/tools-user.html"
-    list_filter = ['modified', ]
-    list_display = ['username', 'contact_person', 'contact_phone', 'contact_email', 'shipment_count']
-    search_fields = ['username', 'contact_person', 'contact_phone', 'contact_email', 'city', 'province', 'country',
+    list_filters = ['modified', ]
+    list_columns = ['username', 'contact_person', 'contact_phone', 'contact_email', 'shipment_count']
+    list_search = ['username', 'contact_person', 'contact_phone', 'contact_email', 'city', 'province', 'country',
                      'department', 'organisation']
-    detail_url = 'user-detail'
-    detail_url_kwarg = 'username'
+    link_url = 'user-detail'
+    link_kwarg = 'username'
     add_url = 'new-project'
     add_ajax = True
     order_by = ['name']
@@ -198,3 +203,27 @@ class ProjectDelete(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
         self.success_message = "{} account has been deleted".format(kwargs.get('username'))
         return JsonResponse({'url': self.success_url}, safe=False)
 
+
+def record_logout(sender, user, request, **kwargs):
+    """ user logged outof the system """
+    ActivityLog.objects.log_activity(request, user, ActivityLog.TYPE.LOGOUT, '{} logged-out'.format(user.username))
+
+
+def record_login(sender, user, request, **kwargs):
+    """ Login a user into the system """
+    if user.is_authenticated:
+        ActivityLog.objects.log_activity(request, user, ActivityLog.TYPE.LOGIN, '{} logged-in'.format(user.username))
+        last_login = ActivityLog.objects.last_login(request)
+        if last_login is not None:
+            last_host = last_login.ip_number
+            message = 'Your previous login was on {date} from {ip}.'.format(
+                date=dateformat.format(timezone.localtime(last_login.created), 'M jS @ P'),
+                ip=last_host)
+            messages.info(request, message)
+        elif not request.user.is_staff:
+            message = 'You are logging in for the first time. Please make sure your profile is updated.'
+            messages.info(request, message)
+
+
+user_logged_in.connect(record_login)
+user_logged_out.connect(record_logout)

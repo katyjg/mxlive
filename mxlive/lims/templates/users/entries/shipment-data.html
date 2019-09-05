@@ -2,10 +2,6 @@
 
 {% load static %}
 
-{% block extra_css %}
-<link href="{% static "objlist/objlist.css" %}" rel="stylesheet">
-{% endblock %}
-
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
         <i class="text-muted fa fa-fw {% if shipment.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
@@ -67,9 +63,7 @@
 
     <div class="row">
         <div class="col-sm-12">
-            <div class="no-border">
-                {% include "objlist/object_list.html" %}
-            </div>
+            {% include "itemlist/embed_list.html" %}
         </div>
     </div>
 

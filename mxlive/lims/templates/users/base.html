@@ -8,7 +8,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{% block page_title %}{{ "APP_LABEL"|get_from_settings }}{% endblock %}</title>
-
+        <link href="//fonts.googleapis.com/css?family=Fira+Sans|Fira+Sans+Condensed|Fira+Sans+Extra+Condensed" rel="stylesheet">
         <link href="{% static "img/icon.ico" %}" rel="SHORTCUT ICON">
         <link href="{% static "css/reset.css" %}" rel="stylesheet"> <!-- CSS reset -->
         <link href="{% static "css/fonts.css" %}" rel="stylesheet">
@@ -119,6 +119,12 @@
                 var sel = getSelection().toString();
                 if(!sel) {
                     $('#modal-form').load($(this).data('url'));
+                }
+            });
+            $(document).on('click', '[data-link]', function(){
+                var sel = getSelection().toString();
+                if(!sel) {
+                    $('#modal-form').load($(this).data('link'));
                 }
             });
 

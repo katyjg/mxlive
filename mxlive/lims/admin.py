@@ -1,5 +1,5 @@
 from django.contrib import admin
-from lims.models import *
+from mxlive.lims.models import *
 
 admin.site.register(Beamline)
 admin.site.register(Project)
@@ -12,3 +12,4 @@ admin.site.register(AnalysisReport)
 admin.site.register(ContainerType)
 admin.site.register(ContainerLocation)
 admin.site.register(Dewar)
+admin.site.register(Session)

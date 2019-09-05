@@ -1,26 +1,33 @@
+import os
+from datetime import datetime
+import msgpack
+
+import requests
 from django import http
 from django.conf import settings
-from middleware import get_client_address
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from django.db.models import Q
-import requests
-import os
-from django.views.generic import View
-from django.http import JsonResponse
 from django.contrib.auth import get_user_model
+from django.db.models import Q
+from django.http import JsonResponse
+from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import View
 
-from lims.models import ActivityLog
-from lims.templatetags.converter import humanize_duration
+from mxlive.utils.signing import Signer
+from .middleware import get_client_address
+from ..lims.models import ActivityLog
+from ..lims.models import Beamline, Dewar
+from ..lims.models import Data
+from ..lims.models import Project, Session
+from ..lims.templatetags.converter import humanize_duration
+from ..staff.models import UserList, RemoteConnection
 
-from signing import Signer
-
-IMAGE_URL = getattr(settings, 'IMAGE_PREPEND', '')
+PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', '')
 
 
 def make_secure_path(path):
     # Download  key
-    url = IMAGE_URL + '/data/create/'
+    url = PROXY_URL + '/data/create/'
     r = requests.post(url, data={'path': path})
     if r.status_code == 200:
         key = r.json()['key']
@@ -69,7 +76,7 @@ class AccessList(View):
 
     def get(self, request, *args, **kwargs):
 
-        from staff.models import UserList
+        from ..staff.models import UserList
         client_addr = kwargs.get('ipnumber', get_client_address(request))
 
         list = UserList.objects.filter(address=client_addr, active=True).first()
@@ -80,11 +87,6 @@ class AccessList(View):
 
     def post(self, request, *args, **kwargs):
 
-        from lims.models import Project
-        from staff.models import UserList, RemoteConnection
-        from django.utils import timezone
-        from datetime import datetime
-
         client_addr = kwargs.get('ipnumber', get_client_address(request))
         list = UserList.objects.filter(address=client_addr, active=True).first()
 
@@ -92,7 +94,7 @@ class AccessList(View):
         errors = []
 
         if list:
-            data = msgpack.loads(request.body)
+            data = msgpack.loads(request.body, encoding='utf-8')
             for conn in data:
                 try:
                     project = Project.objects.get(username=conn['project'])
@@ -131,13 +133,14 @@ class UpdateUserKey(View):
 
         if value == kwargs.get('username'):
             User = get_user_model()
-            modified = User.objects.filter(username=kwargs['username']).filter(Q(key__isnull=True) | Q(key='')).update(key=public)
+            modified = User.objects.filter(username=kwargs['username']).filter(Q(key__isnull=True) | Q(key='')).update(
+                key=public)
 
             if not modified:
                 return http.HttpResponseNotModified()
 
             ActivityLog.objects.log_activity(request, User.objects.get(username=kwargs['username']),
-                                         ActivityLog.TYPE.MODIFY, 'User Key Initialized')
+                                             ActivityLog.TYPE.MODIFY, 'User Key Initialized')
         else:
             return http.HttpResponseForbidden()
 
@@ -153,7 +156,7 @@ class LaunchSession(VerificationMixin, View):
     """
 
     def post(self, request, *args, **kwargs):
-        from lims.models import Project, Beamline, Session
+
         project_name = kwargs.get('username')
         beamline_name = kwargs.get('beamline')
         session_name = kwargs.get('session')
@@ -193,7 +196,7 @@ class CloseSession(VerificationMixin, View):
     """
 
     def post(self, request, *args, **kwargs):
-        from lims.models import Project, Beamline, Session
+
         project_name = kwargs.get('username')
         beamline_name = kwargs.get('beamline')
         session_name = kwargs.get('session')
@@ -221,7 +224,7 @@ class CloseSession(VerificationMixin, View):
 class ActiveLayout(VerificationMixin, View):
 
     def get(self, request, *args, **kwargs):
-        from lims.models import Beamline, Dewar
+
         beamline_name = kwargs.get('beamline')
         try:
             # should only be one active layout per beamline
@@ -241,8 +244,9 @@ class ProjectSamples(VerificationMixin, View):
 
     :key: r'^(?P<signature>(?P<username>):.+)/samples/(?P<beamline>)/$'
     """
+
     def get(self, request, *args, **kwargs):
-        from lims.models import Project, Beamline, Container
+        from ..lims.models import Project, Beamline, Container
         project_name = kwargs.get('username')
         beamline_name = kwargs.get('beamline')
 
@@ -256,12 +260,13 @@ class ProjectSamples(VerificationMixin, View):
         except:
             raise http.Http404("Beamline does not exist")
 
-        sample_list = project.sample_set.filter(container__status=Container.STATES.ON_SITE).order_by('group__priority', 'priority')
+        sample_list = project.sample_set.filter(container__status=Container.STATES.ON_SITE).order_by('group__priority',
+                                                                                                     'priority')
         dewar = beamline.active_dewar()
 
         samples = [s.json_dict() for s in sample_list if not s.dewar() or s.dewar() == dewar]
         for i, s in enumerate(samples):
-            samples[i]['priority'] = i+1
+            samples[i]['priority'] = i + 1
 
         return JsonResponse(samples, safe=False)
 
@@ -272,7 +277,6 @@ TRANSFORMS = {
     'kind': 'type',
 }
 
-import msgpack
 
 
 class AddReport(VerificationMixin, View):
@@ -293,9 +297,9 @@ class AddReport(VerificationMixin, View):
     """
 
     def post(self, request, *args, **kwargs):
-        info = msgpack.loads(request.body)
+        info = msgpack.loads(request.body, encoding='utf-8')
 
-        from lims.models import Project, Data, AnalysisReport
+        from ..lims.models import Project, Data, AnalysisReport
         project_name = kwargs.get('username')
         try:
             project = Project.objects.get(username__exact=project_name)
@@ -362,9 +366,8 @@ class AddData(VerificationMixin, View):
     """
 
     def post(self, request, *args, **kwargs):
-        info = msgpack.loads(request.body)
+        info = msgpack.loads(request.body, encoding='utf-8')
 
-        from lims.models import Project, Beamline, Data
         project_name = kwargs.get('username')
         beamline_name = kwargs.get('beamline')
         try:
@@ -379,6 +382,7 @@ class AddData(VerificationMixin, View):
 
         # Download  key
         try:
+            print(info)
             key = make_secure_path(info.get('directory'))
         except ValueError:
             return http.HttpResponseServerError("Unable to create SecurePath")

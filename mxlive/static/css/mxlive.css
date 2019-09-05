@@ -4,7 +4,7 @@ html {
 }
 
 body, .tooltip, .popover {
-    font-family: "Encode Sans Narrow", sans-serif !important;
+    font-family: "Fira Sans", sans-serif !important;
 }
 
 pre {
@@ -17,6 +17,7 @@ body {
     min-height: 100%;
     background-color: #eee;
 }
+
 #spinner.loading + .wrapper {
     opacity: 0.5;
 }
@@ -268,15 +269,15 @@ img.line-icon {
     margin: 0.5em 0;
 }
 .text-condensed {
-    font-family: "Encode Sans Compressed";
+    font-family: "Fira Sans Condensed";
 }
 
 .text-narrow {
-    font-family: "Encode Sans Condensed";
+    font-family: "Fira Sans Condensed";
 }
 
 .text-wide {
-    font-family: "Encode Sans Wide";
+    font-family: "Fira Sans";
 }
 .ellipsis {
     text-overflow: ellipsis;
@@ -1294,4 +1295,9 @@ span.label-unusable-score {
 .bulk-edit .input {
     padding-top: 3px;
     padding-bottom: 3px;
+}
+
+[data-link] {
+    color: #337ab7;
+    cursor: pointer;
 }

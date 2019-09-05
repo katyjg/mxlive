@@ -13,7 +13,7 @@ markup syntaxes to HTML; currently there is support for:
 
 from django import template
 from django.conf import settings
-from django.utils.encoding import smart_str, force_unicode
+from django.utils.encoding import smart_bytes, force_text
 from django.utils.safestring import mark_safe
 
 register = template.Library()
@@ -24,9 +24,9 @@ def textile(value):
     except ImportError:
         if settings.DEBUG:
             raise template.TemplateSyntaxError("Error in {% textile %} filter: The Python textile library isn't installed.")
-        return force_unicode(value)
+        return force_text(value)
     else:
-        return mark_safe(force_unicode(textile.textile(smart_str(value), encoding='utf-8', output='utf-8')))
+        return mark_safe(force_text(textile.textile(smart_bytes(value), encoding='utf-8', output='utf-8')))
 textile.is_safe = True
 
 def markdown(value, arg=''):
@@ -51,7 +51,7 @@ def markdown(value, arg=''):
     except ImportError:
         if settings.DEBUG:
             raise template.TemplateSyntaxError("Error in {% markdown %} filter: The Python markdown library isn't installed.")
-        return force_unicode(value)
+        return force_text(value)
     else:
         # markdown.version was first added in 1.6b. The only version of markdown
         # to fully support extensions before 1.6b was the shortlived 1.6a.
@@ -66,11 +66,11 @@ def markdown(value, arg=''):
             # Unicode support only in markdown v1.7 or above. Version_info
             # exist only in markdown v1.6.2rc-2 or above.
             if getattr(markdown, "version_info", None) < (1,7):
-                return mark_safe(force_unicode(markdown.markdown(smart_str(value), extensions, safe_mode=safe_mode)))
+                return mark_safe(force_text(markdown.markdown(smart_bytes(value), extensions, safe_mode=safe_mode)))
             else:
-                return mark_safe(markdown.markdown(force_unicode(value), extensions, safe_mode=safe_mode))
+                return mark_safe(markdown.markdown(force_text(value), extensions, safe_mode=safe_mode))
         else:
-            return mark_safe(force_unicode(markdown.markdown(smart_str(value))))
+            return mark_safe(force_text(markdown.markdown(smart_bytes(value))))
 markdown.is_safe = True
 
 def restructuredtext(value):
@@ -79,11 +79,11 @@ def restructuredtext(value):
     except ImportError:
         if settings.DEBUG:
             raise template.TemplateSyntaxError("Error in {% restructuredtext %} filter: The Python docutils library isn't installed.")
-        return force_unicode(value)
+        return force_text(value)
     else:
         docutils_settings = getattr(settings, "RESTRUCTUREDTEXT_FILTER_SETTINGS", {})
-        parts = publish_parts(source=smart_str(value), writer_name="html4css1", settings_overrides=docutils_settings)
-        return mark_safe(force_unicode(parts["fragment"]))
+        parts = publish_parts(source=smart_bytes(value), writer_name="html4css1", settings_overrides=docutils_settings)
+        return mark_safe(force_text(parts["fragment"]))
 restructuredtext.is_safe = True
 
 register.filter(textile)

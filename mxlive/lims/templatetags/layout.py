@@ -1,7 +1,6 @@
 from django import template
 from django.utils.safestring import mark_safe
-from lims.models import Sample, Container, ContainerType
-import numpy
+from mxlive.lims.models import Container, ContainerType
 import json
 
 register = template.Library()

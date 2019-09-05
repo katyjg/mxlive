@@ -1,6 +1,6 @@
 # define models here
 from django.db import models
-from lims.models import ActivityLog, Beamline, Container, Sample, Group
+from mxlive.lims.models import ActivityLog, Beamline, Container, Sample, Group
 from model_utils import Choices
 import imghdr
 import os
@@ -15,7 +15,7 @@ class StaffBaseClass(models.Model):
     def delete(self, *args, **kwargs):
         request = kwargs.get('request', None)
         message = '%s (%s) deleted.' % (self.__class__.__name__[0].upper() + self.__class__.__name__[1:].lower(),
-                                        self.__unicode__())
+                                        self.__str__())
         if request is not None:
             ActivityLog.objects.log_activity(request, self, ActivityLog.TYPE.DELETE, message, )
         super(StaffBaseClass, self).delete()
@@ -37,7 +37,7 @@ class Announcement(StaffBaseClass):
     def has_image(self):
         return self.attachment and imghdr.what(self.attachment)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.title
 
 
@@ -60,7 +60,7 @@ class UserList(StaffBaseClass):
     def identity(self):
         return self.name
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.name)
 
     class Meta:
@@ -78,7 +78,7 @@ class UserCategory(models.Model):
         return self.projects.count()
     num_users.short_description = 'Number'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -94,8 +94,8 @@ class RemoteConnection(StaffBaseClass):
         ('FINISHED', 'Finished'),
     )
     name = models.CharField(max_length=48)
-    user = models.ForeignKey("lims.Project")
-    list = models.ForeignKey(UserList, related_name="connections")
+    user = models.ForeignKey("lims.Project", on_delete=models.CASCADE)
+    list = models.ForeignKey(UserList, related_name="connections", on_delete=models.CASCADE)
     status = models.CharField(choices=STATES, default=STATES.CONNECTED, max_length=20)
     created = models.DateTimeField('date created', auto_now_add=True, editable=True)
     end = models.DateTimeField('date ended', null=True, blank=True)

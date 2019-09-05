@@ -1,5 +1,5 @@
 from django.template import Library
-from lims.models import Project
+from mxlive.lims.models import Project
 
 register = Library()
 

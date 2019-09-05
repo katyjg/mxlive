@@ -1,8 +1,7 @@
 from django.conf.urls import url
 from django.views.decorators.cache import cache_page
 from django.views.generic import TemplateView
-from lims import views, ajax_views
-from lims import forms, models
+from . import views, ajax_views, forms, models
 
 urlpatterns = [
     url(r'^profile/(?P<username>[\w\-]+)/edit$', views.ProjectEdit.as_view(), name='edit-profile'),

@@ -1,9 +1,9 @@
 from django import template
 from django.utils.safestring import mark_safe
 
-from lims.models import *
-from staff.models import UserCategory
-from converter import humanize_duration
+from mxlive.lims.models import *
+from mxlive.staff.models import UserCategory
+from .converter import humanize_duration
 
 import json
 
@@ -14,7 +14,7 @@ GRAY_SCALE = ["#000000", "#555555", "#888888", "#cccccc", "#eeeeee"]
 SHIFT = getattr(settings, "SHIFT_LENGTH", 8)
 
 
-@register.assignment_tag(takes_context=False)
+@register.simple_tag(takes_context=False)
 def get_data_stats(bl, year):
     data = bl.data_set.all()
     years = sorted({v['created'].year for v in Data.objects.values("created").order_by("created").distinct()})
@@ -97,14 +97,14 @@ def get_data_stats(bl, year):
     return mark_safe(json.dumps(stats))
 
 
-@register.assignment_tag(takes_context=False)
+@register.simple_tag(takes_context=False)
 def get_yearly_sessions(user):
     yr = timezone.localtime() - timedelta(days=365)
     return user.sessions.filter(
         pk__in=Stretch.objects.filter(end__gte=yr).values_list('session__pk', flat=True).distinct())
 
 
-@register.assignment_tag(takes_context=False)
+@register.simple_tag(takes_context=False)
 def samples_per_hour(user, sessions):
     ttime = total_time(sessions, user)
     samples = sum([s.samples().count() for s in sessions])
@@ -138,7 +138,7 @@ def samples_per_hour_percentile(category, user):
     return round((averages.index(my_avg) + 0.5 * averages.count(my_avg)) * 100 / len(averages))
 
 
-@register.assignment_tag(takes_context=False)
+@register.simple_tag(takes_context=False)
 def get_project_stats(user):
     data = user.data_set.all()
     years = sorted({v['created'].year for v in Data.objects.values("created").order_by("created").distinct()})
@@ -165,7 +165,7 @@ def get_project_stats(user):
                     'kind': 'table',
                     'data': [
                         ['Shifts Used', '{} ({})'.format(shifts, humanize_duration(shifts * SHIFT))],
-                        ['Actual Time', '{}% ({})'.format(ttime / (shifts * SHIFT), humanize_duration(ttime))],
+                        ['Actual Time', '{} % ({})'.format(round(ttime / (shifts * SHIFT), 2), humanize_duration(ttime))],
                         ['Shutters Open', '{}'.format(humanize_duration(shutters))],
                     ],
                     'header': 'column',
@@ -208,7 +208,7 @@ def get_project_stats(user):
     return mark_safe(json.dumps(stats))
 
 
-@register.assignment_tag(takes_context=False)
+@register.simple_tag(takes_context=False)
 def get_beamline_usage(bl):
     years = sorted({v['created'].year for v in Data.objects.values("created").order_by("created").distinct()})
     staff = UserCategory.objects.filter(name__icontains="staff").first()
@@ -290,7 +290,7 @@ def get_beamline_usage(bl):
     return mark_safe(json.dumps(stats))
 
 
-@register.assignment_tag(takes_context=False)
+@register.simple_tag(takes_context=False)
 def get_usage_stats(bl, year):
     KIND_COLORS = { "11": {"color": "#0275d8", "name": '/'.join(UserCategory.objects.filter(pk__in=[1]).values_list('name', flat=True))},
                     "12": {"color": "#883a6a", "name": '/'.join(UserCategory.objects.filter(pk__in=[2]).values_list('name', flat=True))},
@@ -393,7 +393,7 @@ def get_usage_stats(bl, year):
                     'title': 'Datasets by Time of Week',
                     'kind': 'barchart',
                     'data': {
-                        'data': [datetime.strftime(datetime(2018, 01, d.isoweekday(), d.hour, d.minute), '%c') for d in
+                        'data': [datetime.strftime(datetime(2018, 1, d.isoweekday(), d.hour, d.minute), '%c') for d in
                                  [timezone.localtime(ds.created) for ds in datasets.all()]],
                         'color': ["#883a6a"],
                         'x-scale': 'time',
@@ -419,7 +419,7 @@ def get_usage_stats(bl, year):
     return mark_safe(json.dumps(stats))
 
 
-@register.assignment_tag(takes_context=False)
+@register.simple_tag(takes_context=False)
 def get_session_stats(data, session):
     shutters = sum([d.exposure_time * d.num_frames() for d in data.all()]) / 3600.
     stats = {'details': [
@@ -505,7 +505,7 @@ def get_session_stats(data, session):
     return mark_safe(json.dumps(stats))
 
 
-@register.assignment_tag(takes_context=False)
+@register.simple_tag(takes_context=False)
 def get_session_gaps(data):
     data = data.order_by('created')
     gaps = []

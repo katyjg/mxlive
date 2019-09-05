@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from staff import views
+from mxlive.staff import views
 
 urlpatterns = [
     url(r'^access/$', views.AccessList.as_view(), name='access-list'),

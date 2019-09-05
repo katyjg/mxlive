@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse, HttpResponse
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.text import slugify
 from django.utils import timezone
 from django.contrib.messages.views import SuccessMessageMixin
@@ -11,17 +11,17 @@ from django.conf import settings
 from formtools.wizard.views import SessionWizardView
 from django import http
 
-from objlist.views import FilteredListView
+from itemlist.views import ItemListView
 from proxy.views import proxy_view
-from lims import forms, models
+from mxlive.lims import forms, models
 from itertools import chain
 import json
 import requests
 import re
 
-from mixins import AjaxableResponseMixin, AdminRequiredMixin, HTML2PdfMixin
+from mxlive.utils.mixins import AjaxableResponseMixin, AdminRequiredMixin, HTML2PdfMixin
 
-IMAGE_URL = getattr(settings, 'IMAGE_PREPEND', "http://mxlive-data/download")
+DOWNLOAD_PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', "http://mxlive-data/download")
 
 
 class ProjectDetail(UserPassesTestMixin, detail.DetailView):
@@ -48,7 +48,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
     def get_object(self, *args, **kwargs):
         # inject username in to kwargs if not already present
         if not self.kwargs.get('username'):
-            self.kwargs['username'] = self.request.user
+            self.kwargs['username'] = self.request.user.username
         if self.request.user.is_superuser:
             self.template_name = "users/staff.html"
         return super(ProjectDetail, self).get_object(*args, **kwargs)
@@ -56,11 +56,16 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
     def get_context_data(self, **kwargs):
         context = super(ProjectDetail, self).get_context_data(**kwargs)
         if self.request.user.is_superuser:
-            context['shipments'] = models.Shipment.objects.filter(status__in=[models.Shipment.STATES.ON_SITE,models.Shipment.STATES.SENT]).order_by('status','-date_received','-date_shipped')
+            context['shipments'] = models.Shipment.objects.filter(
+                status__in=[models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT]
+            ).order_by('status','-date_received','-date_shipped')
+            context['sessions'] = models.Session.objects.filter(
+                pk__in=models.Stretch.objects.active().values_list('session__pk', flat=True)
+            )
+            kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('containers',
+                                                                                                     flat=True)
             context['automounters'] = models.Dewar.objects.filter(active=True).order_by('beamline__name')
-            context['sessions'] = models.Session.objects.filter(pk__in=models.Stretch.objects.active().values_list('session__pk', flat=True))
-            kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('containers', flat=True)
-            context['containers'] = models.Container.objects.filter(kind__in=kinds).filter(dewars__isnull=True).order_by('name')
+            context['containers'] = models.Container.objects.filter(kind__in=kinds, dewars__isnull=True).order_by('name')
         else:
             referrer = self.request.META.get('HTTP_REFERER')
             if referrer and re.sub('^https?:\/\/', '', referrer).split('/')[1] == 'login':
@@ -75,7 +80,9 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             else:
                 pks = base_set.values_list('pk')
             context['shipments'] = sh.filter(pk__in=pks).order_by('status', '-modified')
-            sessions = self.get_object().sessions.filter(pk__in=models.Stretch.objects.recent_days(180).values_list('session__pk', flat=True)).order_by('-created')
+            sessions = self.get_object().sessions.filter(
+                pk__in=models.Stretch.objects.recent_days(180).values_list('session__pk', flat=True)).order_by(
+                '-created')
             context['sessions'] = sessions.count() < 7 and sessions or sessions[:7]
 
         return context
@@ -158,13 +165,7 @@ class ListViewMixin(LoginRequiredMixin):
     paginate_by = 25
     owner_field = 'project__username'
     template_name = "users/list.html"
-    add_ajax = True
-
-    def get_filters(self, request):
-        if request.user.is_superuser:
-            self.list_display = ['project'] + self.list_display
-            self.owner_field = None
-        return super(ListViewMixin, self).get_filters(request)
+    link_data = True
 
     def get_queryset(self):
         if self.request.user.is_superuser:
@@ -174,7 +175,7 @@ class ListViewMixin(LoginRequiredMixin):
 
 class DetailListMixin(OwnerRequiredMixin):
     add_url = None
-    list_filter = []
+    list_filters = []
     paginate_by = 25
 
     def get_context_data(self, **kwargs):
@@ -191,14 +192,15 @@ class DetailListMixin(OwnerRequiredMixin):
         return self.get_object().sample_set.all()
 
 
-class ShipmentList(ListViewMixin, FilteredListView):
+class ShipmentList(ListViewMixin, ItemListView):
     model = models.Shipment
-    list_filter = ['created', 'status']
-    list_display = ['identity', 'name', 'date_shipped', 'carrier', 'num_containers', 'status']
-    search_fields = ['project__username', 'project__name', 'name', 'comments', 'status']
-    detail_url = 'shipment-detail'
-    add_url = 'shipment-new'
-    order_by = ['status', '-modified']
+    list_filters = ['created', 'status']
+    list_columns = ['identity', 'name', 'date_shipped', 'carrier', 'num_containers', 'status']
+    list_search = ['project__username', 'project__name', 'name', 'comments', 'status']
+    link_url = 'shipment-detail'
+    link_data = True
+    ordering = ['status', '-modified']
+    paginate_by = 25
 
     def get_queryset(self):
         if self.request.user.is_superuser:
@@ -270,7 +272,8 @@ class ShipmentDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMi
     def delete(self, request, *args, **kwargs):
         super(ShipmentDelete, self).delete(request, *args, **kwargs)
         success_url = self.get_success_url()
-        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE, self.success_message)
+        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE,
+                                                self.success_message)
         return JsonResponse({'url': success_url})
 
 
@@ -279,7 +282,8 @@ class SendShipment(ShipmentEdit):
 
     def get_initial(self):
         initial = super(SendShipment, self).get_initial()
-        initial['components'] = models.ComponentType.objects.filter(pk__in=self.object.components.values_list('kind__pk'))
+        initial['components'] = models.ComponentType.objects.filter(
+            pk__in=self.object.components.values_list('kind__pk'))
         return initial
 
     def form_valid(self, form):
@@ -311,7 +315,8 @@ class RecallSendShipment(ShipmentEdit):
 
     def get_initial(self):
         initial = super(RecallSendShipment, self).get_initial()
-        initial['components'] = models.ComponentType.objects.filter(pk__in=self.object.components.values_list('kind__pk'))
+        initial['components'] = models.ComponentType.objects.filter(
+            pk__in=self.object.components.values_list('kind__pk'))
         return initial
 
     def form_valid(self, form):
@@ -360,13 +365,13 @@ class ReceiveShipment(ShipmentEdit):
         return super(ReceiveShipment, self).form_valid(form)
 
 
-class SampleList(ListViewMixin, FilteredListView):
+class SampleList(ListViewMixin, ItemListView):
     model = models.Sample
-    list_filter = ['modified']
-    list_display = ['identity', 'name', 'comments', 'container', 'location']
-    search_fields = ['project__name', 'name', 'barcode', 'comments']
-    detail_url = 'sample-detail'
-    order_by = ['-created', '-priority']
+    list_filters = ['modified']
+    list_columns = ['identity', 'name', 'comments', 'container', 'location']
+    list_search = ['project__name', 'name', 'barcode', 'comments']
+    link_url = 'sample-detail'
+    ordering = ['-created', '-priority']
     ordering_proxies = {}
     list_transforms = {}
 
@@ -391,7 +396,8 @@ class SampleDone(SampleEdit):
     form_class = forms.SampleDoneForm
 
     def get_success_url(self):
-        return reverse_lazy("shipment-protocol", kwargs={'pk': self.object.container.shipment.pk}) + '?q={}'.format(self.object.group.pk)
+        return reverse_lazy("shipment-protocol", kwargs={'pk': self.object.container.shipment.pk}) + '?q={}'.format(
+            self.object.group.pk)
 
 
 class SampleDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
@@ -402,7 +408,8 @@ class SampleDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixi
 
     def delete(self, request, *args, **kwargs):
         super(SampleDelete, self).delete(request, *args, **kwargs)
-        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE, self.success_message)
+        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE,
+                                                self.success_message)
         return JsonResponse({'url': self.success_url})
 
     def get_context_data(self, **kwargs):
@@ -411,13 +418,13 @@ class SampleDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixi
         return context
 
 
-class ContainerList(ListViewMixin, FilteredListView):
+class ContainerList(ListViewMixin, ItemListView):
     model = models.Container
-    list_filter = ['modified', 'kind', 'status']
-    list_display = ['identity', 'name', 'shipment', 'kind', 'capacity', 'num_samples', 'status']
-    search_fields = ['project__name', 'name', 'comments']
-    detail_url = 'container-detail'
-    order_by = ['-created']
+    list_filters = ['modified', 'kind', 'status']
+    list_columns = ['identity', 'name', 'shipment', 'kind', 'capacity', 'num_samples', 'status']
+    list_search = ['project__name', 'name', 'comments']
+    link_url = 'container-detail'
+    ordering = ['-created']
     ordering_proxies = {}
     list_transforms = {}
 
@@ -425,21 +432,21 @@ class ContainerList(ListViewMixin, FilteredListView):
 class ContainerDetail(DetailListMixin, SampleList):
     extra_model = models.Container
     template_name = "users/entries/container.html"
-    list_display = ['name', 'barcode', 'group__name', 'location', 'comments']
-    detail_url = 'sample-edit'
-    detail_ajax = True
+    list_columns = ['name', 'barcode', 'group__name', 'location', 'comments']
+    link_url = 'sample-edit'
+    link_data = True
     detail_target = '#modal-form'
 
     def get_list_title(self):
         object = self.get_object()
-        if 'project' in self.list_display:
-            self.list_display.pop(0)
+        if 'project' in self.list_columns:
+            self.list_columns.pop(0)
         return 'Samples in {}'.format(object.name)
 
-    def get_filters(self, request):
-        filters = super(ListViewMixin, self).get_filters(request)
+    def get_list_filters(self, request):
+        filters = super(ListViewMixin, self).get_list_filters(request)
         if self.get_object().has_children():
-            self.list_display.append('container')
+            self.list_columns.append('container')
 
         return filters
 
@@ -497,7 +504,8 @@ class LocationLoad(AdminRequiredMixin, ContainerEdit):
 
     def form_valid(self, form):
         data = form.cleaned_data
-        models.Container.objects.filter(pk=data['child'].pk).update(parent=self.object, location=data['container_location'])
+        models.Container.objects.filter(pk=data['child'].pk).update(parent=self.object,
+                                                                    location=data['container_location'])
         models.LoadHistory.objects.create(child=data['child'], parent=self.object, location=data['container_location'])
         return super(LocationLoad, self).form_valid(form)
 
@@ -533,17 +541,18 @@ class ContainerDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseM
 
     def delete(self, request, *args, **kwargs):
         super(ContainerDelete, self).delete(request, *args, **kwargs)
-        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE, self.success_message)
+        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE,
+                                                self.success_message)
         return JsonResponse({'url': self.success_url})
 
 
-class GroupList(ListViewMixin, FilteredListView):
+class GroupList(ListViewMixin, ItemListView):
     model = models.Group
-    list_filter = ['modified', 'status']
-    list_display = ['identity', 'name', 'kind', 'plan', 'num_samples', 'status']
-    search_fields = ['project__name', 'comments', 'name']
-    detail_url = 'group-detail'
-    order_by = ['-modified', '-priority']
+    list_filters = ['modified', 'status']
+    list_columns = ['identity', 'name', 'kind', 'plan', 'num_samples', 'status']
+    list_search = ['project__name', 'comments', 'name']
+    link_url = 'group-detail'
+    ordering = ['-modified', '-priority']
     ordering_proxies = {}
     list_transforms = {}
 
@@ -555,18 +564,18 @@ def movable(val, record):
 class GroupDetail(DetailListMixin, SampleList):
     extra_model = models.Group
     template_name = "users/entries/group.html"
-    list_display = ['priority', 'name', 'barcode', 'container_and_location', 'comments']
+    list_columns = ['priority', 'name', 'barcode', 'container_and_location', 'comments']
     list_transforms = {
         'priority': movable,
     }
-    detail_url = 'sample-edit'
-    detail_ajax = True
+    link_url = 'sample-edit'
+    link_data = True
     detail_target = '#modal-form'
 
     def get_list_title(self):
         object = self.get_object()
-        if 'project' in self.list_display:
-            self.list_display.pop(0)
+        if 'project' in self.list_columns:
+            self.list_columns.pop(0)
         return 'Samples in {}'.format(object.name)
 
     def get_object(self):
@@ -609,20 +618,21 @@ class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
 
     def delete(self, request, *args, **kwargs):
         super(GroupDelete, self).delete(request, *args, **kwargs)
-        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE, self.success_message)
+        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE,
+                                                self.success_message)
         return JsonResponse({'url': self.success_url})
 
 
-class DataList(ListViewMixin, FilteredListView):
+class DataList(ListViewMixin, ItemListView):
     model = models.Data
-    list_filter = ['modified', 'kind', 'beamline']
-    list_display = ['id', 'name', 'sample', 'frame_sets', 'exposure_time', 'energy', 'beamline', 'kind', 'modified']
-    search_fields = ['id', 'name', 'beamline__name', 'sample__name', 'frames', 'project__name', 'modified']
-    detail_url = 'data-detail'
-    detail_ajax = True
+    list_filters = ['modified', 'kind', 'beamline']
+    list_columns = ['id', 'name', 'sample', 'frame_sets', 'exposure_time', 'energy', 'beamline', 'kind', 'modified']
+    list_search = ['id', 'name', 'beamline__name', 'sample__name', 'frames', 'project__name', 'modified']
+    link_url = 'data-detail'
+    link_field = 'name'
+    link_data = True
     detail_target = '#modal-form'
-    order_by = ['-modified']
-    ordering_proxies = {}
+    ordering = ['-modified']
     list_transforms = {}
 
     def get_queryset(self):
@@ -637,16 +647,18 @@ class DataDetail(OwnerRequiredMixin, detail.DetailView):
 def format_list(val, record):
     return ' | '.join([item.name for item in val])
 
+
 def format_score(val, record):
     return "{:.2f}".format(val)
 
-class ReportList(ListViewMixin, FilteredListView):
+
+class ReportList(ListViewMixin, ItemListView):
     model = models.AnalysisReport
-    list_filter = ['modified',]
-    list_display = ['id', 'data__all', 'kind', 'score', 'modified']
-    search_fields = ['project__username', 'name', 'data__name']
-    detail_url = 'report-detail'
-    order_by = ['-modified']
+    list_filters = ['modified', ]
+    list_columns = ['id', 'data', 'kind', 'score', 'modified']
+    list_search = ['project__username', 'name', 'data__name']
+    link_url = 'report-detail'
+    ordering = ['-modified']
     ordering_proxies = {}
     list_transforms = {
         'data__all': format_list,
@@ -675,8 +687,8 @@ class DataListDetail(DataList):
         return object
 
     def get_list_title(self):
-        if 'project' in self.list_display:
-            self.list_display.pop(0)
+        if 'project' in self.list_columns:
+            self.list_columns.pop(0)
         object = self.get_object()
         return 'Data in {}'.format(object.name)
 
@@ -703,8 +715,8 @@ class ReportListDetail(ReportList):
         return object
 
     def get_list_title(self):
-        if 'project' in self.list_display:
-            self.list_display.pop(0)
+        if 'project' in self.list_columns:
+            self.list_columns.pop(0)
         object = self.get_object()
         return 'Analysis Reports in {}'.format(object.name)
 
@@ -719,17 +731,17 @@ class ReportListDetail(ReportList):
         return qs.filter(pk__in=self.get_object().reports().values_list("pk"))
 
 
-class ActivityLogList(ListViewMixin, FilteredListView):
+class ActivityLogList(ListViewMixin, ItemListView):
     model = models.ActivityLog
-    list_filter = ['created', 'action_type']
-    list_display = ['created', 'action_type', 'user_description', 'ip_number', 'object_repr', 'description']
-    search_fields = ['description', 'ip_number', 'content_type__name', 'action_type']
+    list_filters = ['created', 'action_type']
+    list_columns = ['created', 'action_type', 'user_description', 'ip_number', 'object_repr', 'description']
+    list_search = ['description', 'ip_number', 'content_type__name', 'action_type']
     owner_field = "project__username"
-    order_by = ['-created']
+    ordering = ['-created']
     ordering_proxies = {}
     list_transforms = {}
-    detail_url = 'activitylog-detail'
-    detail_ajax = True
+    link_url = 'activitylog-detail'
+    link_data = True
     detail_target = '#modal-form'
 
 
@@ -737,18 +749,17 @@ def format_total_time(val, record):
     return int(val) or ""
 
 
-class SessionList(ListViewMixin, FilteredListView):
+class SessionList(ListViewMixin, ItemListView):
     model = models.Session
-    list_filter = ['created', 'beamline', ]
-    list_display = ['created', 'name', 'beamline', 'total_time', 'num_datasets', 'num_reports']
-    search_fields = ['beamline__acronym', 'project__username', 'name']
+    list_filters = ['created', 'beamline', ]
+    list_columns = ['created', 'name', 'beamline', 'total_time', 'num_datasets', 'num_reports']
+    list_search = ['beamline__acronym', 'project__username', 'name']
     owner_field = "project__username"
-    order_by = ['-created']
-    ordering_proxies = {}
+    ordering = ['-created']
     list_transforms = {
         'total_time': format_total_time
     }
-    detail_url = 'session-detail'
+    link_url = 'session-detail'
 
 
 class SessionDetail(OwnerRequiredMixin, detail.DetailView):
@@ -770,7 +781,8 @@ class BeamlineDetail(AdminRequiredMixin, detail.DetailView):
         context = super(BeamlineDetail, self).get_context_data(**kwargs)
         context['projects'] = {
             project: self.object.active_automounter().children.filter(project=project)
-            for project in models.Project.objects.filter(pk__in=self.object.active_automounter().children.values_list('project', flat=True)).distinct()
+            for project in models.Project.objects.filter(
+                pk__in=self.object.active_automounter().children.values_list('project', flat=True)).distinct()
         }
         return context
 
@@ -779,18 +791,18 @@ def format_time(val, record):
     return naturaltime(val) or ""
 
 
-class BeamlineHistory(AdminRequiredMixin, ListViewMixin, FilteredListView):
+class BeamlineHistory(AdminRequiredMixin, ListViewMixin, ItemListView):
     model = models.Session
-    list_filter = ['project', ]
-    list_display = ['created', 'name', 'total_time', 'num_datasets', 'num_reports']
+    list_filters = ['project', ]
+    list_columns = ['created', 'name', 'total_time', 'num_datasets', 'num_reports']
     list_transforms = {
         'start': format_time,
         'end': format_time,
     }
-    search_fields = ['beamline', 'project', 'name']
-    order_by = ['pk']
+    list_search = ['beamline', 'project', 'name']
+    ordering = ['pk']
     detail_url_kwarg = 'pk'
-    detail_url = 'session-detail'
+    link_url = 'session-detail'
 
     def get_queryset(self):
         qs = super(BeamlineHistory, self).get_queryset()
@@ -866,7 +878,9 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                         data = {field: form.cleaned_data['{}_set'.format(field)][i]
                                 for field in ['name', 'kind', 'comments', 'plan', 'absorption_edge']}
                         data.update({
-                            'resolution': form.cleaned_data.get('resolution_set') and form.cleaned_data['resolution_set'][i] and float(form.cleaned_data['resolution_set'][i]) or None,
+                            'resolution': form.cleaned_data.get('resolution_set') and
+                                          form.cleaned_data['resolution_set'][i] and float(
+                                form.cleaned_data['resolution_set'][i]) or None,
                             'sample_count': int(form.cleaned_data['sample_count_set'][i]),
                             'shipment': self.shipment,
                             'project': project,
@@ -877,7 +891,7 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                         j = 1
                         slug_map = {slugify(c.name): c.name for c in self.shipment.container_set.all()}
                         for c, locations in sample_locations.get(group.name, {}).items():
-                            container = self.shipment.container_set.get(name__iexact=slug_map.get(c,''))
+                            container = self.shipment.container_set.get(name__iexact=slug_map.get(c, ''))
                             for sample in locations:
                                 name = "{0}_{1:02d}".format(group.name, j)
                                 to_create.append(models.Sample(group=group, container=container, location=sample,
@@ -934,9 +948,10 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
         initial = super(ShipmentAddGroup, self).get_initial()
         initial['shipment'] = models.Shipment.objects.get(pk=self.kwargs.get('pk'))
         initial['containers'] = [(c.pk, c.kind.pk) for c in initial['shipment'].container_set.all()]
-        initial['sample_locations'] = json.dumps({g.name: {c.pk: list(c.sample_set.filter(group=g).values_list('location', flat=True))
-                                                for c in initial['shipment'].container_set.all()}
-                                       for g in initial['shipment'].group_set.all()})
+        initial['sample_locations'] = json.dumps(
+            {g.name: {c.pk: list(c.sample_set.filter(group=g).values_list('location', flat=True))
+                      for c in initial['shipment'].container_set.all()}
+             for g in initial['shipment'].group_set.all()})
         if initial['shipment']:
             initial['containers'] = initial['shipment'].container_set.all()
         return initial
@@ -950,7 +965,8 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
         # Delete samples removed from containers
         for group, containers in sample_locations.items():
             for container, locations in containers.items():
-                models.Sample.objects.filter(container__pk=int(container), group__name=group).exclude(location__in=locations).delete()
+                models.Sample.objects.filter(container__pk=int(container), group__name=group).exclude(
+                    location__in=locations).delete()
 
         for i, name in enumerate(data['name_set']):
             info = {field: data['{}_set'.format(field)][i] for field in ['name', 'kind', 'plan',
@@ -1004,9 +1020,10 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
         initial = super(GroupSelect, self).get_initial()
         initial['shipment'] = self.get_object().shipment
         initial['containers'] = [(c.pk, c.kind.pk, c.name) for c in initial['shipment'].container_set.all()]
-        initial['sample_locations'] = json.dumps({g.name: {c.pk: list(c.sample_set.filter(group=g).values_list('location', flat=True))
-                                                for c in initial['shipment'].container_set.all()}
-                                       for g in initial['shipment'].group_set.all()})
+        initial['sample_locations'] = json.dumps(
+            {g.name: {c.pk: list(c.sample_set.filter(group=g).values_list('location', flat=True))
+                      for c in initial['shipment'].container_set.all()}
+             for g in initial['shipment'].group_set.all()})
         initial['containers'] = initial['shipment'].container_set.all()
         return initial
 
@@ -1018,9 +1035,10 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
 
         # Delete samples removed from containers
         for container, locations in sample_locations[group.name].items():
-            models.Sample.objects.filter(container__pk=int(container), group__name=group).exclude(location__in=locations).delete()
+            models.Sample.objects.filter(container__pk=int(container), group__name=group).exclude(
+                location__in=locations).delete()
 
-        group = models.Group.objects.get(pk=int(data['id']))
+        #group = models.Group.objects.get(pk=int(data['id']))
         to_create = []
         j = 1
         priority = max(group.sample_set.values_list('priority', flat=True) or [0]) + 1
@@ -1050,7 +1068,7 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
 
 class ProxyView(View):
     def get(self, request, *args, **kwargs):
-        remote_url = IMAGE_URL + request.path
+        remote_url = DOWNLOAD_PROXY_URL + request.path
         if kwargs.get('section') == 'archive':
             return fetch_archive(request, remote_url)
         return proxy_view(request, remote_url)
