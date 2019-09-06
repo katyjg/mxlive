@@ -98,7 +98,7 @@
             {% if object.accepts_children %}
                 {% include "users/entries/loaded-list.html" with object=object %}
             {% else %}
-                {% include "objlist/list.html" with object_list=object.sample_set.all %}
+                {% include "itemlist/embed_list.html" with object_list=object.sample_set.all %}
             {% endif %}
         </div>
         <div {% if object.accepts_children %}id="admin-assign"{% endif %} class="col-sm-4 col-xs-12 pull-right">

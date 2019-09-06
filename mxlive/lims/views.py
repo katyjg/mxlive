@@ -163,14 +163,24 @@ class ProjectLabels(AdminRequiredMixin, HTML2PdfMixin, detail.DetailView):
 
 class ListViewMixin(LoginRequiredMixin):
     paginate_by = 25
-    owner_field = 'project__username'
     template_name = "users/list.html"
     link_data = True
+    show_project = True
+
+    def get_list_columns(self):
+        columns = super().get_list_columns()
+        if self.request.user.is_superuser and self.show_project:
+            return ['project__name'] + columns
+        return columns
 
     def get_queryset(self):
-        if self.request.user.is_superuser:
-            self.owner_field = None
-        return super(ListViewMixin, self).get_queryset()
+        selector = {}
+        if not self.request.user.is_superuser:
+            selector = {'project': self.request.user}
+        return super().get_queryset().filter(**selector)
+
+    def get_list_title(self):
+        return self.model._meta.verbose_name_plural.title()
 
 
 class DetailListMixin(OwnerRequiredMixin):
@@ -198,7 +208,7 @@ class ShipmentList(ListViewMixin, ItemListView):
     list_columns = ['identity', 'name', 'date_shipped', 'carrier', 'num_containers', 'status']
     list_search = ['project__username', 'project__name', 'name', 'comments', 'status']
     link_url = 'shipment-detail'
-    link_data = True
+    link_data = False
     ordering = ['status', '-modified']
     paginate_by = 25
 
@@ -435,19 +445,17 @@ class ContainerDetail(DetailListMixin, SampleList):
     list_columns = ['name', 'barcode', 'group__name', 'location', 'comments']
     link_url = 'sample-edit'
     link_data = True
+    show_project = False
     detail_target = '#modal-form'
 
     def get_list_title(self):
         object = self.get_object()
-        if 'project' in self.list_columns:
-            self.list_columns.pop(0)
         return 'Samples in {}'.format(object.name)
 
-    def get_list_filters(self, request):
-        filters = super(ListViewMixin, self).get_list_filters(request)
+    def get_list_filters(self):
+        filters = super().get_list_filters()
         if self.get_object().has_children():
-            self.list_columns.append('container')
-
+            filters.append('container')
         return filters
 
     def get_object(self):
@@ -736,7 +744,6 @@ class ActivityLogList(ListViewMixin, ItemListView):
     list_filters = ['created', 'action_type']
     list_columns = ['created', 'action_type', 'user_description', 'ip_number', 'object_repr', 'description']
     list_search = ['description', 'ip_number', 'content_type__name', 'action_type']
-    owner_field = "project__username"
     ordering = ['-created']
     ordering_proxies = {}
     list_transforms = {}
@@ -754,7 +761,6 @@ class SessionList(ListViewMixin, ItemListView):
     list_filters = ['created', 'beamline', ]
     list_columns = ['created', 'name', 'beamline', 'total_time', 'num_datasets', 'num_reports']
     list_search = ['beamline__acronym', 'project__username', 'name']
-    owner_field = "project__username"
     ordering = ['-created']
     list_transforms = {
         'total_time': format_total_time
