@@ -42,11 +42,13 @@
                     {% block page_heading %}{% endblock %}
                 </div>
                 {% block object_status %}{% endblock %}
-                <!--div class="alert alert-warning">
-                  <strong>Warning!</strong> MxLIVE is currently undergoing maintenance activities. Some functionalities may not be available
+                {% if debug %}
+                <div class="alert alert-warning">
+                  <strong>Warning!</strong> MxLIVE is currently undergoing maintenance activities. Some features may not be available
                     and performance may be impacted. This message will be removed when full functionality is restored. Sorry for the
-                    temporary incovenience.
-                </div-->
+                    temporary inconvenience.
+                </div>
+                {% endif %}
                 <div class="pagelet-body">
                     {% block full %}{% endblock %}
                 </div>
@@ -127,14 +129,11 @@
             $('#modal-form').load("{% url 'user-guide' %}");
         {% endif %}
 
-        // configure pretty scrollbars
-        $('.scrollbar-outer').scrollbar();
-        $('.scrollbar-inner').scrollbar();
-        {% if request.user.is_authenticated %}
-            //setInterval(serverHeartBeat, 3000);
-        {% endif %}
-    });
-</script>
+            // configure pretty scrollbars
+            $('.scrollbar-outer').scrollbar();
+            $('.scrollbar-inner').scrollbar();
+        });
+        </script>
 
 <script>
     function getCookie(name) {
