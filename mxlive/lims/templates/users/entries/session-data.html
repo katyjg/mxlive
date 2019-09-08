@@ -6,7 +6,7 @@
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
         <i class="text-muted fa fa-fw {% if shipment.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
-        <span class="text-muted">{% if user.is_superuser %}{{ shipment.project }} | {% endif %}{{ shipment.identity }}</span><strong>{{ shipment.name }}</strong>
+        <span class="text-muted">{% if user.is_superuser %}{{ shipment.project }} | {% endif %}</span><strong>{{ shipment.name }}</strong>
     </h3>
     <span class="text-muted">
         Data from Beamline Session
@@ -46,7 +46,7 @@
             </div>
             <div class="col-xs-3 pull-right text-right">
                 <small class="text-muted text-condensed">Total Time:</small><br>
-                {{ shipment.total_time }} hour{{ shipment.total_time|pluralize }}
+                {{ shipment.total_time|floatformat }} hour{{ shipment.total_time|pluralize }}
             </div>
             <div class="col-xs-3 pull-right text-right">
                 <small class="text-muted text-condensed">Start:</small><br>

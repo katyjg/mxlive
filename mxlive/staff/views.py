@@ -1,16 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth import logout, login
+from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.messages.views import SuccessMessageMixin
-from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import render
-from django.shortcuts import render_to_response
 from django.urls import reverse_lazy
 from django.utils import dateformat, timezone
 from django.views.generic import edit, detail
-from django.contrib.auth.signals import user_logged_in, user_logged_out
-
 from itemlist.views import ItemListView
 
 from mxlive.lims.forms import NewProjectForm
@@ -125,9 +121,9 @@ class ProjectList(AdminRequiredMixin, ItemListView):
     template_name = "users/list.html"
     tools_template = "users/tools-user.html"
     list_filters = ['modified', ]
-    list_columns = ['username', 'contact_person', 'contact_phone', 'contact_email', 'shipment_count']
+    list_columns = ['username', 'contact_person', 'contact_phone', 'contact_email']
     list_search = ['username', 'contact_person', 'contact_phone', 'contact_email', 'city', 'province', 'country',
-                     'department', 'organisation']
+                   'department', 'organisation']
     link_url = 'user-detail'
     link_kwarg = 'username'
     add_url = 'new-project'

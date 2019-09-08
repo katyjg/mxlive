@@ -1,162 +1,157 @@
 {% load static %}
 {% load get_version %}
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="{% block html_class %}{% endblock %}">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{% block page_title %}{{ "APP_LABEL"|get_from_settings }}{% endblock %}</title>
-        <link href="//fonts.googleapis.com/css?family=Fira+Sans|Fira+Sans+Condensed|Fira+Sans+Extra+Condensed" rel="stylesheet">
-        <link href="{% static "img/icon.ico" %}" rel="SHORTCUT ICON">
-        <link href="{% static "css/reset.css" %}" rel="stylesheet"> <!-- CSS reset -->
-        <link href="{% static "css/fonts.css" %}" rel="stylesheet">
-        <link href="{% static "bootstrap/css/bootstrap.min.css" %}" rel="stylesheet">
-        <link href="{% static "fontawesome/css/font-awesome.min.css" %}" rel="stylesheet">
-        <link rel="stylesheet" href="{% static "css/font-awesome-animation.min.css" %}">
-        <link rel="stylesheet" href="{% static "themify-icons/themify-icons.css" %}">
-        {% block site_css %}
-        <link rel="stylesheet" href="{% static "css/toastr.css" %}" type="text/css" />
-        <link rel="stylesheet" href="{% static "css/jquery.scrollbar.css" %}" />
-        <link rel="stylesheet" href="{% static "css/animate.css" %}" type="text/css" />
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{% block page_title %}{{ "APP_LABEL"|get_from_settings }}{% endblock %}</title>
+    <link rel="icon" href="{% static 'img/icon.ico' %}">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <link href="//fonts.googleapis.com/css?family=Fira+Sans:300,400,400i,700|Fira+Sans+Condensed|Fira+Sans+Extra+Condensed"
+          rel="stylesheet">
+    <link href="{% static "fontawesome/css/font-awesome.min.css" %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static "css/font-awesome-animation.min.css" %}">
+    <link rel="stylesheet" href="{% static "themify-icons/themify-icons.css" %}">
+    {% block site_css %}
+        <link rel="stylesheet" href="{% static "css/toastr.css" %}" type="text/css"/>
+        <link rel="stylesheet" href="{% static "css/jquery.scrollbar.css" %}"/>
+        <link rel="stylesheet" href="{% static "css/animate.css" %}" type="text/css"/>
         <link rel="stylesheet" href="{% static "css/mxlive.css" %}" type="text/css"/>
-        {% endblock %}
-        {% block extra_css %}{% endblock %}
-        <script src="{% static "jquery/jquery.min.js" %}"></script>
-        <script src="{% static "jquery/jquery-ui.min.js" %}"></script>
-        <script src="{% static "jquery/jquery.scrollbar.js" %}"></script>
-        <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+    {% endblock %}
+    {% block extra_css %}{% endblock %}
+    {% block pre_js %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
 
-        {% block pre_js %}{% endblock %}
-
-        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-        <!--[if lt IE 9]>
-          <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-          <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-        <![endif]-->
-    </head>
-    <body class="{% block body_class %}{% endblock %}">
+{% block body %}
+    <!-- User Profile Menu -->
+    {% include "users/navs.html" %}
+    <main role="main">
         <div id="spinner">
             <i class="fa fa-spinner fa-spin"></i>
         </div>
-        <div class="wrapper">
-            {% block body %}
-            <!-- User Profile Menu -->
-            {% include "users/navs.html" %}
-
-            <main id="main-content" class="content">
-                <div class="pad-wrapper">
-                    <div class="pagelet">
-                        <div class="pagelet-header">
-                            {% block object_tools %}{% endblock %}
-                            {% block page_heading %}{% endblock %}
-                        </div>
-                        {% block object_status %}{% endblock %}
-                        <!--div class="alert alert-warning">
-                          <strong>Warning!</strong> MxLIVE is currently undergoing maintenance activities. Some functionalities may not be available
-                            and performance may be impacted. This message will be removed when full functionality is restored. Sorry for the
-                            temporary incovenience.
-                        </div-->
-                        <div class="pagelet-body">
-                            {% block full %}{% endblock %}
-                        </div>
-                    </div>
+        <div class="container-fluid">
+            <div class="pagelet mt-3">
+                <div class="pagelet-header">
+                    {% block object_tools %}{% endblock %}
+                    {% block page_heading %}{% endblock %}
                 </div>
-            </main>
-            {% endblock %}
-            <div id="modal-form"></div>
-            {% if user.is_authenticated %}
-            <div class="footer text-muted">
-                <div class="footer-wrapper">
-                    <div class="footer-item">&copy; {% now "Y" %}</div>
-                    <div class="footer-item"><a class="text-muted" href="{{ 'BL_WEB'|get_from_settings }}">{{ 'BL_NAME'|get_from_settings }} Home</a></div>
+                {% block object_status %}{% endblock %}
+                <!--div class="alert alert-warning">
+                  <strong>Warning!</strong> MxLIVE is currently undergoing maintenance activities. Some functionalities may not be available
+                    and performance may be impacted. This message will be removed when full functionality is restored. Sorry for the
+                    temporary incovenience.
+                </div-->
+                <div class="pagelet-body">
+                    {% block full %}{% endblock %}
                 </div>
             </div>
-        {% endif %}
         </div>
-        {% include "users/messages.html" %}
+    </main>
+{% endblock %}
+<div id="modal-form"></div>
+{% if user.is_authenticated %}
+    <div class="footer text-muted">
+        <div class="footer-wrapper">
+            <div class="footer-item">&copy; {% now "Y" %}</div>
+            <div class="footer-item"><a class="text-muted"
+                                        href="{{ 'BL_WEB'|get_from_settings }}">{{ 'BL_NAME'|get_from_settings }}
+                Home</a></div>
+        </div>
+    </div>
+{% endif %}
 
-        {% block post_js %}{% endblock %}
+{% include "users/messages.html" %}
+{% block post_js %}{% endblock %}
+<script src="{% static "jquery/jquery-3.4.1.min.js" %}"></script>
+<script src="{% static "popper/popper.min.js" %}"></script>
+<script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+<!--script src="{% static "jquery/jquery-ui.min.js" %}"></script-->
+<script src="{% static "jquery/jquery.scrollbar.js" %}"></script>
 
-        {% block extra_js %}{% endblock %}
-
-        <script>
-        function serverHeartBeat() {
-            $.ajax({
-                url: '/misc/ping/',
-                success: function(result) {
-                    console.log(result);
-                },
-                error: function(result) {
-                    console.log(result);
-                }
-            });
-        }
-        $(document).ready(function(){
-            // enable tooltips
-
-            $("[title]").not("[data-toggle='popover']").tooltip({
-                    container: 'body',
-                    viewport: {selector: 'body', padding: 5}
-                    //placement: 'auto'
-            });
-
-            // Enable popovers
-            $("[data-toggle='popover']").popover({
-                    container: 'body'
-                //placement: 'bottom'
-            });
-
-            // Handle data-url and data-href
-            $(document).on('click', '[data-href]', function(){
-                var sel = getSelection().toString();
-                if(!sel) {
-                    window.document.location = $(this).data("href");
-                }
-            });
-            $(document).on('click', '[data-url]', function(){
-                var sel = getSelection().toString();
-                if(!sel) {
-                    $('#modal-form').load($(this).data('url'));
-                }
-            });
-            $(document).on('click', '[data-link]', function(){
-                var sel = getSelection().toString();
-                if(!sel) {
-                    $('#modal-form').load($(this).data('link'));
-                }
-            });
-
-            {% if show_help %}
-                $('#modal-form').load("{% url 'user-guide' %}");
-            {% endif %}
-
-            // configure pretty scrollbars
-            $('.scrollbar-outer').scrollbar();
-            $('.scrollbar-inner').scrollbar();
-            {% if request.user.is_authenticated %}
-                //setInterval(serverHeartBeat, 3000);
-            {% endif %}
-        });
-        </script>
-
-        <script>
-            function getCookie(name) {
-                var cookieValue = null;
-                if (document.cookie && document.cookie != '') {
-                    var cookies = document.cookie.split(';');
-                    for (var i = 0; i < cookies.length; i++) {
-                        var cookie = jQuery.trim(cookies[i]);
-                        // Does this cookie string begin with the name we want?
-                        if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
-                }
-                return cookieValue;
+{% block extra_js %}{% endblock %}
+<script>
+    function serverHeartBeat() {
+        $.ajax({
+            url: '/misc/ping/',
+            success: function (result) {
+                console.log(result);
+            },
+            error: function (result) {
+                console.log(result);
             }
-        </script>
-    </body>
+        });
+    }
+
+    $(document).ready(function () {
+        // enable tooltips
+
+        $("[title]").not("[data-toggle='popover']").tooltip({
+            container: 'body',
+            viewport: {selector: 'body', padding: 5}
+            //placement: 'auto'
+        });
+
+        // Enable popovers
+        $("[data-toggle='popover']").popover({
+            container: 'body'
+            //placement: 'bottom'
+        });
+
+        // Handle data-url and data-href
+        $(document).on('click', '[data-href]', function () {
+            var sel = getSelection().toString();
+            if (!sel) {
+                window.document.location = $(this).data("href");
+            }
+        });
+        $(document).on('click', '[data-url]', function () {
+            var sel = getSelection().toString();
+            if (!sel) {
+                $('#modal-form').load($(this).data('url'));
+            }
+        });
+        $(document).on('click', '[data-link]', function () {
+            var sel = getSelection().toString();
+            if (!sel) {
+                $('#modal-form').load($(this).data('link'));
+            }
+        });
+
+        {% if show_help %}
+            $('#modal-form').load("{% url 'user-guide' %}");
+        {% endif %}
+
+        // configure pretty scrollbars
+        $('.scrollbar-outer').scrollbar();
+        $('.scrollbar-inner').scrollbar();
+        {% if request.user.is_authenticated %}
+            //setInterval(serverHeartBeat, 3000);
+        {% endif %}
+    });
+</script>
+
+<script>
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+</body>
 </html>
