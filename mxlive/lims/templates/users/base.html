@@ -9,7 +9,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{% block page_title %}{{ "APP_LABEL"|get_from_settings }}{% endblock %}</title>
         <link href="//fonts.googleapis.com/css?family=Fira+Sans|Fira+Sans+Condensed|Fira+Sans+Extra+Condensed" rel="stylesheet">
-        <link href="{% static "img/icon.ico" %}" rel="SHORTCUT ICON">
+        <link href="{% static "img/icon.ico" %}" rel="icon">
         <link href="{% static "css/reset.css" %}" rel="stylesheet"> <!-- CSS reset -->
         <link href="{% static "css/fonts.css" %}" rel="stylesheet">
         <link href="{% static "bootstrap/css/bootstrap.min.css" %}" rel="stylesheet">
@@ -53,11 +53,13 @@
                             {% block page_heading %}{% endblock %}
                         </div>
                         {% block object_status %}{% endblock %}
-                        <!--div class="alert alert-warning">
+                        {% if debug %}
+                        <div class="alert alert-warning">
                           <strong>Warning!</strong> MxLIVE is currently undergoing maintenance activities. Some functionalities may not be available
                             and performance may be impacted. This message will be removed when full functionality is restored. Sorry for the
                             temporary incovenience.
-                        </div-->
+                        </div>
+                        {% endif %}
                         <div class="pagelet-body">
                             {% block full %}{% endblock %}
                         </div>
@@ -70,7 +72,7 @@
             <div class="footer text-muted">
                 <div class="footer-wrapper">
                     <div class="footer-item">&copy; {% now "Y" %}</div>
-                    <div class="footer-item"><a class="text-muted" href="{{ 'BL_WEB'|get_from_settings }}">{{ 'BL_NAME'|get_from_settings }} Home</a></div>
+                    <div class="footer-item"><a class="text-muted" href="/">Home</a></div>
                 </div>
             </div>
         {% endif %}
@@ -82,17 +84,6 @@
         {% block extra_js %}{% endblock %}
 
         <script>
-        function serverHeartBeat() {
-            $.ajax({
-                url: '/misc/ping/',
-                success: function(result) {
-                    console.log(result);
-                },
-                error: function(result) {
-                    console.log(result);
-                }
-            });
-        }
         $(document).ready(function(){
             // enable tooltips
 
@@ -135,9 +126,6 @@
             // configure pretty scrollbars
             $('.scrollbar-outer').scrollbar();
             $('.scrollbar-inner').scrollbar();
-            {% if request.user.is_authenticated %}
-                //setInterval(serverHeartBeat, 3000);
-            {% endif %}
         });
         </script>
 
