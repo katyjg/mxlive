@@ -164,7 +164,7 @@ class ProjectLabels(AdminRequiredMixin, HTML2PdfMixin, detail.DetailView):
 class ListViewMixin(LoginRequiredMixin):
     paginate_by = 25
     template_name = "users/list.html"
-    link_data = True
+    link_data = False
     show_project = True
 
     def get_list_columns(self):
@@ -669,9 +669,8 @@ class ReportList(ListViewMixin, ItemListView):
     ordering = ['-modified']
     ordering_proxies = {}
     list_transforms = {
-        'data__all': format_list,
+        'data': format_list,
         'score': format_score
-
     }
 
     def get_queryset(self):

@@ -55,7 +55,7 @@
             <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
             {% if object.data_set.count %}
                 <span class="fa-stack-1x superscript">
-                    <span class="badge progress-bar-info">{{ object.data_set.count }}</span>
+                    <span class="badge badge-pill badge-info">{{ object.data_set.count }}</span>
                 </span>
             {% endif %}
         </span><br>
@@ -66,7 +66,7 @@
             <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
             {% if object.num_reports %}
                 <span class="fa-stack-1x superscript">
-                    <span class="badge progress-bar-info">{{ object.num_reports }}</span>
+                    <span class="badge badge-pill badge-info">{{ object.num_reports }}</span>
                 </span>
             {% endif %}
         </span><br>
@@ -81,7 +81,7 @@
             {% if object.is_active %}
                 <div class="col-xs-2">
                     <h3 class="no-vmargin">
-                        <span class="label label-info">Active</span>
+                        <span class="badge badge-info">Active</span>
                     </h3>
                 </div>
             {% endif %}

@@ -313,10 +313,11 @@ a.text-muted:hover {
 }
 .superscript .badge {
     padding: 0.25em 0.5em;
+    font-size: 0.8rem;
 }
 .tool-label, .btn-label {
     display: inline-block;
-    font-size: 90%;
+    font-size: 85%;
     color: inherit;
     line-height: 0.75;
     padding-top: 0.5em;
@@ -1238,9 +1239,4 @@ span.label-unusable-score {
 .bulk-edit .input {
     padding-top: 3px;
     padding-bottom: 3px;
-}
-
-[data-link] {
-    color: #337ab7;
-    cursor: pointer;
 }

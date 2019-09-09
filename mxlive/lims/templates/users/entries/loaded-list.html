@@ -5,21 +5,25 @@
 
 <h3>Loaded Containers</h3>
 <hr />
-<ul class="nav nav-tabs">
-    <li class="active"><a data-toggle="pill" href="#by-location">By Location</a></li>
-    <li><a data-toggle="pill" href="#by-project">By Project</a></li>
+<ul class="nav nav-tabs mb-4" id="container-tabs" role="tablist">
+  <li class="nav-item pl-4">
+    <a class="nav-link active" id="project-tab" data-toggle="tab" href="#by-project" role="tab" aria-controls="home" aria-selected="true">Projects</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="location-tab" data-toggle="tab" href="#by-location" role="tab" aria-controls="profile" aria-selected="false">Locations</a>
+  </li>
 </ul>
-<div class="tab-content">
-    <div class="panel panel-default tab-pane fade" id="by-project">
-        {% for project, containers in projects.items %}
+<div class="tab-content" id="container-tab-content">
+  <div class="tab-pane fade show active" id="by-project" role="tabpanel" aria-labelledby="project-tab">
+    {% for project, containers in projects.items %}
             <div class="panel-heading" id="containers-{{ project.pk }}" rel="{% for c in containers %}{{ c.pk }} {% endfor %}">
                 <div class="box-tools pull-right">
-                    <a class="pull-right" data-url="{% url "empty-containers" pk=object.pk username=project.username %}" title="Unload all containers for this project">
-                        <i class="fa fa-2 fa-fw fa-remove"></i>
+                    <a href="#!" class="pull-right" data-url="{% url "empty-containers" pk=object.pk username=project.username %}" title="Unload all containers for this project">
+                        <i class="ti ti-share ti-1x"></i>
                         <br><span class="tool-label">Empty</span>
                     </a>
                     <a class="pull-right" data-toggle="collapse" href="#{{ project }}-containers" title="Show all containers for this project">
-                        <i class="fa fa-2 fa-fw fa-expand"></i>
+                        <i class="ti ti-zoom-in ti-1x"></i>
                         <br><span class="tool-label">Details</span>
                     </a>
                 </div>
@@ -31,18 +35,17 @@
 
                 <div class="box-info">
                     <h4 class="list-group-item-heading"><strong>{{ project|upper }}</strong></h4>
-                    <p class="list-group-item-text overflow ellipsis">
+                    <div class="list-group-item-text overflow ellipsis">
                         <span class="text-muted">{% for container in containers %}{{ container.location }}{% if not forloop.last %} | {% endif %}{% endfor %}</span>
-                    </p>
+                    </div>
                 </div>
             </div>
-                <ul class="list-group list-group-hover collapse" id="{{ project }}-containers">
+                <ul class="list-group list-group-hover list-group-flush collapse" id="{{ project }}-containers">
                 {% for container in containers %}
                     <li class="list-group-item container-{{ container.pk }}">
-
                         <div class="box-tools pull-right">
-                            <a class="pull-right" onclick="unload({{ container.pk }});" title="Unload Container">
-                                <i class="fa fa-2 fa-fw fa-minus-circle"></i>
+                            <a href="#!" class="pull-right" onclick="unload({{ container.pk }});" title="Unload Container">
+                                <i class="ti ti-share ti-1x"></i>
                                 <form method="post" id="{{ container.pk }}-unload" action="{% url "container-unload" container.pk %}">
                                     {% csrf_token %}
                                     <input name="parent" type="hidden" />
@@ -54,8 +57,8 @@
                             <div class="text-center text-condensed text-medium">{{ container.location }}</div>
                         </div>
                         <div class="box-info">
-                            <h4 class="narrow-heading list-group-item-heading overflow ellipsis"><a href="{% url "container-detail" pk=container.pk %}"><strong>{{ container.name }}</strong></a> |
-                                <span class="text-muted">{{ container.sample_set.count }} sample{{ container.sample_set.count|pluralize }}</span></h4>
+                            <h4 class="text-condensed list-group-item-heading overflow ellipsis"><a href="{% url "container-detail" pk=container.pk %}"><strong>{{ container.name }}</strong></a> |
+                                <span class="text-muted">{{ container.samples.count }} sample{{ container.samples.count|pluralize }}</span></h4>
                         </div>
                     </li>
                 {% endfor %}
@@ -66,24 +69,23 @@
                     <i class="fa fa-fw fa-2x fa-info-circle"></i>
                 </div>
                 <div class="box-info">
-                    <h4 class="list-group-item-heading overflow ellipsis">Nothing is loaded</h4>
-                    <p class="list-group-item-text overflow ellipsis">
+                    <h5 class="list-group-item-heading overflow ellipsis">Nothing is loaded</h5>
+                    <div class="list-group-item-text overflow ellipsis">
                         <span class="text-muted">Choose a position in the layout to load one of the containers on-site.</span>
-                    </p>
+                    </div>
                 </div>
 
             </div>
         {% endfor %}
-    </div>
-
-    <div class="list-group list-group-hover tab-pane fade in active" id="by-location">
-
-        {% for container in object.children.all %}
+  </div>
+  <div class="tab-pane fade" id="by-location" role="tabpanel" aria-labelledby="location-tab">
+  <div class="list-group list-group-flush">
+    {% for container in object.children.all %}
             {% container_project container as project %}
             <div class="list-group-item container-{{ container.pk }}">
                 <span class="box-tools pull-right">
-                    <a class="pull-right" onclick="unload({{ container.pk }});" title="Unload Container">
-                        <i class="fa fa-2 fa-fw fa-minus-circle"></i>
+                    <a href="#!" class="pull-right" onclick="unload({{ container.pk }});" title="Unload Container">
+                        <i class="ti ti-share ti-1x"></i>
                         <br><span class="tool-label">Unload</span>
                         <form method="post" id="{{ container.pk }}-unload" action="{% url "container-unload" container.pk %}">
                             {% csrf_token %}
@@ -96,10 +98,8 @@
                     <div class="text-center text-condensed text-large">{{ container.location }}</div>
                 </div>
                 <div class="box-info">
-                    <h4 class="list-group-item-heading overflow ellipsis"><a href="{% url "container-detail" pk=container.pk %}"><span class="text-muted">{{ container.get_project|upper }}</span> | <strong>{{ container.name }}</strong></a></h4>
-                    <p class="list-group-item-text overflow ellipsis">
-                        <span class="text-muted">{{ container.kind }} | </span><strong>{{ container.sample_set.count }}</strong> sample{{ container.sample_set.count|pluralize }}
-                    </p>
+                    <h5 class="list-group-item-heading"><a href="{% url "container-detail" pk=container.pk %}"><span class="text-muted">{{ container.get_project|upper }}</span> | <strong>{{ container.name }}</strong></a></h5>
+                    <div class="list-group-item-text"><span class="text-muted">{{ container.kind }} | </span><strong>{{ container.samples.count }}</strong> sample{{ container.samples.count|pluralize }}</div>
                 </div>
                 {% if container.children.count %}
                     <small class="text-muted">
@@ -115,10 +115,10 @@
                                 </td>
                                 <td><a href="{% url "container-detail" pk=child.pk %}"><span class="text-muted">{{ child.get_project|upper }}</span> | <strong>{{ child.name }}</strong></a>
                                 </td>
-                                <td class="text-center"><strong>{{ child.sample_set.count }}</strong></td>
+                                <td class="text-center"><strong>{{ child.samples.count }}</strong></td>
                                 <td class="text-center">
                                     <a class="cursor" onclick="unload({{ child.pk }});" title="Unload Container">
-                                        <i class="fa fa-2 fa-fw fa-minus-circle"></i>
+                                        <i class="ti ti-share ti-1x"></i>
                                     </a>
                                     <form method="post" id="{{ child.pk }}-unload" action="{% url "container-unload" child.pk %}">
                                         {% csrf_token %}
@@ -138,16 +138,16 @@
                 </div>
                 <div class="box-info">
                     <h4 class="list-group-item-heading overflow ellipsis">Nothing is loaded</h4>
-                    <p class="list-group-item-text overflow ellipsis">
+                    <div class="list-group-item-text overflow ellipsis">
                         <span class="text-muted">Choose a position in the layout to load one of the containers on-site.</span>
-                    </p>
+                    </div>
                 </div>
 
             </div>
         {% endfor %}
-    </div>
+  </div>
+  </div>
 </div>
-
 
 <script src="{% static "jquery/jquery.form.min.js" %}"></script>
 <script>

@@ -3,16 +3,16 @@
         <div class="list-group-item">
             {% if request.user.is_superuser or a.has_document %}
                 <span class="box-tools pull-right">
-                    {% if a.has_document %}<a href="{{ a.attachment.url }}" title="Download File"><i class="fa fa-1x fa-fw fa-download"></i></a>{% endif %}
+                    {% if a.has_document %}<a href="{{ a.attachment.url }}" title="Download File"><i class="ti ti-download"></i></a>{% endif %}
                     {% if request.user.is_superuser %}
-                        <a data-url="{% url "announcement-edit" a.pk %}" title="Edit Announcement" style="padding-left: 0; padding-right: 0;">
-                            <span><i class="fa fa-1x fa-fw fa-pencil"></i></span></a>
-                        <a data-url="{% url "announcement-delete" a.pk %}" title="Delete Announcement">
-                            <span><i class="fa fa-1x fa-fw fa-times"></i></span></a>
+                        <a href="#!" data-url="{% url "announcement-edit" a.pk %}" title="Edit Announcement" style="padding-left: 0; padding-right: 0;">
+                            <span><i class="ti ti-pencil"></i></span></a>
+                        <a href="#!" data-url="{% url "announcement-delete" a.pk %}" title="Delete Announcement">
+                            <span><i class="ti ti-trash"></i></span></a>
                     {% endif %}
                 </span>
-        {% endif %}
-            <h5 class="text-condensed">
+            {% endif %}
+            <h5 class="text-condensed pb-4">
                 <strong>
                     {% if a.url %}
                         <a href="{{ a.url }}" target="_blank">{{ a.title }}</a>

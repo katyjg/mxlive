@@ -1,7 +1,8 @@
 from django import template
 from django.utils.safestring import mark_safe
-from mxlive.lims.models import Container, ContainerType
+from mxlive.lims.models import Container, ContainerType, ContainerLocation
 import json
+from django.db.models import F, Func
 
 register = template.Library()
 
@@ -12,12 +13,11 @@ def as_json(data):
 
 
 @register.simple_tag
-def get_kind_json(data, pk, create=False):
+def get_kind_json(data, container, create=False):
     if not create:
         try:
-            container = Container.objects.get(pk=int(pk))
             for loc in data['locations'].keys():
-                sample = container.sample_set.filter(location=loc).first()
+                sample = container.samples.filter(location=loc).first()
                 location = container.kind.container_locations.get(name=loc)
                 child = container.children.filter(location=location).first()
                 loc_info = {
@@ -30,14 +30,40 @@ def get_kind_json(data, pk, create=False):
         except:
             pass
 
-    return mark_safe(json.dumps(data))
+    return mark_safe(json.dumps(data, indent=4))
+
+@register.simple_tag
+def get_layout_json(container, create=False):
+
+    locations = ContainerLocation.objects.filter(containers=container.kind).annotate(
+        owner=F('contents__project__name'), title=F('contents__name'),
+    )
+    layout = container.kind.layout
+    data = {
+        'radius': layout['radius'],
+        'locations': {
+            loc.name: layout['locations'].get(loc.name, [0.0, 0.0]) + [
+                {
+                    'sample': '',
+                    'group': '',
+                    'started': 0,
+                    'accepts': ';'.join(loc.accepts.all().values_list('name', flat=True))
+                }
+            ]
+            for loc in locations
+        }
+    }
+    if 'height' in layout:
+        data['height'] = layout['height']
+    return mark_safe(json.dumps(data, indent=4))
+
 
 @register.filter
 def kind_json(data, pk):
     try:
         container = Container.objects.get(pk=int(pk))
         for loc in data['locations'].keys():
-            sample = container.sample_set.filter(location=loc).first()
+            sample = container.samples.filter(location=loc).first()
             location = container.kind.container_locations.get(name=loc)
             child = container.children.filter(location=location).first()
             loc_info = {
@@ -50,7 +76,7 @@ def kind_json(data, pk):
     except:
         pass
 
-    return mark_safe(json.dumps(data))
+    return mark_safe(json.dumps(data, indent=4))
 
 
 @register.filter

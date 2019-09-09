@@ -4,15 +4,14 @@
 
 {% if object.url %}
     {% get_xrf_data object as data %}
-
     <div class="row">
         {% if data.data %}
-            <div class="col-xs-8">
+            <div class="col-xs-7">
                 <div id="xrf-{{ object.pk }}" style="padding-top: 15px;"></div>
             </div>
         {% endif %}
         {% if data.assignments %}
-            <div class="col-xs-4">
+            <div class="col-xs-5">
                 <table class="table table-hover table-condensed">
                     <thead>
                     <tr>
@@ -23,7 +22,7 @@
                     </thead>
                 </table>
                 <div class="scrollbar-inner scroll-sidebar">
-                    <table class="table table-hover table-condensed">
+                    <table class="table table-hover table-sm">
                         {% for e in data.assignments %}
                             <tr style="color: {{ e.color }};">
                                 <td>
@@ -108,8 +107,8 @@
             }
         }
         var xy_chart = draw_xy_chart()
-            .width(630)
-            .height(500)
+            .width(600)
+            .height(400)
             .xlabel("{{ data.xlabel }}")
             .y1label("{{ data.y1label }}")
             .y2label("{{ data.y2label }}")

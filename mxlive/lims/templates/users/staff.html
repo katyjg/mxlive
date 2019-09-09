@@ -9,7 +9,7 @@
 
 {% block object_tools %}
     <span class="box-tools pull-right">
-        <a class="pull-right" data-url="{% url "new-announcement" %}" title="Create Announcement">
+        <a href="#!" class="pull-right" data-link="{% url "new-announcement" %}" title="Create Announcement">
             <span class="fa-stack">
                 <i class="fa fa-stack-2x fa-2 fa-bullhorn"></i>
             </span><br/>
@@ -44,14 +44,15 @@
             <div class="list-group">
                 {% for am in automounters %}
                     <a href="{% url "beamline-detail" pk=am.beamline.pk %}" class="text-center list-group-item" style="overflow: auto;">
-                        <div class="col-xs12">
+                        <div class="col-xs-12">
                             <div id="layout-{{ am.container.pk }}" class="layout-lg">
                                 <h4 class="text-condensed">
                                     <strong><span class="text-muted">{{ am.beamline.acronym }}</span></strong> | {{ am.container.kind }}
                                 </h4>
                                 <hr/>
                             </div>
-                            {#% include "users/entries/layout-container.html" with object=am.container.pk kind=am.container.kind brief=True %#}
+                            {#% include "users/entries/layout-container.html" with container=am.container brief=True %#}
+                            {% include "users/entries/layout-container.html" with object=am.container.pk kind=am.container.kind brief=True %}
                         </div>
                     </a>
                 {% endfor %}

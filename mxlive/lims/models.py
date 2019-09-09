@@ -350,7 +350,7 @@ class Stretch(models.Model):
         ordering = ['-start', ]
 
 
-class LimsBaseClass(models.Model):
+class ProjectOwnerMixin(models.Model):
     """ STATES/TRANSITIONS define a finite state machine (FSM) for the Shipment (and other
     models.Model instances also defined in this file).
 
@@ -394,7 +394,7 @@ class LimsBaseClass(models.Model):
         return self.status == self.STATES.RETURNED
 
     def delete(self, *args, **kwargs):
-        super(LimsBaseClass, self).delete(*args, **kwargs)
+        super(ProjectOwnerMixin, self).delete(*args, **kwargs)
 
     def archive(self, request=None):
         if self.is_closable():
@@ -445,40 +445,40 @@ class LimsBaseClass(models.Model):
         self.save()
 
 
-class ObjectBaseClass(LimsBaseClass):
+class TransitStatusMixin(ProjectOwnerMixin):
     STATUS_CHOICES = (
-        (LimsBaseClass.STATES.DRAFT, _('Draft')),
-        (LimsBaseClass.STATES.SENT, _('Sent')),
-        (LimsBaseClass.STATES.ON_SITE, _('On-site')),
-        (LimsBaseClass.STATES.RETURNED, _('Returned')),
-        (LimsBaseClass.STATES.ARCHIVED, _('Archived'))
+        (ProjectOwnerMixin.STATES.DRAFT, _('Draft')),
+        (ProjectOwnerMixin.STATES.SENT, _('Sent')),
+        (ProjectOwnerMixin.STATES.ON_SITE, _('On-site')),
+        (ProjectOwnerMixin.STATES.RETURNED, _('Returned')),
+        (ProjectOwnerMixin.STATES.ARCHIVED, _('Archived'))
     )
-    status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectOwnerMixin.STATES.DRAFT)
 
     class Meta:
         abstract = True
 
 
-class DataBaseClass(LimsBaseClass):
+class ActiveStatusMixin(ProjectOwnerMixin):
     STATUS_CHOICES = (
-        (LimsBaseClass.STATES.ACTIVE, _('Active')),
-        (LimsBaseClass.STATES.ARCHIVED, _('Archived')),
-        (LimsBaseClass.STATES.TRASHED, _('Trashed'))
+        (ProjectOwnerMixin.STATES.ACTIVE, _('Active')),
+        (ProjectOwnerMixin.STATES.ARCHIVED, _('Archived')),
+        (ProjectOwnerMixin.STATES.TRASHED, _('Trashed'))
     )
-    TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
-    TRANSITIONS[LimsBaseClass.STATES.ACTIVE] = [LimsBaseClass.STATES.TRASHED, LimsBaseClass.STATES.ARCHIVED]
-    TRANSITIONS[LimsBaseClass.STATES.ARCHIVED] = [LimsBaseClass.STATES.TRASHED]
+    TRANSITIONS = copy.deepcopy(ProjectOwnerMixin.TRANSITIONS)
+    TRANSITIONS[ProjectOwnerMixin.STATES.ACTIVE] = [ProjectOwnerMixin.STATES.TRASHED, ProjectOwnerMixin.STATES.ARCHIVED]
+    TRANSITIONS[ProjectOwnerMixin.STATES.ARCHIVED] = [ProjectOwnerMixin.STATES.TRASHED]
 
-    status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.ACTIVE)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectOwnerMixin.STATES.ACTIVE)
 
     def is_closable(self):
-        return self.status not in [LimsBaseClass.STATES.ARCHIVED, LimsBaseClass.STATES.TRASHED]
+        return self.status not in [ProjectOwnerMixin.STATES.ARCHIVED, ProjectOwnerMixin.STATES.TRASHED]
 
     class Meta:
         abstract = True
 
 
-class Shipment(ObjectBaseClass):
+class Shipment(TransitStatusMixin):
     HELP = {
         'name': "This should be an externally visible label",
         'carrier': "Select the company handling this shipment. To change the default option, edit your profile.",
@@ -509,7 +509,7 @@ class Shipment(ObjectBaseClass):
         return self.container_set.count()
 
     def num_samples(self):
-        return self.container_set.aggregate(Count('sample'))['sample__count']
+        return self.container_set.aggregate(sample_count=Count('samples'))['sample_count']
 
     def datasets(self):
         return self.project.data_set.filter(sample__container__shipment__pk=self.pk)
@@ -702,7 +702,7 @@ class ContainerLocation(models.Model):
         return self.name
 
 
-class Container(ObjectBaseClass):
+class Container(TransitStatusMixin):
     HELP = {
         'name': "A visible label on the container. If there is a barcode on the container, scan it here",
         'capacity': "The maximum number of samples this container can hold",
@@ -714,7 +714,7 @@ class Container(ObjectBaseClass):
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(default=0)
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, related_name="children")
-    location = models.ForeignKey(ContainerLocation, blank=True, null=True, on_delete=models.SET_NULL)
+    location = models.ForeignKey(ContainerLocation, blank=True, null=True, on_delete=models.SET_NULL, related_name='contents')
 
     class Meta:
         unique_together = (
@@ -734,7 +734,7 @@ class Container(ObjectBaseClass):
         return self.name
 
     def num_samples(self):
-        return self.sample_set.count()
+        return self.samples.count()
 
     def capacity(self):
         return self.kind.container_locations.count()
@@ -756,14 +756,14 @@ class Container(ObjectBaseClass):
 
     def groups(self):
         groups = set([])
-        for sample in self.sample_set.all():
+        for sample in self.samples.all():
             for group in sample.group_set.all():
                 groups.add('%s-%s' % (group.project.name, group.name))
         return ', '.join(groups)
 
     def get_group_list(self):
         groups = list()
-        for sample in self.sample_set.all():
+        for sample in self.samples.all():
             if sample.group not in groups:
                 groups.append(sample.group)
         return groups
@@ -784,7 +784,7 @@ class Container(ObjectBaseClass):
         """
         for field in ['priority']:
             priority = None
-            for sample in self.sample_set.all():
+            for sample in self.samples.all():
                 if sample.group:
                     if priority is None:
                         priority = getattr(sample.group, field)
@@ -796,8 +796,8 @@ class Container(ObjectBaseClass):
     def delete(self, request=None, cascade=True):
         if self.is_deletable:
             if not cascade:
-                self.sample_set.all().update(container=None)
-            for obj in self.sample_set.all():
+                self.samples.all().update(container=None)
+            for obj in self.samples.all():
                 obj.delete(request=request)
             super(Container, self).delete(request=request)
 
@@ -873,13 +873,13 @@ class SpaceGroup(models.Model):
         return self.name
 
 
-class Group(LimsBaseClass):
+class Group(ProjectOwnerMixin):
     STATUS_CHOICES = (
-        (LimsBaseClass.STATES.DRAFT, _('Draft')),
-        (LimsBaseClass.STATES.ACTIVE, _('Active')),
-        (LimsBaseClass.STATES.PROCESSING, _('Processing')),
-        (LimsBaseClass.STATES.COMPLETE, _('Complete')),
-        (LimsBaseClass.STATES.ARCHIVED, _('Archived'))
+        (ProjectOwnerMixin.STATES.DRAFT, _('Draft')),
+        (ProjectOwnerMixin.STATES.ACTIVE, _('Active')),
+        (ProjectOwnerMixin.STATES.PROCESSING, _('Processing')),
+        (ProjectOwnerMixin.STATES.COMPLETE, _('Complete')),
+        (ProjectOwnerMixin.STATES.ARCHIVED, _('Archived'))
     )
 
     HELP = {
@@ -903,10 +903,10 @@ class Group(LimsBaseClass):
         (2, 'SCREEN_AND_CONFIRM', 'Screen and confirm'),
         (4, 'JUST_COLLECT', 'Collect all'),
     )
-    TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
-    TRANSITIONS[LimsBaseClass.STATES.DRAFT] = [LimsBaseClass.STATES.ACTIVE]
+    TRANSITIONS = copy.deepcopy(ProjectOwnerMixin.TRANSITIONS)
+    TRANSITIONS[ProjectOwnerMixin.STATES.DRAFT] = [ProjectOwnerMixin.STATES.ACTIVE]
 
-    status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectOwnerMixin.STATES.DRAFT)
     shipment = models.ForeignKey(Shipment, null=True, blank=True, on_delete=models.SET_NULL)
     energy = models.DecimalField(null=True, max_digits=10, decimal_places=4, blank=True)
     resolution = models.FloatField('Desired Resolution (&#8491;)', null=True, blank=True)
@@ -965,7 +965,7 @@ class Group(LimsBaseClass):
         super(Group, self).archive(request=request)
 
 
-class Sample(LimsBaseClass):
+class Sample(ProjectOwnerMixin):
     HELP = {
         'cascade': 'datasets and results',
         'cascade_help': 'All associated datasets and results will be left without a sample',
@@ -977,12 +977,12 @@ class Sample(LimsBaseClass):
         'container': 'This field is optional here.  Samples can also be added to a container on the containers page.',
     }
     barcode = models.SlugField(null=True, blank=True)
-    container = models.ForeignKey(Container, null=True, blank=True, on_delete=models.CASCADE)
+    container = models.ForeignKey(Container, null=True, blank=True, on_delete=models.CASCADE, related_name='samples')
     location = models.CharField(max_length=10, null=True, blank=True, verbose_name='port')
     comments = models.TextField(blank=True, null=True)
     collect_status = models.BooleanField(default=False)
     priority = models.IntegerField(null=True, blank=True)
-    group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL)
+    group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL, related_name='samples')
 
     class Meta:
         unique_together = (
@@ -1088,7 +1088,7 @@ class FrameField(models.TextField):
         return value
 
 
-class Data(DataBaseClass):
+class Data(ActiveStatusMixin):
     DATA_TYPES = Choices(
         ('MX_SCREEN', 'MX Screening'),
         ('MX_DATA', 'MX Dataset'),
@@ -1195,9 +1195,9 @@ class Data(DataBaseClass):
         super(Data, self).trash(request=request)
 
 
-class AnalysisReport(DataBaseClass):
+class AnalysisReport(ActiveStatusMixin):
     kind = models.CharField(max_length=100)
-    score = models.FloatField()
+    score = models.FloatField(null=True, default=0.0)
     data = models.ManyToManyField(Data, blank=True, related_name="reports")
     url = models.CharField(max_length=200)
     details = JSONField(default=[])

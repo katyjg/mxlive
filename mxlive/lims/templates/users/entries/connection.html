@@ -14,7 +14,7 @@
             <div class="row">
                 <div class="col-xs-4">
                     <h3 class="no-vmargin">
-                        <span class="label label-{% if object.is_active %}info{% else %}default{% endif %}">{{ object.status|upper }}</span>
+                        <span class="badge badge-{% if object.is_active %}info{% else %}default{% endif %}">{{ object.status|upper }}</span>
                     </h3>
                 </div>
                 <div class="col-xs-4 pull-right text-right">

@@ -21,7 +21,7 @@
             </div>
             <div class="col-xs-11">
                 {% for yr in object|get_years %}
-                    <a href="{% url "usage-yearly-statistics" object.pk yr %}"><span class="label label-info">{{ yr }}</span></a>&nbsp;
+                    <a href="{% url "usage-yearly-statistics" object.pk yr %}"><span class="badge badge-info">{{ yr }}</span></a>&nbsp;
                 {% endfor %}
             </div>
         </div>

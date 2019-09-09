@@ -39,7 +39,7 @@
             <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
             {% if object.data_set.count %}
                 <span class="fa-stack-1x superscript">
-                    <span class="badge progress-bar-info">{{ object.data_set.count }}</span>
+                    <span class="badge badge-pill badge-info">{{ object.data_set.count }}</span>
                 </span>
             {% endif %}
         </span><br>
@@ -50,7 +50,7 @@
             <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
             {% if object.analysisreport_set.count %}
                 <span class="fa-stack-1x superscript">
-                    <span class="badge progress-bar-info">{{ object.analysisreport_set.count }}</span>
+                    <span class="badge badge-pill badge-info">{{ object.analysisreport_set.count }}</span>
                 </span>
             {% endif %}
         </span><br>
@@ -61,7 +61,7 @@
             <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
             {% if object.sessions.count %}
                 <span class="fa-stack-1x superscript">
-                    <span class="badge progress-bar-info">{{ object.sessions.count }}</span>
+                    <span class="badge badge-pill badge-info">{{ object.sessions.count }}</span>
                 </span>
             {% endif %}
         </span><br>
@@ -75,7 +75,7 @@
         <div class="row">
             <div class="col-xs-2">
                 <h3 class="no-vmargin">
-                    <span class="label label-{% if object.active_status == 'Active' %}info{% else %}{% if object.active_status == 'Idle' %}default{% else %}success{% endif %}{% endif %}" title="Last session on {{ object.last_session }}">{{ object.active_status }}</span>
+                    <span class="badge badge-{% if object.active_status == 'Active' %}info{% else %}{% if object.active_status == 'Idle' %}default{% else %}success{% endif %}{% endif %}" title="Last session on {{ object.last_session }}">{{ object.active_status }}</span>
                 </h3>
             </div>
             <div class="col-xs-3 pull-right text-right">

@@ -24,7 +24,9 @@
         <link rel="stylesheet" href="{% static "css/mxlive.css" %}" type="text/css"/>
     {% endblock %}
     {% block extra_css %}{% endblock %}
+    <script src="{% static "jquery/jquery-3.4.1.min.js" %}"></script>
     {% block pre_js %}{% endblock %}
+
 </head>
 <body class="{% block body_class %}{% endblock %}">
 
@@ -61,16 +63,14 @@
     <div class="footer text-muted">
         <div class="footer-wrapper">
             <div class="footer-item">&copy; {% now "Y" %}</div>
-            <div class="footer-item"><a class="text-muted"
-                                        href="{{ 'BL_WEB'|get_from_settings }}">{{ 'BL_NAME'|get_from_settings }}
-                Home</a></div>
+            <div class="footer-item"><a class="text-muted" href="/">Home</a></div>
         </div>
     </div>
 {% endif %}
 
 {% include "users/messages.html" %}
 {% block post_js %}{% endblock %}
-<script src="{% static "jquery/jquery-3.4.1.min.js" %}"></script>
+
 <script src="{% static "popper/popper.min.js" %}"></script>
 <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
 <!--script src="{% static "jquery/jquery-ui.min.js" %}"></script-->

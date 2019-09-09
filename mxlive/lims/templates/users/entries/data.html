@@ -21,57 +21,61 @@
 {% endblock %}
 
 {% block form_body %}
-    <div class="row">
-        <div class="status-bar col-xs-12">
-            <small>
-                <div class="row">
-                    <div class="col-xs-3">
-                        <strong>Type:</strong><br/>
-                        <span class="text-muted">{{ object.get_kind_display }} from {{ object.modified|naturalday }}</span><br/>
-                        <span class="text-muted">{% if object.session %}Session <a href="{% url 'session-detail' object.session.pk %}">{{ object.session.name }}</a>{% else %}Unrecorded Session{% endif %}</span>
-                    </div>
-                    <div class="col-xs-2">
-                        <strong>Beam:</strong><br/>
-                        <span class="text-muted">{{ object.beamline }} at {{ object.energy }} keV</span><br/>
-                        {% if object.beam_size %}<span class="text-muted" title="Beam Size">{{ object.beam_size|floatformat:2 }} &mu;m</span>{% endif %}
-                    </div>
-                    <div class="col-xs-3">
-                        <strong>Parameters:</strong><br/>
-                        <span class="text-muted">
+    <small>
+    <div class="status-bar">
+        <div class="row">
+            <div class="col-3">
+                <strong>Type:</strong><br/>
+                <span class="text-muted">{{ object.get_kind_display }} from {{ object.modified|naturalday }}</span><br/>
+                <span class="text-muted">{% if object.session %}Session
+                    <a href="{% url 'session-detail' object.session.pk %}">{{ object.session.name }}</a>{% else %}
+                    Unrecorded Session{% endif %}</span>
+            </div>
+            <div class="col">
+                <strong>Beam:</strong><br/>
+                <span class="text-muted">{{ object.beamline }} at {{ object.energy }} keV</span><br/>
+                {% if object.beam_size %}<span class="text-muted" title="Beam Size">{{ object.beam_size|floatformat:2 }} &mu;m</span>{% endif %}
+            </div>
+            <div class="col">
+                <strong>Parameters:</strong><br/>
+                <span class="text-muted">
                             <span title="Exposure Time">{{ object.exposure_time }}s exposure time</span><br/>
                             <span title="Attenuation">{{ object.attenuation }}% attenuated</span>
                         </span>
-                    </div>
-                    <div class="col-xs-3">
-                        <strong>Sample:</strong><span class="text-muted"> {% if object.sample %}<a href="{% url "sample-detail" object.sample.pk %}">{{ object.sample }}</a>{% else %}None{% endif %}</span><br/>
-                        <strong>Group:</strong><span class="text-muted"> {% if object.sample %}<a href="{% url "group-detail" object.sample.group.pk %}">{{ object.sample }}</a>{% else %}None{% endif %}</span><br/>
-                        <strong>Report:</strong><span class="text-muted"> {% for report in object.reports.all %}
-                            <a href="{% url "report-detail" report.pk %}" title="View {{ report.name }} Report">
-                                <span class="label label-{{ report.score|label_score }}">{{ report.score|floatformat:2 }}</span>
+            </div>
+            <div class="col">
+                <strong>Sample:</strong><span class="text-muted"> {% if object.sample %}
+                <a href="{% url "sample-detail" object.sample.pk %}">{{ object.sample }}</a>{% else %}
+                None{% endif %}</span><br/>
+                <strong>Group:</strong><span class="text-muted"> {% if object.sample %}
+                <a href="{% url "group-detail" object.sample.group.pk %}">{{ object.sample }}</a>{% else %}
+                None{% endif %}</span><br/>
+                <strong>Report:</strong><span class="text-muted"> {% for report in object.reports.all %}
+                <a href="{% url "report-detail" report.pk %}" title="View {{ report.name }} Report">
+                                <span class="badge badge-{{ report.score|label_score }}">{{ report.score|floatformat:2 }}</span>
                             </a>
-                            {% if not forloop.last %} | {% endif %}{% endfor %}
+                {% if not forloop.last %} | {% endif %}{% endfor %}
                         </span>
-                    </div>
-
-                    <div class="box-tools col-xs-1 pull-right text-right">
-                        {% if object.url %}
-                        <a class="pull-right" href="{% url 'files-proxy' section='archive' path=object.download_url %}" download="{{ object.name }}.tar.gz" title="Download Full Dataset">
+            </div>
+            <div class="col-1">
+                {% if object.url %}
+                    <a class="pull-right" href="{% url 'files-proxy' section='archive' path=object.download_url %}"
+                       download="{{ object.name }}.tar.gz" title="Download Full Dataset">
                             <span class="pull-right">
                                 <i class="fa fa-fw fa-2x fa-download"></i><br>
                                 <span class="tool-label">Download</span>
                             </span>
-                        </a>
-                        {% else %}
-                            <span class="pull-right text-muted not-allowed" title="Download Not Available">
+                    </a>
+                {% else %}
+                    <span class="pull-right text-muted not-allowed" title="Download Not Available">
                                 <i class="fa fa-fw fa-2x fa-download"></i><br>
                                 <span class="tool-label">Download</span>
                             </span>
-                        {% endif %}
-                    </div>
-                </div>
-            </small>
+                {% endif %}
+            </div>
         </div>
     </div>
+    </small>
     {% if "MX" in object.kind or "DATA" in object.kind or "RASTER" in object.kind %}
         {% include "users/entries/data-mx.html" %}
     {% elif "MAD" in object.kind %}

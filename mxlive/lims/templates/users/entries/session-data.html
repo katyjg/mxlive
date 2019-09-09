@@ -20,7 +20,7 @@
                 <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
                 {% if shipment.num_reports %}
                     <span class="fa-stack-1x superscript">
-                        <span class="badge progress-bar-info">{{ shipment.num_reports }}</span>
+                        <span class="badge badge-pill badge-info">{{ shipment.num_reports }}</span>
                     </span>
                 {% endif %}
             </span><br>
@@ -32,23 +32,23 @@
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
-            <div class="col-xs-2">
+            <div class="col-4">
                 <small class="text-muted text-condensed">Session:</small><br>
                 <a href="{% url "session-detail" shipment.pk %}">{{shipment.name}}</a>
             </div>
-            <div class="col-xs-2 pull-left">
+            <div class="col">
                 <small class="text-muted text-condensed">Datasets:</small><br>
                 {{ shipment.data_set.count }}
             </div>
-            <div class="col-xs-2 pull-left">
+            <div class="col">
                 <small class="text-muted text-condensed">Reports:</small><br>
                 {{ shipment.num_reports }}
             </div>
-            <div class="col-xs-3 pull-right text-right">
+            <div class="col">
                 <small class="text-muted text-condensed">Total Time:</small><br>
                 {{ shipment.total_time|floatformat }} hour{{ shipment.total_time|pluralize }}
             </div>
-            <div class="col-xs-3 pull-right text-right">
+            <div class="col">
                 <small class="text-muted text-condensed">Start:</small><br>
                 {{ shipment.start|naturalday }}
             </div>

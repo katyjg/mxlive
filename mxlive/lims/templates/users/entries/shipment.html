@@ -5,7 +5,7 @@
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
         <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
-        <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}{{ object.identity }}</span> | <strong>{{ object.name }}</strong>
+        <span class="text-muted">{% if user.is_superuser %}{{ object.project }}{% endif %}</span> | <strong>{{ object.name }}</strong>
     </h3>
     <span class="text-muted">
         {% if object.status == object.STATES.DRAFT %}Created {{ object.created|naturalday }}
@@ -23,9 +23,9 @@
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
-            <div class="col-xs-2">
-                <h3 class="no-vmargin">
-                    <span class="label label-{% if object.status == object.STATES.ON_SITE %}info
+            <div class="col">
+                <h3>
+                    <span class="badge badge-{% if object.status == object.STATES.ON_SITE %}info
                                 {% elif object.status == object.STATES.DRAFT %}warning
                                 {% elif object.status == object.STATES.SENT %}success
                                 {% elif object.status == object.STATES.RETURNED and not user.is_superuser %}success
@@ -33,7 +33,7 @@
                 </h3>
             </div>
             {% if object.status >= object.STATES.ON_SITE %}
-                <div class="col-xs-3">
+                <div class="col">
                     {% if object.status > object.STATES.ON_SITE %}
                         <small class="text-muted text-condensed">Dates On-Site:</small><br>
                         {% if object.date_received %}{{ object.date_received|naturalday }}{% else %}{{ object.date_shipped|naturalday }}{% endif %} - {{ object.date_returned|naturalday }}
@@ -45,12 +45,12 @@
             {% endif %}
 
             {% ifequal object.status object.STATES.DRAFT %}
-                <div class="col-xs-3">
+                <div class="col">
                     <small class="text-muted text-condensed">Ready to Ship:</small><br>
                     {{ object.shipping_errors|yesno:"No,Yes" }}
                 </div>
             {% else %}{% if object.status < object.STATES.RETURNED %}
-                <div class="col-xs-3">
+                <div class="col">
                     <small class="text-muted text-condensed">Sent:</small><br>
                     <span class="text-muted">via</span> {{ object.carrier }} {% if object.tracking_code and object.carrier %}
                         [<a href="{{ object.carrier.url }}{{ object.tracking_code }}" title="Track with {{ object.carrier }}">{{ object.tracking_code }}</a>]
@@ -59,7 +59,7 @@
             {% endif %}{% endifequal %}
 
             {% if object.status >= object.STATES.RETURNED %}
-                <div class="col-xs-3">
+                <div class="col">
                     {% if object.status < object.STATES.RETURNED %}
                         <small class="text-muted text-condensed">Ready to Return:</small><br>
                         {{ object.is_returnable|yesno:"No,Yes" }}
@@ -72,9 +72,9 @@
                 </div>
             {% endif %}
             {% if object.components.all %}
-                <div class="col-xs-3 pull-right text-right">
+                <div class="col pull-right text-right">
                     <small class="text-muted text-condensed">Included Items</small><br>
-                    {% for c in object.components.all %}<span class="label label-info">{{ c.kind }}</span> {% endfor %}
+                    {% for c in object.components.all %}<span class="badge badge-info">{{ c.kind }}</span> {% endfor %}
                 </div>
             {% endif %}
         </div>
@@ -135,7 +135,7 @@
                                     <span class="fa-stack">
                                         <i class="fa-stack-2x fa fa-fw fa-plus-circle"></i>
                                             <span class="fa-stack-1x superscript">
-                                                <span class="badge progress-bar-{% if group.unassigned_samples %}{% if group.sample_set.count %}warning{% else %}danger{% endif %}{% else %}info{% endif %}">{{ group.sample_set.count }}</span>
+                                                <span class="badge badge-pill progress-bar-{% if group.unassigned_samples %}{% if group.sample_set.count %}warning{% else %}danger{% endif %}{% else %}info{% endif %}">{{ group.sample_set.count }}</span>
                                             </span>
                                     </span><br>
                                     <span class="tool-label hidden-xs">Samples</span>
