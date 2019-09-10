@@ -1,3 +1,4 @@
+{% load icons %}
 <div class="list-group-item list-group-item-{% if object.status == object.STATES.ON_SITE %}primary{% elif object.status == object.STATES.DRAFT %}warning{% elif object.status == object.STATES.SENT %}success{% elif object.status == object.STATES.RETURNED and not user.is_superuser %}empty{% else %}default{% endif %}">
     <div class="row">
         <div class="col">
@@ -5,17 +6,13 @@
                 {% if object.status == object.STATES.ON_SITE %}
                     <div class="pull-right box-tools">
                         <a class="pull-right" data-url="{% url "shipment-return" object.pk %}" title="Return shipment">
-                            <i class="fa fa-2 fa-fw fa-paper-plane-o"></i>
-                            <br/>
-                            <div class="tool-label">Return</div>
+                            {% show_icon label='Return' icon='fa fa-2 fa-fw fa-paper-plane-o' %}
                         </a>
                     </div>
                 {% else %}
                     <div class="pull-right box-tools">
                         <a class="pull-right" data-url="{% url "shipment-receive" object.pk %}" title="Receive shipment" style="padding-left: 0.25em">
-                            <i class="fa fa-2 fa-fw fa-handshake-o"></i>
-                            <br/>
-                            <div class="tool-label">Receive</div>
+                            {% show_icon label='Receive' icon='fa fa-2 fa-fw fa-handshake-o' %}
                         </a>
                     </div>
                 {% endif %}
@@ -23,26 +20,10 @@
             {% if object.status >= object.STATES.ON_SITE %}
                 <div class="pull-right box-tools">
                     <a class="pull-right" href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
-                        <span class="fa-stack">
-                            <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-                            {% if object.num_results %}
-                                <span class="fa-stack-1x superscript">
-                                    <span class="badge badge-pill badge-info">{{ object.num_results }}</span>
-                                </span>
-                            {% endif %}
-                        </span><br>
-                        <div class="tool-label">Reports</div>
+                        {% show_icon label='Reports' badge=object.num_results icon='ti ti-1x ti-bar-chart-alt' color='info' %}
                     </a>
                     <a class="pull-right" href="{% url "shipment-data" object.pk %}" title="Go to Data from this shipment">
-                        <span class="fa-stack">
-                            <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
-                            {% if object.num_datasets %}
-                                <span class="fa-stack-1x superscript">
-                                    <span class="badge badge-pill badge-info">{{ object.num_datasets }}</span>
-                                </span>
-                            {% endif %}
-                        </span><br>
-                        <div class="tool-label">Data</div>
+                        {% show_icon label='Data' badge=object.num_datasets icon='ti ti-1x ti-layout-grid3' color='info' %}
                     </a>
                 </div>
             {% endif %}

@@ -1,77 +1,81 @@
 {% extends "users/base.html" %}
-
+{% load icons %}
 {% load link_list %}
 {% load msgs %}
 
 {% block page_heading %}
-<h3 class="text-condensed narrow-heading overflow ellipsis">Welcome {{ user.username|title }}!</h3>
-    <span class="text-muted hidden-xs">Find your current or recent shipments listed here.</span>
+<h3 class="overflow ellipsis narrow-heading text-condensed"> <span class="text-muted">{{ user.username|upper }} |</span> User</h3>
+    <span class="text-muted hidden-xs">
+        Start here to manage and monitor shipments, review recent sessions, view and download data, and much more.
+    </span>
 {% endblock %}
 
 {% block object_tools %}
     <span class="box-tools pull-right">
         <a class="pull-right" href="{% url "project-statistics" username=user.username %}">
-            <i class="ti ti-1x ti-bar-chart"></i>
-            <br/>
-            <div class="tool-label">Usage Stats</div>
+            {% show_icon label='Usage Stats' icon='ti ti-1x ti-stats-up' %}
         </a>
         <a class="pull-right" href="{% url "session-list" %}">
-            <i class="ti ti-1x ti-time"></i>
-            <br/>
-            <div class="tool-label">Sessions</div>
+            {% show_icon label='Sessions' icon='ti ti-1x ti-time' %}
         </a>
         <a href="#!" class="pull-right" data-url="{% url "shipment-new" %}">
-            <i class="ti ti-1x ti-plus"></i>
-            <br/>
-            <div class="tool-label">New Shipment</div>
+            {% show_icon label='New Shipment' icon='ti ti-1x ti-plus' %}
         </a>
     </span>
 {% endblock %}
 
 {% block full %}
 <div class="row">
-    <div class="col-md-9">
-        <div class="list-group">
-            {{ show_info }}
-            <a data-url="{% url "shipment-new" %}" class="list-group-item empty">
-                <div class="row">
-                    <div class="col-xs-12">
-                        <div class="box-status pull-left text-muted">
-                            <div class="text-center text-muted">
-                                <div title="Create a Shipment"
-                                     class="fa fa-2x fa-plus"></div>
-                                <div><small>Start Now</small></div>
-                            </div>
-                        </div>
-                        <div class="box-info text-muted">
-                            <h4 class="text-condensed narrow-heading overflow ellipsis">
-                                Click here to start a new shipment!
-                            </h4>
-                            <span class="overflow ellipsis">Follow the steps to enter your sample information</span>
+
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header"><h5 class="text-center text-wide text-muted m-0">SHIPMENTS</h5></div>
+            <div class="list-group list-group-flush">
+                {{ show_info }}
+                <div class="list-group-item empty">
+                    <div class="row">
+                        <div class="col">
+                            <a href="#!" data-url="{% url "shipment-new" %}">
+                                <div class="box-status pull-left">
+                                    <div class="text-center text-muted">
+                                        <div title="Create a Shipment" class="ti ti-2 ti-plus"></div>
+                                        <div><small>Start Now</small></div>
+                                    </div>
+                                </div>
+                                <div class="box-info">
+                                    <h4 class="text-condensed narrow-heading overflow ellipsis">Click here to start a
+                                        new shipment!</h4>
+                                    <span class="overflow ellipsis">Follow the steps to enter your sample information</span>
+                                </div>
+                            </a>
                         </div>
                     </div>
                 </div>
-            </a>
-            {% for object in shipments %}
-                {% include "users/entries/shipment-list-item.html" with object=object %}
-            {% endfor %}
+                {% for object in shipments %}
+                    {% include "users/entries/shipment-list-item.html" with object=object %}
+                {% endfor %}
+            </div>
         </div>
 
         {% if sessions %}
-            <h3>Recent Beamline Sessions</h3>
-            <hr/>
-            <div class="list-group list-group-hover">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="text-center text-wide text-muted m-0">RECENT SESSIONS</h5>
+            </div>
+            <div class="list-group list-group-flush">
                 {% for session in sessions %}
                     {% include "users/entries/session-list-item.html" with session=session %}
                 {% endfor %}
             </div>
+        </div>
         {% endif %}
     </div>
 
     <!-- right region -->
-	<div class="col-sm-12 col-md-3">
+    <div class="col-sm-12 col-md-4">
         {% load_announcements %}
-	</div>
+    </div>
+
 </div>
 
 {% endblock %}	

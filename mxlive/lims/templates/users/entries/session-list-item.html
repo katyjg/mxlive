@@ -1,41 +1,20 @@
 {% load humanize %}
+{% load icons %}
 
 <div class="list-group-item">
     <div class="row">
         <div class="col">
             <div class="pull-right box-tools">
                 <a class="pull-right" href="{% url "session-reports" session.pk %}" title="Go to Reports from this session">
-                    <span class="fa-stack">
-                        <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-                        {% if session.num_reports %}
-                            <span class="fa-stack-1x superscript">
-                                <span class="badge badge-pill badge-info">{{ session.num_reports }}</span>
-                            </span>
-                        {% endif %}
-                    </span><br>
-                    <span class="tool-label">Reports</span>
+                    {% show_icon label='Reports' badge=session.num_reports icon='ti ti-1x ti-bar-chart-alt' color='info' %}
                 </a>
                 <a class="pull-right" href="{% url "session-data" session.pk %}" title="Go to Data from this session">
-                    <span class="fa-stack">
-                        <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
-                        {% if session.data_set.count %}
-                            <span class="fa-stack-1x superscript">
-                                <span class="badge badge-pill badge-info">{{ session.data_set.count }}</span>
-                            </span>
-                        {% endif %}
-                    </span><br>
-                    <span class="tool-label">Data</span>
+                    {% show_icon label='Data' badge=session.data_set.count icon='ti ti-1x ti-layout-grid3' color='info' %}
                 </a>
             </div>
             <div class="overflow ellipsis">
                 <div class="box-status pull-left text-center text-muted" title="Total time {{ session.total_time|floatformat:0 }} hours">
-                    <span class="fa-stack">
-                        <i class="fa-stack-2x fa fa-clock-o"></i>
-                            <span class="fa-stack-1x superscript">
-                                <span class="badge badge-pill badge-success">{{ session.total_time|floatformat:0 }}</span>
-                            </span>
-                    </span>
-                    <br><span>{{ session.start.date|date:"M j" }}</span>
+                    {% show_icon label=session.start.date|date:"M j"|upper badge=session.total_time|floatformat:0 icon='ti ti-1x ti-time' color='success' %}
                 </div>
                 <div class="box-info">
                     <h5 class="text-condensed narrow-heading overflow ellipsis">

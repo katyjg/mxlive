@@ -393,7 +393,8 @@ class ProjectObjectMixin(models.Model):
         return self.status == self.STATES.RETURNED
 
     def delete(self, *args, **kwargs):
-        super(ProjectObjectMixin, self).delete(*args, **kwargs)
+        if self.is_deletable:
+            super().delete(*args, **kwargs)
 
     def archive(self, request=None):
         if self.is_closable():
@@ -529,13 +530,6 @@ class Shipment(TransitStatusMixin):
     def is_receivable(self):
         return self.status == self.STATES.SENT
 
-    def is_pdfable(self):
-        return self.is_sendable() or self.status >= self.STATES.SENT
-
-    def is_xlsable(self):
-        # can generate spreadsheet as long as there are no orphan samples with no group)
-        return not Sample.objects.filter(container__in=self.container_set.all()).filter(group__exact=None).exists()
-
     def is_returnable(self):
         return self.status == self.STATES.ON_SITE
 
@@ -585,14 +579,6 @@ class Shipment(TransitStatusMixin):
 
     def groups(self):
         return self.group_set.order_by('-priority')
-
-    def delete(self, request=None, cascade=True):
-        if self.is_deletable():
-            if not cascade:
-                self.container_set.all().update(shipment=None)
-            for obj in self.container_set.all():
-                obj.delete(request=request)
-            super(Shipment, self).delete(request=request)
 
     def receive(self, request=None):
         self.date_received = timezone.now()
@@ -796,14 +782,6 @@ class Container(TransitStatusMixin):
             if priority is not None:
                 setattr(self, field, priority)
 
-    def delete(self, request=None, cascade=True):
-        if self.is_deletable:
-            if not cascade:
-                self.samples.all().update(container=None)
-            for obj in self.samples.all():
-                obj.delete(request=request)
-            super(Container, self).delete(request=request)
-
 
 class LoadHistory(models.Model):
     start = models.DateTimeField(auto_now_add=True, editable=False)
@@ -954,14 +932,6 @@ class Group(ProjectObjectMixin):
             status__in=[Sample.STATES.RETURNED, Sample.STATES.ARCHIVED]).exists() and \
                self.status != self.STATES.ARCHIVED
 
-    def delete(self, request=None, cascade=True):
-        if self.is_deletable:
-            if not cascade:
-                self.samples.all().update(group=None)
-            for obj in self.samples.all():
-                obj.group = None
-                obj.delete(request=request)
-            super(Group, self).delete(request=request)
 
     def archive(self, request=None):
         for obj in self.samples.exclude(status__exact=Sample.STATES.ARCHIVED):
@@ -1024,10 +994,9 @@ class Sample(ProjectObjectMixin):
 
     def delete(self, *args, **kwargs):
         if self.is_deletable:
-            if self.group:
-                if self.group.samples.count() == 1:
-                    self.group.delete(*args, **kwargs)
-            super(Sample, self).delete(*args, **kwargs)
+            if self.group and self.group.samples.count() == 1:
+                self.group.delete(*args, **kwargs)
+            super().delete(*args, **kwargs)
 
     def json_dict(self):
         return {

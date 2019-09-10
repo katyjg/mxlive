@@ -3,7 +3,7 @@
 
 
 {% block page_heading %}
-    <h3 class="overflow ellipsis narrow-heading text-condensed"> <span class="text-muted">{{ user.username.upper }} |</span> Staff Portal</h3>
+    <h3 class="overflow ellipsis narrow-heading text-condensed"> <span class="text-muted">{{ user.username|upper }} |</span> Staff </h3>
     <span class="text-muted text-condensed hidden-xs">Start here to manage shipments, load containers on a beamline, view data, and more.</span>
 {% endblock %}
 
@@ -37,8 +37,9 @@
 {% block full %}
     <div class="row">
         <div class="col-xs-12 col-sm-6 col-md-3">
-            <div class="list-group mb-4">
-                <h5 class="list-group-item list-group-item-secondary text-center text-wide text-muted">BEAMLINES</h5>
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="text-center text-wide text-muted m-0">BEAMLINES</h5></div>
+                <div class="list-group list-group-flush list-group-hover">
                 {% for am in automounters %}
                     <a href="{% url "beamline-detail" pk=am.beamline.pk %}" class="text-center list-group-item" style="overflow: auto;">
                         <div class="col-xs-12">
@@ -53,10 +54,11 @@
                         </div>
                     </a>
                 {% endfor %}
+                </div>
             </div>
-            <div class="list-group mb-4">
-                <h5 class="list-group-item list-group-item-secondary text-center text-wide text-muted">ADAPTORS</h5>
-                <div class="list-group-item">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="text-center text-wide text-muted m-0">ADAPTORS</h5></div>
+                <div class="card-body">
                 <div class="row">
                 {% for container in containers %}
                 {% include "users/entries/container-item.html" %}
@@ -67,33 +69,36 @@
 
         </div>
         <div class="col-xs-12 col-sm-6">
-            <div class="list-group mb-4">
-                <h5 class="list-group-item list-group-item-secondary text-center text-wide text-muted">SHIPMENTS</h5>
-                {% for object in shipments %}
-                    {% include "users/entries/shipment-list-item.html" with object=object %}
-                {% endfor %}
-                <div class="list-group-item empty">
-                    <div class="row">
-                    <div class="col">
-                    <a href="#!" data-url="{% url "shipment-new" %}">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="text-center text-wide text-muted m-0">SHIPMENTS</h5></div>
+                <div class="list-group list-group-flush">
+                    {% for object in shipments %}
+                        {% include "users/entries/shipment-list-item.html" with object=object %}
+                    {% endfor %}
+                    <div class="list-group-item empty">
+                        <div class="row">
+                        <div class="col">
+                        <a href="#!" data-url="{% url "shipment-new" %}">
 
-                        <div class="box-status pull-left">
-                            <div class="text-center text-muted">
-                                <div title="Create a Shipment" class="ti ti-2 ti-plus"></div>
-                                <div><small>Start Now</small></div>
+                            <div class="box-status pull-left">
+                                <div class="text-center text-muted">
+                                    <div title="Create a Shipment" class="ti ti-2 ti-plus"></div>
+                                    <div><small>Start Now</small></div>
+                                </div>
                             </div>
+                            <div class="box-info">
+                                <h4 class="text-condensed narrow-heading overflow ellipsis">Click here to start a new shipment!</h4>
+                                <span class="overflow ellipsis">Follow the steps to enter your sample information</span>
+                            </div>
+                        </a>
                         </div>
-                        <div class="box-info">
-                            <h4 class="text-condensed narrow-heading overflow ellipsis">Click here to start a new shipment!</h4>
-                            <span class="overflow ellipsis">Follow the steps to enter your sample information</span>
                         </div>
-                    </a>
-                    </div>
                     </div>
                 </div>
             </div>
-            <div class="list-group mb-4">
-                <h5 class="list-group-item list-group-item-secondary text-center text-wide text-muted">ACTIVE SESSIONS</h5>
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="text-center text-wide text-muted m-0">ACTIVE SESSIONS</h5></div>
+                <div class="list-group list-group-flush">
                 {% for session in sessions %}
                     {% include "users/entries/session-list-item.html" with session=session %}
                 {% empty %}
@@ -101,6 +106,7 @@
                         No active sessions at the moment.
                     </div>
                 {% endfor %}
+                </div>
             </div>
         </div>
 
