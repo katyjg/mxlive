@@ -39,7 +39,7 @@ class UpdatePriority(View):
 
         pks = [u for u in request.POST.getlist('samples[]') if u]
         for i, pk in enumerate(pks):
-            group.sample_set.filter(pk=pk).update(priority=i + 1)
+            group.samples.filter(pk=pk).update(priority=i + 1)
 
         return JsonResponse([], safe=False)
 

@@ -288,7 +288,7 @@ class Session(models.Model):
     num_reports.short_description = "Reports"
 
     def samples(self):
-        return self.project.sample_set.filter(pk__in=self.data_set.values_list('sample__pk', flat=True))
+        return self.project.samples.filter(pk__in=self.data_set.values_list('sample__pk', flat=True))
 
     def is_active(self):
         return self.stretches.active().exists()
@@ -350,7 +350,7 @@ class Stretch(models.Model):
         ordering = ['-start', ]
 
 
-class ProjectOwnerMixin(models.Model):
+class ProjectObjectMixin(models.Model):
     """ STATES/TRANSITIONS define a finite state machine (FSM) for the Shipment (and other
     models.Model instances also defined in this file).
 
@@ -372,7 +372,6 @@ class ProjectOwnerMixin(models.Model):
         STATES.COMPLETE: [STATES.ACTIVE, STATES.PROCESSING, STATES.ARCHIVED],
     }
 
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     name = models.CharField(max_length=60)
     staff_comments = models.TextField(blank=True, null=True)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
@@ -394,7 +393,7 @@ class ProjectOwnerMixin(models.Model):
         return self.status == self.STATES.RETURNED
 
     def delete(self, *args, **kwargs):
-        super(ProjectOwnerMixin, self).delete(*args, **kwargs)
+        super(ProjectObjectMixin, self).delete(*args, **kwargs)
 
     def archive(self, request=None):
         if self.is_closable():
@@ -445,34 +444,34 @@ class ProjectOwnerMixin(models.Model):
         self.save()
 
 
-class TransitStatusMixin(ProjectOwnerMixin):
+class TransitStatusMixin(ProjectObjectMixin):
     STATUS_CHOICES = (
-        (ProjectOwnerMixin.STATES.DRAFT, _('Draft')),
-        (ProjectOwnerMixin.STATES.SENT, _('Sent')),
-        (ProjectOwnerMixin.STATES.ON_SITE, _('On-site')),
-        (ProjectOwnerMixin.STATES.RETURNED, _('Returned')),
-        (ProjectOwnerMixin.STATES.ARCHIVED, _('Archived'))
+        (ProjectObjectMixin.STATES.DRAFT, _('Draft')),
+        (ProjectObjectMixin.STATES.SENT, _('Sent')),
+        (ProjectObjectMixin.STATES.ON_SITE, _('On-site')),
+        (ProjectObjectMixin.STATES.RETURNED, _('Returned')),
+        (ProjectObjectMixin.STATES.ARCHIVED, _('Archived'))
     )
-    status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectOwnerMixin.STATES.DRAFT)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectObjectMixin.STATES.DRAFT)
 
     class Meta:
         abstract = True
 
 
-class ActiveStatusMixin(ProjectOwnerMixin):
+class ActiveStatusMixin(ProjectObjectMixin):
     STATUS_CHOICES = (
-        (ProjectOwnerMixin.STATES.ACTIVE, _('Active')),
-        (ProjectOwnerMixin.STATES.ARCHIVED, _('Archived')),
-        (ProjectOwnerMixin.STATES.TRASHED, _('Trashed'))
+        (ProjectObjectMixin.STATES.ACTIVE, _('Active')),
+        (ProjectObjectMixin.STATES.ARCHIVED, _('Archived')),
+        (ProjectObjectMixin.STATES.TRASHED, _('Trashed'))
     )
-    TRANSITIONS = copy.deepcopy(ProjectOwnerMixin.TRANSITIONS)
-    TRANSITIONS[ProjectOwnerMixin.STATES.ACTIVE] = [ProjectOwnerMixin.STATES.TRASHED, ProjectOwnerMixin.STATES.ARCHIVED]
-    TRANSITIONS[ProjectOwnerMixin.STATES.ARCHIVED] = [ProjectOwnerMixin.STATES.TRASHED]
+    TRANSITIONS = copy.deepcopy(ProjectObjectMixin.TRANSITIONS)
+    TRANSITIONS[ProjectObjectMixin.STATES.ACTIVE] = [ProjectObjectMixin.STATES.TRASHED, ProjectObjectMixin.STATES.ARCHIVED]
+    TRANSITIONS[ProjectObjectMixin.STATES.ARCHIVED] = [ProjectObjectMixin.STATES.TRASHED]
 
-    status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectOwnerMixin.STATES.ACTIVE)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectObjectMixin.STATES.ACTIVE)
 
     def is_closable(self):
-        return self.status not in [ProjectOwnerMixin.STATES.ARCHIVED, ProjectOwnerMixin.STATES.TRASHED]
+        return self.status not in [ProjectObjectMixin.STATES.ARCHIVED, ProjectObjectMixin.STATES.TRASHED]
 
     class Meta:
         abstract = True
@@ -485,6 +484,7 @@ class Shipment(TransitStatusMixin):
         'cascade': 'containers and samples (along with groups, datasets and results)',
         'cascade_help': 'All associated containers will be left without a shipment'
     }
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     comments = models.TextField(blank=True, null=True, max_length=200)
     tracking_code = models.CharField(blank=True, null=True, max_length=60)
     return_code = models.CharField(blank=True, null=True, max_length=60)
@@ -555,7 +555,7 @@ class Shipment(TransitStatusMixin):
         return True
 
     def is_processing(self):
-        return self.project.sample_set.filter(container__shipment__exact=self).filter(
+        return self.project.samples.filter(container__shipment__exact=self).filter(
             Q(pk__in=self.project.data_set.values('sample')) |
             Q(pk__in=self.project.result_set.values('sample'))).exists()
 
@@ -709,6 +709,7 @@ class Container(TransitStatusMixin):
         'cascade': 'samples (along with groups, datasets and results)',
         'cascade_help': 'All associated samples will be left without a container'
     }
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     kind = models.ForeignKey(ContainerType, blank=False, null=False, on_delete=models.CASCADE)
     shipment = models.ForeignKey(Shipment, blank=True, null=True, on_delete=models.SET_NULL)
     comments = models.TextField(blank=True, null=True)
@@ -873,13 +874,13 @@ class SpaceGroup(models.Model):
         return self.name
 
 
-class Group(ProjectOwnerMixin):
+class Group(ProjectObjectMixin):
     STATUS_CHOICES = (
-        (ProjectOwnerMixin.STATES.DRAFT, _('Draft')),
-        (ProjectOwnerMixin.STATES.ACTIVE, _('Active')),
-        (ProjectOwnerMixin.STATES.PROCESSING, _('Processing')),
-        (ProjectOwnerMixin.STATES.COMPLETE, _('Complete')),
-        (ProjectOwnerMixin.STATES.ARCHIVED, _('Archived'))
+        (ProjectObjectMixin.STATES.DRAFT, _('Draft')),
+        (ProjectObjectMixin.STATES.ACTIVE, _('Active')),
+        (ProjectObjectMixin.STATES.PROCESSING, _('Processing')),
+        (ProjectObjectMixin.STATES.COMPLETE, _('Complete')),
+        (ProjectObjectMixin.STATES.ARCHIVED, _('Archived'))
     )
 
     HELP = {
@@ -903,10 +904,11 @@ class Group(ProjectOwnerMixin):
         (2, 'SCREEN_AND_CONFIRM', 'Screen and confirm'),
         (4, 'JUST_COLLECT', 'Collect all'),
     )
-    TRANSITIONS = copy.deepcopy(ProjectOwnerMixin.TRANSITIONS)
-    TRANSITIONS[ProjectOwnerMixin.STATES.DRAFT] = [ProjectOwnerMixin.STATES.ACTIVE]
+    TRANSITIONS = copy.deepcopy(ProjectObjectMixin.TRANSITIONS)
+    TRANSITIONS[ProjectObjectMixin.STATES.DRAFT] = [ProjectObjectMixin.STATES.ACTIVE]
 
-    status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectOwnerMixin.STATES.DRAFT)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectObjectMixin.STATES.DRAFT)
     shipment = models.ForeignKey(Shipment, null=True, blank=True, on_delete=models.SET_NULL)
     energy = models.DecimalField(null=True, max_digits=10, decimal_places=4, blank=True)
     resolution = models.FloatField('Desired Resolution (&#8491;)', null=True, blank=True)
@@ -930,42 +932,42 @@ class Group(ProjectOwnerMixin):
     identity.admin_order_field = 'pk'
 
     def num_samples(self):
-        return self.sample_set.count()
+        return self.samples.count()
 
     def complete(self):
-        return not self.sample_set.filter(collect_status=False).exists()
+        return not self.samples.filter(collect_status=False).exists()
 
     def best_sample(self):
         # need to change to [id, score]
         if self.plan == Group.EXP_PLANS.COLLECT_BEST:
-            results = self.project.result_set.filter(group=self, sample__in=self.sample_set.all()).order_by('-score')
+            results = self.project.result_set.filter(group=self, sample__in=self.samples.all()).order_by('-score')
             if results:
                 return [results[0].sample.pk, results[0].score]
 
     def unassigned_samples(self):
-        return self.sample_count - self.sample_set.count()
+        return self.sample_count - self.samples.count()
 
     def is_closable(self):
-        return self.sample_set.all().exists() and not self.sample_set.exclude(
+        return self.samples.all().exists() and not self.samples.exclude(
             status__in=[Sample.STATES.RETURNED, Sample.STATES.ARCHIVED]).exists() and \
                self.status != self.STATES.ARCHIVED
 
     def delete(self, request=None, cascade=True):
         if self.is_deletable:
             if not cascade:
-                self.sample_set.all().update(group=None)
-            for obj in self.sample_set.all():
+                self.samples.all().update(group=None)
+            for obj in self.samples.all():
                 obj.group = None
                 obj.delete(request=request)
             super(Group, self).delete(request=request)
 
     def archive(self, request=None):
-        for obj in self.sample_set.exclude(status__exact=Sample.STATES.ARCHIVED):
+        for obj in self.samples.exclude(status__exact=Sample.STATES.ARCHIVED):
             obj.archive(request=request)
         super(Group, self).archive(request=request)
 
 
-class Sample(ProjectOwnerMixin):
+class Sample(ProjectObjectMixin):
     HELP = {
         'cascade': 'datasets and results',
         'cascade_help': 'All associated datasets and results will be left without a sample',
@@ -976,6 +978,7 @@ class Sample(ProjectOwnerMixin):
         'group': 'This field is optional here.  Samples can also be added to a group on the groups page.',
         'container': 'This field is optional here.  Samples can also be added to a container on the containers page.',
     }
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='samples')
     barcode = models.SlugField(null=True, blank=True)
     container = models.ForeignKey(Container, null=True, blank=True, on_delete=models.CASCADE, related_name='samples')
     location = models.CharField(max_length=10, null=True, blank=True, verbose_name='port')
@@ -1020,7 +1023,7 @@ class Sample(ProjectOwnerMixin):
     def delete(self, *args, **kwargs):
         if self.is_deletable:
             if self.group:
-                if self.group.sample_set.count() == 1:
+                if self.group.samples.count() == 1:
                     self.group.delete(*args, **kwargs)
             super(Sample, self).delete(*args, **kwargs)
 
@@ -1109,6 +1112,7 @@ class Data(ActiveStatusMixin):
                             'detector_size', 'pixel_size', 'beam_x', 'beam_y', 'inverse_beam'],
         DATA_TYPES.XRD_DATA: [],
     }
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL)
     sample = models.ForeignKey(Sample, null=True, blank=True, on_delete=models.SET_NULL)
     session = models.ForeignKey(Session, null=True, blank=True, on_delete=models.SET_NULL)
@@ -1196,6 +1200,7 @@ class Data(ActiveStatusMixin):
 
 
 class AnalysisReport(ActiveStatusMixin):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     kind = models.CharField(max_length=100)
     score = models.FloatField(null=True, default=0.0)
     data = models.ManyToManyField(Data, blank=True, related_name="reports")

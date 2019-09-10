@@ -1,27 +1,21 @@
-<div class="list-group-item list-group-item-{% if object.status == object.STATES.ON_SITE %}info
-            {% elif object.status == object.STATES.DRAFT %}warning
-            {% elif object.status == object.STATES.SENT %}success
-            {% elif object.status == object.STATES.RETURNED and not user.is_superuser %} empty
-            {% else %}default{% endif %}">
+<div class="list-group-item list-group-item-{% if object.status == object.STATES.ON_SITE %}primary{% elif object.status == object.STATES.DRAFT %}warning{% elif object.status == object.STATES.SENT %}success{% elif object.status == object.STATES.RETURNED and not user.is_superuser %}empty{% else %}default{% endif %}">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col">
             {% if user.is_superuser and object.status <= object.STATES.ON_SITE and object.status >= object.STATES.SENT %}
                 {% if object.status == object.STATES.ON_SITE %}
                     <div class="pull-right box-tools">
                         <a class="pull-right" data-url="{% url "shipment-return" object.pk %}" title="Return shipment">
-                            <span class="fa-stack">
-                                <i class="fa-stack-2x fa fa-2 fa-fw fa-paper-plane"></i>
-                            </span><br/>
-                            <span class="tool-label">Return</span>
+                            <i class="fa fa-2 fa-fw fa-paper-plane-o"></i>
+                            <br/>
+                            <div class="tool-label">Return</div>
                         </a>
                     </div>
                 {% else %}
                     <div class="pull-right box-tools">
                         <a class="pull-right" data-url="{% url "shipment-receive" object.pk %}" title="Receive shipment" style="padding-left: 0.25em">
-                            <span class="fa-stack">
-                                <i class="fa-stack-2x fa fa-2 fa-handshake-o"></i>
-                            </span><br/>
-                            <span class="tool-label">Receive</span>
+                            <i class="fa fa-2 fa-fw fa-handshake-o"></i>
+                            <br/>
+                            <div class="tool-label">Receive</div>
                         </a>
                     </div>
                 {% endif %}
@@ -37,7 +31,7 @@
                                 </span>
                             {% endif %}
                         </span><br>
-                        <span class="tool-label">Reports</span>
+                        <div class="tool-label">Reports</div>
                     </a>
                     <a class="pull-right" href="{% url "shipment-data" object.pk %}" title="Go to Data from this shipment">
                         <span class="fa-stack">
@@ -48,21 +42,21 @@
                                 </span>
                             {% endif %}
                         </span><br>
-                        <span class="tool-label">Data</span>
+                        <div class="tool-label">Data</div>
                     </a>
                 </div>
             {% endif %}
 
-            <div class="box-status pull-left text-muted">
-                <div class="text-center text-muted">
+            <div class="box-status">
+                <div class="text-center">
                     <div title="{% if object.status == object.STATES.ON_SITE %}On-site with location: {{ object.storage_location }}
                                 {% elif object.status == object.STATES.SENT %}Sent on {{ object.date_shipped }}
                                 {% elif object.status == object.STATES.RETURNED %}Returned on {{ object.date_returned }}{% endif %}"
-                         class="fa fa-2x {% if object.status == object.STATES.DRAFT %}fa-clipboard
-                                         {% elif object.status == object.STATES.SENT %}fa-plane
-                                         {% elif object.status == object.STATES.ON_SITE %}fa-map-marker
-                                         {% elif object.status == object.STATES.RETURNED %}fa-plane
-                                         {% elif object.status == object.STATES.ARCHIVED %}fa-archive{% endif %}"></div>
+                         class="{% if object.status == object.STATES.DRAFT %}ti ti-2 ti-clipboard
+                                         {% elif object.status == object.STATES.SENT %}fa fa-2 fa-plane
+                                         {% elif object.status == object.STATES.ON_SITE %}ti ti-2 ti-location-pin
+                                         {% elif object.status == object.STATES.RETURNED %}fa fa-2 fa-plane
+                                         {% elif object.status == object.STATES.ARCHIVED %}ti ti-2 ti-archive{% endif %}"></div>
                     <div><small>{% if object.status == object.STATES.DRAFT %}DRAFT
                                 {% elif object.status == object.STATES.SENT %}{{ object.date_shipped|date:"M d"|upper }}
                                 {% elif object.status == object.STATES.ON_SITE %}{{ object.date_received|date:"M d"|upper }}
@@ -70,10 +64,10 @@
                 </div>
             </div>
             <div class="box-info text-muted">
-                <h4 class="text-condensed narrow-heading overflow ellipsis"><a class="text-muted" href="{% url "shipment-detail" object.pk %}" title='View Shipment "{{ object.name }}"'>
-                    <strong>{% if user.is_superuser %}{{ object.project }}{% else %}{{ object.identity }}{% endif %}</strong> |
+                <h5 class="text-condensed narrow-heading overflow ellipsis"><a class="text-muted" href="{% url "shipment-detail" object.pk %}" title='View Shipment "{{ object.name }}"'>
+                    <strong>{% if user.is_superuser %}{{ object.project.name.upper }}{% else %}{{ object.identity }}{% endif %}</strong> |
                     {{ object.name }}
-                </a></h4>
+                </a></h5>
                 <span class="overflow ellipsis">
                     <strong>{{ object.num_containers }}</strong> Container{{ object.num_containers|pluralize }} /
                     <strong>{{ object.groups.count }}</strong> Group{{ object.groups.count|pluralize }} /

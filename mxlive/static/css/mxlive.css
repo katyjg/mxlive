@@ -204,6 +204,7 @@ img.line-icon {
 
 .text-wide {
     font-family: "Fira Sans";
+    letter-spacing: 0.125em;
 }
 .ellipsis {
     text-overflow: ellipsis;
@@ -1240,3 +1241,8 @@ span.label-unusable-score {
     padding-top: 3px;
     padding-bottom: 3px;
 }
+
+a:hover {
+    text-decoration: none;
+}
+

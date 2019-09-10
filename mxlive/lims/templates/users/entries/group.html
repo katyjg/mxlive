@@ -93,7 +93,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                {% for sample in object.sample_set.all %}
+                {% for sample in object.samples.all %}
                     <tr sample="{{ sample.pk }}" data-detail-url="{% url 'sample-edit' sample.pk %}">
                         <td><span class='cursor'><i class='movable fa fa-fw fa-1x fa-grip'></i> {{ sample.priority }}</span></td>
                         <td class="input"><input id="name-{{ forloop.counter }}" type="text" initial="{{ sample.name }}" value="{{ sample.name }}" /></td>

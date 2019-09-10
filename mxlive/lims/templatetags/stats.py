@@ -181,7 +181,7 @@ def get_project_stats(user):
                             user.container_set.filter(status__gte=Container.STATES.ON_SITE).count())],
                         ['Groups / Samples', "{} / {}".format(
                             user.group_set.filter(shipment__status__gte=Shipment.STATES.ON_SITE).count(),
-                            user.sample_set.filter(container__status__gte=Container.STATES.ON_SITE).count())],
+                            user.samples.filter(container__status__gte=Container.STATES.ON_SITE).count())],
                     ],
                     'header': 'column',
                     'style': 'col-sm-6'

@@ -2,7 +2,7 @@
 
 <div class="list-group-item">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col">
             <div class="pull-right box-tools">
                 <a class="pull-right" href="{% url "session-reports" session.pk %}" title="Go to Reports from this session">
                     <span class="fa-stack">
@@ -32,17 +32,17 @@
                     <span class="fa-stack">
                         <i class="fa-stack-2x fa fa-clock-o"></i>
                             <span class="fa-stack-1x superscript">
-                                <span class="badge progress-bar-success">{{ session.total_time|floatformat:0 }}</span>
+                                <span class="badge badge-pill badge-success">{{ session.total_time|floatformat:0 }}</span>
                             </span>
                     </span>
                     <br><span>{{ session.start.date|date:"M j" }}</span>
                 </div>
                 <div class="box-info">
-                    <h4 class="text-condensed narrow-heading overflow ellipsis">
+                    <h5 class="text-condensed narrow-heading overflow ellipsis">
                         <a class="text-muted" href="{% url "session-detail" session.pk %}" title='View Session "{{ session.name }}"'>
-                        <strong>{{ session.beamline.acronym }}</strong>{% if user.is_superuser %} | {{ session.project }}{% endif %} | {{ session.name }}
+                        <strong>{{ session.beamline.acronym }}</strong>{% if user.is_superuser %} | {{ session.project.name.upper }}{% endif %} | {{ session.name }}
                         </a>
-                    </h4>
+                    </h5>
                     <span class="text-muted overflow ellipsis">Last record {{ session.data_set.last.modified|naturaltime }}</span>
                 </div>
             </div>

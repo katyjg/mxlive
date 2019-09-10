@@ -199,7 +199,7 @@ class DetailListMixin(OwnerRequiredMixin):
 
     def get_queryset(self):
         qs = super(DetailListMixin, self).get_queryset()
-        return self.get_object().sample_set.all()
+        return self.get_object().samples.all()
 
 
 class ShipmentList(ListViewMixin, ItemListView):
@@ -612,7 +612,7 @@ class GroupEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, 
 
     def form_valid(self, form):
         resp = super(GroupEdit, self).form_valid(form)
-        for s in self.object.sample_set.all():
+        for s in self.object.samples.all():
             if self.original_name in s.name:
                 models.Sample.objects.filter(pk=s.pk).update(name=s.name.replace(self.original_name, self.object.name))
         return resp
@@ -903,8 +903,8 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                                                                name=name, project=project, priority=j))
                                 j += 1
                         models.Sample.objects.bulk_create(to_create)
-                        if group.sample_count < group.sample_set.count():
-                            group.sample_count = group.sample_set.count()
+                        if group.sample_count < group.samples.count():
+                            group.sample_count = group.samples.count()
                             group.save()
                 if project != self.request.user and self.request.user.is_superuser:
                     self.shipment.send()
@@ -954,7 +954,7 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
         initial['shipment'] = models.Shipment.objects.get(pk=self.kwargs.get('pk'))
         initial['containers'] = [(c.pk, c.kind.pk) for c in initial['shipment'].container_set.all()]
         initial['sample_locations'] = json.dumps(
-            {g.name: {c.pk: list(c.sample_set.filter(group=g).values_list('location', flat=True))
+            {g.name: {c.pk: list(c.samples.filter(group=g).values_list('location', flat=True))
                       for c in initial['shipment'].container_set.all()}
              for g in initial['shipment'].group_set.all()})
         if initial['shipment']:
@@ -990,7 +990,7 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
                 group, created = models.Group.objects.get_or_create(**info)
             to_create = []
             j = 1
-            priority = max(group.sample_set.values_list('priority', flat=True) or [0]) + 1
+            priority = max(group.samples.values_list('priority', flat=True) or [0]) + 1
             names = []
             for c, locations in sample_locations.get(group.name, {}).items():
                 container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
@@ -1009,8 +1009,8 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
                         priority += 1
 
             models.Sample.objects.bulk_create(to_create)
-            if group.sample_count < group.sample_set.count():
-                group.sample_count = group.sample_set.count()
+            if group.sample_count < group.samples.count():
+                group.sample_count = group.samples.count()
                 group.save()
         return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': data['shipment'].pk})})
 
@@ -1026,7 +1026,7 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
         initial['shipment'] = self.get_object().shipment
         initial['containers'] = [(c.pk, c.kind.pk, c.name) for c in initial['shipment'].container_set.all()]
         initial['sample_locations'] = json.dumps(
-            {g.name: {c.pk: list(c.sample_set.filter(group=g).values_list('location', flat=True))
+            {g.name: {c.pk: list(c.samples.filter(group=g).values_list('location', flat=True))
                       for c in initial['shipment'].container_set.all()}
              for g in initial['shipment'].group_set.all()})
         initial['containers'] = initial['shipment'].container_set.all()
@@ -1046,7 +1046,7 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
         #group = models.Group.objects.get(pk=int(data['id']))
         to_create = []
         j = 1
-        priority = max(group.sample_set.values_list('priority', flat=True) or [0]) + 1
+        priority = max(group.samples.values_list('priority', flat=True) or [0]) + 1
         names = []
         for c, locations in sample_locations.get(group.name, {}).items():
             container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
@@ -1065,8 +1065,8 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
                     priority += 1
 
         models.Sample.objects.bulk_create(to_create)
-        if group.sample_count < group.sample_set.count():
-            group.sample_count = group.sample_set.count()
+        if group.sample_count < group.samples.count():
+            group.sample_count = group.samples.count()
             group.save()
         return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': data['shipment'].pk})})
 

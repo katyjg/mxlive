@@ -1,4 +1,5 @@
-function createNodes(data, envelope, calc_width, calc_height, detail) {
+function createNodes(data, envelope, calc_width, calc_height, brief) {
+    var detail = !brief
     var nodes = [], x, y;
     for (var key in data) {
         var coords = data[key];

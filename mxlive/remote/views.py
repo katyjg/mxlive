@@ -260,7 +260,7 @@ class ProjectSamples(VerificationMixin, View):
         except:
             raise http.Http404("Beamline does not exist")
 
-        sample_list = project.sample_set.filter(container__status=Container.STATES.ON_SITE).order_by('group__priority',
+        sample_list = project.samples.filter(container__status=Container.STATES.ON_SITE).order_by('group__priority',
                                                                                                      'priority')
         dewar = beamline.active_dewar()
 
@@ -388,7 +388,7 @@ class AddData(VerificationMixin, View):
             return http.HttpResponseServerError("Unable to create SecurePath")
 
         session = beamline.active_session()
-        sample = project.sample_set.filter(pk=info.get('sample_id')).first()
+        sample = project.samples.filter(pk=info.get('sample_id')).first()
         data = Data.objects.filter(pk=info.get('id')).first()
 
         details = {

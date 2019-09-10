@@ -46,10 +46,10 @@
                 var child_locations = {% if not child.accepts_children and brief %}[]{% else %}{{ child.kind.layout|kind_json:child.pk }}{% endif %};
                 var child_envelope = '{{ child.kind.envelope }}';
                 var child_size = d3.select('#id-{{ child.parent.pk }}-{{child.location }}').node().getBBox();
-                var child_nodes = createNodes(child_locations.locations, child_envelope, child_size.width, child_size.height, {% if brief %}false{% else %}true{% endif %});
+                var child_nodes = createNodes(child_locations.locations, child_envelope, child_size.width, child_size.height, brief);
                 var child_labels = {% if not child.accepts_children %}[]{% else %}child_nodes{% endif %};
                 if (child_locations.labels && child_size.width > 100) {
-                    child_labels = createNodes(child_locations.labels, child_envelope, child_size.width, child_size.height, false);
+                    child_labels = createNodes(child_locations.labels, child_envelope, child_size.width, child_size.height, true);
                 }
 
                 {% with child.parent.kind|get_coords:child.location as cc %}
@@ -96,7 +96,7 @@
                         'parent': "{{ child.pk }}-{{ grandchild.pk }}",
                     };
 
-                    drawChild(svgChild, grandchild_info, false, brief );
+                    //drawChild(svgChild, grandchild_info, false, true );
                 {% endfor %}
             {% endfor %}
         {% endif %}

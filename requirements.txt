@@ -10,3 +10,4 @@ jsonfield2==3.0.2
 msgpack==0.6.1
 numpy>=1.17.1
 pip-chill==0.1.8
+psycopg2-binary

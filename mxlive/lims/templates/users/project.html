@@ -11,22 +11,19 @@
 {% block object_tools %}
     <span class="box-tools pull-right">
         <a class="pull-right" href="{% url "project-statistics" username=user.username %}">
-            <span class="fa-stack">
-                <i class="fa fa-stack-2x fa-2 fa-bar-chart-o"></i>
-            </span><br/>
-            <span class="tool-label">Usage Stats</span>
+            <i class="ti ti-1x ti-bar-chart"></i>
+            <br/>
+            <div class="tool-label">Usage Stats</div>
         </a>
         <a class="pull-right" href="{% url "session-list" %}">
-            <span class="fa-stack">
-                <i class="fa fa-stack-2x fa-2 fa-clock-o"></i>
-            </span><br/>
-            <span class="tool-label">Sessions</span>
+            <i class="ti ti-1x ti-time"></i>
+            <br/>
+            <div class="tool-label">Sessions</div>
         </a>
-        <a class="pull-right" data-url="{% url "shipment-new" %}">
-            <span class="fa-stack">
-                <i class="fa fa-stack-2x fa-2 fa-plus"></i>
-            </span><br/>
-            <span class="tool-label">New Shipment</span>
+        <a href="#!" class="pull-right" data-url="{% url "shipment-new" %}">
+            <i class="ti ti-1x ti-plus"></i>
+            <br/>
+            <div class="tool-label">New Shipment</div>
         </a>
     </span>
 {% endblock %}

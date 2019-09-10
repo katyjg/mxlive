@@ -98,7 +98,7 @@
             {% if object.accepts_children %}
                 {% include "users/entries/loaded-list.html" with object=object %}
             {% else %}
-                {% include "itemlist/list.html" with object_list=object.sample_set.all %}
+                {% include "itemlist/list.html" with object_list=object.samples.all %}
             {% endif %}
         </div>
         <div {% if object.accepts_children %}id="admin-assign"{% endif %} class="col-sm-4 col-xs-12 pull-right">
@@ -112,7 +112,7 @@
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        {% for sample in object.sample_set.all %}
+        {% for sample in object.samples.all %}
             $('circle[sample={{ sample.name }}]').attr('data-href', '{% url "sample-detail" sample.pk %}');
         {% endfor %}
     });

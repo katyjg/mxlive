@@ -12,7 +12,7 @@
             <th>Data</th>
         </tr>
     </thead>
-    {% for sample in group.sample_set.all %}
+    {% for sample in group.samples.all %}
         <tr class="hover-row" sample="{{ sample.name }}">
             <td class="col-xs-2">
                 {% if request.user.is_superuser %}
