@@ -13,8 +13,8 @@ def update_location_coords(apps, schema_editor):
         if kind:
             layout = kind.layout
             x, y = layout.get('locations', {}).get(loc.name, [0.0, 0.0])
-            loc.x = x*100
-            loc.y = y*100
+            loc.x = x
+            loc.y = y
             loc.save()
 
 
