@@ -697,6 +697,8 @@ class ContainerType(models.Model):
 class ContainerLocation(models.Model):
     name = models.CharField(max_length=5)
     accepts = models.ManyToManyField(ContainerType, blank=True, related_name="locations")
+    x = models.FloatField(default=0.0)
+    y = models.FloatField(default=0.0)
 
     def __str__(self):
         return self.name
