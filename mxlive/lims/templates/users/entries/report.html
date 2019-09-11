@@ -25,12 +25,14 @@
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
-            <div class="col-xs-2">
-                <h3 class="no-vmargin">
-                    <span title="Score" class="badge" style="color: #fff; background-color: {{ object.score|color_score }};">{{ object.score|floatformat:2 }}</span>
+            <div class="col-1">
+                <h3 class="m-0">
+                    <span title="Score"
+                          class="badge score" style="text-shadow: 0 0 3px rgba(0, 0, 0, 0.7); color: #fff; background-color: {{ object.score|score_color }};"
+                    >{{ object.score|floatformat:2 }}</span>
                 </h3>
             </div>
-            <div class="col-xs-3">
+            <div class="col">
                 <small class="text-muted text-condensed">Session:</small><br>
                 {% for session in object.sessions %}
                     <a href="{% url "session-detail" session.pk %}">{{ session.name }}</a>
@@ -42,11 +44,11 @@
                     <a href="{% url "session-detail" object.session.pk %}">{{ object.session.name }}</a>
                 {% endif %}
             </div>
-            <div class="col-xs-4">
+            <div class="col">
                 <small class="text-muted text-condensed">Data:</small><br>
                 {% for data in object.data.all %}<a data-url="{% url "data-detail" data.pk %}">{{ data.name }}</a>{% if not forloop.last %}<span class="text-muted"> | </span>{% endif %}{% endfor %}
             </div>
-            <div class="col-xs-3 text-right">
+            <div class="col">
                 <small class="text-muted text-condensed">Uploaded:</small><br>
                 {{ object.modified }}
             </div>

@@ -1,5 +1,6 @@
 from django import template
 from django.utils.safestring import mark_safe
+from mxlive.utils import colors
 
 register = template.Library()  
 SCORE_CLASSES = [(0.8, 1, 'excellent-score'),
@@ -24,11 +25,8 @@ def label_score(value):
             return c
     return "unusable-score"
 
+
 @register.filter("score_color")
 def score_color(value):
-    ffmt = '%%0.%df' % decimal_places
-    for lo, hi, c in SCORE_CLASSES:
-        if lo < value <= hi:
-            return mark_safe('<span class="%s">%s</span>' % (c, ffmt % value))
-    else:
-        return mark_safe('<span class="unusable-score">%s</span>' % (c, ffmt % value))
+    rgba = colors.colormap(value)
+    return 'rgba({}, {}, {}, {:0.2f})'.format(*rgba)
