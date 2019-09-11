@@ -1,11 +1,11 @@
 <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mini-thumbnail pull-right">
     <a data-url="{% url 'data-detail' data.pk %}">
     <div class="list-group-item list-group-item-success text-condensed">
-        <span class="pull-right badge badge-default">{{ data.beamline.acronym }}</span>
+        <span class="pull-right badge badge-secondary">{{ data.beamline.acronym }}</span>
         <span class="overflow ellipsis"><strong>{{ data.name }} </strong> | {{ data.get_kind_display }}</span>
         <span class="text-muted overflow ellipsis">
             {% if 'MX' in data.kind or data.kind == 'XRD_DATA' %}
-                {{ data.total_angle }}&#176; total | {{ data.exposure_time }}s &middot; {{ data.meta_data.delta_angle }}&#176;/frame<br/>
+                {{ data.total_angle|floatformat }}&#176; total | {{ data.exposure_time }}s &middot; {{ data.meta_data.delta_angle }}&#176;/frame<br/>
             {% else %}
 
             {% endif %}

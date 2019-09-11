@@ -16,7 +16,7 @@ def get_container_projects(obj):
 
 @register.filter
 def num_containers(project, container):
-    return project.container_set.filter(parent=container).count()
+    return project.containers.filter(parent=container).count()
 
 
 @register.simple_tag

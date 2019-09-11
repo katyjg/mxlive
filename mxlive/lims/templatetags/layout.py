@@ -23,7 +23,7 @@ def get_kind_json(data, container, create=False):
                 loc_info = {
                     'sample': sample and sample.name or child and child.name or '',
                     'group': sample and sample.group.name or '',
-                    'started': sample and sample.data_set.count() or 0,
+                    'started': sample and sample.datasets.count() or 0,
                     'accepts': location and ';'.join(location.accepts.values_list('name', flat=True)) or False
                 }
                 data['locations'][loc].append(loc_info)
@@ -69,7 +69,7 @@ def kind_json(data, pk):
             loc_info = {
                 'sample': sample and sample.name or child and child.name or '',
                 'group': sample and sample.group.name or '',
-                'started': sample and sample.data_set.count() or 0,
+                'started': sample and sample.datasets.count() or 0,
                 'accepts': location and ';'.join(location.accepts.values_list('name', flat=True)) or False
             }
             data['locations'][loc].append(loc_info)

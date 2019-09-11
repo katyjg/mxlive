@@ -6,19 +6,19 @@
             {% if user.is_superuser %}
                <li class="nav-item">
                    <a  class="nav-link" href="/admin/" target="_blank">
-                       <i class="ti ti-unlock ti-1x"></i><span class="d-none d-md-inline-block">&nbsp;Admin</span>
+                       <i class="ti ti-unlock"></i><span class="d-none d-md-inline-block">&nbsp;Admin</span>
                    </a>
                </li>
             {% endif %}
             <li class="nav-item active">
                 <a class="nav-link" href="{% url "dashboard" %}">
-                    <i class="ti ti-home ti-1x"></i><span class="d-none d-md-inline-block">&nbsp;Dashboard</span>
+                    <i class="ti ti-home"></i><span class="d-none d-md-inline-block">&nbsp;Dashboard</span>
                 </a>
             </li>
             <li class="nav-item dropdown">
                 <a class="nav-link  dropdown-toggle mr-md-2" href="#"
                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="search-menu">
-                    <i class="ti ti-list ti-1x"></i><span class="d-none d-md-inline-block">&nbsp;Search</span>
+                    <i class="ti ti-list"></i><span class="d-none d-md-inline-block">&nbsp;Search</span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="search-menu">
                     <a class="dropdown-item" href='{% url "shipment-list" %}'>Shipments</a>
@@ -36,7 +36,7 @@
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle mr-md-2" href="#"
                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="profile-menu">
-                    <i class="ti ti-user ti-1x"></i><span class="d-none d-md-inline-block">&nbsp;{{user.name.upper}}</span>
+                    <i class="ti ti-user"></i><span class="d-none d-md-inline-block">&nbsp;{{user.name.upper}}</span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="profile-menu">
                     <div class="">

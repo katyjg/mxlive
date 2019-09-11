@@ -1,5 +1,6 @@
 {% extends "users/entries/session-data.html" %}
 {% load static %}
+{% load icons %}
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
         <i class="text-muted fa fa-fw {% if shipment.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
@@ -13,15 +14,7 @@
 {% block object_tools %}
     <span class="box-tools pull-right">
         <a class="pull-right" href="{% url "session-data" shipment.pk %}" title="Go to Data from this session">
-            <span class="fa-stack">
-                <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
-                {% if shipment.data_set.count %}
-                    <span class="fa-stack-1x superscript">
-                        <span class="badge badge-pill badge-info">{{ shipment.data_set.count }}</span>
-                    </span>
-                {% endif %}
-            </span><br>
-            <span class="tool-label">Data</span>
+            {% show_icon label='Data' icon='ti ti-1x ti-layout-grid3' badge=shipment.datasets.count %}
         </a>
     </span>
 {% endblock %}

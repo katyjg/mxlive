@@ -9,7 +9,7 @@
     </h3>
     <span class="text-muted">
         {% if object.shipment %}
-            <strong>1</strong> of <strong>{{ object.shipment.group_set.count }}</strong> Group{{ object.shipment.group_set.count|pluralize }} in Shipment {{object.shipment.name}}
+            <strong>1</strong> of <strong>{{ object.shipment.groups.count }}</strong> Group{{ object.shipment.groups.count|pluralize }} in Shipment {{object.shipment.name}}
         {% else %}
             Group not in a shipment.
         {% endif %}

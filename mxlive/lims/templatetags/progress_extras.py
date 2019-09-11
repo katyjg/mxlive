@@ -5,13 +5,13 @@ register = Library()
 
 @register.filter
 def num_session_samples(group, session):
-    return group.samples.filter(pk__in=session.data_set.values_list('sample__pk')).count()
+    return group.samples.filter(pk__in=session.datasets.values_list('sample__pk')).count()
 
 
 @register.simple_tag
 def group_samples(group, session=None):
     if session:
-        return group.samples.filter(pk__in=session.data_set.values_list('sample__pk'))
+        return group.samples.filter(pk__in=session.datasets.values_list('sample__pk'))
     return group.samples.all()
 
 
@@ -19,11 +19,11 @@ def group_samples(group, session=None):
 def sample_data(sample, session=None):
     if session:
         return {
-            'data': sample.data_set.filter(session=session),
-            'reports': sample.reports().filter(Q(data__in=sample.data_set.filter(session=session)) | Q(data__isnull=True))
+            'data': sample.datasets.filter(session=session),
+            'reports': sample.reports().filter(Q(data__in=sample.datasets.filter(session=session)) | Q(data__isnull=True))
         }
     return {
-        'data': sample.data_set.all(),
+        'data': sample.datasets.all(),
         'reports': sample.reports().all()
     }
 

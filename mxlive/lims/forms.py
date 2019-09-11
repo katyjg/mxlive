@@ -392,8 +392,8 @@ class ShipmentReturnForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ShipmentReturnForm, self).__init__(*args, **kwargs)
-        if self.instance.container_set.filter(parent__isnull=False):
-            self.fields['loaded'].label += ": {}".format(','.join(self.instance.container_set.filter(parent__isnull=False).values_list('name', flat=True)))
+        if self.instance.containers.filter(parent__isnull=False):
+            self.fields['loaded'].label += ": {}".format(','.join(self.instance.containers.filter(parent__isnull=False).values_list('name', flat=True)))
         else:
             self.fields['loaded'].initial = True
             self.fields['loaded'].widget = forms.HiddenInput()
@@ -639,7 +639,7 @@ class GroupForm(forms.ModelForm):
 
     def clean_name(self):
         name = self.cleaned_data.get('name')
-        if self.instance.shipment.group_set.filter(name=name).exclude(pk=self.instance.pk).exists():
+        if self.instance.shipment.groups.filter(name=name).exclude(pk=self.instance.pk).exists():
             self.add_error('name', forms.ValidationError("Groups in a shipment must each have a unique name"))
         return name
 
@@ -858,9 +858,9 @@ class ShipmentContainerForm(forms.ModelForm):
         )
 
         if self.initial.get('shipment'):
-            self.repeated_data['name_set'] = [str(c.name) for c in self.initial['shipment'].container_set.all()]
-            self.repeated_data['id_set'] = [c.pk for c in self.initial['shipment'].container_set.all()]
-            self.repeated_data['kind_set'] = [c.kind.pk for c in self.initial['shipment'].container_set.all()]
+            self.repeated_data['name_set'] = [str(c.name) for c in self.initial['shipment'].containers.all()]
+            self.repeated_data['id_set'] = [c.pk for c in self.initial['shipment'].containers.all()]
+            self.repeated_data['kind_set'] = [c.kind.pk for c in self.initial['shipment'].containers.all()]
             self.helper.form_action = reverse_lazy('shipment-add-containers', kwargs={'pk': self.initial['shipment'].pk})
             self.helper.title = 'Add Containers to Shipment'
             action_row.append(Div(
@@ -992,7 +992,7 @@ class ShipmentGroupForm(forms.ModelForm):
         )
 
         if self.initial.get('shipment'):
-            groups = self.initial['shipment'].group_set.order_by('priority')
+            groups = self.initial['shipment'].groups.order_by('priority')
             self.repeated_data = {
                 'name_set': [str(group.name) for group in groups],
                 'priority_set': [group.priority or 0 for group in groups],

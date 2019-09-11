@@ -1,4 +1,4 @@
-
+{% load icons %}
 {% if object.status != object.STATES.ON_SITE and object.status < object.STATES.RETURNED and request.user == object.project or request.user.is_superuser and object.status >= object.STATES.SENT and object.status < object.STATES.ARCHIVED %}
 <span class="box-tools pull-right">
     {% comment %}Shipment Actions{% endcomment %}
@@ -6,69 +6,36 @@
         {% comment %}User Actions{% endcomment %}
         {% if object.status == object.STATES.DRAFT %}
             <a class="pull-right" data-url="{% url "shipment-delete" object.pk %}">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-2 fa-fw fa-remove"></i></span><br>
-                <span class="tool-label">Delete</span>
+                {% show_icon label='Delete' icon='ti ti-1x ti-trash' %}
             </a>
             <a class="pull-right" data-url="{% url "shipment-edit" object.pk %}">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-2 fa-fw fa-pencil"></i></span><br>
-                <span class="tool-label">Edit</span>
+                {% show_icon label='Edit' icon='ti ti-1x ti-pencil-alt' %}
             </a>
             <a class="pull-right" data-url="{% url "shipment-send" object.pk %}">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-2 fa-fw fa-paper-plane-o"></i>
-                    {% if object.shipping_errors %}<span class="fa-stack-1x superscript">
-                        <span class="badge progress-bar-warning">
-                            {{ object.shipping_errors|length }}</span>
-                    </span>{% endif %}
-                </span><br>
-                <span class="tool-label">Send</span>
+                {% show_icon label='Send' icon='fa fa-2 fa-paper-plane-o' badge=object.shipping_errors|length color='warning' %}
             </a>
         {% elif object.status == object.STATES.SENT %}
             <a class="pull-right" data-url="{% url "shipment-update-send" object.pk %}">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-2 fa-fw fa-undo"></i>
-                    <span class="fa-stack-1x superscript">
-                        <i class="fa fa-fw fa-2 fa-paper-plane-o"></i>
-                    </span>
-                </span><br>
-                <span class="tool-label">Recall</span>
+                {% show_icon label='Recall' icon='ti ti-1x ti-control-backward' %}
             </a>
         {% endif %}
     {% elif request.user.is_superuser %}
         {% comment %}Staff Actions{% endcomment %}
         {% if object.status == object.STATES.SENT %}
             <a class="pull-right" data-url="{% url "shipment-receive" object.pk %}">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-2 fa-fw fa-handshake-o"></i>
-                </span><br>
-                <span class="tool-label">Receive</span>
+                {% show_icon label='Receive' icon='fa ti-1x fa-handshake-o' %}
             </a>
         {% elif object.status == object.STATES.ON_SITE %}
             <a class="pull-right" data-url="{% url "shipment-return" object.pk %}">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-2 fa-fw fa-paper-plane-o"></i>
-                </span><br>
-                <span class="tool-label">Return</span>
+               {% show_icon label='Return' icon='fa ti-1x fa-paper-plane-o' %}
             </a>
         {% elif object.status == object.STATES.RETURNED %}
             <a class="pull-right" data-url="{% url "shipment-update-return" object.pk %}">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-2 fa-fw fa-undo"></i>
-                <span class="fa-stack-1x superscript">
-                    <i class="fa fa-fw fa-2 fa-paper-plane-o"></i>
-                </span></span><br>
-                <span class="tool-label">Recall</span>
+                {% show_icon label='Recall' icon='ti ti-1x ti-control-backward' %}
             </a>
         {% endif %}
         <a class="pull-right" data-url="{% url "shipment-comments" object.pk %}">
-            <span class="pull-right">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-2 fa-fw fa-pencil"></i>
-                </span><br>
-                <span class="tool-label">Edit</span>
-            </span>
+            {% show_icon label='Edit' icon='ti ti-1x ti-comment-alt' %}
         </a>
     {% endif %}
 </span>
@@ -77,28 +44,13 @@
 <span class="box-tools pull-right">
     {% if object.status <= object.STATES.SENT and request.user == object.project or object.status == object.STATES.ON_SITE and user.is_superuser %}
         <a class="pull-right" href="{% url "shipment-labels" object.pk %}">
-            <span class="pull-right">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-2 fa-fw fa-tags"></i>
-                </span><br>
-                <span class="tool-label">Labels</span>
-            </span>
+            {% show_icon label='Labels' icon='fa ti-1x fa-tags' %}
         </a>
     {% endif %}
 
     {% if object.comments or object.staff_comments %}
         <a class="pull-right" data-toggle="collapse" href="#comments-{{ object.pk }}">
-            <span class="fa-stack">
-                <i class="fa-stack-2x fa fa-fw fa-comments-o"></i>
-                {% if object.comments or object.staff_comments %}
-                    <span class="fa-stack-1x superscript">
-                        <span class="badge badge-info">
-                            {% if object.comments and object.staff_comments %}2{% else %}1{% endif %}
-                        </span>
-                    </span>
-                {% endif %}
-            </span><br>
-            <span class="tool-label">Comments</span>
+            {% show_icon label='Comments' icon='ti ti-1x ti-comments-alt' badge=object.has_comments %}
         </a>
     {% endif %}
 </span>
@@ -107,34 +59,13 @@
 <span class="box-tools pull-right">
     {% comment %}Shipment Details{% endcomment %}
         <a class="pull-right" href="{% url "shipment-protocol" object.pk %}">
-            <span class="pull-right">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-2 fa-fw fa-file-text-o"></i>
-                </span><br>
-                <span class="tool-label">Progress</span>
-            </span>
+            {% show_icon label='Progress' icon='ti ti-1x ti-layout-media-overlay' %}
         </a>
         <a class="pull-right" href="{% url "shipment-data" object.pk %}" title="Go to Data from this shipment">
-            <span class="fa-stack">
-                <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
-                {% if object.num_datasets %}
-                    <span class="fa-stack-1x superscript">
-                        <span class="badge badge-pill badge-info">{{ object.num_datasets }}</span>
-                    </span>
-                {% endif %}
-            </span><br>
-            <span class="tool-label">Data</span>
+            {% show_icon label='Data' icon='ti ti-1x ti-layout-grid3' badge=object.num_datasets color='info' %}
         </a>
         <a class="pull-right" href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
-            <span class="fa-stack">
-                <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-                {% if object.num_results %}
-                    <span class="fa-stack-1x superscript">
-                        <span class="badge badge-pill  badge-info">{{ object.num_results }}</span>
-                    </span>
-                {% endif %}
-            </span><br>
-            <span class="tool-label">Reports</span>
+            {% show_icon label='Reports' icon='ti ti-1x ti-bar-chart-alt' badge=object.num_results color='info' %}
         </a>
 </span>
 {% endif %}

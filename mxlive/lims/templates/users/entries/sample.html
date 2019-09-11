@@ -59,7 +59,7 @@
         <div class="col-xs-12">
             <div class="list-group list-group-hover">
                 {% include "users/entries/sample-data.html" %}
-                {% if not object.data_set.count %}
+                {% if not object.datasets.count %}
                     <div class="list-group-item empty">No data collected for this sample yet.</div>
                 {% endif %}
             </div>

@@ -1,5 +1,5 @@
 {% extends "users/entries/session.html" %}
-
+{% load icons %}
 {% load static %}
 {% load json_to_dict %}
 {% load stats %}
@@ -8,12 +8,7 @@
 {% block object_tools %}
     <span class="box-tools pull-right">
         <a class="pull-right" data-url="{% url "session-history" object.pk %}">
-            <span class="pull-right">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-2 fa-fw fa-history"></i>
-                </span><br>
-                <span class="tool-label">History</span>
-            </span>
+            {% show_icon label='History' icon='ti ti-1x ti-timer' %}
         </a>
     </span>
 
@@ -35,11 +30,11 @@
                     <span class="label" style="background-color: rgb(174,199,232);">Session Open</span>
                     <span class="label" style="background-color: rgb(31,119,180);">Data Collection</span>
                 </p>
-                <div width="100%" id="timeline" data-toggle="tooltip" title="Session Timeline"></div>
+                <div id="timeline" data-toggle="tooltip" title="Session Timeline"></div>
             </div>
         </section>
     </div>
-    {% get_session_gaps object.data_set.all as gaps %}
+    {% get_session_gaps object.datasets.all as gaps %}
     {% if gaps %}
     <div class="col-xs-12">
         <section class="container col-xs-12">
@@ -81,7 +76,7 @@
 
 </style>
 <script>
-    var json = {% get_session_stats object.data_set.all object %};
+    var json = {% get_session_stats object.datasets.all object %};
     build_report('#data-stats', json);
 
 

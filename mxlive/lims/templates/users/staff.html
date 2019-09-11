@@ -50,7 +50,7 @@
                                 <hr/>
                             </div>
                             {#% include "users/entries/layout-container.html" with container=am.container brief=True %#}
-                            {% include "users/entries/layout-container.html" with object=am.container.pk kind=am.container.kind brief=True %}
+                            {#% include "users/entries/layout-container.html" with object=am.container.pk kind=am.container.kind brief=True %##}
                         </div>
                     </a>
                 {% endfor %}
@@ -61,7 +61,7 @@
                 <div class="card-body">
                 <div class="row">
                 {% for container in containers %}
-                {% include "users/entries/container-item.html" %}
+                {#% include "users/entries/container-item.html" %#}
                 {% endfor %}
                 </div>
                 </div>
@@ -72,8 +72,8 @@
             <div class="card mb-4">
                 <div class="card-header"><h5 class="text-center text-wide text-muted m-0">SHIPMENTS</h5></div>
                 <div class="list-group list-group-flush">
-                    {% for object in shipments %}
-                        {% include "users/entries/shipment-list-item.html" with object=object %}
+                    {% for shipment, stats in shipments %}
+                        {% include "users/entries/shipment-list-item.html" %}
                     {% endfor %}
                     <div class="list-group-item empty">
                         <div class="row">

@@ -9,7 +9,7 @@
                     {% show_icon label='Reports' badge=session.num_reports icon='ti ti-1x ti-bar-chart-alt' color='info' %}
                 </a>
                 <a class="pull-right" href="{% url "session-data" session.pk %}" title="Go to Data from this session">
-                    {% show_icon label='Data' badge=session.data_set.count icon='ti ti-1x ti-layout-grid3' color='info' %}
+                    {% show_icon label='Data' badge=session.datasets.count icon='ti ti-1x ti-layout-grid3' color='info' %}
                 </a>
             </div>
             <div class="overflow ellipsis">
@@ -22,7 +22,7 @@
                         <strong>{{ session.beamline.acronym }}</strong>{% if user.is_superuser %} | {{ session.project.name.upper }}{% endif %} | {{ session.name }}
                         </a>
                     </h5>
-                    <span class="text-muted overflow ellipsis">Last record {{ session.data_set.last.modified|naturaltime }}</span>
+                    <span class="text-muted overflow ellipsis">Last record {{ session.datasets.last.modified|naturaltime }}</span>
                 </div>
             </div>
         </div>

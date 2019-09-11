@@ -1,5 +1,5 @@
 {% extends "users/base.html" %}
-
+{% load icons %}
 {% load static %}
 {% load humanize %}
 
@@ -16,15 +16,7 @@
 {% block object_tools %}
     <span class="box-tools pull-right">
         <a class="pull-right" href="{% url "session-reports" shipment.pk %}" title="Go to Reports from this session">
-            <span class="fa-stack">
-                <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-                {% if shipment.num_reports %}
-                    <span class="fa-stack-1x superscript">
-                        <span class="badge badge-pill badge-info">{{ shipment.num_reports }}</span>
-                    </span>
-                {% endif %}
-            </span><br>
-            <span class="tool-label">Reports</span>
+            {% show_icon label='Reports' icon='ti ti-1x ti-bar-chart-alt' badge=shipment.num_reports %}
         </a>
     </span>
 {% endblock %}
@@ -38,7 +30,7 @@
             </div>
             <div class="col">
                 <small class="text-muted text-condensed">Datasets:</small><br>
-                {{ shipment.data_set.count }}
+                {{ shipment.datasets.count }}
             </div>
             <div class="col">
                 <small class="text-muted text-condensed">Reports:</small><br>

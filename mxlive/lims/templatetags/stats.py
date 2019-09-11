@@ -16,7 +16,7 @@ SHIFT = getattr(settings, "SHIFT_LENGTH", 8)
 
 @register.simple_tag(takes_context=False)
 def get_data_stats(bl, year):
-    data = bl.data_set.all()
+    data = bl.datasets.all()
     years = sorted({v['created'].year for v in Data.objects.values("created").order_by("created").distinct()})
     kinds = [k for k in Data.DATA_TYPES if data.filter(kind=k[0]).exists()]
     yrs = [{'Year': yr} for yr in years]
@@ -140,7 +140,7 @@ def samples_per_hour_percentile(category, user):
 
 @register.simple_tag(takes_context=False)
 def get_project_stats(user):
-    data = user.data_set.all()
+    data = user.datasets.all()
     years = sorted({v['created'].year for v in Data.objects.values("created").order_by("created").distinct()})
     kinds = [k for k in Data.DATA_TYPES if data.filter(kind=k[0]).exists()]
     yrs = [{'Year': yr} for yr in years]
@@ -178,9 +178,9 @@ def get_project_stats(user):
                         ['Sessions', user.sessions.count()],
                         ['Shipments / Containers', "{} / {}".format(
                             user.shipment_set.count(),
-                            user.container_set.filter(status__gte=Container.STATES.ON_SITE).count())],
+                            user.containers.filter(status__gte=Container.STATES.ON_SITE).count())],
                         ['Groups / Samples', "{} / {}".format(
-                            user.group_set.filter(shipment__status__gte=Shipment.STATES.ON_SITE).count(),
+                            user.groups.filter(shipment__status__gte=Shipment.STATES.ON_SITE).count(),
                             user.samples.filter(container__status__gte=Container.STATES.ON_SITE).count())],
                     ],
                     'header': 'column',
@@ -222,7 +222,7 @@ def get_beamline_usage(bl):
         samples = [s.count() for s in samples]
 
     shifts = [len(set([y for x in [s.shifts() for s in sessions[i]] for y in x])) for i, _ in enumerate(years)]
-    datasets = [bl.data_set.filter(session__in=sessions[i]) for i, _ in
+    datasets = [bl.datasets.filter(session__in=sessions[i]) for i, _ in
                 enumerate(years)]
     full_data = [d.filter(kind__contains='DATA') for d in datasets]
     full_data_count = [d.count() for d in full_data]
@@ -300,7 +300,7 @@ def get_usage_stats(bl, year):
                     "24": {"color": "#DBC814", "name": '/'.join(UserCategory.objects.filter(pk__in=[1, 3]).order_by('-name').values_list('name', flat=True))},
                     "25": {"color": "#B36255", "name": '/'.join(UserCategory.objects.filter(pk__in=[2, 3]).values_list('name', flat=True))}}
     sessions = bl.sessions.filter(created__year=year).order_by('project')
-    datasets = bl.data_set.filter(session__in=sessions)
+    datasets = bl.datasets.filter(session__in=sessions)
     data = [
         {
             'project': Project.objects.get(pk=p),  # User

@@ -10,8 +10,9 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Q, F, Avg, Count
+from django.db.models import Q, F, Avg, Count, Func, CharField, Aggregate
 from django.db.models.signals import post_delete
+from django.contrib.postgres.aggregates import StringAgg
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import ugettext as _
@@ -128,7 +129,7 @@ class Project(AbstractUser):
         return self.name
 
     def onsite_containers(self):
-        return self.container_set.filter(status=Container.STATES.ON_SITE).count()
+        return self.containers.filter(status=Container.STATES.ON_SITE).count()
 
     def label_hash(self):
         return self.name
@@ -269,13 +270,13 @@ class Session(models.Model):
         self.stretches.active().update(end=timezone.now())
 
     def groups(self):
-        return self.project.group_set.filter(pk__in=self.data_set.values_list('sample__group__pk'))
+        return self.project.groups.filter(pk__in=self.datasets.values_list('sample__group__pk'))
 
     def datasets(self):
-        return self.data_set.all()
+        return self.datasets.all()
 
     def reports(self):
-        return self.project.analysisreport_set.filter(data__in=self.data_set.all())
+        return self.project.analysisreport_set.filter(data__in=self.datasets.all())
 
     def num_datasets(self):
         return self.datasets().count()
@@ -288,7 +289,7 @@ class Session(models.Model):
     num_reports.short_description = "Reports"
 
     def samples(self):
-        return self.project.samples.filter(pk__in=self.data_set.values_list('sample__pk', flat=True))
+        return self.project.samples.filter(pk__in=self.datasets.values_list('sample__pk', flat=True))
 
     def is_active(self):
         return self.stretches.active().exists()
@@ -391,6 +392,9 @@ class ProjectObjectMixin(models.Model):
 
     def is_closable(self):
         return self.status == self.STATES.RETURNED
+
+    def has_comments(self):
+        return '*' if self.comments or self.staff_comments else None
 
     def delete(self, *args, **kwargs):
         if self.is_deletable:
@@ -501,19 +505,19 @@ class Shipment(TransitStatusMixin):
     identity.admin_order_field = 'pk'
 
     def groups_by_priority(self):
-        return self.group_set.order_by('priority')
+        return self.groups.order_by('priority')
 
     def barcode(self):
         return self.tracking_code or self.name
 
     def num_containers(self):
-        return self.container_set.count()
+        return self.containers.count()
 
     def num_samples(self):
-        return self.container_set.aggregate(sample_count=Count('samples'))['sample_count']
+        return self.containers.aggregate(sample_count=Count('samples'))['sample_count']
 
     def datasets(self):
-        return self.project.data_set.filter(sample__container__shipment__pk=self.pk)
+        return self.project.datasets.filter(sample__container__shipment__pk=self.pk)
 
     def num_datasets(self):
         return self.datasets().count()
@@ -539,7 +543,7 @@ class Shipment(TransitStatusMixin):
     def is_processed(self):
         # if all groups in shipment are complete, then it is a processed shipment.
         group_list = Group.objects.filter(shipment__get_container_list=self)
-        for container in self.container_set.all():
+        for container in self.containers.all():
             for group in container.get_group_list():
                 if group not in group_list:
                     group_list.append(group)
@@ -550,7 +554,7 @@ class Shipment(TransitStatusMixin):
 
     def is_processing(self):
         return self.project.samples.filter(container__shipment__exact=self).filter(
-            Q(pk__in=self.project.data_set.values('sample')) |
+            Q(pk__in=self.project.datasets.values('sample')) |
             Q(pk__in=self.project.result_set.values('sample'))).exists()
 
     def add_component(self):
@@ -560,7 +564,7 @@ class Shipment(TransitStatusMixin):
         # use dates of project, shipment, and each container within to determine
         # when contents were last changed
         txt = str(self.project) + str(self.project.modified) + str(self.modified)
-        for container in self.container_set.all():
+        for container in self.containers.all():
             txt += str(container.modified)
         h = hashlib.new('ripemd160')  # no successful collision attacks yet
         h.update(txt)
@@ -578,12 +582,12 @@ class Shipment(TransitStatusMixin):
         return errors
 
     def groups(self):
-        return self.group_set.order_by('-priority')
+        return self.groups.order_by('-priority')
 
     def receive(self, request=None):
         self.date_received = timezone.now()
         self.save()
-        for obj in self.container_set.all():
+        for obj in self.containers.all():
             obj.receive(request=request)
         super(Shipment, self).receive(request=request)
 
@@ -591,9 +595,9 @@ class Shipment(TransitStatusMixin):
         if self.is_sendable():
             self.date_shipped = timezone.now()
             self.save()
-            for obj in self.container_set.all():
+            for obj in self.containers.all():
                 obj.send(request=request)
-            self.group_set.all().update(status=Group.STATES.ACTIVE)
+            self.groups.all().update(status=Group.STATES.ACTIVE)
             super(Shipment, self).send(request=request)
 
     def unsend(self, request=None):
@@ -601,16 +605,16 @@ class Shipment(TransitStatusMixin):
             self.date_shipped = None
             self.status = self.STATES.DRAFT
             self.save()
-            for obj in self.container_set.all():
+            for obj in self.containers.all():
                 obj.unsend()
-            self.group_set.all().update(status=Group.STATES.DRAFT)
+            self.groups.all().update(status=Group.STATES.DRAFT)
 
     def unreturn(self, request=None):
         if self.status == self.STATES.RETURNED:
             self.date_shipped = None
             self.status = self.STATES.ON_SITE
             self.save()
-            for obj in self.container_set.all():
+            for obj in self.containers.all():
                 obj.unreturn()
 
     def unreceive(self, request=None):
@@ -618,21 +622,21 @@ class Shipment(TransitStatusMixin):
             self.date_received = None
             self.status = self.STATES.SENT
             self.save()
-            for obj in self.container_set.all():
+            for obj in self.containers.all():
                 obj.unreceive()
 
     def returned(self, request=None):
         if self.is_returnable():
             self.date_returned = timezone.now()
             self.save()
-            self.container_set.all().update(parent=None, location="")
-            LoadHistory.objects.filter(child__in=self.container_set.all()).active().update(end=timezone.now())
-            for obj in self.container_set.all():
+            self.containers.all().update(parent=None, location="")
+            LoadHistory.objects.filter(child__in=self.containers.all()).active().update(end=timezone.now())
+            for obj in self.containers.all():
                 obj.returned(request=request)
             super(Shipment, self).returned(request=request)
 
     def archive(self, request=None):
-        for obj in self.container_set.all():
+        for obj in self.containers.all():
             obj.archive(request=request)
         super(Shipment, self).archive(request=request)
 
@@ -699,7 +703,7 @@ class Container(TransitStatusMixin):
     }
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     kind = models.ForeignKey(ContainerType, blank=False, null=False, on_delete=models.CASCADE)
-    shipment = models.ForeignKey(Shipment, blank=True, null=True, on_delete=models.SET_NULL)
+    shipment = models.ForeignKey(Shipment, blank=True, null=True, on_delete=models.SET_NULL, related_name='containers')
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(default=0)
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, related_name="children")
@@ -716,7 +720,6 @@ class Container(TransitStatusMixin):
 
     def identity(self):
         return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-
     identity.admin_order_field = 'pk'
 
     def barcode(self):
@@ -746,7 +749,7 @@ class Container(TransitStatusMixin):
     def groups(self):
         groups = set([])
         for sample in self.samples.all():
-            for group in sample.group_set.all():
+            for group in sample.groups.all():
                 groups.add('%s-%s' % (group.project.name, group.name))
         return ', '.join(groups)
 
@@ -781,6 +784,34 @@ class Container(TransitStatusMixin):
                         priority = max(priority, getattr(sample.group, field))
             if priority is not None:
                 setattr(self, field, priority)
+
+    def get_layout(self):
+        children = self.children.all()
+        if children.count():
+            return {
+                'type': self.kind.name,
+                'count': children.count(),
+                'radius': self.kind.layout.get('radius'),
+                'height': self.kind.layout.get('height'),
+                'locations': list(
+                    self.kind.container_locations.values('name', 'x', 'y', accept=StringAgg('accepts__name', ';'))
+                ),
+                'children': [
+                    child.get_layout() for child in children
+                ]
+            }
+        else:
+            return {
+                'type': self.kind.name,
+                'radius': self.kind.layout.get('radius'),
+                'height': self.kind.layout.get('height'),
+                'locations': list(
+                    self.kind.container_locations.values('name', 'x', 'y', accept=StringAgg('accepts__name', ';'))
+                ),
+                'samples': list(
+                    self.samples.values('name', 'location', batch=F('group__name'), sample=F('name'), started=Count('datasets'))
+                )
+            }
 
 
 class LoadHistory(models.Model):
@@ -889,7 +920,7 @@ class Group(ProjectObjectMixin):
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectObjectMixin.STATES.DRAFT)
-    shipment = models.ForeignKey(Shipment, null=True, blank=True, on_delete=models.SET_NULL)
+    shipment = models.ForeignKey(Shipment, null=True, blank=True, on_delete=models.SET_NULL, related_name='groups')
     energy = models.DecimalField(null=True, max_digits=10, decimal_places=4, blank=True)
     resolution = models.FloatField('Desired Resolution (&#8491;)', null=True, blank=True)
     kind = models.IntegerField('exp. type', choices=EXP_TYPES, default=EXP_TYPES.NATIVE)
@@ -975,7 +1006,7 @@ class Sample(ProjectObjectMixin):
 
     def reports(self):
         reports = []
-        for d in self.data_set.all():
+        for d in self.datasets.all():
             reports.extend(list(d.reports.all().values_list('pk', flat=True)))
         return self.project.analysisreport_set.filter(pk__in=reports)
 
@@ -1083,16 +1114,16 @@ class Data(ActiveStatusMixin):
                             'detector_size', 'pixel_size', 'beam_x', 'beam_y', 'inverse_beam'],
         DATA_TYPES.XRD_DATA: [],
     }
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL)
-    sample = models.ForeignKey(Sample, null=True, blank=True, on_delete=models.SET_NULL)
-    session = models.ForeignKey(Session, null=True, blank=True, on_delete=models.SET_NULL)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='datasets')
+    group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL, related_name='datasets')
+    sample = models.ForeignKey(Sample, null=True, blank=True, on_delete=models.SET_NULL, related_name='datasets')
+    session = models.ForeignKey(Session, null=True, blank=True, on_delete=models.SET_NULL, related_name='datasets')
     file_name = models.CharField(max_length=200, null=True, blank=True)
     frames = FrameField(null=True, blank=True)
     exposure_time = models.FloatField(null=True, blank=True)
     attenuation = models.FloatField(default=0.0)
     energy = models.DecimalField(decimal_places=4, max_digits=10)
-    beamline = models.ForeignKey(Beamline, on_delete=models.PROTECT)
+    beamline = models.ForeignKey(Beamline, on_delete=models.PROTECT, related_name='datasets')
     beam_size = models.FloatField(null=True, blank=True)
     url = models.CharField(max_length=200)
     kind = models.CharField('Data type', choices=DATA_TYPES, default=DATA_TYPES.MX_SCREEN, max_length=20)

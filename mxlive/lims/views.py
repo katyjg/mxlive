@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.views.generic import edit, detail, View
+from django.db.models import Count
 from django.db import transaction
 from django.conf import settings
 from formtools.wizard.views import SessionWizardView
@@ -56,16 +57,46 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
     def get_context_data(self, **kwargs):
         context = super(ProjectDetail, self).get_context_data(**kwargs)
         if self.request.user.is_superuser:
-            context['shipments'] = models.Shipment.objects.filter(
+            shipments = models.Shipment.objects.filter(
                 status__in=[models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT]
-            ).order_by('status','-date_received','-date_shipped')
-            context['sessions'] = models.Session.objects.filter(
-                pk__in=models.Stretch.objects.active().values_list('session__pk', flat=True)
             )
-            kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('containers',
-                                                                                                     flat=True)
-            context['automounters'] = models.Dewar.objects.filter(active=True).order_by('beamline__name')
-            context['containers'] = models.Container.objects.filter(kind__in=kinds, dewars__isnull=True).order_by('name')
+            data_counts = dict(models.Data.objects.filter(
+                sample__container__shipment__status__in=[models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT]
+            ).order_by('sample__container__shipment').values(
+                shipment=models.F('sample__container__shipment')
+            ).values_list('shipment', Count('shipment')))
+
+            report_counts = dict(models.AnalysisReport.objects.filter(
+                data__sample__container__shipment__status__in=[models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT]
+            ).order_by('data__sample__container__shipment').values(
+                shipment=models.F('data__sample__container__shipment')
+            ).values_list('shipment', Count('shipment')))
+
+            container_counts = dict(shipments.values_list('pk', Count('containers')))
+            group_counts = dict(shipments.values_list('pk', Count('groups')))
+            sample_counts = dict(shipments.values_list('pk', Count('containers__samples')))
+
+            context['shipments'] = [
+                (
+                    shipment,
+                    {
+                        'groups': group_counts.get(shipment.pk),
+                        'samples': sample_counts.get(shipment.pk),
+                        'containers': container_counts.get(shipment.pk),
+                        'reports': report_counts.get(shipment.pk),
+                        'data': data_counts.get(shipment.pk),
+                     }
+                )
+                for shipment in shipments.prefetch_related('project').order_by('status','-date_received','-date_shipped')
+            ]
+
+
+
+            #context['sessions'] = models.Session.objects.filter(stretches__end__isnull=True)
+            #kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('containers', flat=True)
+            #context['automounters'] = models.Dewar.objects.filter(active=True).prefetch_related('container', 'beamline').order_by('beamline__name')
+            #context['containers'] = models.Container.objects.filter(kind__in=kinds, dewars__isnull=True).order_by('name')
+            pass
         else:
             referrer = self.request.META.get('HTTP_REFERER')
             if referrer and re.sub('^https?:\/\/', '', referrer).split('/')[1] == 'login':
@@ -535,7 +566,7 @@ class EmptyContainers(AdminRequiredMixin, edit.UpdateView):
 
     def form_valid(self, form):
         data = form.cleaned_data
-        containers = self.object.container_set.filter(parent=data.get('parent'))
+        containers = self.object.containers.filter(parent=data.get('parent'))
         models.LoadHistory.objects.filter(child__in=containers).active().update(end=timezone.now())
         containers.update(**{'location': None, 'parent': None})
         return HttpResponse()
@@ -894,9 +925,9 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                         group, created = models.Group.objects.get_or_create(**data)
                         to_create = []
                         j = 1
-                        slug_map = {slugify(c.name): c.name for c in self.shipment.container_set.all()}
+                        slug_map = {slugify(c.name): c.name for c in self.shipment.containers.all()}
                         for c, locations in sample_locations.get(group.name, {}).items():
-                            container = self.shipment.container_set.get(name__iexact=slug_map.get(c, ''))
+                            container = self.shipment.containers.get(name__iexact=slug_map.get(c, ''))
                             for sample in locations:
                                 name = "{0}_{1:02d}".format(group.name, j)
                                 to_create.append(models.Sample(group=group, container=container, location=sample,
@@ -926,7 +957,7 @@ class ShipmentAddContainer(LoginRequiredMixin, SuccessMessageMixin, AjaxableResp
     @transaction.atomic
     def form_valid(self, form):
         data = form.cleaned_data
-        data['shipment'].container_set.exclude(pk__in=[int(pk) for pk in data['id_set'] if pk]).delete()
+        data['shipment'].containers.exclude(pk__in=[int(pk) for pk in data['id_set'] if pk]).delete()
         for i, name in enumerate(data['name_set']):
             if data['id_set'][i]:
                 models.Container.objects.filter(pk=int(data['id_set'][i])).update(name=data['name_set'][i])
@@ -952,19 +983,19 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
     def get_initial(self):
         initial = super(ShipmentAddGroup, self).get_initial()
         initial['shipment'] = models.Shipment.objects.get(pk=self.kwargs.get('pk'))
-        initial['containers'] = [(c.pk, c.kind.pk) for c in initial['shipment'].container_set.all()]
+        initial['containers'] = [(c.pk, c.kind.pk) for c in initial['shipment'].containers.all()]
         initial['sample_locations'] = json.dumps(
             {g.name: {c.pk: list(c.samples.filter(group=g).values_list('location', flat=True))
-                      for c in initial['shipment'].container_set.all()}
-             for g in initial['shipment'].group_set.all()})
+                      for c in initial['shipment'].containers.all()}
+             for g in initial['shipment'].groups.all()})
         if initial['shipment']:
-            initial['containers'] = initial['shipment'].container_set.all()
+            initial['containers'] = initial['shipment'].containers.all()
         return initial
 
     @transaction.atomic
     def form_valid(self, form):
         data = form.cleaned_data
-        data['shipment'].group_set.exclude(pk__in=[int(pk) for pk in data['id_set'] if pk]).delete()
+        data['shipment'].groups.exclude(pk__in=[int(pk) for pk in data['id_set'] if pk]).delete()
         sample_locations = json.loads(data['sample_locations'])
 
         # Delete samples removed from containers
@@ -1024,12 +1055,12 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
     def get_initial(self):
         initial = super(GroupSelect, self).get_initial()
         initial['shipment'] = self.get_object().shipment
-        initial['containers'] = [(c.pk, c.kind.pk, c.name) for c in initial['shipment'].container_set.all()]
+        initial['containers'] = [(c.pk, c.kind.pk, c.name) for c in initial['shipment'].containers.all()]
         initial['sample_locations'] = json.dumps(
             {g.name: {c.pk: list(c.samples.filter(group=g).values_list('location', flat=True))
-                      for c in initial['shipment'].container_set.all()}
-             for g in initial['shipment'].group_set.all()})
-        initial['containers'] = initial['shipment'].container_set.all()
+                      for c in initial['shipment'].containers.all()}
+             for g in initial['shipment'].groups.all()})
+        initial['containers'] = initial['shipment'].containers.all()
         return initial
 
     @transaction.atomic

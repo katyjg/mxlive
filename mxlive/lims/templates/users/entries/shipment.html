@@ -95,10 +95,10 @@
                 </a>
                 {% else %}<span class="text-muted pull-left"><i class="fa fa-3 fa-lock"></i></span>{% endif %}
             </span>
-            <h3><strong>{{ shipment.container_set.count }}</strong> Containers</h3>
+            <h3><strong>{{ shipment.containers.count }}</strong> Containers</h3>
             <hr />
             <div class="row">
-            {% for container in shipment.container_set.all %}
+            {% for container in shipment.containers.all %}
 
                 <div class="col-sm-12 col-md-6 col-lg-4 text-center">
                     <div id="layout-{{ container.pk }}" class="layout-lg p-4">
@@ -127,7 +127,7 @@
                 </a>
                 {% else %}<span class="text-muted pull-left"><i class="fa fa-3 fa-lock"></i></span>{% endif %}
             </span>
-            <h3><strong>{{ shipment.group_set.count }}</strong> Groups</h3>
+            <h3><strong>{{ shipment.groups.count }}</strong> Groups</h3>
             <hr />
             <div class="list-group">
                 {% for group in shipment.groups_by_priority %}

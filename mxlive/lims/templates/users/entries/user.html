@@ -37,9 +37,9 @@
     <a class="pull-right" href="{% url "data-list" %}?q={{ object.username }}" title="Go to Data for {{ object.username }}">
         <span class="fa-stack">
             <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
-            {% if object.data_set.count %}
+            {% if object.datasets.count %}
                 <span class="fa-stack-1x superscript">
-                    <span class="badge badge-pill badge-info">{{ object.data_set.count }}</span>
+                    <span class="badge badge-pill badge-info">{{ object.datasets.count }}</span>
                 </span>
             {% endif %}
         </span><br>
@@ -80,7 +80,7 @@
             </div>
             <div class="col-xs-3 pull-right text-right">
                 <small class="text-muted text-condensed">Groups:</small><br>
-                {{ object.group_set.count }}
+                {{ object.groups.count }}
             </div>
             <div class="col-xs-2 pull-right text-right">
                 <small class="text-muted text-condensed">Shipments:</small><br>

@@ -1,3 +1,4 @@
+{% load icons %}
 {% load static %}
 {% load loaded_extras %}
 
@@ -19,18 +20,15 @@
             <div class="panel-heading" id="containers-{{ project.pk }}" rel="{% for c in containers %}{{ c.pk }} {% endfor %}">
                 <div class="box-tools pull-right">
                     <a href="#!" class="pull-right" data-url="{% url "empty-containers" pk=object.pk username=project.username %}" title="Unload all containers for this project">
-                        <i class="ti ti-share ti-1x"></i>
-                        <br><span class="tool-label">Empty</span>
+                        {% show_icon label='Empty' icon='ti ti-1x ti-share' %}
                     </a>
                     <a class="pull-right" data-toggle="collapse" href="#{{ project }}-containers" title="Show all containers for this project">
-                        <i class="ti ti-zoom-in ti-1x"></i>
-                        <br><span class="tool-label">Details</span>
+                        {% show_icon label='Details' icon='ti ti-1x ti-zoom-in' %}
                     </a>
                 </div>
                 <div class="box-status pull-left">
                     <div class="text-center text-condensed"><span class="text-medium" {% if not project.is_superuser %}title="{{ project.onsite_containers }} container{{ project.onsite_containers|pluralize }} on-site"{% endif %}>{{ project|num_containers:object }}{% if not project.is_superuser %} / {{ project.onsite_containers }}{% endif %}</span>
                     <br/><small class="text-center text-muted">{{ containers.0.kind }}{{ project.onsite_containers|pluralize }}</small></div>
-
                 </div>
 
                 <div class="box-info">
@@ -45,13 +43,13 @@
                     <li class="list-group-item container-{{ container.pk }}">
                         <div class="box-tools pull-right">
                             <a href="#!" class="pull-right" onclick="unload({{ container.pk }});" title="Unload Container">
-                                <i class="ti ti-share ti-1x"></i>
-                                <form method="post" id="{{ container.pk }}-unload" action="{% url "container-unload" container.pk %}">
-                                    {% csrf_token %}
-                                    <input name="parent" type="hidden" />
-                                    <input name="location" type="hidden" />
-                                </form>
+                                {% show_icon icon='ti ti-1x ti-share' %}
                             </a>
+                            <form method="post" id="{{ container.pk }}-unload" action="{% url "container-unload" container.pk %}">
+                                {% csrf_token %}
+                                <input name="parent" type="hidden" />
+                                <input name="location" type="hidden" />
+                            </form>
                         </div>
                         <div class="box-status pull-left" style="margin-top: 5px;">
                             <div class="text-center text-condensed text-medium">{{ container.location }}</div>
@@ -85,8 +83,7 @@
             <div class="list-group-item container-{{ container.pk }}">
                 <span class="box-tools pull-right">
                     <a href="#!" class="pull-right" onclick="unload({{ container.pk }});" title="Unload Container">
-                        <i class="ti ti-share ti-1x"></i>
-                        <br><span class="tool-label">Unload</span>
+                        {% show_icon label='Unload' icon='ti ti-1x ti-share' %}
                         <form method="post" id="{{ container.pk }}-unload" action="{% url "container-unload" container.pk %}">
                             {% csrf_token %}
                             <input name="parent" type="hidden" />

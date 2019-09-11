@@ -2,7 +2,7 @@
 {% load humanize %}
 {% load markup %}
 {% load static %}
-
+{% load icons %}
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading">
         <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
@@ -17,48 +17,23 @@
     <div class="object-tools">
         <span class="box-tools pull-right">
             <a href="#!" class="pull-right" data-url="{% url "dewar-edit" pk=object.active_dewar.pk %}">
-                <span class="pull-right">
-                    <span class="fa-stack">
-                        <i class="fa-stack-2x fa fa-2 fa-fw fa-commenting-o"></i>
-                    </span><br>
-                    <span class="tool-label">Add Comment</span>
-                </span>
+                {% show_icon label='Add Comment' icon='fa ti-1x fa-commenting-o' %}
             </a>
         </span>
         <span class="box-tools pull-right">
             <a class="pull-right" href="{% url "beamline-history" pk=object.pk %}">
-                <span class="pull-right">
-                    <span class="fa-stack">
-                        <i class="fa-stack-2x fa fa-2 fa-fw fa-clock-o"></i>
-                    </span><br>
-                    <span class="tool-label">Sessions</span>
-                </span>
+                {% show_icon label='Sessions' icon='ti ti-1x ti-time' %}
             </a>
             {% now "Y" as current_year %}
             <a class="pull-right" href="{% url "usage-statistics" object.pk %}">
-                <span class="pull-right">
-                    <span class="fa-stack">
-                        <i class="fa-stack-2x fa fa-2 fa-fw fa-calendar-check-o"></i>
-                    </span><br>
-                    <span class="tool-label">Usage Stats</span>
-                </span>
+                {% show_icon label='Usage Stats' icon='ti ti-1x ti-stats-up' %}
             </a>
             <a class="pull-right" href="{% url "beamline-statistics" object.pk current_year %}">
-                <span class="pull-right">
-                    <span class="fa-stack">
-                        <i class="fa-stack-2x fa fa-2 fa-fw fa-bar-chart"></i>
-                    </span><br>
-                    <span class="tool-label">Beam Stats</span>
-                </span>
+                {% show_icon label='Beam Stats' icon='ti ti-1x ti-bar-chart' %}
             </a>
             {% if object.active_dewar.container.children_history.all %}
                 <a href="#!" class="pull-right" data-url="{% url "automounter-history" object.active_dewar.container.pk %}">
-                    <span class="pull-right">
-                        <span class="fa-stack">
-                            <i class="fa-stack-2x fa fa-2 fa-fw fa-history"></i>
-                        </span><br>
-                        <span class="tool-label">History</span>
-                    </span>
+                    {% show_icon label='History' icon='ti ti-1x ti-timer' %}
                 </a>
             {% endif %}
         </span>
