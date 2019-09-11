@@ -18,7 +18,7 @@
 
 {% block object_tools %}
     {% if object.status == object.STATES.DRAFT %}
-        <span class="box-tools pull-right">
+        <span class="tools-box pull-right">
             <a class="pull-right" data-url="{% url "group-select" object.pk %}" title="Sample Seat Selection">
                 <i class="fa fa-2 fa-fw fa-plus-circle"></i>
                 <br><span class="tool-label">Samples</span>
@@ -66,7 +66,7 @@
 <div class="row">
     <div class="col-sm-12 bulk-edit">
         {% if object.is_editable %}
-        <div class="box-tools pull-right">
+        <div class="tools-box pull-right">
             <button type="submit" name="submit" onclick="submit_changes();" value="submit" disabled class="btn btn btn-primary">Submit</button>
             <a class="pull-right not-active" title="Reset" onclick="reset_inputs();" href="#">
                 <span class="pull-right">

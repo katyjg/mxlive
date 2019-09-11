@@ -15,12 +15,12 @@
 
 {% block object_tools %}
     <div class="object-tools">
-        <span class="box-tools pull-right">
+        <span class="tools-box pull-right">
             <a href="#!" class="pull-right" data-url="{% url "dewar-edit" pk=object.active_dewar.pk %}">
                 {% show_icon label='Add Comment' icon='fa ti-1x fa-commenting-o' %}
             </a>
         </span>
-        <span class="box-tools pull-right">
+        <span class="tools-box pull-right">
             <a class="pull-right" href="{% url "beamline-history" pk=object.pk %}">
                 {% show_icon label='Sessions' icon='ti ti-1x ti-time' %}
             </a>

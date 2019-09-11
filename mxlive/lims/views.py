@@ -1,5 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.urls import reverse, reverse_lazy
 from django.utils.text import slugify
 from django.utils import timezone
@@ -57,75 +57,108 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
     def get_context_data(self, **kwargs):
         context = super(ProjectDetail, self).get_context_data(**kwargs)
         if self.request.user.is_superuser:
-            shipments = models.Shipment.objects.filter(
-                status__in=[models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT]
+            filters = {
+                'shipment': {
+                    'status__in': [models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT]
+                },
+                'data': {
+                    'sample__container__shipment__status__in': [
+                        models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT
+                    ]
+                },
+                'reports': {
+                    'data__sample__container__shipment__status__in': [
+                        models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT
+                    ]
+                }
+            }
+        else:
+            filters = {
+                'shipment': {
+                    'project': self.request.user,
+                    'status__lt': models.Shipment.STATES.ARCHIVED
+                },
+                'data': {
+                    'project': self.request.user,
+                    'sample__container__shipment__status__lt': models.Shipment.STATES.ARCHIVED
+                },
+                'reports': {
+                    'project': self.request.user,
+                    'data__sample__container__shipment__status__lt': models.Shipment.STATES.ARCHIVED
+                }
+            }
+
+        shipments = models.Shipment.objects.filter(**filters['shipment'])
+        shipment_data = dict(models.Data.objects.filter(
+            **filters['data']
+        ).order_by('sample__container__shipment').values(
+            shipment=models.F('sample__container__shipment')
+        ).values_list('shipment', Count('shipment')))
+
+        shipment_reports = dict(models.AnalysisReport.objects.filter(
+            **filters['reports']
+        ).order_by('data__sample__container__shipment').values(
+            shipment=models.F('data__sample__container__shipment')
+        ).values_list('shipment', Count('shipment')))
+
+        shipment_containers = dict(shipments.values_list('pk', Count('containers')))
+        shipment_groups = dict(shipments.values_list('pk', Count('groups')))
+        shipment_samples = dict(shipments.values_list('pk', Count('containers__samples')))
+
+        context['shipments'] = [
+            (
+                shipment,
+                {
+                    'groups': shipment_groups.get(shipment.pk),
+                    'samples': shipment_samples.get(shipment.pk),
+                    'containers': shipment_containers.get(shipment.pk),
+                    'reports': shipment_reports.get(shipment.pk),
+                    'data': shipment_data.get(shipment.pk),
+                 }
             )
-            shipment_data = dict(models.Data.objects.filter(
-                sample__container__shipment__status__in=[models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT]
-            ).order_by('sample__container__shipment').values(
-                shipment=models.F('sample__container__shipment')
-            ).values_list('shipment', Count('shipment')))
+            for shipment in shipments.prefetch_related('project').order_by('status','-date_received','-date_shipped')
+        ]
 
-            shipment_reports = dict(models.AnalysisReport.objects.filter(
-                data__sample__container__shipment__status__in=[models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT]
-            ).order_by('data__sample__container__shipment').values(
-                shipment=models.F('data__sample__container__shipment')
-            ).values_list('shipment', Count('shipment')))
+        sessions = models.Session.objects.filter(stretches__end__isnull=True)
+        session_data = dict(sessions.values_list('pk', Count('datasets')))
+        session_reports = dict(sessions.values_list('pk', Count('datasets__reports')))
+        context['sessions'] = [
+            (
+                session,
+                {
+                    'data': session_data.get(session.pk),
+                    'reports': session_reports.get(session.pk),
+                }
+            )
+            for session in sessions.prefetch_related('project')
+        ]
 
-            shipment_containers = dict(shipments.values_list('pk', Count('containers')))
-            shipment_groups = dict(shipments.values_list('pk', Count('groups')))
-            shipment_samples = dict(shipments.values_list('pk', Count('containers__samples')))
-
-            context['shipments'] = [
-                (
-                    shipment,
-                    {
-                        'groups': shipment_groups.get(shipment.pk),
-                        'samples': shipment_samples.get(shipment.pk),
-                        'containers': shipment_containers.get(shipment.pk),
-                        'reports': shipment_reports.get(shipment.pk),
-                        'data': shipment_data.get(shipment.pk),
-                     }
-                )
-                for shipment in shipments.prefetch_related('project').order_by('status','-date_received','-date_shipped')
-            ]
-
-            sessions = models.Session.objects.filter(stretches__end__isnull=True)
-            session_data = dict(sessions.values_list('pk', Count('datasets')))
-            session_reports = dict(sessions.values_list('pk', Count('datasets__reports')))
-            context['sessions'] = [
-                (
-                    session,
-                    {
-                        'data': session_data.get(session.pk),
-                        'reports': session_reports.get(session.pk),
-                    }
-                )
-                for session in sessions.prefetch_related('project')
-            ]
-
+        if self.request.user.is_superuser:
             #kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('containers', flat=True)
             #context['automounters'] = models.Dewar.objects.filter(active=True).prefetch_related('container', 'beamline').order_by('beamline__name')
             #context['containers'] = models.Container.objects.filter(kind__in=kinds, dewars__isnull=True).order_by('name')
             pass
         else:
-            referrer = self.request.META.get('HTTP_REFERER')
-            if referrer and re.sub('^https?:\/\/', '', referrer).split('/')[1] == 'login':
-                context['show_help'] = self.request.user.show_archives
-                if context['show_help']:
-                    models.Project.objects.filter(username=self.request.user.username).update(show_archives=False)
-            sh = self.get_object().shipments.filter(status__lt=models.Shipment.STATES.ARCHIVED).order_by('modified')
-            base_set = sh.filter(status__lte=models.Shipment.STATES.ON_SITE).distinct()
-            if base_set.count() < 7:
-                pks = [s.pk for s in list(
-                    chain(base_set, list(sh.exclude(pk__in=base_set.values_list('pk')))[0:7 - base_set.count()]))]
-            else:
-                pks = base_set.values_list('pk')
-            context['shipments'] = sh.filter(pk__in=pks).order_by('status', '-modified')
-            sessions = self.get_object().sessions.filter(
-                pk__in=models.Stretch.objects.recent_days(180).values_list('session__pk', flat=True)).order_by(
-                '-created')
-            context['sessions'] = sessions.count() < 7 and sessions or sessions[:7]
+            pass
+            # referrer = self.request.META.get('HTTP_REFERER')
+            # if referrer and re.sub('^https?:\/\/', '', referrer).split('/')[1] == 'login':
+            #     context['show_help'] = self.request.user.show_archives
+            #     if context['show_help']:
+            #         models.Project.objects.filter(username=self.request.user.username).update(show_archives=False)
+
+            # shipments = self.object.shipments.filter(status__lt=models.Shipment.STATES.ARCHIVED)
+            # self.object.shipments.filter(status__lt=models.Shipment.STATES.ARCHIVED).order_by('modified')
+            # base_set = sh.filter(status__lte=models.Shipment.STATES.ON_SITE).distinct()
+            # if base_set.count() < 7:
+            #     pks = [s.pk for s in list(
+            #         chain(base_set, list(sh.exclude(pk__in=base_set.values_list('pk')))[0:7 - base_set.count()]))]
+            # else:
+            #     pks = base_set.values_list('pk')
+            # context['shipments'] = sh.filter(pk__in=pks).order_by('status', '-modified')
+            # sessions = self.get_object().sessions.filter(
+            #     pk__in=models.Stretch.objects.recent_days(180).values_list('session__pk', flat=True)).order_by(
+            #     '-created')
+            # context['sessions'] = sessions.count() < 7 and sessions or sessions[:7]
 
         return context
 
@@ -676,7 +709,7 @@ class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
 class DataList(ListViewMixin, ItemListView):
     model = models.Data
     list_filters = ['modified', 'kind', 'beamline']
-    list_columns = ['id', 'name', 'sample', 'frame_sets', 'exposure_time', 'energy', 'beamline', 'kind', 'modified']
+    list_columns = ['id', 'name', 'sample', 'frame_sets', 'session__name', 'energy', 'beamline', 'kind', 'modified']
     list_search = ['id', 'name', 'beamline__name', 'sample__name', 'frames', 'project__name', 'modified']
     link_url = 'data-detail'
     link_field = 'name'
@@ -694,10 +727,6 @@ class DataDetail(OwnerRequiredMixin, detail.DetailView):
     template_name = "users/entries/data.html"
 
 
-def format_list(val, record):
-    return ' | '.join([item.name for item in val])
-
-
 def format_score(val, record):
     return "{:.2f}".format(val)
 
@@ -705,18 +734,18 @@ def format_score(val, record):
 class ReportList(ListViewMixin, ItemListView):
     model = models.AnalysisReport
     list_filters = ['modified', ]
-    list_columns = ['id', 'data', 'kind', 'score', 'modified']
+    list_columns = ['identity', 'id', 'kind', 'score', 'modified']
     list_search = ['project__username', 'name', 'data__name']
+    link_field = 'identity'
     link_url = 'report-detail'
     ordering = ['-modified']
     ordering_proxies = {}
     list_transforms = {
-        'data': format_list,
         'score': format_score
     }
 
     def get_queryset(self):
-        return super(ReportList, self).get_queryset().defer('details', 'url')
+        return super().get_queryset().defer('details', 'url')
 
 
 class ReportDetail(OwnerRequiredMixin, detail.DetailView):
@@ -724,60 +753,62 @@ class ReportDetail(OwnerRequiredMixin, detail.DetailView):
     template_name = "users/entries/report.html"
 
 
-class DataListDetail(DataList):
+class ShipmentDataList(DataList):
     template_name = "users/entries/shipment-data.html"
-    extra_model = models.Shipment
-
-    def get_object(self, **kwargs):
-        if self.request.user.is_superuser:
-            object = self.extra_model.objects.get(pk=self.kwargs.get('pk'))
-        else:
-            object = self.extra_model.objects.get(project=self.request.user, pk=self.kwargs.get('pk'))
-        return object
+    lookup = 'group__shipment__pk'
+    detail_model = models.Shipment
 
     def get_list_title(self):
-        if 'project' in self.list_columns:
-            self.list_columns.pop(0)
-        object = self.get_object()
-        return 'Data in {}'.format(object.name)
-
-    def get_context_data(self, **kwargs):
-        c = super(DataListDetail, self).get_context_data(**kwargs)
-        c['shipment'] = self.get_object()
-        c['total_objects'] = c['shipment'].datasets().count()
-        return c
+        return 'Data in {} - {}'.format(self.object.__class__.__name__.title(), self.object)
 
     def get_queryset(self):
-        qs = super(DataListDetail, self).get_queryset()
-        return qs.filter(pk__in=self.get_object().datasets().values_list("pk"))
+        try:
+            self.object = self.detail_model.objects.get(**self.kwargs)
+        except self.detail_model.DoesNotExist:
+            raise Http404
+        qs = super().get_queryset()
+        return qs.filter(**{self.lookup:self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context_name = self.object.__class__.__name__.lower()
+        context[context_name] = self.object
+        return context
 
 
-class ReportListDetail(ReportList):
-    template_name = "users/entries/shipment-report.html"
-    extra_model = models.Shipment
-
-    def get_object(self, **kwargs):
-        if self.request.user.is_superuser:
-            object = self.extra_model.objects.get(pk=self.kwargs.get('pk'))
-        else:
-            object = self.extra_model.objects.get(project=self.request.user, pk=self.kwargs.get('pk'))
-        return object
+class ShipmentReportList(ReportList):
+    template_name = "users/entries/shipment-reports.html"
+    lookup = 'data__group__shipment__pk'
+    detail_model = models.Shipment
 
     def get_list_title(self):
-        if 'project' in self.list_columns:
-            self.list_columns.pop(0)
-        object = self.get_object()
-        return 'Analysis Reports in {}'.format(object.name)
-
-    def get_context_data(self, **kwargs):
-        c = super(ReportListDetail, self).get_context_data(**kwargs)
-        c['shipment'] = self.get_object()
-        c['total_objects'] = c['shipment'].reports().count()
-        return c
+        return 'Reports in {} - {}'.format(self.object.__class__.__name__.title(), self.object)
 
     def get_queryset(self):
-        qs = super(ReportListDetail, self).get_queryset()
-        return qs.filter(pk__in=self.get_object().reports().values_list("pk"))
+        try:
+            self.object = self.detail_model.objects.get(**self.kwargs)
+        except self.detail_model.DoesNotExist:
+            raise Http404
+        qs = super().get_queryset()
+        return qs.filter(**{self.lookup:self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context_name = self.object.__class__.__name__.lower()
+        context[context_name] = self.object
+        return context
+
+
+class SessionDataList(ShipmentDataList):
+    template_name = "users/entries/session-data.html"
+    lookup = 'session__pk'
+    detail_model = models.Session
+
+
+class SessionReportList(ShipmentReportList):
+    template_name = "users/entries/session-reports.html"
+    lookup = 'data__session__pk'
+    detail_model = models.Session
 
 
 class ActivityLogList(ListViewMixin, ItemListView):

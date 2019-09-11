@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block object_tools %}
-    <span class="box-tools pull-right">
+    <span class="tools-box pull-right">
         <a class="pull-right" href="{% url "shipment-data" object.pk %}" title="Go to Data from this shipment">
             <span class="fa-stack">
                 <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
@@ -30,9 +30,9 @@
         <a class="pull-right" href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
             <span class="fa-stack">
                 <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-                {% if object.num_results %}
+                {% if object.num_reports %}
                     <span class="fa-stack-1x superscript">
-                        <span class="badge badge-pill badge-info">{{ object.num_results }}</span>
+                        <span class="badge badge-pill badge-info">{{ object.num_reports }}</span>
                     </span>
                 {% endif %}
             </span><br>

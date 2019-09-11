@@ -3,18 +3,17 @@
 {% load icons %}
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
-        <i class="text-muted fa fa-fw {% if shipment.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
-        <span class="text-muted">{% if user.is_superuser %}{{ shipment.project }} | {% endif %}{{ shipment.identity }}</span> | <strong>{{ shipment.name }}</strong>
+        <span class="text-muted">{% if user.is_superuser %}{{ session.project|upper }} | {% endif %}</span><strong>{{ session.name }}</strong>
     </h3>
     <span class="text-muted">
-        Reports from Beamline Session
+        Reports from Session
     </span>
 {% endblock %}
 
 {% block object_tools %}
-    <span class="box-tools pull-right">
-        <a class="pull-right" href="{% url "session-data" shipment.pk %}" title="Go to Data from this session">
-            {% show_icon label='Data' icon='ti ti-1x ti-layout-grid3' badge=shipment.datasets.count %}
+    <span class="tools-box">
+        <a href="{% url "session-data" session.pk %}" title="Go to Data from this session">
+            {% show_icon label='Data' icon='ti ti-1x ti-layout-grid3' badge=session.datasets.count %}
         </a>
     </span>
 {% endblock %}

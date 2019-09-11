@@ -19,14 +19,14 @@
 {% block object_tools %}
     {% include "users/tools-base.html" %}
     {% if object.parent_history.all %}
-        <span class="box-tools pull-right">
+        <span class="tools-box pull-right">
             <a class="pull-right" data-url="{% url "container-history" object.pk %}">
                 {% show_icon label='History' icon='ti ti-1x ti-timer' %}
             </a>
         </span>
     {% endif %}
     {% if object.children_history.all %}
-        <span class="box-tools pull-right">
+        <span class="tools-box pull-right">
             <a class="pull-right" data-url="{% url "automounter-history" object.pk %}">
                 {% show_icon label='Container History' icon='ti ti-1x ti-timer' %}
             </a>

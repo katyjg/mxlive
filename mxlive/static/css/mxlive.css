@@ -265,63 +265,41 @@ img.line-icon {
     float: left;
 }
 
-.list-group-item .box-tools, .panel-heading .box-tools {
+.list-group-item .tools-box, .panel-heading .tools-box {
     margin-right: -15px;
 }
 
-.list-group-item .box-tools + .box-tools, .panel-heading .box-tools + .box-tools {
+.list-group-item .tools-box + .tools-box, .panel-heading .tools-box + .tools-box {
     margin-right: 0px;
 }
 
-.box-tools {
+.tools-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-evenly;
     border-left: 1px solid rgba(0, 0, 0, 0.15);
-    padding: 0.5em 0.5em;
+    padding: 0 0.5em;
+    margin: 0.5em;
     padding-right: 0.25em !important;
     line-height: 1;
     text-align: center;
 }
 
-.box-tools-inline {
-    border-right: 1px solid rgba(0, 0, 0, 0.15);
-    border-left: none;
-    margin-right: 15px;
-}
-
-.box-tools-inline + h3 {
-    margin-top: 10px;
-}
-
-.box-tools-sm {
-    margin-top: -4px;
-}
-
-.box-tools-sm a {
-    margin-left: 0.5em;
-}
-
-.box-tools-sm a + a {
-    margin-right: 1em;
-}
-
-.box-tools a, .box-tools span, .box-tools span.a {
-    position: relative;
+.tools-box > * {
     text-align: center;
-    padding: 0 0.65em;
+    padding: 0 0.125em;
 }
 
-.box-tools a span, .list-group .box-tools span.a > span {
-    padding: 0 0.25em;
-}
-
-.box-tools a.separator, .box-tools span.separator {
+.tools-box > .separator {
+    display: inline-block;
+    align-self: stretch;
+    width: 1px;
     border-left: 1px solid rgba(0, 0, 0, 0.15);
-    padding: 0.5em 1em 0.5em 1.25em;
-    margin-top: -0.5em;
-    margin-bottom: -0.5em;
-    margin-left: 0.5em;
+    margin: 0 0.25em;
 }
 
-.box-tools span.separator {
+.tools-box span.separator {
     height: 100%;
 }
 
@@ -552,13 +530,13 @@ p.empty {
     display: none;
 }
 
-.panel-title .box-tools {
+.panel-title .tools-box {
     margin-top: -12px;
     padding-left: 0px;
     margin-left: 20px;
 }
 
-.box-tools a {
+.tools-box a {
     cursor: pointer;
 }
 
@@ -1448,6 +1426,7 @@ a:hover {
 .icon-stack {
     position: relative;
     display: block;
+    min-width: 4em;
 }
 
 .icon-stack:first-child {

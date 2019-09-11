@@ -8,37 +8,36 @@
 {% load data_server %}
 
 {% block page_heading %}
-    <h3 class="text-condensed narrow-heading overflow ellipsis">
-        <span class="text-muted">{% if user.is_superuser %}{{ object.project|upper }} | {% endif %}{{ object.beamline.acronym }}</span> | <strong>{{ object.name }}</strong>
-    </h3>
+    <h4 class="text-condensed narrow-heading overflow ellipsis">
+        <span class="text-muted">{% if user.is_superuser %}{{ object.project|upper }} | {% endif %}</span><strong>{{ object.name }}</strong>
+    </h4>
     <span class="text-muted">
         Beamline Session started {{ object.created|naturalday }}
     </span>
 {% endblock %}
 
 {% block object_tools %}
-{% if object.datasets.all %}
-<span class="box-tools pull-right">
-    <a class="pull-right" href="{% url 'files-proxy' section='archive' path=object.download_url %}">
-        {% show_icon label='Download' icon='ti ti-1x ti-download' %}
+<span class="tools-box">
+    <a href="{% url "session-reports" object.pk %}" title="Go to Reports from this session">
+        {% show_icon label='Reports' icon='ti ti-1x ti-bar-chart-alt' badge=object.num_reports %}
     </a>
-</span>
-{% endif %}
-<span class="box-tools pull-right">
+    <a href="{% url "session-data" object.pk %}" title="Go to Data from this session">
+        {% show_icon label='Data' icon='ti ti-1x ti-layout-grid3' badge=object.datasets.count %}
+    </a>
+    <a href="#!" data-url="{% url "session-history" object.pk %}">
+        {% show_icon label='History' icon='ti ti-1x ti-timer' %}
+    </a>
     {% if user.is_superuser %}
-        <a class="pull-right" href="{% url "session-statistics" pk=object.pk %}">
+        <a href="{% url "session-statistics" pk=object.pk %}">
             {% show_icon label='Statistics' icon='ti ti-1x ti-bar-chart' %}
         </a>
     {% endif %}
-    <a href="#!" class="pull-right" data-url="{% url "session-history" object.pk %}">
-        {% show_icon label='History' icon='ti ti-1x ti-timer' %}
-    </a>
-    <a class="pull-right" href="{% url "session-data" object.pk %}" title="Go to Data from this session">
-        {% show_icon label='Data' icon='ti ti-1x ti-layout-grid3' badge=object.datasets.count %}
-    </a>
-    <a class="pull-right" href="{% url "session-reports" object.pk %}" title="Go to Reports from this session">
-        {% show_icon label='Reports' icon='ti ti-1x ti-bar-chart-alt' badge=object.num_reports %}
-    </a>
+    {% if object.datasets.count %}
+        <div class="separator"></div>
+        <a href="{% url 'files-proxy' section='archive' path=object.download_url %}">
+            {% show_icon label='Download' icon='ti ti-1x ti-download' %}
+        </a>
+    {% endif %}
 </span>
 {% endblock %}
 

@@ -1,6 +1,6 @@
 {% extends "users/base.html" %}
 {% load link_list %}
-
+{% load icons %}
 
 {% block page_heading %}
     <h3 class="overflow ellipsis narrow-heading text-condensed"> <span class="text-muted">{{ user.username|upper }} |</span> Staff </h3>
@@ -8,30 +8,20 @@
 {% endblock %}
 
 {% block object_tools %}
-    <span class="box-tools pull-right">
-        <a href="#!" class="pull-right" data-link="{% url "new-announcement" %}" title="Create Announcement">
-            <i class="ti ti-1x ti-announcement"></i>
-            <br/>
-            <div class="tool-label">Add Info</div>
+    <div class="tools-box">
+        <a  href="{% url "access-list" %}">
+            {% show_icon label="Remote" icon="ti ti-1x ti-rss-alt" %}
         </a>
-    </span>
-    <span class="box-tools pull-right">
-        <a class="pull-right" href="{% url "session-list" %}">
-            <i class="ti ti-1x ti-time"></i>
-            <br/>
-            <div class="tool-label">Sessions</div>
+        <a  href="{% url "session-list" %}">
+            {% show_icon label="Sessions" icon="ti ti-1x ti-time" %}
         </a>
-        <a class="pull-right" href="{% url "user-list" %}">
-            <i class="ti ti-1x ti-user"></i>
-            <br/>
-            <div class="tool-label">Accounts</div>
+        <a  href="{% url "user-list" %}">
+            {% show_icon label="Accounts" icon="ti ti-1x ti-user" %}
         </a>
-        <a class="pull-right" href="{% url "access-list" %}">
-            <i class="ti ti-1x ti-rss-alt"></i>
-            <br/>
-            <div class="tool-label">Remote</div>
+        <a href="#!"  data-link="{% url "new-announcement" %}" title="Create Announcement">
+            {% show_icon label="Add Info" icon="ti ti-1x ti-announcement" %}
         </a>
-    </span>
+    </div>
 {% endblock %}
 
 {% block full %}

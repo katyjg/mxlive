@@ -18,7 +18,7 @@
   <div class="tab-pane fade show active" id="by-project" role="tabpanel" aria-labelledby="project-tab">
     {% for project, containers in projects.items %}
             <div class="panel-heading" id="containers-{{ project.pk }}" rel="{% for c in containers %}{{ c.pk }} {% endfor %}">
-                <div class="box-tools pull-right">
+                <div class="tools-box pull-right">
                     <a href="#!" class="pull-right" data-url="{% url "empty-containers" pk=object.pk username=project.username %}" title="Unload all containers for this project">
                         {% show_icon label='Empty' icon='ti ti-1x ti-share' %}
                     </a>
@@ -41,7 +41,7 @@
                 <ul class="list-group list-group-hover list-group-flush collapse" id="{{ project }}-containers">
                 {% for container in containers %}
                     <li class="list-group-item container-{{ container.pk }}">
-                        <div class="box-tools pull-right">
+                        <div class="tools-box pull-right">
                             <a href="#!" class="pull-right" onclick="unload({{ container.pk }});" title="Unload Container">
                                 {% show_icon icon='ti ti-1x ti-share' %}
                             </a>
@@ -81,7 +81,7 @@
     {% for container in object.children.all %}
             {% container_project container as project %}
             <div class="list-group-item container-{{ container.pk }}">
-                <span class="box-tools pull-right">
+                <span class="tools-box pull-right">
                     <a href="#!" class="pull-right" onclick="unload({{ container.pk }});" title="Unload Container">
                         {% show_icon label='Unload' icon='ti ti-1x ti-share' %}
                         <form method="post" id="{{ container.pk }}-unload" action="{% url "container-unload" container.pk %}">

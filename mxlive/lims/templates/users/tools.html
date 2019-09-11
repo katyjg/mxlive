@@ -1,6 +1,6 @@
 {% load icons %}
 {% if object.status != object.STATES.ON_SITE and object.status < object.STATES.RETURNED and request.user == object.project or request.user.is_superuser and object.status >= object.STATES.SENT and object.status < object.STATES.ARCHIVED %}
-<span class="box-tools pull-right">
+<span class="tools-box pull-right">
     {% comment %}Shipment Actions{% endcomment %}
     {% if request.user == object.project %}
         {% comment %}User Actions{% endcomment %}
@@ -41,7 +41,7 @@
 </span>
 {% endif %}
 {% if object.status <= object.STATES.SENT and request.user == object.project or object.status == object.STATES.ON_SITE and user.is_superuser or object.comments or object.staff_comments %}
-<span class="box-tools pull-right">
+<span class="tools-box pull-right">
     {% if object.status <= object.STATES.SENT and request.user == object.project or object.status == object.STATES.ON_SITE and user.is_superuser %}
         <a class="pull-right" href="{% url "shipment-labels" object.pk %}">
             {% show_icon label='Labels' icon='fa ti-1x fa-tags' %}
@@ -56,7 +56,7 @@
 </span>
 {% endif %}
 {% if object.status >= object.STATES.SENT or request.user.is_superuser and object.status == object.STATES.SENT %}
-<span class="box-tools pull-right">
+<span class="tools-box pull-right">
     {% comment %}Shipment Details{% endcomment %}
         <a class="pull-right" href="{% url "shipment-protocol" object.pk %}">
             {% show_icon label='Progress' icon='ti ti-1x ti-layout-media-overlay' %}
@@ -65,7 +65,7 @@
             {% show_icon label='Data' icon='ti ti-1x ti-layout-grid3' badge=object.num_datasets color='info' %}
         </a>
         <a class="pull-right" href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
-            {% show_icon label='Reports' icon='ti ti-1x ti-bar-chart-alt' badge=object.num_results color='info' %}
+            {% show_icon label='Reports' icon='ti ti-1x ti-bar-chart-alt' badge=object.num_reports color='info' %}
         </a>
 </span>
 {% endif %}

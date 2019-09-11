@@ -84,10 +84,11 @@
 
 {% block full %}
 
+{% comment %}
 {% with object as shipment %}
     <div class="row">
         <div class="col-sm-7 col-xs-12">
-            <span class="box-tools box-tools-inline pull-left">
+            <span class="tools-box tools-box-inline pull-left">
                 {% if object.status == object.STATES.DRAFT %}
                 <a class="pull-left" data-url="{% url "shipment-add-containers" object.pk %}">
                     <i class="fa fa-2 fa-fw fa-plus"></i><br>
@@ -98,7 +99,7 @@
             <h3><strong>{{ shipment.containers.count }}</strong> Containers</h3>
             <hr />
             <div class="row">
-            {% for container in shipment.containers.all %}
+            {% for container in shipment.containers %}
 
                 <div class="col-sm-12 col-md-6 col-lg-4 text-center">
                     <div id="layout-{{ container.pk }}" class="layout-lg p-4">
@@ -120,7 +121,7 @@
         </div>
 
         <div class="col-sm-5 col-xs-12">
-            <span class="box-tools box-tools-inline pull-left">
+            <span class="tools-box tools-box-inline pull-left">
                 {% if object.status ==  object.STATES.DRAFT %}<a class="pull-left" data-url="{% url "shipment-add-groups" object.pk %}">
                     <i class="fa fa-2 fa-fw fa-plus"></i><br>
                     <span class="tool-label">Edit</span>
@@ -133,7 +134,7 @@
                 {% for group in shipment.groups_by_priority %}
                     <div class="list-group-item" id="group-{{ group.pk }}">
 
-                        <span class="box-tools pull-right">
+                        <span class="tools-box pull-right">
                             {% if object.is_editable %}
                                 <a class="pull-right" data-url="{% url "group-select" group.pk %}" title="Sample Seat Selection">
                                     <span class="fa-stack">
@@ -197,4 +198,7 @@
         {% endfor %}
     </script>
 
+
+
+{% endcomment %}
 {% endblock %}

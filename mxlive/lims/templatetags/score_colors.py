@@ -23,3 +23,12 @@ def label_score(value):
         if lo < value <= hi:
             return c
     return "unusable-score"
+
+@register.filter("score_color")
+def score_color(value):
+    ffmt = '%%0.%df' % decimal_places
+    for lo, hi, c in SCORE_CLASSES:
+        if lo < value <= hi:
+            return mark_safe('<span class="%s">%s</span>' % (c, ffmt % value))
+    else:
+        return mark_safe('<span class="unusable-score">%s</span>' % (c, ffmt % value))

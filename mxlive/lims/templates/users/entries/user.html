@@ -12,7 +12,7 @@
 
 {% block object_tools %}
 {% if user.is_superuser %}
-<span class="box-tools pull-right">
+<span class="tools-box pull-right">
     <a class="pull-right" data-url="{% url "user-delete" object.username %}" title="Delete User">
         <span class="fa-stack">
             <i class="fa-stack-2x fa fa-2 fa-fw fa-remove"></i>
@@ -33,7 +33,7 @@
     </a>
 </span>
 {% endif %}
-<span class="box-tools pull-right hidden-xs">
+<span class="tools-box pull-right hidden-xs">
     <a class="pull-right" href="{% url "data-list" %}?q={{ object.username }}" title="Go to Data for {{ object.username }}">
         <span class="fa-stack">
             <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>

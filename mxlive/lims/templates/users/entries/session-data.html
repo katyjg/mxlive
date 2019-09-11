@@ -5,18 +5,17 @@
 
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
-        <i class="text-muted fa fa-fw {% if shipment.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
-        <span class="text-muted">{% if user.is_superuser %}{{ shipment.project }} | {% endif %}</span><strong>{{ shipment.name }}</strong>
+        <span class="text-muted">{% if user.is_superuser %}{{ session.project|upper }} | {% endif %}</span><strong>{{ session.name }}</strong>
     </h3>
     <span class="text-muted">
-        Data from Beamline Session
+        Data from Session
     </span>
 {% endblock %}
 
 {% block object_tools %}
-    <span class="box-tools pull-right">
-        <a class="pull-right" href="{% url "session-reports" shipment.pk %}" title="Go to Reports from this session">
-            {% show_icon label='Reports' icon='ti ti-1x ti-bar-chart-alt' badge=shipment.num_reports %}
+    <span class="tools-box">
+        <a href="{% url "session-reports" session.pk %}" title="Go to Reports from this session">
+            {% show_icon label='Reports' icon='ti ti-1x ti-bar-chart-alt' badge=session.num_reports %}
         </a>
     </span>
 {% endblock %}
@@ -26,23 +25,19 @@
         <div class="row">
             <div class="col-4">
                 <small class="text-muted text-condensed">Session:</small><br>
-                <a href="{% url "session-detail" shipment.pk %}">{{shipment.name}}</a>
-            </div>
-            <div class="col">
-                <small class="text-muted text-condensed">Datasets:</small><br>
-                {{ shipment.datasets.count }}
-            </div>
-            <div class="col">
-                <small class="text-muted text-condensed">Reports:</small><br>
-                {{ shipment.num_reports }}
+                <a href="{% url "session-detail" session.pk %}">{{session.name}}</a>
             </div>
             <div class="col">
                 <small class="text-muted text-condensed">Total Time:</small><br>
-                {{ shipment.total_time|floatformat }} hour{{ shipment.total_time|pluralize }}
+                {{ session.total_time|floatformat }} hour{{ session.total_time|pluralize }}
             </div>
             <div class="col">
                 <small class="text-muted text-condensed">Start:</small><br>
-                {{ shipment.start|naturalday }}
+                {{ session.start|naturalday }}
+            </div>
+            <div class="col">
+                <small class="text-muted text-condensed">Comments:</small><br>
+                {{ session.comments }}
             </div>
         </div>
     </div>

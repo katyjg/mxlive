@@ -1,6 +1,6 @@
 {% load icons %}
 {% if object.status == object.STATES.DRAFT or object.comments or object.staff_comments %}
-    <span class="box-tools pull-right">
+    <span class="tools-box pull-right">
         {% if object.status == object.STATES.DRAFT %}
             <a class="pull-right" data-url="{{ handler }}delete/">
                 {% show_icon label='Delete' icon='ti ti-2 ti-trash' %}

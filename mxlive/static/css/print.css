@@ -18,7 +18,7 @@ main.content {
 .panel-heading {
 	padding: 1px 15px;
 }
-.box-tools, .status-bar {
+.tools-box, .status-bar {
 	display: none;
 }
 .table > tbody > tr > td{

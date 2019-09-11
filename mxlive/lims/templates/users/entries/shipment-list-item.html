@@ -4,13 +4,13 @@
         <div class="col">
             {% if user.is_superuser and shipment.status <= shipment.STATES.ON_SITE and shipment.status >= shipment.STATES.SENT %}
                 {% if shipment.status == shipment.STATES.ON_SITE %}
-                    <div class="pull-right box-tools">
+                    <div class="pull-right tools-box">
                         <a class="pull-right" data-url="{% url "shipment-return" shipment.pk %}" title="Return shipment">
                             {% show_icon label='Return' icon='fa fa-2 fa-fw fa-paper-plane-o' %}
                         </a>
                     </div>
                 {% else %}
-                    <div class="pull-right box-tools">
+                    <div class="pull-right tools-box">
                         <a class="pull-right" data-url="{% url "shipment-receive" shipment.pk %}" title="Receive shipment" style="padding-left: 0.25em">
                             {% show_icon label='Receive' icon='fa fa-2 fa-fw fa-handshake-o' %}
                         </a>
@@ -18,7 +18,7 @@
                 {% endif %}
             {% endif %}
             {% if shipment.status >= shipment.STATES.ON_SITE %}
-                <div class="pull-right box-tools">
+                <div class="pull-right tools-box">
                     <a class="pull-right" href="{% url "shipment-reports" shipment.pk %}" title="Go to Reports from this shipment">
                         {% show_icon label='Reports' badge=stats.reports icon='ti ti-1x ti-bar-chart-alt' color='info' %}
                     </a>

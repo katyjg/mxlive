@@ -42,7 +42,7 @@ table.report-table, table + .caption {
         margin-top: 0;
         padding-bottom: 0;
     }
-    .box-tools, .footer {
+    .tools-box, .footer {
         display: none;
     }
     .status-bar {

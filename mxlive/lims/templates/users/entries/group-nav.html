@@ -1,6 +1,6 @@
 {% load progress_extras %}
 {% load icons %}
-    <div class="box-tools pull-right" style="padding-right: 0.5em !important;">
+    <div class="tools-box pull-right" style="padding-right: 0.5em !important;">
         <span class="text-medium">{% if session %}{{ group|num_session_samples:session }}/{% endif %}{{ group.sample_count }}</span>
         {% if group.complete %}
             <span class="pull-right superscript text-superscript" title="All samples marked as complete">
@@ -10,7 +10,7 @@
         <br>
         <div class="tool-label text-condensed">Sample{{ group.sample_count|pluralize }}</div>
     </div>
-    <div class="box-tools-inline pull-left text-center" style="padding-right: 15px;">
+    <div class="tools-box-inline pull-left text-center" style="padding-right: 15px;">
         {% show_icon label='Priority' icon='ti ti-1x ti-star' badge=group.priority color='info' %}
     </div>
     <div class="box-info text-condensed">

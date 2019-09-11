@@ -11,22 +11,21 @@
 {% endblock %}
 
 {% block object_tools %}
-    <span class="box-tools pull-right">
-        <a class="pull-right" href="{% url "project-statistics" username=user.username %}">
-            {% show_icon label='Usage Stats' icon='ti ti-1x ti-stats-up' %}
+    <span class="tools-box">
+        <a href="#!"  data-url="{% url "shipment-new" %}">
+            {% show_icon label='New Shipment' icon='ti ti-1x ti-plus' %}
         </a>
-        <a class="pull-right" href="{% url "session-list" %}">
+        <a  href="{% url "session-list" %}">
             {% show_icon label='Sessions' icon='ti ti-1x ti-time' %}
         </a>
-        <a href="#!" class="pull-right" data-url="{% url "shipment-new" %}">
-            {% show_icon label='New Shipment' icon='ti ti-1x ti-plus' %}
+        <a  href="{% url "project-statistics" username=user.username %}">
+            {% show_icon label='Usage Stats' icon='ti ti-1x ti-stats-up' %}
         </a>
     </span>
 {% endblock %}
 
 {% block full %}
 <div class="row">
-
     <div class="col-md-8">
         <div class="card mb-4">
             <div class="card-header"><h5 class="text-center text-wide text-muted m-0">SHIPMENTS</h5></div>
@@ -51,8 +50,8 @@
                         </div>
                     </div>
                 </div>
-                {% for object in shipments %}
-                    {% include "users/entries/shipment-list-item.html" with object=object %}
+                {% for shipment, stats in shipments %}
+                    {% include "users/entries/shipment-list-item.html"%}
                 {% endfor %}
             </div>
         </div>
@@ -63,8 +62,8 @@
                 <h5 class="text-center text-wide text-muted m-0">RECENT SESSIONS</h5>
             </div>
             <div class="list-group list-group-flush">
-                {% for session in sessions %}
-                    {% include "users/entries/session-list-item.html" with session=session %}
+                {% for session, stats in sessions %}
+                    {% include "users/entries/session-list-item.html"%}
                 {% endfor %}
             </div>
         </div>

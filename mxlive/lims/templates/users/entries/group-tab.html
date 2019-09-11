@@ -3,7 +3,7 @@
 {% group_samples group session as samples %}
 
 
-    <span class="box-tools pull-right" style="max-width: 75%;">
+    <span class="tools-box pull-right" style="max-width: 75%;">
         <small>{{ group.comments|default:"No comments" }}</small>
     </span>
     <h4><a href="{% url 'group-detail' group.pk %}"><strong>{{ group.name }}</strong></a> | {{ group.get_kind_display }}</h4>
@@ -19,7 +19,7 @@
             <div class="row">
                 <div class="col-4">
                 {% if user.is_superuser %}
-                    <span class="box-tools pull-right align-middle" style="padding-top: 0; padding-bottom: 0; padding-right: 20px !important;">
+                    <span class="tools-box pull-right align-middle" style="padding-top: 0; padding-bottom: 0; padding-right: 20px !important;">
                         <a data-url="{% url "sample-admin-edit" sample.pk %}" title="Add/Edit Notes"><i class="fa fa-fw fa-2 fa-comment-o"></i></a>
                     </span>
                     <form class="hidden" method="post" id="{{ sample.pk }}-done" action="{% url "sample-done" sample.pk %}">

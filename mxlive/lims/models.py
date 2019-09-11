@@ -525,7 +525,7 @@ class Shipment(TransitStatusMixin):
     def reports(self):
         return self.project.analysisreport_set.filter(data__sample__container__shipment__pk=self.pk)
 
-    def num_results(self):
+    def num_reports(self):
         return self.reports().count()
 
     def is_sendable(self):
@@ -1218,7 +1218,6 @@ class AnalysisReport(ActiveStatusMixin):
 
     def identity(self):
         return 'AR%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-
     identity.admin_order_field = 'pk'
 
     def sessions(self):

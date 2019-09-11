@@ -3,25 +3,21 @@
 {% load humanize static %}
 {% load score_colors %}
 {% load data_server %}
-
+{% load icons %}
 {% block extra_css %}
     <link href="{% static "css/reports.css" %}" rel="stylesheet">
 {% endblock %}
 
 {% block object_tools %}
-    <div class="box-tools pull-right">
+    <div class="tools-box">
         {% if object.url %}
-        <a class="pull-right" href="{% url 'files-proxy' section='archive' path=object.download_url %}" download="{{ object.name }}.tar.gz" title="Download all output files">
-            <span class="pull-right">
-                <i class="fa fa-fw fa-2x fa-download"></i><br>
-                <span class="tool-label">Download</span>
-            </span>
+        <a  href="{% url 'files-proxy' section='archive' path=object.download_url %}" download="{{ object.name }}.tar.gz" title="Download all output files">
+            {% show_icon label="Download" icon="ti ti-1x ti-download" %}
         </a>
         {% else %}
-            <span class="pull-right text-muted not-allowed" title="Download Not Available">
-                <i class="fa fa-fw fa-2x fa-download"></i><br>
-                <span class="tool-label">Download</span>
-            </span>
+            <a class="text-muted not-allowed" title="Download Not Available">
+                {% show_icon label="Download" icon="ti ti-1x ti-download" %}
+            </a>
         {% endif %}
     </div>
 {% endblock %}
@@ -31,7 +27,7 @@
         <div class="row">
             <div class="col-xs-2">
                 <h3 class="no-vmargin">
-                    <span title="Score" class="badge badge-{{ object.score|label_score }}">{{ object.score|floatformat:2 }}</span>
+                    <span title="Score" class="badge" style="color: #fff; background-color: {{ object.score|color_score }};">{{ object.score|floatformat:2 }}</span>
                 </h3>
             </div>
             <div class="col-xs-3">
