@@ -6,23 +6,23 @@
         <div class="col">
             <div class="pull-right box-tools">
                 <a class="pull-right" href="{% url "session-reports" session.pk %}" title="Go to Reports from this session">
-                    {% show_icon label='Reports' badge=session.num_reports icon='ti ti-1x ti-bar-chart-alt' color='info' %}
+                    {% show_icon label='Reports' badge=stats.reports icon='ti ti-1x ti-bar-chart-alt' color='info' %}
                 </a>
                 <a class="pull-right" href="{% url "session-data" session.pk %}" title="Go to Data from this session">
-                    {% show_icon label='Data' badge=session.datasets.count icon='ti ti-1x ti-layout-grid3' color='info' %}
+                    {% show_icon label='Data' badge=stats.data icon='ti ti-1x ti-layout-grid3' color='info' %}
                 </a>
             </div>
             <div class="overflow ellipsis">
-                <div class="box-status pull-left text-center text-muted" title="Total time {{ session.total_time|floatformat:0 }} hours">
-                    {% show_icon label=session.start.date|date:"M j"|upper badge=session.total_time|floatformat:0 icon='ti ti-1x ti-time' color='success' %}
+                <div class="box-status pull-left text-center text-muted">
+                    {% show_icon label=session.start.date|date:"M j"|upper icon='ti ti-1x ti-time' %}
                 </div>
                 <div class="box-info">
                     <h5 class="text-condensed narrow-heading overflow ellipsis">
                         <a class="text-muted" href="{% url "session-detail" session.pk %}" title='View Session "{{ session.name }}"'>
-                        <strong>{{ session.beamline.acronym }}</strong>{% if user.is_superuser %} | {{ session.project.name.upper }}{% endif %} | {{ session.name }}
+                        <strong>{{ session.beamline.acronym }}</strong>{% if user.is_superuser %} | {{ session.project.name|upper }}{% endif %} | {{ session.name }}
                         </a>
                     </h5>
-                    <span class="text-muted overflow ellipsis">Last record {{ session.datasets.last.modified|naturaltime }}</span>
+                    <span class="text-muted overflow ellipsis">Last record {#{ session.datasets.last.modified|naturaltime }#}</span>
                 </div>
             </div>
         </div>

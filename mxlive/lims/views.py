@@ -60,39 +60,50 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             shipments = models.Shipment.objects.filter(
                 status__in=[models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT]
             )
-            data_counts = dict(models.Data.objects.filter(
+            shipment_data = dict(models.Data.objects.filter(
                 sample__container__shipment__status__in=[models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT]
             ).order_by('sample__container__shipment').values(
                 shipment=models.F('sample__container__shipment')
             ).values_list('shipment', Count('shipment')))
 
-            report_counts = dict(models.AnalysisReport.objects.filter(
+            shipment_reports = dict(models.AnalysisReport.objects.filter(
                 data__sample__container__shipment__status__in=[models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT]
             ).order_by('data__sample__container__shipment').values(
                 shipment=models.F('data__sample__container__shipment')
             ).values_list('shipment', Count('shipment')))
 
-            container_counts = dict(shipments.values_list('pk', Count('containers')))
-            group_counts = dict(shipments.values_list('pk', Count('groups')))
-            sample_counts = dict(shipments.values_list('pk', Count('containers__samples')))
+            shipment_containers = dict(shipments.values_list('pk', Count('containers')))
+            shipment_groups = dict(shipments.values_list('pk', Count('groups')))
+            shipment_samples = dict(shipments.values_list('pk', Count('containers__samples')))
 
             context['shipments'] = [
                 (
                     shipment,
                     {
-                        'groups': group_counts.get(shipment.pk),
-                        'samples': sample_counts.get(shipment.pk),
-                        'containers': container_counts.get(shipment.pk),
-                        'reports': report_counts.get(shipment.pk),
-                        'data': data_counts.get(shipment.pk),
+                        'groups': shipment_groups.get(shipment.pk),
+                        'samples': shipment_samples.get(shipment.pk),
+                        'containers': shipment_containers.get(shipment.pk),
+                        'reports': shipment_reports.get(shipment.pk),
+                        'data': shipment_data.get(shipment.pk),
                      }
                 )
                 for shipment in shipments.prefetch_related('project').order_by('status','-date_received','-date_shipped')
             ]
 
+            sessions = models.Session.objects.filter(stretches__end__isnull=True)
+            session_data = dict(sessions.values_list('pk', Count('datasets')))
+            session_reports = dict(sessions.values_list('pk', Count('datasets__reports')))
+            context['sessions'] = [
+                (
+                    session,
+                    {
+                        'data': session_data.get(session.pk),
+                        'reports': session_reports.get(session.pk),
+                    }
+                )
+                for session in sessions.prefetch_related('project')
+            ]
 
-
-            #context['sessions'] = models.Session.objects.filter(stretches__end__isnull=True)
             #kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('containers', flat=True)
             #context['automounters'] = models.Dewar.objects.filter(active=True).prefetch_related('container', 'beamline').order_by('beamline__name')
             #context['containers'] = models.Container.objects.filter(kind__in=kinds, dewars__isnull=True).order_by('name')
@@ -103,7 +114,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
                 context['show_help'] = self.request.user.show_archives
                 if context['show_help']:
                     models.Project.objects.filter(username=self.request.user.username).update(show_archives=False)
-            sh = self.get_object().shipment_set.filter(status__lt=models.Shipment.STATES.ARCHIVED).order_by('modified')
+            sh = self.get_object().shipments.filter(status__lt=models.Shipment.STATES.ARCHIVED).order_by('modified')
             base_set = sh.filter(status__lte=models.Shipment.STATES.ON_SITE).distinct()
             if base_set.count() < 7:
                 pks = [s.pk for s in list(

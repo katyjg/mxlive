@@ -99,8 +99,8 @@
             <div class="card mb-4">
                 <div class="card-header"><h5 class="text-center text-wide text-muted m-0">ACTIVE SESSIONS</h5></div>
                 <div class="list-group list-group-flush">
-                {% for session in sessions %}
-                    {% include "users/entries/session-list-item.html" with session=session %}
+                {% for session, stats in sessions %}
+                    {% include "users/entries/session-list-item.html" %}
                 {% empty %}
                     <div class="list-group-item empty">
                         No active sessions at the moment.

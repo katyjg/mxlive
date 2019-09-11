@@ -489,7 +489,7 @@ class Shipment(TransitStatusMixin):
         'cascade': 'containers and samples (along with groups, datasets and results)',
         'cascade_help': 'All associated containers will be left without a shipment'
     }
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='shipments')
     comments = models.TextField(blank=True, null=True, max_length=200)
     tracking_code = models.CharField(blank=True, null=True, max_length=60)
     return_code = models.CharField(blank=True, null=True, max_length=60)

@@ -177,7 +177,7 @@ def get_project_stats(user):
                     'data': [
                         ['Sessions', user.sessions.count()],
                         ['Shipments / Containers', "{} / {}".format(
-                            user.shipment_set.count(),
+                            user.shipments.count(),
                             user.containers.filter(status__gte=Container.STATES.ON_SITE).count())],
                         ['Groups / Samples', "{} / {}".format(
                             user.groups.filter(shipment__status__gte=Shipment.STATES.ON_SITE).count(),

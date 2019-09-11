@@ -161,7 +161,7 @@ class ShipmentForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(ShipmentForm, self).clean()
-        if cleaned_data['project'].shipment_set.filter(name__iexact=cleaned_data.get('name', ''))\
+        if cleaned_data['project'].shipments.filter(name__iexact=cleaned_data.get('name', ''))\
                 .exclude(pk=self.instance.pk).exists():
             self.add_error('name', forms.ValidationError("Shipment with this name already exists"))
 
@@ -821,7 +821,7 @@ class AddShipmentForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(AddShipmentForm, self).clean()
-        if cleaned_data['project'].shipment_set.filter(name__iexact=cleaned_data.get('name', '')).exists():
+        if cleaned_data['project'].shipments.filter(name__iexact=cleaned_data.get('name', '')).exists():
             self.add_error('name', forms.ValidationError("Shipment with this name already exists"))
 
 
