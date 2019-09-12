@@ -1,6 +1,6 @@
 {% load score_colors %}
 
-<div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mini-thumbnail pull-right">
+<div class="col-12 col-sm-6 col-md-4 col-lg-3 mini-thumbnail pull-right">
     <a href="{% url 'report-detail' report.pk %}">
     <div class="list-group-item list-group-item-info text-condensed">
         <span class="pull-right badge badge-{{ report.score|label_score }}">{{ report.score|floatformat:2 }}</span>

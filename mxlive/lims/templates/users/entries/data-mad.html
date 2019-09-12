@@ -7,20 +7,20 @@
 
 <div class="row">
     {% if data.data %}
-        <div class="col-xs-12">
+        <div class="col-12">
             <div id="mad-{{ object.pk }}"></div>
         </div>
     {% endif %}
 </div>
 <div class="row">
     {% if data.choices %}
-        <div class="col-xs-12">
+        <div class="col-12">
             <ul class="nav nav-tabs text-condensed">
                 <li class="active"><a data-toggle="pill" href="#choices">Analysis</a></li>
                 <li><a data-toggle="pill" href="#meta-data">Meta-Data</a></li>
             </ul>
         </div>
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="tab-content">
                 <div id="choices" class="tab-pane fade active in">
                     <table class="pull-right table table-hover table-condensed">

@@ -6,18 +6,18 @@
     {% get_xrf_data object as data %}
     <div class="row">
         {% if data.data %}
-            <div class="col-xs-7">
+            <div class="col-7">
                 <div id="xrf-{{ object.pk }}" style="padding-top: 15px;"></div>
             </div>
         {% endif %}
         {% if data.assignments %}
-            <div class="col-xs-5">
+            <div class="col-5">
                 <table class="table table-hover table-condensed">
                     <thead>
                     <tr>
-                        <th class="col-xs-2"></th>
-                        <th class="col-xs-4">Element</th>
-                        <th class="col-xs-6">Contribution (%)</th>
+                        <th class="col-2"></th>
+                        <th class="col-4">Element</th>
+                        <th class="col-6">Contribution (%)</th>
                     </tr>
                     </thead>
                 </table>
@@ -40,13 +40,13 @@
             </div>
             {% comment %}
         <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <ul class="nav nav-tabs text-condensed">
                 <li class="active"><a data-toggle="pill" href="#summary">Detailed Summary</a></li>
                 <li><a data-toggle="pill" href="#meta-data">Meta-Data</a></li>
             </ul>
         </div>
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="tab-content">
                 <div id="summary" class="tab-pane fade active in">
                     <div class="scroll-details scrollbar-inner">

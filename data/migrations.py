@@ -510,7 +510,7 @@ def format_reports():
                     {
                         'title': 'Observed Parameters',
                         'kind': 'table',
-                        'style': 'col-xs-6',
+                        'style': 'col-6',
                         'data': [['Score[1]', r.score],
                                  ['Wavelength (A)', details['wavelength']],
                                  ['Space Group[2]', SpaceGroup.objects.get(pk=details['space_group']).name],
@@ -529,7 +529,7 @@ def format_reports():
                     {
                         'title': 'Expected Quality[3]',
                         'kind': 'table',
-                        'style': 'col-xs-6',
+                        'style': 'col-6',
                         'data': [['Resolution (A)[4]', details.get('strategy',{}).get('resolution')],
                                  ['Multiplicity', details.get('strategy',{}).get('multiplicity')],
                                  ['Completeness', details.get('strategy',{}).get('completeness')],
@@ -542,7 +542,7 @@ def format_reports():
                     {
                         'title': "Kappa and Phi angles for re-orienting the crystal",
                         'kind': 'table',
-                        'style': 'col-xs-12',
+                        'style': 'col-12',
                         'data': [['Kappa[*]', 'Phi', 'Vectors (v1,v2)[*]']].extend(details.get('crystal_alignment',{}).get('solutions',['','',''])),
                         'header': 'row',
                         'notes': """[*] - Alignment is calculated for the goniometer 'CLS MiniKappa'. The alignment method is v1 parallel to omega, v2 perpendicular to the omega-beam plane.""",
@@ -550,7 +550,7 @@ def format_reports():
                     {
                         'title': "Compatible bravais lattice types",
                         'kind': 'table',
-                        'style': 'col-xs-12',
+                        'style': 'col-12',
                         'data': [['No.', 'Lattice type', 'Cell Parameters', 'Quality', 'Cell Volume']] + [
                             [id, details['compatible_lattices']['type'][i],
                              details['compatible_lattices']['unit_cell'][i], details['compatible_lattices']['quality'][i],
@@ -562,7 +562,7 @@ def format_reports():
                     {
                         'title': "Automatic Space-Group Selection",
                         'kind': 'table',
-                        'style': 'col-xs-12',
+                        'style': 'col-12',
                         'data': [['Selected','Candidates','Space Group No.','Probability']] + [
                             [prob == max(details['spacegroup_selection']['probability']) and '*' or '',
                              details['spacegroup_selection']['name'][i],

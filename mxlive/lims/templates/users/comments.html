@@ -1,13 +1,13 @@
 <div id="comments-{{ object.pk }}" class="collapse">
-    <div class="container col-xs-12">
+    <div class="container col-12">
     <div class="comments row">
         {% if object.comments %}
-        <div class="col-xs-2 col-sm-1 text-right">
+        <div class="col-2 col-sm-1 text-right">
             <span title="Comments from {{ object.project.username }}">
                 <i class="fa fa-3x fa-user-circle-o"></i>
             </span>
         </div>
-        <div class="col-xs-10 col-sm-5">
+        <div class="col-10 col-sm-5">
             <div class="panel panel-default">
                 <div class="panel-heading panel-heading-left">
                     {{ object.comments }}
@@ -16,14 +16,14 @@
         </div>
         {% else %}<div class="col-sm-6"></div>{% endif %}
         {% if object.staff_comments %}
-        <div class="col-xs-10 col-sm-5">
+        <div class="col-10 col-sm-5">
             <div class="panel panel-default text-right">
                 <div class="panel-heading panel-heading-right">
                     {{ object.staff_comments }}
                 </div>
             </div>
         </div>
-        <div class="col-xs-2 col-sm-1 text-left">
+        <div class="col-2 col-sm-1 text-left">
             <span title="Comments from staff">
                 <i class="fa fa-3x fa-user-circle"></i>
             </span>

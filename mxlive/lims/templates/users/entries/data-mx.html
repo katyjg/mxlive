@@ -10,7 +10,7 @@
      data-resolution='{{ object.meta_data.resolution|default:0 }}'
 >
     <div class="row">
-        <div class="col-xs-9" style="width: 542px;">
+        <div class="col-9" style="width: 542px;">
             <!-- image viewer aspect -->
             <div class="data-image">
                 <div id="data-image-loading"><div></div></div>
@@ -33,23 +33,23 @@
             </div>
         </div>
 
-        <div class="row col-xs-3 col-meta">
+        <div class="row col-3 col-meta">
             <!-- Display of metaData -->
             <div class="row">
-                <div class="meta-data col-xs-12">
+                <div class="meta-data col-12">
                     <div class="row">
-                        <div class="xtal-pic col-xs-12" style="background-image: url('{% url 'files-proxy' section='snapshot' path=object.snapshot_url %}');"
+                        <div class="xtal-pic col-12" style="background-image: url('{% url 'files-proxy' section='snapshot' path=object.snapshot_url %}');"
                              title="Snapshot from beamline">&nbsp;</div>
                     </div>
                 </div>
 
-                <div class="col-xs-12">
+                <div class="col-12">
                     <ul class="nav nav-tabs text-condensed">
                         <li class="active"><a data-toggle="pill" href="#frames">{{ object.num_frames }} Frames ({{ object.frame_sets }})</a></li>
                         <li><a data-toggle="pill" href="#meta-data">Meta-Data</a></li>
                     </ul>
                 </div>
-                <div class="frame-list col-xs-12">
+                <div class="frame-list col-12">
                     <!--h4 class="text-condensed">{{ object.num_frames }} Frames ({{ object.frame_sets }})</h4-->
                     <div class="tab-content">
                         <div id="frames" class="tab-pane fade active in">

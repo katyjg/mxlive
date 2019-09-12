@@ -879,14 +879,14 @@ function build_report(selector, report) {
     $.each(report['details'], function (i, section) {
         var section_box = $(selector).append('<section class="container" id="section-' + i + '"></section>').children(":last-child");
         if (section['title']) {
-            section_box.append("<div class='col-xs-12'><h3 class='section-title' >" + section['title'] + "</h3></div>");
+            section_box.append("<div class='col-12'><h3 class='section-title' >" + section['title'] + "</h3></div>");
         }
         section_box.addClass(section['style'] || '');
         if (section['description']) {
-            section_box.append("<div class='col-xs-12'>" + converter.makeHtml(section['description']) + "</div>");
+            section_box.append("<div class='col-12'>" + converter.makeHtml(section['description']) + "</div>");
         }
         $.each(section['content'], function (j, entry) {
-            var entry_row = section_box.append("<div class='col-xs-12' id='entry-" + i + "-" + j + "'></div>").children(":last-child");
+            var entry_row = section_box.append("<div class='col-12' id='entry-" + i + "-" + j + "'></div>").children(":last-child");
             entry_row.addClass(entry['style'] || '');
             if (entry['title']) {
                 if (!entry['kind']) {

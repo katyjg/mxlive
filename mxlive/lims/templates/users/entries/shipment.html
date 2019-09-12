@@ -24,7 +24,7 @@
     <div class="status-bar">
         <div class="row">
             <div class="col">
-                <h3>
+                <h3 class="m-0">
                     <span class="badge badge-{% if object.status == object.STATES.ON_SITE %}info
                                 {% elif object.status == object.STATES.DRAFT %}warning
                                 {% elif object.status == object.STATES.SENT %}success
@@ -72,9 +72,9 @@
                 </div>
             {% endif %}
             {% if object.components.all %}
-                <div class="col pull-right text-right">
+                <div class="col text-right">
                     <small class="text-muted text-condensed">Included Items</small><br>
-                    {% for c in object.components.all %}<span class="badge badge-info">{{ c.kind }}</span> {% endfor %}
+                    {% for c in object.components.all %}<span class="badge badge-warning p-2">{{ c.kind }}</span> {% endfor %}
                 </div>
             {% endif %}
         </div>
@@ -84,10 +84,9 @@
 
 {% block full %}
 
-{% comment %}
 {% with object as shipment %}
     <div class="row">
-        <div class="col-sm-7 col-xs-12">
+        <div class="col-sm-7 col-12">
             <span class="tools-box tools-box-inline pull-left">
                 {% if object.status == object.STATES.DRAFT %}
                 <a class="pull-left" data-url="{% url "shipment-add-containers" object.pk %}">
@@ -99,7 +98,7 @@
             <h3><strong>{{ shipment.containers.count }}</strong> Containers</h3>
             <hr />
             <div class="row">
-            {% for container in shipment.containers %}
+            {% for container in shipment.containers.all %}
 
                 <div class="col-sm-12 col-md-6 col-lg-4 text-center">
                     <div id="layout-{{ container.pk }}" class="layout-lg p-4">
@@ -120,7 +119,7 @@
             </div>
         </div>
 
-        <div class="col-sm-5 col-xs-12">
+        <div class="col-sm-5 col-12">
             <span class="tools-box tools-box-inline pull-left">
                 {% if object.status ==  object.STATES.DRAFT %}<a class="pull-left" data-url="{% url "shipment-add-groups" object.pk %}">
                     <i class="fa fa-2 fa-fw fa-plus"></i><br>
@@ -151,10 +150,10 @@
                                     <br><span class="tool-label hidden-xs">Edit</span>
                                 </a>
                             {% else %}
-                                <span class="pull-right text-center text-muted">
+                                <div class="pull-right text-center text-muted">
                                     <div class="text-medium">{{ group.samples.count }}</div>
                                     <div class="text-condensed"><small>Sample{{ group.samples.count|pluralize }} </small></div>
-                                </span>
+                                </div>
                             {% endif %}
                         </span>
                         <h4 class="list-group-item-heading ellipsis overflow text-condensed"><a href="{% url "group-detail" pk=group.pk %}"><span class="text-muted">{{ group.identity }}</span> | <strong>{{ group.name }}</strong></a></h4>
@@ -185,8 +184,9 @@
     </div>
 {% endwith %}
 
+    {% comment %}
     <script>
-        {% for group in shipment.groups %}
+        {% for group in shipment.groups.all %}
             $('#group-{{ group.pk }}').hover(function() {
                 {% for sample in group.samples.all %}
                     $('[sample="{{ sample.name }}"]').addClass('active-sample');
@@ -197,8 +197,5 @@
             });
         {% endfor %}
     </script>
-
-
-
-{% endcomment %}
+    {% endcomment %}
 {% endblock %}

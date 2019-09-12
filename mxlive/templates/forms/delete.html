@@ -9,7 +9,7 @@
 <div class="row form-action">
   		<form action="{% if form_action %}{{ form_action }}{% else %}delete/{% endif %}" method="post">{% csrf_token %}
    			<input type="hidden" name="post" value="yes" />
-            <div class="col-xs-12">
+            <div class="col-12">
 			    <button type="submit" value="Submit" class="btn btn-danger pull-right">Yes, I'm sure</button>
             </div>
 		</form>

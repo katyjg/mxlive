@@ -17,15 +17,15 @@
 {% block full %}
 
 <div class="row">
-    <div id="data-stats" class="col-xs-12"></div>
+    <div id="data-stats" class="col-12"></div>
 </div>
 <div class="row">
-    <div class="col-xs-12">
-        <section class="container col-xs-12">
-            <div class="col-xs-12">
+    <div class="col-12">
+        <section class="container col-12">
+            <div class="col-12">
                 <h3 class="section-title">{{ object.start|date }} {% if object.is_active %}to {% now "N j, Y"%}{% else %}{% ifnotequal object.start|date object.end|date %}to {{ object.end|date }}{% endifnotequal %}{% endif %}</h3>
             </div>
-            <div class="col-xs-12">
+            <div class="col-12">
                 <p>
                     <span class="label" style="background-color: rgb(174,199,232);">Session Open</span>
                     <span class="label" style="background-color: rgb(31,119,180);">Data Collection</span>
@@ -36,15 +36,15 @@
     </div>
     {% get_session_gaps object.datasets.all as gaps %}
     {% if gaps %}
-    <div class="col-xs-12">
-        <section class="container col-xs-12">
-            <div class="col-xs-12">
+    <div class="col-12">
+        <section class="container col-12">
+            <div class="col-12">
                 <h3 class="section-title">Time Gaps</h3>
             </div>
-            <div class="col-xs-12">
+            <div class="col-12">
                 <p>Periods of possible inactivity while the session was open, greater than 10 minutes, </p>
             </div>
-            <div class="col-xs-12">
+            <div class="col-12">
                 <table class="table table-hover table-condensed">
                     <thead>
                     <tr><th>Start</th><th>End</th><th>Duration</th></tr>

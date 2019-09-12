@@ -276,7 +276,7 @@ class Session(models.Model):
         return self.datasets.all()
 
     def reports(self):
-        return self.project.analysisreport_set.filter(data__in=self.datasets.all())
+        return self.project.reports.filter(data__in=self.datasets.all())
 
     def num_datasets(self):
         return self.datasets().count()
@@ -523,7 +523,7 @@ class Shipment(TransitStatusMixin):
         return self.datasets().count()
 
     def reports(self):
-        return self.project.analysisreport_set.filter(data__sample__container__shipment__pk=self.pk)
+        return self.project.reports.filter(data__sample__container__shipment__pk=self.pk)
 
     def num_reports(self):
         return self.reports().count()
@@ -1008,7 +1008,7 @@ class Sample(ProjectObjectMixin):
         reports = []
         for d in self.datasets.all():
             reports.extend(list(d.reports.all().values_list('pk', flat=True)))
-        return self.project.analysisreport_set.filter(pk__in=reports)
+        return self.project.reports.filter(pk__in=reports)
 
     def container_and_location(self):
         return "{} - {}".format(self.container.name, self.location)
@@ -1202,7 +1202,7 @@ class Data(ActiveStatusMixin):
 
 
 class AnalysisReport(ActiveStatusMixin):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='reports')
     kind = models.CharField(max_length=100)
     score = models.FloatField(null=True, default=0.0)
     data = models.ManyToManyField(Data, blank=True, related_name="reports")

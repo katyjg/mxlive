@@ -8,24 +8,24 @@
 
 {% block form_body %}
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <table>
                 <tr>
-                    <th class="col-xs-4">Start</th>
-                    <th class="col-xs-4 text-right">End</th>
-                    <th class="col-xs-4 text-right">Uptime</th></tr>
+                    <th class="col-4">Start</th>
+                    <th class="col-4 text-right">End</th>
+                    <th class="col-4 text-right">Uptime</th></tr>
                 {% for stretch in object.stretches.active %}
                     <tr>
-                        <td class="col-xs-4">{{ stretch.start }}</td>
-                        <td class="col-xs-4 text-right">{{ stretch.end }}</td>
-                        <td class="col-xs-4 text-right">{{ stretch.duration|default:"Active" }} {% if stretch.duration %}minutes{% endif %}</td>
+                        <td class="col-4">{{ stretch.start }}</td>
+                        <td class="col-4 text-right">{{ stretch.end }}</td>
+                        <td class="col-4 text-right">{{ stretch.duration|default:"Active" }} {% if stretch.duration %}minutes{% endif %}</td>
                     </tr>
                 {% endfor %}
                 {% for stretch in object.stretches.with_duration %}
                     <tr>
-                        <td class="col-xs-4">{{ stretch.start }}</td>
-                        <td class="col-xs-4 text-right">{{ stretch.end }}</td>
-                        <td class="col-xs-4 text-right">{{ stretch.duration|humanize_duration|default:"0 minutes" }}</td>
+                        <td class="col-4">{{ stretch.start }}</td>
+                        <td class="col-4 text-right">{{ stretch.end }}</td>
+                        <td class="col-4 text-right">{{ stretch.duration|humanize_duration|default:"0 minutes" }}</td>
                     </tr>
                 {% endfor %}
             </table>

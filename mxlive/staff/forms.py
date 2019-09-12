@@ -25,31 +25,31 @@ class AnnouncementForm(forms.ModelForm):
             self.helper.form_action = reverse_lazy('new-announcement')
         self.helper.layout = Layout(
             Div(
-                Div('priority', css_class="col-xs-2"),
-                Div('title', css_class="col-xs-10"),
+                Div('priority', css_class="col-2"),
+                Div('title', css_class="col-10"),
                 css_class="row"
             ),
             Div(
-                Div('description', css_class="col-xs-12"),
+                Div('description', css_class="col-12"),
                 css_class="row"
             ),
             Div(
-                Div('url', css_class="col-xs-12"),
+                Div('url', css_class="col-12"),
                 css_class="row"
             ),
             Div(
-                Div('attachment', css_class="col-xs-12"),
+                Div('attachment', css_class="col-12"),
                 css_class="row"
             ),
             FormActions(
                 Div(
                     Div(
-                        StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-default"),
+                        StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
                         StrictButton('Save', type='submit', name="submit", value='save',
                                      css_class='btn btn-primary'),
                         css_class='pull-right'
                     ),
-                    css_class="col-xs-12"
+                    css_class="col-12"
                 ),
                 css_class="form-action row"
             )
@@ -70,7 +70,7 @@ class AccessForm(forms.ModelForm):
             Div(
                 Div(
                     Field('users', css_class="chosen"),
-                    css_class="col-xs-12"
+                    css_class="col-12"
                 ),
                 css_class="row"
             ),
@@ -78,7 +78,7 @@ class AccessForm(forms.ModelForm):
                 Div(
                     HTML("""It may take a few minutes for your changes to be updated on the server.<br/>
                             Changes are pulled every 5 minutes."""),
-                    css_class="col-xs-12"
+                    css_class="col-12"
                 ),
                 css_class="row"
             ),
@@ -88,7 +88,7 @@ class AccessForm(forms.ModelForm):
                         StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
                         css_class='pull-right'
                     ),
-                    css_class="col-xs-12"
+                    css_class="col-12"
                 ),
                 css_class="form-action row"
             )
@@ -113,7 +113,7 @@ class CategoryForm(forms.ModelForm):
             Div(
                 Div(
                     Field('projects', css_class="chosen"),
-                    css_class="col-xs-12"
+                    css_class="col-12"
                 ),
                 css_class="row"
             ),
@@ -123,7 +123,7 @@ class CategoryForm(forms.ModelForm):
                         StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
                         css_class='pull-right'
                     ),
-                    css_class="col-xs-12"
+                    css_class="col-12"
                 ),
                 css_class="form-action row"
             )

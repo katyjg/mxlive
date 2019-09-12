@@ -14,7 +14,7 @@
     </thead>
     {% for sample in group.samples.all %}
         <tr class="hover-row" sample="{{ sample.name }}">
-            <td class="col-xs-2">
+            <td class="col-2">
                 {% if request.user.is_superuser %}
                     <form method="post" id="{{ sample.pk }}-done" action="{% url "sample-done" sample.pk %}">
                         {% csrf_token %}
@@ -25,16 +25,16 @@
                     <a href="{% url "sample-detail" sample.pk %}"><strong>{{ sample.name }}</strong></a>
                 {% endif %}
                 </td>
-            <td class="col-xs-1">{{ sample.barcode|default_if_none:"" }}</td>
-            <td class="col-xs-2">{% if sample.container.parent %}<span class="text-muted"><strong>{{ sample.dewar }} {{ sample.port }}</strong> |</span>{% endif %}
+            <td class="col-1">{{ sample.barcode|default_if_none:"" }}</td>
+            <td class="col-2">{% if sample.container.parent %}<span class="text-muted"><strong>{{ sample.dewar }} {{ sample.port }}</strong> |</span>{% endif %}
                     {{ sample.container_and_location }} </td>
-            <td class="col-xs-2">{{ sample.comments|default_if_none:"" }}
+            <td class="col-2">{{ sample.comments|default_if_none:"" }}
                 {% if sample.comments and sample.staff_comments %}<br/>{% endif %}
                 <span class="highlight">{% if sample.staff_comments %}<strong>Collection Notes:</strong> {% endif %}{{ sample.staff_comments|default_if_none:""  }}</span>
                 {% if request.user.is_superuser %}
                     <a data-url="{% url "sample-admin-edit" sample.pk %}" title="Add/Edit Notes"><i class="fa fa-fw fa-comment-o"></i></a></td>
                 {% endif %}
-            <td class="col-xs-2">
+            <td class="col-2">
                 <table class="subtable">
                     <tr>
                         <td>{% for data in sample.datasets.screening %}
@@ -56,7 +56,7 @@
                     </tr>
                 </table>
             </td>
-        <td class="col-xs-4">
+        <td class="col-4">
                 {% for data in sample.datasets.collection %}
                     {% include "users/entries/data-thumbnail.html" with data=data %}
                 {% endfor %}

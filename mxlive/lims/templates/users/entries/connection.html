@@ -12,16 +12,16 @@
     <div class="row">
         <div class="status-bar col-sm-12">
             <div class="row">
-                <div class="col-xs-4">
+                <div class="col-4">
                     <h3 class="no-vmargin">
                         <span class="badge badge-{% if object.is_active %}info{% else %}default{% endif %}">{{ object.status|upper }}</span>
                     </h3>
                 </div>
-                <div class="col-xs-4 pull-right text-right">
+                <div class="col-4 pull-right text-right">
                     <small class="text-muted text-condensed">Total Time:</small><br>
                     {{ object.total_time|humanize_duration }}
                 </div>
-                <div class="col-xs-4 pull-right text-right">
+                <div class="col-4 pull-right text-right">
                     <small class="text-muted text-condensed">Start:</small><br>
                     {{ object.created }}
                 </div>

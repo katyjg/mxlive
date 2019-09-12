@@ -17,10 +17,10 @@
 {% block object_status %}
     <div class="status-bar hidden-print">
         <div class="row">
-            <div class="col-xs-1">
+            <div class="col-1">
                 Yearly Statistics:
             </div>
-            <div class="col-xs-11">
+            <div class="col-11">
                 {% for yr in object|get_years %}
                     <a href="{% url "beamline-statistics" object.pk yr %}"><span class="badge badge-info">{{ yr }}</span></a>&nbsp;
                 {% endfor %}
@@ -33,7 +33,7 @@
 {% block full %}
 
 <div class="row">
-    <div id="data-stats" class="col-xs-12"></div>
+    <div id="data-stats" class="col-12"></div>
 
 
 </div>

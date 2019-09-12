@@ -10,27 +10,27 @@
 
 {% block form_body %}
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <table>
                 <tr>
-                    <th class="col-xs-3">Container</th>
-                    <th class="col-xs-3">Start</th>
-                    <th class="col-xs-3 text-right">End</th>
-                    <th class="col-xs-3 text-right">Loaded Time</th></tr>
+                    <th class="col-3">Container</th>
+                    <th class="col-3">Start</th>
+                    <th class="col-3 text-right">End</th>
+                    <th class="col-3 text-right">Loaded Time</th></tr>
                 {% for stretch in object.children_history.active %}
                     <tr>
-                        <td class="col-xs-3">{{ stretch.child.project }} | {{ stretch.child.name }} <strong>{{ stretch.location }}</strong></td>
-                        <td class="col-xs-3">{{ stretch.start }}</td>
-                        <td class="col-xs-3 text-right">{{ stretch.end }}</td>
-                        <td class="col-xs-3 text-right">{{ stretch.duration|default:"Active" }} {% if stretch.duration %}minutes{% endif %}</td>
+                        <td class="col-3">{{ stretch.child.project }} | {{ stretch.child.name }} <strong>{{ stretch.location }}</strong></td>
+                        <td class="col-3">{{ stretch.start }}</td>
+                        <td class="col-3 text-right">{{ stretch.end }}</td>
+                        <td class="col-3 text-right">{{ stretch.duration|default:"Active" }} {% if stretch.duration %}minutes{% endif %}</td>
                     </tr>
                 {% endfor %}
                 {% for stretch in object.children_history.with_duration|slice:"50" %}
                     <tr>
-                        <td class="col-xs-3">{{ stretch.child.project }} | {{ stretch.child.name }} <strong>{{ stretch.location }}</strong></td>
-                        <td class="col-xs-3">{{ stretch.start }}</td>
-                        <td class="col-xs-3 text-right">{{ stretch.end }}</td>
-                        <td class="col-xs-3 text-right">{{ stretch.duration|humanize_duration|default:"0 minutes" }}</td>
+                        <td class="col-3">{{ stretch.child.project }} | {{ stretch.child.name }} <strong>{{ stretch.location }}</strong></td>
+                        <td class="col-3">{{ stretch.start }}</td>
+                        <td class="col-3 text-right">{{ stretch.end }}</td>
+                        <td class="col-3 text-right">{{ stretch.duration|humanize_duration|default:"0 minutes" }}</td>
                     </tr>
                 {% endfor %}
             </table>

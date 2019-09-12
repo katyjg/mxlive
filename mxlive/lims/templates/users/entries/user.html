@@ -1,6 +1,6 @@
 {% extends "users/base.html" %}
 {% load humanize %}
-
+{% load icons %}
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
         <span class="text-muted">{{ object.name }}</span> | <strong>{{ object.first_name }} {{ object.last_name }}</strong>
@@ -11,61 +11,26 @@
 {% endblock %}
 
 {% block object_tools %}
+<span class="tools-box">
 {% if user.is_superuser %}
-<span class="tools-box pull-right">
-    <a class="pull-right" data-url="{% url "user-delete" object.username %}" title="Delete User">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-remove"></i>
-        </span><br>
-        <span class="tool-label">Delete</span>
+    <a href="{% url "project-labels" object.username %}" title="Get Shipping Labels">
+        {% show_icon label="Labels" icon="fa ti-1x fa-tags" %}
     </a>
-    <a class="pull-right" data-url="{% url "edit-profile" object.username %}" title="Edit Profile">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-pencil"></i>
-        </span><br>
-        <span class="tool-label">Edit</span>
+    <a href="#!" data-url="{% url "edit-profile" object.username %}" title="Edit Profile">
+        {% show_icon label="Edit" icon="ti ti-1x ti-pencil-alt" %}
     </a>
-    <a class="pull-right" href="{% url "project-labels" object.username %}" title="Get Shipping Labels">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-tags"></i>
-        </span><br>
-        <span class="tool-label">Labels</span>
+    <a href="#!" data-url="{% url "user-delete" object.username %}" title="Delete User">
+        {% show_icon label="Delete" icon="ti ti-1x ti-trash" %}
     </a>
-</span>
 {% endif %}
-<span class="tools-box pull-right hidden-xs">
-    <a class="pull-right" href="{% url "data-list" %}?q={{ object.username }}" title="Go to Data for {{ object.username }}">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
-            {% if object.datasets.count %}
-                <span class="fa-stack-1x superscript">
-                    <span class="badge badge-pill badge-info">{{ object.datasets.count }}</span>
-                </span>
-            {% endif %}
-        </span><br>
-        <span class="tool-label">Data</span>
+    <a href="{% url "data-list" %}?q={{ object.username }}" title="Go to Data for {{ object.username }}">
+        {% show_icon label="Data" icon="ti ti-1x ti-layout-grid3" badge=object.datasets.count %}
     </a>
     <a class="pull-right" href="{% url "result-list" %}?q={{ object.username }}" title="Go to Reports for {{ object.username }}">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-            {% if object.analysisreport_set.count %}
-                <span class="fa-stack-1x superscript">
-                    <span class="badge badge-pill badge-info">{{ object.analysisreport_set.count }}</span>
-                </span>
-            {% endif %}
-        </span><br>
-        <span class="tool-label">Reports</span>
+        {% show_icon label="Reports" icon="ti ti-1x ti-bar-chart-alt" badge=object.reports.count %}
     </a>
     <a class="pull-right" href="{% url "session-list" %}?q={{ object.username }}" title="Go to Sessions for {{ object.username }}">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-            {% if object.sessions.count %}
-                <span class="fa-stack-1x superscript">
-                    <span class="badge badge-pill badge-info">{{ object.sessions.count }}</span>
-                </span>
-            {% endif %}
-        </span><br>
-        <span class="tool-label">Sessions</span>
+        {% show_icon label="Sessions" icon="ti ti-1x ti-time" badge=object.sessions.all.count %}
     </a>
 </span>
 {% endblock %}
@@ -73,20 +38,20 @@
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
-            <div class="col-xs-2">
-                <h3 class="no-vmargin">
-                    <span class="badge badge-{% if object.active_status == 'Active' %}info{% else %}{% if object.active_status == 'Idle' %}default{% else %}success{% endif %}{% endif %}" title="Last session on {{ object.last_session }}">{{ object.active_status }}</span>
+            <div class="col-2">
+                <h3 class="m-0">
+                    <span class="badge badge-{% if object.active_status == 'Active' %}info{% else %}{% if object.active_status == 'Idle' %}secondary{% else %}success{% endif %}{% endif %}" title="Last session on {{ object.last_session }}">{{ object.active_status }}</span>
                 </h3>
             </div>
-            <div class="col-xs-3 pull-right text-right">
+            <div class="col-3 pull-right text-right">
                 <small class="text-muted text-condensed">Groups:</small><br>
                 {{ object.groups.count }}
             </div>
-            <div class="col-xs-2 pull-right text-right">
+            <div class="col-2 pull-right text-right">
                 <small class="text-muted text-condensed">Shipments:</small><br>
                 {{ object.shipments.count }}
             </div>
-            <div class="col-xs-2 pull-right text-right">
+            <div class="col-2 pull-right text-right">
                 <small class="text-muted text-condensed">Samples:</small><br>
                 {{ object.samples.count }}
             </div>
@@ -98,13 +63,13 @@
 {% block full %}
 
     <div class="row">
-        <div class="col-xs-12 col-sm-9">
+        <div class="col-12 col-sm-9">
             {% include "users/address.html" with user=object %}
-            <span class="text-info">{{ object.contact_email|default_if_none:"" }}<br/>
-                {{ object.contact_phone|default_if_none:"" }}</span>
-            <br/>
+            <div class="mini-profile">{{ object.contact_email|default_if_none:"" }}<br/>
+                {{ object.contact_phone|default_if_none:"" }}
+            </div>
         </div>
-        <div class="col-xs-12 col-sm-3 text-center">
+        <div class="col-12 col-sm-3 text-center">
             {% if object.carrier %}
                 <img src="/static/img/{{ object.carrier|slugify }}.png" title="{{ object.carrier|default_if_none:'User'|title }}">
             {% else %}

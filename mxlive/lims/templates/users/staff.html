@@ -27,13 +27,13 @@
 
 {% block full %}
     <div class="row">
-        <div class="col-xs-12 col-sm-6 col-md-3">
+        <div class="col-12 col-sm-6 col-md-3">
             <div class="card mb-4">
                 <div class="card-header"><h5 class="text-center text-wide text-muted m-0">BEAMLINES</h5></div>
                 <div class="list-group list-group-flush list-group-hover">
                 {% for am in automounters %}
                     <a href="{% url "beamline-detail" pk=am.beamline.pk %}" class="text-center list-group-item" style="overflow: auto;">
-                        <div class="col-xs-12">
+                        <div class="col-12">
                             <div id="layout-{{ am.container.pk }}" class="layout-lg">
                                 <h5 class="text-condensed">
                                     <strong><span class="text-muted">{{ am.beamline.acronym }}</span></strong> | {{ am.container.kind }}
@@ -59,7 +59,7 @@
             </div>
 
         </div>
-        <div class="col-xs-12 col-sm-6">
+        <div class="col-12 col-sm-6">
             <div class="card mb-4">
                 <div class="card-header"><h5 class="text-center text-wide text-muted m-0">SHIPMENTS</h5></div>
                 <div class="list-group list-group-flush">
@@ -101,7 +101,7 @@
             </div>
         </div>
 
-        <div class="col-xs-12 col-sm-3">
+        <div class="col-12 col-sm-3">
             {% load_announcements %}
         </div>
     </div>

@@ -37,7 +37,7 @@
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
-            <div class="col-xs-2">
+            <div class="col-2">
                 <h3 class="no-vmargin">
                     <span class="badge badge-{% if object.status == object.STATES.ON_SITE %}info
                                 {% elif object.status == object.STATES.DRAFT %}warning
@@ -46,7 +46,7 @@
                                 {% else %}default{% endif %}">{% if object.parent %}Loaded{% else %}{{ object.get_status_display }}{% endif %}</span>
                 </h3>
             </div>
-            <div class="col-xs-3">
+            <div class="col-3">
             {% if object.accepts_children %}
                 <small class="text-muted text-condensed">Beamline:</small><br>
                 {% if object.dewar %}<a href="{% url "beamline-detail" object.dewar.beamline.pk %}">{{ object.dewar.beamline.acronym }}</a>{% endif %}
@@ -55,12 +55,12 @@
                 {% if object.shipment %}<a href="{% url "shipment-detail" object.shipment.pk %}">{{object.shipment.name}}</a>{% endif %}
             {% endif %}
             </div>
-            <div class="col-xs-2 pull-right text-right">
+            <div class="col-2 pull-right text-right">
                 <small class="text-muted text-condensed">Number of {% if object.accepts_children %}Containers{% else %}Samples{% endif %}:</small><br>
                 <strong>{% if object.accepts_children %}{{ object.children.count }}{% else %}{{ object.num_samples }}{% endif %}</strong> / {{ object.kind.container_locations.count }}
             </div>
             {% if object.parent %}
-                <div class="col-xs-3 pull-right text-right">
+                <div class="col-3 pull-right text-right">
                     <small class="text-muted text-condensed">Location:</small><br>
                     {% if object.dewar %}
                         {{ object.dewar.beamline }}
@@ -70,7 +70,7 @@
                 </div>
             {% endif %}
 
-            <div class="col-xs-2 pull-left">
+            <div class="col-2 pull-left">
                 <small class="text-muted text-condensed">Type:</small><br>
                 {{ object.kind }}
             </div>
@@ -83,7 +83,7 @@
 {% block full %}
 
     <div class="row">
-        <div class="col-sm-8 col-xs-12">
+        <div class="col-sm-8 col-12">
         <h3>Samples in {{ object.name }}</h3>
             {% if object.accepts_children %}
                 {% include "users/entries/loaded-list.html" with object=object %}
@@ -91,7 +91,7 @@
                 {% include "itemlist/list.html" with object_list=object.samples.all %}
             {% endif %}
         </div>
-        <div {% if object.accepts_children %}id="admin-assign"{% endif %} class="col-sm-4 col-xs-12 pull-right">
+        <div {% if object.accepts_children %}id="admin-assign"{% endif %} class="col-sm-4 col-12 pull-right">
             <div id="layout-{{ object.pk }}" class="layout-lg"></div>
             {% include "users/entries/layout-container.html" with object=object.pk kind=object.kind %}
         </div>

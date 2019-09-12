@@ -59,8 +59,8 @@
 
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
-        <i class="text-muted fa fa-fw fa-area-chart"></i>
-        <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}{{ object.identity }} | </span><strong>{{ object.name }}</strong>
+        <i class="text-muted ti ti-bar-chart-alt"></i>
+        <span class="text-muted">{% if user.is_superuser %}{{ object.project|upper }} | {% endif %}</span><strong>{{ object.name }}</strong>
     </h3>
     <span class="text-muted">
         {{ object.kind }} Report uploaded from the beamline

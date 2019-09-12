@@ -14,15 +14,15 @@
 {% block form_title %}
     <span class="text-condensed">
         <span class="text-muted">
-            <i class="text-muted fa fa-fw {% if "MX" in object.kind or "DATA" in object.kind or "RASTER" in object.kind %}fa-th{% else %}fa-line-chart{% endif %}"></i>
-            {% if request.user.is_superuser %}{{ object.project }} | {% endif %}{{ object.identity }} | </span>
+            <i class="text-muted ti ti-layout-grid3 {% if "MX" in object.kind or "DATA" in object.kind or "RASTER" in object.kind %}fa-th{% else %}fa-line-chart{% endif %}"></i>
+            {% if request.user.is_superuser %}{{ object.project | upper }} | {% endif %}</span>
         <strong>{{ object.name }}</strong>
     </span>
 {% endblock %}
 
 {% block form_body %}
     <small>
-    <div class="status-bar">
+    <div class="status-bar p-0">
         <div class="row">
             <div class="col-3">
                 <strong>Type:</strong><br/>

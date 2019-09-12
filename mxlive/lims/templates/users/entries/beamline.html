@@ -43,16 +43,16 @@
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
-            <div class="col-xs-6 col-sm-4">
+            <div class="col-6 col-sm-4">
                 <h3 class="no-vmargin">
                     <span class="badge badge-info">{{ object.contact_phone }}</span>
                 </h3>
             </div>
-            <div class="col-xs-3 col-sm-4">
+            <div class="col-3 col-sm-4">
                 <small class="text-muted text-condensed">Energy Range:</small><br>
                 {{ object.energy_lo }} - {{ object.energy_hi }}
             </div>
-            <div class="col-xs-3 col-sm-4 pull-right text-right">
+            <div class="col-3 col-sm-4 pull-right text-right">
                 <small class="text-muted text-condensed">Staff Comments:</small><br>
                 {{ object.active_dewar.staff_comments|safe }}
             </div>
@@ -70,7 +70,7 @@
                 {% include "users/entries/layout-container.html" with object=automounter.pk kind=automounter.kind %}
             </div>
 
-            <div class="col-sm-5 col-xs-12">
+            <div class="col-sm-5 col-12">
                 {% include "users/entries/loaded-list.html" with object=automounter %}
             </div>
         </div>

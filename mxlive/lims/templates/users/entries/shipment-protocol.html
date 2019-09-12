@@ -1,5 +1,5 @@
 {% extends "users/base.html" %}
-
+{% load icons %}
 {% block extra_css %}
     <link rel="stylesheet" href="/static/css/print.css" type="text/css" media="print"/>
 {% endblock %}
@@ -7,7 +7,7 @@
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
         <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
-        <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}{{ object.identity }}</span> | <strong>{{ object.name }}</strong>
+        <span class="text-muted">{% if user.is_superuser %}{{ object.project|upper}} | {% endif %}</span><strong>{{ object.name }}</strong>
     </h3>
     <span class="text-muted">
         Collection Protocol
@@ -16,27 +16,11 @@
 
 {% block object_tools %}
     <span class="tools-box pull-right">
-        <a class="pull-right" href="{% url "shipment-data" object.pk %}" title="Go to Data from this shipment">
-            <span class="fa-stack">
-                <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
-                {% if object.num_datasets %}
-                    <span class="fa-stack-1x superscript">
-                        <span class="badge badge-pill badge-info">{{ object.num_datasets }}</span>
-                    </span>
-                {% endif %}
-            </span><br>
-            <span class="tool-label">Data</span>
+        <a href="{% url "shipment-data" object.pk %}" title="Go to Data from this shipment">
+            {% show_icon label="Data" icon="ti ti-1x ti-layout-grid3" badge=object.num_datasets %}
         </a>
-        <a class="pull-right" href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
-            <span class="fa-stack">
-                <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-                {% if object.num_reports %}
-                    <span class="fa-stack-1x superscript">
-                        <span class="badge badge-pill badge-info">{{ object.num_reports }}</span>
-                    </span>
-                {% endif %}
-            </span><br>
-            <span class="tool-label">Reports</span>
+        <a href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
+            {% show_icon label="Data" icon="ti ti-1x ti-bar-chart-alt" badge=object.num_reports %}
         </a>
     </span>
 {% endblock %}
@@ -44,19 +28,19 @@
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
-            <div class="col-xs-3">
+            <div class="col">
                 <small class="text-muted text-condensed">Shipment:</small><br>
                 <a href="{% url "shipment-detail" object.pk %}">{{object.name}}</a>
             </div>
-            <div class="col-xs-3">
+            <div class="col">
                 <small class="text-muted text-condensed">Samples:</small><br>
                 {{ object.num_samples }}
             </div>
-            <div class="col-xs-3">
+            <div class="col">
                 <small class="text-muted text-condensed">Groups:</small><br>
                 {{ object.groups.count }}
             </div>
-            <div class="col-xs-3">
+            <div class="col">
                 <small class="text-muted text-condensed">Comments:</small><br>
                 {{ object.comments }}
             </div>
@@ -65,25 +49,63 @@
 {% endblock %}
 
 {% block full %}
-
+    {% with object.groups.all as groups %}
     <div class="row">
-        <div class="col-xs-4 col-lg-3 col-xl-2">
-            <h3>Groups</h3>
-            <hr/>
-            <div class="list-group">
-            {% for group in shipment.groups.all %}
-                {% include "users/entries/group-nav.html" %}
-            {% endfor %}
+        <div class="col-4 col-lg-3">
+            <div class="card">
+                <div class="card-header text-center"><h4 class="text-wide m-0">GROUPS</h4></div>
+                    <div class="list-group list-group-flush" role="tablist">
+                    {% for group in groups %}
+                        <a class="list-group-item list-group-item-action" role="tab" aria-controls="group{{ group.pk }}"
+                           id="show-group{{ group.pk }}" data-toggle="list" href="#group-{{ group.pk }}" data-group="{{ group.pk }}">
+                            {% include "users/entries/group-nav.html" %}
+                        </a>
+                    {% endfor %}
+                    </div>
             </div>
         </div>
-        <div class="col-xs-8 col-lg-9 col-xl-10">
-            <div class="tab-content" style="border-left: 1px solid #ddd; padding-left: 15px;">
-                {% for group in shipment.groups.all %}
+        <div class="col-8 col-lg-9">
+            <div class="tab-content">
+                {% for group in groups %}
+                    <div class="tab-pane fade" id="group-{{ group.pk }}" role="tabpanel" aria-labelledby="show-group{{ group.pk }}">
                     {% include "users/entries/group-tab.html" %}
+                    </div>
                 {% endfor %}
             </div>
         </div>
     </div>
+    {% endwith %}
 
 {% endblock %}
+{% block extra_js %}
+<script>
+    var getUrlParameter = function getUrlParameter(sParam) {
+        var sPageURL = window.location.search.substring(1),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
 
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+            }
+        }
+    };
+
+    $('[data-toggle="list"]').on('click', function(e) {
+        var id = $(this).data('group');
+        window.history.pushState(null, null, '?q=' + id);
+    });
+
+    $(document).ready(function(){
+        var selected = getUrlParameter('q');
+        if (!(selected)) {
+            selected = $('[data-group]').first().data('group');
+        }
+        $('#show-group'+ selected).tab('show');
+    });
+
+</script>
+{% endblock %}

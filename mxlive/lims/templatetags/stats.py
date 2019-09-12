@@ -30,7 +30,7 @@ def get_data_stats(bl, year):
         {
             'title': '{} Summary'.format(bl.acronym),
             'description': 'Data Collection Summary for {}'.format(bl.name),
-            'style': "col-xs-12",
+            'style': "col-12",
             'content': [
                 {
                     'title': '',
@@ -53,7 +53,7 @@ def get_data_stats(bl, year):
         {
             'title': '{} Beamline Parameters'.format(year),
             'description': 'Data Collection Parameters Summary',
-            'style': 'col-xs-12',
+            'style': 'col-12',
             'content': [
                            {
                                'title': 'Attenuation vs. Exposure Time',
@@ -64,7 +64,7 @@ def get_data_stats(bl, year):
                                     'y1': [
                                         ['Attenuation (%)'] + [d for d in data.values_list('attenuation', flat=True)]],
                                     'x-scale': 'log'},
-                               'style': 'col-xs-8'
+                               'style': 'col-8'
                            } if data.count() else {},
                            {
                                'title': 'Beam Size',
@@ -75,13 +75,13 @@ def get_data_stats(bl, year):
                                     'color': COLOR_SCHEME[i]}
                                    for i, d in enumerate(data.values_list('beam_size', flat=True).distinct())
                                    ],
-                               'style': 'col-xs-4'
+                               'style': 'col-4'
                            } if data.count() else {},
                        ]
         },
         {
             'title': '',
-            'style': 'col-xs-12',
+            'style': 'col-12',
             'content': [
                             {
                                 'title': e.title(),
@@ -90,7 +90,7 @@ def get_data_stats(bl, year):
                                     'data': [float(d) for d in data.values_list(e, flat=True) if d != None],
                                     'color': [COLOR_SCHEME[i + 1]]
                                 },
-                                'style': 'col-xs-6 col-sm-4'
+                                'style': 'col-6 col-sm-4'
                             } for i, e in enumerate(['energy', 'exposure_time', 'attenuation'])] if data.count() else []
         }
     ]}
@@ -158,7 +158,7 @@ def get_project_stats(user):
         {
             'title': '{} Summary'.format(user.username.title()),
             'description': 'Data Collection Summary for {}'.format(user.username.title()),
-            'style': "col-xs-12",
+            'style': "col-12",
             'content': [
                 {
                     'title': 'Time Usage',
@@ -234,7 +234,7 @@ def get_beamline_usage(bl):
     stats = {'details': [
         {
             'title': 'Usage Metrics',
-            'style': 'col-xs-12',
+            'style': 'col-12',
             'content': [
                 {
                     'title': 'Usage Statistics',
@@ -323,7 +323,7 @@ def get_usage_stats(bl, year):
     stats = {'details': [
         {
             'title': 'Usage Metrics',
-            'style': 'col-xs-12',
+            'style': 'col-12',
             'content': [
                 {
                     'title': 'Total Activity',
@@ -400,7 +400,7 @@ def get_usage_stats(bl, year):
                         'bins': 100,
                         'time-format': "%A %H:00"
                     },
-                    'style': 'col-xs-12'
+                    'style': 'col-12'
                 },
                 {
                     'kind': 'table',
@@ -426,7 +426,7 @@ def get_session_stats(data, session):
         {
             'title': 'Beamline Control Statistics',
             'description': 'Data Collection Summary',
-            'style': "col-xs-12",
+            'style': "col-12",
             'content': [
                 {
                     'title': '',
@@ -438,7 +438,7 @@ def get_session_stats(data, session):
                              ['Samples', session.samples().count()]
                              ],
                     'header': 'column',
-                    'style': 'col-xs-4',
+                    'style': 'col-4',
                 },
                 {
                     'title': '',
@@ -450,7 +450,7 @@ def get_session_stats(data, session):
                              ['Avg Frames/Screen', sum([len(d.frames) for d in data.filter(kind="MX_SCREEN")]) / data.filter(
                                   kind="MX_SCREEN").count() if data.filter(kind="MX_SCREEN").count() else 0]],
                     'header': 'column',
-                    'style': 'col-xs-4',
+                    'style': 'col-4',
                 },
                 {
                     'title': '',
@@ -460,7 +460,7 @@ def get_session_stats(data, session):
                         'data': [{'Type': k, 'val': data.filter(kind=k).count()} for k in
                                  data.values_list('kind', flat=True).order_by('kind').distinct()],
                     },
-                    'style': 'col-xs-4'
+                    'style': 'col-4'
                 }
 
             ]
@@ -468,7 +468,7 @@ def get_session_stats(data, session):
         {
             'title': 'Beamline Parameters',
             'description': 'Data Collection Parameters Summary',
-            'style': 'col-xs-12',
+            'style': 'col-12',
             'content': [
                 {
                     'title': 'Attenuation vs. Exposure Time',
@@ -476,7 +476,7 @@ def get_session_stats(data, session):
                     'data':
                         {'x': ['Exposure Time (s)'] + [d for d in data.values_list('exposure_time', flat=True)],
                          'y1': [['Attenuation (%)'] + [d for d in data.values_list('attenuation', flat=True)]]},
-                    'style': 'col-xs-9'
+                    'style': 'col-9'
                 } if data.count() else {},
                 {
                     'title': 'Beam Size',
@@ -487,7 +487,7 @@ def get_session_stats(data, session):
                          'color': COLOR_SCHEME[i]}
                         for i, d in enumerate(data.values_list('beam_size', flat=True).distinct())
                         ],
-                    'style': 'col-xs-3'
+                    'style': 'col-3'
                 } if data.count() else {},
             ] + [{
                 'title': e.title(),
@@ -498,7 +498,7 @@ def get_session_stats(data, session):
                              for v in data.values_list(e, flat=True).order_by(e).distinct() if v != None],
                     'colors': [COLOR_SCHEME[i+1]]
                 },
-                'style': 'col-xs-4'
+                'style': 'col-4'
             } for i, e in enumerate(['energy', 'exposure_time', 'attenuation'])] if data.count() else []
         }
     ]}

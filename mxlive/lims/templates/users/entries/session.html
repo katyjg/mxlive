@@ -72,7 +72,7 @@
 {% block full %}
     {% with object.groups.all as groups %}
     <div class="row">
-        <div class="col-xs-4 col-lg-3">
+        <div class="col-4 col-lg-3">
             <div class="card">
                 <div class="card-header text-center"><h4 class="text-wide m-0">GROUPS</h4></div>
                 {% if groups %}
@@ -87,7 +87,7 @@
                 {% endif %}
             </div>
         </div>
-        <div class="col-xs-8 col-lg-9">
+        <div class="col-8 col-lg-9">
             <div class="tab-content">
                 {% for group in groups %}
                     <div class="tab-pane fade" id="group-{{ group.pk }}" role="tabpanel" aria-labelledby="show-group{{ group.pk }}">
@@ -128,10 +128,10 @@
 
     $(document).ready(function(){
         var selected = getUrlParameter('q');
-        console.log(selected);
-        if (selected) {
-            $('#show-group'+ selected).tab('show');
+        if (!(selected)) {
+            selected = $('[data-group]').first().data('group');
         }
+        $('#show-group'+ selected).tab('show');
     });
 
 </script>

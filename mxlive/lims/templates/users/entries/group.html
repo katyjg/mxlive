@@ -31,7 +31,7 @@
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
-            <div class="col-xs-2">
+            <div class="col-2">
                 <h3 class="no-vmargin">
                     <span class="badge badge-{% if object.status == object.STATES.ON_SITE %}info
                                 {% elif object.status == object.STATES.DRAFT %}warning
@@ -40,19 +40,19 @@
                                 {% else %}default{% endif %}">{{ object.get_status_display }}</span>
                 </h3>
             </div>
-            <div class="col-xs-3">
+            <div class="col-3">
                 <small class="text-muted text-condensed">Shipment:</small><br>
                 {% if object.shipment %}<a href="{% url "shipment-detail" object.shipment.pk %}">{{object.shipment.name}}</a>{% endif %}
             </div>
-            <div class="col-xs-3">
+            <div class="col-3">
                 <small class="text-muted text-condensed">Plan:</small><br>
                 {{ object.get_plan_display }} {% if object.resolution %}({{ object.resolution }}Å){% endif %}
             </div>
-            <div class="col-xs-2">
+            <div class="col-2">
                 <small class="text-muted text-condensed">Type:</small><br>
                 {{ object.get_kind_display }} {% if object.absorption_edge %}({{ object.absorption_edge }}){% endif %}
             </div>
-            <div class="col-xs-2 pull-right text-right">
+            <div class="col-2 pull-right text-right">
                 <small class="text-muted text-condensed">Number of Samples:</small><br>
                 <strong>{{ object.num_samples }}</strong>
             </div>
@@ -85,11 +85,11 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th class="col-xs-1 col-lg-1">Priority</th>
-                        <th class="col-xs-3 col-lg-2">Name</th>
-                        <th class="col-xs-2 col-lg-2">Container Location</th>
-                        <th class="col-xs-2 col-lg-2">Barcode</th>
-                        <th class="col-xs-4 col-lg-5">Comments</th>
+                        <th class="col-1 col-lg-1">Priority</th>
+                        <th class="col-3 col-lg-2">Name</th>
+                        <th class="col-2 col-lg-2">Container Location</th>
+                        <th class="col-2 col-lg-2">Barcode</th>
+                        <th class="col-4 col-lg-5">Comments</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -112,9 +112,9 @@
             <table class="table table-sm">
                 <thead>
                     <tr>
-                        <th class="col-xs-1 col-lg-1">Priority</th>
-                        <th class="col-xs-5 col-lg-2">Sample</th>
-                        <th class="text-right col-xs-6 col-lg-9">Data & Analysis</th>
+                        <th class="col-1 col-lg-1">Priority</th>
+                        <th class="col-5 col-lg-2">Sample</th>
+                        <th class="text-right col-6 col-lg-9">Data & Analysis</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -130,7 +130,7 @@
                                     {{ sample.container_and_location }}
                                 </small>
                                 </td>
-                            <td class="col-xs-8">
+                            <td class="col-8">
                                 {% include "users/entries/sample-data.html" %}
                             </td>
                         </tr>

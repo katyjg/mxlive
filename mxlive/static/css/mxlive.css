@@ -179,7 +179,7 @@ img.line-icon {
 }
 
 @media (max-width: 768px) {
-    .pagelet .col-xs-12 .pagelet {
+    .pagelet .col-12 .pagelet {
         border-right: none;
         padding-right: 0;
     }
@@ -434,11 +434,6 @@ table.table-sm td {
     cursor: not-allowed;
 }
 
-.modal-body .status-bar {
-    margin-top: -15px;
-    margin-bottom: 10px;
-}
-
 .no-margin {
     margin: 0 !important;
 }
@@ -554,16 +549,6 @@ p.empty {
     overflow: auto;
 }
 
-.modal-body {
-/ / overflow-x: hidden;
-/ / overflow-y: hidden;
-}
-
-.modal-content {
-    overflow: visible;
-/ / overflow-x: hidden;
-}
-
 .modal-data .col-meta {
     width: 371px;
 }
@@ -599,9 +584,11 @@ p.empty {
 
 .form-action {
     float: none;
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid rgba(0,0,0,0.15);
+    padding-top: 1rem;
+    margin-top: 1rem;
 }
 
 .repeat-group + .form-action {
@@ -1303,11 +1290,11 @@ span.label-unusable-score {
 }
 
 @media (max-width: 768px) {
-    .row [class^=col-] + .col-xs-12 {
+    .row [class^=col-] + .col-12 {
         padding-left: 15px;
     }
 
-    .row .col-xs-12 {
+    .row .col-12 {
         padding-left: 15px !important;
     }
 
@@ -1322,7 +1309,7 @@ span.label-unusable-score {
     }
 }
 
-.modal-md form .row [class^=col-] + .col-xs-12 {
+.modal-md form .row [class^=col-] + .col-12 {
     padding-left: 15px;
 }
 
@@ -1334,7 +1321,7 @@ span.label-unusable-score {
     border-radius: 4px !important;
 }
 
-.row .col-xs-12 + .col-xs-12 {
+.row .col-12 + .col-12 {
     padding-left: 15px;
 }
 
@@ -1426,7 +1413,7 @@ a:hover {
 .icon-stack {
     position: relative;
     display: block;
-    min-width: 4em;
+    margin: 0 0.5rem;
 }
 
 .icon-stack:first-child {
@@ -1449,17 +1436,17 @@ a:hover {
     color: inherit;
     line-height: 1;
     padding-top: 0.5em;
+    margin: 0 0.5rem;
+    min-width: 3rem;
+}
+.modal-body {
+    margin: 2px;
+}
+.modal-body .form-group {
+    margin-bottom: 0.25rem;
+}
+.modal-body .form-group > label:first-child {
+    padding-bottom: 0;
+    font-size: 0.9rem;
 }
 
-.superscript {
-    top: -1.5em !important;
-    right: -0.5em !important;
-    text-align: right;
-    left: auto;
-    font-size: 75%;
-}
-
-.superscript .badge {
-    padding: 0.25em 0.5em;
-    font-size: 0.8rem;
-}

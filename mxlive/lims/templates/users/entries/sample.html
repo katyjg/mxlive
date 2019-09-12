@@ -21,7 +21,7 @@
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
-            <div class="col-xs-2">
+            <div class="col-2">
                 <h3 class="no-vmargin">
                     <span class="badge badge-{% if object.container.status == object.container.STATES.ON_SITE %}info
                                              {% elif object.container.status < object.container.STATES.ON_SITE %}warning
@@ -32,19 +32,19 @@
                     </span>
                 </h3>
             </div>
-            <div class="col-xs-3">
+            <div class="col-3">
                 <small class="text-muted text-condensed">Shipment:</small><br>
                 <a href="{% url "shipment-detail" object.container.shipment.pk %}">{{object.container.shipment.name}}</a>
             </div>
-            <div class="col-xs-2 pull-right text-right">
+            <div class="col-2 pull-right text-right">
                 <small class="text-muted text-condensed">Location:</small><br>
                 <strong>{{ object.dewar|default_if_none:"" }} {{ object.port }}</strong>
             </div>
-            <div class="col-xs-3 pull-left">
+            <div class="col-3 pull-left">
                 <small class="text-muted text-condensed">Group:</small><br>
                 <a href="{% url "group-detail" object.group.pk %}">{{ object.group }}</a>
             </div>
-            <div class="col-xs-2 pull-left">
+            <div class="col-2 pull-left">
                 <small class="text-muted text-condensed">Container:</small><br>
                 <a href="{% url "container-detail" object.container.pk %}">{{ object.container.name }}</a>
             </div>
@@ -56,7 +56,7 @@
 
 {% block full %}
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="list-group list-group-hover">
                 {% include "users/entries/sample-data.html" %}
                 {% if not object.datasets.count %}

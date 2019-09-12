@@ -10,7 +10,7 @@
         <div id="layout-{{ field.name }}" class="layout-lg row">
             <span class="group-name" style="display: none"></span>
             <div class="hidden">{{ field }}</div>
-            <div class="col-xs-4">
+            <div class="col-4">
                 <ul class="nav nav-pills nav-stacked">
                     {% for container in containers %}
                         <li class="{% if forloop.first %}active{% endif %} overflow ellipsis">
@@ -19,12 +19,12 @@
                     {% endfor %}
                 </ul>
             </div>
-            <div class="col-xs-8 tab-content no-padding">
+            <div class="col-8 tab-content no-padding">
                 {% for container in containers %}
                     <div id="form{{ container.0|slugify }}" class="tab-pane fade {% if forloop.first %}in active{% endif %}">
-                    <div class="col-xs-12">
+                    <div class="col-12">
                         <div class="row">
-                            <span class="col-xs-12 pull-right">
+                            <span class="col-12 pull-right">
                                 <a onclick="selectAll('{{ container.0|slugify }}');" class="select-button btn btn-success">Select All</a>
                             </span>
                         </div><br>

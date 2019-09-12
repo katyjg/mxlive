@@ -330,7 +330,7 @@ class AddReport(VerificationMixin, View):
         report = AnalysisReport.objects.filter(pk=info.get('id')).first()
 
         if report:
-            project.analysisreport_set.filter(pk=report.pk).update(**details)
+            project.reports.filter(pk=report.pk).update(**details)
         else:
             report, created = AnalysisReport.objects.get_or_create(**details)
 

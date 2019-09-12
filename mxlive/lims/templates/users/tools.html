@@ -1,71 +1,66 @@
 {% load icons %}
-{% if object.status != object.STATES.ON_SITE and object.status < object.STATES.RETURNED and request.user == object.project or request.user.is_superuser and object.status >= object.STATES.SENT and object.status < object.STATES.ARCHIVED %}
-<span class="tools-box pull-right">
-    {% comment %}Shipment Actions{% endcomment %}
-    {% if request.user == object.project %}
-        {% comment %}User Actions{% endcomment %}
-        {% if object.status == object.STATES.DRAFT %}
-            <a class="pull-right" data-url="{% url "shipment-delete" object.pk %}">
-                {% show_icon label='Delete' icon='ti ti-1x ti-trash' %}
-            </a>
-            <a class="pull-right" data-url="{% url "shipment-edit" object.pk %}">
-                {% show_icon label='Edit' icon='ti ti-1x ti-pencil-alt' %}
-            </a>
-            <a class="pull-right" data-url="{% url "shipment-send" object.pk %}">
-                {% show_icon label='Send' icon='fa fa-2 fa-paper-plane-o' badge=object.shipping_errors|length color='warning' %}
-            </a>
-        {% elif object.status == object.STATES.SENT %}
-            <a class="pull-right" data-url="{% url "shipment-update-send" object.pk %}">
-                {% show_icon label='Recall' icon='ti ti-1x ti-control-backward' %}
+<div class="tools-box">
+    {% if object.status <= object.STATES.SENT and request.user == object.project or object.status == object.STATES.ON_SITE and user.is_superuser or object.comments or object.staff_comments %}
+        {% if object.status <= object.STATES.SENT and request.user == object.project or object.status == object.STATES.ON_SITE and user.is_superuser %}
+            <a href="{% url "shipment-labels" object.pk %}">
+                {% show_icon label='Labels' icon='fa ti-1x fa-tags' %}
             </a>
         {% endif %}
-    {% elif request.user.is_superuser %}
-        {% comment %}Staff Actions{% endcomment %}
-        {% if object.status == object.STATES.SENT %}
-            <a class="pull-right" data-url="{% url "shipment-receive" object.pk %}">
-                {% show_icon label='Receive' icon='fa ti-1x fa-handshake-o' %}
-            </a>
-        {% elif object.status == object.STATES.ON_SITE %}
-            <a class="pull-right" data-url="{% url "shipment-return" object.pk %}">
-               {% show_icon label='Return' icon='fa ti-1x fa-paper-plane-o' %}
-            </a>
-        {% elif object.status == object.STATES.RETURNED %}
-            <a class="pull-right" data-url="{% url "shipment-update-return" object.pk %}">
-                {% show_icon label='Recall' icon='ti ti-1x ti-control-backward' %}
-            </a>
-        {% endif %}
-        <a class="pull-right" data-url="{% url "shipment-comments" object.pk %}">
-            {% show_icon label='Edit' icon='ti ti-1x ti-comment-alt' %}
-        </a>
     {% endif %}
-</span>
-{% endif %}
-{% if object.status <= object.STATES.SENT and request.user == object.project or object.status == object.STATES.ON_SITE and user.is_superuser or object.comments or object.staff_comments %}
-<span class="tools-box pull-right">
-    {% if object.status <= object.STATES.SENT and request.user == object.project or object.status == object.STATES.ON_SITE and user.is_superuser %}
-        <a class="pull-right" href="{% url "shipment-labels" object.pk %}">
-            {% show_icon label='Labels' icon='fa ti-1x fa-tags' %}
-        </a>
-    {% endif %}
-
-    {% if object.comments or object.staff_comments %}
-        <a class="pull-right" data-toggle="collapse" href="#comments-{{ object.pk }}">
-            {% show_icon label='Comments' icon='ti ti-1x ti-comments-alt' badge=object.has_comments %}
-        </a>
-    {% endif %}
-</span>
-{% endif %}
-{% if object.status >= object.STATES.SENT or request.user.is_superuser and object.status == object.STATES.SENT %}
-<span class="tools-box pull-right">
-    {% comment %}Shipment Details{% endcomment %}
-        <a class="pull-right" href="{% url "shipment-protocol" object.pk %}">
+    {% if object.status >= object.STATES.SENT or request.user.is_superuser and object.status == object.STATES.SENT %}
+        {% comment %}Shipment Details{% endcomment %}
+        <a href="{% url "shipment-protocol" object.pk %}">
             {% show_icon label='Progress' icon='ti ti-1x ti-layout-media-overlay' %}
         </a>
-        <a class="pull-right" href="{% url "shipment-data" object.pk %}" title="Go to Data from this shipment">
+        <a href="{% url "shipment-data" object.pk %}" title="Go to Data from this shipment">
             {% show_icon label='Data' icon='ti ti-1x ti-layout-grid3' badge=object.num_datasets color='info' %}
         </a>
-        <a class="pull-right" href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
+        <a href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
             {% show_icon label='Reports' icon='ti ti-1x ti-bar-chart-alt' badge=object.num_reports color='info' %}
         </a>
-</span>
-{% endif %}
+    {% endif %}
+    {% if object.status != object.STATES.ON_SITE and object.status < object.STATES.RETURNED and request.user == object.project or request.user.is_superuser and object.status >= object.STATES.SENT and object.status < object.STATES.ARCHIVED %}
+        {% comment %}Shipment Actions{% endcomment %}
+        {% if request.user == object.project %}
+            {% comment %}User Actions{% endcomment %}
+            {% if object.status == object.STATES.DRAFT %}
+                <a href="#!" data-url="{% url "shipment-delete" object.pk %}">
+                    {% show_icon label='Delete' icon='ti ti-1x ti-trash' %}
+                </a>
+                <a href="#!" data-url="{% url "shipment-edit" object.pk %}">
+                    {% show_icon label='Edit' icon='ti ti-1x ti-pencil-alt' %}
+                </a>
+                <a href="#!" data-url="{% url "shipment-send" object.pk %}">
+                    {% show_icon label='Send' icon='fa fa-2 fa-paper-plane-o' badge=object.shipping_errors|length color='warning' %}
+                </a>
+            {% elif object.status == object.STATES.SENT %}
+                <a href="#!" data-url="{% url "shipment-update-send" object.pk %}">
+                    {% show_icon label='Recall' icon='ti ti-1x ti-control-backward' %}
+                </a>
+            {% endif %}
+        {% elif request.user.is_superuser %}
+            {% comment %}Staff Actions{% endcomment %}
+            {% if object.status == object.STATES.SENT %}
+                <a href="#!" data-url="{% url "shipment-receive" object.pk %}">
+                    {% show_icon label='Receive' icon='fa ti-1x fa-handshake-o' %}
+                </a>
+            {% elif object.status == object.STATES.ON_SITE %}
+                <a href="#!" data-url="{% url "shipment-return" object.pk %}">
+                    {% show_icon label='Return' icon='fa ti-1x fa-paper-plane-o' %}
+                </a>
+            {% elif object.status == object.STATES.RETURNED %}
+                <a href="#!" data-url="{% url "shipment-update-return" object.pk %}">
+                    {% show_icon label='Recall' icon='ti ti-1x ti-control-backward' %}
+                </a>
+            {% endif %}
+            {% if object.comments or object.staff_comments %}
+                <a data-toggle="collapse" href="#comments-{{ object.pk }}">
+                    {% show_icon label='Comments' icon='ti ti-1x ti-comments' badge=object.has_comments %}
+                </a>
+            {% endif %}
+            <a href="#!" data-url="{% url "shipment-comments" object.pk %}">
+                {% show_icon label='Comment' icon='ti ti-1x ti-comment-alt' %}
+            </a>
+        {% endif %}
+    {% endif %}
+</div>
