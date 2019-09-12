@@ -134,10 +134,9 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
         ]
 
         if self.request.user.is_superuser:
-            #kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('containers', flat=True)
-            #context['automounters'] = models.Dewar.objects.filter(active=True).prefetch_related('container', 'beamline').order_by('beamline__name')
-            #context['containers'] = models.Container.objects.filter(kind__in=kinds, dewars__isnull=True).order_by('name')
-            pass
+            kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('containers', flat=True)
+            context['automounters'] = models.Dewar.objects.filter(active=True).prefetch_related('container', 'beamline').order_by('beamline__name')
+            context['containers'] = models.Container.objects.filter(kind__in=kinds, dewars__isnull=True).order_by('name')
         else:
             pass
             # referrer = self.request.META.get('HTTP_REFERER')

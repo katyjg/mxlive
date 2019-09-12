@@ -701,7 +701,7 @@ class Container(TransitStatusMixin):
         'cascade': 'samples (along with groups, datasets and results)',
         'cascade_help': 'All associated samples will be left without a container'
     }
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='containers')
     kind = models.ForeignKey(ContainerType, blank=False, null=False, on_delete=models.CASCADE)
     shipment = models.ForeignKey(Shipment, blank=True, null=True, on_delete=models.SET_NULL, related_name='containers')
     comments = models.TextField(blank=True, null=True)

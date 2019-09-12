@@ -1,7 +1,6 @@
 html {
-    font-size: 10pt;
-    min-height: 100%;
-    overflow-y: scroll;
+    font-size: 10.5pt;
+
 }
 
 body, .tooltip, .popover {
@@ -78,18 +77,6 @@ header > nav {
 
 .fa.fa-grip:before {
     content: "\f142 \202F \f142";
-}
-
-.align-middle {
-    height: 100%;
-    padding: 0;
-    padding-top: 13px;
-    margin-left: -10px;
-    float: left;
-}
-
-.align-middle i {
-    padding: 10px 5px;
 }
 
 .form-offset {
@@ -1450,3 +1437,6 @@ a:hover {
     font-size: 0.9rem;
 }
 
+.item-list th {
+    font-family: "Fira Sans Condensed";
+}
