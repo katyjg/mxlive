@@ -18,7 +18,7 @@ def get_kind_json(data, container, create=False):
         try:
             for loc in data['locations'].keys():
                 sample = container.samples.filter(location=loc).first()
-                location = container.kind.container_locations.get(name=loc)
+                location = container.kind.locations.get(name=loc)
                 child = container.children.filter(location=location).first()
                 loc_info = {
                     'sample': sample and sample.name or child and child.name or '',
@@ -64,7 +64,7 @@ def kind_json(data, pk):
         container = Container.objects.get(pk=int(pk))
         for loc in data['locations'].keys():
             sample = container.samples.filter(location=loc).first()
-            location = container.kind.container_locations.get(name=loc)
+            location = container.kind.locations.get(name=loc)
             child = container.children.filter(location=location).first()
             loc_info = {
                 'sample': sample and sample.name or child and child.name or '',
@@ -99,7 +99,7 @@ def get_accepts(pk):
 def accepts_envelope(pk):
     try:
         c = Container.objects.get(pk=int(pk))
-        types = ContainerType.objects.filter(pk__in=c.kind.container_locations.values_list('accepts', flat=True).distinct())\
+        types = ContainerType.objects.filter(pk__in=c.kind.locations.values_list('accepts', flat=True).distinct())\
                             .values_list('envelope',flat=True)
         return types and types.first() or 'circle'
     except:

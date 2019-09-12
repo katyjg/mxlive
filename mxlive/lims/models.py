@@ -3,16 +3,16 @@ import hashlib
 import itertools
 import json
 from collections import OrderedDict
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
-from django.db.models import Q, F, Avg, Count, Func, CharField, Aggregate
-from django.db.models.signals import post_delete
 from django.contrib.postgres.aggregates import StringAgg
+from django.db import models
+from django.db.models import Q, F, Avg, Count, CharField, Value
+from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import ugettext as _
@@ -470,7 +470,8 @@ class ActiveStatusMixin(ProjectObjectMixin):
         (ProjectObjectMixin.STATES.TRASHED, _('Trashed'))
     )
     TRANSITIONS = copy.deepcopy(ProjectObjectMixin.TRANSITIONS)
-    TRANSITIONS[ProjectObjectMixin.STATES.ACTIVE] = [ProjectObjectMixin.STATES.TRASHED, ProjectObjectMixin.STATES.ARCHIVED]
+    TRANSITIONS[ProjectObjectMixin.STATES.ACTIVE] = [ProjectObjectMixin.STATES.TRASHED,
+                                                     ProjectObjectMixin.STATES.ARCHIVED]
     TRANSITIONS[ProjectObjectMixin.STATES.ARCHIVED] = [ProjectObjectMixin.STATES.TRASHED]
 
     status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectObjectMixin.STATES.ACTIVE)
@@ -676,7 +677,7 @@ class ContainerType(models.Model):
         STATES.LOADED: [STATES.PENDING],
     }
     name = models.CharField(max_length=20)
-    container_locations = models.ManyToManyField("ContainerLocation", blank=True, related_name="containers")
+    locations = models.ManyToManyField("ContainerLocation", blank=True, related_name="types")
     layout = JSONField(null=True, blank=True)
     envelope = models.CharField(max_length=200, blank=True)
 
@@ -686,7 +687,7 @@ class ContainerType(models.Model):
 
 class ContainerLocation(models.Model):
     name = models.CharField(max_length=5)
-    accepts = models.ManyToManyField(ContainerType, blank=True, related_name="locations")
+    accepts = models.ManyToManyField(ContainerType, blank=True, related_name="acceptors")
     x = models.FloatField(default=0.0)
     y = models.FloatField(default=0.0)
 
@@ -707,7 +708,8 @@ class Container(TransitStatusMixin):
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(default=0)
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, related_name="children")
-    location = models.ForeignKey(ContainerLocation, blank=True, null=True, on_delete=models.SET_NULL, related_name='contents')
+    location = models.ForeignKey(ContainerLocation, blank=True, null=True, on_delete=models.SET_NULL,
+                                 related_name='contents')
 
     class Meta:
         unique_together = (
@@ -720,6 +722,7 @@ class Container(TransitStatusMixin):
 
     def identity(self):
         return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+
     identity.admin_order_field = 'pk'
 
     def barcode(self):
@@ -729,13 +732,13 @@ class Container(TransitStatusMixin):
         return self.samples.count()
 
     def capacity(self):
-        return self.kind.container_locations.count()
+        return self.kind.locations.count()
 
     def has_children(self):
         return self.children.count() > 0
 
     def accepts_children(self):
-        return self.kind.container_locations.filter(accepts__isnull=False).exists()
+        return self.kind.locations.filter(accepts__isnull=False).exists()
 
     def accepted_by(self):
         return ContainerType.objects.filter(pk__in=self.kind.locations.values_list('containers', flat=True))
@@ -785,33 +788,60 @@ class Container(TransitStatusMixin):
             if priority is not None:
                 setattr(self, field, priority)
 
-    def get_layout(self):
+    def get_layout(self, with_samples=True):
+        """
+        Generate a nested dictionary of data representing the hierarchy of containers and samples
+        :param with_samples: Whether to include sample information or not
+        :return: dictionary
+        """
+
+        info = self.kind.layout
+        layout = {
+            'type': self.kind.name,
+            'id': self.pk,
+            'name': self.name,
+            'owner': self.project.name.upper(),
+            'radius': info.get('radius'),
+            'height': info.get('height'),
+            'envelope': self.kind.envelope,
+            'location': None if not self.location else self.location.name,
+        }
+        locations = list(
+            self.kind.locations.values('x', 'y', location=F('name'), accept=StringAgg('accepts__name', ';'))
+        )
         children = self.children.all()
-        if children.count():
-            return {
-                'type': self.kind.name,
-                'count': children.count(),
-                'radius': self.kind.layout.get('radius'),
-                'height': self.kind.layout.get('height'),
-                'locations': list(
-                    self.kind.container_locations.values('name', 'x', 'y', accept=StringAgg('accepts__name', ';'))
-                ),
-                'children': [
-                    child.get_layout() for child in children
-                ]
+        if children.exists():
+            contents = {
+                info['location']: info
+                for child in children
+                for info in [child.get_layout()]
+                if info['location']
             }
+
         else:
-            return {
-                'type': self.kind.name,
-                'radius': self.kind.layout.get('radius'),
-                'height': self.kind.layout.get('height'),
-                'locations': list(
-                    self.kind.container_locations.values('name', 'x', 'y', accept=StringAgg('accepts__name', ';'))
-                ),
-                'samples': list(
-                    self.samples.values('name', 'location', batch=F('group__name'), sample=F('name'), started=Count('datasets'))
+            contents = {}
+            if with_samples:
+                samples = list(
+                    self.samples.values(
+                        'id', 'name', 'location', type=Value('Sample', CharField()), batch=F('group__name'),
+                        started=Count('datasets')
+                    )
                 )
-            }
+                contents = {
+                    info['location']: info
+                    for info in samples
+                    if info['location']
+                }
+
+        # compile data
+        for loc in locations:
+            key = loc['location']
+            contents[key] = contents.get(key, {})
+            contents[key].update(loc)
+
+        layout['children'] = contents
+        layout['occupied'] = len(contents)
+        return layout
 
 
 class LoadHistory(models.Model):
@@ -951,7 +981,7 @@ class Group(ProjectObjectMixin):
     def best_sample(self):
         # need to change to [id, score]
         if self.plan == Group.EXP_PLANS.COLLECT_BEST:
-            results = self.project.result_set.filter(group=self, sample__in=self.samples.all()).order_by('-score')
+            results = self.project.reports.filter(group=self, sample__in=self.samples.all()).order_by('-score')
             if results:
                 return [results[0].sample.pk, results[0].score]
 
@@ -962,7 +992,6 @@ class Group(ProjectObjectMixin):
         return self.samples.all().exists() and not self.samples.exclude(
             status__in=[Sample.STATES.RETURNED, Sample.STATES.ARCHIVED]).exists() and \
                self.status != self.STATES.ARCHIVED
-
 
     def archive(self, request=None):
         for obj in self.samples.exclude(status__exact=Sample.STATES.ARCHIVED):
@@ -1218,6 +1247,7 @@ class AnalysisReport(ActiveStatusMixin):
 
     def identity(self):
         return 'AR%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+
     identity.admin_order_field = 'pk'
 
     def sessions(self):

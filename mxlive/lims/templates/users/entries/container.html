@@ -57,7 +57,7 @@
             </div>
             <div class="col-2 pull-right text-right">
                 <small class="text-muted text-condensed">Number of {% if object.accepts_children %}Containers{% else %}Samples{% endif %}:</small><br>
-                <strong>{% if object.accepts_children %}{{ object.children.count }}{% else %}{{ object.num_samples }}{% endif %}</strong> / {{ object.kind.container_locations.count }}
+                <strong>{% if object.accepts_children %}{{ object.children.count }}{% else %}{{ object.num_samples }}{% endif %}</strong> / {{ object.kind.locations.count }}
             </div>
             {% if object.parent %}
                 <div class="col-3 pull-right text-right">

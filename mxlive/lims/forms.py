@@ -838,7 +838,7 @@ class ShipmentContainerForm(forms.ModelForm):
         self.fields['kind'].initial = ContainerType.objects.get(pk=1)
 
         self.fields['kind'].queryset = self.fields['kind'].queryset.filter(
-            container_locations__in=ContainerLocation.objects.filter(accepts__isnull=True)).distinct()
+            locations__in=ContainerLocation.objects.filter(accepts__isnull=True)).distinct()
 
         self.repeated_fields = ['name', 'kind', 'id']
         self.repeated_data = {}
@@ -973,7 +973,7 @@ class ShipmentGroupForm(forms.ModelForm):
             for c in containers:
                 kind = ContainerType.objects.get(pk=int(c[1]))
                 locations.extend([('{2};{0};{1}'.format(c[0], l, c[1]), '{2};{0};{1}'.format(c[0], l, c[1]))
-                                  for l in kind.container_locations.values_list('name', flat=True)])
+                                  for l in kind.locations.values_list('name', flat=True)])
             self.fields['locations'].choices = locations
 
         self.helper = FormHelper()

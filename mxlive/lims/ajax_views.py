@@ -2,15 +2,16 @@ import re
 
 from django import http
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotFound
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 
+from mxlive.utils.mixins import LoginRequiredMixin, AdminRequiredMixin
 from . import models
 
 @method_decorator(csrf_exempt, name='dispatch')
-class FetchReport(View):
+class FetchReport(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         try:
@@ -25,7 +26,7 @@ class FetchReport(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class UpdatePriority(View):
+class UpdatePriority(LoginRequiredMixin, View):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
@@ -45,7 +46,7 @@ class UpdatePriority(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class BulkSampleEdit(View):
+class BulkSampleEdit(LoginRequiredMixin, View):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
@@ -82,7 +83,23 @@ class BulkSampleEdit(View):
         return JsonResponse(errors, safe=False)
 
 
-def update_locations(request):
-    container = models.Container.objects.get(pk=request.GET.get('pk', None))
-    locations = list(container.kind.container_locations.values_list('pk', 'name'))
-    return JsonResponse(locations, safe=False)
+class UpdateLocations(AdminRequiredMixin, View):
+
+    def get(self, request, *args, **kwargs):
+        container = models.Container.objects.get(pk=self.kwargs['pk'])
+        locations = list(container.kind.locations.values_list('pk', 'name'))
+        return JsonResponse(locations, safe=False)
+
+
+class FetchContainerLayout(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        if request.user.is_superuser:
+            qs = models.Container.objects.filter()
+        else:
+            qs = models.Container.objects.filter(project=self.request.user)
+
+        try:
+            container = qs.get(pk=self.kwargs['pk'])
+            return JsonResponse(container.get_layout(), safe=False)
+        except models.Container.DoesNotExist:
+            raise http.Http404('Container Not Found!')

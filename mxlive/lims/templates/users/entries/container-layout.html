@@ -1,0 +1,12 @@
+
+<script>
+    $(document).ready( function() {
+        $.ajax({
+            dataType: "json",
+            url: "{% url 'fetch-layout' pk=container.pk %}",
+            success: function(data, status, xhr) {
+                console.log(data);
+            }
+        });
+    });
+</script>

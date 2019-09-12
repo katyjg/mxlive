@@ -1,19 +1,18 @@
 <div class="col-12 col-sm-6 p-1">
     <div class="border border-light p-2">
-        <div>
-            <a href="{% url "container-detail" pk=container.pk %}" style="overflow: auto;">
-                <h6 class="underline text-center text-condensed overflow ellipsis">
-                    {% if container.dewars.first.active %}
-                        <i title="Active Automounter" class="text-muted fa fa-fw fa-check"></i>{% endif %}
+        <div class="text-center">
+            <a href="{% url "container-detail" pk=container.pk %}">
+                <h6 class="underline text-condensed overflow ellipsis">
                     <strong>{{ container.name }}</strong>
                 </h6>
             </a>
         </div>
         <div id="layout-{{ container.pk }}" class="layout-lg"></div>
-        {% include "users/entries/layout-container.html" with object=container.pk kind=container.kind brief=True %}
+        {#% include "users/entries/layout-container.html" with object=container.pk kind=container.kind brief=True %#}
+        {% include "users/entries/container-layout.html" %}
         <div class="text-center">
             {% if container.dewar %}
-                <h5><span class="badge badge-info">{{ container.dewar.beamline.acronym }}</span></h5>
+                <h5><span class="badge badge-info">{{ container.dewar }}</span></h5>
             {% else %}
                 <h5><span class="text-muted"><small>Not loaded</small> </span></h5>
             {% endif %}

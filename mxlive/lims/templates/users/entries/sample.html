@@ -3,11 +3,13 @@
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading">
         <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
-        <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}{{ object.identity }}</span> | <strong>{{ object.name }}</strong>
+        <span class="text-muted">{% if user.is_superuser %}{{ object.project|upper }} | {% endif %}</span><strong>{{ object.name }}</strong>
     </h3>
     <span class="text-muted">
         {% if object.container.shipment %}
-            <strong>1</strong> of <strong>{{ object.container.shipment.num_samples }}</strong> Sample{{ object.container.shipment.num_samples|pluralize }} in Shipment {{object.container.shipment.name}}
+            {% with object.container.shipment.num_samples as num_samples %}
+            <strong>1</strong> of <strong>{{ num_samples }}</strong> Sample{{ num_samples|pluralize }} in Shipment {{object.container.shipment.name}}
+            {% endwith %}
         {% else %}
             Sample not in a shipment.
         {% endif %}
@@ -34,7 +36,11 @@
             </div>
             <div class="col-3">
                 <small class="text-muted text-condensed">Shipment:</small><br>
+                {% if object.container.shipment %}
                 <a href="{% url "shipment-detail" object.container.shipment.pk %}">{{object.container.shipment.name}}</a>
+                    {% else %}
+                    Not in Shipment
+                {% endif  %}
             </div>
             <div class="col-2 pull-right text-right">
                 <small class="text-muted text-condensed">Location:</small><br>

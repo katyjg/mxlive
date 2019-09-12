@@ -1,25 +1,23 @@
+import json
+
+import requests
+from django import http
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.humanize.templatetags.humanize import naturaltime
+from django.contrib.messages.views import SuccessMessageMixin
+from django.db import transaction
+from django.db.models import Count
 from django.http import JsonResponse, HttpResponse, Http404
 from django.urls import reverse, reverse_lazy
-from django.utils.text import slugify
 from django.utils import timezone
-from django.contrib.messages.views import SuccessMessageMixin
-from django.contrib.humanize.templatetags.humanize import naturaltime
+from django.utils.text import slugify
 from django.views.generic import edit, detail, View
-from django.db.models import Count
-from django.db import transaction
-from django.conf import settings
 from formtools.wizard.views import SessionWizardView
-from django import http
-
 from itemlist.views import ItemListView
 from proxy.views import proxy_view
-from mxlive.lims import forms, models
-from itertools import chain
-import json
-import requests
-import re
 
+from mxlive.lims import forms, models
 from mxlive.utils.mixins import AjaxableResponseMixin, AdminRequiredMixin, HTML2PdfMixin
 
 DOWNLOAD_PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', "http://mxlive-data/download")
@@ -114,9 +112,9 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
                     'containers': shipment_containers.get(shipment.pk),
                     'reports': shipment_reports.get(shipment.pk),
                     'data': shipment_data.get(shipment.pk),
-                 }
+                }
             )
-            for shipment in shipments.prefetch_related('project').order_by('status','-date_received','-date_shipped')
+            for shipment in shipments.prefetch_related('project').order_by('status', '-date_received', '-date_shipped')
         ]
 
         sessions = models.Session.objects.filter(stretches__end__isnull=True)
@@ -134,9 +132,12 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
         ]
 
         if self.request.user.is_superuser:
-            kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('containers', flat=True)
-            context['automounters'] = models.Dewar.objects.filter(active=True).prefetch_related('container', 'beamline').order_by('beamline__name')
-            context['containers'] = models.Container.objects.filter(kind__in=kinds, dewars__isnull=True).order_by('name')
+            kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('types', flat=True)
+            context['automounters'] = models.Dewar.objects.filter(active=True).prefetch_related('container',
+                                                                                                'beamline').order_by(
+                'beamline__name')
+            context['containers'] = models.Container.objects.filter(kind__in=kinds, dewars__isnull=True).order_by(
+                'name')
         else:
             pass
             # referrer = self.request.META.get('HTTP_REFERER')
@@ -580,7 +581,7 @@ class LocationLoad(AdminRequiredMixin, ContainerEdit):
 
     def get_initial(self):
         initial = super(LocationLoad, self).get_initial()
-        initial.update(container_location=self.object.kind.container_locations.filter(
+        initial.update(container_location=self.object.kind.locations.filter(
             name__iexact=self.kwargs.get('location')).first())
         return initial
 
@@ -766,7 +767,7 @@ class ShipmentDataList(DataList):
         except self.detail_model.DoesNotExist:
             raise Http404
         qs = super().get_queryset()
-        return qs.filter(**{self.lookup:self.object.pk})
+        return qs.filter(**{self.lookup: self.object.pk})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -789,7 +790,7 @@ class ShipmentReportList(ReportList):
         except self.detail_model.DoesNotExist:
             raise Http404
         qs = super().get_queryset()
-        return qs.filter(**{self.lookup:self.object.pk})
+        return qs.filter(**{self.lookup: self.object.pk})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1115,7 +1116,7 @@ class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin
             models.Sample.objects.filter(container__pk=int(container), group__name=group).exclude(
                 location__in=locations).delete()
 
-        #group = models.Group.objects.get(pk=int(data['id']))
+        # group = models.Group.objects.get(pk=int(data['id']))
         to_create = []
         j = 1
         priority = max(group.samples.values_list('priority', flat=True) or [0]) + 1

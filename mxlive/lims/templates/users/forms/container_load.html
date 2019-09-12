@@ -3,39 +3,42 @@
 {% block form_init %}
 <script type="text/javascript">
     function initForm() {
-        $("#id_parent").change(function () {
+        let parent =$("#id_parent");
+        let location = $('#id_location');
+        let url_template = '{% url "update-locations" pk=0 %}';
+        let initial_location = "{{ form.initial.location }}";
+
+        parent.change(function () {
             if ($(this).val()) {
-                $("#id_location").chosen("destroy");
-                var pk = $(this).val();
+                location.chosen("destroy");
+                let pk = $(this).val();
                 $.ajax({
-                    url: '{% url "update-locations" %}',
-                    data: {
-                        'pk': pk,
-                    },
+                    url: url_template.replace(/\d+\//, pk),
                     success: function (response) {
-                        var  new_options = response;
-                        $('#id_location').empty();
+                        let new_options = response;
+                        let selected = false;
+                        location.empty();
                         $.each(new_options, function(val, name) {
-                            var selected = false;
-                            if(name[0] == "{{ form.initial.location }}") {
-                                var selected = true;
+
+                            if(name[0] === initial_location ) {
+                                selected = true;
                             }
                             $('#id_location')
                                 .append($('<option>', { value : name[0], selected: selected})
                                 .text(name[1]));
                         });
-                        $("#id_location").chosen({
+                        location.chosen({
                             placeholder_text_single: "Select an option",
                             search_contains: true,
                             allow_single_deselect: true,
                             disable_search_threshold: 8,
                         });
-                        $("#id_location").trigger("change");
+                        location.trigger("change");
                     }
                 });
             }
         });
-        $("#id_parent").trigger("change");
+        parent.trigger("change");
     }
 </script>
 {% endblock %}
