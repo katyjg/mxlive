@@ -806,7 +806,9 @@ class Container(TransitStatusMixin):
             'location': None if not self.location else self.location.name,
         }
         locations = list(
-            self.kind.locations.values('x', 'y', location=F('name'), accept=StringAgg('accepts__name', ';'))
+            self.kind.locations.values(
+                'x', 'y', location=F('name'), accept=StringAgg('accepts__name', ';')
+            )
         )
         children = self.children.all()
         if children.exists():
