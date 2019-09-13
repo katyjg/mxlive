@@ -801,7 +801,6 @@ class Container(TransitStatusMixin):
             'id': self.pk,
             'name': self.name,
             'owner': self.project.name.upper(),
-            'radius': info.get('radius'),
             'height': info.get('height'),
             'envelope': self.kind.envelope,
             'location': None if not self.location else self.location.name,
@@ -836,10 +835,10 @@ class Container(TransitStatusMixin):
         # compile data
         for loc in locations:
             key = loc['location']
-            contents[key] = contents.get(key, {})
-            contents[key].update(loc)
+            loc['radius'] = info.get('radius', 100)
+            loc.update(contents.get(key, {}))
 
-        layout['children'] = contents
+        layout['children'] = list(locations)
         layout['occupied'] = len(contents)
         return layout
 

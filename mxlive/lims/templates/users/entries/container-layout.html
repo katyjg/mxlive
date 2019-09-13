@@ -1,10 +1,11 @@
-
+<div id="svglayout-{{ container.pk }}"></div>
 <script>
     $(document).ready( function() {
         $.ajax({
             dataType: "json",
             url: "{% url 'fetch-layout' pk=container.pk %}",
             success: function(data, status, xhr) {
+                drawContainer("#svglayout-{{ container.pk }}", data);
                 console.log(data);
             }
         });
