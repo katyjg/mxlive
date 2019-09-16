@@ -1,4 +1,45 @@
-function drawContainers(parent, data, details=true, labels=false) {
+(function ($) {
+    $.fn.layoutContainer = function (options) {
+        let settings = $.extend({
+            'detailed': true,
+            'labelled': false
+        }, options);
+        let parent = $(this);
+        let pk = parent.data('pk');
+        let url = parent.data('layout-url');
+        let selector = '#' + parent.attr('id');
+
+        // fetch data and render
+        $.ajax({
+            dataType: "json",
+            url: url,
+            success: function (data, status, xhr) {
+                let width = parent.width();
+                let height = width * (data.height || 1);
+                let main = d3.select(selector)
+                    .append('svg')
+                    .attr('viewBox', '0 0 ' + (width) + ' ' + (height))
+                    .attr('id', 'cnt-null-' + pk);
+
+                // draw enlvelope if container is final
+                if (settings.detailed && data.id && data.final) {
+                    main.append(data.envelope || 'circle')
+                        .attrs({cx: '50%', cy: '50%', r: '49%', x: '0%', y: '0%', width: '100%', height: '100%'})
+                        .attr('fill', 'none')
+                        .attr('stroke', 'black');
+                }
+
+                // Draw Container Children
+                drawContainers("#cnt-null-" + pk, data, settings.detailed, settings.labeled);
+                $(selector + ' [title]').tooltip();
+                console.log(data);
+            }
+        });
+    }
+}(jQuery));
+
+
+function drawContainers(parent, data, detailed = true, labelled = false) {
     let cw = $(parent).width() || $(parent).data('width');
     let ch = $(parent).height() || $(parent).data('height');
     let aspect = cw / ch;
@@ -43,7 +84,7 @@ function drawContainers(parent, data, details=true, labels=false) {
         .style('pointer-events', 'all');
 
     // Draw children envelopes
-    subs.append(d => document.createElementNS(d3.namespaces.svg, (d.envelope||'circle')))
+    subs.append(d => document.createElementNS(d3.namespaces.svg, (d.envelope || 'circle')))
         .attrs(function (d) {
             if (d.envelope === 'rect') {
                 return {x: '0%', y: '0%', width: '100%', height: '100%'}
@@ -51,18 +92,18 @@ function drawContainers(parent, data, details=true, labels=false) {
                 return {cx: '50%', cy: '50%', r: '49%'}
             }
         })
-        .style('opacity', d => (d.started > 0) ? 0.3: 0.7)
-        .style('stroke', function(d){
-            if (details && d.final && d.id) {
+        .style('opacity', d => (d.started > 0) ? 0.3 : 0.7)
+        .style('stroke', function (d) {
+            if (detailed && d.final && d.id) {
                 return 'black';
             } else {
                 return 'none';
             }
         })
-        .style('fill', function(d){
-            if ((d.envelope === 'rect')|| (details && d.final)){
+        .style('fill', function (d) {
+            if ((d.envelope === 'rect') || (detailed && d.final)) {
                 return 'none';
-            } else  if (d.id) {
+            } else if (d.id) {
                 return '#17a2b8';
             } else {
                 return 'rgba(0,0,0,0.15)';
@@ -70,7 +111,7 @@ function drawContainers(parent, data, details=true, labels=false) {
         });
 
     // Labels and Children
-    if ((!data.final)||labels) {
+    if ((!data.final) || labelled) {
         subs.append("text")
             .attr("x", '50%')
             .attr("y", '50%')
@@ -84,13 +125,9 @@ function drawContainers(parent, data, details=true, labels=false) {
                 return d.loc;
             });
     }
-    subs.each(function(d){
-        if (details || (!d.final)) {
-            drawContainers('#' + $(this).attr('id'), d, details, labels);
+    subs.each(function (d) {
+        if (detailed || (!d.final)) {
+            drawContainers('#' + $(this).attr('id'), d, detailed, labelled);
         }
     });
-
-
-
-
 }
