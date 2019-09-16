@@ -8,6 +8,7 @@
         $('#svglayout-{{ container.pk }}').layoutContainer({
             detailed: {% if show_samples %}true{% else %}false{% endif %},
             labelled: {% if label_samples %}true{% else %}false{% endif %},
+            loadable: {% if loadable %}true{% else %}false{% endif %},
         })
     });
 </script>

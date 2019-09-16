@@ -11,7 +11,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
-from django.db.models import Q, F, Avg, Count, CharField, IntegerField, Value
+from django.db.models import Q, F, Avg, Count, CharField, IntegerField, BooleanField, Value
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.utils import timezone
@@ -735,7 +735,7 @@ class Container(TransitStatusMixin):
         ordering = ('kind', 'location')
 
     def __str__(self):
-        return "{} | {}".format(self.kind.name.title(), self.name)
+        return "{} | {} | {}".format(self.kind.name.title(), self.project.name.upper(), self.name)
 
     def identity(self):
         return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
@@ -815,7 +815,7 @@ class Container(TransitStatusMixin):
         info = self.kind.layout
         locations = list(
             self.kind.coords.values(
-                'x', 'y', loc=F('location__name'), #accepts=Count('location__accepts'),
+                'x', 'y', loc=F('location__name'), accepts=Count('location__accepts'),
             )
         )
         layout = {
@@ -844,9 +844,8 @@ class Container(TransitStatusMixin):
             if with_samples:
                 samples = list(
                     self.samples.values(
-                        'id', 'name', loc=F('location'), type=Value('Sample', CharField()),
-                        batch=F('group__name'), occupied=Value(1, IntegerField()),
-                        envelope=Value('circle', CharField()),
+                        'id', 'name', loc=F('location'), sample=Value(True, BooleanField()),
+                        batch=F('group__name'), envelope=Value('circle', CharField()),
                         started=Count('datasets')
                     )
                 )
@@ -861,6 +860,7 @@ class Container(TransitStatusMixin):
         for loc in locations:
             key = loc['loc']
             loc['radius'] = info.get('radius', 100)
+            loc['accepts'] = bool(loc.get('accepts'))
             loc.update(contents.get(key, {}))
         layout['children'] = list(locations)
 

@@ -578,19 +578,18 @@ class ContainerLoad(AdminRequiredMixin, ContainerEdit):
 class LocationLoad(AdminRequiredMixin, ContainerEdit):
     form_class = forms.LocationLoadForm
     success_message = "Container has been loaded"
-    allowed_roles = ['admin']
 
     def get_initial(self):
         initial = super(LocationLoad, self).get_initial()
-        initial.update(container_location=self.object.kind.locations.filter(
-            name__iexact=self.kwargs.get('location')).first())
+        initial.update(location=self.object.kind.locations.get(name=self.kwargs['location']))
         return initial
 
     def form_valid(self, form):
         data = form.cleaned_data
-        models.Container.objects.filter(pk=data['child'].pk).update(parent=self.object,
-                                                                    location=data['container_location'])
-        models.LoadHistory.objects.create(child=data['child'], parent=self.object, location=data['container_location'])
+        models.Container.objects.filter(pk=data['child'].pk).update(
+            parent=self.object, location=data['location']
+        )
+        models.LoadHistory.objects.create(child=data['child'], parent=self.object, location=data['location'])
         return super(LocationLoad, self).form_valid(form)
 
 
@@ -854,7 +853,6 @@ class SessionStatistics(AdminRequiredMixin, detail.DetailView):
 class BeamlineDetail(AdminRequiredMixin, detail.DetailView):
     model = models.Beamline
     template_name = "users/entries/beamline.html"
-    allowed_roles = ['admin']
 
     def get_context_data(self, **kwargs):
         context = super(BeamlineDetail, self).get_context_data(**kwargs)

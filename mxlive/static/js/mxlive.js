@@ -2,7 +2,8 @@
     $.fn.layoutContainer = function (options) {
         let settings = $.extend({
             'detailed': true,
-            'labelled': false
+            'labelled': false,
+            'loadable': false,
         }, options);
         let parent = $(this);
         let pk = parent.data('pk');
@@ -21,7 +22,7 @@
                     .attr('viewBox', '0 0 ' + (width) + ' ' + (height))
                     .attr('id', 'cnt-null-' + pk);
 
-                // draw enlvelope if container is final
+                // draw envelope if container is final
                 if (settings.detailed && data.id && data.final) {
                     main.append(data.envelope || 'circle')
                         .attrs({cx: '50%', cy: '50%', r: '49%', x: '0%', y: '0%', width: '100%', height: '100%'})
@@ -33,6 +34,16 @@
                 drawContainers("#cnt-null-" + pk, data, settings.detailed, settings.labeled);
                 $(selector + ' [title]').tooltip();
                 console.log(data);
+                if (settings.loadable) {
+                    $(document).on('click', selector + ' svg[data-accepts="true"]:not([data-id])', function(){
+                        console.log($(this).data('loc'), 'Loading')
+                        $('#modal-form').load("/users/containers/"+$(this).data('parent')+"/location/"+$(this).data('loc') + '/');
+                    });
+                    $(document).on('click', selector + ' svg[data-final="true"]', function(){
+                        console.log($(this).data('loc'), 'Changing')
+                    });
+                }
+
             }
         });
     }
@@ -55,33 +66,38 @@ function drawContainers(parent, data, detailed = true, labelled = false) {
             let cx = d.x * 100;
             let cy = d.y * 100;
             let cls = 'loc-' + data.loc + '-' + d.loc;
+
             if (data.envelope === 'circle') {
                 cx = d.x * 0.5 * Math.sin(d.y) * 100 + 50;
                 cy = d.x * 0.5 * Math.cos(d.y) * 100 + 50;
             }
+
             if (data.accepts) {
                 cls += ' cursor';
             }
             let options = {
-                x: (cx - 0.5 * sw) + '%',
-                y: (cy - 0.5 * sh) + '%',
-                width: sw + '%',
-                height: sh + '%',
+                x: (cx - 0.5 * sw).toFixed(3) + '%',
+                y: (cy - 0.5 * sh).toFixed(3) + '%',
+                width: sw.toFixed(3) + '%',
+                height: sh.toFixed(3) + '%',
                 class: cls,
-                title: d.name,
-                'data-width': sw * cw / 100,
-                'data-height': sh * ch / 100,
+                'data-width': (sw * cw / 100).toFixed(3),
+                'data-height': (sh * ch / 100).toFixed(3),
+                'data-accepts': d.accepts,
                 'data-id': d.id,
+                'data-parent': data.id,
+                'data-loc': d.loc,
                 'data-group': d.batch,
                 'data-owner': d.owner,
                 'data-final': d.final,
             };
             if (d.id) {
-                options.id = 'cnt-' + data.id + '-' + d.id
+                options.id = 'cnt-' + data.id + '-' + d.id;
+                options.title = (data.final ? d.name : d.owner + '|' + d.name)
             }
             return options;
         })
-        .style('pointer-events', 'all');
+        .style('pointer-events', 'visible');
 
     // Draw children envelopes
     subs.append(d => document.createElementNS(d3.namespaces.svg, (d.envelope || 'circle')))
@@ -101,10 +117,10 @@ function drawContainers(parent, data, detailed = true, labelled = false) {
             }
         })
         .style('fill', function (d) {
-            if ((d.envelope === 'rect') || (detailed && d.final)) {
-                return 'none';
-            } else if (d.id) {
+            if ((d.final && !detailed) || (detailed && d.id && d.sample)) {
                 return '#17a2b8';
+            } else if (d.id) {
+                return 'none';
             } else {
                 return 'rgba(0,0,0,0.15)';
             }
@@ -120,7 +136,6 @@ function drawContainers(parent, data, detailed = true, labelled = false) {
             .attr("text-anchor", 'middle')
             .attr("opacity", d => (d.id) ? 0.7 : 0.3)
             .attr('dominant-baseline', 'middle')
-            //.attr('class', d => (d.id)? 'occupied': 'empty')
             .text(function (d, i) {
                 return d.loc;
             });
@@ -131,3 +146,4 @@ function drawContainers(parent, data, detailed = true, labelled = false) {
         }
     });
 }
+
