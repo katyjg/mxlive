@@ -2,6 +2,12 @@
 {% load humanize %}
 {% load markup %}
 {% load icons %}
+
+{% block pre_js %}
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/d3-selection-multi.v1.min.js"></script>
+{% endblock %}
+
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading">
         <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
@@ -92,8 +98,7 @@
             {% endif %}
         </div>
         <div {% if object.accepts_children %}id="admin-assign"{% endif %} class="col-sm-4 col-12 pull-right">
-            <div id="layout-{{ object.pk }}" class="layout-lg"></div>
-            {% include "users/entries/layout-container.html" with object=object.pk kind=object.kind %}
+            {% include "users/entries/container-layout.html" with container=object show_samples=True %}
         </div>
     </div>
 

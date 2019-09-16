@@ -1,6 +1,5 @@
 html {
-    font-size: 10.5pt;
-
+    font-size: 11pt;
 }
 
 body, .tooltip, .popover {
@@ -24,7 +23,7 @@ body {
 #spinner {
     display: none;
     z-index: 1100;
-    background-color: rgb(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.5);
     height: 100%;
     width: 100%;
     top: 0;
@@ -588,15 +587,15 @@ form .list-group-item {
     padding-top: 5px;
 }
 
-svg {
-    transition: all 1s;
-    transform-origin: 0% 0%;
-    max-width: 100%;
-}
+/*svg {*/
+/*    transition: all 1s;*/
+/*    transform-origin: 0% 0%;*/
+/*    max-width: 100%;*/
+/*}*/
 
-svg[kind], svg.gauge {
-    overflow: visible;
-}
+/*svg[kind], svg.gauge {*/
+/*    overflow: visible;*/
+/*}*/
 
 .comments {
     background-color: rgba(0, 110, 182, 0.15);
@@ -1440,3 +1439,4 @@ a:hover {
 .item-list th {
     font-family: "Fira Sans Condensed";
 }
+

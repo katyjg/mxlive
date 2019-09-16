@@ -11,7 +11,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
-from django.db.models import Q, F, Avg, Count, CharField, Value
+from django.db.models import Q, F, Avg, Count, CharField, IntegerField, Value
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.utils import timezone
@@ -677,7 +677,7 @@ class ContainerType(models.Model):
         STATES.LOADED: [STATES.PENDING],
     }
     name = models.CharField(max_length=20)
-    locations = models.ManyToManyField("ContainerLocation", blank=True, related_name="types")
+    locations = models.ManyToManyField("ContainerLocation", through="LocationCoord", blank=True, related_name="types")
     layout = JSONField(null=True, blank=True)
     envelope = models.CharField(max_length=200, blank=True)
 
@@ -688,11 +688,28 @@ class ContainerType(models.Model):
 class ContainerLocation(models.Model):
     name = models.CharField(max_length=5)
     accepts = models.ManyToManyField(ContainerType, blank=True, related_name="acceptors")
+
+    def __str__(self):
+        return self.name
+
+
+class LocationCoord(models.Model):
+    """
+    A Container Location Coordinate intermediate is defined for each container<->ContainerLocation type.
+    This model stores (x,y) coordinates used to build the layout (e.g. Uni-Puck, Adaptor, Autmounter, etc.). the
+    meaning of the coordinates depends on the envelope of the parent ContainerType.
+
+    Parent envelopes 'rect' or 'circle' are supported.
+        If 'rect', [x, y] coordinates are relative to width and height.
+        If 'circle', [x, y] coordinates are actually polar coordinates [r, theta], relative to width.
+    """
+    kind = models.ForeignKey(ContainerType, on_delete=models.CASCADE, related_name='coords')
+    location = models.ForeignKey(ContainerLocation, on_delete=models.CASCADE, related_name='coords')
     x = models.FloatField(default=0.0)
     y = models.FloatField(default=0.0)
 
     def __str__(self):
-        return self.name
+        return "{}:{}".format(self.kind.name, self.location.name)
 
 
 class Container(TransitStatusMixin):
@@ -796,52 +813,57 @@ class Container(TransitStatusMixin):
         """
 
         info = self.kind.layout
+        locations = list(
+            self.kind.coords.values(
+                'x', 'y', loc=F('location__name'), #accepts=Count('location__accepts'),
+            )
+        )
         layout = {
             'type': self.kind.name,
             'id': self.pk,
             'name': self.name,
             'owner': self.project.name.upper(),
             'height': info.get('height'),
+            'loc': None if not self.location else self.location.name,
             'envelope': self.kind.envelope,
-            'location': None if not self.location else self.location.name,
+            'accepts': self.accepts_children(),
         }
-        locations = list(
-            self.kind.locations.values(
-                'x', 'y', location=F('name'), accept=StringAgg('accepts__name', ';')
-            )
-        )
+
         children = self.children.all()
+        contents = {}
         if children.exists():
             contents = {
-                info['location']: info
+                info['loc']: info
                 for child in children
                 for info in [child.get_layout()]
-                if info['location']
+                if info['loc']
             }
-
-        else:
-            contents = {}
+        elif not layout['accepts']:
+            layout['final'] = True
+            # only try fetch samples if container does not accept other containers
             if with_samples:
                 samples = list(
                     self.samples.values(
-                        'id', 'name', 'location', type=Value('Sample', CharField()), batch=F('group__name'),
+                        'id', 'name', loc=F('location'), type=Value('Sample', CharField()),
+                        batch=F('group__name'), occupied=Value(1, IntegerField()),
+                        envelope=Value('circle', CharField()),
                         started=Count('datasets')
                     )
                 )
+
                 contents = {
-                    info['location']: info
+                    info['loc']: info
                     for info in samples
-                    if info['location']
+                    if info['loc']
                 }
 
         # compile data
         for loc in locations:
-            key = loc['location']
+            key = loc['loc']
             loc['radius'] = info.get('radius', 100)
             loc.update(contents.get(key, {}))
-
         layout['children'] = list(locations)
-        layout['occupied'] = len(contents)
+
         return layout
 
 

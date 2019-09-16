@@ -2,6 +2,11 @@
 {% load humanize %}
 {% load markup %}
 
+{% block pre_js %}
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/d3-selection-multi.v1.min.js"></script>
+{% endblock %}
+
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
         <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
@@ -112,7 +117,7 @@
                             </a>
                         </h5>
                     </div>
-                    {% include "users/entries/layout-container.html" with object=container.pk kind=container.kind %}
+                    {% include "users/entries/container-layout.html" %}
                 </div>
 
             {% endfor %}

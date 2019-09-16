@@ -1,11 +1,23 @@
-<div id="svglayout-{{ container.pk }}"></div>
+<div id="svglayout-{{ container.pk }}" class="p-0">
+</div>
 <script>
     $(document).ready( function() {
         $.ajax({
             dataType: "json",
             url: "{% url 'fetch-layout' pk=container.pk %}",
             success: function(data, status, xhr) {
-                drawContainer("#svglayout-{{ container.pk }}", data);
+                let parent = "#svglayout-{{ container.pk }}";
+                let width = $(parent).width();
+                let height = width * (data.height || 1);
+                let details = {% if show_samples %}true{% else %}false{% endif %};
+                let labels = {% if label_samples %}true{% else %}false{% endif %};
+
+                d3.select('#svglayout-{{ container.pk }}')
+                    .append('svg')
+                    .attr('viewBox', '0 0 ' + (width) + ' ' + (height))
+                    .attr('id', 'cnt-null-{{ container.pk }}');
+                drawContainers("#cnt-null-{{ container.pk }}", data, details, labels);
+                $('#svglayout-{{ container.pk }} [title]').tooltip();
                 console.log(data);
             }
         });

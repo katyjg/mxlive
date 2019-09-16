@@ -136,8 +136,9 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             context['automounters'] = models.Dewar.objects.filter(active=True).prefetch_related('container',
                                                                                                 'beamline').order_by(
                 'beamline__name')
-            context['containers'] = models.Container.objects.filter(kind__in=kinds, dewars__isnull=True).order_by(
-                'name')
+            context['containers'] = models.Container.objects.filter(
+                kind__in=kinds, dewars__isnull=True, #status__gt=models.Container.STATES.DRAFT
+            ).order_by('name')
         else:
             pass
             # referrer = self.request.META.get('HTTP_REFERER')
