@@ -105,7 +105,7 @@ function initModal() {
 function showResponse(response, statusText, xhr, $form) {
 	var newForm = $(response).find('.modal-content'); // Body of new form
     var myform = $("#modalForm");
-	myform.find("[data-original-title]:not([data-toggle='popover'])").tooltip('destroy');
+	myform.find("[data-original-title]:not([data-toggle='popover'])").tooltip('dispose');
 	if (newForm.length) {
 		myform.find(".modal-content").html(newForm.first().html());  // replace only content
 		initModal();

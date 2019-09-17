@@ -104,7 +104,7 @@ class Project(AbstractUser):
     HELP = {
         'contact_person': "Full name of contact person",
     }
-    name = models.SlugField('account name')
+    name = models.SlugField()
     contact_person = models.CharField(max_length=200, blank=True, null=True)
     contact_email = models.EmailField(max_length=100, blank=True, null=True)
     carrier = models.ForeignKey(Carrier, blank=True, null=True, on_delete=models.SET_NULL)
@@ -720,7 +720,7 @@ class Container(TransitStatusMixin):
         'cascade_help': 'All associated samples will be left without a container'
     }
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='containers')
-    kind = models.ForeignKey(ContainerType, blank=False, null=False, on_delete=models.CASCADE)
+    kind = models.ForeignKey(ContainerType, blank=False, null=False, on_delete=models.CASCADE, related_name='containers')
     shipment = models.ForeignKey(Shipment, blank=True, null=True, on_delete=models.SET_NULL, related_name='containers')
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(default=0)
@@ -758,7 +758,7 @@ class Container(TransitStatusMixin):
         return self.kind.locations.filter(accepts__isnull=False).exists()
 
     def accepted_by(self):
-        return ContainerType.objects.filter(pk__in=self.kind.locations.values_list('containers', flat=True))
+        return ContainerType.objects.filter(pk__in=self.kind.locations.values_list('contents', flat=True))
 
     def children_by_location(self):
         return self.children.order_by('location')

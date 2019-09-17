@@ -31,16 +31,19 @@
                 }
 
                 // Draw Container Children
-                drawContainers("#cnt-null-" + pk, data, settings.detailed, settings.labeled);
+                drawContainers("#cnt-null-" + pk, data, settings.detailed, settings.labelled);
                 $(selector + ' [title]').tooltip();
                 console.log(data);
                 if (settings.loadable) {
                     $(document).on('click', selector + ' svg[data-accepts="true"]:not([data-id])', function(){
-                        console.log($(this).data('loc'), 'Loading')
-                        $('#modal-form').load("/users/containers/"+$(this).data('parent')+"/location/"+$(this).data('loc') + '/');
+                        let url = "/users/containers/"+$(this).data('parent')+"/location/"+$(this).data('loc') + '/';
+                        console.log($(this).data('loc'), 'Loading', url);
+                        $('#modal-form').load(url);
                     });
                     $(document).on('click', selector + ' svg[data-final="true"]', function(){
-                        console.log($(this).data('loc'), 'Changing')
+                        let url = "/users/containers/"+$(this).data('id')+"/load/";
+                        $('#modal-form').load(url);
+                        console.log($(this).data('loc'), 'Changing', url);
                     });
                 }
 

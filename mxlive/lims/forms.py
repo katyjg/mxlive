@@ -1,6 +1,6 @@
 import re
 
-from crispy_forms.bootstrap import StrictButton, FormActions
+from crispy_forms.bootstrap import StrictButton, Div
 from crispy_forms.bootstrap import Tab, TabHolder
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, HTML, Div, Field, Button
@@ -67,7 +67,7 @@ class ProjectForm(forms.ModelForm):
                 Div('postal_code', css_class='col-6'),
                 css_class="row"
             ),
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
@@ -117,7 +117,7 @@ class NewProjectForm(forms.ModelForm):
                 Div('contact_phone', css_class='col-6'),
                 css_class="row"
             ),
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Save', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
@@ -145,7 +145,7 @@ class ShipmentForm(forms.ModelForm):
             self.helper.form_action = reverse_lazy('shipment-new')
         self.helper.layout = Layout(
             'project', 'name', 'comments',
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
@@ -182,7 +182,7 @@ class ShipmentCommentsForm(forms.ModelForm):
         self.helper.form_action = reverse_lazy('shipment-comments', kwargs={'pk': pk})
         self.helper.layout = Layout(
             'storage_location', 'staff_comments',
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Unreceive', type='recall', value='Recall', css_class="btn btn-danger"),
@@ -219,7 +219,7 @@ class DewarForm(forms.ModelForm):
         self.helper.title = u"Staff Comments for {} Automounter".format(self.instance.beamline.acronym)
         self.helper.layout = Layout(
             'staff_comments',
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
@@ -266,7 +266,7 @@ class SampleForm(forms.ModelForm):
                 Div('comments', css_class='col-12'),
                 css_class="row"
             ),
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
@@ -310,7 +310,7 @@ class SampleAdminForm(forms.ModelForm):
                 Div('staff_comments', css_class='col-12'),
                 css_class="row"
             ),
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
@@ -366,7 +366,7 @@ class ShipmentSendForm(forms.ModelForm):
                 Div('comments', css_class="col-12"),
                 css_class="row"
             ),
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
@@ -408,7 +408,7 @@ class ShipmentReturnForm(forms.ModelForm):
                 Div('staff_comments', css_class="col-12"),
                 css_class="row"
             ),
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
@@ -443,7 +443,7 @@ class ShipmentRecallSendForm(forms.ModelForm):
                 Div('comments', css_class="col-12"),
                 css_class="row"
             ),
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Unsend', type='recall', value='Recall', css_class="btn btn-danger"),
@@ -477,7 +477,7 @@ class ShipmentRecallReturnForm(forms.ModelForm):
                 Div('staff_comments', css_class="col-12"),
                 css_class="row"
             ),
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Unsend', type='recall', value='Recall', css_class="btn btn-danger"),
@@ -506,7 +506,7 @@ class ShipmentReceiveForm(forms.ModelForm):
         self.helper.form_action = reverse_lazy('shipment-receive', kwargs={'pk': self.instance.pk})
         self.helper.layout = Layout(
             'storage_location', 'staff_comments',
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Save', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
@@ -531,7 +531,7 @@ class ShipmentArchiveForm(forms.ModelForm):
         self.helper.form_action = reverse_lazy('shipment-archive', kwargs={'pk': self.instance.pk})
         self.helper.layout = Layout(
             HTML("""{{ object }}"""),
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
@@ -559,7 +559,7 @@ class ContainerForm(forms.ModelForm):
             self.helper.form_action = reverse_lazy("container-new")
         self.helper.layout = Layout(
             'project', 'name', 'shipment', 'comments',
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
@@ -621,7 +621,7 @@ class GroupForm(forms.ModelForm):
                 Div('comments', css_class="col-12"),
                 css_class="row"
             ),
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Save', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
@@ -649,9 +649,9 @@ class ContainerLoadForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ContainerLoadForm, self).__init__(*args, **kwargs)
-
         self.fields['parent'].queryset = self.fields['parent'].queryset.filter(
-            kind__in=self.instance.accepted_by())
+            kind__locations__accepts=self.instance.kind
+        ).distinct()
 
         self.helper = FormHelper()
         self.helper.title = u"Move Container {}".format(self.instance)
@@ -669,7 +669,7 @@ class ContainerLoadForm(forms.ModelForm):
                 ),
                 css_class="row"
             ),
-            FormActions(
+            Div(
                 Div(
                     StrictButton('Unload', type="submit", name="unload", value='Unload',
                                  css_class='float-left btn btn-danger'),
@@ -716,7 +716,7 @@ class EmptyContainers(forms.ModelForm):
             Div(HTML(
                 """Any containers owned by {} will be removed from the automounter.""".format(self.instance.username))),
             'parent',
-            FormActions(
+            Div(
                 Div(
                     StrictButton('Save', type='submit', name="submit", value='submit',
                                  css_class='float-right btn btn-primary'),
@@ -759,7 +759,7 @@ class LocationLoadForm(forms.ModelForm):
                 ),
                 css_class="row"
             ),
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton('Save', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
@@ -808,7 +808,7 @@ class AddShipmentForm(forms.ModelForm):
                 ),
                 css_class="row"
             ),
-            FormActions(
+            Div(
                 Div(
                     Div(
                         StrictButton("Continue", type="submit", value="Continue", css_class='btn btn-primary'),
@@ -1197,7 +1197,7 @@ class GroupSelectForm(forms.ModelForm):
 
         if self.initial.get('shipment'):
             self.helper.layout.append(
-                FormActions(
+                Div(
                     Div(
                         Div(
                             StrictButton('Save', type='submit', name="submit", value='submit',
