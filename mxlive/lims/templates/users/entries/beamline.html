@@ -5,8 +5,8 @@
 {% load icons %}
 
 {% block pre_js %}
-    <script src="https://d3js.org/d3.v4.min.js"></script>
-    <script src="https://d3js.org/d3-selection-multi.v1.min.js"></script>
+    <script src="{% static 'js/d3.v5.min.js' %}"></script>
+    <script src="{% static 'js/d3-selection-multi.v1.min.js' %}"></script>
 {% endblock %}
 
 {% block page_heading %}
@@ -21,27 +21,25 @@
 
 {% block object_tools %}
     <div class="object-tools">
-        <span class="tools-box pull-right">
-            <a href="#!" class="pull-right" data-url="{% url "dewar-edit" pk=object.active_dewar.pk %}">
-                {% show_icon label='Add Comment' icon='fa ti-1x fa-commenting-o' %}
+        <span class="tools-box">
+            {% if object.active_dewar.container.children_history.all %}
+            <a href="#!" data-url="{% url "automounter-history" object.active_dewar.container.pk %}">
+                {% show_icon label='History' icon='ti ti-1x ti-timer' %}
             </a>
-        </span>
-        <span class="tools-box pull-right">
-            <a class="pull-right" href="{% url "beamline-history" pk=object.pk %}">
+            {% endif %}
+            {% now "Y" as current_year %}
+            <a href="{% url "beamline-statistics" object.pk current_year %}">
+                {% show_icon label='Stats' icon='ti ti-1x ti-bar-chart' %}
+            </a>
+            <a href="{% url "usage-statistics" object.pk %}">
+                {% show_icon label='Usage' icon='ti ti-1x ti-stats-up' %}
+            </a>
+            <a href="{% url "beamline-history" pk=object.pk %}">
                 {% show_icon label='Sessions' icon='ti ti-1x ti-time' %}
             </a>
-            {% now "Y" as current_year %}
-            <a class="pull-right" href="{% url "usage-statistics" object.pk %}">
-                {% show_icon label='Usage Stats' icon='ti ti-1x ti-stats-up' %}
+            <a href="#!" data-url="{% url "dewar-edit" pk=object.active_dewar.pk %}">
+                {% show_icon label='Comment' icon='fa ti-1x fa-commenting-o' %}
             </a>
-            <a class="pull-right" href="{% url "beamline-statistics" object.pk current_year %}">
-                {% show_icon label='Beam Stats' icon='ti ti-1x ti-bar-chart' %}
-            </a>
-            {% if object.active_dewar.container.children_history.all %}
-                <a href="#!" class="pull-right" data-url="{% url "automounter-history" object.active_dewar.container.pk %}">
-                    {% show_icon label='History' icon='ti ti-1x ti-timer' %}
-                </a>
-            {% endif %}
         </span>
     </div>
 {% endblock %}

@@ -856,11 +856,12 @@ class BeamlineDetail(AdminRequiredMixin, detail.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(BeamlineDetail, self).get_context_data(**kwargs)
-        context['projects'] = {
-            project: self.object.active_automounter().children.filter(project=project)
-            for project in models.Project.objects.filter(
-                pk__in=self.object.active_automounter().children.values_list('project', flat=True)).distinct()
-        }
+        context['projects'] = {}
+        # }
+        #     project: self.object.active_automounter().children.filter(project=project)
+        #     for project in models.Project.objects.filter(
+        #         pk__in=self.object.active_automounter().children.values_list('project', flat=True)).distinct()
+        # }
         return context
 
 

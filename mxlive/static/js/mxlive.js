@@ -31,18 +31,19 @@
                 }
 
                 // Draw Container Children
-                drawContainers("#cnt-null-" + pk, data, settings.detailed, settings.labeled);
+                drawContainers("#cnt-null-" + pk, data, settings.detailed, settings.labelled);
                 $(selector + ' [title]').tooltip();
                 console.log(data);
                 if (settings.loadable) {
                     $(document).on('click', selector + ' svg[data-accepts="true"]:not([data-id])', function(){
-                        console.log($(this).data('loc'), 'Loading');
-                        $('#modal-form').load("/users/containers/"+$(this).data('parent')+"/location/"+$(this).data('loc') + '/');
+                        let url = "/users/containers/"+$(this).data('parent')+"/location/"+$(this).data('loc') + '/';
+                        console.log($(this).data('loc'), 'Loading', url);
+                        $('#modal-form').load(url);
                     });
-                    $(document).on('click', selector + ' svg:not([data-final="true"])', function(){
-                        if ($(this).data('parent')) {
-                            $('#modal-form').load("/users/containers/"+$(this).data('parent')+"/load/");
-                        }
+                    $(document).on('click', selector + ' svg[data-final="true"]', function(){
+                        let url = "/users/containers/"+$(this).data('id')+"/load/";
+                        $('#modal-form').load(url);
+                        console.log($(this).data('loc'), 'Changing', url);
                     });
                 }
 
@@ -52,7 +53,7 @@
 }(jQuery));
 
 
-function drawContainers(parent, data, detailed = true, labelled = false, loadable=false) {
+function drawContainers(parent, data, detailed = true, labelled = false) {
     let cw = $(parent).width() || $(parent).data('width');
     let ch = $(parent).height() || $(parent).data('height');
     let aspect = cw / ch;
@@ -74,7 +75,7 @@ function drawContainers(parent, data, detailed = true, labelled = false, loadabl
                 cy = d.x * 0.5 * Math.cos(d.y) * 100 + 50;
             }
 
-            if (data.accepts && loadable) {
+            if (data.accepts) {
                 cls += ' cursor';
             }
             let options = {
@@ -85,6 +86,7 @@ function drawContainers(parent, data, detailed = true, labelled = false, loadabl
                 class: cls,
                 'data-width': (sw * cw / 100).toFixed(3),
                 'data-height': (sh * ch / 100).toFixed(3),
+                'data-accepts': d.accepts,
                 'data-id': d.id,
                 'data-parent': data.id,
                 'data-loc': d.loc,
@@ -96,11 +98,7 @@ function drawContainers(parent, data, detailed = true, labelled = false, loadabl
                 options.id = 'cnt-' + data.id + '-' + d.id;
                 options.title = (data.final ? d.name : d.owner + '|' + d.name)
             }
-            if (!data.final) {
-                options['data-accepts'] = d.accepts;
-            }
             return options;
-
         })
         .style('pointer-events', 'visible');
 

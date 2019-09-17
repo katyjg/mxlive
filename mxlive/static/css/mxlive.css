@@ -1,5 +1,6 @@
 html {
-    font-size: 10.5pt;
+    font-size: 10.0pt;
+    min-height: 100%;
 }
 
 body, .tooltip, .popover {
@@ -11,10 +12,83 @@ pre {
 }
 
 body {
-    padding: 0 !important;
-    min-height: 100%;
-    background-color: #eee;
+    background-color: #ddd;
+    min-height: calc(100vh - 51px - 2rem );
+
 }
+
+header > nav {
+    background-color: #883a6a !important;
+    max-height: 51px !important;
+}
+
+main {
+    margin-top: calc(51px + 1rem);
+    padding-bottom: 51px;
+}
+
+.pagelet {
+    background: none repeat scroll 0 0 #fff;
+    border-bottom: none !important;
+    border-top: 0;
+    margin-bottom: 1rem;
+    padding-top: 1rem;
+    position: relative;
+    transition: padding 500ms ease 0s;
+    min-height: calc(100vh - 51px - 2rem );
+}
+
+.pagelet .pagelet {
+    box-shadow: none;
+    transition: none;
+    padding-top: 0;
+    padding-left: 0;
+}
+
+.pagelet-body {
+    padding: 15px;
+}
+
+.pagelet-heading {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    font-weight: 300;
+}
+
+.pagelet-footer, .pagelet-header {
+    padding: 0.5em 1em;
+    min-height: 37px;
+    position: relative;
+}
+
+.pagelet-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.pagelet-header {
+    margin-top: -1em;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.pagelet-header h1,
+.pagelet-header h2,
+.pagelet-header h3,
+.pagelet-header h4,
+.pagelet-header h5,
+.pagelet-header h6 {
+    line-height: 0.9;
+    margin: 0.5em 0;
+}
+
+.modal.fade .modal-dialog {
+    transition-property: all;
+    transform: scale(0.75);
+    transition: all 0.3s;
+}
+
+.modal.fade.show .modal-dialog {
+    transform: scale(1) translate3d(0, 50px, 0);
+}
+
 
 #spinner.loading + .wrapper {
     opacity: 0.5;
@@ -46,10 +120,7 @@ body {
     width: auto !important; /* Fix IE problems */
 }
 
-main.content {
-    margin-top: 50px;
-    padding-bottom: 80px;
-}
+
 
 .toolbar.row.no-space {
     padding-right: 15px;
@@ -61,13 +132,7 @@ a.navbar-brand {
     min-width: 83px;
 }
 
-header {
-    background-color: #883a6a !important;
-}
 
-header > nav {
-    max-height: 51px !important;
-}
 
 .chosen-container-multi .chosen-results {
     max-height: 100px !important;
@@ -140,74 +205,6 @@ img.line-icon {
 
 .pad-wrapper {
     padding: 15px 15px;
-}
-
-.pagelet {
-    background: none repeat scroll 0 0 #fff;
-    border-bottom: none !important;
-    border-top: 0;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 0, 0, 0.05) inset;
-    margin-bottom: 15px;
-    padding-top: 15px;
-    position: relative;
-    transition: padding 500ms ease 0s;
-}
-
-.pagelet .pagelet {
-    box-shadow: none;
-    transition: none;
-    padding-top: 0;
-    padding-left: 0;
-}
-
-.pagelet .object-list .pagelet {
-    border-right: 1px solid #ddd;
-}
-
-@media (max-width: 768px) {
-    .pagelet .col-12 .pagelet {
-        border-right: none;
-        padding-right: 0;
-    }
-}
-
-.pagelet .no-border .object-list .pagelet {
-    border: none;
-    padding-right: 0;
-}
-
-.pagelet-body {
-    padding: 15px;
-}
-
-.pagelet-heading {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-    font-weight: 300;
-}
-
-.pagelet-footer, .pagelet-header {
-    padding: 0.5em 1em;
-    min-height: 37px;
-    position: relative;
-}
-
-.pagelet-footer {
-    border-top: 1px solid rgba(0, 0, 0, 0.15);
-}
-
-.pagelet-header {
-    margin-top: -1em;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-}
-
-.pagelet-header h1,
-.pagelet-header h2,
-.pagelet-header h3,
-.pagelet-header h4,
-.pagelet-header h5,
-.pagelet-header h6 {
-    line-height: 0.9;
-    margin: 0.5em 0;
 }
 
 .text-condensed {
@@ -1370,12 +1367,13 @@ span.label-unusable-score {
 }
 
 .footer-item {
-    padding: 15px;
+    margin: 1rem 0;
+    padding: 0 1rem;
     float: left;
 }
 
 .footer-item + .footer-item {
-    border-left: 1px solid #ddd;
+    border-left: 1px solid rgba(0,0,0,0.15);
 }
 
 .bulk-edit input {

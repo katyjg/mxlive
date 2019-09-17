@@ -45,13 +45,13 @@
                     <div>{% block object_tools %}{% endblock %}</div>
                 </div>
                 {% block object_status %}{% endblock %}
-                {% comment %}{% if debug %}
+                {% if maintenance %}
                 <div class="alert alert-warning">
                   <strong>Warning!</strong> MxLIVE is currently undergoing maintenance activities. Some features may not be available
                     and performance may be impacted. This message will be removed when full functionality is restored. Sorry for the
                     temporary inconvenience.
                 </div>
-                {% endif %}{% endcomment %}
+                {% endif %}
                 <div class="pagelet-body">
                     {% block full %}{% endblock %}
                 </div>
@@ -63,8 +63,9 @@
 {% if user.is_authenticated %}
     <div class="footer text-muted">
         <div class="footer-wrapper">
-            <div class="footer-item">&copy; {% now "Y" %}</div>
-            <div class="footer-item"><a class="text-muted" href="/">Home</a></div>
+            <div class="footer-item"> {{ version }}</div>
+            <div class="footer-item">&#9400; 2010&ndash;{% now "Y" %}</div>
+            <div class="footer-item"><a class="text-muted" href="/">Dashboard</a></div>
         </div>
     </div>
 {% endif %}
