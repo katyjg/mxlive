@@ -1367,12 +1367,13 @@ span.label-unusable-score {
 }
 
 .footer-item {
-    padding: 15px;
+    margin: 1rem 0;
+    padding: 0 1rem;
     float: left;
 }
 
 .footer-item + .footer-item {
-    border-left: 1px solid #ddd;
+    border-left: 1px solid rgba(0,0,0,0.15);
 }
 
 .bulk-edit input {

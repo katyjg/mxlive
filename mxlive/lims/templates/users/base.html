@@ -63,8 +63,9 @@
 {% if user.is_authenticated %}
     <div class="footer text-muted">
         <div class="footer-wrapper">
-            <div class="footer-item">&copy; {% now "Y" %}</div>
-            <div class="footer-item"><a class="text-muted" href="/">Home</a></div>
+            <div class="footer-item"> {{ version }}</div>
+            <div class="footer-item">&#9400; 2010&ndash;{% now "Y" %}</div>
+            <div class="footer-item"><a class="text-muted" href="/">Dashboard</a></div>
         </div>
     </div>
 {% endif %}
