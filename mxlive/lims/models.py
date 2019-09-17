@@ -758,7 +758,7 @@ class Container(TransitStatusMixin):
         return self.kind.locations.filter(accepts__isnull=False).exists()
 
     def accepted_by(self):
-        return ContainerType.objects.filter(pk__in=self.kind.locations.values_list('containers', flat=True))
+        return ContainerType.objects.filter(pk__in=self.kind.locations.values_list('contents', flat=True))
 
     def children_by_location(self):
         return self.children.order_by('location')
@@ -829,12 +829,11 @@ class Container(TransitStatusMixin):
             'accepts': self.accepts_children(),
         }
 
-        children = self.children.all()
         contents = {}
-        if children.exists():
+        if self.children.exists():
             contents = {
                 info['loc']: info
-                for child in children
+                for child in self.children.all()
                 for info in [child.get_layout()]
                 if info['loc']
             }
@@ -1029,7 +1028,7 @@ class Sample(ProjectObjectMixin):
         'name': "Avoid using spaces or special characters in sample names",
         'barcode': "If there is a datamatrix code on sample, please scan or input the value here",
         'comments': 'You can use restructured text formatting in this field',
-        'container_location': 'This field is required only if a container has been selected',
+        'location': 'This field is required only if a container has been selected',
         'group': 'This field is optional here.  Samples can also be added to a group on the groups page.',
         'container': 'This field is optional here.  Samples can also be added to a container on the containers page.',
     }

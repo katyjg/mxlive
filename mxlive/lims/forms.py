@@ -649,9 +649,10 @@ class ContainerLoadForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ContainerLoadForm, self).__init__(*args, **kwargs)
-
+        print(self.instance)
         self.fields['parent'].queryset = self.fields['parent'].queryset.filter(
-            kind__in=self.instance.accepted_by())
+            kind__locations__accepts=self.instance.kind
+        ).distinct()
 
         self.helper = FormHelper()
         self.helper.title = u"Move Container {}".format(self.instance)
