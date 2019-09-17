@@ -18,6 +18,15 @@ PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(PROJECT_DIR)
 LOCAL_DIR = os.path.join(BASE_DIR, 'local')
 
+# Version number
+try:
+    with open(os.path.join(BASE_DIR, 'VERSION'), 'r', encoding='utf-8') as version_file:
+        APP_VERSION = version_file.read().strip() or 'unknown'
+except FileNotFoundError:
+    APP_VERSION = 'unknown'
+
+
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -74,6 +83,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'mxlive.utils.context_processors.version_context_processor'
             ],
         },
     },
@@ -200,6 +210,7 @@ RESTRICT_DOWNLOADS = False
 DOWNLOAD_PROXY_URL = "http://mxlive-data/download"
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
 
 try:
     from local.settings import *
