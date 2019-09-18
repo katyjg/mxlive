@@ -32,6 +32,7 @@
 
                 // Draw Container Children
                 drawContainers("#cnt-null-" + pk, data, settings.detailed, settings.labelled);
+                listProjects('#loaded-projects', data);
                 $(selector + ' [title]').tooltip();
                 console.log(data);
                 if (settings.loadable) {
@@ -51,6 +52,7 @@
         });
     }
 }(jQuery));
+
 
 
 function drawContainers(parent, data, detailed = true, labelled = false) {
@@ -105,11 +107,8 @@ function drawContainers(parent, data, detailed = true, labelled = false) {
     // Draw children envelopes
     subs.append(d => document.createElementNS(d3.namespaces.svg, (d.envelope || 'circle')))
         .attrs(function (d) {
-            if (d.envelope === 'rect') {
-                return {x: '0%', y: '0%', width: '100%', height: '100%'}
-            } else {
-                return {cx: '50%', cy: '50%', r: '49%'}
-            }
+            let prj = (d.owner ? d.owner.toLowerCase() : 'null');
+            return {x: '0%', y: '0%', width: '100%', height: '100%', project: prj, cx: '50%', cy: '50%', r: '49%'}
         })
         .style('opacity', d => (d.started > 0) ? 0.3 : 0.7)
         .style('stroke', function (d) {
@@ -150,3 +149,71 @@ function drawContainers(parent, data, detailed = true, labelled = false) {
     });
 }
 
+function extractProjects(results, data) {
+    jQuery.each(data.children, function(i, obj){
+        if (obj.owner && obj.final) {
+            if (!(obj.owner in results)) {
+                results[obj.owner] = [];
+            }
+            results[obj.owner].push({
+                loc: obj.loc,
+                id: obj.id,
+                name: obj.name,
+                samples: obj.children.length
+            })
+        }
+        if (obj.children) {
+            extractProjects(results, obj.children);
+        }
+    });
+    return results;
+}
+
+function compileProjects(data) {
+    let raw = extractProjects({}, data);
+    let results = [];
+
+    jQuery.each(raw, function(key, value){
+        results.push({name: key, details: value});
+    });
+    return results;
+}
+
+var projTemplate = _.template(
+    '<div class="row loaded-project" data-project="<%= name.toLowerCase() %>">' +
+    '       <h5 class="col-1 text-condensed text-center align-self-center"><%= details.length %></h5>' +
+    '       <div class="col d-flex flex-row justify-content-between">' +
+    '           <div class="flex-grow-1"><h5 class="m-0"><%= name %></h5>' +
+    '           <% _.each(details, function(container, i){ %>' +
+    '               <small class="text-muted loc-list d-inline-block"><%= container.loc %></small>' +
+    '           <% }); %>' +
+    '           </div>' +
+    '           <div class="tools-box">' +
+    '               <a href="#!" title="Details" data-url="/users/containers//history/"> ' +
+    '                   <div class="icon-stack">' +
+    '                       <i class="ti ti-1x ti-zoom-in"></i>' +
+    '                   </div>' +
+    '               </a>' +
+    '               <a href="#!" title="Unload all" data-url="/users/containers//history/">' +
+    '                   <div class="icon-stack">' +
+    '                       <i class="ti ti-1x ti-share"></i>' +
+    '                   </div>' +
+    '               </a>' +
+    '           </div>' +
+    '       </div>' +
+    '</div>'
+);
+
+function listProjects(parent, data) {
+    let projects =compileProjects(data);
+    console.log(projects);
+    let main = d3.select(parent)
+        .selectAll('div')
+        .data(projects||[])
+        .enter()
+        .append("div")
+        .attr("class", "list-group-item py-1")
+        .attr("id", d => "proj-" + d.name.toLowerCase())
+        .html(d=> projTemplate(d));
+    $("#loaded-projects").tooltip();
+}

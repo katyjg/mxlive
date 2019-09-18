@@ -675,8 +675,8 @@ form .list-group-item {
 
 .active-envelope {
     fill: #883a6a !important;
-    opacity: 0.5;
     z-index: 1000;
+    opacity: 0.2;
 }
 
 #admin-assign .empty[accepts] {
