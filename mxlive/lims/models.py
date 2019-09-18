@@ -860,6 +860,7 @@ class Container(TransitStatusMixin):
             key = loc['loc']
             loc['radius'] = info.get('radius', 100)
             loc['accepts'] = bool(loc.get('accepts'))
+            loc['parent'] = self.pk
             loc.update(contents.get(key, {}))
         layout['children'] = list(locations)
 

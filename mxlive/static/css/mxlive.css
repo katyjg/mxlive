@@ -5,6 +5,7 @@ html {
 
 body, .tooltip, .popover {
     font-family: "Fira Sans", sans-serif !important;
+    font-weight: 400;
 }
 
 pre {
@@ -651,6 +652,8 @@ form .list-group-item {
     border-width: 8px;
 }
 
+/* Container/Layout styles */
+
 .empty {
     fill: #eee !important;
 }
@@ -674,9 +677,15 @@ form .list-group-item {
 }
 
 .active-envelope {
-    fill: #883a6a !important;
+    fill: rgba(136, 58, 106, 0.75) !important;
     z-index: 1000;
-    opacity: 0.2;
+}
+
+.loc-list > small {
+    padding: 0 0.35em;
+}
+.loc-list small + small {
+    border-left: 1px solid rgba(0,0,0,0.2);
 }
 
 #admin-assign .empty[accepts] {

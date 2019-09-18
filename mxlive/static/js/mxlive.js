@@ -32,19 +32,16 @@
 
                 // Draw Container Children
                 drawContainers("#cnt-null-" + pk, data, settings.detailed, settings.labelled);
-                listProjects('#loaded-projects', data);
+                listLoaded('#loaded-projects', '#loaded-containers', data);
                 $(selector + ' [title]').tooltip();
-                console.log(data);
                 if (settings.loadable) {
                     $(document).on('click', selector + ' svg[data-accepts="true"]:not([data-id])', function(){
                         let url = "/users/containers/"+$(this).data('parent')+"/location/"+$(this).data('loc') + '/';
-                        console.log($(this).data('loc'), 'Loading', url);
                         $('#modal-form').load(url);
                     });
                     $(document).on('click', selector + ' svg[data-final="true"]', function(){
                         let url = "/users/containers/"+$(this).data('id')+"/load/";
                         $('#modal-form').load(url);
-                        console.log($(this).data('loc'), 'Changing', url);
                     });
                 }
 
@@ -156,25 +153,33 @@ function extractProjects(results, data) {
                 results[obj.owner] = [];
             }
             results[obj.owner].push({
-                loc: obj.loc,
-                id: obj.id,
-                name: obj.name,
-                samples: obj.children.length
-            })
+                loc: obj.loc, id: obj.id,  project: obj.owner, type: obj.type,
+                name: obj.name, parent: obj.parent,
+                samples: obj.children.filter(function (d){return d.id;}).length
+            });
         }
         if (obj.children) {
             extractProjects(results, obj.children);
         }
+
     });
     return results;
 }
 
+
 function compileProjects(data) {
     let raw = extractProjects({}, data);
-    let results = [];
+    let results = {
+        projects: [],
+        containers: []
+    };
 
     jQuery.each(raw, function(key, value){
-        results.push({name: key, details: value});
+        results.projects.push({name: key, parent: value[0].parent, details: value});
+        results.containers = results.containers.concat(value)
+    });
+    results.containers.sort(function(a, b){
+        return a.loc > b.loc;
     });
     return results;
 }
@@ -184,17 +189,16 @@ var projTemplate = _.template(
     '       <h5 class="col-1 text-condensed text-center align-self-center"><%= details.length %></h5>' +
     '       <div class="col d-flex flex-row justify-content-between">' +
     '           <div class="flex-grow-1"><h5 class="m-0"><%= name %></h5>' +
-    '           <% _.each(details, function(container, i){ %>' +
-    '               <small class="text-muted loc-list d-inline-block"><%= container.loc %></small>' +
-    '           <% }); %>' +
+    '           <div class="loc-list">' +
+    '<% _.each(details, function(container, i){ %><small class="text-muted d-inline-block"><%= container.loc %></small><% }); %></div>' +
     '           </div>' +
     '           <div class="tools-box">' +
-    '               <a href="#!" title="Details" data-url="/users/containers//history/"> ' +
+    '               <a href="#!" title="Details"> ' +
     '                   <div class="icon-stack">' +
     '                       <i class="ti ti-1x ti-zoom-in"></i>' +
     '                   </div>' +
     '               </a>' +
-    '               <a href="#!" title="Unload all" data-url="/users/containers//history/">' +
+    '               <a href="#!" title="Unload all" data-url="/users/containers/<%= parent %>/unload/<%= name.toLowerCase() %>/">' +
     '                   <div class="icon-stack">' +
     '                       <i class="ti ti-1x ti-share"></i>' +
     '                   </div>' +
@@ -203,17 +207,53 @@ var projTemplate = _.template(
     '       </div>' +
     '</div>'
 );
+var locTemplate = _.template(
+    '<div class="row loaded-container" data-loc="<%= loc %>">' +
+    '       <h6 class="col-1 text-condensed text-center align-self-center"><strong><%= loc %></strong></h6>' +
+    '       <div class="col d-flex flex-row justify-content-between">' +
+    '           <div class="flex-grow-1 align-self-center py-0">' +
+    '               <h5 class="m-0"><%= project %>&nbsp;<span class="text-muted">|</span>&nbsp;<%= name %></h5>' +
+    '               <div class="loc-list">' +
+    '                   <small class="text-muted d-inline-block"><%= type %></small>' +
+    '                   <small class="text-muted d-inline-block"><strong><%= samples %></strong> samples</small>' +
+    '               </div>' +
+    '           </div>' +
+    '           <div class="tools-box">' +
+    '               <a href="#!" title="Unload" data-url="/users/containers//history/">' +
+    '                   <div class="icon-stack">' +
+    '                       <i class="ti ti-1 ti-share"></i>' +
+    '                   </div>' +
+    '               </a>' +
+    '           </div>' +
+    '       </div>' +
+    '</div>'
+);
 
-function listProjects(parent, data) {
-    let projects =compileProjects(data);
-    console.log(projects);
-    let main = d3.select(parent)
+function listLoaded(proj_container, loc_container, data) {
+    let info =compileProjects(data);
+    console.log(info);
+    d3.select(proj_container)
         .selectAll('div')
-        .data(projects||[])
+        .data(info.projects||[])
         .enter()
         .append("div")
         .attr("class", "list-group-item py-1")
         .attr("id", d => "proj-" + d.name.toLowerCase())
-        .html(d=> projTemplate(d));
-    $("#loaded-projects").tooltip();
+        .html(function(d){
+            d.details.sort(function(a, b){
+                return a.loc > b.loc;
+            });
+            return projTemplate(d)
+        });
+    d3.select(loc_container)
+        .selectAll('div')
+        .data(info.containers||[])
+        .enter()
+        .append("div")
+        .attr("class", "list-group-item py-1")
+        .attr("id", d => "loc-for-" + d.id)
+        .html(function(d){
+            return locTemplate(d)
+        });
+    $(proj_container + ' [title], ' + loc_container + ' [title]').tooltip();
 }

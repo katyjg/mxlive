@@ -708,13 +708,13 @@ class EmptyContainers(forms.ModelForm):
         super(EmptyContainers, self).__init__(*args, **kwargs)
 
         self.helper = FormHelper()
-        self.helper.title = u"Remove containers".format(self.instance.username.upper())
+        self.helper.title = u"Remove containers"
         self.helper.form_action = reverse_lazy("empty-containers", kwargs={
             'pk': self.initial['parent'].pk,
             'username': self.instance.username})
         self.helper.layout = Layout(
             Div(HTML(
-                """Any containers owned by {} will be removed from the automounter.""".format(self.instance.username))),
+                """Any containers owned by <strong>{}</strong> will be removed from the automounter.""".format(self.instance.username.upper()))),
             'parent',
             Div(
                 Div(
