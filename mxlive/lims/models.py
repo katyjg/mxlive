@@ -822,6 +822,7 @@ class Container(TransitStatusMixin):
             'type': self.kind.name,
             'id': self.pk,
             'name': self.name,
+            'parent': None if not self.parent else self.parent.pk,
             'owner': self.project.name.upper(),
             'height': info.get('height'),
             'loc': None if not self.location else self.location.name,

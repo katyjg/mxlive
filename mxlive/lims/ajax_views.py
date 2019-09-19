@@ -5,6 +5,7 @@ from django.db import transaction
 from django.http import JsonResponse, HttpResponseNotFound
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 from django.views.generic import View
 
 from mxlive.utils.mixins import LoginRequiredMixin, AdminRequiredMixin
@@ -103,3 +104,19 @@ class FetchContainerLayout(LoginRequiredMixin, View):
             return JsonResponse(container.get_layout(), safe=False)
         except models.Container.DoesNotExist:
             raise http.Http404('Container Not Found!')
+
+
+class UnloadContainer(AdminRequiredMixin, View):
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        try:
+            container = models.Container.objects.get(pk=self.kwargs['pk'])
+        except models.Group.DoesNotExist:
+            raise http.Http404("Can't unload Container.")
+
+        layout = container.get_layout()
+        models.LoadHistory.objects.filter(child=self.kwargs['pk']).active().update(end=timezone.now())
+        models.Container.objects.filter(pk=container.pk).update(parent=None, location=None)
+
+        return JsonResponse(layout, safe=False)

@@ -67,9 +67,7 @@
 {% block full %}
     {% with object.active_automounter as automounter %}
         <div class="row">
-            <div {% if user.is_superuser %}id="admin-assign"{% endif %} class="col-sm-7">
-                <h3>Automounter Layout</h3>
-                <hr />
+            <div {% if user.is_superuser %}id="admin-assign"{% endif %} class="col-sm-7 p-4">
                 {% include "users/entries/container-layout.html" with container=automounter show_samples=True loadable=True %}
             </div>
 

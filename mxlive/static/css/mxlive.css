@@ -688,6 +688,11 @@ form .list-group-item {
     border-left: 1px solid rgba(0,0,0,0.2);
 }
 
+#container-tab-content .list-group {
+    max-height: 35rem;
+    overflow-y: auto;
+}
+
 #admin-assign .empty[accepts] {
     cursor: pointer;
 }

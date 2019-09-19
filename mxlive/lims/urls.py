@@ -41,7 +41,7 @@ urlpatterns = [
     path('containers/<int:pk>/edit/', views.ContainerEdit.as_view(), name='container-edit'),
     path('containers/<int:pk>/delete/', views.ContainerDelete.as_view(), name='container-delete'),
     path('containers/<int:pk>/load/', views.ContainerLoad.as_view(), name='container-load'),
-    path('containers/<int:pk>/unload/', views.ContainerLoad.as_view(), name='container-unload'),
+    path('containers/<int:pk>/unload/', ajax_views.UnloadContainer.as_view(), name='container-unload'),
     path('containers/<int:pk>/location/<slug:location>/', views.LocationLoad.as_view(), name='location-load'),
     path('containers/<int:pk>/unload/<slug:username>/', views.EmptyContainers.as_view(), name='empty-containers'),
 

@@ -43,6 +43,21 @@
                         let url = "/users/containers/"+$(this).data('id')+"/load/";
                         $('#modal-form').load(url);
                     });
+                    $(document).on('click', '[data-unload-url]', function (){
+                        unloadUpdateData(this, settings);
+                    });
+                    $(document).on('mouseenter', '.loaded-project', function(){
+                        let sel = "svg [project='" + $(this).data('project') +"']";
+                        $(sel).addClass('active-envelope');
+                    });
+                    $(document).on('mouseenter', '.loaded-container', function(){
+                        console.log($(this));
+                        let sel = "svg [data-loc='" + $(this).data('loc') +"'] >:first-child";
+                        $(sel).addClass('active-envelope');
+                    });
+                    $(document).on('mouseleave', '.loaded-container, .loaded-project', function(){
+                        $('svg > .active-envelope').removeClass('active-envelope');
+                    });
                 }
 
             }
@@ -219,7 +234,7 @@ var locTemplate = _.template(
     '               </div>' +
     '           </div>' +
     '           <div class="tools-box">' +
-    '               <a href="#!" title="Unload" data-url="/users/containers//history/">' +
+    '               <a href="#!" title="Unload" data-unload-url="/users/containers/<%= id %>/unload/" data-id="<%= id %>">' +
     '                   <div class="icon-stack">' +
     '                       <i class="ti ti-1 ti-share"></i>' +
     '                   </div>' +
@@ -230,7 +245,7 @@ var locTemplate = _.template(
 );
 
 function listLoaded(proj_container, loc_container, data) {
-    let info =compileProjects(data);
+    let info = compileProjects(data);
     console.log(info);
     d3.select(proj_container)
         .selectAll('div')
@@ -244,7 +259,8 @@ function listLoaded(proj_container, loc_container, data) {
                 return a.loc > b.loc;
             });
             return projTemplate(d)
-        });
+        })
+        .exit().remove();
     d3.select(loc_container)
         .selectAll('div')
         .data(info.containers||[])
@@ -256,4 +272,46 @@ function listLoaded(proj_container, loc_container, data) {
             return locTemplate(d)
         });
     $(proj_container + ' [title], ' + loc_container + ' [title]').tooltip();
+}
+
+(function($){
+    $.fn.shake = function(options) {
+        var settings = $.extend({
+            interval: 100,
+            distance: 5,
+            times: 4
+        }, options );
+
+        $(this).css('position','relative');
+
+        for(var iter=0; iter<(settings.times+1); iter++){
+            $(this).animate({ left:((iter%2 == 0 ? settings.distance : settings.distance * -1)) }, settings.interval);
+        }
+        $(this).animate({ left: 0}, settings.interval, function(){});
+    };
+})(jQuery);
+
+
+function unloadUpdateData(element, settings) {
+    let src = $(element);
+    $.ajax({
+        type: 'post',
+        dataType: "json",
+        url: src.data('unload-url'),
+        data: {},
+        beforeSend: function(xhr, settings){
+            xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
+        },
+        success: function(data, status, xhr) {
+            let child_sel = 'svg#cnt-' + data.parent + '-' + data.id + ' > svg';
+            let envelope = 'svg#cnt-' + data.parent + '-' + data.id + ' *:first-child';
+            $(child_sel).remove();
+            d3.select(envelope)
+                .style('fill', 'rgba(0,0,0,0.15)')
+                .style('stroke', 'none');
+        },
+        error: function() {
+            src.shake();
+        }
+    });
 }
