@@ -126,7 +126,7 @@ class Project(AbstractUser):
     updated = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.name
+        return self.name.upper()
 
     def onsite_containers(self):
         return self.containers.filter(status=Container.STATES.ON_SITE).count()

@@ -9,7 +9,6 @@
         let pk = parent.data('pk');
         let url = parent.data('layout-url');
         let selector = '#' + parent.attr('id');
-
         // fetch data and render
         $.ajax({
             dataType: "json",
@@ -17,10 +16,13 @@
             success: function (data, status, xhr) {
                 let width = parent.width();
                 let height = width * (data.height || 1);
+                let svg_id = 'cnt-' + data.id;
                 let main = d3.select(selector)
                     .append('svg')
                     .attr('viewBox', '0 0 ' + (width) + ' ' + (height))
-                    .attr('id', 'cnt-null-' + pk);
+                    .attr('data-detailed', settings.detailed)
+                    .attr('data-labelled', settings.labelled)
+                    .attr('id', svg_id);
 
                 // draw envelope if container is final
                 if (settings.detailed && data.id && data.final) {
@@ -31,7 +33,7 @@
                 }
 
                 // Draw Container Children
-                drawContainers("#cnt-null-" + pk, data, settings.detailed, settings.labelled);
+                drawContainers("#" + svg_id, data);
                 listLoaded('#loaded-projects', '#loaded-containers', data);
                 $(selector + ' [title]').tooltip();
                 if (settings.loadable) {
@@ -51,7 +53,6 @@
                         $(sel).addClass('active-envelope');
                     });
                     $(document).on('mouseenter', '.loaded-container', function(){
-                        console.log($(this));
                         let sel = "svg [data-loc='" + $(this).data('loc') +"'] >:first-child";
                         $(sel).addClass('active-envelope');
                     });
@@ -67,13 +68,15 @@
 
 
 
-function drawContainers(parent, data, detailed = true, labelled = false) {
+function drawContainers(parent, data) {
     let cw = $(parent).width() || $(parent).data('width');
     let ch = $(parent).height() || $(parent).data('height');
+    let detailed = $(parent).data('detailed');
+    let labelled = $(parent).data('labelled');
     let aspect = cw / ch;
     let factor = Math.sqrt(cw ** 2 + ch ** 2) / (100 * Math.sqrt(2));
     let subs = d3.select(parent)
-        .selectAll("svg")
+        .selectAll("svg"+"[data-parent='"+ data.id +"']")
         .data(data.children || [])
         .enter()
         .append("svg")
@@ -98,23 +101,30 @@ function drawContainers(parent, data, detailed = true, labelled = false) {
                 width: sw.toFixed(3) + '%',
                 height: sh.toFixed(3) + '%',
                 class: cls,
+                id: 'cnt-' + d.parent + '-' + d.loc,
                 'data-width': (sw * cw / 100).toFixed(3),
                 'data-height': (sh * ch / 100).toFixed(3),
                 'data-accepts': d.accepts,
+                'data-detailed': detailed,
+                'data-labelled': labelled,
                 'data-id': d.id,
                 'data-parent': data.id,
                 'data-loc': d.loc,
                 'data-group': d.batch,
                 'data-owner': d.owner,
-                'data-final': d.final,
+                'data-final': d.final
             };
             if (d.id) {
-                options.id = 'cnt-' + data.id + '-' + d.id;
                 options.title = (data.final ? d.name : d.owner + '|' + d.name)
+            } else {
+                options.title = d.loc;
             }
             return options;
         })
         .style('pointer-events', 'visible');
+
+    // Remove deleted entries
+    //subs.exit().remove();
 
     // Draw children envelopes
     subs.append(d => document.createElementNS(d3.namespaces.svg, (d.envelope || 'circle')))
@@ -156,7 +166,7 @@ function drawContainers(parent, data, detailed = true, labelled = false) {
     }
     subs.each(function (d) {
         if (detailed || (!d.final)) {
-            drawContainers('#' + $(this).attr('id'), d, detailed, labelled);
+            drawContainers('#' + $(this).attr('id'), d);
         }
     });
 }
@@ -205,7 +215,7 @@ var projTemplate = _.template(
     '       <div class="col d-flex flex-row justify-content-between">' +
     '           <div class="flex-grow-1"><h5 class="m-0"><%= name %></h5>' +
     '           <div class="loc-list">' +
-    '<% _.each(details, function(container, i){ %><small class="text-muted d-inline-block"><%= container.loc %></small><% }); %></div>' +
+    '<% _.each(details, function(container, i){ %><small class="text-muted d-inline-block cnt-<%= container.id %>"><%= container.loc %></small><% }); %></div>' +
     '           </div>' +
     '           <div class="tools-box">' +
     '               <a href="#!" title="Details"> ' +
@@ -223,7 +233,7 @@ var projTemplate = _.template(
     '</div>'
 );
 var locTemplate = _.template(
-    '<div class="row loaded-container" data-loc="<%= loc %>">' +
+    '<div class="row loaded-container cnt-<%= id %>" data-loc="<%= loc %>">' +
     '       <h6 class="col-1 text-condensed text-center align-self-center"><strong><%= loc %></strong></h6>' +
     '       <div class="col d-flex flex-row justify-content-between">' +
     '           <div class="flex-grow-1 align-self-center py-0">' +
@@ -303,12 +313,20 @@ function unloadUpdateData(element, settings) {
             xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
         },
         success: function(data, status, xhr) {
-            let child_sel = 'svg#cnt-' + data.parent + '-' + data.id + ' > svg';
-            let envelope = 'svg#cnt-' + data.parent + '-' + data.id + ' *:first-child';
-            $(child_sel).remove();
-            d3.select(envelope)
-                .style('fill', 'rgba(0,0,0,0.15)')
-                .style('stroke', 'none');
+            let cnt_id = '#cnt-' + data.id;
+            let cnt_nodes = '.cnt' + src.data('id');
+            $(cnt_id).empty();
+            $(cnt_nodes).slideUp(300, function (){
+                $(cnt_nodes).remove();
+            });
+            drawContainers(cnt_id, data);
+
+            // let child_sel = 'svg#cnt-' + data.parent + '-' + data.id + ' > svg';
+            // let envelope = 'svg#cnt-' + data.parent + '-' + data.id + ' *:first-child';
+            // $(child_sel).remove();
+            // d3.select(envelope)
+            //     .style('fill', 'rgba(0,0,0,0.15)')
+            //     .style('stroke', 'none');
         },
         error: function() {
             src.shake();
