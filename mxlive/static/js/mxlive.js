@@ -209,29 +209,6 @@ function compileProjects(data) {
     return results;
 }
 
-var projTemplate = _.template(
-    '<div class="row loaded-project" data-project="<%= name.toLowerCase() %>">' +
-    '       <h5 class="col-1 text-condensed text-center align-self-center"><%= details.length %></h5>' +
-    '       <div class="col d-flex flex-row justify-content-between">' +
-    '           <div class="flex-grow-1"><h5 class="m-0"><%= name %></h5>' +
-    '           <div class="loc-list">' +
-    '<% _.each(details, function(container, i){ %><small class="text-muted d-inline-block cnt-<%= container.id %>"><%= container.loc %></small><% }); %></div>' +
-    '           </div>' +
-    '           <div class="tools-box">' +
-    '               <a href="#!" title="Details"> ' +
-    '                   <div class="icon-stack">' +
-    '                       <i class="ti ti-1x ti-zoom-in"></i>' +
-    '                   </div>' +
-    '               </a>' +
-    '               <a href="#!" title="Unload all" data-url="/users/containers/<%= parent %>/unload/<%= name.toLowerCase() %>/">' +
-    '                   <div class="icon-stack">' +
-    '                       <i class="ti ti-1x ti-share"></i>' +
-    '                   </div>' +
-    '               </a>' +
-    '           </div>' +
-    '       </div>' +
-    '</div>'
-);
 var locTemplate = _.template(
     '<div class="row loaded-container cnt-<%= id %>" data-loc="<%= loc %>">' +
     '       <h6 class="col-1 text-condensed text-center align-self-center"><strong><%= loc %></strong></h6>' +
@@ -252,6 +229,35 @@ var locTemplate = _.template(
     '           </div>' +
     '       </div>' +
     '</div>'
+);
+
+
+var projTemplate = _.template(
+    '<div class="row loaded-project" data-project="<%= name.toLowerCase() %>">' +
+    '       <h5 class="col-1 text-condensed text-center align-self-center"><%= details.length %></h5>' +
+    '       <div class="col d-flex flex-row justify-content-between">' +
+    '           <div class="flex-grow-1"><h5 class="m-0"><%= name %></h5>' +
+    '           <div class="loc-list">' +
+    '<% _.each(details, function(container, i){ %><small class="text-muted d-inline-block cnt-<%= container.id %>"><%= container.loc %></small><% }); %></div>' +
+    '           </div>' +
+    '           <div class="tools-box">' +
+    '               <a title="Details" data-toggle="collapse" href="#prj-<%= name.toLowerCase() %>-list"> ' +
+    '                   <div class="icon-stack">' +
+    '                       <i class="ti ti-1x ti-zoom-in"></i>' +
+    '                   </div>' +
+    '               </a>' +
+    '               <a href="#!" title="Unload all" data-url="/users/containers/<%= parent %>/unload/<%= name.toLowerCase() %>/">' +
+    '                   <div class="icon-stack">' +
+    '                       <i class="ti ti-1x ti-share"></i>' +
+    '                   </div>' +
+    '               </a>' +
+    '           </div>' +
+    '       </div>' +
+    '</div>' +
+    '<div class="collapse" id="prj-<%= name.toLowerCase() %>-list">' +
+    '<div class="container bg-light">' +
+    '     <% _.each(details, function(container, i){ %><%= locTemplate(container) %><% }); %>' +
+    '</div></div>'
 );
 
 function listLoaded(proj_container, loc_container, data) {
@@ -286,7 +292,7 @@ function listLoaded(proj_container, loc_container, data) {
 
 (function($){
     $.fn.shake = function(options) {
-        var settings = $.extend({
+        let settings = $.extend({
             interval: 100,
             distance: 5,
             times: 4
@@ -294,8 +300,8 @@ function listLoaded(proj_container, loc_container, data) {
 
         $(this).css('position','relative');
 
-        for(var iter=0; iter<(settings.times+1); iter++){
-            $(this).animate({ left:((iter%2 == 0 ? settings.distance : settings.distance * -1)) }, settings.interval);
+        for(let iter=0; iter<(settings.times+1); iter++){
+            $(this).animate({ left:((iter % 2 === 0 ? settings.distance : settings.distance * -1)) }, settings.interval);
         }
         $(this).animate({ left: 0}, settings.interval, function(){});
     };

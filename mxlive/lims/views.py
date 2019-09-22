@@ -876,6 +876,7 @@ class BeamlineHistory(AdminRequiredMixin, ListViewMixin, ItemListView):
     list_transforms = {
         'start': format_time,
         'end': format_time,
+        'total_time': lambda x,y: '{:0.2g} hrs'.format(x),
     }
     list_search = ['beamline', 'project', 'name']
     ordering = ['pk']

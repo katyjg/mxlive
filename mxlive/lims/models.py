@@ -272,20 +272,15 @@ class Session(models.Model):
     def groups(self):
         return self.project.groups.filter(pk__in=self.datasets.values_list('sample__group__pk'))
 
-    def datasets(self):
-        return self.datasets.all()
-
     def reports(self):
         return self.project.reports.filter(data__in=self.datasets.all())
 
     def num_datasets(self):
-        return self.datasets().count()
-
+        return self.datasets.count()
     num_datasets.short_description = "Datasets"
 
     def num_reports(self):
         return self.reports().count()
-
     num_reports.short_description = "Reports"
 
     def samples(self):
