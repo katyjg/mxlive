@@ -211,10 +211,10 @@ function compileProjects(data) {
 
 var locTemplate = _.template(
     '<div class="row loaded-container cnt-<%= id %>" data-loc="<%= loc %>">' +
-    '       <h6 class="col-1 text-condensed text-center align-self-center"><strong><%= loc %></strong></h6>' +
+    '       <div class="col-1 text-condensed text-center align-self-center"><strong><%= loc %></strong></div>' +
     '       <div class="col d-flex flex-row justify-content-between">' +
     '           <div class="flex-grow-1 align-self-center py-0">' +
-    '               <h5 class="m-0"><%= project %>&nbsp;<span class="text-muted">|</span>&nbsp;<%= name %></h5>' +
+    '               <strong class="m-0"><%= project %>&nbsp;<span class="text-muted">|</span>&nbsp;<%= name %></strong>' +
     '               <div class="loc-list">' +
     '                   <small class="text-muted d-inline-block"><%= type %></small>' +
     '                   <small class="text-muted d-inline-block"><strong><%= samples %></strong> samples</small>' +
@@ -234,9 +234,9 @@ var locTemplate = _.template(
 
 var projTemplate = _.template(
     '<div class="row loaded-project" data-project="<%= name.toLowerCase() %>">' +
-    '       <h5 class="col-1 text-condensed text-center align-self-center"><%= details.length %></h5>' +
+    '       <div class="col-1 text-condensed text-center align-self-center"><%= details.length %></div>' +
     '       <div class="col d-flex flex-row justify-content-between">' +
-    '           <div class="flex-grow-1"><h5 class="m-0"><%= name %></h5>' +
+    '           <div class="flex-grow-1"><strong class="m-0"><%= name %></strong>' +
     '           <div class="loc-list">' +
     '<% _.each(details, function(container, i){ %><small class="text-muted d-inline-block cnt-<%= container.id %>"><%= container.loc %></small><% }); %></div>' +
     '           </div>' +
@@ -254,10 +254,9 @@ var projTemplate = _.template(
     '           </div>' +
     '       </div>' +
     '</div>' +
-    '<div class="collapse" id="prj-<%= name.toLowerCase() %>-list">' +
-    '<div class="container bg-light">' +
+    '<small class="collapse" id="prj-<%= name.toLowerCase() %>-list">' +
     '     <% _.each(details, function(container, i){ %><%= locTemplate(container) %><% }); %>' +
-    '</div></div>'
+    '</small>'
 );
 
 function listLoaded(proj_container, loc_container, data) {

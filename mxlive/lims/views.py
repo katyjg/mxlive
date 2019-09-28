@@ -831,8 +831,9 @@ def format_total_time(val, record):
 class SessionList(ListViewMixin, ItemListView):
     model = models.Session
     list_filters = ['created', 'beamline', ]
-    list_columns = ['created', 'name', 'beamline', 'total_time', 'num_datasets', 'num_reports']
+    list_columns = ['name', 'created', 'beamline', 'total_time', 'num_datasets', 'num_reports']
     list_search = ['beamline__acronym', 'project__username', 'name']
+    link_field = 'name'
     ordering = ['-created']
     list_transforms = {
         'total_time': format_total_time
