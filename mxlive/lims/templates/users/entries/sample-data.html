@@ -1,11 +1,9 @@
-{% load progress_extras %}
-
 <div class="row">
-    {% sample_data sample session as details %}
-    {% for data in details.data %}
-        {% include "users/entries/data-thumbnail.html" %}
+    {#% sample_data sample session as details %#}
+    {% for data in sample.datasets.all %}
+            {% include "users/entries/data-thumbnail.html" %}
     {% endfor %}
-    {% for report in details.reports %}
+    {% for report in sample.reports.all %}
         {% include "users/entries/report-thumbnail.html" %}
     {% endfor %}
 </div>

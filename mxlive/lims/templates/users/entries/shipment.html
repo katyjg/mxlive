@@ -2,15 +2,16 @@
 {% load humanize %}
 {% load markup %}
 {% load static %}
-
+{% load icons %}
 {% block pre_js %}
     <script src="{% static 'js/d3.v5.min.js' %}"></script>
     <script src="{% static 'js/d3-selection-multi.v1.min.js' %}"></script>
+    <script src="{% static "js/mxlive.js" %}"></script>
 {% endblock %}
 
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
-        <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
+        <i class="text-muted ti {% if object.is_editable %}ti-unlock{% else %}ti-lock{% endif %}"></i>
         <span class="text-muted">{% if user.is_superuser %}{{ object.project }}{% endif %}</span> | <strong>{{ object.name }}</strong>
     </h3>
     <span class="text-muted">
@@ -93,19 +94,21 @@
 {% with object as shipment %}
     <div class="row">
         <div class="col-sm-7 col-12">
-            <span class="tools-box tools-box-inline pull-left">
-                {% if object.status == object.STATES.DRAFT %}
-                <a class="pull-left" data-url="{% url "shipment-add-containers" object.pk %}">
-                    <i class="fa fa-2 fa-fw fa-plus"></i><br>
-                    <span class="tool-label">Edit</span>
-                </a>
-                {% else %}<span class="text-muted pull-left"><i class="fa fa-3 fa-lock"></i></span>{% endif %}
-            </span>
-            <h3><strong>{{ shipment.containers.count }}</strong> Containers</h3>
-            <hr />
+            <div class="row">
+                <div class="col">
+                    <h3 class="float-left py-1"><strong class="align-self-baseline">{{ shipment.containers.count }}</strong> Containers</h3>
+                    <span class="tools-box float-right">
+                        {% if object.status == object.STATES.DRAFT %}
+                            <a href="#!"  data-link="{% url "shipment-add-containers" object.pk %}" title="Edit Containers">
+                            {% show_icon icon="ti ti-1x ti-pencil-alt" %}
+                            </a>
+                        {% else %}<span class="text-muted"><i class="ti ti-1x ti-lock"></i></span>{% endif %}
+                    </span>
+                </div>
+            </div>
+            <hr class="my-1"/>
             <div class="row">
             {% for container in shipment.containers.all %}
-
                 <div class="col-sm-12 col-md-6 col-lg-4 text-center">
                     <div id="layout-{{ container.pk }}" class="layout-lg p-4">
                         <h5 class="text-condensed">
@@ -126,51 +129,48 @@
         </div>
 
         <div class="col-sm-5 col-12">
-            <span class="tools-box tools-box-inline pull-left">
-                {% if object.status ==  object.STATES.DRAFT %}<a class="pull-left" data-url="{% url "shipment-add-groups" object.pk %}">
-                    <i class="fa fa-2 fa-fw fa-plus"></i><br>
-                    <span class="tool-label">Edit</span>
-                </a>
-                {% else %}<span class="text-muted pull-left"><i class="fa fa-3 fa-lock"></i></span>{% endif %}
-            </span>
-            <h3><strong>{{ shipment.groups.count }}</strong> Groups</h3>
-            <hr />
-            <div class="list-group">
+            <div class="row">
+                <div class="col">
+                    <h3 class="float-left py-1"><strong class="align-self-baseline">{{ shipment.containers.count }}</strong> Groups</h3>
+                    <span class="tools-box float-right">
+                        {% if object.status == object.STATES.DRAFT %}
+                            <a href="#!"  data-link="{% url "shipment-add-groups" object.pk %}" title="Edit Groups">
+                            {% show_icon icon="ti ti-1x ti-pencil-alt" %}
+                            </a>
+                        {% else %}<span class="text-muted"><i class="ti ti-1x ti-lock"></i></span>{% endif %}
+                    </span>
+                </div>
+            </div>
+            <hr class="my-1"/>
+            <div class="list-group mt-3">
                 {% for group in shipment.groups_by_priority %}
-                    <div class="list-group-item" id="group-{{ group.pk }}">
-
-                        <span class="tools-box pull-right">
-                            {% if object.is_editable %}
-                                <a class="pull-right" data-url="{% url "group-select" group.pk %}" title="Sample Seat Selection">
-                                    <span class="fa-stack">
-                                        <i class="fa-stack-2x fa fa-fw fa-plus-circle"></i>
-                                            <span class="fa-stack-1x superscript">
-                                                <span class="badge badge-pill progress-bar-{% if group.unassigned_samples %}{% if group.samples.count %}warning{% else %}danger{% endif %}{% else %}info{% endif %}">{{ group.samples.count }}</span>
-                                            </span>
-                                    </span><br>
-                                    <span class="tool-label hidden-xs">Samples</span>
+                    <div class="list-group-item" id="group-{{ group.pk }}" data-highlight="group" data-reference="{{ group.pk }}">
+                        <span class="tools-box float-right">
+                            {% if not object.is_editable %}
+                                <a  href="#!" data-url="{% url "group-select" group.pk %}" title="Sample Seat Selection">
+                                    {% show_icon label="Samples" icon="ti ti-1x ti-plus" badge=group.samples.count color="warning" %}
                                 </a>
-                                <a class="pull-right" data-url="{% url "group-edit" group.pk %}" title="Edit Group Parameters">
-                                    <span class="fa-stack">
-                                        <i class="fa-stack-2x fa fa-fw fa-pencil"></i></span>
-                                    <br><span class="tool-label hidden-xs">Edit</span>
+                                <a href="#!" data-url="{% url "group-edit" group.pk %}" title="Edit Group Parameters">
+                                    {% show_icon label="Edit" icon="ti ti-1x ti-pencil-alt" %}
                                 </a>
                             {% else %}
-                                <div class="pull-right text-center text-muted">
+                                <div class="text-center text-muted">
                                     <div class="text-medium">{{ group.samples.count }}</div>
                                     <div class="text-condensed"><small>Sample{{ group.samples.count|pluralize }} </small></div>
                                 </div>
                             {% endif %}
                         </span>
-                        <h4 class="list-group-item-heading ellipsis overflow text-condensed"><a href="{% url "group-detail" pk=group.pk %}"><span class="text-muted">{{ group.identity }}</span> | <strong>{{ group.name }}</strong></a></h4>
-                        <p class="list-group-item-text text-condensed">
-                            {% if group.priority %}<span class="badge" title="Priority #{{ group.priority }}">{{ group.priority }}</span>&nbsp;{% endif %}
+                        <h4 class="list-group-item-heading ellipsis overflow text-condensed">
+                            <a href="{% url "group-detail" pk=group.pk %}"><strong>{{ group.name }}</strong></a> <span class="text-muted">| {{ group.identity }}</span>
+                        </h4>
+                        <div class="list-group-item-text text-condensed">
+                            {% if group.priority %}<span class="badge badge-pill badge-secondary py-1" title="Priority #{{ group.priority }}">{{ group.priority }}</span>&nbsp;{% endif %}
                              {{ group.get_kind_display }} {% if group.absorption_edge %}({{ group.absorption_edge }}){% endif %}
                             | {{ group.get_plan_display }} {% if group.resolution %}<span title="Desired Resolution">({{ group.resolution }}Å)</span>{% endif %}
-                        </p>
+                        </div>
                         {% if group.is_editable and group.unassigned_samples %}
                             <div class="alert alert-{% if group.samples.count %}warning{% else %}danger{% endif %}">
-                                <p class="list-group-item-text">
+                                <div class="list-group-item-text">
                                     {% if group.samples.count %}
                                         {% if group.unassigned_samples > 0 %}
                                             <strong>{{ group.unassigned_samples }}/{{ group.sample_count }}</strong> sample{{ group.sample_count|pluralize }} not assigned a location
@@ -180,7 +180,7 @@
                                     {% else %}
                                         <strong>No samples assigned to any locations yet</strong>
                                     {% endif %}
-                                </p>
+                                </div>
                             </div>
                         {% endif %}
                     </div>
@@ -189,19 +189,4 @@
         </div>
     </div>
 {% endwith %}
-
-    {% comment %}
-    <script>
-        {% for group in shipment.groups.all %}
-            $('#group-{{ group.pk }}').hover(function() {
-                {% for sample in group.samples.all %}
-                    $('[sample="{{ sample.name }}"]').addClass('active-sample');
-                {% endfor %}
-            },
-            function() {
-                $('.active-sample').removeClass('active-sample')
-            });
-        {% endfor %}
-    </script>
-    {% endcomment %}
 {% endblock %}

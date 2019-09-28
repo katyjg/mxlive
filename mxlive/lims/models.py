@@ -840,7 +840,7 @@ class Container(TransitStatusMixin):
                 samples = list(
                     self.samples.values(
                         'id', 'name', loc=F('location'), sample=Value(True, BooleanField()),
-                        batch=F('group__name'), envelope=Value('circle', CharField()),
+                        batch=F('group__pk'), envelope=Value('circle', CharField()),
                         started=Count('datasets')
                     )
                 )
@@ -1053,10 +1053,7 @@ class Sample(ProjectObjectMixin):
         return self.container.dewar()
 
     def reports(self):
-        reports = []
-        for d in self.datasets.all():
-            reports.extend(list(d.reports.all().values_list('pk', flat=True)))
-        return self.project.reports.filter(pk__in=reports)
+        return AnalysisReport.objects.filter(project=self.project, data__sample=self)
 
     def container_and_location(self):
         return "{} - {}".format(self.container.name, self.location)

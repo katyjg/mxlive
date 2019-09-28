@@ -1,21 +1,26 @@
 {% load progress_extras %}
 {% load icons %}
-    <div class="tools-box pull-right" style="padding-right: 0.5em !important;">
-        <span class="text-medium">{% if session %}{{ group|num_session_samples:session }}/{% endif %}{{ group.sample_count }}</span>
-        {% if group.complete %}
-            <span class="pull-right superscript text-superscript" title="All samples marked as complete">
-                <span class="badge badge-success"><i class="fa fa-check"></i></span>
-            </span>
-        {% endif %}
-        <br>
-        <div class="tool-label text-condensed">Sample{{ group.sample_count|pluralize }}</div>
+
+<div class="row text-condensed">
+    <div class="text-center col-2">
+        <h1 class="badge badge-pill badge-dark ti-1" title="Priority #{{group.priority}}">{{group.priority}}</h1>
     </div>
-    <div class="tools-box-inline pull-left text-center" style="padding-right: 15px;">
-        {% show_icon label='Priority' icon='ti ti-1x ti-star' badge=group.priority color='info' %}
-    </div>
-    <div class="box-info text-condensed">
-        <h5 class="text-condensed overflow ellipsis">{{ group.name }}</h5>
+    <div class="col">
+            <div class="float-right text-center">
+            <span>{% if session %}{{ group|num_session_samples:session }}/{% endif %}{{ group.sample_count }}</span>
+            {% if group.complete %}
+                <span class="pull-right superscript text-superscript" title="All samples marked as complete">
+                    <span class="badge badge-success"><i class="ti ti-check-box"></i></span>
+                </span>
+            {% endif %}
+            <br/>
+            <small >Sample{{ group.sample_count|pluralize }}</small>
+        </div>
+        <h4 class="text-condensed overflow ellipsis m-0">{{ group.name }}</h4>
         <small class="overflow ellipsis">{{ group.get_kind_display }} | {{ group.get_plan_display }} {% if group.absorption_edge %}[{{ group.absorption_edge }}]{% endif %} {% if group.energy %}| {{ group.energy }}keV{% endif %}</small>
+
     </div>
+</div>
+
 
 
