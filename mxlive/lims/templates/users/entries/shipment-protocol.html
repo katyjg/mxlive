@@ -6,7 +6,7 @@
 
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading overflow ellipsis">
-        <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
+        <i class="text-muted ti {% if object.is_editable %}ti-unlock{% else %}ti-lock{% endif %}"></i>
         <span class="text-muted">{% if user.is_superuser %}{{ object.project|upper}} | {% endif %}</span><strong>{{ object.name }}</strong>
     </h3>
     <span class="text-muted">
@@ -51,7 +51,7 @@
 {% block full %}
     {% with object.groups.all as groups %}
     <div class="row">
-        <div class="col-4 col-lg-3">
+        <div class="col-12 col-sm-4">
             <div class="card">
                 <div class="card-header text-center"><h4 class="text-wide m-0">GROUPS</h4></div>
                     <div class="list-group list-group-flush" role="tablist">
@@ -64,7 +64,7 @@
                     </div>
             </div>
         </div>
-        <div class="col-8 col-lg-9">
+        <div class="col-12 col-sm-8">
             <div class="tab-content">
                 {% for group in groups %}
                     <div class="tab-pane fade" id="group-{{ group.pk }}" role="tabpanel" aria-labelledby="show-group{{ group.pk }}">

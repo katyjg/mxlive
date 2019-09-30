@@ -2,42 +2,38 @@
 <div class="list-group-item list-group-item-{% if shipment.status == shipment.STATES.ON_SITE %}primary{% elif shipment.status == shipment.STATES.DRAFT %}warning{% elif shipment.status == shipment.STATES.SENT %}success{% elif shipment.status == shipment.STATES.RETURNED and not user.is_superuser %}empty{% else %}default{% endif %}">
     <div class="row">
         <div class="col">
+            <div class="tools-box float-right">
+            {% if shipment.status >= shipment.STATES.ON_SITE %}
+                <a  href="{% url "shipment-reports" shipment.pk %}" title="Go to Reports from this shipment">
+                    {% show_icon label='Reports' badge=stats.reports icon='ti ti-1x ti-bar-chart-alt' color='info' %}
+                </a>
+                <a  href="{% url "shipment-data" shipment.pk %}" title="Go to Data from this shipment">
+                    {% show_icon label='Data' badge=stats.data icon='ti ti-1x ti-layout-grid3' color='info' %}
+                </a>
+            {% endif %}
+                <a class="separator"></a>
             {% if user.is_superuser and shipment.status <= shipment.STATES.ON_SITE and shipment.status >= shipment.STATES.SENT %}
                 {% if shipment.status == shipment.STATES.ON_SITE %}
-                    <div class="pull-right tools-box">
-                        <a class="pull-right" data-url="{% url "shipment-return" shipment.pk %}" title="Return shipment">
-                            {% show_icon label='Return' icon='fa fa-2 fa-fw fa-paper-plane-o' %}
-                        </a>
-                    </div>
+                    <a  data-url="{% url "shipment-return" shipment.pk %}" title="Return shipment">
+                        {% show_icon label='Return' icon='ti ti-1x ti-location-arrow' %}
+                    </a>
                 {% else %}
-                    <div class="pull-right tools-box">
-                        <a class="pull-right" data-url="{% url "shipment-receive" shipment.pk %}" title="Receive shipment" style="padding-left: 0.25em">
-                            {% show_icon label='Receive' icon='fa fa-2 fa-fw fa-handshake-o' %}
-                        </a>
-                    </div>
+                    <a  data-url="{% url "shipment-receive" shipment.pk %}" title="Receive shipment">
+                        {% show_icon label='Receive' icon='ti ti-1x ti-shopping-cart-full' %}
+                    </a>
                 {% endif %}
             {% endif %}
-            {% if shipment.status >= shipment.STATES.ON_SITE %}
-                <div class="pull-right tools-box">
-                    <a class="pull-right" href="{% url "shipment-reports" shipment.pk %}" title="Go to Reports from this shipment">
-                        {% show_icon label='Reports' badge=stats.reports icon='ti ti-1x ti-bar-chart-alt' color='info' %}
-                    </a>
-                    <a class="pull-right" href="{% url "shipment-data" shipment.pk %}" title="Go to Data from this shipment">
-                        {% show_icon label='Data' badge=stats.data icon='ti ti-1x ti-layout-grid3' color='info' %}
-                    </a>
-                </div>
-            {% endif %}
-
+            </div>
             <div class="box-status">
                 <div class="text-center">
                     <div title="{% if shipment.status == shipment.STATES.ON_SITE %}On-site with location: {{ shipment.storage_location }}
                                 {% elif shipment.status == shipment.STATES.SENT %}Sent on {{ shipment.date_shipped }}
                                 {% elif shipment.status == shipment.STATES.RETURNED %}Returned on {{ shipment.date_returned }}{% endif %}"
-                         class="{% if shipment.status == shipment.STATES.DRAFT %}ti ti-2 ti-clipboard
-                                         {% elif shipment.status == shipment.STATES.SENT %}fa fa-2 fa-plane
-                                         {% elif shipment.status == shipment.STATES.ON_SITE %}ti ti-2 ti-location-pin
-                                         {% elif shipment.status == shipment.STATES.RETURNED %}fa fa-2 fa-plane
-                                         {% elif shipment.status == shipment.STATES.ARCHIVED %}ti ti-2 ti-archive{% endif %}"></div>
+                         class="{% if shipment.status == shipment.STATES.DRAFT %}ti ti-1x ti-clipboard
+                                         {% elif shipment.status == shipment.STATES.SENT %}ti ti-1x ti-truck text-dark
+                                         {% elif shipment.status == shipment.STATES.ON_SITE %}ti ti-1x ti-location-pin text-success
+                                         {% elif shipment.status == shipment.STATES.RETURNED %}ti ti-1x ti-truck text-success
+                                         {% elif shipment.status == shipment.STATES.ARCHIVED %}ti ti-1x ti-archive{% endif %}"></div>
                     <div><small>{% if shipment.status == shipment.STATES.DRAFT %}DRAFT
                                 {% elif shipment.status == shipment.STATES.SENT %}{{ shipment.date_shipped|date:"M d"|upper }}
                                 {% elif shipment.status == shipment.STATES.ON_SITE %}{{ shipment.date_received|date:"M d"|upper }}

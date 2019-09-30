@@ -1,12 +1,12 @@
 (function ($) {
     $.fn.layoutContainer = function (options) {
-        let settings = $.extend({
-            'detailed': true,
-            'labelled': false,
-            'loadable': false,
-        }, options);
         let parent = $(this);
-        let pk = parent.data('pk');
+        let settings = $.extend({
+            'detailed': parent.data('detailed'),
+            'labelled': parent.data('labelled'),
+            'loadable': parent.data('loadable'),
+        }, options);
+
         let url = parent.data('layout-url');
         let selector = '#' + parent.attr('id');
         // fetch data and render
@@ -48,25 +48,12 @@
                     $(document).on('click', '[data-unload-url]', function (){
                         unloadUpdateData(this, settings);
                     });
-                    $(document).on('mouseenter', '.loaded-project', function(){
-                        let sel = "svg [project='" + $(this).data('project') +"']";
-                        $(sel).addClass('active-envelope');
-                    });
-                    $(document).on('mouseenter', '.loaded-container', function(){
-                        let sel = "svg [data-loc='" + $(this).data('loc') +"'] >:first-child";
-                        $(sel).addClass('active-envelope');
-                    });
-                    $(document).on('mouseleave', '.loaded-container, .loaded-project', function(){
-                        $('svg > .active-envelope').removeClass('active-envelope');
-                    });
-                }
 
+                }
             }
         });
     }
 }(jQuery));
-
-
 
 function drawContainers(parent, data) {
     let cw = $(parent).width() || $(parent).data('width');
@@ -111,8 +98,8 @@ function drawContainers(parent, data) {
                 'data-parent': data.id,
                 'data-loc': d.loc,
                 'data-group': d.batch,
-                'data-owner': d.owner,
-                'data-final': d.final
+                'data-final': d.final,
+                'data-project': (d.owner ? d.owner.toLowerCase() : 'null')
             };
             if (d.id) {
                 options.title = (data.final ? d.name : d.owner + '|' + d.name)
@@ -129,24 +116,20 @@ function drawContainers(parent, data) {
     // Draw children envelopes
     subs.append(d => document.createElementNS(d3.namespaces.svg, (d.envelope || 'circle')))
         .attrs(function (d) {
-            let prj = (d.owner ? d.owner.toLowerCase() : 'null');
-            return {x: '0%', y: '0%', width: '100%', height: '100%', project: prj, cx: '50%', cy: '50%', r: '49%'}
-        })
-        .style('opacity', d => (d.started > 0) ? 0.3 : 0.7)
-        .style('stroke', function (d) {
-            if (detailed && d.final && d.id) {
-                return 'black';
-            } else {
-                return 'none';
+            let cls = 'empty';
+            if (d.final && detailed) {
+                cls = 'outline';
+            } else if ((detailed && d.sample) || (!detailed && d.final)) {
+                cls = 'occupied';
+            } else if (d.id && ! d.final) {
+                cls = 'ignore';
             }
-        })
-        .style('fill', function (d) {
-            if ((d.final && !detailed) || (detailed && d.id && d.sample)) {
-                return '#17a2b8';
-            } else if (d.id) {
-                return 'none';
-            } else {
-                return 'rgba(0,0,0,0.15)';
+            if (d.sample && d.started) {
+                cls += ' started'
+            }
+            return {
+                x: '0%', y: '0%', width: '100%', height: '100%',
+                cx: '50%', cy: '50%', r: '49%', class: cls
             }
         });
 
@@ -210,11 +193,11 @@ function compileProjects(data) {
 }
 
 var locTemplate = _.template(
-    '<div class="row loaded-container cnt-<%= id %>" data-loc="<%= loc %>">' +
-    '       <div class="col-1 text-condensed text-center align-self-center"><strong><%= loc %></strong></div>' +
+    '<div class="row" data-highlight="loc" data-reference="<%= loc %>">' +
+    '       <h6 class="col-1 text-condensed text-center align-self-center"><strong><%= loc %></strong></h6>' +
     '       <div class="col d-flex flex-row justify-content-between">' +
     '           <div class="flex-grow-1 align-self-center py-0">' +
-    '               <strong class="m-0"><%= project %>&nbsp;<span class="text-muted">|</span>&nbsp;<%= name %></strong>' +
+    '               <h5 class="m-0"><%= project %>&nbsp;<span class="text-muted">|</span>&nbsp;<%= name %></h5>' +
     '               <div class="loc-list">' +
     '                   <small class="text-muted d-inline-block"><%= type %></small>' +
     '                   <small class="text-muted d-inline-block"><strong><%= samples %></strong> samples</small>' +
@@ -233,12 +216,12 @@ var locTemplate = _.template(
 
 
 var projTemplate = _.template(
-    '<div class="row loaded-project" data-project="<%= name.toLowerCase() %>">' +
-    '       <div class="col-1 text-condensed text-center align-self-center"><%= details.length %></div>' +
+    '<div class="row" data-highlight="project" data-reference="<%= name.toLowerCase() %>">' +
+    '       <h5 class="col-1 text-condensed text-center align-self-center"><%= details.length %></h5>' +
     '       <div class="col d-flex flex-row justify-content-between">' +
-    '           <div class="flex-grow-1"><strong class="m-0"><%= name %></strong>' +
+    '           <div class="flex-grow-1"><h5 class="m-0"><%= name %></h5>' +
     '           <div class="loc-list">' +
-    '<% _.each(details, function(container, i){ %><small class="text-muted d-inline-block cnt-<%= container.id %>"><%= container.loc %></small><% }); %></div>' +
+    '<% _.each(details, function(container, i){ %><small class="text-muted d-inline-block list-cnt-<%= container.id %>"><%= container.loc %></small><% }); %></div>' +
     '           </div>' +
     '           <div class="tools-box">' +
     '               <a title="Details" data-toggle="collapse" href="#prj-<%= name.toLowerCase() %>-list"> ' +
@@ -254,9 +237,10 @@ var projTemplate = _.template(
     '           </div>' +
     '       </div>' +
     '</div>' +
-    '<small class="collapse" id="prj-<%= name.toLowerCase() %>-list">' +
+    '<div class="collapse" id="prj-<%= name.toLowerCase() %>-list">' +
+    '<div class="container bg-light">' +
     '     <% _.each(details, function(container, i){ %><%= locTemplate(container) %><% }); %>' +
-    '</small>'
+    '</div></div>'
 );
 
 function listLoaded(proj_container, loc_container, data) {
@@ -269,6 +253,8 @@ function listLoaded(proj_container, loc_container, data) {
         .append("div")
         .attr("class", "list-group-item py-1")
         .attr("id", d => "proj-" + d.name.toLowerCase())
+        .attr("data-reference", d => d.name.toLowerCase())
+        .attr("data-reference", "project")
         .html(function(d){
             d.details.sort(function(a, b){
                 return a.loc > b.loc;
@@ -281,8 +267,7 @@ function listLoaded(proj_container, loc_container, data) {
         .data(info.containers||[])
         .enter()
         .append("div")
-        .attr("class", "list-group-item py-1")
-        .attr("id", d => "loc-for-" + d.id)
+        .attr("class", d => "list-group-item py-1 list-cnt-" + d.id)
         .html(function(d){
             return locTemplate(d)
         });
@@ -319,22 +304,28 @@ function unloadUpdateData(element, settings) {
         },
         success: function(data, status, xhr) {
             let cnt_id = '#cnt-' + data.id;
-            let cnt_nodes = '.cnt' + src.data('id');
+            let cnt_nodes = '.list-cnt-' + src.data('id');
+            console.log(cnt_nodes);
             $(cnt_id).empty();
+            src.tooltip('dispose');
             $(cnt_nodes).slideUp(300, function (){
                 $(cnt_nodes).remove();
             });
             drawContainers(cnt_id, data);
-
-            // let child_sel = 'svg#cnt-' + data.parent + '-' + data.id + ' > svg';
-            // let envelope = 'svg#cnt-' + data.parent + '-' + data.id + ' *:first-child';
-            // $(child_sel).remove();
-            // d3.select(envelope)
-            //     .style('fill', 'rgba(0,0,0,0.15)')
-            //     .style('stroke', 'none');
         },
         error: function() {
             src.shake();
         }
     });
 }
+
+// Initialize global Layout Event handlers
+$(document).ready(function(){
+    $(document).on('mouseenter', '[data-highlight]', function(){
+        let sel = "svg[data-"+$(this).data('highlight')+"='" + $(this).data('reference') +"'] >:first-child";
+        $(sel).addClass('active-envelope');
+    });
+    $(document).on('mouseleave', '[data-highlight]', function(){
+        $('svg > .active-envelope').removeClass('active-envelope');
+    });
+});

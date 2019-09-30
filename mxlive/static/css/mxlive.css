@@ -654,31 +654,30 @@ form .list-group-item {
 
 /* Container/Layout styles */
 
-.empty {
-    fill: #eee !important;
+svg .outline {
+    stroke: black;
+    fill: none;
 }
 
-.full {
-    fill: #7abfd3 !important;
-    opacity: 0.75 !important;
+svg .empty {
+    fill: #eee;
 }
 
-.started {
-    fill: #7abfd3 !important;
-    opacity: 0.30 !important;
+svg .ignore {
+    fill: none;
+    stroke: none;
 }
 
-.selected {
-    fill: #883a6a !important;
+svg .occupied {
+    fill: #17a2b8;
 }
 
-.active-sample {
-    fill: #883a6a !important;
+svg .started {
+    opacity: 0.30;
 }
 
-.active-envelope {
-    fill: rgba(136, 58, 106, 0.75) !important;
-    z-index: 1000;
+svg .active-envelope {
+    fill: #ffc107; !important;
 }
 
 .loc-list > small {
@@ -696,6 +695,8 @@ form .list-group-item {
 #admin-assign .empty[accepts] {
     cursor: pointer;
 }
+
+/* */
 
 .text-large {
     font-size: 1.5rem;

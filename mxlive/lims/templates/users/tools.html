@@ -3,7 +3,7 @@
     {% if object.status <= object.STATES.SENT and request.user == object.project or object.status == object.STATES.ON_SITE and user.is_superuser or object.comments or object.staff_comments %}
         {% if object.status <= object.STATES.SENT and request.user == object.project or object.status == object.STATES.ON_SITE and user.is_superuser %}
             <a href="{% url "shipment-labels" object.pk %}">
-                {% show_icon label='Labels' icon='fa ti-1x fa-tags' %}
+                {% show_icon label='Labels' icon='ti ti-1x ti-tag' %}
             </a>
         {% endif %}
     {% endif %}
@@ -31,7 +31,7 @@
                     {% show_icon label='Edit' icon='ti ti-1x ti-pencil-alt' %}
                 </a>
                 <a href="#!" data-url="{% url "shipment-send" object.pk %}">
-                    {% show_icon label='Send' icon='fa fa-2 fa-paper-plane-o' badge=object.shipping_errors|length color='warning' %}
+                    {% show_icon label='Send' icon='ti ti-1x ti-location-arrow' badge=object.shipping_errors|length color='warning' %}
                 </a>
             {% elif object.status == object.STATES.SENT %}
                 <a href="#!" data-url="{% url "shipment-update-send" object.pk %}">
@@ -42,11 +42,11 @@
             {% comment %}Staff Actions{% endcomment %}
             {% if object.status == object.STATES.SENT %}
                 <a href="#!" data-url="{% url "shipment-receive" object.pk %}">
-                    {% show_icon label='Receive' icon='fa ti-1x fa-handshake-o' %}
+                    {% show_icon label='Receive' icon='ti ti-1x ti-shopping-cart-full' %}
                 </a>
             {% elif object.status == object.STATES.ON_SITE %}
                 <a href="#!" data-url="{% url "shipment-return" object.pk %}">
-                    {% show_icon label='Return' icon='fa ti-1x fa-paper-plane-o' %}
+                    {% show_icon label='Return' icon='ti ti-1x ti-location-arrow' %}
                 </a>
             {% elif object.status == object.STATES.RETURNED %}
                 <a href="#!" data-url="{% url "shipment-update-return" object.pk %}">
