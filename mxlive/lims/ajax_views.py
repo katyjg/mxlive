@@ -124,3 +124,4 @@ class UnloadContainer(AdminRequiredMixin, View):
             layout = {}
 
         return JsonResponse(layout, safe=False)
+

@@ -9,11 +9,11 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
-from django.db.models import Q, F, Avg, Count, CharField, IntegerField, BooleanField, Value
+from django.db.models import Q, F, Avg, Count, CharField, BooleanField, Value
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 # from django.contrib.postgres.fields import JSONField
@@ -254,8 +254,6 @@ class Session(models.Model):
     def identity(self):
         return 'SE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
 
-    identity.admin_order_field = 'pk'
-
     def download_url(self):
         return '{}/{}.tar.gz'.format(self.url, self.name)
 
@@ -277,10 +275,12 @@ class Session(models.Model):
 
     def num_datasets(self):
         return self.datasets.count()
+
     num_datasets.short_description = "Datasets"
 
     def num_reports(self):
         return self.reports().count()
+
     num_reports.short_description = "Reports"
 
     def samples(self):
@@ -292,9 +292,12 @@ class Session(models.Model):
     def shifts(self):
         shifts = []
         for stretch in self.stretches.all():
-            st = timezone.localtime(stretch.start) - timedelta(hours=timezone.localtime(stretch.start).hour % SHIFT_HRS,
-                                                               minutes=stretch.start.minute,
-                                                               seconds=stretch.start.second)
+            st = (
+                    timezone.localtime(stretch.start) -
+                    timedelta(hours=timezone.localtime(
+                        stretch.start).hour % SHIFT_HRS, minutes=stretch.start.minute, seconds=stretch.start.second
+                    )
+            )
             end = timezone.localtime(stretch.end) if stretch.end else timezone.now()
             et = end - timedelta(hours=end.hour % SHIFT_HRS, minutes=end.minute, seconds=end.second)
             shifts.append(st)
@@ -497,8 +500,6 @@ class Shipment(TransitStatusMixin):
 
     def identity(self):
         return 'SH%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-
-    identity.admin_order_field = 'pk'
 
     def groups_by_priority(self):
         return self.groups.order_by('priority')
@@ -715,7 +716,8 @@ class Container(TransitStatusMixin):
         'cascade_help': 'All associated samples will be left without a container'
     }
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='containers')
-    kind = models.ForeignKey(ContainerType, blank=False, null=False, on_delete=models.CASCADE, related_name='containers')
+    kind = models.ForeignKey(ContainerType, blank=False, null=False, on_delete=models.CASCADE,
+                             related_name='containers')
     shipment = models.ForeignKey(Shipment, blank=True, null=True, on_delete=models.SET_NULL, related_name='containers')
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(default=0)
@@ -732,10 +734,8 @@ class Container(TransitStatusMixin):
     def __str__(self):
         return "{} | {} | {}".format(self.kind.name.title(), self.project.name.upper(), self.name)
 
-    def identity(self):
-        return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-
-    identity.admin_order_field = 'pk'
+    def get_absolute_url(self):
+        return reverse('container-detail', kwargs={'pk': self.id})
 
     def barcode(self):
         return self.name
@@ -779,7 +779,9 @@ class Container(TransitStatusMixin):
         return self.dewars.filter(active=True).first() or self.parent and self.parent.dewar() or None
 
     def port(self):
-        return '{}{}'.format(self.parent and self.parent.port() or "", self.location or "")
+        parent_port = "" if not self.parent else self.parent.port()
+        loc_port = "" if not self.location else self.location.name
+        return '{}{}'.format(parent_port, loc_port)
 
     def get_project(self):
         if self.children.all():
@@ -820,6 +822,7 @@ class Container(TransitStatusMixin):
             'parent': None if not self.parent else self.parent.pk,
             'owner': self.project.name.upper(),
             'height': info.get('height'),
+            'url': self.get_absolute_url(),
             'loc': None if not self.location else self.location.name,
             'envelope': self.kind.envelope,
             'accepts': self.accepts_children(),
@@ -895,8 +898,6 @@ class Dewar(models.Model):
 
     def identity(self):
         return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-
-    identity.admin_order_field = 'pk'
 
     def json_dict(self):
         return {
@@ -989,7 +990,8 @@ class Group(ProjectObjectMixin):
     def identity(self):
         return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
 
-    identity.admin_order_field = 'pk'
+    def get_absolute_url(self):
+        return reverse('group-detail', kwargs={'pk': self.id})
 
     def num_samples(self):
         return self.samples.count()
@@ -1044,10 +1046,11 @@ class Sample(ProjectObjectMixin):
         )
         ordering = ['priority', 'container__name', 'location', 'name']
 
+    def get_absolute_url(self):
+        return reverse('sample-detail', kwargs={'pk': self.id})
+
     def identity(self):
         return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-
-    identity.admin_order_field = 'pk'
 
     def dewar(self):
         return self.container.dewar()
@@ -1184,7 +1187,8 @@ class Data(ActiveStatusMixin):
     def identity(self):
         return 'DA%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
 
-    identity.admin_order_field = 'pk'
+    def get_absolute_url(self):
+        return reverse('data-detail', kwargs={'pk': self.id})
 
     # need a method to determine how many frames are in item
     def num_frames(self):
@@ -1264,7 +1268,8 @@ class AnalysisReport(ActiveStatusMixin):
     def identity(self):
         return 'AR%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
 
-    identity.admin_order_field = 'pk'
+    def get_absolute_url(self):
+        return reverse('report-detail', kwargs={'pk': self.id})
 
     def sessions(self):
         return self.project.sessions.filter(pk__in=self.data.values_list('session__pk', flat=True)).distinct()

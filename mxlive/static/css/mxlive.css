@@ -680,15 +680,24 @@ svg .active-envelope {
     fill: #ffc107; !important;
 }
 
-.loc-list > small {
-    padding: 0 0.35em;
+.loc-list > * {
+    padding: 0 0.5em;
 }
-.loc-list small + small {
-    border-left: 1px solid rgba(0,0,0,0.2);
+.loc-list > * + * {
+    border-left: 1px solid rgba(0,0,0,0.15);
 }
 
-#container-tab-content .list-group {
-    max-height: 35rem;
+.detail-container-list .detail {
+    display: none !important;
+}
+
+.detail-container-list .row + .row {
+    border-top: 1px solid rgba(0,0,0,0.15);
+}
+
+
+#container-tab-content {
+    flex: 1;
     overflow-y: auto;
 }
 

@@ -281,7 +281,7 @@ class DetailListMixin(OwnerRequiredMixin):
 class ShipmentList(ListViewMixin, ItemListView):
     model = models.Shipment
     list_filters = ['created', 'status']
-    list_columns = ['identity', 'name', 'date_shipped', 'carrier', 'num_containers', 'status']
+    list_columns = ['id', 'name', 'date_shipped', 'carrier', 'num_containers', 'status']
     list_search = ['project__username', 'project__name', 'name', 'comments', 'status']
     link_url = 'shipment-detail'
     link_data = False
@@ -454,7 +454,7 @@ class ReceiveShipment(ShipmentEdit):
 class SampleList(ListViewMixin, ItemListView):
     model = models.Sample
     list_filters = ['modified']
-    list_columns = ['identity', 'name', 'comments', 'container', 'location']
+    list_columns = ['id', 'name', 'comments', 'container', 'location']
     list_search = ['project__name', 'name', 'barcode', 'comments']
     link_url = 'sample-detail'
     ordering = ['-created', '-priority']
@@ -507,7 +507,7 @@ class SampleDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixi
 class ContainerList(ListViewMixin, ItemListView):
     model = models.Container
     list_filters = ['modified', 'kind', 'status']
-    list_columns = ['identity', 'name', 'shipment', 'kind', 'capacity', 'num_samples', 'status']
+    list_columns = ['name', 'id', 'shipment', 'kind', 'capacity', 'num_samples', 'status']
     list_search = ['project__name', 'name', 'comments']
     link_url = 'container-detail'
     ordering = ['-created']
@@ -586,10 +586,13 @@ class LocationLoad(AdminRequiredMixin, ContainerEdit):
 
     def form_valid(self, form):
         data = form.cleaned_data
+        print(data)
         models.Container.objects.filter(pk=data['child'].pk).update(
             parent=self.object, location=data['location']
         )
         models.LoadHistory.objects.create(child=data['child'], parent=self.object, location=data['location'])
+
+        #FIXME:  next line saves form again with bad data since pk points to parent container not child
         return super(LocationLoad, self).form_valid(form)
 
 
@@ -632,7 +635,7 @@ class ContainerDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseM
 class GroupList(ListViewMixin, ItemListView):
     model = models.Group
     list_filters = ['modified', 'status']
-    list_columns = ['identity', 'name', 'kind', 'plan', 'num_samples', 'status']
+    list_columns = ['id', 'name', 'kind', 'plan', 'num_samples', 'status']
     list_search = ['project__name', 'comments', 'name']
     link_url = 'group-detail'
     ordering = ['-modified', '-priority']
@@ -734,9 +737,9 @@ def format_score(val, record):
 class ReportList(ListViewMixin, ItemListView):
     model = models.AnalysisReport
     list_filters = ['modified', ]
-    list_columns = ['identity', 'id', 'kind', 'score', 'modified']
+    list_columns = ['id', 'id', 'kind', 'score', 'modified']
     list_search = ['project__username', 'name', 'data__name']
-    link_field = 'identity'
+    link_field = 'id'
     link_url = 'report-detail'
     ordering = ['-modified']
     ordering_proxies = {}

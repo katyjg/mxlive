@@ -18,15 +18,24 @@
                 let height = width * (data.height || 1);
                 let svg_id = 'cnt-' + data.id;
                 let main = d3.select(selector)
+                    .selectAll("svg")
+                    .data([data]);
+
+                let added = main
+                    .enter()
                     .append('svg')
                     .attr('viewBox', '0 0 ' + (width) + ' ' + (height))
                     .attr('data-detailed', settings.detailed)
                     .attr('data-labelled', settings.labelled)
                     .attr('id', svg_id);
 
+                main
+                    .exit()
+                    .remove();
+
                 // draw envelope if container is final
                 if (settings.detailed && data.id && data.final) {
-                    main.append(data.envelope || 'circle')
+                    added.append(data.envelope || 'circle')
                         .attrs({cx: '50%', cy: '50%', r: '49%', x: '0%', y: '0%', width: '100%', height: '100%'})
                         .attr('fill', 'none')
                         .attr('stroke', 'black');
@@ -55,6 +64,7 @@
     }
 }(jQuery));
 
+
 function drawContainers(parent, data) {
     let cw = $(parent).width() || $(parent).data('width');
     let ch = $(parent).height() || $(parent).data('height');
@@ -64,7 +74,9 @@ function drawContainers(parent, data) {
     let factor = Math.sqrt(cw ** 2 + ch ** 2) / (100 * Math.sqrt(2));
     let subs = d3.select(parent)
         .selectAll("svg"+"[data-parent='"+ data.id +"']")
-        .data(data.children || [])
+        .data(data.children || []);
+
+    let added = subs
         .enter()
         .append("svg")
         .attrs(function (d) {
@@ -111,10 +123,10 @@ function drawContainers(parent, data) {
         .style('pointer-events', 'visible');
 
     // Remove deleted entries
-    //subs.exit().remove();
+    subs.exit().remove();
 
     // Draw children envelopes
-    subs.append(d => document.createElementNS(d3.namespaces.svg, (d.envelope || 'circle')))
+    added.append(d => document.createElementNS(d3.namespaces.svg, (d.envelope || 'circle')))
         .attrs(function (d) {
             let cls = 'empty';
             if (d.final && detailed) {
@@ -135,7 +147,7 @@ function drawContainers(parent, data) {
 
     // Labels and Children
     if ((!data.final) || labelled) {
-        subs.append("text")
+        added.append("text")
             .attr("x", '50%')
             .attr("y", '50%')
             .attr("font-size", 0.9 + 'rem')
@@ -147,7 +159,7 @@ function drawContainers(parent, data) {
                 return d.loc;
             });
     }
-    subs.each(function (d) {
+    added.each(function (d) {
         if (detailed || (!d.final)) {
             drawContainers('#' + $(this).attr('id'), d);
         }
@@ -162,7 +174,7 @@ function extractProjects(results, data) {
             }
             results[obj.owner].push({
                 loc: obj.loc, id: obj.id,  project: obj.owner, type: obj.type,
-                name: obj.name, parent: obj.parent,
+                name: obj.name, parent: obj.parent, url: obj.url,
                 samples: obj.children.filter(function (d){return d.id;}).length
             });
         }
@@ -177,6 +189,7 @@ function extractProjects(results, data) {
 
 function compileProjects(data) {
     let raw = extractProjects({}, data);
+    console.log(raw);
     let results = {
         projects: [],
         containers: []
@@ -193,31 +206,30 @@ function compileProjects(data) {
 }
 
 var locTemplate = _.template(
-    '<div class="row" data-highlight="loc" data-reference="<%= loc %>">' +
-    '       <h6 class="col-1 text-condensed text-center align-self-center"><strong><%= loc %></strong></h6>' +
-    '       <div class="col d-flex flex-row justify-content-between">' +
+    '<div class="row  list-cnt-<%= id %>" data-highlight="loc" data-reference="<%= loc %>">' +
+    '       <h6 class="col d-flex flex-row justify-content-between my-0">' +
     '           <div class="flex-grow-1 align-self-center py-0">' +
-    '               <h5 class="m-0"><%= project %>&nbsp;<span class="text-muted">|</span>&nbsp;<%= name %></h5>' +
-    '               <div class="loc-list">' +
-    '                   <small class="text-muted d-inline-block"><%= type %></small>' +
-    '                   <small class="text-muted d-inline-block"><strong><%= samples %></strong> samples</small>' +
+    '               <div class="loc-list row">' +
+    '                   <strong class="col-2"><%= loc %></strong>' +
+    '                   <span class="col mr-2"><a href="<%= url %>" title="<%= type %>"><%= name %></a>&nbsp;<small class="float-right badge badge-pill badge-primary detail" title="samples"><%= samples %></small></span>' +
+    '                   <span class="col text-center text-muted detail"><%= project %></span>' +
     '               </div>' +
     '           </div>' +
     '           <div class="tools-box">' +
-    '               <a href="#!" title="Unload" data-unload-url="/users/containers/<%= id %>/unload/" data-id="<%= id %>">' +
+    '               <a href="#!" data-unload-url="/users/containers/<%= id %>/unload/" data-id="<%= id %>">' +
     '                   <div class="icon-stack">' +
     '                       <i class="ti ti-1 ti-share"></i>' +
     '                   </div>' +
     '               </a>' +
     '           </div>' +
-    '       </div>' +
+    '       </h6>' +
     '</div>'
 );
 
 
 var projTemplate = _.template(
     '<div class="row" data-highlight="project" data-reference="<%= name.toLowerCase() %>">' +
-    '       <h5 class="col-1 text-condensed text-center align-self-center"><%= details.length %></h5>' +
+    '       <h4 class="col-2 text-condensed text-center align-self-center"><span class="badge badge-pill badge-primary py-1" title="Containers"><%= details.length %></span></h4>' +
     '       <div class="col d-flex flex-row justify-content-between">' +
     '           <div class="flex-grow-1"><h5 class="m-0"><%= name %></h5>' +
     '           <div class="loc-list">' +
@@ -229,7 +241,7 @@ var projTemplate = _.template(
     '                       <i class="ti ti-1x ti-zoom-in"></i>' +
     '                   </div>' +
     '               </a>' +
-    '               <a href="#!" title="Unload all" data-url="/users/containers/<%= parent %>/unload/<%= name.toLowerCase() %>/">' +
+    '               <a href="#!" data-url="/users/containers/<%= parent %>/unload/<%= name.toLowerCase() %>/">' +
     '                   <div class="icon-stack">' +
     '                       <i class="ti ti-1x ti-share"></i>' +
     '                   </div>' +
@@ -237,15 +249,14 @@ var projTemplate = _.template(
     '           </div>' +
     '       </div>' +
     '</div>' +
-    '<div class="collapse" id="prj-<%= name.toLowerCase() %>-list">' +
-    '<div class="container bg-light">' +
+    '<div class="collapse detail-container-list row" id="prj-<%= name.toLowerCase() %>-list">' +
+    '<div class="col ml-5 my-1 ">' +
     '     <% _.each(details, function(container, i){ %><%= locTemplate(container) %><% }); %>' +
     '</div></div>'
 );
 
 function listLoaded(proj_container, loc_container, data) {
     let info = compileProjects(data);
-    console.log(info);
     d3.select(proj_container)
         .selectAll('div')
         .data(info.projects||[])
@@ -305,13 +316,16 @@ function unloadUpdateData(element, settings) {
         success: function(data, status, xhr) {
             let cnt_id = '#cnt-' + data.id;
             let cnt_nodes = '.list-cnt-' + src.data('id');
-            console.log(cnt_nodes);
+            console.log(cnt_nodes, src.data());
+
             $(cnt_id).empty();
             src.tooltip('dispose');
             $(cnt_nodes).slideUp(300, function (){
                 $(cnt_nodes).remove();
             });
+
             drawContainers(cnt_id, data);
+            console.log(data);
         },
         error: function() {
             src.shake();
