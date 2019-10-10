@@ -205,7 +205,7 @@ class OwnerRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 
 class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.ProjectForm
-    template_name = "forms/modal.html"
+    template_name = "forms/async.html"
     model = models.Project
     success_url = reverse_lazy('dashboard')
     success_message = "Your profile has been updated."
@@ -522,7 +522,7 @@ class ContainerDetail(DetailListMixin, SampleList):
     link_url = 'sample-edit'
     link_data = True
     show_project = False
-    detail_target = '#modal-form'
+    detail_target = '#modal-target'
 
     def get_list_title(self):
         object = self.get_object()
@@ -549,7 +549,7 @@ class ContainerDetail(DetailListMixin, SampleList):
 
 class ContainerEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.ContainerForm
-    template_name = "forms/modal.html"
+    template_name = "forms/async.html"
     model = models.Container
     success_message = "Container has been updated."
 
@@ -564,15 +564,21 @@ class ContainerEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
 
 class ContainerLoad(AdminRequiredMixin, ContainerEdit):
     form_class = forms.ContainerLoadForm
-    template_name = "users/forms/container_load.html"
+    template_name = "forms/async.html"
 
     def form_valid(self, form):
         data = form.cleaned_data
-        if data['parent']:
+        parent = data['parent']  # previous parent for layout
+        if data['location']:
             models.LoadHistory.objects.create(child=self.object, parent=data['parent'], location=data['location'])
         else:
+            data['parent'] = None
             models.LoadHistory.objects.filter(child=self.object).active().update(end=timezone.now())
-        return super(ContainerLoad, self).form_valid(form)
+
+        models.Container.objects.filter(pk=self.object.pk).update(
+            parent=data.get('parent'), location=data.get('location')
+        )
+        return JsonResponse(parent.get_layout(), safe=False)
 
 
 class LocationLoad(AdminRequiredMixin, ContainerEdit):
@@ -586,19 +592,17 @@ class LocationLoad(AdminRequiredMixin, ContainerEdit):
 
     def form_valid(self, form):
         data = form.cleaned_data
-        print(data)
         models.Container.objects.filter(pk=data['child'].pk).update(
             parent=self.object, location=data['location']
         )
         models.LoadHistory.objects.create(child=data['child'], parent=self.object, location=data['location'])
-
-        #FIXME:  next line saves form again with bad data since pk points to parent container not child
-        return super(LocationLoad, self).form_valid(form)
+        layout = self.object.get_layout()
+        return JsonResponse(layout, safe=False)
 
 
 class EmptyContainers(AdminRequiredMixin, edit.UpdateView):
     form_class = forms.EmptyContainers
-    template_name = "forms/modal.html"
+    template_name = "forms/async.html"
     model = models.Project
     success_message = "Containers have been removed for {username}."
     success_url = reverse_lazy('dashboard')
@@ -656,7 +660,7 @@ class GroupDetail(DetailListMixin, SampleList):
     }
     link_url = 'sample-edit'
     link_data = True
-    detail_target = '#modal-form'
+    detail_target = '#modal-target'
 
     def get_list_title(self):
         object = self.get_object()
@@ -717,7 +721,7 @@ class DataList(ListViewMixin, ItemListView):
     link_url = 'data-detail'
     link_field = 'name'
     link_data = True
-    detail_target = '#modal-form'
+    detail_target = '#modal-target'
     ordering = ['-modified']
     list_transforms = {}
 
@@ -824,7 +828,7 @@ class ActivityLogList(ListViewMixin, ItemListView):
     list_transforms = {}
     link_url = 'activitylog-detail'
     link_data = True
-    detail_target = '#modal-form'
+    detail_target = '#modal-target'
 
 
 def format_total_time(val, record):
@@ -1018,7 +1022,7 @@ class ShipmentAddContainer(LoginRequiredMixin, SuccessMessageMixin, AjaxableResp
                 container, created = models.Container.objects.get_or_create(**info)
 
         return JsonResponse({'url': reverse('shipment-add-groups', kwargs={'pk': self.kwargs.get('pk')}),
-                             'target': '#modal-form'})
+                             'target': '#modal-target'})
 
 
 class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):

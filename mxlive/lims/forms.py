@@ -647,16 +647,21 @@ class GroupForm(forms.ModelForm):
 
 class ContainerLoadForm(forms.ModelForm):
 
+    class Meta:
+        model = Container
+        fields = ['parent', 'location']
+
     def __init__(self, *args, **kwargs):
         super(ContainerLoadForm, self).__init__(*args, **kwargs)
         self.fields['parent'].queryset = self.fields['parent'].queryset.filter(
             kind__locations__accepts=self.instance.kind
         ).distinct()
+        if self.instance.parent:
+            self.fields['location'].queryset = self.instance.parent.kind.locations.order_by('name')
 
         self.helper = FormHelper()
         self.helper.title = u"Move Container {}".format(self.instance)
         self.helper.form_action = reverse_lazy("container-load", kwargs={'pk': self.instance.pk})
-
         self.helper.layout = Layout(
             Div(
                 Div(
@@ -664,7 +669,10 @@ class ContainerLoadForm(forms.ModelForm):
                     css_class="col-6"
                 ),
                 Div(
-                    Field('location', css_class="chosen"),
+                    Field(
+                        'location', css_class="chosen", data_update_on='parent',
+                        data_update_url=reverse_lazy("update-locations", kwargs={'pk': 0})
+                    ),
                     css_class="col-6"
                 ),
                 css_class="row"
@@ -683,18 +691,16 @@ class ContainerLoadForm(forms.ModelForm):
 
     def clean(self):
         if self.data.get('submit') == 'Unload':
-            self.cleaned_data.update({'location': None, 'parent': None})
+            self.cleaned_data.update({'location': None})
         else:
+            print("CLEANED", self.cleaned_data, self.instance)
             if self.cleaned_data['location']:
-                if self.cleaned_data['parent'].children.exclude(pk=self.instance.pk).filter(
-                        location=self.cleaned_data['location']).exists():
+                loc_filled = self.cleaned_data['parent'].children.exclude(pk=self.instance.pk).filter(
+                    location=self.cleaned_data['location']).exists()
+                if loc_filled:
                     self.add_error(None, forms.ValidationError("Container is already loaded in that location"))
 
         return self.cleaned_data
-
-    class Meta:
-        model = Container
-        fields = ['parent', 'location']
 
 
 class EmptyContainers(forms.ModelForm):

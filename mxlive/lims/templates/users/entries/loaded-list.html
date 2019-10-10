@@ -221,12 +221,12 @@
         $('[accepts]').click(function () {
             var location = $(this).attr('id').split('-')[$(this).attr('id').split('-').length - 1];
             var container = $(this).attr('id').split('-')[$(this).attr('id').split('-').length - 2];
-            $('#modal-form').load("/users/containers/" + container + '/location/' + location + '/');
+            $('#modal-target').load("/users/containers/" + container + '/location/' + location + '/');
         });
 
         $('[id^=envelope]:not([accepts])').click(function () {
             var container = $(this).attr('id').split('-')[$(this).attr('id').split('-').length - 2];
-            $('#modal-form').load("/users/containers/" + container + '/load/');
+            $('#modal-target').load("/users/containers/" + container + '/load/');
         });
     });
 

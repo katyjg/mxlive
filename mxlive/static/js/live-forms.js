@@ -144,8 +144,8 @@ function openSelector(group) {
 
 jQuery(function() {
 	$('#modalForm').find("[title]:not([data-toggle='popover'])").tooltip({
-    		container: '#modal-form',
-    		viewport: {selector: '#modal-form', padding: 5}
+    		container: '#modal-target',
+    		viewport: {selector: '#modal-target', padding: 5}
     });
 	jQuery('.repeat').each(function() {
 		jQuery(this).repeatable_fields({

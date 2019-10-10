@@ -46,18 +46,25 @@
                 listLoaded('#loaded-projects', '#loaded-containers', data);
                 $(selector + ' [title]').tooltip();
                 if (settings.loadable) {
-                    $(document).on('click', selector + ' svg[data-accepts="true"]:not([data-id])', function(){
-                        let url = "/users/containers/"+$(this).data('parent')+"/location/"+$(this).data('loc') + '/';
-                        $('#modal-form').load(url);
+                    let callbacks = {
+                        complete: function(data) {
+                            let cnt_id = '#cnt-' + data.id;
+                            $(cnt_id).empty();
+                            drawContainers(cnt_id, data);
+                            listLoaded('#loaded-projects', '#loaded-containers', data);
+                        }
+                    };
+                    $(document).on('click', selector + ' svg[data-accepts="true"]:not([data-id])', function () {
+                        url = "/users/containers/" + $(this).data('parent') + "/location/" + $(this).data('loc') + '/';
+                        $('#modal-target').asyncForm({url: url, complete: callbacks.complete});
                     });
-                    $(document).on('click', selector + ' svg[data-final="true"]', function(){
-                        let url = "/users/containers/"+$(this).data('id')+"/load/";
-                        $('#modal-form').load(url);
+                    $(document).on('click', selector + ' svg[data-final="true"]', function () {
+                        let url = "/users/containers/" + $(this).data('id') + "/load/";
+                        $('#modal-target').asyncForm({url: url, complete: callbacks.complete});
                     });
-                    $(document).on('click', '[data-unload-url]', function (){
+                    $(document).on('click', '[data-unload-url]', function () {
                         unloadUpdateData(this, settings);
                     });
-
                 }
             }
         });
@@ -73,9 +80,10 @@ function drawContainers(parent, data) {
     let aspect = cw / ch;
     let factor = Math.sqrt(cw ** 2 + ch ** 2) / (100 * Math.sqrt(2));
     let subs = d3.select(parent)
-        .selectAll("svg"+"[data-parent='"+ data.id +"']")
+        .selectAll("svg" + "[data-parent='" + data.id + "']")
         .data(data.children || []);
 
+    subs.exit().remove(); // Remove deleted entries
     let added = subs
         .enter()
         .append("svg")
@@ -122,8 +130,6 @@ function drawContainers(parent, data) {
         })
         .style('pointer-events', 'visible');
 
-    // Remove deleted entries
-    subs.exit().remove();
 
     // Draw children envelopes
     added.append(d => document.createElementNS(d3.namespaces.svg, (d.envelope || 'circle')))
@@ -133,7 +139,7 @@ function drawContainers(parent, data) {
                 cls = 'outline';
             } else if ((detailed && d.sample) || (!detailed && d.final)) {
                 cls = 'occupied';
-            } else if (d.id && ! d.final) {
+            } else if (d.id && !d.final) {
                 cls = 'ignore';
             }
             if (d.sample && d.started) {
@@ -167,15 +173,17 @@ function drawContainers(parent, data) {
 }
 
 function extractProjects(results, data) {
-    jQuery.each(data.children, function(i, obj){
+    jQuery.each(data.children, function (i, obj) {
         if (obj.owner && obj.final) {
             if (!(obj.owner in results)) {
                 results[obj.owner] = [];
             }
             results[obj.owner].push({
-                loc: obj.loc, id: obj.id,  project: obj.owner, type: obj.type,
+                loc: obj.loc, id: obj.id, project: obj.owner, type: obj.type,
                 name: obj.name, parent: obj.parent, url: obj.url,
-                samples: obj.children.filter(function (d){return d.id;}).length
+                samples: obj.children.filter(function (d) {
+                    return d.id;
+                }).length
             });
         }
         if (obj.children) {
@@ -189,17 +197,16 @@ function extractProjects(results, data) {
 
 function compileProjects(data) {
     let raw = extractProjects({}, data);
-    console.log(raw);
     let results = {
         projects: [],
         containers: []
     };
 
-    jQuery.each(raw, function(key, value){
+    jQuery.each(raw, function (key, value) {
         results.projects.push({name: key, parent: value[0].parent, details: value});
         results.containers = results.containers.concat(value)
     });
-    results.containers.sort(function(a, b){
+    results.containers.sort(function (a, b) {
         return a.loc > b.loc;
     });
     return results;
@@ -257,51 +264,51 @@ var projTemplate = _.template(
 
 function listLoaded(proj_container, loc_container, data) {
     let info = compileProjects(data);
-    d3.select(proj_container)
-        .selectAll('div')
-        .data(info.projects||[])
-        .enter()
+    let projects = d3.select(proj_container)
+        .selectAll(proj_container + ' > div')
+        .data(info.projects || []);
+
+    projects.exit().remove();
+    projects.enter()
         .append("div")
         .attr("class", "list-group-item py-1")
         .attr("id", d => "proj-" + d.name.toLowerCase())
         .attr("data-reference", d => d.name.toLowerCase())
         .attr("data-reference", "project")
-        .html(function(d){
-            d.details.sort(function(a, b){
+        .html(function (d) {
+            d.details.sort(function (a, b) {
                 return a.loc > b.loc;
             });
             return projTemplate(d)
-        })
-        .exit().remove();
-    d3.select(loc_container)
-        .selectAll('div')
-        .data(info.containers||[])
-        .enter()
+        });
+    projects
+        .attr("id", d => "proj-" + d.name.toLowerCase())
+        .attr("data-reference", d => d.name.toLowerCase())
+        .attr("data-reference", "project")
+        .html(function (d) {
+            d.details.sort(function (a, b) {
+                return a.loc > b.loc;
+            });
+            return projTemplate(d)
+        });
+
+    let containers = d3.select(loc_container)
+        .selectAll(loc_container + ' > div')
+        .data(info.containers || []);
+
+    containers.exit().remove();
+    containers.enter()
         .append("div")
         .attr("class", d => "list-group-item py-1 list-cnt-" + d.id)
-        .html(function(d){
+        .html(function (d) {
+            return locTemplate(d)
+        });
+    containers
+        .html(function (d) {
             return locTemplate(d)
         });
     $(proj_container + ' [title], ' + loc_container + ' [title]').tooltip();
 }
-
-(function($){
-    $.fn.shake = function(options) {
-        let settings = $.extend({
-            interval: 100,
-            distance: 5,
-            times: 4
-        }, options );
-
-        $(this).css('position','relative');
-
-        for(let iter=0; iter<(settings.times+1); iter++){
-            $(this).animate({ left:((iter % 2 === 0 ? settings.distance : settings.distance * -1)) }, settings.interval);
-        }
-        $(this).animate({ left: 0}, settings.interval, function(){});
-    };
-})(jQuery);
-
 
 function unloadUpdateData(element, settings) {
     let src = $(element);
@@ -310,36 +317,32 @@ function unloadUpdateData(element, settings) {
         dataType: "json",
         url: src.data('unload-url'),
         data: {},
-        beforeSend: function(xhr, settings){
+        beforeSend: function (xhr, settings) {
             xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
         },
-        success: function(data, status, xhr) {
+        success: function (data, status, xhr) {
             let cnt_id = '#cnt-' + data.id;
             let cnt_nodes = '.list-cnt-' + src.data('id');
-            console.log(cnt_nodes, src.data());
-
             $(cnt_id).empty();
             src.tooltip('dispose');
-            $(cnt_nodes).slideUp(300, function (){
+            $(cnt_nodes).slideUp(300, function () {
                 $(cnt_nodes).remove();
             });
-
             drawContainers(cnt_id, data);
-            console.log(data);
         },
-        error: function() {
+        error: function () {
             src.shake();
         }
     });
 }
 
 // Initialize global Layout Event handlers
-$(document).ready(function(){
-    $(document).on('mouseenter', '[data-highlight]', function(){
-        let sel = "svg[data-"+$(this).data('highlight')+"='" + $(this).data('reference') +"'] >:first-child";
+$(document).ready(function () {
+    $(document).on('mouseenter', '[data-highlight]', function () {
+        let sel = "svg[data-" + $(this).data('highlight') + "='" + $(this).data('reference') + "'] >:first-child";
         $(sel).addClass('active-envelope');
     });
-    $(document).on('mouseleave', '[data-highlight]', function(){
+    $(document).on('mouseleave', '[data-highlight]', function () {
         $('svg > .active-envelope').removeClass('active-envelope');
     });
 });

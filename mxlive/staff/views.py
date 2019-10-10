@@ -26,7 +26,7 @@ class AccessList(AdminRequiredMixin, ItemListView):
     detail_url = 'access-edit'
     detail_url_kwarg = 'address'
     detail_ajax = True
-    detail_target = '#modal-form'
+    detail_target = '#modal-target'
     order_by = ['name']
     template_name = "users/list.html"
 
@@ -58,7 +58,7 @@ class RemoteConnectionList(AdminRequiredMixin, ItemListView):
     template_name = "users/list.html"
     detail_url = 'connection-detail'
     detail_ajax = True
-    detail_target = '#modal-form'
+    detail_target = '#modal-target'
 
 
 class RemoteConnectionDetail(AdminRequiredMixin, detail.DetailView):
@@ -72,7 +72,7 @@ class CategoryList(AdminRequiredMixin, ItemListView):
     list_display = ['name', 'current_users', 'num_users']
     detail_url = 'category-edit'
     detail_ajax = True
-    detail_target = '#modal-form'
+    detail_target = '#modal-target'
     order_by = ['name']
     template_name = "users/list.html"
 

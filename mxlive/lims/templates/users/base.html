@@ -27,6 +27,8 @@
     <script src="{% static "jquery/jquery-3.4.1.min.js" %}"></script>
     <script src="{% static "js/underscore-min.js" %}"></script>
     <script src="{% static "js/jquery.cookie.js" %}"></script>
+    <script src="{% static "js/mxlive-asyncform.js" %}"></script>
+
     {% block pre_js %}{% endblock %}
 
 </head>
@@ -60,7 +62,7 @@
         </div>
     </main>
 {% endblock %}
-<div id="modal-form"></div>
+<div id="modal-target"></div>
 {% if user.is_authenticated %}
     <div class="footer text-muted">
         <div class="footer-wrapper">
@@ -118,18 +120,18 @@
         $(document).on('click', '[data-url]', function () {
             var sel = getSelection().toString();
             if (!sel) {
-                $('#modal-form').load($(this).data('url'));
+                $('#modal-target').load($(this).data('url'));
             }
         });
         $(document).on('click', '[data-link]', function () {
             var sel = getSelection().toString();
             if (!sel) {
-                $('#modal-form').load($(this).data('link'));
+                $('#modal-target').load($(this).data('link'));
             }
         });
 
         {% if show_help %}
-            $('#modal-form').load("{% url 'user-guide' %}");
+            $('#modal-target').load("{% url 'user-guide' %}");
         {% endif %}
 
             // configure pretty scrollbars
