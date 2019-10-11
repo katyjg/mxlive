@@ -1,9 +1,9 @@
-{% extends "forms/modal.html" %}
+{% extends "forms/../modal/form.html" %}
 
 {% load misc_tags %}
 
-{% block form_title %}Delete?{% endblock %}
-{% block form_body %}
+{% block modal_title %}Delete?{% endblock %}
+{% block modal_body %}
 <h5>Are you sure you want to delete the following {{ object|verbose_name|title }} "{{object}}"?</h5>
 <p>{{ object.delete_warning }}</p>
 <div class="row form-action">

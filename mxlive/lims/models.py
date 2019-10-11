@@ -746,6 +746,12 @@ class Container(TransitStatusMixin):
     def capacity(self):
         return self.kind.locations.count()
 
+    def get_load_root(self):
+        if self.parent:
+            return self.parent.get_load_root()
+        else:
+            return self
+
     def has_children(self):
         return self.children.count() > 0
 

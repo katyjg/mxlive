@@ -1,12 +1,12 @@
-{% extends "forms/modal.html" %}
+{% extends "modal/content.html" %}
 
 {% load converter %}
 
-{% block form_title %}
+{% block modal_title %}
     Session <strong>{{ object.name }}</strong>
 {% endblock %}
 
-{% block form_body %}
+{% block modal_body %}
     <div class="row">
         <div class="col-12">
             <table>

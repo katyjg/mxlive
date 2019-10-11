@@ -1,4 +1,4 @@
-{% extends "forms/modal.html" %}
+{% extends "modal/content.html" %}
 
 {% load data_server %}
 {% load static %}
@@ -7,11 +7,11 @@
 
 {% block modal_size %}modal-lg modal-data{% endblock %}
 
-{% block form_title_tools %}
+{% block modal_title_tools %}
 
 {% endblock %}
 
-{% block form_title %}
+{% block modal_title %}
     <span class="text-condensed">
         <span class="text-muted">
             <i class="text-muted ti ti-layout-grid3 {% if "MX" in object.kind or "DATA" in object.kind or "RASTER" in object.kind %}fa-th{% else %}fa-line-chart{% endif %}"></i>
@@ -20,7 +20,7 @@
     </span>
 {% endblock %}
 
-{% block form_body %}
+{% block modal_body %}
     <small>
     <div class="status-bar p-0">
         <div class="row">

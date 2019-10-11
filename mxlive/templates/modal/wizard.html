@@ -1,16 +1,16 @@
-{% extends "forms/modal.html" %}
+{% extends "modal/modal.html" %}
 
 {% load static %}
 {% load msgs %}
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block form_title %}
+{% block modal_title %}
     <strong class="text-condensed">Create a Shipment:&emsp;</strong>
     <span class="text-muted text-right">Step <strong style="color: dodgerblue;">{{ wizard.steps.step1 }}</strong> of {{ wizard.steps.count }}</span>
 {% endblock %}
 
-{% block form_body %}
+{% block modal_body %}
     <form action="{{ request.path }}" method="post">
         {% csrf_token %}
         {{ wizard.management_form }}

@@ -38,7 +38,7 @@ class AccessList(AdminRequiredMixin, ItemListView):
 
 class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.AccessForm
-    template_name = "forms/modal.html"
+    template_name = "modal/form.html"
     model = models.UserList
     success_url = reverse_lazy('access-list')
     success_message = "Remote access list has been updated."
@@ -79,7 +79,7 @@ class CategoryList(AdminRequiredMixin, ItemListView):
 
 class CategoryEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.CategoryForm
-    template_name = "forms/modal.html"
+    template_name = "modal/form.html"
     model = models.UserCategory
     success_url = reverse_lazy('category-list')
     success_message = "User category has been updated."
@@ -89,7 +89,7 @@ class CategoryEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixi
 
 class AnnouncementCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
     form_class = forms.AnnouncementForm
-    template_name = "forms/modal.html"
+    template_name = "modal/form.html"
     model = models.Announcement
     success_url = reverse_lazy('dashboard')
     success_message = "Announcement has been created"
@@ -97,14 +97,14 @@ class AnnouncementCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableRespon
 
 class AnnouncementEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.AnnouncementForm
-    template_name = "forms/modal.html"
+    template_name = "modal/form.html"
     model = models.Announcement
     success_url = reverse_lazy('dashboard')
     success_message = "Announcement has been updated"
 
 
 class AnnouncementDelete(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
-    template_name = "forms/delete.html"
+    template_name = "modal/delete.html"
     model = models.Announcement
     success_url = reverse_lazy('dashboard')
     success_message = "Announcement has been deleted"
@@ -143,7 +143,7 @@ class UserDetail(AdminRequiredMixin, detail.DetailView):
 
 class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
     form_class = NewProjectForm
-    template_name = "forms/modal.html"
+    template_name = "modal/form.html"
     model = Project
     success_url = reverse_lazy('user-list')
     success_message = "New Account '%(username)s' has been created."
@@ -178,7 +178,7 @@ class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
 
 
 class ProjectDelete(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
-    template_name = "forms/delete.html"
+    template_name = "modal/delete.html"
     model = User
     success_url = reverse_lazy('user-list')
     success_message = "Account has been deleted"

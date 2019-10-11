@@ -46,22 +46,7 @@
                 listLoaded('#loaded-projects', '#loaded-containers', data);
                 $(selector + ' [title]').tooltip();
                 if (settings.loadable) {
-                    let callbacks = {
-                        complete: function(data) {
-                            let cnt_id = '#cnt-' + data.id;
-                            $(cnt_id).empty();
-                            drawContainers(cnt_id, data);
-                            listLoaded('#loaded-projects', '#loaded-containers', data);
-                        }
-                    };
-                    $(document).on('click', selector + ' svg[data-accepts="true"]:not([data-id])', function () {
-                        url = "/users/containers/" + $(this).data('parent') + "/location/" + $(this).data('loc') + '/';
-                        $('#modal-target').asyncForm({url: url, complete: callbacks.complete});
-                    });
-                    $(document).on('click', selector + ' svg[data-final="true"]', function () {
-                        let url = "/users/containers/" + $(this).data('id') + "/load/";
-                        $('#modal-target').asyncForm({url: url, complete: callbacks.complete});
-                    });
+
                     $(document).on('click', '[data-unload-url]', function () {
                         unloadUpdateData(this, settings);
                     });
@@ -77,6 +62,7 @@ function drawContainers(parent, data) {
     let ch = $(parent).height() || $(parent).data('height');
     let detailed = $(parent).data('detailed');
     let labelled = $(parent).data('labelled');
+    let loadable = $(parent).data('loadable');
     let aspect = cw / ch;
     let factor = Math.sqrt(cw ** 2 + ch ** 2) / (100 * Math.sqrt(2));
     let subs = d3.select(parent)
@@ -114,6 +100,7 @@ function drawContainers(parent, data) {
                 'data-accepts': d.accepts,
                 'data-detailed': detailed,
                 'data-labelled': labelled,
+                'data-loadable': loadable,
                 'data-id': d.id,
                 'data-parent': data.id,
                 'data-loc': d.loc,
@@ -128,7 +115,28 @@ function drawContainers(parent, data) {
             }
             return options;
         })
-        .style('pointer-events', 'visible');
+        .style('pointer-events', 'all')
+        .on('click', function(d){
+            let url = "";
+            console.log(d3.event.target);
+            if (d.accepts||d.final) {
+                d3.event.stopPropagation();
+                if (! d.id) {
+                    url = "/users/containers/" + data.id + "/location/" + d.loc + '/';
+                } else {
+                    url = "/users/containers/" + d.id + "/load/";
+                }
+                $('#modal-target').asyncForm({
+                    url: url,
+                    complete: function(info){
+                        let cnt_id = '#cnt-' + info.id;
+                        $(cnt_id).empty();
+                        drawContainers(cnt_id, info);
+                        listLoaded('#loaded-projects', '#loaded-containers', info);
+                    }
+                });
+            }
+        });
 
 
     // Draw children envelopes
@@ -187,9 +195,8 @@ function extractProjects(results, data) {
             });
         }
         if (obj.children) {
-            extractProjects(results, obj.children);
+            extractProjects(results, obj);
         }
-
     });
     return results;
 }
@@ -213,7 +220,7 @@ function compileProjects(data) {
 }
 
 var locTemplate = _.template(
-    '<div class="row  list-cnt-<%= id %>" data-highlight="loc" data-reference="<%= loc %>">' +
+    '<div class="row  list-cnt-<%= id %>" data-highlight="id" data-reference="<%= id %>">' +
     '       <h6 class="col d-flex flex-row justify-content-between my-0">' +
     '           <div class="flex-grow-1 align-self-center py-0">' +
     '               <div class="loc-list row">' +
@@ -248,7 +255,7 @@ var projTemplate = _.template(
     '                       <i class="ti ti-1x ti-zoom-in"></i>' +
     '                   </div>' +
     '               </a>' +
-    '               <a href="#!" data-url="/users/containers/<%= parent %>/unload/<%= name.toLowerCase() %>/">' +
+    '               <a href="#!" data-form-url="/users/containers/<%= parent %>/unload/<%= name.toLowerCase() %>/">' +
     '                   <div class="icon-stack">' +
     '                       <i class="ti ti-1x ti-share"></i>' +
     '                   </div>' +

@@ -8,7 +8,7 @@
 <script src="{% static "jquery/repeatable-fields.js" %}"></script>
 <script src="{% static "jquery/jquery.scrollbar.js" %}"></script>
 
-{% block form_assets %}
+{% block modal_assets %}
 {% endblock %}
 
 <!-- Modal -->
@@ -16,16 +16,16 @@
     <div class="modal-dialog {% block modal_size %}modal-md{% endblock %}">
         <div class="modal-content">
             <div class="modal-header bg-light text-dark">
-                {% block form_title_tools %}{% endblock %}
+                {% block modal_title_tools %}{% endblock %}
                 <h4 class="modal-title">
-                    {% block form_title %}{{ form.helper.title }}{% endblock %}
+                    {% block modal_title %}{{ form.helper.title }}{% endblock %}
                 </h4>
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true" aria-label="CLose">
                     <span class="ti ti-1 ti-close p-1" aria-hidden="true"></span>
                 </button>
             </div>
             <div class="modal-body"  id="form-content">
-                {% block form_body %}{% crispy form form.helper %}{% endblock %}
+                {% block modal_body %}{% crispy form form.helper %}{% endblock %}
             </div>
         </div>
     </div>

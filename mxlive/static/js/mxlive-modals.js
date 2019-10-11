@@ -127,3 +127,23 @@
     };
 
 }(jQuery));
+
+(function ( $ ) {
+    $.fn.loadModal = function (url) {
+        let target = $(this);
+
+        // load form and initialize it
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(response) {
+                target.html(response);
+                target.find('.modal').modal({backdrop: 'static'});
+                target.find('.modal').on('hidden.bs.modal', function(){
+                    target.empty();  // remove contents after hiding
+                });
+            }
+        });
+    };
+}(jQuery));
+

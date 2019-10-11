@@ -205,7 +205,7 @@ class OwnerRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 
 class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.ProjectForm
-    template_name = "forms/async.html"
+    template_name = "modal/form.html"
     model = models.Project
     success_url = reverse_lazy('dashboard')
     success_message = "Your profile has been updated."
@@ -322,7 +322,7 @@ class ShipmentLabels(HTML2PdfMixin, ShipmentDetail):
 
 class ShipmentEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.ShipmentForm
-    template_name = "forms/modal.html"
+    template_name = "modal.html"
     model = models.Shipment
     success_message = "Shipment has been updated."
     success_url = reverse_lazy('shipment-list')
@@ -335,7 +335,7 @@ class ShipmentEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixi
 
 class ShipmentComments(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.ShipmentCommentsForm
-    template_name = "forms/modal.html"
+    template_name = "modal.html"
     model = models.Shipment
     success_message = "Shipment has been edited by staff."
     success_url = reverse_lazy('shipment-list')
@@ -350,7 +350,7 @@ class ShipmentComments(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponse
 
 
 class ShipmentDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
-    template_name = "forms/delete.html"
+    template_name = "modal/delete.html"
     model = models.Shipment
     success_message = "Shipment has been deleted."
     success_url = reverse_lazy('dashboard')
@@ -472,7 +472,7 @@ class SampleDetail(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixi
 
 class SampleEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.SampleForm
-    template_name = "forms/modal.html"
+    template_name = "modal.html"
     model = models.Sample
     success_url = reverse_lazy('sample-list')
     success_message = "Sample has been updated."
@@ -488,7 +488,7 @@ class SampleDone(SampleEdit):
 
 class SampleDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
     success_url = reverse_lazy('dashboard')
-    template_name = "forms/delete.html"
+    template_name = "modal/delete.html"
     model = models.Sample
     success_message = "Sample has been deleted."
 
@@ -549,7 +549,7 @@ class ContainerDetail(DetailListMixin, SampleList):
 
 class ContainerEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.ContainerForm
-    template_name = "forms/async.html"
+    template_name = "modal/form.html"
     model = models.Container
     success_message = "Container has been updated."
 
@@ -564,11 +564,12 @@ class ContainerEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
 
 class ContainerLoad(AdminRequiredMixin, ContainerEdit):
     form_class = forms.ContainerLoadForm
-    template_name = "forms/async.html"
+    template_name = "modal/form.html"
 
     def form_valid(self, form):
         data = form.cleaned_data
-        parent = data['parent']  # previous parent for layout
+        root = data['parent'].get_load_root()
+
         if data['location']:
             models.LoadHistory.objects.create(child=self.object, parent=data['parent'], location=data['location'])
         else:
@@ -578,7 +579,7 @@ class ContainerLoad(AdminRequiredMixin, ContainerEdit):
         models.Container.objects.filter(pk=self.object.pk).update(
             parent=data.get('parent'), location=data.get('location')
         )
-        return JsonResponse(parent.get_layout(), safe=False)
+        return JsonResponse(root.get_layout(), safe=False)
 
 
 class LocationLoad(AdminRequiredMixin, ContainerEdit):
@@ -596,18 +597,19 @@ class LocationLoad(AdminRequiredMixin, ContainerEdit):
             parent=self.object, location=data['location']
         )
         models.LoadHistory.objects.create(child=data['child'], parent=self.object, location=data['location'])
-        layout = self.object.get_layout()
-        return JsonResponse(layout, safe=False)
+
+        root = self.object.get_load_root()
+        return JsonResponse(root.get_layout(), safe=False)
 
 
 class EmptyContainers(AdminRequiredMixin, edit.UpdateView):
     form_class = forms.EmptyContainers
-    template_name = "forms/async.html"
+    template_name = "modal/form.html"
     model = models.Project
     success_message = "Containers have been removed for {username}."
     success_url = reverse_lazy('dashboard')
 
-    def get_object(self):
+    def get_object(self, queryset=None):
         return models.Project.objects.get(username=self.kwargs.get('username'))
 
     def get_initial(self):
@@ -617,6 +619,7 @@ class EmptyContainers(AdminRequiredMixin, edit.UpdateView):
 
     def form_valid(self, form):
         data = form.cleaned_data
+        parent = data['parent']
         containers = self.object.containers.filter(parent=data.get('parent'))
         models.LoadHistory.objects.filter(child__in=containers).active().update(end=timezone.now())
         containers.update(**{'location': None, 'parent': None})
@@ -625,7 +628,7 @@ class EmptyContainers(AdminRequiredMixin, edit.UpdateView):
 
 class ContainerDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
     success_url = reverse_lazy('dashboard')
-    template_name = "forms/delete.html"
+    template_name = "modal/delete.html"
     model = models.Container
     success_message = "Container has been deleted."
 
@@ -702,7 +705,7 @@ class GroupEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, 
 
 class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
     success_url = reverse_lazy('dashboard')
-    template_name = "forms/delete.html"
+    template_name = "modal/delete.html"
     model = models.Group
     success_message = "Group has been deleted."
 
@@ -916,7 +919,7 @@ class BeamlineUsage(BeamlineDetail):
 
 class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
     form_class = forms.DewarForm
-    template_name = "forms/modal.html"
+    template_name = "modal.html"
     model = models.Dewar
     success_url = reverse_lazy('dashboard')
     success_message = "Comments have been updated."
@@ -926,7 +929,7 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
     form_list = [('shipment', forms.AddShipmentForm),
                  ('containers', forms.ShipmentContainerForm),
                  ('groups', forms.ShipmentGroupForm)]
-    template_name = "forms/wizard.html"
+    template_name = "modal/wizard.html"
 
     def get_form_initial(self, step):
         if step == 'shipment':

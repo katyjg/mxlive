@@ -1,6 +1,6 @@
 {% load layout %}
 
-{% block form_body %}
+{% block modal_body %}
     {% if form.initial.shipment %}
         {% containers_from_queryset form.fields.containers.queryset as containers %}
     {% else %}

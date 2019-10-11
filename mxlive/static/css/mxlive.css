@@ -656,7 +656,7 @@ form .list-group-item {
 
 svg .outline {
     stroke: black;
-    fill: none;
+    fill: #fefefe;
 }
 
 svg .empty {
