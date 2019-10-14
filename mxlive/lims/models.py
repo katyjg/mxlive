@@ -832,6 +832,7 @@ class Container(TransitStatusMixin):
             'loc': None if not self.location else self.location.name,
             'envelope': self.kind.envelope,
             'accepts': self.accepts_children(),
+            'port': self.port()
         }
 
         contents = {}

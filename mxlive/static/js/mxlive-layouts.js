@@ -188,6 +188,7 @@ function extractProjects(results, data) {
             }
             results[obj.owner].push({
                 loc: obj.loc, id: obj.id, project: obj.owner, type: obj.type,
+                port: obj.port,
                 name: obj.name, parent: obj.parent, url: obj.url,
                 samples: obj.children.filter(function (d) {
                     return d.id;
@@ -224,7 +225,7 @@ var locTemplate = _.template(
     '       <h6 class="col d-flex flex-row justify-content-between my-0">' +
     '           <div class="flex-grow-1 align-self-center py-0">' +
     '               <div class="loc-list row">' +
-    '                   <strong class="col-2"><%= loc %></strong>' +
+    '                   <strong class="col-2"><%= port %></strong>' +
     '                   <span class="col mr-2"><a href="<%= url %>" title="<%= type %>"><%= name %></a>&nbsp;<small class="float-right badge badge-pill badge-primary detail" title="samples"><%= samples %></small></span>' +
     '                   <span class="col text-center text-muted detail"><%= project %></span>' +
     '               </div>' +
@@ -247,9 +248,9 @@ var projTemplate = _.template(
     '       <div class="col d-flex flex-row justify-content-between">' +
     '           <div class="flex-grow-1"><h5 class="m-0"><%= name %></h5>' +
     '           <div class="loc-list">' +
-    '<% _.each(details, function(container, i){ %><small class="text-muted d-inline-block list-cnt-<%= container.id %>"><%= container.loc %></small><% }); %></div>' +
+    '<% _.each(details, function(container, i){ %><small class="text-muted d-inline-block list-cnt-<%= container.id %>"><%= container.port %></small><% }); %></div>' +
     '           </div>' +
-    '           <div class="tools-box">' +
+    '           <div class="project-list-tools tools-box">' +
     '               <a title="Details" data-toggle="collapse" href="#prj-<%= name.toLowerCase() %>-list"> ' +
     '                   <div class="icon-stack">' +
     '                       <i class="ti ti-1x ti-zoom-in"></i>' +

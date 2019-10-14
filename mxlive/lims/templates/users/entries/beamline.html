@@ -78,3 +78,24 @@
         </div>
     {% endwith %}
 {% endblock %}
+
+{% block extra_js %}
+    <script>
+    $(document).ready(function(){
+        $(document).on('click', '.project-list-tools [data-form-url]', function () {
+            console.log($(this));
+            $('#modal-target').asyncForm({
+                url: $(this).data('form-url'),
+                complete: function(info){
+                    let cnt_id = '#cnt-' + info.id;
+                    $(cnt_id).empty();
+                    drawContainers(cnt_id, info);
+                    listLoaded('#loaded-projects', '#loaded-containers', info);
+                }
+            });
+
+        });
+    });
+
+    </script>
+{% endblock %}

@@ -76,9 +76,9 @@ urlpatterns = [
 
     path('ajax/update_locations/<int:pk>/', ajax_views.UpdateLocations.as_view(), name='update-locations'),
     path('ajax/update_priority/', cache_page(60*60*24)(ajax_views.UpdatePriority.as_view()), name='update-priority'),
-    path('ajax/fetch_report/<int:pk>/', ajax_views.FetchReport.as_view(), name='fetch-report'),
+    path('ajax/report/<int:pk>/', ajax_views.FetchReport.as_view(), name='fetch-report'),
     path('ajax/bulk_edit/', ajax_views.BulkSampleEdit.as_view(), name='bulk-edit'),
-    path('ajax/fetch_layout/<int:pk>/', ajax_views.FetchContainerLayout.as_view(), name='fetch-layout'),
+    path('ajax/layout/<int:pk>/', ajax_views.FetchContainerLayout.as_view(), name='fetch-layout'),
 
     path('quick-guide/', TemplateView.as_view(template_name='users/help.html'), name='user-guide'),
 ]
