@@ -540,23 +540,6 @@ p.empty {
     overflow: auto;
 }
 
-.modal-data .col-meta {
-    width: 371px;
-}
-
-@media (max-width: 991px) {
-    /* hidden tool labels on small screens */
-    .modal-data .col-meta {
-        width: 100%;
-        margin-left: 0;
-        padding-top: 10px;
-    }
-
-    .modal-data {
-        width: 542px;
-    }
-}
-
 .modal-header .modal-subtitle {
     margin-bottom: -10px;
 }

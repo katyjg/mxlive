@@ -7,32 +7,34 @@
      data-frame-set='{{ object.frames }}'
      data-wavelength='{{ object.wavelength }}'
      data-resolution='{{ object.meta_data.resolution|default:0 }}'
-     class="d-flex flex-row"
+     class="d-flex flex-row justify-content-end"
 >
-        <div class="" style="width: 542px;">
+        <div class="">
             <!-- image viewer aspect -->
-            <div class="data-image">
+            <div class="data-image p-0">
                 <div id="data-image-loading"><div></div></div>
                 <div class="image-wrapper">
-                    <div id="diffviewer" class="viewer"></div>
+                    <div id="diffviewer" style="width: 100%;" class="viewer"></div>
                 </div>
-                <!-- image navigation -->
-                <div class="image-nav">
-                    <div class="float-left">
-                        <button class="btn btn-success btn-dk" onclick="changeBrightness('dk');" type="button">Dark</button>
-                        <button class="btn btn-success btn-nm" onclick="changeBrightness('nm');" type="button">Normal</button>
-                        <button class="btn btn-success btn-lt" onclick="changeBrightness('lt');" type="button">Light</button>
-                    </div>
-                    <div class="float-left loaded-image overflow"><span><var id="framename"></var></span><br/>Osc: <var id="oscstart"></var> to <var id="oscend"></var></div>
+            </div>
+            <!-- image navigation -->
+            <div class="row my-2">
+                <div class="col">
+                    <button class="btn btn-sm btn-dark btn-dk" onclick="changeBrightness('dk');" type="button">Dark</button>
+                    <button class="btn btn-sm  btn-secondary btn-nm" onclick="changeBrightness('nm');" type="button">Normal</button>
+                    <button class="btn btn-sm  btn-light btn-lt" onclick="changeBrightness('lt');" type="button">Light</button>
+                </div>
+                <small class="col text-center text-condensed p-0" style="line-height: 1.2;"><span id="framename"></span><br/><span id="oscstart"></span> to <span id="oscend"></span></small>
+                <div class="col">
                     <div class="float-right">
-                        <button class="btn btn-info" onclick="prevClicked();" type="button"><i class="fa fa-fw fa-chevron-left"></i></button>
-                        <button class="btn btn-info" onclick="nextClicked();" type="button"><i class="fa fa-fw fa-chevron-right"></i></button>
+                    <button class="btn btn-sm btn-info" onclick="prevClicked();" type="button"><i class="ti ti-arrow-left"></i></button>
+                    <button class="btn btn-sm btn-info" onclick="nextClicked();" type="button"><i class="ti ti-arrow-right"></i></button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-meta">
+        <div class="col-4">
             <!-- Display of metaData -->
             <div class="row">
                 <div class="meta-data col-12">
@@ -77,12 +79,6 @@
             </div>
         </div>
     </div>
-
-<link rel="stylesheet" href="{% static "css/jquery.diffviewer.css" %}" />
-
-<script src="{% static "jquery/jquery-migrate.min.js" %}"></script>
-<script src="{% static "js/jquery.mousewheel-3.0.6.js" %}"></script>
-<script src="{% static "js/mxlive-diffviewer.js" %}"></script>
 <script type="text/javascript">
     var dataViewer = function(){
 

@@ -5,7 +5,14 @@
 {% load humanize %}
 {% load score_colors %}
 
-{% block modal_size %}modal-lg modal-data{% endblock %}
+{% block modal_assets %}
+    <link rel="stylesheet" href="{% static "css/jquery.diffviewer.css" %}" />
+    <script src="{% static "jquery/jquery-migrate.min.js" %}"></script>
+    <script src="{% static "js/jquery.mousewheel-3.0.6.js" %}"></script>
+    <script src="{% static "js/mxlive-diffviewer.js" %}"></script>
+{% endblock  %}
+
+{% block modal_size %}modal-lg{% endblock %}
 {% block modal_classes %}data-viewer{% endblock %}
 {% block modal_title_tools %}{% endblock %}
 
@@ -19,7 +26,7 @@
 {% endblock %}
 
 {% block modal_body %}
-    <small class="row py-2">
+    <small class="row py-1">
             <div class="col-3">
                 <strong>Type:</strong><br/>
                 <span class="text-muted">{{ object.get_kind_display }} from {{ object.modified|naturalday }}</span><br/>
@@ -48,7 +55,10 @@
                 None{% endif %}</span><br/>
                 <strong>Report:</strong><span class="text-muted"> {% for report in object.reports.all %}
                 <a href="{% url "report-detail" report.pk %}" title="View {{ report.name }} Report">
-                                <span class="badge badge-{{ report.score|label_score }}">{{ report.score|floatformat:2 }}</span>
+                    <span title="Score"
+                          class="badge score" style="text-shadow: 0 0 3px rgba(0, 0, 0, 0.7); color: #fff; background-color: {{ report.score|score_color }};"
+                    >{{ report.score|floatformat:2 }}</span>
+
                             </a>
                 {% if not forloop.last %} | {% endif %}{% endfor %}
                         </span>
