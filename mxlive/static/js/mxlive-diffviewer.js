@@ -311,7 +311,7 @@
                 bottom: "0px",
                 left: "0px",
                 width: "128px",
-                width: "128px"
+                height: "128px"
             });
             this.overview_object = $("<div>").addClass("diffviewer_overview_img").addClass("diffviewer_common").click(function (e) {
                 return me.thumb_click(e)
@@ -441,7 +441,7 @@
             }
             this.overview_box.css("top", -oy + "px")
                 .css("left", -ox + "px")
-                .css("width", ow + "px")
+                .css("width", oh + "px")
                 .css("height", oh + "px");
         },
         /*************************************************************/
@@ -848,7 +848,7 @@
                     me.zoom_by(1);
                     return false;
                 })
-                .html('<i class="fa fa-fw fa-search-plus"></i>')
+                .html('<i class="ti ti-zoom-in"></i>')
                 .attr('title', 'Zoom In')
                 .appendTo(this.container);
 
@@ -857,7 +857,7 @@
                     me.zoom_by(-1);
                     return false;
                 })
-                .html('<i class="fa fa-fw fa-search-minus"></i>')
+                .html('<i class="ti ti-zoom-out"></i>')
                 .attr('title', 'Zoom Out')
                 .appendTo(this.container);
 
@@ -866,7 +866,7 @@
                     me.fit(this);
                     return false;
                 })
-                .html('<i class="fa fa-fw fa-refresh"></i>')
+                .html('<i class="ti ti-reload"></i>')
                 .attr('title', 'Reset Zoom')
                 .appendTo(this.container);
 
