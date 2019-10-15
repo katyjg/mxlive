@@ -7,6 +7,7 @@
 {% block pre_js %}
     <script src="{% static 'js/d3.v5.min.js' %}"></script>
     <script src="{% static 'js/d3-selection-multi.v1.min.js' %}"></script>
+    <script src="{% static "js/mxlive-layouts.js" %}"></script>
 {% endblock %}
 
 {% block page_heading %}
@@ -28,18 +29,14 @@
 {% block object_tools %}
     {% include "users/tools-base.html" %}
     {% if object.parent_history.all %}
-        <span class="tools-box">
-            <a href="#!" data-link="{% url "container-history" object.pk %}">
-                {% show_icon label='History' icon='ti ti-1x ti-timer' %}
-            </a>
-        </span>
+        <a href="#!" data-link="{% url "container-history" object.pk %}">
+            {% show_icon label='History' icon='ti ti-1x ti-timer' %}
+        </a>
     {% endif %}
     {% if object.children_history.all %}
-        <span class="tools-box">
-            <a class="pull-right" data-link="{% url "automounter-history" object.pk %}">
-                {% show_icon label='Container History' icon='ti ti-1x ti-timer' %}
-            </a>
-        </span>
+        <a class="pull-right" data-link="{% url "automounter-history" object.pk %}">
+            {% show_icon label='Container History' icon='ti ti-1x ti-timer' %}
+        </a>
     {% endif %}
 {% endblock %}
 
@@ -90,7 +87,6 @@
 {% endblock %}
 
 {% block full %}
-
     <div class="row">
         <div class="col-sm-8 col-12">
         <h3>Samples in {{ object.name }}</h3>
@@ -101,7 +97,7 @@
             {% endif %}
         </div>
         <div {% if object.accepts_children %}id="admin-assign"{% endif %} class="col-sm-4 col-12 pull-right">
-            {% include "users/entries/container-layout.html" with container=object show_samples=True %}
+            {% include "users/entries/container-layout.html" with container=object show_samples=True label_samples=True %}
         </div>
     </div>
 

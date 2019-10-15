@@ -21,28 +21,24 @@
 {% endblock %}
 
 {% block object_tools %}
-    <div class="object-tools">
-        <span class="tools-box">
-            {% if object.active_dewar.container.children_history.all %}
-            <a href="#!" data-link="{% url "automounter-history" object.active_dewar.container.pk %}">
-                {% show_icon label='History' icon='ti ti-1x ti-timer' %}
-            </a>
-            {% endif %}
-            {% now "Y" as current_year %}
-            <a href="{% url "beamline-statistics" object.pk current_year %}">
-                {% show_icon label='Stats' icon='ti ti-1x ti-bar-chart' %}
-            </a>
-            <a href="{% url "usage-statistics" object.pk %}">
-                {% show_icon label='Usage' icon='ti ti-1x ti-stats-up' %}
-            </a>
-            <a href="{% url "beamline-history" pk=object.pk %}">
-                {% show_icon label='Sessions' icon='ti ti-1x ti-time' %}
-            </a>
-            <a href="#!" data-link="{% url "dewar-edit" pk=object.active_dewar.pk %}">
-                {% show_icon label='Comment' icon='ti ti-1x ti-comment-alt' %}
-            </a>
-        </span>
-    </div>
+    {% if object.active_dewar.container.children_history.all %}
+    <a href="#!" data-link="{% url "automounter-history" object.active_dewar.container.pk %}">
+        {% show_icon label='History' icon='ti ti-1x ti-timer' %}
+    </a>
+    {% endif %}
+    {% now "Y" as current_year %}
+    <a href="{% url "beamline-statistics" object.pk current_year %}">
+        {% show_icon label='Stats' icon='ti ti-1x ti-bar-chart' %}
+    </a>
+    <a href="{% url "usage-statistics" object.pk %}">
+        {% show_icon label='Usage' icon='ti ti-1x ti-stats-up' %}
+    </a>
+    <a href="{% url "beamline-history" pk=object.pk %}">
+        {% show_icon label='Sessions' icon='ti ti-1x ti-time' %}
+    </a>
+    <a href="#!" data-link="{% url "dewar-edit" pk=object.active_dewar.pk %}">
+        {% show_icon label='Comment' icon='ti ti-1x ti-comment-alt' %}
+    </a>
 {% endblock %}
 
 {% block object_status %}

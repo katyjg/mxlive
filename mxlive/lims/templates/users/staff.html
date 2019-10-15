@@ -15,21 +15,19 @@
 {% endblock %}
 
 {% block object_tools %}
-    <div class="tools-box">
-        <a  href="{% url "access-list" %}">
-            {% show_icon label="Remote" icon="ti ti-1x ti-rss-alt" %}
-        </a>
-        <a  href="{% url "user-list" %}">
-            {% show_icon label="Accounts" icon="ti ti-1x ti-user" %}
-        </a>
-        <a  href="{% url "session-list" %}">
-            {% show_icon label="Sessions" icon="ti ti-1x ti-time" %}
-        </a>
-        <div class="separator"></div>
-        <a href="#!"  data-form-link="{% url "new-announcement" %}" title="Create Announcement">
-            {% show_icon label="Add Info" icon="ti ti-1x ti-announcement" %}
-        </a>
-    </div>
+    <a  href="{% url "access-list" %}">
+        {% show_icon label="Remote" icon="ti ti-1x ti-rss-alt" %}
+    </a>
+    <a  href="{% url "user-list" %}">
+        {% show_icon label="Accounts" icon="ti ti-1x ti-user" %}
+    </a>
+    <a  href="{% url "session-list" %}">
+        {% show_icon label="Sessions" icon="ti ti-1x ti-time" %}
+    </a>
+    <div class="separator"></div>
+    <a href="#!"  data-form-link="{% url "new-announcement" %}" title="Create Announcement">
+        {% show_icon label="Add Info" icon="ti ti-1x ti-announcement" %}
+    </a>
 {% endblock %}
 
 {% block full %}

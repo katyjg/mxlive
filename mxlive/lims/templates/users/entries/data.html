@@ -1,15 +1,13 @@
 {% extends "modal/content.html" %}
-
+{% load icons %}
 {% load data_server %}
 {% load static %}
 {% load humanize %}
 {% load score_colors %}
 
 {% block modal_size %}modal-lg modal-data{% endblock %}
-
-{% block modal_title_tools %}
-
-{% endblock %}
+{% block modal_classes %}data-viewer{% endblock %}
+{% block modal_title_tools %}{% endblock %}
 
 {% block modal_title %}
     <span class="text-condensed">
@@ -21,9 +19,7 @@
 {% endblock %}
 
 {% block modal_body %}
-    <small>
-    <div class="status-bar p-0">
-        <div class="row">
+    <small class="row py-2">
             <div class="col-3">
                 <strong>Type:</strong><br/>
                 <span class="text-muted">{{ object.get_kind_display }} from {{ object.modified|naturalday }}</span><br/>
@@ -57,25 +53,23 @@
                 {% if not forloop.last %} | {% endif %}{% endfor %}
                         </span>
             </div>
-            <div class="col-1">
+            <div class="col-2 p-0">
+                <div class="tools-box float-right">
                 {% if object.url %}
-                    <a class="pull-right" href="{% url 'files-proxy' section='archive' path=object.download_url %}"
+                    <a href="{% url 'files-proxy' section='archive' path=object.download_url %}"
                        download="{{ object.name }}.tar.gz" title="Download Full Dataset">
-                            <span class="pull-right">
-                                <i class="fa fa-fw fa-2x fa-download"></i><br>
-                                <span class="tool-label">Download</span>
-                            </span>
+                        {% show_icon label="Download" icon="ti ti-1x ti-download" %}
                     </a>
                 {% else %}
-                    <span class="pull-right text-muted not-allowed" title="Download Not Available">
-                                <i class="fa fa-fw fa-2x fa-download"></i><br>
-                                <span class="tool-label">Download</span>
-                            </span>
+                    <span class="text-muted not-allowed" title="Download Not Available">
+                        {% show_icon label="Download" icon="ti ti-1x ti-download" %}
+                    </span>
                 {% endif %}
+                </div>
             </div>
-        </div>
-    </div>
     </small>
+    <hr class="row mt-0"/>
+
     {% if "MX" in object.kind or "DATA" in object.kind or "RASTER" in object.kind %}
         {% include "users/entries/data-mx.html" %}
     {% elif "MAD" in object.kind %}

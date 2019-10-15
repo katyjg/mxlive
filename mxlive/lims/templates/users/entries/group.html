@@ -21,11 +21,10 @@
 
 {% block object_tools %}
     {% if object.status == object.STATES.DRAFT %}
-        <span class="tools-box float-right">
-            <a href="#!" data-link="{% url "group-select" object.pk %}" title="Sample Seat Selection">
-                {% show_icon label='Samples' icon='ti ti-1x ti-plus' %}
-            </a>
-        </span>
+        <a href="#!" data-link="{% url "group-select" object.pk %}" title="Sample Seat Selection">
+            {% show_icon label='Samples' icon='ti ti-1x ti-plus' %}
+        </a>
+        <div class="separator"></div>
     {% endif %}
     {% include "users/tools-base.html" %}
 {% endblock %}

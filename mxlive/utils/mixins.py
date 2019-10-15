@@ -29,15 +29,16 @@ class AsyncFormMixin(object):
     Mixin to add AJAX support to a form.
     Must be used with an object-based FormView (e.g. CreateView)
     """
+    modal_response = False
 
     def form_valid(self, form):
         # We make sure to call the parent's form_valid() method because
         # it might do some processing (in the case of CreateView, it will
         # call form.save() for example).
-        response = super(AsyncFormMixin, self).form_valid(form)
+        response = super().form_valid(form)
         if self.request.is_ajax():
             data = {
-                'modal': True,
+                'modal': self.modal_response,
                 'url': self.get_success_url(),
             }
             return JsonResponse(data, safe=False)

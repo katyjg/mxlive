@@ -1,6 +1,5 @@
 {% load data_server %}
 {% load static %}
-
 <div id='data-viewer'
      data-first-file='{{ object.first_file }}'
      data-first-frame='{{ object.first_frame }}'
@@ -10,7 +9,7 @@
      data-resolution='{{ object.meta_data.resolution|default:0 }}'
 >
     <div class="row">
-        <div class="col-9" style="width: 542px;">
+        <div class="col-8" style="width: 542px;">
             <!-- image viewer aspect -->
             <div class="data-image">
                 <div id="data-image-loading"><div></div></div>

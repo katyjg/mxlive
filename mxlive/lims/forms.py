@@ -369,7 +369,7 @@ class ShipmentSendForm(forms.ModelForm):
             Div(
                 Div(
                     Div(
-                        StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+                        StrictButton('Send', type='submit', name="submit", value='save', css_class='btn btn-primary'),
                         css_class='float-right'
                     ),
                     css_class="col-12"
@@ -509,7 +509,7 @@ class ShipmentReceiveForm(forms.ModelForm):
             Div(
                 Div(
                     Div(
-                        StrictButton('Save', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
+                        StrictButton('Receive', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
                         css_class='float-right'
                     ),
                     css_class="col-sm-12"
@@ -534,7 +534,7 @@ class ShipmentArchiveForm(forms.ModelForm):
             Div(
                 Div(
                     Div(
-                        StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+                        StrictButton('Archive', type='submit', name="submit", value='save', css_class='btn btn-primary'),
                         css_class='float-right'
                     ),
                     css_class="col-12"
@@ -607,9 +607,9 @@ class GroupForm(forms.ModelForm):
                 css_class="row"
             ),
             Div(
-                Div(Field('kind', css_class="tab-chosen chosen-select",
+                Div(Field('kind', css_class="tab-chosen chosen",
                           css_id="kind"), css_class="col-6"),
-                Div(Field('plan', css_class="tab-chosen chosen-select",
+                Div(Field('plan', css_class="tab-chosen chosen",
                           css_id="plan"), css_class="col-6"),
                 css_class="row"
             ),
@@ -1125,7 +1125,7 @@ class ShipmentGroupForm(forms.ModelForm):
                                 css_class="row form-action"
                             ),
                             css_class="modal-body",
-                            css_id="form-content",
+                            css_id="modal-content",
                         ),
                         css_class="modal-content",
                     ),

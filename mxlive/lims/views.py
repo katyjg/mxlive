@@ -386,7 +386,8 @@ class SendShipment(ShipmentEdit):
         form.instance.send()
         message = "Shipment sent"
         models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.MODIFY, message)
-        return super(SendShipment, self).form_valid(form)
+        return super().form_valid(form)
+
 
 
 class ReturnShipment(ShipmentEdit):
@@ -525,7 +526,7 @@ class ContainerList(ListViewMixin, ItemListView):
 class ContainerDetail(DetailListMixin, SampleList):
     extra_model = models.Container
     template_name = "users/entries/container.html"
-    list_columns = ['name', 'barcode', 'group__name', 'location', 'comments']
+    list_columns = ['name', 'barcode', 'group', 'location', 'comments']
     link_url = 'sample-edit'
     link_data = True
     show_project = False

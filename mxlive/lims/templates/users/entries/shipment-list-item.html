@@ -10,8 +10,8 @@
                 <a  href="{% url "shipment-data" shipment.pk %}" title="Go to Data from this shipment">
                     {% show_icon label='Data' badge=stats.data icon='ti ti-1x ti-layout-grid3' color='info' %}
                 </a>
-            {% endif %}
                 <a class="separator"></a>
+            {% endif %}
             {% if user.is_superuser and shipment.status <= shipment.STATES.ON_SITE and shipment.status >= shipment.STATES.SENT %}
                 {% if shipment.status == shipment.STATES.ON_SITE %}
                     <a  data-link="{% url "shipment-return" shipment.pk %}" title="Return shipment">
@@ -30,10 +30,10 @@
                                 {% elif shipment.status == shipment.STATES.SENT %}Sent on {{ shipment.date_shipped }}
                                 {% elif shipment.status == shipment.STATES.RETURNED %}Returned on {{ shipment.date_returned }}{% endif %}"
                          class="{% if shipment.status == shipment.STATES.DRAFT %}ti ti-1x ti-clipboard
-                                         {% elif shipment.status == shipment.STATES.SENT %}ti ti-1x ti-truck text-dark
-                                         {% elif shipment.status == shipment.STATES.ON_SITE %}ti ti-1x ti-location-pin text-success
-                                         {% elif shipment.status == shipment.STATES.RETURNED %}ti ti-1x ti-truck text-success
-                                         {% elif shipment.status == shipment.STATES.ARCHIVED %}ti ti-1x ti-archive{% endif %}"></div>
+                                 {% elif shipment.status == shipment.STATES.SENT %}ti ti-1x ti-truck text-dark
+                                 {% elif shipment.status == shipment.STATES.ON_SITE %}ti ti-1x ti-location-pin text-success
+                                 {% elif shipment.status == shipment.STATES.RETURNED %}ti ti-1x ti-truck text-success
+                                 {% elif shipment.status == shipment.STATES.ARCHIVED %}ti ti-1x ti-archive{% endif %}"></div>
                     <div><small>{% if shipment.status == shipment.STATES.DRAFT %}DRAFT
                                 {% elif shipment.status == shipment.STATES.SENT %}{{ shipment.date_shipped|date:"M d"|upper }}
                                 {% elif shipment.status == shipment.STATES.ON_SITE %}{{ shipment.date_received|date:"M d"|upper }}

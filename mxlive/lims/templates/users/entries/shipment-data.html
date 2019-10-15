@@ -14,14 +14,12 @@
 {% endblock %}
 
 {% block object_tools %}
-    <span class="tools-box">
-        <a href="{% url "shipment-reports" shipment.pk %}" title="Go to Reports from this shipment">
-            {% show_icon label="Reports" icon="ti ti-1x ti-bar-chart-alt" badge=shipment.num_reports %}
-        </a>
-        <a href="{% url "shipment-protocol" shipment.pk %}">
-            {% show_icon label="Progress" icon="ti ti-1x ti-layout-media-overlay" %}
-        </a>
-    </span>
+    <a href="{% url "shipment-reports" shipment.pk %}" title="Go to Reports from this shipment">
+        {% show_icon label="Reports" icon="ti ti-1x ti-bar-chart-alt" badge=shipment.num_reports %}
+    </a>
+    <a href="{% url "shipment-protocol" shipment.pk %}">
+        {% show_icon label="Progress" icon="ti ti-1x ti-layout-media-overlay" %}
+    </a>
 {% endblock %}
 
 {% block object_status %}

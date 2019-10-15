@@ -11,17 +11,15 @@
 {% endblock %}
 
 {% block object_tools %}
-    <span class="tools-box">
-        <a href="#!"  data-link="{% url "shipment-new" %}">
-            {% show_icon label='New Shipment' icon='ti ti-1x ti-plus' %}
-        </a>
-        <a  href="{% url "session-list" %}">
-            {% show_icon label='Sessions' icon='ti ti-1x ti-time' %}
-        </a>
-        <a  href="{% url "project-statistics" username=user.username %}">
-            {% show_icon label='Usage Stats' icon='ti ti-1x ti-stats-up' %}
-        </a>
-    </span>
+    <a href="#!"  data-link="{% url "shipment-new" %}">
+        {% show_icon label='New Shipment' icon='ti ti-1x ti-plus' %}
+    </a>
+    <a  href="{% url "session-list" %}">
+        {% show_icon label='Sessions' icon='ti ti-1x ti-time' %}
+    </a>
+    <a  href="{% url "project-statistics" username=user.username %}">
+        {% show_icon label='Usage Stats' icon='ti ti-1x ti-stats-up' %}
+    </a>
 {% endblock %}
 
 {% block full %}

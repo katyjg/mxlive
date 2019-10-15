@@ -14,11 +14,9 @@
 {% endblock %}
 
 {% block object_tools %}
-    <span class="tools-box">
-        <a href="{% url "shipment-data" shipment.pk %}" title="Go to Data from this shipment">
-            {% show_icon label="Data" icon="ti ti-1x ti-layout-grid3" badge=shipment.num_datasets %}
-        </a>        <a href="{% url "shipment-protocol" shipment.pk %}">
-            {% show_icon label="Progress" icon="ti ti-1x ti-layout-media-overlay" %}
-        </a>
-    </span>
+    <a href="{% url "shipment-data" shipment.pk %}" title="Go to Data from this shipment">
+        {% show_icon label="Data" icon="ti ti-1x ti-layout-grid3" badge=shipment.num_datasets %}
+    </a>        <a href="{% url "shipment-protocol" shipment.pk %}">
+        {% show_icon label="Progress" icon="ti ti-1x ti-layout-media-overlay" %}
+    </a>
 {% endblock %}

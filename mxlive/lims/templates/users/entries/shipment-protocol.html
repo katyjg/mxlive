@@ -15,14 +15,12 @@
 {% endblock %}
 
 {% block object_tools %}
-    <span class="tools-box pull-right">
-        <a href="{% url "shipment-data" object.pk %}" title="Go to Data from this shipment">
-            {% show_icon label="Data" icon="ti ti-1x ti-layout-grid3" badge=object.num_datasets %}
-        </a>
-        <a href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
-            {% show_icon label="Data" icon="ti ti-1x ti-bar-chart-alt" badge=object.num_reports %}
-        </a>
-    </span>
+    <a href="{% url "shipment-data" object.pk %}" title="Go to Data from this shipment">
+        {% show_icon label="Data" icon="ti ti-1x ti-layout-grid3" badge=object.num_datasets %}
+    </a>
+    <a href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
+        {% show_icon label="Data" icon="ti ti-1x ti-bar-chart-alt" badge=object.num_reports %}
+    </a>
 {% endblock %}
 
 {% block object_status %}

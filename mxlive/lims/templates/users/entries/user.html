@@ -11,7 +11,6 @@
 {% endblock %}
 
 {% block object_tools %}
-<span class="tools-box">
 {% if user.is_superuser %}
     <a href="{% url "project-labels" object.username %}" title="Get Shipping Labels">
         {% show_icon label="Labels" icon="fa ti-1x fa-tags" %}
@@ -32,7 +31,6 @@
     <a class="pull-right" href="{% url "session-list" %}?q={{ object.username }}" title="Go to Sessions for {{ object.username }}">
         {% show_icon label="Sessions" icon="ti ti-1x ti-time" badge=object.sessions.all.count %}
     </a>
-</span>
 {% endblock %}
 
 {% block object_status %}

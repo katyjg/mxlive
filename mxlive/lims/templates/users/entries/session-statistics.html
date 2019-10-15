@@ -6,12 +6,9 @@
 {% load tz %}
 
 {% block object_tools %}
-    <span class="tools-box pull-right">
-        <a class="pull-right" data-link="{% url "session-history" object.pk %}">
-            {% show_icon label='History' icon='ti ti-1x ti-timer' %}
-        </a>
-    </span>
-
+    <a class="pull-right" data-link="{% url "session-history" object.pk %}">
+        {% show_icon label='History' icon='ti ti-1x ti-timer' %}
+    </a>
 {% endblock %}
 
 {% block full %}

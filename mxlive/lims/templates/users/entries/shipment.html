@@ -134,7 +134,7 @@
                     <h3 class="float-left py-1"><strong class="align-self-baseline">{{ shipment.containers.count }}</strong> Groups</h3>
                     <span class="tools-box float-right">
                         {% if object.status == object.STATES.DRAFT %}
-                            <a href="#!"  data-link="{% url "shipment-add-groups" object.pk %}" title="Edit Groups">
+                            <a href="#!"  data-form-link="{% url "shipment-add-groups" object.pk %}" title="Edit Groups">
                             {% show_icon icon="ti ti-1x ti-pencil-alt" %}
                             </a>
                         {% else %}<span class="text-muted"><i class="ti ti-1x ti-lock"></i></span>{% endif %}
@@ -146,8 +146,8 @@
                 {% for group in shipment.groups_by_priority %}
                     <div class="list-group-item" id="group-{{ group.pk }}" data-highlight="group" data-reference="{{ group.pk }}">
                         <span class="tools-box float-right">
-                            {% if not object.is_editable %}
-                                <a  href="#!" data-link="{% url "group-select" group.pk %}" title="Sample Seat Selection">
+                            {% if object.is_editable %}
+                                <a  href="#!" data-form-link="{% url "group-select" group.pk %}" title="Sample Seat Selection">
                                     {% show_icon label="Samples" icon="ti ti-1x ti-plus" badge=group.samples.count color="warning" %}
                                 </a>
                                 <a href="#!" data-form-link="{% url "group-edit" group.pk %}" title="Edit Group Parameters">
@@ -155,7 +155,7 @@
                                 </a>
                             {% else %}
                                 <div class="text-center text-muted">
-                                    <div class="text-medium">{{ group.samples.count }}</div>
+                                    <h4>{{ group.samples.count }}</h4>
                                     <div class="text-condensed"><small>Sample{{ group.samples.count|pluralize }} </small></div>
                                 </div>
                             {% endif %}

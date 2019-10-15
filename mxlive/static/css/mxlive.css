@@ -262,12 +262,17 @@ img.line-icon {
     flex-direction: row;
     align-items: center;
     justify-content: space-evenly;
-    border-left: 1px solid rgba(0, 0, 0, 0.15);
     padding: 0 0.5em;
     margin: 0.5em;
     padding-right: 0.25em !important;
     line-height: 1;
     text-align: center;
+}
+.tools-box > *:first-child  {
+    align-self: stretch;
+    border-left: 1px solid rgba(0, 0, 0, 0.15);
+    margin: 0 0.25em;
+    padding-left: 0.5em
 }
 
 .tools-box > * {
@@ -275,7 +280,11 @@ img.line-icon {
     padding: 0 0.125em;
 }
 
-.tools-box > .separator {
+.tools-box:empty {
+    display: none;
+}
+
+.tools-box > .separator{
     display: inline-block;
     align-self: stretch;
     width: 1px;
@@ -283,8 +292,8 @@ img.line-icon {
     margin: 0 0.25em;
 }
 
-.tools-box span.separator {
-    height: 100%;
+.tools-box .separator + .separator, .tools-box > .separator:first-child  {
+    display: none !important;
 }
 
 .box-status {
@@ -919,6 +928,10 @@ a[data-link], .back text[port], .cursor {
 
 }
 
+.data-viewer .modal-body {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
 
 #data-viewer .frame-list p, #data-viewer .meta-data p, #data-viewer .xtal-snapshot p {
     background: none repeat scroll 0 0 #747E80;

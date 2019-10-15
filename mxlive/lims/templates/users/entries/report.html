@@ -9,17 +9,15 @@
 {% endblock %}
 
 {% block object_tools %}
-    <div class="tools-box">
-        {% if object.url %}
-        <a  href="{% url 'files-proxy' section='archive' path=object.download_url %}" download="{{ object.name }}.tar.gz" title="Download all output files">
+    {% if object.url %}
+    <a  href="{% url 'files-proxy' section='archive' path=object.download_url %}" download="{{ object.name }}.tar.gz" title="Download all output files">
+        {% show_icon label="Download" icon="ti ti-1x ti-download" %}
+    </a>
+    {% else %}
+        <a class="text-muted not-allowed" title="Download Not Available">
             {% show_icon label="Download" icon="ti ti-1x ti-download" %}
         </a>
-        {% else %}
-            <a class="text-muted not-allowed" title="Download Not Available">
-                {% show_icon label="Download" icon="ti ti-1x ti-download" %}
-            </a>
-        {% endif %}
-    </div>
+    {% endif %}
 {% endblock %}
 
 {% block object_status %}
