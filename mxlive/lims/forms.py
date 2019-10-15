@@ -724,8 +724,8 @@ class EmptyContainers(forms.ModelForm):
             'parent',
             Div(
                 Div(
-                    StrictButton('Save', type='submit', name="submit", value='submit',
-                                 css_class='float-right btn btn-primary'),
+                    StrictButton('Unload All', type='submit', name="submit", value='submit',
+                                 css_class='float-right btn btn-danger'),
                     css_class="col-12"
                 ),
                 css_class="row form-action"
@@ -768,7 +768,7 @@ class LocationLoadForm(forms.ModelForm):
             Div(
                 Div(
                     Div(
-                        StrictButton('Save', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
+                        StrictButton('Load', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
                         css_class='float-right'
                     ),
                     css_class="col-12"

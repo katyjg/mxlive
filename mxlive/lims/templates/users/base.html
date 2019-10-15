@@ -110,22 +110,16 @@
             //placement: 'bottom'
         });
 
-        // Handle data-url and data-href
+        // Handle data-link, data-form-link and data-href
         $(document).on('click', '[data-href]', function () {
             window.document.location = $(this).data("href");
         });
 
-        $(document).on('click', '[data-url]', function () {
-            var sel = getSelection().toString();
-            if (!sel) {
-                $('#modal-target').loadModal($(this).data('url'));
-            }
-        });
         $(document).on('click', '[data-link]', function () {
-            var sel = getSelection().toString();
-            if (!sel) {
-                $('#modal-target').loadModal($(this).data('link'));
-            }
+            $('#modal-target').loadModal($(this).data('link'));
+        });
+        $(document).on('click', '[data-form-link]', function () {
+            $('#modal-target').asyncForm({url: $(this).data('form-link')});
         });
 
         {% if show_help %}

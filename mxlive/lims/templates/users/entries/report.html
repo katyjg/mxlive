@@ -46,7 +46,7 @@
             </div>
             <div class="col">
                 <small class="text-muted text-condensed">Data:</small><br>
-                {% for data in object.data.all %}<a data-url="{% url "data-detail" data.pk %}">{{ data.name }}</a>{% if not forloop.last %}<span class="text-muted"> | </span>{% endif %}{% endfor %}
+                {% for data in object.data.all %}<a data-link="{% url "data-detail" data.pk %}">{{ data.name }}</a>{% if not forloop.last %}<span class="text-muted"> | </span>{% endif %}{% endfor %}
             </div>
             <div class="col">
                 <small class="text-muted text-condensed">Uploaded:</small><br>

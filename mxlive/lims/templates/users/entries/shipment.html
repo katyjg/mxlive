@@ -147,10 +147,10 @@
                     <div class="list-group-item" id="group-{{ group.pk }}" data-highlight="group" data-reference="{{ group.pk }}">
                         <span class="tools-box float-right">
                             {% if not object.is_editable %}
-                                <a  href="#!" data-url="{% url "group-select" group.pk %}" title="Sample Seat Selection">
+                                <a  href="#!" data-link="{% url "group-select" group.pk %}" title="Sample Seat Selection">
                                     {% show_icon label="Samples" icon="ti ti-1x ti-plus" badge=group.samples.count color="warning" %}
                                 </a>
-                                <a href="#!" data-url="{% url "group-edit" group.pk %}" title="Edit Group Parameters">
+                                <a href="#!" data-form-link="{% url "group-edit" group.pk %}" title="Edit Group Parameters">
                                     {% show_icon label="Edit" icon="ti ti-1x ti-pencil-alt" %}
                                 </a>
                             {% else %}

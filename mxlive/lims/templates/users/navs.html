@@ -43,7 +43,7 @@
                         {% include "users/address.html" with user=user %}
                     </div>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" data-url="{% url "edit-profile" user.username %}">Edit Profile</a>
+                    <a class="dropdown-item" data-link="{% url "edit-profile" user.username %}">Edit Profile</a>
                     <a class="dropdown-item" href="{% url 'mxlive-logout' %}">Log Out</a>
                 </div>
             </li>

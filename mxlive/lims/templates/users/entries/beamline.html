@@ -24,7 +24,7 @@
     <div class="object-tools">
         <span class="tools-box">
             {% if object.active_dewar.container.children_history.all %}
-            <a href="#!" data-url="{% url "automounter-history" object.active_dewar.container.pk %}">
+            <a href="#!" data-link="{% url "automounter-history" object.active_dewar.container.pk %}">
                 {% show_icon label='History' icon='ti ti-1x ti-timer' %}
             </a>
             {% endif %}
@@ -38,7 +38,7 @@
             <a href="{% url "beamline-history" pk=object.pk %}">
                 {% show_icon label='Sessions' icon='ti ti-1x ti-time' %}
             </a>
-            <a href="#!" data-url="{% url "dewar-edit" pk=object.active_dewar.pk %}">
+            <a href="#!" data-link="{% url "dewar-edit" pk=object.active_dewar.pk %}">
                 {% show_icon label='Comment' icon='ti ti-1x ti-comment-alt' %}
             </a>
         </span>
@@ -83,7 +83,6 @@
     <script>
     $(document).ready(function(){
         $(document).on('click', '.project-list-tools [data-form-url]', function () {
-            console.log($(this));
             $('#modal-target').asyncForm({
                 url: $(this).data('form-url'),
                 complete: function(info){

@@ -336,6 +336,10 @@ class Session(models.Model):
     def end(self):
         return self.stretches.first().end
 
+    def last_record_time(self):
+        last_data = self.datasets.last()
+        return last_data.modified if last_data else self.created
+
 
 class Stretch(models.Model):
     start = models.DateTimeField(null=False, blank=False)
@@ -500,6 +504,9 @@ class Shipment(TransitStatusMixin):
 
     def identity(self):
         return 'SH%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+
+    def get_absolute_url(self):
+        return reverse('shipment-detail', kwargs={'pk': self.id})
 
     def groups_by_priority(self):
         return self.groups.order_by('priority')

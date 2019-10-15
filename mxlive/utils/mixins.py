@@ -24,7 +24,7 @@ class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return self.request.user.is_superuser
 
 
-class AjaxableResponseMixin(object):
+class AsyncFormMixin(object):
     """
     Mixin to add AJAX support to a form.
     Must be used with an object-based FormView (e.g. CreateView)
@@ -34,12 +34,13 @@ class AjaxableResponseMixin(object):
         # We make sure to call the parent's form_valid() method because
         # it might do some processing (in the case of CreateView, it will
         # call form.save() for example).
-        response = super(AjaxableResponseMixin, self).form_valid(form)
+        response = super(AsyncFormMixin, self).form_valid(form)
         if self.request.is_ajax():
             data = {
-                'pk': self.object.pk,
+                'modal': True,
+                'url': self.get_success_url(),
             }
-            return JsonResponse(data)
+            return JsonResponse(data, safe=False)
         else:
             return response
 

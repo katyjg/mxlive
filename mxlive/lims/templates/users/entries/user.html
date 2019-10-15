@@ -16,10 +16,10 @@
     <a href="{% url "project-labels" object.username %}" title="Get Shipping Labels">
         {% show_icon label="Labels" icon="fa ti-1x fa-tags" %}
     </a>
-    <a href="#!" data-url="{% url "edit-profile" object.username %}" title="Edit Profile">
+    <a href="#!" data-link="{% url "edit-profile" object.username %}" title="Edit Profile">
         {% show_icon label="Edit" icon="ti ti-1x ti-pencil-alt" %}
     </a>
-    <a href="#!" data-url="{% url "user-delete" object.username %}" title="Delete User">
+    <a href="#!" data-link="{% url "user-delete" object.username %}" title="Delete User">
         {% show_icon label="Delete" icon="ti ti-1x ti-trash" %}
     </a>
 {% endif %}

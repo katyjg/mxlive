@@ -4,11 +4,11 @@
 <div class="list-group-item">
     <div class="row">
         <div class="col">
-            <div class="pull-right tools-box">
-                <a class="pull-right" href="{% url "session-reports" session.pk %}" title="Go to Reports from this session">
+            <div class="tools-box float-right">
+                <a href="{% url "session-reports" session.pk %}" title="Go to Reports from this session">
                     {% show_icon label='Reports' badge=stats.reports icon='ti ti-1x ti-bar-chart-alt' color='info' %}
                 </a>
-                <a class="pull-right" href="{% url "session-data" session.pk %}" title="Go to Data from this session">
+                <a href="{% url "session-data" session.pk %}" title="Go to Data from this session">
                     {% show_icon label='Data' badge=stats.data icon='ti ti-1x ti-layout-grid3' color='info' %}
                 </a>
             </div>
@@ -22,7 +22,7 @@
                         <strong>{{ session.beamline.acronym }}</strong>{% if user.is_superuser %} | {{ session.project.name|upper }}{% endif %} | {{ session.name }}
                         </a>
                     </h5>
-                    <span class="text-muted overflow ellipsis">Last record {#{ session.datasets.last.modified|naturaltime }#}</span>
+                    <span class="text-muted overflow ellipsis">Last record {{ session.last_record_time|naturaltime }}</span>
                 </div>
             </div>
         </div>

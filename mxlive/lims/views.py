@@ -18,7 +18,7 @@ from itemlist.views import ItemListView
 from proxy.views import proxy_view
 
 from mxlive.lims import forms, models
-from mxlive.utils.mixins import AjaxableResponseMixin, AdminRequiredMixin, HTML2PdfMixin
+from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, HTML2PdfMixin
 
 DOWNLOAD_PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', "http://mxlive-data/download")
 
@@ -203,7 +203,7 @@ class OwnerRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return self.request.user.is_superuser or getattr(self.get_object(), self.owner_field) == self.request.user
 
 
-class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.ProjectForm
     template_name = "modal/form.html"
     model = models.Project
@@ -320,12 +320,14 @@ class ShipmentLabels(HTML2PdfMixin, ShipmentDetail):
         return context
 
 
-class ShipmentEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class ShipmentEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.ShipmentForm
-    template_name = "modal.html"
+    template_name = "modal/form.html"
     model = models.Shipment
     success_message = "Shipment has been updated."
-    success_url = reverse_lazy('shipment-list')
+
+    def get_success_url(self):
+        return reverse_lazy('shipment-detail', kwargs={'pk': self.object.pk})
 
     def get_initial(self):
         initial = super(ShipmentEdit, self).get_initial()
@@ -333,12 +335,14 @@ class ShipmentEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixi
         return initial
 
 
-class ShipmentComments(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class ShipmentComments(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.ShipmentCommentsForm
-    template_name = "modal.html"
+    template_name = "modal/form.html"
     model = models.Shipment
     success_message = "Shipment has been edited by staff."
-    success_url = reverse_lazy('shipment-list')
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()
 
     def form_valid(self, form):
         obj = form.instance
@@ -349,7 +353,7 @@ class ShipmentComments(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponse
         return super(ShipmentComments, self).form_valid(form)
 
 
-class ShipmentDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
+class ShipmentDelete(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
     template_name = "modal/delete.html"
     model = models.Shipment
     success_message = "Shipment has been deleted."
@@ -462,7 +466,7 @@ class SampleList(ListViewMixin, ItemListView):
     list_transforms = {}
 
 
-class SampleDetail(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class SampleDetail(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     model = models.Sample
     form_class = forms.SampleForm
     template_name = "users/entries/sample.html"
@@ -470,12 +474,15 @@ class SampleDetail(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixi
     success_message = "Sample has been updated"
 
 
-class SampleEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class SampleEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.SampleForm
-    template_name = "modal.html"
+    template_name = "modal/form.html"
     model = models.Sample
     success_url = reverse_lazy('sample-list')
     success_message = "Sample has been updated."
+
+    def get_success_url(self):
+        return self.object.container.get_absolute_url()
 
 
 class SampleDone(SampleEdit):
@@ -486,7 +493,7 @@ class SampleDone(SampleEdit):
             self.object.group.pk)
 
 
-class SampleDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
+class SampleDelete(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
     success_url = reverse_lazy('dashboard')
     template_name = "modal/delete.html"
     model = models.Sample
@@ -547,7 +554,7 @@ class ContainerDetail(DetailListMixin, SampleList):
         return reverse_lazy('sample-detail', kwargs={'pk': obj.pk})
 
 
-class ContainerEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class ContainerEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.ContainerForm
     template_name = "modal/form.html"
     model = models.Container
@@ -559,7 +566,7 @@ class ContainerEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
         return initial
 
     def get_success_url(self):
-        return reverse_lazy("container-detail", kwargs={'pk': self.object.pk})
+        return self.object.get_absolute_url()
 
 
 class ContainerLoad(AdminRequiredMixin, ContainerEdit):
@@ -619,14 +626,14 @@ class EmptyContainers(AdminRequiredMixin, edit.UpdateView):
 
     def form_valid(self, form):
         data = form.cleaned_data
-        parent = data['parent']
+        root = data['parent'].get_load_root()
         containers = self.object.containers.filter(parent=data.get('parent'))
         models.LoadHistory.objects.filter(child__in=containers).active().update(end=timezone.now())
         containers.update(**{'location': None, 'parent': None})
-        return HttpResponse()
+        return JsonResponse(root.get_layout(), safe=False)
 
 
-class ContainerDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
+class ContainerDelete(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
     success_url = reverse_lazy('dashboard')
     template_name = "modal/delete.html"
     model = models.Container
@@ -684,7 +691,7 @@ class GroupDetail(DetailListMixin, SampleList):
         return reverse_lazy('sample-detail', kwargs={'pk': obj.pk})
 
 
-class GroupEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class GroupEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.GroupForm
     template_name = "users/forms/group-edit.html"
     model = models.Group
@@ -703,7 +710,7 @@ class GroupEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, 
         return resp
 
 
-class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
+class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
     success_url = reverse_lazy('dashboard')
     template_name = "modal/delete.html"
     model = models.Group
@@ -744,7 +751,7 @@ def format_score(val, record):
 class ReportList(ListViewMixin, ItemListView):
     model = models.AnalysisReport
     list_filters = ['modified', ]
-    list_columns = ['id', 'id', 'kind', 'score', 'modified']
+    list_columns = ['id','kind', 'score', 'modified']
     list_search = ['project__username', 'name', 'data__name']
     link_field = 'id'
     link_url = 'report-detail'
@@ -917,9 +924,9 @@ class BeamlineUsage(BeamlineDetail):
         return c
 
 
-class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.DewarForm
-    template_name = "modal.html"
+    template_name = "modal/form.html"
     model = models.Dewar
     success_url = reverse_lazy('dashboard')
     success_message = "Comments have been updated."
@@ -998,7 +1005,7 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
         return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': self.shipment.pk})})
 
 
-class ShipmentAddContainer(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.FormView):
+class ShipmentAddContainer(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.FormView):
     form_class = forms.ShipmentContainerForm
     template_name = "users/forms/add-wizard.html"
     success_message = "Shipment updated"
@@ -1028,7 +1035,7 @@ class ShipmentAddContainer(LoginRequiredMixin, SuccessMessageMixin, AjaxableResp
                              'target': '#modal-target'})
 
 
-class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
+class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
     model = models.Group
     form_class = forms.ShipmentGroupForm
     template_name = "users/forms/add-wizard.html"
@@ -1100,7 +1107,7 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
         return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': data['shipment'].pk})})
 
 
-class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.GroupSelectForm
     template_name = "users/forms/add-wizard.html"
     model = models.Group

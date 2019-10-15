@@ -4,7 +4,7 @@
         let settings = $.extend({
             'detailed': parent.data('detailed'),
             'labelled': parent.data('labelled'),
-            'loadable': parent.data('loadable'),
+            'loadable' : parent.data('loadable'),
         }, options);
 
         let url = parent.data('layout-url');
@@ -42,11 +42,10 @@
                 }
 
                 // Draw Container Children
-                drawContainers("#" + svg_id, data);
+                drawContainers("#" + svg_id, data, settings.loadable);
                 listLoaded('#loaded-projects', '#loaded-containers', data);
                 $(selector + ' [title]').tooltip();
                 if (settings.loadable) {
-
                     $(document).on('click', '[data-unload-url]', function () {
                         unloadUpdateData(this, settings);
                     });
@@ -57,12 +56,11 @@
 }(jQuery));
 
 
-function drawContainers(parent, data) {
+function drawContainers(parent, data, loadable=false) {
     let cw = $(parent).width() || $(parent).data('width');
     let ch = $(parent).height() || $(parent).data('height');
     let detailed = $(parent).data('detailed');
     let labelled = $(parent).data('labelled');
-    let loadable = $(parent).data('loadable');
     let aspect = cw / ch;
     let factor = Math.sqrt(cw ** 2 + ch ** 2) / (100 * Math.sqrt(2));
     let subs = d3.select(parent)
@@ -100,7 +98,6 @@ function drawContainers(parent, data) {
                 'data-accepts': d.accepts,
                 'data-detailed': detailed,
                 'data-labelled': labelled,
-                'data-loadable': loadable,
                 'data-id': d.id,
                 'data-parent': data.id,
                 'data-loc': d.loc,
@@ -108,6 +105,7 @@ function drawContainers(parent, data) {
                 'data-final': d.final,
                 'data-project': (d.owner ? d.owner.toLowerCase() : 'null')
             };
+
             if (d.id) {
                 options.title = (data.final ? d.name : d.owner + '|' + d.name)
             } else {
@@ -118,8 +116,7 @@ function drawContainers(parent, data) {
         .style('pointer-events', 'all')
         .on('click', function(d){
             let url = "";
-            console.log(d3.event.target);
-            if (d.accepts||d.final) {
+            if (loadable && (d.accepts||d.final)) {
                 d3.event.stopPropagation();
                 if (! d.id) {
                     url = "/users/containers/" + data.id + "/location/" + d.loc + '/';
@@ -131,7 +128,7 @@ function drawContainers(parent, data) {
                     complete: function(info){
                         let cnt_id = '#cnt-' + info.id;
                         $(cnt_id).empty();
-                        drawContainers(cnt_id, info);
+                        drawContainers(cnt_id, info, loadable);
                         listLoaded('#loaded-projects', '#loaded-containers', info);
                     }
                 });
@@ -175,7 +172,7 @@ function drawContainers(parent, data) {
     }
     added.each(function (d) {
         if (detailed || (!d.final)) {
-            drawContainers('#' + $(this).attr('id'), d);
+            drawContainers('#' + $(this).attr('id'), d, loadable);
         }
     });
 }
@@ -330,13 +327,9 @@ function unloadUpdateData(element, settings) {
         },
         success: function (data, status, xhr) {
             let cnt_id = '#cnt-' + data.id;
-            let cnt_nodes = '.list-cnt-' + src.data('id');
             $(cnt_id).empty();
-            src.tooltip('dispose');
-            $(cnt_nodes).slideUp(300, function () {
-                $(cnt_nodes).remove();
-            });
-            drawContainers(cnt_id, data);
+            drawContainers(cnt_id, data, true);
+            listLoaded('#loaded-projects', '#loaded-containers', data);
         },
         error: function () {
             src.shake();

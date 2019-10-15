@@ -12,7 +12,7 @@ from itemlist.views import ItemListView
 from mxlive.lims.forms import NewProjectForm
 from mxlive.lims.models import Project, ActivityLog
 from mxlive.utils import slap
-from mxlive.utils.mixins import AjaxableResponseMixin, AdminRequiredMixin
+from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin
 from . import models, forms
 
 User = get_user_model()
@@ -36,7 +36,7 @@ class AccessList(AdminRequiredMixin, ItemListView):
         return ctx
 
 
-class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.AccessForm
     template_name = "modal/form.html"
     model = models.UserList
@@ -77,7 +77,7 @@ class CategoryList(AdminRequiredMixin, ItemListView):
     template_name = "users/list.html"
 
 
-class CategoryEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class CategoryEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.CategoryForm
     template_name = "modal/form.html"
     model = models.UserCategory
@@ -87,7 +87,7 @@ class CategoryEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixi
     admin_roles = ['admin']
 
 
-class AnnouncementCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
+class AnnouncementCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
     form_class = forms.AnnouncementForm
     template_name = "modal/form.html"
     model = models.Announcement
@@ -95,7 +95,7 @@ class AnnouncementCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableRespon
     success_message = "Announcement has been created"
 
 
-class AnnouncementEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class AnnouncementEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.AnnouncementForm
     template_name = "modal/form.html"
     model = models.Announcement
@@ -103,7 +103,7 @@ class AnnouncementEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponse
     success_message = "Announcement has been updated"
 
 
-class AnnouncementDelete(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
+class AnnouncementDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
     template_name = "modal/delete.html"
     model = models.Announcement
     success_url = reverse_lazy('dashboard')
@@ -141,7 +141,7 @@ class UserDetail(AdminRequiredMixin, detail.DetailView):
         return Project.objects.get(username=self.kwargs.get('username'))
 
 
-class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
+class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
     form_class = NewProjectForm
     template_name = "modal/form.html"
     model = Project
@@ -177,7 +177,7 @@ class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
         return render(self.request, "users/redirect.html")
 
 
-class ProjectDelete(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
+class ProjectDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
     template_name = "modal/delete.html"
     model = User
     success_url = reverse_lazy('user-list')

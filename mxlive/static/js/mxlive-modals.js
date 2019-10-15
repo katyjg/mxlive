@@ -18,6 +18,7 @@
 
 (function ( $ ) {
     $.fn.asyncForm = function (options) {
+        let target = $(this);
         let defaults = {
             url: $(this).data('form-action'),
             setup: function (body) {
@@ -60,12 +61,19 @@
                 });
             },
             complete: function(data) {
-                console.log(data);
-                //window.location.reload()
+                if (data.url) {
+                    if (data.modal) {
+                        target.load(data.url);
+                    } else {
+                        window.location.replace(data.url);
+                    }
+                } else {
+                    window.loacation.reload();
+                }
             }
         };
         let settings = $.extend(defaults, options);
-        let target = $(this);
+
 
         // load form and initialize it
         $.ajax({

@@ -1,15 +1,18 @@
 {% extends "users/base.html" %}
 {% load humanize %}
 {% load markup %}
+{% load icons %}
 
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading">
-        <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
+        <i class="text-muted ti {% if object.is_editable %}ti-unlock{% else %}ti-lock{% endif %}"></i>
         <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}{{ object.identity }} | </span><strong>{{ object.name }}</strong>
     </h3>
     <span class="text-muted">
         {% if object.shipment %}
-            <strong>1</strong> of <strong>{{ object.shipment.groups.count }}</strong> Group{{ object.shipment.groups.count|pluralize }} in Shipment {{object.shipment.name}}
+            {% with object.shipment.groups.count as count %}
+            <strong>1</strong> of <strong>{{ count }}</strong> Group{{ count|pluralize }} in Shipment {{object.shipment.name}}
+            {% endwith %}
         {% else %}
             Group not in a shipment.
         {% endif %}
@@ -18,10 +21,9 @@
 
 {% block object_tools %}
     {% if object.status == object.STATES.DRAFT %}
-        <span class="tools-box pull-right">
-            <a class="pull-right" data-url="{% url "group-select" object.pk %}" title="Sample Seat Selection">
-                <i class="fa fa-2 fa-fw fa-plus-circle"></i>
-                <br><span class="tool-label">Samples</span>
+        <span class="tools-box float-right">
+            <a href="#!" data-link="{% url "group-select" object.pk %}" title="Sample Seat Selection">
+                {% show_icon label='Samples' icon='ti ti-1x ti-plus' %}
             </a>
         </span>
     {% endif %}
@@ -66,22 +68,19 @@
 <div class="row">
     <div class="col-sm-12 bulk-edit">
         {% if object.is_editable %}
-        <div class="tools-box pull-right">
-            <button type="submit" name="submit" onclick="submit_changes();" value="submit" disabled class="btn btn btn-primary">Submit</button>
-            <a class="pull-right not-active" title="Reset" onclick="reset_inputs();" href="#">
-                <span class="pull-right">
-                    <span class="fa-stack">
-                        <i class="fa-stack-2x fa fa-3 fa-fw ti ti-reload"></i>
-                    </span><br>
-                </span>
+        <div class="tools-box float-right">
+            <a class="float-right" onclick="reset_inputs();" href="#!">
+                {% show_icon label="Reload" icon="ti ti-1x ti-reload" %}
+            </a>
+            <a class="float-right disabled" onclick="submit_changes();" href="#!">
+                {% show_icon label="Save" icon="ti ti-1x ti-save" %}
             </a>
         </div>
         {% endif %}
         <h3>Samples in {{ object.name }}</h3>
-        <div class="error-panel alert alert-warning" style="display: none;">
-        </div>
+        <div class="error-panel alert alert-warning" style="display: none;"></div>
         {% if object.status == object.STATES.DRAFT %}
-            <div class="object-list sortable">
+            <div class="item-list sortable">
             <table class="table table-hover">
                 <thead>
                     <tr>
@@ -124,7 +123,7 @@
                             <td style="vertical-align: middle; padding-right: 15px !important;">
                                 <span class="overflow ellipsis" style="padding: 5px; margin-top: 0;">
                                     <a href="{% url "sample-detail" sample.pk %}"><strong>{{ sample.name }}</strong></a>
-                                <span/>
+                                </span>
                                 <small class="overflow ellipsis">
                                     {% if sample.dewar %}<span class="text-muted"><strong>{{ sample.dewar.beamline.acronym }} {{ sample.port }}</strong> |</span>{% endif %}
                                     {{ sample.container_and_location }}
@@ -151,10 +150,6 @@
     </div>
 </div>
 
-{% endblock %}
-
-{% block extra_css %}
-    <link rel="stylesheet" href="/static/objlist/objlist.css" type="text/css" media="screen" />
 {% endblock %}
 
 {% block extra_js %}

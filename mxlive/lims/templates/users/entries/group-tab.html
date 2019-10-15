@@ -20,7 +20,7 @@
                 <div class="col-4">
                 {% if user.is_superuser %}
                     <span class="tools-box pull-right align-middle" style="padding-top: 0; padding-bottom: 0; padding-right: 20px !important;">
-                        <a data-url="{% url "sample-admin-edit" sample.pk %}" title="Add/Edit Notes"><i class="fa fa-fw fa-2 fa-comment-o"></i></a>
+                        <a data-link="{% url "sample-admin-edit" sample.pk %}" title="Add/Edit Notes"><i class="fa fa-fw fa-2 fa-comment-o"></i></a>
                     </span>
                     <form class="hidden" method="post" id="{{ sample.pk }}-done" action="{% url "sample-done" sample.pk %}">
                         {% csrf_token %}

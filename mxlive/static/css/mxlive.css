@@ -349,7 +349,7 @@ table.table-sm td {
     padding: 4px 8px 4px 8px !important;
 }
 
-.table-hover tr[data-url]:hover, .table-hover tr[data-detail-url]:hover {
+.table-hover tr[data-link]:hover, .table-hover tr[data-detail-url]:hover {
     cursor: pointer;
 }
 
@@ -838,7 +838,7 @@ ul.errorlist ul.errorlist li {
     background-color: white;
 }
 
-a[data-url], .back text[port], .cursor {
+a[data-link], .back text[port], .cursor {
     cursor: pointer;
 }
 

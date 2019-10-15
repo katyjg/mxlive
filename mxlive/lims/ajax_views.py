@@ -112,16 +112,12 @@ class UnloadContainer(AdminRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         try:
             container = models.Container.objects.get(pk=self.kwargs['pk'])
-            parent = container.parent
+            root = container.parent.get_load_root()
         except models.Group.DoesNotExist:
             raise http.Http404("Can't unload Container.")
 
         models.LoadHistory.objects.filter(child=self.kwargs['pk']).active().update(end=timezone.now())
         models.Container.objects.filter(pk=container.pk).update(parent=None, location=None)
-        if parent:
-            layout = parent.get_layout()
-        else:
-            layout = {}
 
-        return JsonResponse(layout, safe=False)
+        return JsonResponse(root.get_layout(), safe=False)
 

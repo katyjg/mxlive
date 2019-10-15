@@ -24,7 +24,7 @@
     <a href="{% url "session-data" object.pk %}" title="Go to Data from this session">
         {% show_icon label='Data' icon='ti ti-1x ti-layout-grid3' badge=object.datasets.count %}
     </a>
-    <a href="#!" data-url="{% url "session-history" object.pk %}">
+    <a href="#!" data-link="{% url "session-history" object.pk %}">
         {% show_icon label='History' icon='ti ti-1x ti-timer' %}
     </a>
     {% if user.is_superuser %}

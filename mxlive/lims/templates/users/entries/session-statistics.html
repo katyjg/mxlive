@@ -7,7 +7,7 @@
 
 {% block object_tools %}
     <span class="tools-box pull-right">
-        <a class="pull-right" data-url="{% url "session-history" object.pk %}">
+        <a class="pull-right" data-link="{% url "session-history" object.pk %}">
             {% show_icon label='History' icon='ti ti-1x ti-timer' %}
         </a>
     </span>

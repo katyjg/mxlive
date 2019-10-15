@@ -26,7 +26,7 @@
             {% show_icon label="Sessions" icon="ti ti-1x ti-time" %}
         </a>
         <div class="separator"></div>
-        <a href="#!"  data-link="{% url "new-announcement" %}" title="Create Announcement">
+        <a href="#!"  data-form-link="{% url "new-announcement" %}" title="Create Announcement">
             {% show_icon label="Add Info" icon="ti ti-1x ti-announcement" %}
         </a>
     </div>
@@ -73,9 +73,9 @@
                     <div class="list-group-item empty">
                         <div class="row">
                         <div class="col">
-                        <a href="#!" data-url="{% url "shipment-new" %}">
+                        <a href="#!" data-link="{% url "shipment-new" %}">
 
-                            <div class="box-status pull-left">
+                            <div class="box-status">
                                 <div class="text-center text-muted">
                                     <div title="Create a Shipment" class="ti ti-2 ti-plus"></div>
                                     <div><small>Start Now</small></div>

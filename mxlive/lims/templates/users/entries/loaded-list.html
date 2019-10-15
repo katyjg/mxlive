@@ -24,7 +24,7 @@
             <div class="panel-heading" id="containers-{{ project.pk }}"
                  rel="{% for c in containers %}{{ c.pk }} {% endfor %}">
                 <div class="tools-box">
-                    <a href="#!" data-url="{% url "empty-containers" pk=object.pk username=project.username %}"
+                    <a href="#!" data-link="{% url "empty-containers" pk=object.pk username=project.username %}"
                        title="Unload all containers for this project">
                         {% show_icon label='Empty' icon='ti ti-1x ti-share' %}
                     </a>

@@ -16,7 +16,9 @@
     </h3>
     <span class="text-muted">
         {% if object.shipment %}
-            <strong>1</strong> of <strong>{{ object.shipment.containers.count }}</strong> Container{{ object.shipment.containers.count|pluralize }} in Shipment {{object.shipment.name}}
+            {% with object.shipment.containers.count as count %}
+            <strong>1</strong> of <strong>{{ count }}</strong> Container{{ count|pluralize }} in Shipment {{object.shipment.name}}
+            {% endwith %}
         {% else %}
             Container not in a shipment.
         {% endif %}
@@ -26,15 +28,15 @@
 {% block object_tools %}
     {% include "users/tools-base.html" %}
     {% if object.parent_history.all %}
-        <span class="tools-box pull-right">
-            <a href="#!" class="pull-right" data-url="{% url "container-history" object.pk %}">
+        <span class="tools-box">
+            <a href="#!" data-link="{% url "container-history" object.pk %}">
                 {% show_icon label='History' icon='ti ti-1x ti-timer' %}
             </a>
         </span>
     {% endif %}
     {% if object.children_history.all %}
-        <span class="tools-box pull-right">
-            <a class="pull-right" data-url="{% url "automounter-history" object.pk %}">
+        <span class="tools-box">
+            <a class="pull-right" data-link="{% url "automounter-history" object.pk %}">
                 {% show_icon label='Container History' icon='ti ti-1x ti-timer' %}
             </a>
         </span>

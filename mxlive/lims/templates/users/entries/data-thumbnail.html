@@ -1,5 +1,5 @@
 <div class="col-12 col-sm-6 col-md-4 col-lg-3 mini-thumbnail pull-right">
-    <a data-url="{% url 'data-detail' data.pk %}">
+    <a data-link="{% url 'data-detail' data.pk %}">
     <div class="list-group-item list-group-item-success text-condensed">
         <span class="pull-right badge badge-secondary">{{ data.beamline.acronym }}</span>
         <span class="overflow ellipsis"><strong>{{ data.name }} </strong> | {{ data.get_kind_display }}</span>
