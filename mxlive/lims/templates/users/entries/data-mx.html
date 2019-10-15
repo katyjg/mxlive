@@ -7,9 +7,9 @@
      data-frame-set='{{ object.frames }}'
      data-wavelength='{{ object.wavelength }}'
      data-resolution='{{ object.meta_data.resolution|default:0 }}'
+     class="d-flex flex-row"
 >
-    <div class="row">
-        <div class="col-8" style="width: 542px;">
+        <div class="" style="width: 542px;">
             <!-- image viewer aspect -->
             <div class="data-image">
                 <div id="data-image-loading"><div></div></div>
@@ -18,13 +18,13 @@
                 </div>
                 <!-- image navigation -->
                 <div class="image-nav">
-                    <div class="pull-left">
+                    <div class="float-left">
                         <button class="btn btn-success btn-dk" onclick="changeBrightness('dk');" type="button">Dark</button>
                         <button class="btn btn-success btn-nm" onclick="changeBrightness('nm');" type="button">Normal</button>
                         <button class="btn btn-success btn-lt" onclick="changeBrightness('lt');" type="button">Light</button>
                     </div>
-                    <div class="pull-left loaded-image overflow"><span><var id="framename"></var></span><br/>Osc: <var id="oscstart"></var> to <var id="oscend"></var></div>
-                    <div class="pull-right">
+                    <div class="float-left loaded-image overflow"><span><var id="framename"></var></span><br/>Osc: <var id="oscstart"></var> to <var id="oscend"></var></div>
+                    <div class="float-right">
                         <button class="btn btn-info" onclick="prevClicked();" type="button"><i class="fa fa-fw fa-chevron-left"></i></button>
                         <button class="btn btn-info" onclick="nextClicked();" type="button"><i class="fa fa-fw fa-chevron-right"></i></button>
                     </div>
@@ -32,7 +32,7 @@
             </div>
         </div>
 
-        <div class="row col-3 col-meta">
+        <div class="col-meta">
             <!-- Display of metaData -->
             <div class="row">
                 <div class="meta-data col-12">
@@ -58,7 +58,7 @@
                                     {% get_frame_name object frame_id  as frame_name %}
                                     <li data-frame-id="{{ frame_id }}" data-frame-name="{{ frame_name }}">
                                         <a onclick="toFrame('{{ frame_name }}', {{ frame_id }});">{{ frame_name }}</a>&nbsp;
-                                        <a class="pull-right download-tool" download="{{ frame_name }}"
+                                        <a class="float-right download-tool" download="{{ frame_name }}"
                                            href="{% url 'files-proxy' section='raw' path=frame_url %}"
                                            title="Download this image"><i class="fa fa-fw fa-download"></i></a>
                                     </li>
@@ -68,7 +68,7 @@
                         <div id="meta-data" class="tab-pane fade">
                             <ul class="scrollbar-inner">
                                 {% for k, v in object.get_meta_data.items %}
-                                    <li><strong>{{ k|title }}: </strong> <span class="pull-right">{{ v }}</span></li>
+                                    <li><strong>{{ k|title }}: </strong> <span class="float-right">{{ v }}</span></li>
                                 {% endfor %}
                             </ul>
                         </div>
@@ -77,13 +77,12 @@
             </div>
         </div>
     </div>
-</div>
 
 <link rel="stylesheet" href="{% static "css/jquery.diffviewer.css" %}" />
 
 <script src="{% static "jquery/jquery-migrate.min.js" %}"></script>
 <script src="{% static "js/jquery.mousewheel-3.0.6.js" %}"></script>
-<script type="text/javascript" src="/static/js/mxlive-diffviewer.js"></script>
+<script src="{% static "js/mxlive-diffviewer.js" %}"></script>
 <script type="text/javascript">
     var dataViewer = function(){
 
