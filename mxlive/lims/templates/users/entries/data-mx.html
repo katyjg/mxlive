@@ -7,14 +7,14 @@
      data-frame-set='{{ object.frames }}'
      data-wavelength='{{ object.wavelength }}'
      data-resolution='{{ object.meta_data.resolution|default:0 }}'
-     class="d-flex flex-row justify-content-end"
+     class="d-flex"
 >
-        <div class="">
+        <div style="width: 512px">
             <!-- image viewer aspect -->
             <div class="data-image p-0">
                 <div id="data-image-loading"><div></div></div>
                 <div class="image-wrapper">
-                    <div id="diffviewer" style="width: 100%;" class="viewer"></div>
+                    <div id="diffviewer" class="viewer"></div>
                 </div>
             </div>
             <!-- image navigation -->
@@ -34,49 +34,44 @@
             </div>
         </div>
 
-        <div class="col-4">
+        <div class="d-flex flex-column flex-fill pl-3">
             <!-- Display of metaData -->
-            <div class="row">
-                <div class="meta-data col-12">
-                    <div class="row">
-                        <div class="xtal-pic col-12" style="background-image: url('{% url 'files-proxy' section='snapshot' path=object.snapshot_url %}');"
-                             title="Snapshot from beamline">&nbsp;</div>
-                    </div>
-                </div>
-
-                <div class="col-12">
-                    <ul class="nav nav-tabs text-condensed">
-                        <li class="active"><a data-toggle="pill" href="#frames">{{ object.num_frames }} Frames ({{ object.frame_sets }})</a></li>
-                        <li><a data-toggle="pill" href="#meta-data">Meta-Data</a></li>
-                    </ul>
-                </div>
-                <div class="frame-list col-12">
-                    <!--h4 class="text-condensed">{{ object.num_frames }} Frames ({{ object.frame_sets }})</h4-->
-                    <div class="tab-content">
-                        <div id="frames" class="tab-pane fade active in">
-                            <ul class="scrollbar-inner">
-                                {% for frame_id in object.frames %}
-                                    {% get_frame_url object frame_id  as frame_url %}
-                                    {% get_frame_name object frame_id  as frame_name %}
-                                    <li data-frame-id="{{ frame_id }}" data-frame-name="{{ frame_name }}">
-                                        <a onclick="toFrame('{{ frame_name }}', {{ frame_id }});">{{ frame_name }}</a>&nbsp;
-                                        <a class="float-right download-tool" download="{{ frame_name }}"
-                                           href="{% url 'files-proxy' section='raw' path=frame_url %}"
-                                           title="Download this image"><i class="fa fa-fw fa-download"></i></a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        <div id="meta-data" class="tab-pane fade">
-                            <ul class="scrollbar-inner">
-                                {% for k, v in object.get_meta_data.items %}
-                                    <li><strong>{{ k|title }}: </strong> <span class="float-right">{{ v }}</span></li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+            <div class="meta-data" style="flex: none;">
+                <div class="xtal-pic" style="background-image: url('{% url 'files-proxy' section='snapshot' path=object.snapshot_url %}');"
+                         title="Snapshot from beamline">&nbsp;</div>
             </div>
+            <small style="flex: none;">
+                <ul class="nav nav-tabs text-condensed px-2" role="tablist">
+                    <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#frames">{{ object.num_frames }} Frames ({{ object.frame_sets }})</a></li>
+                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#meta-data">Meta-Data</a></li>
+                </ul>
+            </small>
+            <div class="frame-list flex-fill">
+                <!--h4 class="text-condensed">{{ object.num_frames }} Frames ({{ object.frame_sets }})</h4-->
+                <div class="tab-content">
+                    <div id="frames" class="tab-pane fade show active">
+                        <ul class="list-unstyled">
+                            {% for frame_id in object.frames %}
+                                {% get_frame_url object frame_id  as frame_url %}
+                                {% get_frame_name object frame_id  as frame_name %}
+                                <li data-frame-id="{{ frame_id }}" data-frame-name="{{ frame_name }}">
+                                    <a onclick="toFrame('{{ frame_name }}', {{ frame_id }});">{{ frame_name }}</a>&nbsp;
+                                    <a class="float-right download-tool" download="{{ frame_name }}"
+                                       href="{% url 'files-proxy' section='raw' path=frame_url %}"
+                                       title="Download this image"><i class="fa fa-fw fa-download"></i></a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div id="meta-data" class="tab-pane fade">
+                        <ul class="list-unstyled">
+                            {% for k, v in object.get_meta_data.items %}
+                                <li><strong>{{ k|title }}: </strong> <span class="float-right">{{ v }}</span></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+        </div>
         </div>
     </div>
 <script type="text/javascript">

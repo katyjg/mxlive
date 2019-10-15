@@ -875,14 +875,6 @@ a[data-link], .back text[port], .cursor {
     margin-top: 0px;
 }
 
-#data-viewer .meta-data, #data-viewer .frame-list {
-    float: right;
-    clear: right;
-    width: 100%;
-    margin: 0 0 7px 7px;
-    background: #fff;
-}
-
 #data-viewer .xtal-snapshot {
     float: right;
     clear: right;
@@ -902,11 +894,10 @@ a[data-link], .back text[port], .cursor {
 }
 
 #data-viewer .xtal-pic {
-    margin-left: 15px;
-    height: 255px;
+    height: 200px;
     background-size: contain;
     background-repeat: no-repeat;
-
+    background-position: center;
 }
 
 .data-viewer .modal-body {
@@ -934,29 +925,9 @@ a[data-link], .back text[port], .cursor {
     border: 1px solid #ccc;
 }
 
-#data-viewer .image-nav {
-    width: 512px;
-}
-
-#data-viewer .frame-list ul {
-    background: #fff;
-    overflow-x: hidden;
-    overflow-y: scroll;
-    padding: 5px;
-    max-height: 221px;
-    margin-bottom: 0;
-    padding-right: 12px;
-}
-
-#data-viewer .frame-list ul.tall {
-    max-height: 481px;
-}
-
-#data-viewer .meta-data ul {
-    background: #fff;
-    padding: 5px;
-    font-size: 85%;
-    line-height: 1.2em;
+#data-viewer .frame-list {
+    height: 0;
+    overflow-y: auto;
 }
 
 #data-viewer .meta-data li.separator {
