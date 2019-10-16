@@ -1,30 +1,17 @@
 /*
-* iviewer Widget for jQuery UI
-* https://github.com/can3p/iviewer
-*
-* Copyright (c) 2009 - 2012 Dmitry Petrov
-* Dual licensed under the MIT and GPL licenses.
-* - http://www.opensource.org/licenses/mit-license.php
-* - http://www.gnu.org/copyleft/gpl.html
-*
-* Author: Dmitry Petrov
-* Version: 0.7
-*
-* MXLIVE: 'iviewer' changed to 'diffviewer' throughout.
+* DiffViewer Widget for jQuery UI
+* Based on https://github.com/can3p/iviewer by Dmitry Petrov
 */
 
-(function ($, undefined) {
-
-//this code was taken from the https://github.com/furf/jquery-ui-touch-punch
+(function($){
     var mouseEvents = {
         touchstart: 'mousedown',
         touchmove: 'mousemove',
         touchend: 'mouseup'
-    };
+    },
+    gesturesSupport = 'ongesturestart' in document.createElement('div');
 
-    /**
-     * Convert a touch event to a mouse-like
-     */
+    //Convert a touch event to a mouse-like
     function makeMouseEvent(event) {
         var touch = event.originalEvent.changedTouches[0];
 
@@ -44,23 +31,24 @@
     var mouseProto = $.ui.mouse.prototype,
         _mouseInit = $.ui.mouse.prototype._mouseInit;
 
-    mouseProto._mouseInit = function () {
+    mouseProto._mouseInit = function() {
         var self = this;
         self._touchActive = false;
 
-        this.element.bind('touchstart.' + this.widgetName, function (event) {
+        this.element.bind( 'touchstart.' + this.widgetName, function(event) {
+            if (gesturesSupport && event.originalEvent.touches.length > 1) { return; }
             self._touchActive = true;
             return self._mouseDown(makeMouseEvent(event));
-        })
+        });
 
-        var self = this;
         // these delegates are required to keep context
-        this._mouseMoveDelegate = function (event) {
+        this._mouseMoveDelegate = function(event) {
+            if (gesturesSupport && event.originalEvent.touches && event.originalEvent.touches.length > 1) { return; }
             if (self._touchActive) {
                 return self._mouseMove(makeMouseEvent(event));
             }
         };
-        this._mouseUpDelegate = function (event) {
+        this._mouseUpDelegate = function(event) {
             if (self._touchActive) {
                 self._touchActive = false;
                 return self._mouseUp(makeMouseEvent(event));
@@ -68,11 +56,11 @@
         };
 
         $(document)
-            .bind('touchmove.' + this.widgetName, this._mouseMoveDelegate)
+            .bind('touchmove.'+ this.widgetName, this._mouseMoveDelegate)
             .bind('touchend.' + this.widgetName, this._mouseUpDelegate);
 
         _mouseInit.apply(this);
-    }
+    };
 
     /**
      * Simple implementation of jQuery like getters/setters
@@ -89,131 +77,40 @@
         }
     };
 
-    /**
-     * Internet explorer rotates image relative left top corner, so we should
-     * shift image when it's rotated.
-     */
-    var ieTransforms = {
-            '0': {
-                marginLeft: 0,
-                marginTop: 0,
-                filter: 'progid:DXImageTransform.Microsoft.Matrix(M11=1, M12=0, M21=0, M22=1, SizingMethod="auto expand")'
-            },
-
-            '90': {
-                marginLeft: -1,
-                marginTop: 1,
-                filter: 'progid:DXImageTransform.Microsoft.Matrix(M11=0, M12=-1, M21=1, M22=0, SizingMethod="auto expand")'
-            },
-
-            '180': {
-                marginLeft: 0,
-                marginTop: 0,
-                filter: 'progid:DXImageTransform.Microsoft.Matrix(M11=-1, M12=0, M21=0, M22=-1, SizingMethod="auto expand")'
-            },
-
-            '270': {
-                marginLeft: -1,
-                marginTop: 1,
-                filter: 'progid:DXImageTransform.Microsoft.Matrix(M11=0, M12=1, M21=-1, M22=0, SizingMethod="auto expand")'
-            }
-        },
-        useIeTransforms = (jQuery.browser.msie && parseInt(jQuery.browser.version, 10) <= 8);
-
     $.widget("ui.diffviewer", $.ui.mouse, {
         widgetEventPrefix: "diffviewer",
         options: {
-            /**
-             * start zoom value for image, not used now
-             * may be equal to "fit" to fit image into container or scale in %
-             **/
-            zoom: "fit",
-            /**
-             * base value to scale image
-             **/
-            zoom_base: 100,
-            /**
-             * maximum zoom
-             **/
-            zoom_max: 800,
-            /**
-             * minimum zoom
-             **/
-            zoom_min: 25,
-            /**
-             * base of rate multiplier.
-             * zoom is calculated by formula: zoom_base * zoom_delta^rate
-             **/
-            zoom_delta: 1.4,
-            /**
-             * whether the zoom should be animated.
-             */
-            zoom_animation: true,
-            /**
-             * if true plugin doesn't add its own controls
-             **/
-            ui_disabled: false,
-            /**
-             * if false, plugin doesn't bind resize event on window and this must
-             * be handled manually
-             **/
-            update_on_resize: true,
-            /**
-             * function is called to calculate resolution
-             **/
-            resFunc: function (a) {
+            zoom: "fit",    // start zoom value for image, not used now may be equal to "fit" to fit image into container or scale in %
+            zoom_base: 100, // base value to scale image
+            zoom_max: 800,  // maximum zoom
+            zoom_min: 25,   // minimum zoom
+            zoom_delta: 1.4,    // base of rate multiplier. zoom = zoom_base * zoom_delta^rate
+            zoom_animation: true, // animate zoom?
+            ui_disabled: false, // true if no custom controls
+            update_on_resize: true, // if false, plugin doesn't bind resize event on window
+            resFunc: function (a) { //function is called to calculate resolution
                 return a;
             },
-            /**
-             * event is triggered when zoom value is changed
-             * @param int new zoom value
-             * @return boolean if false zoom action is aborted
-             **/
+            // zoom events
             onZoom: jQuery.noop,
-            /**
-             * event is triggered when zoom value is changed after image is set to the new dimensions
-             * @param int new zoom value
-             * @return boolean if false zoom action is aborted
-             **/
             onAfterZoom: jQuery.noop,
-            /**
-             * event is fired on drag begin
-             * @param object coords mouse coordinates on the image
-             * @return boolean if false is returned, drag action is aborted
-             **/
+
+            // drag events
             onStartDrag: jQuery.noop,
-            /**
-             * event is fired on drag action
-             * @param object coords mouse coordinates on the image
-             **/
             onDrag: jQuery.noop,
-            /**
-             * event is fired on drag stop
-             * @param object coords mouse coordinates on the image
-             **/
             onStopDrag: jQuery.noop,
-            /**
-             * event is fired when mouse moves over image
-             * @param object coords mouse coordinates on the image
-             **/
+
+            // mouse events
             onMouseMove: jQuery.noop,
-            /**
-             * mouse click event
-             * @param object coords mouse coordinates on the image
-             **/
             onClick: jQuery.noop,
-            /**
-             * event is fired when image starts to load
-             */
+
+            // load events
             onStartLoad: null,
-            /**
-             * event is fired, when image is loaded and initially positioned
-             */
             onFinishLoad: null
         },
 
         _create: function () {
-            var me = this;
+            let me = this;
 
             //drag variables
             this.dx = 0;
@@ -221,37 +118,31 @@
             this.dragged = false; /*** MxLIVE: thumb dragging ***/
 
             /* object containing actual information about image
-    * @img_object.object - jquery img object
-    * @img_object.orig_{width|height} - original dimensions
-    * @img_object.display_{width|height} - actual dimensions
-    */
+            * @img_object.object - jquery img object
+            * @img_object.orig_{width|height} - original dimensions
+            * @img_object.display_{width|height} - actual dimensions
+            */
             this.img_object = {};
-
             this.zoom_object = {}; //object to show zoom status
-
             this._angle = 0;
-
             this.current_zoom = this.options.zoom;
 
             if (this.options.src === null) {
                 return;
             }
 
+            // init container
             this.container = this.element;
-
             this._updateContainerInfo();
-
-            //init container
             this.container.css("overflow", "hidden");
 
-            if (this.options.update_on_resize == true) {
+            if (this.options.update_on_resize === true) {
                 $(window).resize(function () {
                     me._updateContainerInfo();
                 });
             }
 
             this.img_object = new $.ui.diffviewer.ImageObject(this.options.zoom_animation);
-
             //init object
             this.img_object.object()
             //bind mouse events
@@ -1210,4 +1101,4 @@
         }
     };
 
-})(jQuery, undefined);
+})(jQuery);
