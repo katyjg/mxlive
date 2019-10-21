@@ -12,11 +12,9 @@ INTERNAL_IPS = [
     '0.0.0.0/0',
 ]
 
+FACILITY_NAME = "CMCF"
 DEBUG = True
 DOWNLOAD_CACHE_DIR = "/mxlive/local/cache"
-
-# This should be a url pointing to an active deployment of the data-proxy server
-IMAGE_PREPEND = ''
 
 DATABASES = {
     'default': {

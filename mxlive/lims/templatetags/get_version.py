@@ -15,3 +15,8 @@ def get_version(val=None):
 @register.filter("get_from_settings")
 def get_from_settings(val=None):
     return getattr(settings, val, '')
+
+
+@register.simple_tag
+def get_setting(key, default=""):
+    return getattr(settings, key, default)

@@ -204,6 +204,7 @@ TRUSTED_URLS = ['^/json', '^/api']
 
 # Shift parameters
 HOURS_PER_SHIFT = 8
+FACILITY_NAME = "CMCF"
 
 # Downloads
 RESTRICT_DOWNLOADS = False
