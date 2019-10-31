@@ -13,7 +13,7 @@
     <script src="{% static "js/mxlive-diffviewer.js" %}"></script>
 {% endblock  %}
 
-{% block modal_size %}modal-lg{% endblock %}
+{% block modal_styles %}modal-lg{% endblock %}
 {% block modal_classes %}data-viewer{% endblock %}
 {% block modal_title_tools %}{% endblock %}
 
@@ -69,11 +69,11 @@
                 {% if object.url %}
                     <a href="{% url 'files-proxy' section='archive' path=object.download_url %}"
                        download="{{ object.name }}.tar.gz" title="Download Full Dataset">
-                        {% show_icon label="Download" icon="ti ti-1x ti-download" %}
+                        {% show_icon label="Download" icon="ti ti-md ti-download" %}
                     </a>
                 {% else %}
                     <span class="text-muted not-allowed" title="Download Not Available">
-                        {% show_icon label="Download" icon="ti ti-1x ti-download" %}
+                        {% show_icon label="Download" icon="ti ti-md ti-download" %}
                     </span>
                 {% endif %}
                 </div>

@@ -792,9 +792,10 @@ class Container(TransitStatusMixin):
         return self.dewars.filter(active=True).first() or self.parent and self.parent.dewar() or None
 
     def port(self):
-        parent_port = "" if not self.parent else self.parent.port()
-        loc_port = "" if not self.location else self.location.name
-        return '{}{}'.format(parent_port, loc_port)
+        if self.parent and self.location:
+            return "{}{}".format(self.parent.port(), self.location.name)
+        else:
+            return ""
 
     def get_project(self):
         if self.children.all():
@@ -814,6 +815,11 @@ class Container(TransitStatusMixin):
                         priority = max(priority, getattr(sample.group, field))
             if priority is not None:
                 setattr(self, field, priority)
+
+    def get_location_name(self):
+        if self.parent:
+            if self.location:
+                return self.location.name
 
     def get_layout(self, with_samples=True):
         """
@@ -836,7 +842,7 @@ class Container(TransitStatusMixin):
             'owner': self.project.name.upper(),
             'height': info.get('height'),
             'url': self.get_absolute_url(),
-            'loc': None if not self.location else self.location.name,
+            'loc': self.get_location_name(),
             'envelope': self.kind.envelope,
             'accepts': self.accepts_children(),
             'port': self.port()

@@ -22,7 +22,7 @@
 {% block object_tools %}
     {% if object.status == object.STATES.DRAFT %}
         <a href="#!" data-link="{% url "group-select" object.pk %}" title="Sample Seat Selection">
-            {% show_icon label='Samples' icon='ti ti-1x ti-plus' %}
+            {% show_icon label='Samples' icon='ti ti-md ti-plus' %}
         </a>
         <div class="separator"></div>
     {% endif %}
@@ -69,10 +69,10 @@
         {% if object.is_editable %}
         <div class="tools-box float-right">
             <a class="float-right" onclick="reset_inputs();" href="#!">
-                {% show_icon label="Reload" icon="ti ti-1x ti-reload" %}
+                {% show_icon label="Reload" icon="ti ti-md ti-reload" %}
             </a>
             <a class="float-right disabled" onclick="submit_changes();" href="#!">
-                {% show_icon label="Save" icon="ti ti-1x ti-save" %}
+                {% show_icon label="Save" icon="ti ti-md ti-save" %}
             </a>
         </div>
         {% endif %}

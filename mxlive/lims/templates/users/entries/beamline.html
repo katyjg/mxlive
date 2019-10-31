@@ -23,21 +23,21 @@
 {% block object_tools %}
     {% if object.active_dewar.container.children_history.all %}
     <a href="#!" data-link="{% url "automounter-history" object.active_dewar.container.pk %}">
-        {% show_icon label='History' icon='ti ti-1x ti-timer' %}
+        {% show_icon label='History' icon='ti ti-md ti-timer' %}
     </a>
     {% endif %}
     {% now "Y" as current_year %}
     <a href="{% url "beamline-statistics" object.pk current_year %}">
-        {% show_icon label='Stats' icon='ti ti-1x ti-bar-chart' %}
+        {% show_icon label='Stats' icon='ti ti-md ti-bar-chart' %}
     </a>
     <a href="{% url "usage-statistics" object.pk %}">
-        {% show_icon label='Usage' icon='ti ti-1x ti-stats-up' %}
+        {% show_icon label='Usage' icon='ti ti-md ti-stats-up' %}
     </a>
     <a href="{% url "beamline-history" pk=object.pk %}">
-        {% show_icon label='Sessions' icon='ti ti-1x ti-time' %}
+        {% show_icon label='Sessions' icon='ti ti-md ti-time' %}
     </a>
     <a href="#!" data-link="{% url "dewar-edit" pk=object.active_dewar.pk %}">
-        {% show_icon label='Comment' icon='ti ti-1x ti-comment-alt' %}
+        {% show_icon label='Comment' icon='ti ti-md ti-comment-alt' %}
     </a>
 {% endblock %}
 

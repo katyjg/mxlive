@@ -212,7 +212,7 @@ function compileProjects(data) {
         results.containers = results.containers.concat(value)
     });
     results.containers.sort(function (a, b) {
-        return a.loc > b.loc;
+        return (a.loc < b.loc) ? -1: 0;
     });
     return results;
 }
@@ -230,7 +230,7 @@ var locTemplate = _.template(
     '           <div class="tools-box">' +
     '               <a href="#!" data-unload-url="/users/containers/<%= id %>/unload/" data-id="<%= id %>">' +
     '                   <div class="icon-stack">' +
-    '                       <i class="ti ti-1 ti-share"></i>' +
+    '                       <i class="ti ti-share"></i>' +
     '                   </div>' +
     '               </a>' +
     '           </div>' +
@@ -250,12 +250,12 @@ var projTemplate = _.template(
     '           <div class="project-list-tools tools-box">' +
     '               <a title="Details" data-toggle="collapse" href="#prj-<%= name.toLowerCase() %>-list"> ' +
     '                   <div class="icon-stack">' +
-    '                       <i class="ti ti-1x ti-zoom-in"></i>' +
+    '                       <i class="ti ti-md ti-zoom-in"></i>' +
     '                   </div>' +
     '               </a>' +
     '               <a href="#!" data-form-url="/users/containers/<%= parent %>/unload/<%= name.toLowerCase() %>/">' +
     '                   <div class="icon-stack">' +
-    '                       <i class="ti ti-1x ti-share"></i>' +
+    '                       <i class="ti ti-md ti-share"></i>' +
     '                   </div>' +
     '               </a>' +
     '           </div>' +
@@ -282,7 +282,7 @@ function listLoaded(proj_container, loc_container, data) {
         .attr("data-reference", "project")
         .html(function (d) {
             d.details.sort(function (a, b) {
-                return a.loc > b.loc;
+                return (a.loc < b.loc) ? -1: 0;
             });
             return projTemplate(d)
         });
@@ -292,7 +292,7 @@ function listLoaded(proj_container, loc_container, data) {
         .attr("data-reference", "project")
         .html(function (d) {
             d.details.sort(function (a, b) {
-                return a.loc > b.loc;
+                return (a.loc < b.loc) ? -1: 0;
             });
             return projTemplate(d)
         });

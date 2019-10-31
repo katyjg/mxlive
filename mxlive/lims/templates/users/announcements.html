@@ -7,10 +7,10 @@
                     {% if a.has_document %}<a href="{{ a.attachment.url }}" title="Download File"><i class="ti ti-download"></i></a>{% endif %}
                     {% if request.user.is_superuser %}
                         <a href="#!" data-link="{% url "announcement-edit" a.pk %}" title="Edit Announcement" style="padding-left: 0; padding-right: 0;">
-                            {% show_icon icon='ti ti-1x ti-pencil' %}
+                            {% show_icon icon='ti ti-md ti-pencil' %}
                         </a>
                         <a href="#!" data-link="{% url "announcement-delete" a.pk %}" title="Delete Announcement">
-                            {% show_icon icon='ti ti-1x ti-trash' %}
+                            {% show_icon icon='ti ti-md ti-trash' %}
                         </a>
                     {% endif %}
                 </span>

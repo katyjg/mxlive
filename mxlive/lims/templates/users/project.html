@@ -11,14 +11,14 @@
 {% endblock %}
 
 {% block object_tools %}
-    <a href="#!"  data-link="{% url "shipment-new" %}">
-        {% show_icon label='New Shipment' icon='ti ti-1x ti-plus' %}
+    <a href="#!"  data-form-link="{% url "shipment-new" %}">
+        {% show_icon label='New Shipment' icon='ti ti-md ti-plus' %}
     </a>
     <a  href="{% url "session-list" %}">
-        {% show_icon label='Sessions' icon='ti ti-1x ti-time' %}
+        {% show_icon label='Sessions' icon='ti ti-md ti-time' %}
     </a>
     <a  href="{% url "project-statistics" username=user.username %}">
-        {% show_icon label='Usage Stats' icon='ti ti-1x ti-stats-up' %}
+        {% show_icon label='Usage Stats' icon='ti ti-md ti-stats-up' %}
     </a>
 {% endblock %}
 
@@ -32,10 +32,10 @@
                 <div class="list-group-item empty">
                     <div class="row">
                         <div class="col">
-                            <a href="#!" data-link="{% url "shipment-new" %}">
+                            <a href="#!" data-form-link="{% url "shipment-new" %}">
                                 <div class="box-status pull-left">
                                     <div class="text-center text-muted">
-                                        <div title="Create a Shipment" class="ti ti-2 ti-plus"></div>
+                                        <div title="Create a Shipment" class="ti ti-md ti-plus"></div>
                                         <div><small>Start Now</small></div>
                                     </div>
                                 </div>

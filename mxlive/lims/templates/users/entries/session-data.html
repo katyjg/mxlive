@@ -14,7 +14,7 @@
 
 {% block object_tools %}
     <a href="{% url "session-reports" session.pk %}" title="Go to Reports from this session">
-        {% show_icon label='Reports' icon='ti ti-1x ti-bar-chart-alt' badge=session.num_reports %}
+        {% show_icon label='Reports' icon='ti ti-md ti-bar-chart-alt' badge=session.num_reports %}
     </a>
 {% endblock %}
 

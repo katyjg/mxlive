@@ -383,7 +383,7 @@
 .ti-split-h:before {
 	content: "\e676";
 }
-.ti-smallcap:before {
+.ti-mdallcap:before {
 	content: "\e677";
 }
 .ti-shine:before {

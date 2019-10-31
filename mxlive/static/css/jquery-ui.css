@@ -420,7 +420,7 @@ button.ui-button::-moz-focus-inner {
 	width: 95%;
 	margin: 0 auto .4em;
 }
-.ui-datepicker-multi-2 .ui-datepicker-group {
+.ui-datepicker-multi-md .ui-datepicker-group {
 	width: 50%;
 }
 .ui-datepicker-multi-3 .ui-datepicker-group {

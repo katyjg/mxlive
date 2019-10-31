@@ -1,9 +1,8 @@
 import re
 
-from crispy_forms.bootstrap import StrictButton, Div
-from crispy_forms.bootstrap import Tab, TabHolder
+from crispy_forms.bootstrap import StrictButton
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, HTML, Div, Field, Button
+from crispy_forms.layout import Layout, HTML, Div, Field
 from django import forms
 from django.conf import settings
 from django.urls import reverse_lazy
@@ -509,7 +508,8 @@ class ShipmentReceiveForm(forms.ModelForm):
             Div(
                 Div(
                     Div(
-                        StrictButton('Receive', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
+                        StrictButton('Receive', type='submit', name="submit", value='submit',
+                                     css_class='btn btn-primary'),
                         css_class='float-right'
                     ),
                     css_class="col-sm-12"
@@ -534,7 +534,8 @@ class ShipmentArchiveForm(forms.ModelForm):
             Div(
                 Div(
                     Div(
-                        StrictButton('Archive', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+                        StrictButton('Archive', type='submit', name="submit", value='save',
+                                     css_class='btn btn-primary'),
                         css_class='float-right'
                     ),
                     css_class="col-12"
@@ -646,7 +647,6 @@ class GroupForm(forms.ModelForm):
 
 
 class ContainerLoadForm(forms.ModelForm):
-
     class Meta:
         model = Container
         fields = ['parent', 'location']
@@ -720,7 +720,8 @@ class EmptyContainers(forms.ModelForm):
             'username': self.instance.username})
         self.helper.layout = Layout(
             Div(HTML(
-                """Any containers owned by <strong>{}</strong> will be removed from the automounter.""".format(self.instance.username.upper()))),
+                """Any containers owned by <strong>{}</strong> will be removed from the automounter.""".format(
+                    self.instance.username.upper()))),
             'parent',
             Div(
                 Div(
@@ -854,14 +855,7 @@ class ShipmentContainerForm(forms.ModelForm):
 
         self.helper = FormHelper()
         action_row = Div(
-            Div(
-                Div(
-                    Button('Add', type='add', value='Add Another', css_class="btn btn-success add"),
-                    css_class="float-left"
-                ),
-                css_class="col-6"
-            ),
-            css_class="form-action row"
+            css_class="form-action col-12"
         )
 
         if self.initial.get('shipment'):
@@ -871,21 +865,18 @@ class ShipmentContainerForm(forms.ModelForm):
             self.helper.form_action = reverse_lazy('shipment-add-containers',
                                                    kwargs={'pk': self.initial['shipment'].pk})
             self.helper.title = 'Add Containers to Shipment'
-            action_row.append(Div(
+            action_row.append(
                 Div(
                     StrictButton('Save', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
                     css_class="float-right"
-                ),
-                css_class="col-6"
-            ))
+                )
+            )
         else:
-            action_row.append(Div(
+            action_row.append(
                 Div(
                     StrictButton("Continue", type="submit", value="Continue", css_class='btn btn-primary'),
                     css_class="float-right"
-                ),
-                css_class="col-6"
-            ))
+                ))
 
         self.helper.layout = Layout(
             Div(
@@ -899,36 +890,64 @@ class ShipmentContainerForm(forms.ModelForm):
                 Div(
                     Div(
                         Div(
-                            Div(Field('shipment')),
-                            Div(Field('id', css_id="id")),
-                            Div(Field('name', css_id="name"), css_class="col-6 no-left-padding"),
-                            Div(Field('kind', css_class="tab-chosen chosen-single", css_id="kind"), css_class="col-5"),
                             Div(
-                                HTML("""<a title="Remove Container" class="inline-btn safe-remove btn btn-secondary">
-                                            <i class="fa fa-fw fa-minus"></i></a>"""),
-                                HTML("""<a title="Remove Container" class="inline-btn remove btn btn-danger" style="display: none;">
-                                            <i class="fa fa-fw fa-remove"></i></a>"""),
-                                css_class="col-1 float-right"),
-                            css_class="col-12 template repeat-row list-group-item"
+                                Div(Field('name'), css_class="col-6"),
+                                Div(Field('kind', css_class="select"), css_class="col-5"),
+                                Div(
+                                    Div(
+                                        HTML(
+                                            '<label></label>'
+                                            '<div class="spaced-buttons">'
+                                            '<a title="Remove Container" class="safe-remove btn btn-warning px-1">'
+                                            '<i class="ti ti-minus"></i>'
+                                            '</a>'
+                                            '<a title="Remove Container" class="remove btn btn-danger text-white px-1" style="display: none;">'
+                                            '<i class="ti ti-minus"></i>'
+                                            '</a>'
+                                            '</div'
+                                        ),
+                                        css_class="form-group"
+                                    ),
+                                    css_class="col-1"
+                                ),
+                                Field('shipment'),
+                                Field('id', css_id="id"),
+                                css_class="row",
+                            ),
+                            css_class="template repeat-row border-0"
                         ),
-                        css_class="row repeat-group repeat-container list-group list-group-hover",
+                        css_class="repeat-group repeat-container",
                     ),
-                    action_row,
-                    css_class="repeat-wrapper"
+
+                    css_class="repeat-wrapper col-12"
                 ),
-                css_class='repeat'
-            )
+                Div(
+                    StrictButton(
+                        "<i class='ti ti-plus'></i> Add Row", type="button",
+                        css_class='btn btn-sm btn-success add mt-3'
+                    ),
+                ),
+                css_class='repeat row'
+            ),
+            action_row
         )
 
     def help_text(self):
         if self.initial.get('shipment'):
-            return Div(HTML("""Use labels that are visible on your containers.<br/>
-                               <strong>Be careful! Removing a container will also remove the samples inside</strong><br/>&nbsp;""")
-                       )
+            return Div(
+                HTML(
+                    '<p>Use names that are visible on your containers.<br/>'
+                    '   <strong class="text-danger">Removing a container will remove the samples inside</strong>'
+                    '</p>'
+                )
+            )
         else:
-            return Div(HTML("""<h4>Add the containers you are bringing!</h4>"""),
-                       HTML("""<small>Use labels that are visible on your containers.
-                               Don't worry, you can always add more containers later.</small>"""))
+            return Div(
+                HTML(
+                    '<h4>Add the containers you are bringing!</h4>'
+                    '<p>Use labels that are visible on your containers. You can always add more containers later.</p>'
+                )
+            )
 
     def clean(self):
         self.repeated_data = {}
@@ -965,7 +984,7 @@ class ShipmentGroupForm(forms.ModelForm):
         fields = ['shipment', 'id', 'priority', 'kind', 'resolution', 'absorption_edge', 'name', 'sample_count', 'plan',
                   'comments', 'locations']
         widgets = {
-            'comments': forms.Textarea(attrs={'rows': "4"}),
+            'comments': forms.TextInput(),
             'priority': forms.TextInput(attrs={'readonly': True}),
             'shipment': forms.HiddenInput()
         }
@@ -987,17 +1006,10 @@ class ShipmentGroupForm(forms.ModelForm):
 
         self.helper = FormHelper()
 
-        action_row = Div(
-            Div(
-                Div(
-                    Button('Add', type='add', value='Add Another', css_class="btn btn-success add float-left"),
-                    not self.initial.get('shipment') and HTML(
-                        """<span title="Create one group for each container" class="btn btn-warning btn-margin" onclick="fillContainers();">Fill Containers</span>"""),
-                    css_class="float-left"
-                ),
-                css_class="col-6"
-            ),
-            css_class="form-action row"
+        action_row = Div(css_class="form-action row")
+        fill_btn = Div() if self.initial.get('shipment') else StrictButton(
+            "Group by Container", title="Create one group for each container", type="button",
+            onclick="fillContainers();", css_class='btn btn-sm btn-warning'
         )
 
         if self.initial.get('shipment'):
@@ -1044,62 +1056,78 @@ class ShipmentGroupForm(forms.ModelForm):
                 Div(
                     Div(
                         Div(
-                            Div(Field('shipment')),
-                            Div(Field('id', css_id="id")),
-                            Div(Field('priority', type="hidden", css_id="priority")),
-                            Div(HTML("""<a title="Drag to change group priority" class="disabled move">
-                                            <i class="fa fa-3x fa-grip"></i></a>"""), css_class="col-1 form-offset"),
-                            Div(Field('name', css_id="name"), css_class="col-5"),
-                            Div(Field('sample_count', css_id="sample_count"), css_class="col-3"),
-                            Div(HTML(
-                                """<a title="Sample Seat Selection" class="disabled btn btn-info inline-btn" onclick="showModal($(this));" href="#group-select"><i class="fa fa-fw fa-braille"></i></a>"""),
-                                HTML(
-                                    """<a title="Click to Delete Group" class="float-right inline-btn remove btn btn-danger" style="display: none;"><i class="fa fa-fw fa-remove"></i></a>"""),
-                                HTML(
-                                    """<a title="Remove Group" class="float-right inline-btn safe-remove btn btn-secondary"><i class="fa fa-fw fa-minus"></i></a>"""),
-                                HTML(
-                                    """<a title="Edit more group details" href="#group-details-{rowcount}" data-toggle="collapse" class="float-right inline-btn btn btn-info btn-collapse"><i class="fa fa-fw fa-angle-double-right"></i></a>"""),
-                                css_class="col-3 text-right"),
+                            Div(
+                                Div(Field('name', css_id="name"), css_class="col-4"),
+                                Div(Field('sample_count', css_id="sample_count"), css_class="col-3"),
+                                Div(
+                                    Div(
+                                        HTML(
+                                        '<label></label>'
+                                        '<div class="spaced-buttons">'
+                                        '<a title="Drag to change group priority" '
+                                        '   class="move btn btn-white">'
+                                        '   <i class="ti ti-move"></i>'
+                                        '</a>'
+                                        '<a title="Sample Locations" class="disabled btn btn-info " '
+                                        '   onclick="showModal($(this));" href="#group-select">'
+                                        '   <i class="ti ti-flickr"></i>'
+                                        '</a>'
+                                        '<a title="Edit more group details" href="#group-details-{rowcount}" '
+                                        '   class="btn btn-info btn-collapse collapsed"'
+                                        '   aria-expanded="false" data-parent="#repeat-group" data-toggle="collapse">'
+                                        '   <i class="ti ti-angle-double-right"></i>'
+                                        '</a>'
+                                        '<a title="Click to Delete Group" class="remove btn btn-danger" '
+                                        '   style="display: none;">'
+                                        '   <i class="ti ti-minus"></i>'
+                                        '</a>'
+                                        '<a title="Remove Group" class="safe-remove btn btn-secondary">'
+                                        '   <i class="ti ti-minus"></i>'
+                                        '</a>'
+                                        '</div>'
+                                        ),
+                                        css_class="form-group col"
+                                    ),
+                                    css_class="col-5"
+                                ),
+                                css_class="row card-header py-1 px-3"
+                            ),
                             Div(
                                 Div(
-                                    TabHolder(
-                                        Tab('Experiment Parameters',
-                                            Div(
-                                                Div(
-                                                    Div(Field('kind', css_class="tab-chosen chosen-select",
-                                                              css_id="kind"), css_class="col-6"),
-                                                    Div(Field('plan', css_class="tab-chosen chosen-select",
-                                                              css_id="plan"), css_class="col-6"),
-                                                    css_class="row"
-                                                ),
-                                                Div(
-                                                    Div(Field('absorption_edge', css_id="absorption_edge"),
-                                                        css_class="col-6"),
-                                                    Div(Field('resolution', css_id="resolution"), css_class="col-6"),
-                                                    css_class="row"
-                                                ),
-                                                css_class="row-fluid"
-                                            )
-                                            ),
-                                        Tab('Comments',
-                                            Div(
-                                                Div(Field('comments', css_id="comments"), css_class="col-12"),
-                                                css_class="row"
-                                            )
-                                            )
-                                    )
+                                    Div(
+                                        Div(Field('kind', css_class="select"), css_class="col-4"),
+                                        Div(Field('plan', css_class="select"), css_class="col-4"),
+                                        Div(Field('resolution'), css_class="col-4"),
+                                        css_class="row"
+                                    ),
+                                    Div(
+                                        Div(Field('absorption_edge'), css_class="col-4"),
+                                        Div(Field('comments'), css_class="col-8"),
+                                        css_class="row"
+                                    ),
+                                    css_class="card-body"
                                 ),
-                                css_class="col-12 collapse",
+                                css_class="collapse",
                                 css_id="group-details-{rowcount}"
                             ),
-                            css_class="row template repeat-row list-group-item"
+                            Field('shipment'),
+                            Field('id', css_id="id"),
+                            Field('priority', type="hidden", css_id="priority"),
+                            css_class="template repeat-row card border-0"
                         ),
-                        css_class="repeat-group repeat-container list-group list-group-hover",
+                        css_class="repeat-group repeat-container",
                     ),
-                    action_row,
                     css_class="repeat-wrapper"
                 ),
-                css_class='repeat'
+                Div(
+                    StrictButton(
+                        "<i class='ti ti-plus'></i> Add Row", type="button",
+                        css_class='btn btn-sm btn-success add'
+                    ),
+                    fill_btn,
+                    css_class="col-12 mt-3"
+                ),
+                css_class='repeat row'
             ),
             Field('sample_locations', type="hidden"),
             Div(
@@ -1111,7 +1139,7 @@ class ShipmentGroupForm(forms.ModelForm):
                             css_class="modal-header"
                         ),
                         Div(
-                            Field('locations', template="users/forms/layout-container.html"),
+                            # Field('locations', template="users/forms/layout.html"),
                             Div(
                                 Div(
                                     Div(
@@ -1134,18 +1162,26 @@ class ShipmentGroupForm(forms.ModelForm):
                 css_class="modal fade extra-modal",
                 css_id="group-select",
                 css_role="dialog",
-            )
+            ),
+            action_row,
         )
 
     def help_text(self):
         if self.initial.get('shipment'):
-            return Div(HTML("""How do you want to group your samples?<br/>
-                               <strong>Be careful! Removing a group will also remove any samples in the group</strong>""")
-                       )
+            return Div(
+                HTML(
+                    'Update sample groups<br/>'
+                    '<strong class="text-danger">Removing a group will also remove any samples in the group</strong>'
+                )
+            )
         else:
-            return Div(HTML("""<h4>Add the groups of samples you will be working on!</h4>"""),
-                       HTML("""<small>How do you want to group your samples?
-                               Don't worry, you can always add more groups later.</small>"""), )
+            return Div(
+                HTML(
+                    '<h4 class="mb-0">Add Sample Groups</h4>'
+                    '<p>Group similar samples together. '
+                    'You can add more groups later.</p>'
+                )
+            )
 
     def clean(self):
         self.repeated_data = {}
@@ -1221,7 +1257,7 @@ class GroupSelectForm(forms.ModelForm):
     def help_text(self):
         if self.initial.get('shipment'):
             return Div(HTML("""How do you want to group your samples?<br/>
-                               <strong>Be careful! Removing a group will also remove any samples in the group</strong>""")
+                               <strong class="text-danger">Removing a group will also remove any samples in the group</strong>""")
                        )
         else:
             return Div(HTML("""<h4>Step 3: Add the groups of samples you will be working on!</h4>"""),

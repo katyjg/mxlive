@@ -2,9 +2,11 @@
 {% load static %}
 {% load crispy_forms_tags %}
 
-<link rel="stylesheet" href="{% static "css/chosen.css" %}" media="screen" />
-<script src="{% static "jquery/chosen.jquery.js" %}"></script>
+<link rel="stylesheet" href="{% static "css/chosen.css" %}" media="screen"/>
+<link rel="stylesheet" href="{% static "css/select2.css" %}" media="screen"/>
 <script src="{% static "jquery/jquery.form.min.js" %}"></script>
+<script src="{% static "jquery/chosen.jquery.js" %}"></script>
+<script src="{% static "js/select2.full.min.js" %}"></script>
 <script src="{% static "jquery/repeatable-fields.js" %}"></script>
 <script src="{% static "jquery/jquery.scrollbar.js" %}"></script>
 
@@ -13,7 +15,7 @@
 
 <!-- Modal -->
 <div class="modal fade" id="modalForm" tabindex="-1" role="dialog" aria-labelledby="Form" aria-hidden="true">
-    <div class="modal-dialog {% block modal_size %}modal-md{% endblock %}">
+    <div class="modal-dialog {% block modal_styles %}{% endblock %}">
         <div class="modal-content">
             <div class="modal-header bg-light text-dark">
                 {% block modal_title_tools %}{% endblock %}
@@ -21,7 +23,7 @@
                     {% block modal_title %}{{ form.helper.title }}{% endblock %}
                 </h4>
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true" aria-label="CLose">
-                    <span class="ti ti-1 ti-close p-1" aria-hidden="true"></span>
+                    <span class="ti ti-close p-1" aria-hidden="true"></span>
                 </button>
             </div>
             <div class="modal-body"  id="modal-content">

@@ -3,65 +3,65 @@
 {% if object.status >= object.STATES.SENT %}
     {% comment %}Shipment Details{% endcomment %}
     <a href="{% url "shipment-protocol" object.pk %}">
-        {% show_icon label='Progress' icon='ti ti-1x ti-layout-media-overlay' %}
+        {% show_icon label='Progress' icon='ti ti-md ti-layout-media-overlay' %}
     </a>
     <a href="{% url "shipment-data" object.pk %}" title="Go to Data from this shipment">
-        {% show_icon label='Data' icon='ti ti-1x ti-layout-grid3' badge=object.num_datasets color='info' %}
+        {% show_icon label='Data' icon='ti ti-md ti-layout-grid3' badge=object.num_datasets color='info' %}
     </a>
     <a href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
-        {% show_icon label='Reports' icon='ti ti-1x ti-bar-chart-alt' badge=object.num_reports color='info' %}
+        {% show_icon label='Reports' icon='ti ti-md ti-bar-chart-alt' badge=object.num_reports color='info' %}
     </a>
 {% endif %}
 {% if user == object.project %}
     <div class="separator"></div>
     {% if object.status == object.STATES.DRAFT %}
         <a href="#!" data-form-link="{% url "shipment-delete" object.pk %}">
-            {% show_icon label='Delete' icon='ti ti-1x ti-trash' %}
+            {% show_icon label='Delete' icon='ti ti-md ti-trash' %}
         </a>
         <a href="#!" data-form-link="{% url "shipment-edit" object.pk %}">
-            {% show_icon label='Edit' icon='ti ti-1x ti-pencil-alt' %}
+            {% show_icon label='Edit' icon='ti ti-md ti-pencil-alt' %}
         </a>
         <a href="#!" data-form-link="{% url "shipment-send" object.pk %}">
-            {% show_icon label='Send' icon='ti ti-1x ti-location-arrow'%}
+            {% show_icon label='Send' icon='ti ti-md ti-location-arrow'%}
         </a>
     {% endif %}
     {% if object.status == object.STATES.SENT %}
         <a href="#!" data-form-link="{% url "shipment-update-send" object.pk %}">
-            {% show_icon label='Recall' icon='ti ti-1x ti-control-backward' %}
+            {% show_icon label='Recall' icon='ti ti-md ti-control-backward' %}
         </a>
     {% endif %}
     {% if object.status <= object.STATES.ON_SITE %}
         <a href="{% url "shipment-labels" object.pk %}">
-            {% show_icon label='Labels' icon='ti ti-1x ti-tag' %}
+            {% show_icon label='Labels' icon='ti ti-md ti-tag' %}
         </a>
     {% endif %}
     <a data-toggle="collapse" href="#comments-{{ object.pk }}">
-        {% show_icon label='Comments' icon='ti ti-1x ti-comments' badge=object.has_comments %}
+        {% show_icon label='Comments' icon='ti ti-md ti-comments' badge=object.has_comments %}
     </a>
 {% elif user.is_superuser %}
     {% comment %}Staff Actions{% endcomment %}
     <div class="separator"></div>
     <a href="{% url "shipment-labels" object.pk %}">
-        {% show_icon label='Labels' icon='ti ti-1x ti-tag' %}
+        {% show_icon label='Labels' icon='ti ti-md ti-tag' %}
     </a>
     <a data-toggle="collapse" href="#comments-{{ object.pk }}">
-        {% show_icon label='Comments' icon='ti ti-1x ti-comments' badge=object.has_comments %}
+        {% show_icon label='Comments' icon='ti ti-md ti-comments' badge=object.has_comments %}
     </a>
     <div class="separator"></div>
     <a href="#!" data-link="{% url "shipment-comments" object.pk %}">
-        {% show_icon label='Comment' icon='ti ti-1x ti-comment-alt' %}
+        {% show_icon label='Comment' icon='ti ti-md ti-comment-alt' %}
     </a>
     {% if object.status == object.STATES.SENT %}
     <a href="#!" data-form-link="{% url "shipment-receive" object.pk %}">
-        {% show_icon label='Receive' icon='ti ti-1x ti-shopping-cart-full' %}
+        {% show_icon label='Receive' icon='ti ti-md ti-shopping-cart-full' %}
     </a>
     {% elif object.status == object.STATES.ON_SITE %}
     <a href="#!" data-form-link="{% url "shipment-return" object.pk %}">
-        {% show_icon label='Return' icon='ti ti-1x ti-location-arrow' %}
+        {% show_icon label='Return' icon='ti ti-md ti-location-arrow' %}
     </a>
     {% elif object.status == object.STATES.RETURNED %}
     <a href="#!" data-form-link="{% url "shipment-update-return" object.pk %}">
-        {% show_icon label='Recall' icon='ti ti-1x ti-control-backward' %}
+        {% show_icon label='Recall' icon='ti ti-md ti-control-backward' %}
     </a>
     {% endif %}
 {% endif %}

@@ -576,17 +576,17 @@ class ContainerLoad(AdminRequiredMixin, ContainerEdit):
 
     def form_valid(self, form):
         data = form.cleaned_data
-        root = data['parent'].get_load_root()
+        location = data.get('location')
+        parent = data['parent']
+        root = parent.get_load_root()
 
-        if data['location']:
-            models.LoadHistory.objects.create(child=self.object, parent=data['parent'], location=data['location'])
+        if location:
+            models.LoadHistory.objects.create(child=self.object, parent=data['parent'], location=location)
         else:
-            data['parent'] = None
+            parent = None
             models.LoadHistory.objects.filter(child=self.object).active().update(end=timezone.now())
 
-        models.Container.objects.filter(pk=self.object.pk).update(
-            parent=data.get('parent'), location=data.get('location')
-        )
+        models.Container.objects.filter(pk=self.object.pk).update(parent=parent, location=location)
         return JsonResponse(root.get_layout(), safe=False)
 
 
@@ -941,7 +941,14 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
 
     def get_form_initial(self, step):
         if step == 'shipment':
-            return self.initial_dict.get(step, {'project': self.request.user})
+            today = timezone.now()
+            day_count = self.request.user.shipments.filter(
+                created__year=today.year, created__month=today.month, created__day=today.day
+            ).count()
+            return self.initial_dict.get(step, {
+                'project': self.request.user,
+                'name': '{} #{}'.format(timezone.now().strftime('%Y-%b%d'), day_count + 1)
+            })
         elif step == 'groups':
             containers_data = self.storage.get_step_data('containers')
             if containers_data:

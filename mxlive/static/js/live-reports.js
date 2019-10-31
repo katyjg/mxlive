@@ -274,16 +274,16 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
     }
 
     function plotSingle(d) {
-        class_keep = d.id.split("id").pop();
-        idx = legendClassArray.indexOf(class_keep);
-        key_keep = class_keep;
+        let class_keep = d.id.split("id").pop();
+        let idx = legendClassArray.indexOf(class_keep);
+        let key_keep = class_keep;
         $.each(data[0], function(k) {
             if (k.replace(/\s/g, '') === class_keep) {
                 key_keep = k;
                 return false;
             }
         });
-        ySingleChart = d3.scaleLinear().range([heightStackChart, 0]).domain([0, d3.max(data, function (d) { return d[key_keep]; })]);
+        let ySingleChart = d3.scaleLinear().range([heightStackChart, 0]).domain([0, d3.max(data, function (d) { return d[key_keep]; })]);
 
         for (i = 0; i < legendClassArray.length; i++) {
             if (legendClassArray[i] != class_keep) {
@@ -294,7 +294,8 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
             }
         }
 
-        y_orig = [], h_orig = [];
+        let y_orig = [];
+        let h_orig = [];
         $.each(state.selectAll("rect"), function (i, d) {
             //get height and y posn of base bar and selected bar
 
@@ -898,7 +899,7 @@ function build_report(selector, report) {
             }
             if (entry['kind'] === 'table') {
                 if (entry['data']) {
-                    var table = $("<table id='table-" + i + "-" + j + "' class='table table-hover table-condensed'></table>");
+                    var table = $("<table id='table-" + i + "-" + j + "' class='table table-hover table-sm'></table>");
                     var thead = $('<thead></thead>');
                     var tbody = $('<tbody></tbody>');
 
@@ -1037,7 +1038,7 @@ function build_report(selector, report) {
                 }
             }
             if (entry['notes']) {
-                entry_row.append("<div class='notes well'>" + converter.makeHtml(entry['notes']) + "</div>");
+                entry_row.append("<div class='notes pb-4'>" + converter.makeHtml(entry['notes']) + "</div>");
             }
         });
     });

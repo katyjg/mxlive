@@ -99,10 +99,10 @@
                     <h3 class="float-left py-1"><strong class="align-self-baseline">{{ shipment.containers.count }}</strong> Containers</h3>
                     <span class="tools-box float-right">
                         {% if object.status == object.STATES.DRAFT %}
-                            <a href="#!"  data-link="{% url "shipment-add-containers" object.pk %}" title="Edit Containers">
-                            {% show_icon icon="ti ti-1x ti-pencil-alt" %}
+                            <a href="#!"  data-form-link="{% url "shipment-add-containers" object.pk %}" title="Edit Containers">
+                            {% show_icon icon="ti ti-md ti-pencil-alt" %}
                             </a>
-                        {% else %}<span class="text-muted"><i class="ti ti-1x ti-lock"></i></span>{% endif %}
+                        {% else %}<span class="text-muted"><i class="ti ti-md ti-lock"></i></span>{% endif %}
                     </span>
                 </div>
             </div>
@@ -135,9 +135,9 @@
                     <span class="tools-box float-right">
                         {% if object.status == object.STATES.DRAFT %}
                             <a href="#!"  data-form-link="{% url "shipment-add-groups" object.pk %}" title="Edit Groups">
-                            {% show_icon icon="ti ti-1x ti-pencil-alt" %}
+                            {% show_icon icon="ti ti-md ti-pencil-alt" %}
                             </a>
-                        {% else %}<span class="text-muted"><i class="ti ti-1x ti-lock"></i></span>{% endif %}
+                        {% else %}<span class="text-muted"><i class="ti ti-md ti-lock"></i></span>{% endif %}
                     </span>
                 </div>
             </div>
@@ -148,10 +148,10 @@
                         <span class="tools-box float-right">
                             {% if object.is_editable %}
                                 <a  href="#!" data-form-link="{% url "group-select" group.pk %}" title="Sample Seat Selection">
-                                    {% show_icon label="Samples" icon="ti ti-1x ti-plus" badge=group.samples.count color="warning" %}
+                                    {% show_icon label="Samples" icon="ti ti-md ti-plus" badge=group.samples.count color="warning" %}
                                 </a>
                                 <a href="#!" data-form-link="{% url "group-edit" group.pk %}" title="Edit Group Parameters">
-                                    {% show_icon label="Edit" icon="ti ti-1x ti-pencil-alt" %}
+                                    {% show_icon label="Edit" icon="ti ti-md ti-pencil-alt" %}
                                 </a>
                             {% else %}
                                 <div class="text-center text-muted">

@@ -1,5 +1,5 @@
 html {
-    font-size: 10.0pt;
+    font-size: 10.5pt;
     min-height: 100%;
 }
 
@@ -290,9 +290,12 @@ img.line-icon {
     margin: 0 0.25em;
 }
 
-.tools-box .separator + .separator, .tools-box > .separator:first-child  {
+.tools-box .separator + .separator,
+.tools-box > .separator:first-child,
+.tools-box > .separator:last-child  {
     display: none !important;
 }
+
 
 .box-status {
     position: absolute;
@@ -364,48 +367,36 @@ table.table-sm td {
     display: table !important;
 }
 
-.ti-1 {
-    font-size: 1.0em;
+.ti-xs {
+    font-size: 0.75em;
     margin-bottom: 2px;
 }
 
-.ti-1x {
+.ti-sm {
+    font-size: 0.8em;
+    margin-bottom: 2px;
+}
+
+.ti-md {
     font-size: 1.5em;
     margin-bottom: 2px;
 }
-
-.ti-2 {
+.ti-lg {
     font-size: 2em;
     margin-bottom: 2px;
 }
 
-.ti-3 {
+.ti-xl {
     font-size: 3.0em;
     margin-bottom: 2px;
 }
-
-.fa-1x {
-    font-size: 1.3em;
+.btn-white {
+    color: inherit;
+    background-color: #fff;
+    border-color: rgba(0,0,0,0.1);
 }
-
-.fa-2 {
-    font-size: 1.5em;
-}
-
-.fa-3 {
-    font-size: 2.5em;
-}
-
-.fa-4 {
-    font-size: 3.5em;
-}
-
-.fa-5 {
-    font-size: 4.5em;
-}
-
-.fa-6 {
-    font-size: 5.5em;
+.btn-white:hover {
+    border-color: rgba(0,0,0,0.05);
 }
 
 .status-bar {
@@ -898,6 +889,7 @@ a[data-link], .back text[port], .cursor {
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
+    border: 1px solid rgba(0,0,0,0.1);
 }
 
 .data-viewer .modal-body {
@@ -969,7 +961,7 @@ a[data-link], .back text[port], .cursor {
 
 #data-viewer .viewer {
     width: 100%;
-    border: 1px solid #bbb;
+    border: 1px solid rgba(0,0,0,0.1);
     position: relative;
     margin-bottom: 5px;
 }
@@ -1063,9 +1055,8 @@ span.label-unusable-score {
     background-color: #933 !important;
 }
 
-.badge-score {
-    background-color: #f7f7f7;
-    padding: 3px !important;
+.badge.score {
+    font-size: 0.95em;
 }
 
 .highlight {
@@ -1263,26 +1254,28 @@ span.label-unusable-score {
 
 @media (max-width: 768px) {
     .row [class^=col-] + .col-12 {
-        padding-left: 15px;
+        padding-left: 1rem;
     }
 
     .row .col-12 {
-        padding-left: 15px !important;
+        padding-left: 1rem !important;
     }
 
     #objlist-search + ul.nav-pills {
-        padding-left: 15px;
+        padding-left: 1rem;
     }
 }
 
-@media (max-width: 992px) {
-    .row .col-sm-12 {
-        padding-left: 15px !important;
+
+@media (min-width: 576px) {
+    .data-viewer .modal-dialog {
+        max-width: 548px;
     }
 }
-
-.modal-md form .row [class^=col-] + .col-12 {
-    padding-left: 15px;
+@media (min-width: 992px) {
+    .data-viewer .modal-dialog {
+        max-width: 800px;
+    }
 }
 
 .row .mini-thumbnail[class^=col-] {
@@ -1420,11 +1413,20 @@ a:hover {
 }
 .modal-body .form-group > label:first-child {
     padding-bottom: 0;
+    margin-bottom: 0;
     font-size: 0.9rem;
+    font-weight: 700;
 }
 
+.modal-body .repeat-wrapper {
+    max-height: 40vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+
 .item-list th {
-    font-family: "Fira Sans Condensed";
+    font-family: "Fira Sans Condensed", sans-serif;
 }
 
 @keyframes spin {
@@ -1439,3 +1441,19 @@ a:hover {
   animation: spin 2s infinite linear;
 }
 
+#report-builder table  tbody td {
+    font-family: "Fira Code", sans-serif;
+}
+
+svg * {
+    font-family: "Fira Sans", sans-serif !important;
+}
+
+.spaced-buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+}
+.spaced-buttons > * {
+    margin-left: 0.5rem;
+}

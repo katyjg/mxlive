@@ -16,17 +16,17 @@
 
 {% block object_tools %}
     <a  href="{% url "access-list" %}">
-        {% show_icon label="Remote" icon="ti ti-1x ti-rss-alt" %}
+        {% show_icon label="Remote" icon="ti ti-md ti-rss-alt" %}
     </a>
     <a  href="{% url "user-list" %}">
-        {% show_icon label="Accounts" icon="ti ti-1x ti-user" %}
+        {% show_icon label="Accounts" icon="ti ti-md ti-user" %}
     </a>
     <a  href="{% url "session-list" %}">
-        {% show_icon label="Sessions" icon="ti ti-1x ti-time" %}
+        {% show_icon label="Sessions" icon="ti ti-md ti-time" %}
     </a>
     <div class="separator"></div>
     <a href="#!"  data-form-link="{% url "new-announcement" %}" title="Create Announcement">
-        {% show_icon label="Add Info" icon="ti ti-1x ti-announcement" %}
+        {% show_icon label="Add Info" icon="ti ti-md ti-announcement" %}
     </a>
 {% endblock %}
 
@@ -75,7 +75,7 @@
 
                             <div class="box-status">
                                 <div class="text-center text-muted">
-                                    <div title="Create a Shipment" class="ti ti-2 ti-plus"></div>
+                                    <div title="Create a Shipment" class="ti ti-md ti-plus"></div>
                                     <div><small>Start Now</small></div>
                                 </div>
                             </div>

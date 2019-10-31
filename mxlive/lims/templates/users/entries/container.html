@@ -30,12 +30,12 @@
     {% include "users/tools-base.html" %}
     {% if object.parent_history.all %}
         <a href="#!" data-link="{% url "container-history" object.pk %}">
-            {% show_icon label='History' icon='ti ti-1x ti-timer' %}
+            {% show_icon label='History' icon='ti ti-md ti-timer' %}
         </a>
     {% endif %}
     {% if object.children_history.all %}
         <a class="pull-right" data-link="{% url "automounter-history" object.pk %}">
-            {% show_icon label='Container History' icon='ti ti-1x ti-timer' %}
+            {% show_icon label='Container History' icon='ti ti-md ti-timer' %}
         </a>
     {% endif %}
 {% endblock %}

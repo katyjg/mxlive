@@ -18,23 +18,23 @@
 
 {% block object_tools %}
     <a href="{% url "session-reports" object.pk %}" title="Go to Reports from this session">
-        {% show_icon label='Reports' icon='ti ti-1x ti-bar-chart-alt' badge=object.num_reports %}
+        {% show_icon label='Reports' icon='ti ti-md ti-bar-chart-alt' badge=object.num_reports %}
     </a>
     <a href="{% url "session-data" object.pk %}" title="Go to Data from this session">
-        {% show_icon label='Data' icon='ti ti-1x ti-layout-grid3' badge=object.datasets.count %}
+        {% show_icon label='Data' icon='ti ti-md ti-layout-grid3' badge=object.datasets.count %}
     </a>
     <a href="#!" data-link="{% url "session-history" object.pk %}">
-        {% show_icon label='History' icon='ti ti-1x ti-timer' %}
+        {% show_icon label='History' icon='ti ti-md ti-timer' %}
     </a>
     {% if user.is_superuser %}
         <a href="{% url "session-statistics" pk=object.pk %}">
-            {% show_icon label='Statistics' icon='ti ti-1x ti-bar-chart' %}
+            {% show_icon label='Statistics' icon='ti ti-md ti-bar-chart' %}
         </a>
     {% endif %}
     {% if object.datasets.count %}
         <div class="separator"></div>
         <a href="{% url 'files-proxy' section='archive' path=object.download_url %}">
-            {% show_icon label='Download' icon='ti ti-1x ti-download' %}
+            {% show_icon label='Download' icon='ti ti-md ti-download' %}
         </a>
     {% endif %}
 {% endblock %}

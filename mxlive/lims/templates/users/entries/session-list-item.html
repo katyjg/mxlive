@@ -6,15 +6,15 @@
         <div class="col">
             <div class="tools-box float-right">
                 <a href="{% url "session-reports" session.pk %}" title="Go to Reports from this session">
-                    {% show_icon label='Reports' badge=stats.reports icon='ti ti-1x ti-bar-chart-alt' color='info' %}
+                    {% show_icon label='Reports' badge=stats.reports icon='ti ti-md ti-bar-chart-alt' color='info' %}
                 </a>
                 <a href="{% url "session-data" session.pk %}" title="Go to Data from this session">
-                    {% show_icon label='Data' badge=stats.data icon='ti ti-1x ti-layout-grid3' color='info' %}
+                    {% show_icon label='Data' badge=stats.data icon='ti ti-md ti-layout-grid3' color='info' %}
                 </a>
             </div>
             <div class="overflow ellipsis">
                 <div class="box-status pull-left text-center text-muted">
-                    {% show_icon label=session.start.date|date:"M j"|upper icon='ti ti-1x ti-time' %}
+                    {% show_icon label=session.start.date|date:"M j"|upper icon='ti ti-md ti-time' %}
                 </div>
                 <div class="box-info">
                     <h5 class="text-condensed narrow-heading overflow ellipsis">

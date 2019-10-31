@@ -26,11 +26,11 @@
                 <div class="tools-box">
                     <a href="#!" data-link="{% url "empty-containers" pk=object.pk username=project.username %}"
                        title="Unload all containers for this project">
-                        {% show_icon label='Empty' icon='ti ti-1x ti-share' %}
+                        {% show_icon label='Empty' icon='ti ti-md ti-share' %}
                     </a>
                     <a data-toggle="collapse" href="#{{ project }}-containers"
                        title="Show all containers for this project">
-                        {% show_icon label='Details' icon='ti ti-1x ti-zoom-in' %}
+                        {% show_icon label='Details' icon='ti ti-md ti-zoom-in' %}
                     </a>
                 </div>
                 <div class="box-status">
@@ -57,7 +57,7 @@
                         <div class="tools-box">
                             <a href="#!" onclick="unload({{ container.pk }});"
                                title="Unload Container">
-                                {% show_icon icon='ti ti-1x ti-share' %}
+                                {% show_icon icon='ti ti-md ti-share' %}
                             </a>
                             <form method="post" id="{{ container.pk }}-unload"
                                   action="{% url "container-unload" container.pk %}">
@@ -101,7 +101,7 @@
                 <div class="list-group-item container-{{ container.pk }}">
                 <span class="tools-box">
                     <a href="#!" onclick="unload({{ container.pk }});" title="Unload Container">
-                        {% show_icon label='Unload' icon='ti ti-1x ti-share' %}
+                        {% show_icon label='Unload' icon='ti ti-md ti-share' %}
                         <form method="post" id="{{ container.pk }}-unload"
                               action="{% url "container-unload" container.pk %}">
                             {% csrf_token %}
@@ -143,7 +143,7 @@
                                         <td class="text-center">
                                             <a class="cursor" onclick="unload({{ child.pk }});"
                                                title="Unload Container">
-                                                <i class="ti ti-share ti-1x"></i>
+                                                <i class="ti ti-share ti-md"></i>
                                             </a>
                                             <form method="post" id="{{ child.pk }}-unload"
                                                   action="{% url "container-unload" child.pk %}">

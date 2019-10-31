@@ -23,6 +23,7 @@
             url: $(this).data('form-action'),
             setup: function (body) {
                 body.find('form').attr('action', "");
+                /* chosen */
                 body.find(".chosen").chosen({
                     placeholder_text_single: "Select an option",
                     search_contains: true,
@@ -30,6 +31,10 @@
                     disable_search_threshold: 8,
                 });
                 body.find(".chosen").trigger("chosen:updated");
+
+                /* select2 */
+                body.find(".select").select2();
+
                 body.find("select[data-update-on]").each(function(){
                     let src = $('[name="'+ $(this).data('update-on')+'"]');
                     let dst = $(this);
@@ -54,6 +59,7 @@
                                         );
                                     });
                                     dst.trigger('chosen:updated');
+                                    dst.trigger('change');
                                 }
                             });
                         }

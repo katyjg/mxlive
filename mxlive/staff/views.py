@@ -20,20 +20,15 @@ User = get_user_model()
 
 class AccessList(AdminRequiredMixin, ItemListView):
     model = models.UserList
-    list_filter = []
-    list_display = ['name', 'description', 'current_users', 'allowed_users', 'address', 'active']
+    list_filters = []
+    list_columns = ['name', 'description', 'current_users', 'allowed_users', 'address', 'active']
+    list_search = ['name', 'description', 'current_users']
     tool_template = "users/tools-access.html"
-    detail_url = 'access-edit'
-    detail_url_kwarg = 'address'
-    detail_ajax = True
-    detail_target = '#modal-target'
-    order_by = ['name']
+    link_url = 'access-edit'
+    link_kwarg = 'address'
+    link_data = True
+    ordering = ['name']
     template_name = "users/list.html"
-
-    def get_context_data(self, **kwargs):
-        ctx = super(AccessList, self).get_context_data(**kwargs)
-        ctx['tool_template'] = self.tool_template
-        return ctx
 
 
 class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
@@ -45,20 +40,19 @@ class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.U
     allowed_roles = ['owner', 'admin']
     admin_roles = ['admin']
 
-    def get_object(self):
+    def get_object(self, queryset=None):
         return self.model.objects.get(address=self.kwargs.get('address'))
 
 
 class RemoteConnectionList(AdminRequiredMixin, ItemListView):
     model = models.RemoteConnection
-    list_display = ['user', 'name', 'list', 'status', 'created', 'end']
-    list_filter = ['created', 'list']
-    search_fields = ['user__username', 'name', 'status', 'list__name', 'created']
-    order_by = ['-created']
+    list_columns = ['user', 'name', 'list', 'status', 'created', 'end']
+    list_filters = ['created', 'list']
+    list_search = ['user__username', 'name', 'status', 'list__name', 'created']
+    ordering = ['-created']
     template_name = "users/list.html"
-    detail_url = 'connection-detail'
-    detail_ajax = True
-    detail_target = '#modal-target'
+    link_url = 'connection-detail'
+    link_data = True
 
 
 class RemoteConnectionDetail(AdminRequiredMixin, detail.DetailView):
@@ -68,12 +62,11 @@ class RemoteConnectionDetail(AdminRequiredMixin, detail.DetailView):
 
 class CategoryList(AdminRequiredMixin, ItemListView):
     model = models.UserCategory
-    list_filter = []
-    list_display = ['name', 'current_users', 'num_users']
-    detail_url = 'category-edit'
-    detail_ajax = True
-    detail_target = '#modal-target'
-    order_by = ['name']
+    list_filters = []
+    list_columns = ['name', 'current_users', 'num_users']
+    list_search = ['name']
+    link_url = 'category-edit'
+    link_data = True
     template_name = "users/list.html"
 
 
@@ -118,19 +111,18 @@ class AnnouncementDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin
 class ProjectList(AdminRequiredMixin, ItemListView):
     model = Project
     paginate_by = 25
-    template_name = "users/list.html"
-    tools_template = "users/tools-user.html"
+    template_name = "users/user-list.html"
     list_filters = ['modified', ]
     list_columns = ['username', 'contact_person', 'contact_phone', 'contact_email']
-    list_search = ['username', 'contact_person', 'contact_phone', 'contact_email', 'city', 'province', 'country',
-                   'department', 'organisation']
+    list_search = [
+        'username', 'contact_person', 'contact_phone', 'contact_email', 'city', 'province', 'country',
+        'department', 'organisation'
+    ]
     link_url = 'user-detail'
     link_kwarg = 'username'
     add_url = 'new-project'
     add_ajax = True
-    order_by = ['name']
-    ordering_proxies = {}
-    list_transforms = {}
+    ordering = ['name']
 
 
 class UserDetail(AdminRequiredMixin, detail.DetailView):

@@ -2,15 +2,15 @@
 {% if object.status == object.STATES.DRAFT or object.comments or object.staff_comments %}
     {% if object.status == object.STATES.DRAFT %}
         <a href="#!" data-form-link="{{ handler }}delete/">
-            {% show_icon label='Delete' icon='ti ti-1x ti-trash' %}
+            {% show_icon label='Delete' icon='ti ti-md ti-trash' %}
         </a>
         <a href="#!" data-form-link="{{ handler }}edit/">
-            {% show_icon label='Edit' icon='ti ti-1x ti-pencil-alt' %}
+            {% show_icon label='Edit' icon='ti ti-md ti-pencil-alt' %}
         </a>
     {% endif %}
     {% if object.comments or object.staff_comments %}
         <a href="#!" data-toggle="collapse" href="#comments-{{ object.pk }}">
-            {% show_icon label='Comments' icon='ti ti-1x ti-comment-alt' badge=object.has_comments color='warning' %}
+            {% show_icon label='Comments' icon='ti ti-md ti-comment-alt' badge=object.has_comments color='warning' %}
         </a>
     {% endif %}
 {% endif %}
