@@ -1453,11 +1453,21 @@ svg * {
 }
 
 .sample-seater {
-    max-height: 50vh;
-    overflow-y: scroll;
+    height: 400px;
+    max-height: 500px;
+    overflow-y: auto;
     overflow-x: hidden;
 }
+.text-thin {
+    font-weight: 200 !important;
+}
 
+.group-chooser {
+    position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+}
 .group-selector {
     opacity: 0.5;
 }
@@ -1470,6 +1480,9 @@ svg * {
     content: " \e61f ";
     font-size: 1rem;
     float: right;
+}
+.seater {
+    padding-bottom: 1rem;
 }
 .seater .sample {
     cursor: pointer;

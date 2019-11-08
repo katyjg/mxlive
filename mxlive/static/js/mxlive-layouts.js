@@ -27,6 +27,10 @@
                     .attr('viewBox', '0 0 ' + (width) + ' ' + (height))
                     .attr('data-detailed', settings.detailed)
                     .attr('data-labelled', settings.labelled)
+                    .attr('data-prefix', settings.prefix)
+                    .attr('data-id', d => d.id)
+                    .attr('data-loc', d => d.loc)
+                    .attr('data-final', d => d.final)
                     .attr('id', svg_id);
 
                 main
@@ -38,7 +42,9 @@
                     added.append(data.envelope || 'circle')
                         .attrs({cx: '50%', cy: '50%', r: '49%', x: '0%', y: '0%', width: '100%', height: '100%'})
                         .attr('fill', 'none')
-                        .attr('stroke', 'black');
+                        .attr('class', 'envelope')
+                        .attr('stroke', 'black')
+                        .style('pointer-events', 'visibleStroke');
                 }
 
                 // Draw Container Children
@@ -166,9 +172,10 @@
                 }
                 return {
                     x: '0%', y: '0%', width: '100%', height: '100%',
-                    cx: '50%', cy: '50%', r: '49%', class: cls
+                    cx: '50%', cy: '50%', r: '49%', class: cls + ' envelope'
                 }
             });
+
 
         // Labels and Children
         if ((!data.final) || settings.labelled) {

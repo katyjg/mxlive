@@ -7,14 +7,19 @@
     <script src="{% static "js/mxlive-layouts.js" %}"></script>
 {% endblock %}
 {% block modal_styles %}modal-lg{% endblock %}
-{% block modal_title %}<h3><strong>{{ shipment }}</strong> | Sample Seat Selection</h3>{% endblock %}
+{% block modal_title %}<strong>{{ shipment }}</strong> | Sample Seat Selection{% endblock %}
 {% block modal_body %}
     <div class="row sample-seater">
         <div class="col-9">
             <div class="row">
                 {% for container in shipment.containers.all %}
-                    <div class="col-4 seater {{ container.kind.name|slugify }} text-center">
-                        <h4><a href="#!" class="badge badge-secondary" title="Toggle All" data-pk="{{ container.pk }}"><strong>{{ container.name }}</strong></a></h4>
+                    <div class="col-4 seater {{ container.kind.name|slugify }} text-center"
+                         id="seater-{{ container.pk }}">
+                        <h5 class="m-0">
+                            <a href="#!" class="badge badge-secondary text-condensed text-thin" title="Toggle All"
+                               data-pk="{{ container.pk }}"><strong>{{ container.name }}</strong>
+                            </a>
+                        </h5>
                         <div id="seats-for-{{ container.pk }}"
                              data-layout-url="{% url 'fetch-layout' pk=container.pk %}"
                              data-pk="{{ container.pk }}"
@@ -24,13 +29,13 @@
                 {% endfor %}
             </div>
         </div>
-        <div class="col-3">
+        <div class="col-3 group-chooser">
             <div class="card">
-                <div class="card-header p-2"><h5 class="text-center text-wide text-muted m-0 p-0">GROUPS</h5></div>
+                <div class="card-header p-1 text-center text-wide text-muted"><small>GROUPS</small></div>
                 <div class="list-group-flush">
                     {% for group in shipment.groups_by_priority %}
                         {% with num_samples=group.samples.count %}
-                            <a href="#!" class="list-group-item group-selector p-2"
+                            <a href="#!" class="list-group-item group-selector py-1"
                                data-group="{{ group.pk }}"
                                data-name="{{ group.name }}"
                                data-selector="{{ forloop.counter }}">
@@ -45,8 +50,9 @@
     <div class="form-action row">
         <small class="col-9">
             <div class="alert alert-info" id="seater-instructions">
+                <i class="ti ti-xl ti-info-alt float-left pr-2"></i>
                 Click on a group to select it, then click the locations of the corresponding samples in each container.
-                Click a previously selected samples to remove them.
+                Click previously selected samples to remove them.
             </div>
         </small>
         <div class="col-3">
@@ -70,16 +76,16 @@
                 });
             });
             const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-            d3.selectAll('[data-selector]')
+            d3.selectAll('.group-chooser [data-selector]')
                 .style('color', '#fff')
                 .style('background-color', function () {
                     return colorScale($(this).data('selector'));
                 }).on('click', function () {
-                    let remove = (!$(this).hasClass('selected'));
-                    $('.group-selector.selected').removeClass('selected');
-                    $(this).toggleClass('selected', remove);
-                });
-            $(document).on('click', 'svg.sample', function(){
+                let remove = (!$(this).hasClass('selected'));
+                $('.group-selector.selected').removeClass('selected');
+                $(this).toggleClass('selected', remove);
+            });
+            $(document).on('click', 'svg.sample', function () {
                 let group = $('.group-selector.selected').data();
                 if (group) {
                     let envel = $(this).find('>:first-child');
@@ -87,11 +93,40 @@
                         envel.removeClass('empty');
                         envel.attr('fill', colorScale(group.selector));
                         $(this).data('group', group.group);
-                        console.log($(this).data('group'));
                     } else {
                         envel.addClass('empty');
                         $(this).removeData('group');
                     }
+                }
+            });
+            $('.seater .badge[data-pk]').hover(
+                function () { //enter
+                    let group = $('.group-selector.selected').data();
+                    if (group) {
+                        $(this).css('background-color', colorScale(group.selector));
+                    }
+                },
+                function () { //exit
+                    let group = $('.group-selector.selected').data();
+                    if (group) {
+                        $(this).css('background-color', '');
+                    }
+                }
+            );
+            $('.seater .badge[data-pk]').click(function () {
+                let group = $('.group-selector.selected').data();
+                if (group) {
+                    $('#seats-for-' + $(this).data('pk')).find('svg.sample > :first-child').each(function () {
+                        let toadd = $(this).filter('.empty');
+                        let toremove = $(this).filter('[data-group="'+ group.group +'"]');
+                        console.log(toadd.length, toremove.length);
+                        toadd.removeClass('empty');
+                        toadd.attr('fill', colorScale(group.selector));
+                        toadd.data('group', group.group);
+                        console.log(toadd.length, toremove.length);
+                        toremove.removeData('group');
+                        toremove.addClass('empty');
+                    });
                 }
             });
         }

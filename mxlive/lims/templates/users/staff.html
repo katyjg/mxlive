@@ -34,7 +34,7 @@
     <div class="row">
         <div class="col-12 col-sm-6 col-md-3">
             <div class="card mb-4">
-                <div class="card-header"><h5 class="text-center text-wide text-muted m-0">BEAMLINES</h5></div>
+                <div class="card-header p-1 text-center text-wide text-muted"><small class="">BEAMLINES</small></div>
                 <div class="list-group list-group-flush list-group-hover">
                 {% for am in automounters %}
                     <a href="{% url "beamline-detail" pk=am.beamline.pk %}" class="text-center list-group-item" style="overflow: auto;">
@@ -50,7 +50,7 @@
                 </div>
             </div>
             <div class="card mb-4">
-                <div class="card-header"><h5 class="text-center text-wide text-muted m-0">ADAPTORS</h5></div>
+                <div class="card-header p-1 text-center text-wide text-muted"><small>ADAPTORS</small></div>
                 <div class="card-body">
                 <div class="row">
                 {% for container in containers %}
@@ -63,7 +63,7 @@
         </div>
         <div class="col-12 col-sm-6">
             <div class="card mb-4">
-                <div class="card-header"><h5 class="text-center text-wide text-muted m-0">SHIPMENTS</h5></div>
+                <div class="card-header p-1 text-center text-wide text-muted"><small>SHIPMENTS</small></div>
                 <div class="list-group list-group-flush">
                     {% for shipment, stats in shipments %}
                         {% include "users/entries/shipment-list-item.html" %}
@@ -90,7 +90,7 @@
                 </div>
             </div>
             <div class="card mb-4">
-                <div class="card-header"><h5 class="text-center text-wide text-muted m-0">ACTIVE SESSIONS</h5></div>
+                <div class="card-header p-1 text-center text-wide text-muted"><small>ACTIVE SESSIONS</small></div>
                 <div class="list-group list-group-flush">
                 {% for session, stats in sessions %}
                     {% include "users/entries/session-list-item.html" %}
