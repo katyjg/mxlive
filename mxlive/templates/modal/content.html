@@ -19,15 +19,16 @@
             </div>
             <div class="modal-body"  id="modal-content">
                 {% block modal_body %}{% endblock %}
+                {% block modal_scripts %}
+                    <script>
+                    function initializeModal() {}
+                    $('#modal').on('shown.bs.modal', function() {
+                        initializeModal();
+                    });
+                    </script>
+                {% endblock %}
             </div>
         </div>
     </div>
 </div>
-{% block modal_scripts %}
-    <script>
-    function initializeModal() {}
-    $('#modal').on('shown.bs.modal', function() {
-        initializeModal();
-    });
-    </script>
-{% endblock %}
+

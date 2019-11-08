@@ -977,7 +977,6 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                     }
                     container, created = models.Container.objects.get_or_create(**data)
             elif label == 'groups':
-                sample_locations = json.loads(form.cleaned_data['sample_locations'])
                 for i, name in enumerate(form.cleaned_data['name_set']):
                     if name:
                         data = {field: form.cleaned_data['{}_set'.format(field)][i]
@@ -986,30 +985,12 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                             'resolution': form.cleaned_data.get('resolution_set') and
                                           form.cleaned_data['resolution_set'][i] and float(
                                 form.cleaned_data['resolution_set'][i]) or None,
-                            'sample_count': int(form.cleaned_data['sample_count_set'][i]),
+                            'sample_count': 0,
                             'shipment': self.shipment,
                             'project': project,
                             'priority': i + 1
                         })
                         group, created = models.Group.objects.get_or_create(**data)
-                        to_create = []
-                        j = 1
-                        slug_map = {slugify(c.name): c.name for c in self.shipment.containers.all()}
-                        for c, locations in sample_locations.get(group.name, {}).items():
-                            container = self.shipment.containers.get(name__iexact=slug_map.get(c, ''))
-                            for sample in locations:
-                                name = "{0}_{1:02d}".format(group.name, j)
-                                to_create.append(models.Sample(group=group, container=container, location=sample,
-                                                               name=name, project=project, priority=j))
-                                j += 1
-                        models.Sample.objects.bulk_create(to_create)
-                        if group.sample_count < group.samples.count():
-                            group.sample_count = group.samples.count()
-                            group.save()
-                if project != self.request.user and self.request.user.is_superuser:
-                    self.shipment.send()
-                    self.shipment.receive()
-
         return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': self.shipment.pk})})
 
 

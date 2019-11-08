@@ -1452,8 +1452,10 @@ svg * {
     margin-left: 0.5rem;
 }
 
-.sample-seater .modal-body {
-    min-height: 500px;
+.sample-seater {
+    max-height: 50vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
 
 .group-selector {
@@ -1469,22 +1471,6 @@ svg * {
     font-size: 1rem;
     float: right;
 }
-
-.seater {
-    position: relative;
-    width: 100%;
-    padding-right: 15px;
-    padding-left: 15px;
-    flex-basis: 0;
-    flex-grow: .5;
-}
-.seater.uni-puck {
-    flex-grow: .3 !important;
-}
-.seater.cassette {
-    flex-grow: .5 !important;
-}
-
 .seater .sample {
     cursor: pointer;
 }

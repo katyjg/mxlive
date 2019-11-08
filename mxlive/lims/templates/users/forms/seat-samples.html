@@ -6,24 +6,15 @@
     {{ block.super }}
     <script src="{% static "js/mxlive-layouts.js" %}"></script>
 {% endblock %}
-{% block modal_styles %}modal-lg sample-seater{% endblock %}
-{% block modal_title %}{{ shipment }} - Sample Locations{% endblock %}
+{% block modal_styles %}modal-lg{% endblock %}
+{% block modal_title %}<h3><strong>{{ shipment }}</strong> | Sample Seat Selection</h3>{% endblock %}
 {% block modal_body %}
-    <div class="row">
-        <div class="col-12">
-            <div class="alert alert-info" id="seater-instructions">
-                Click on a group to select it, then click the locations of the corresponding samples in each container.
-                Click a previously selected samples to remove them.
-            </div>
-        </div>
-
-    </div>
-    <div class="row">
-        <div class="col-10">
+    <div class="row sample-seater">
+        <div class="col-9">
             <div class="row">
                 {% for container in shipment.containers.all %}
-                    <div class="seater {{ container.kind.name|slugify }} text-center">
-                        <h4><a href="#!" class="badge badge-secondary" title="Toggle All"><strong>{{ container.name }}</strong></a></h4>
+                    <div class="col-4 seater {{ container.kind.name|slugify }} text-center">
+                        <h4><a href="#!" class="badge badge-secondary" title="Toggle All" data-pk="{{ container.pk }}"><strong>{{ container.name }}</strong></a></h4>
                         <div id="seats-for-{{ container.pk }}"
                              data-layout-url="{% url 'fetch-layout' pk=container.pk %}"
                              data-pk="{{ container.pk }}"
@@ -33,7 +24,7 @@
                 {% endfor %}
             </div>
         </div>
-        <div class="col-2">
+        <div class="col-3">
             <div class="card">
                 <div class="card-header p-2"><h5 class="text-center text-wide text-muted m-0 p-0">GROUPS</h5></div>
                 <div class="list-group-flush">
@@ -50,6 +41,20 @@
                 </div>
             </div>
         </div>
+    </div>
+    <div class="form-action row">
+        <small class="col-9">
+            <div class="alert alert-info" id="seater-instructions">
+                Click on a group to select it, then click the locations of the corresponding samples in each container.
+                Click a previously selected samples to remove them.
+            </div>
+        </small>
+        <div class="col-3">
+            <div class="float-right">
+                <button class="btn btn btn-primary" name="save" type="button">Save Samples</button>
+            </div>
+        </div>
+
     </div>
 {% endblock %}
 
@@ -81,13 +86,12 @@
                     if (envel.hasClass('empty')) {
                         envel.removeClass('empty');
                         envel.attr('fill', colorScale(group.selector));
-                        $(this).data('group', group.group)
+                        $(this).data('group', group.group);
+                        console.log($(this).data('group'));
                     } else {
                         envel.addClass('empty');
                         $(this).removeData('group');
                     }
-
-                    console.log(group, envel)
                 }
             });
         }

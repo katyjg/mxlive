@@ -99,7 +99,6 @@
                 success: function(data, status, xhr) {
                     let dataType = xhr.getResponseHeader("content-type") || "";
                     // contains form
-                    console.log(data, dataType);
                     if (/html/.test(dataType)) {
                         let response = $(data);
                         let contents = target.find(".modal-content");
