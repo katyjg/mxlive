@@ -8,7 +8,7 @@ from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
 from django.db.models import Count
-from django.http import JsonResponse, HttpResponse, Http404
+from django.http import JsonResponse, HttpResponse, Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.text import slugify
@@ -389,7 +389,6 @@ class SendShipment(ShipmentEdit):
         return super().form_valid(form)
 
 
-
 class ReturnShipment(ShipmentEdit):
     form_class = forms.ShipmentReturnForm
     success_url = reverse_lazy('dashboard')
@@ -708,7 +707,7 @@ class GroupEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.Up
         for s in self.object.samples.all():
             if self.original_name in s.name:
                 models.Sample.objects.filter(pk=s.pk).update(name=s.name.replace(self.original_name, self.object.name))
-        return resp
+        return JsonResponse({})
 
 
 class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
@@ -718,10 +717,11 @@ class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.
     success_message = "Group has been deleted."
 
     def delete(self, request, *args, **kwargs):
+        group = self.get_object()
         super(GroupDelete, self).delete(request, *args, **kwargs)
-        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE,
+        models.ActivityLog.objects.log_activity(self.request, group, models.ActivityLog.TYPE.DELETE,
                                                 self.success_message)
-        return JsonResponse({'url': self.success_url})
+        return JsonResponse({'url': group.shipment.get_absolute_url()})
 
 
 class DataList(ListViewMixin, ItemListView):
@@ -1038,9 +1038,7 @@ class ShipmentAddContainer(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMix
                     'project': self.request.user
                 }
                 container, created = models.Container.objects.get_or_create(**info)
-
-        return JsonResponse({'url': reverse('shipment-add-groups', kwargs={'pk': self.kwargs.get('pk')}),
-                             'target': '#modal-target'})
+        return HttpResponseRedirect(reverse('shipment-add-groups', kwargs={'pk': self.kwargs.get('pk')}))
 
 
 class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
@@ -1064,21 +1062,15 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMixin, 
     @transaction.atomic
     def form_valid(self, form):
         data = form.cleaned_data
-        data['shipment'].groups.exclude(pk__in=[int(pk) for pk in data['id_set'] if pk]).delete()
-        sample_locations = json.loads(data['sample_locations'])
-
-        # Delete samples removed from containers
-        for group, containers in sample_locations.items():
-            for container, locations in containers.items():
-                models.Sample.objects.filter(container__pk=int(container), group__name=group).exclude(
-                    location__in=locations).delete()
+        print(data)
+        data['shipment'].groups.exclude(pk__in=[int(v) for v in data['id_set'] if v]).delete()
 
         for i, name in enumerate(data['name_set']):
-            info = {field: data['{}_set'.format(field)][i] for field in ['name', 'kind', 'plan',
-                                                                         'comments', 'absorption_edge']}
+            info = {
+                field: data['{}_set'.format(field)][i]
+                for field in ['name', 'kind', 'plan', 'comments', 'absorption_edge']}
             info.update({
                 'resolution': data['resolution_set'][i] and float(data['resolution_set'][i]) or None,
-                'sample_count': int(data['sample_count_set'][i]),
                 'shipment': data['shipment'],
                 'project': self.request.user,
                 'priority': i + 1
@@ -1088,31 +1080,13 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMixin, 
                 group = models.Group.objects.get(pk=int(data['id_set'][i]))
             else:
                 group, created = models.Group.objects.get_or_create(**info)
-            to_create = []
-            j = 1
-            priority = max(group.samples.values_list('priority', flat=True) or [0]) + 1
-            names = []
-            for c, locations in sample_locations.get(group.name, {}).items():
-                container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
-                for location in locations:
-                    if not models.Sample.objects.filter(container=container, location=location).exists():
-                        while True:
-                            name = "{0}_{1:02d}".format(group.name, j)
-                            if models.Sample.objects.filter(group=group, name=name).exists() or name in names:
-                                j += 1
-                                continue
-                            names.append(name)
-                            break
-                        to_create.append(
-                            models.Sample(group=group, container=container, location=location, name=name,
-                                          project=self.request.user, priority=priority))
-                        priority += 1
 
-            models.Sample.objects.bulk_create(to_create)
-            if group.sample_count < group.samples.count():
-                group.sample_count = group.samples.count()
-                group.save()
-        return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': data['shipment'].pk})})
+        return JsonResponse({})
+
+
+class SeatSamples(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, detail.DetailView):
+    template_name = "users/forms/seat-samples.html"
+    model = models.Shipment
 
 
 class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):

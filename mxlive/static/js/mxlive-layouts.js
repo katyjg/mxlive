@@ -5,10 +5,10 @@
             'detailed': parent.data('detailed'),
             'labelled': parent.data('labelled'),
             'loadable' : parent.data('loadable'),
+            'prefix': parent.data('prefix') || 'cnt',
         }, options);
 
         let url = parent.data('layout-url');
-        let selector = '#' + parent.attr('id');
         // fetch data and render
         $.ajax({
             dataType: "json",
@@ -16,8 +16,8 @@
             success: function (data, status, xhr) {
                 let width = parent.width();
                 let height = width * (data.height || 1);
-                let svg_id = 'cnt-' + data.id;
-                let main = d3.select(selector)
+                let svg_id = settings.prefix + '-' + data.id;
+                let main = d3.select(parent[0])
                     .selectAll("svg")
                     .data([data]);
 
@@ -42,9 +42,9 @@
                 }
 
                 // Draw Container Children
-                drawContainers("#" + svg_id, data, settings.loadable);
+                $("#" + svg_id).drawContainer(data, settings);
                 listLoaded('#loaded-projects', '#loaded-containers', data);
-                $(selector + ' [title]').tooltip();
+                parent.find('[title]').tooltip();
                 if (settings.loadable) {
                     $(document).on('click', '[data-unload-url]', function () {
                         unloadUpdateData(this, settings);
@@ -56,126 +56,141 @@
 }(jQuery));
 
 
-function drawContainers(parent, data, loadable=false) {
-    let cw = $(parent).width() || $(parent).data('width');
-    let ch = $(parent).height() || $(parent).data('height');
-    let detailed = $(parent).data('detailed');
-    let labelled = $(parent).data('labelled');
-    let aspect = cw / ch;
-    let factor = Math.sqrt(cw ** 2 + ch ** 2) / (100 * Math.sqrt(2));
-    let subs = d3.select(parent)
-        .selectAll("svg" + "[data-parent='" + data.id + "']")
-        .data(data.children || []);
+(function ($) {
+    $.fn.drawContainer = function (data, options) {
+        let parent = $(this);
+        let settings = $.extend({
+            'detailed': parent.data('detailed') || false,
+            'labelled': parent.data('labelled') || false,
+            'loadable': parent.data('loadable') || false,
+            'prefix': parent.data('prefix') || 'cnt',
+        }, options);
 
-    subs.exit().remove(); // Remove deleted entries
-    let added = subs
-        .enter()
-        .append("svg")
-        .attrs(function (d) {
-            let sw = 2 * (d.radius * factor / cw) * 100;
-            let sh = sw * aspect;
-            let cx = d.x * 100;
-            let cy = d.y * 100;
-            let cls = 'loc-' + data.loc + '-' + d.loc;
+        let cw = parent.width() || parent.data('width');
+        let ch = parent.height() || parent.data('height');
+        let detailed = settings.detailed;
+        let labelled = settings.labelled;
+        let aspect = cw / ch;
+        let factor = Math.sqrt(cw ** 2 + ch ** 2) / (100 * Math.sqrt(2));
 
-            if (data.envelope === 'circle') {
-                cx = d.x * 0.5 * Math.sin(d.y) * 100 + 50;
-                cy = d.x * 0.5 * Math.cos(d.y) * 100 + 50;
-            }
+        let subs = d3.select(parent[0])
+            .selectAll("svg" + "[data-parent='" + data.id + "']")
+            .data(data.children || []);
 
-            if (data.accepts) {
-                cls += ' cursor';
-            }
-            let options = {
-                x: (cx - 0.5 * sw).toFixed(3) + '%',
-                y: (cy - 0.5 * sh).toFixed(3) + '%',
-                width: sw.toFixed(3) + '%',
-                height: sh.toFixed(3) + '%',
-                class: cls,
-                id: 'cnt-' + d.parent + '-' + d.loc,
-                'data-width': (sw * cw / 100).toFixed(3),
-                'data-height': (sh * ch / 100).toFixed(3),
-                'data-accepts': d.accepts,
-                'data-detailed': detailed,
-                'data-labelled': labelled,
-                'data-id': d.id,
-                'data-parent': data.id,
-                'data-loc': d.loc,
-                'data-group': d.batch,
-                'data-final': d.final,
-                'data-project': (d.owner ? d.owner.toLowerCase() : 'null')
-            };
+        // Remove deleted entries
+        subs.exit().remove();
 
-            if (d.id) {
-                options.title = (data.final ? d.name : d.owner + '|' + d.name)
-            } else {
-                options.title = d.loc;
-            }
-            return options;
-        })
-        .style('pointer-events', 'all')
-        .on('click', function(d){
-            let url = "";
-            if (loadable && (d.accepts||d.final)) {
-                d3.event.stopPropagation();
-                if (! d.id) {
-                    url = "/users/containers/" + data.id + "/location/" + d.loc + '/';
-                } else {
-                    url = "/users/containers/" + d.id + "/load/";
+        let added = subs
+            .enter()
+            .append("svg")
+            .attrs(function (d) {
+                let sw = 2 * (d.radius * factor / cw) * 100;
+                let sh = sw * aspect;
+                let cx = d.x * 100;
+                let cy = d.y * 100;
+                let cls = 'loc-' + data.loc + '-' + d.loc;
+
+                if (data.envelope === 'circle') {
+                    cx = d.x * 0.5 * Math.sin(d.y) * 100 + 50;
+                    cy = d.x * 0.5 * Math.cos(d.y) * 100 + 50;
                 }
-                $('#modal-target').asyncForm({
-                    url: url,
-                    complete: function(info){
-                        let cnt_id = '#cnt-' + info.id;
-                        $(cnt_id).empty();
-                        drawContainers(cnt_id, info, loadable);
-                        listLoaded('#loaded-projects', '#loaded-containers', info);
+
+                if (data.accepts) {
+                    cls += ' cursor';
+                } else {
+                    cls += ' sample';
+                }
+                let options = {
+                    x: (cx - 0.5 * sw).toFixed(3) + '%',
+                    y: (cy - 0.5 * sh).toFixed(3) + '%',
+                    width: sw.toFixed(3) + '%',
+                    height: sh.toFixed(3) + '%',
+                    class: cls,
+                    id: settings.prefix + '-' + d.parent + '-' + d.loc,
+                    'data-width': (sw * cw / 100).toFixed(3),
+                    'data-height': (sh * ch / 100).toFixed(3),
+                    'data-accepts': d.accepts,
+                    'data-detailed': settings.detailed,
+                    'data-labelled': settings.labelled,
+                    'data-prefix': settings.prefix,
+                    'data-id': d.id,
+                    'data-parent': data.id,
+                    'data-loc': d.loc,
+                    'data-group': d.batch,
+                    'data-final': d.final,
+                    'data-project': (d.owner ? d.owner.toLowerCase() : 'null')
+                };
+
+                if (d.id) {
+                    options.title = (data.final ? d.name : d.owner + '|' + d.name)
+                } else if (d.accepts) {
+                    options.title = d.loc;
+                }
+                return options;
+            })
+            .style('pointer-events', 'all')
+            .on('click', function(d){
+                let url = "";
+                if (settings.loadable && (d.accepts||d.final)) {
+                    d3.event.stopPropagation();
+                    if (! d.id) {
+                        url = "/users/containers/" + data.id + "/location/" + d.loc + '/';
+                    } else {
+                        url = "/users/containers/" + d.id + "/load/";
                     }
-                });
-            }
-        });
-
-
-    // Draw children envelopes
-    added.append(d => document.createElementNS(d3.namespaces.svg, (d.envelope || 'circle')))
-        .attrs(function (d) {
-            let cls = 'empty';
-            if (d.final && detailed) {
-                cls = 'outline';
-            } else if ((detailed && d.sample) || (!detailed && d.final)) {
-                cls = 'occupied';
-            } else if (d.id && !d.final) {
-                cls = 'ignore';
-            }
-            if (d.sample && d.started) {
-                cls += ' started'
-            }
-            return {
-                x: '0%', y: '0%', width: '100%', height: '100%',
-                cx: '50%', cy: '50%', r: '49%', class: cls
-            }
-        });
-
-    // Labels and Children
-    if ((!data.final) || labelled) {
-        added.append("text")
-            .attr("x", '50%')
-            .attr("y", '50%')
-            .attr("font-size", 0.9 + 'rem')
-            .attr("fill", "black")
-            .attr("text-anchor", 'middle')
-            .attr("opacity", d => (d.id) ? 0.7 : 0.3)
-            .attr('dominant-baseline', 'middle')
-            .text(function (d, i) {
-                return d.loc;
+                    $('#modal-target').asyncForm({
+                        url: url,
+                        complete: function(info){
+                            let cnt = $('#' + settings.prefix + '-' + data.id);
+                            cnt.empty();
+                            cnt.drawContainer(info, {loadable: settings.loadable});
+                            listLoaded('#loaded-projects', '#loaded-containers', info);
+                        }
+                    });
+                }
             });
-    }
-    added.each(function (d) {
-        if (detailed || (!d.final)) {
-            drawContainers('#' + $(this).attr('id'), d, loadable);
+
+        // Draw children envelopes
+        added.append(d => document.createElementNS(d3.namespaces.svg, (d.envelope || 'circle')))
+            .attrs(function (d) {
+                let cls = 'empty';
+                if (d.final && settings.detailed) {
+                    cls = 'outline';
+                } else if ((settings.detailed && d.sample) || (!settings.detailed && d.final)) {
+                    cls = 'occupied';
+                } else if (d.id && !d.final) {
+                    cls = 'ignore';
+                }
+                if (d.sample && d.started) {
+                    cls += ' started'
+                }
+                return {
+                    x: '0%', y: '0%', width: '100%', height: '100%',
+                    cx: '50%', cy: '50%', r: '49%', class: cls
+                }
+            });
+
+        // Labels and Children
+        if ((!data.final) || settings.labelled) {
+            added.append("text")
+                .attr("x", '50%')
+                .attr("y", '50%')
+                .attr("font-size", 0.9 + 'rem')
+                .attr("fill", "black")
+                .attr("text-anchor", 'middle')
+                .attr("opacity", d => (d.id) ? 0.7 : 0.3)
+                .attr('dominant-baseline', 'middle')
+                .text(function (d, i) {
+                    return d.loc;
+                });
         }
-    });
-}
+        added.each(function (d) {
+            if (detailed || (!d.final)) {
+                $('#' + $(this).attr('id')).drawContainer(d, settings);
+            }
+        });
+    }
+}(jQuery));
 
 function extractProjects(results, data) {
     jQuery.each(data.children, function (i, obj) {
@@ -326,9 +341,9 @@ function unloadUpdateData(element, settings) {
             xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
         },
         success: function (data, status, xhr) {
-            let cnt_id = '#cnt-' + data.id;
-            $(cnt_id).empty();
-            drawContainers(cnt_id, data, true);
+            let cnt = $('#' + settings.prefix + '-' + data.id);
+            cnt.empty();
+            cnt.drawContainer(data, settings);
             listLoaded('#loaded-projects', '#loaded-containers', data);
         },
         error: function () {

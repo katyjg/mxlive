@@ -11,7 +11,7 @@
         replace(/-+/g, '-').
         replace(/^-|-$/g, '');
         return $slug;
-    }
+    };
 
     $('input[name$="name"]').on('change', function (f) {
         f.stopImmediatePropagation();

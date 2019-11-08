@@ -18,6 +18,7 @@ urlpatterns = [
     path('shipments/', views.ShipmentList.as_view(), name='shipment-list'),
     path('shipments/new/', views.ShipmentCreate.as_view(), name='shipment-new'),
     path('shipments/<int:pk>/', views.ShipmentDetail.as_view(), name='shipment-detail'),
+    path('shipments/<int:pk>/samples/', views.SeatSamples.as_view(), name='seat-samples'),
     path('shipments/<int:pk>/protocol/', views.ShipmentDetail.as_view(template_name="users/entries/shipment-protocol.html"), name='shipment-protocol'),
     path('shipments/<int:pk>/data/', views.ShipmentDataList.as_view(), name='shipment-data'),
     path('shipments/<int:pk>/reports/', views.ShipmentReportList.as_view(), name='shipment-reports'),

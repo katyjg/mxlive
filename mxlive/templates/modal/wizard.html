@@ -1,9 +1,14 @@
-{% extends "modal/modal.html" %}
+{% extends "modal/form.html" %}
 
 {% load static %}
 {% load msgs %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+
+{% block modal_assets %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% static 'js/live-forms.js' %}"></script>
+{% endblock %}
 
 {% block modal_title %}
     <strong class="text-condensed">Create a Shipment:&emsp;</strong>
@@ -11,51 +16,44 @@
 {% endblock %}
 
 {% block modal_body %}
-    <form action="{{ request.path }}" method="post">
-        {% csrf_token %}
-        {{ wizard.management_form }}
-        {% if wizard.form.forms %}
-            {{ wizard.form.management_form }}
-            {% for form in wizard.form.forms %}
-                {% if form.errors %}
-                    <div id="form-errors" class="alert alert-warning"><strong>It looks like there's a problem!</strong> Please correct the errors below.</div>
-                {% endif %}
-                {% crispy form form.helper %}
-            {% endfor %}
-        {% else %}
-                {% if wizard.form.errors %}
-                    <div id="form-errors" class="alert alert-warning"><strong>It looks like there's a problem!</strong> Please correct the errors below.</div>
-                {% endif %}
-            {% crispy wizard.form wizard.form.helper %}
-        {% endif %}
-    </form>
-
-<script src="{% static "jquery/jquery-ui.min.js" %}"></script>
-<script type="text/javascript" src="{% static 'js/live-forms.js' %}"></script>
-<script>
-    jQuery(function() {
-        {% if wizard.form.repeated_data %}
-            setInitial({{ wizard.form.repeated_data|safe }});
-        {% endif %}
-        {% if wizard.form.forms %}
-            {% for form in wizard.form.forms %}
-                {% if form.repeated_data %}
-                    setInitial({{ form.repeated_data|safe }});
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-    });
-</script>
-
+<form action="{{ request.path }}" method="post">
+    {% csrf_token %}
+    {{ wizard.management_form }}
+    {% if wizard.form.forms %}
+        {{ wizard.form.management_form }}
+        {% for form in wizard.form.forms %}
+            {% if form.errors %}
+                <div id="form-errors" class="alert alert-warning"><strong>It looks like there's a problem!</strong> Please correct the errors below.</div>
+            {% endif %}
+            {% crispy form form.helper %}
+        {% endfor %}
+    {% else %}
+            {% if wizard.form.errors %}
+                <div id="form-errors" class="alert alert-warning"><strong>It looks like there's a problem!</strong> Please correct the errors below.</div>
+            {% endif %}
+        {% crispy wizard.form wizard.form.helper %}
+    {% endif %}
+</form>
 {% endblock %}
 
-{% block form_init %}
-<script type="text/javascript">
-function initForm() {
-    var extra_modal = $('.extra-modal');
-    extra_modal.each(function() {
-       $(this).detach().appendTo($('#modal-target'));
-    });
-}
+{% block modal_scripts %}
+<script>
+     function initializeModal() {
+         let initialData = [];
+         {% if wizard.form.repeated_data %}
+             initialData.push({{ wizard.form.repeated_data|safe }});
+         {% endif %}
+         {% if wizard.form.forms %}
+             {% for form in wizard.form.forms %}
+                 {% if form.repeated_data %}
+                     initialData.push({{ form.repeated_data|safe }});
+                 {% endif %}
+             {% endfor %}
+         {% endif %}
+        initShipmentWizard();
+        console.log(initialData);
+        $.each(initialData, function(i, data){ setInitial(data); });
+    }
+    initializeModal();
 </script>
 {% endblock %}

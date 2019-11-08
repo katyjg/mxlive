@@ -40,7 +40,7 @@ class ProjectForm(forms.ModelForm):
                 css_class="row"
             ),
             Div(
-                Div(Field('carrier', css_class="chosen"), css_class='col-6'),
+                Div(Field('carrier', css_class="select"), css_class='col-6'),
                 Div('account_number', css_class='col-6'),
                 css_class="row"
             ),
@@ -359,9 +359,9 @@ class ShipmentSendForm(forms.ModelForm):
         self.helper.layout = Layout(
             errors,
             Div(
-                Div(Field('carrier', css_class="chosen"), css_class="col-6"),
+                Div(Field('carrier', css_class="select"), css_class="col-6"),
                 Div('tracking_code', css_class="col-6"),
-                Div(Field('components', css_class="chosen"), css_class="col-12"),
+                Div(Field('components', css_class="select"), css_class="col-12"),
                 Div('comments', css_class="col-12"),
                 css_class="row"
             ),
@@ -402,7 +402,7 @@ class ShipmentReturnForm(forms.ModelForm):
                 css_class="row"
             ),
             Div(
-                Div(Field('carrier', css_class="chosen"), css_class="col-6"),
+                Div(Field('carrier', css_class="select"), css_class="col-6"),
                 Div('return_code', css_class="col-6"),
                 Div('staff_comments', css_class="col-12"),
                 css_class="row"
@@ -436,9 +436,9 @@ class ShipmentRecallSendForm(forms.ModelForm):
         self.helper.form_action = reverse_lazy('shipment-update-send', kwargs={'pk': self.instance.pk})
         self.helper.layout = Layout(
             Div(
-                Div(Field('carrier', css_class="chosen"), css_class="col-6"),
+                Div(Field('carrier', css_class="select"), css_class="col-6"),
                 Div('tracking_code', css_class="col-6"),
-                Div(Field('components', css_class="chosen"), css_class="col-12"),
+                Div(Field('components', css_class="select"), css_class="col-12"),
                 Div('comments', css_class="col-12"),
                 css_class="row"
             ),
@@ -471,7 +471,7 @@ class ShipmentRecallReturnForm(forms.ModelForm):
         self.helper.form_action = reverse_lazy('shipment-update-return', kwargs={'pk': self.instance.pk})
         self.helper.layout = Layout(
             Div(
-                Div(Field('carrier', css_class="chosen"), css_class="col-6"),
+                Div(Field('carrier', css_class="select"), css_class="col-6"),
                 Div('return_code', css_class="col-6"),
                 Div('staff_comments', css_class="col-12"),
                 css_class="row"
@@ -608,17 +608,16 @@ class GroupForm(forms.ModelForm):
                 css_class="row"
             ),
             Div(
-                Div(Field('kind', css_class="tab-chosen chosen",
-                          css_id="kind"), css_class="col-6"),
-                Div(Field('plan', css_class="tab-chosen chosen",
-                          css_id="plan"), css_class="col-6"),
+                Div(Field('kind', css_class="select", css_id="kind"), css_class="col-6"),
+                Div(Field('plan', css_class="select", css_id="plan"), css_class="col-6"),
                 css_class="row"
             ),
             Div(
-                Div(Field('absorption_edge', css_id="absorption_edge"),
-                    css_class="col-6"),
-                Div(Field('resolution', css_id="resolution"),
-                    css_class="col-6"),
+                Div(Field('absorption_edge', css_id="absorption_edge"), css_class="col-6"),
+                Div(Field('resolution', css_id="resolution"), css_class="col-6"),
+                css_class="row"
+            ),
+            Div(
                 Div('comments', css_class="col-12"),
                 css_class="row"
             ),
@@ -643,7 +642,7 @@ class GroupForm(forms.ModelForm):
     class Meta:
         model = Group
         fields = ('project', 'name', 'kind', 'plan', 'resolution', 'absorption_edge', 'comments')
-        widgets = {'project': disabled_widget}
+        widgets = {'project': disabled_widget, 'resolution': forms.TextInput(attrs={'pattern': '\d+\.?\d*'})}
 
 
 class ContainerLoadForm(forms.ModelForm):
@@ -665,12 +664,12 @@ class ContainerLoadForm(forms.ModelForm):
         self.helper.layout = Layout(
             Div(
                 Div(
-                    Field('parent', css_class="chosen"),
+                    Field('parent', css_class="select"),
                     css_class="col-6"
                 ),
                 Div(
                     Field(
-                        'location', css_class="chosen", data_update_on='parent',
+                        'location', css_class="select", data_update_on='parent',
                         data_update_url=reverse_lazy("update-locations", kwargs={'pk': 0})
                     ),
                     css_class="col-6"
@@ -761,7 +760,7 @@ class LocationLoadForm(forms.ModelForm):
             Div(
                 Field('location', type="hidden"),
                 Div(
-                    Field('child', css_class="chosen"),
+                    Field('child', css_class="select"),
                     css_class="col-12"
                 ),
                 css_class="row"
@@ -792,7 +791,7 @@ class AddShipmentForm(forms.ModelForm):
 
         if self.initial['project'].is_superuser:
             name_row = Div(
-                Div(Field('project', css_class="chosen"), css_class="col-4"),
+                Div(Field('project', css_class="select"), css_class="col-4"),
                 Div('name', css_class="col-8"),
                 css_class="row"
             )
@@ -891,29 +890,29 @@ class ShipmentContainerForm(forms.ModelForm):
                     Div(
                         Div(
                             Div(
-                                Div(Field('name'), css_class="col-6"),
-                                Div(Field('kind', css_class="select"), css_class="col-5"),
+                                Div(Field('name'), css_class="col-5"),
+                                Div(Field('kind', css_class="select-alt"), css_class="col-5"),
                                 Div(
                                     Div(
                                         HTML(
                                             '<label></label>'
                                             '<div class="spaced-buttons">'
-                                            '<a title="Remove Container" class="safe-remove btn btn-warning px-1">'
+                                            '<a title="Remove Container" class="safe-remove btn btn-warning">'
                                             '<i class="ti ti-minus"></i>'
                                             '</a>'
-                                            '<a title="Remove Container" class="remove btn btn-danger text-white px-1" style="display: none;">'
+                                            '<a title="Click again to confirm" class="remove btn btn-danger text-white" style="display: none;">'
                                             '<i class="ti ti-minus"></i>'
                                             '</a>'
                                             '</div'
                                         ),
                                         css_class="form-group"
                                     ),
-                                    css_class="col-1"
+                                    css_class="col-2"
                                 ),
-                                Field('shipment'),
-                                Field('id', css_id="id"),
                                 css_class="row",
                             ),
+                            Field('shipment'),
+                            Field('id'),
                             css_class="template repeat-row border-0"
                         ),
                         css_class="repeat-group repeat-container",
@@ -923,7 +922,7 @@ class ShipmentContainerForm(forms.ModelForm):
                 ),
                 Div(
                     StrictButton(
-                        "<i class='ti ti-plus'></i> Add Row", type="button",
+                        "<i class='ti ti-plus'></i> Add Container", type="button",
                         css_class='btn btn-sm btn-success add mt-3'
                     ),
                 ),
@@ -967,63 +966,34 @@ class ShipmentContainerForm(forms.ModelForm):
 
 class ShipmentGroupForm(forms.ModelForm):
     id = forms.CharField(required=False, widget=forms.HiddenInput)
-    sample_locations = forms.CharField(initial='{}')
-    locations = forms.TypedMultipleChoiceField(
-        choices=[], coerce=str,
-        label='Container Locations', required=False
-    )
-    containers = forms.ModelMultipleChoiceField(
-        queryset=Container.objects.all(),
-        required=False
-    )
-    name = forms.CharField(max_length=50, required=False)
-    sample_count = forms.IntegerField(min_value=1, required=False, initial=1)
 
     class Meta:
         model = Group
-        fields = ['shipment', 'id', 'priority', 'kind', 'resolution', 'absorption_edge', 'name', 'sample_count', 'plan',
-                  'comments', 'locations']
+        fields = [
+            'shipment', 'id', 'priority', 'kind', 'resolution', 'absorption_edge', 'name', 'plan', 'comments'
+        ]
         widgets = {
             'comments': forms.TextInput(),
-            'priority': forms.TextInput(attrs={'readonly': True}),
-            'shipment': forms.HiddenInput()
+            'priority': forms.HiddenInput(),
+            'shipment': forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
         super(ShipmentGroupForm, self).__init__(*args, **kwargs)
-        user = self.initial.get('user')
-
-        locations = []
-        containers = self.initial.get('containers')
-        if self.initial.get('shipment'):
-            self.fields['containers'].queryset = containers
-        else:
-            for c in containers:
-                kind = ContainerType.objects.get(pk=int(c[1]))
-                locations.extend([('{2};{0};{1}'.format(c[0], l, c[1]), '{2};{0};{1}'.format(c[0], l, c[1]))
-                                  for l in kind.locations.values_list('name', flat=True)])
-            self.fields['locations'].choices = locations
-
         self.helper = FormHelper()
-
         action_row = Div(css_class="form-action row")
-        fill_btn = Div() if self.initial.get('shipment') else StrictButton(
-            "Group by Container", title="Create one group for each container", type="button",
-            onclick="fillContainers();", css_class='btn btn-sm btn-warning'
-        )
-
         if self.initial.get('shipment'):
             groups = self.initial['shipment'].groups.order_by('priority')
             self.repeated_data = {
                 'name_set': [str(group.name) for group in groups],
                 'priority_set': [group.priority or 0 for group in groups],
                 'id_set': [group.pk for group in groups],
-                'sample_count_set': [group.sample_count for group in groups],
                 'plan_set': [str(group.plan) for group in groups],
                 'kind_set': [str(group.kind) for group in groups],
                 'absorption_edge_set': [str(group.absorption_edge) for group in groups],
                 'resolution_set': [group.resolution or '' for group in groups],
             }
+
             action_row.append(Div(
                 Div(
                     StrictButton('Save', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
@@ -1034,7 +1004,6 @@ class ShipmentGroupForm(forms.ModelForm):
 
             self.helper.title = "Add Groups to Shipment"
             self.helper.form_action = reverse_lazy('shipment-add-groups', kwargs={'pk': self.initial['shipment'].pk})
-
         else:
             action_row.append(Div(
                 Div(
@@ -1057,8 +1026,8 @@ class ShipmentGroupForm(forms.ModelForm):
                     Div(
                         Div(
                             Div(
-                                Div(Field('name', css_id="name"), css_class="col-4"),
-                                Div(Field('sample_count', css_id="sample_count"), css_class="col-3"),
+                                Div('name', css_class="col-4"),
+                                Div(Field('plan', css_class="select-alt"), css_class="col-4"),
                                 Div(
                                     Div(
                                         HTML(
@@ -1068,100 +1037,61 @@ class ShipmentGroupForm(forms.ModelForm):
                                         '   class="move btn btn-white">'
                                         '   <i class="ti ti-move"></i>'
                                         '</a>'
-                                        '<a title="Sample Locations" class="disabled btn btn-info " '
-                                        '   onclick="showModal($(this));" href="#group-select">'
-                                        '   <i class="ti ti-flickr"></i>'
-                                        '</a>'
-                                        '<a title="Edit more group details" href="#group-details-{rowcount}" '
+                                        '<a title="Edit more group details" href="#group-details--{rowcount}" '
                                         '   class="btn btn-info btn-collapse collapsed"'
-                                        '   aria-expanded="false" data-parent="#repeat-group" data-toggle="collapse">'
+                                        '   aria-expanded="false" data-toggle="collapse">'
                                         '   <i class="ti ti-angle-double-right"></i>'
                                         '</a>'
-                                        '<a title="Click to Delete Group" class="remove btn btn-danger" '
+                                        '<a title="Delete Group" class="remove btn btn-danger" '
                                         '   style="display: none;">'
                                         '   <i class="ti ti-minus"></i>'
                                         '</a>'
-                                        '<a title="Remove Group" class="safe-remove btn btn-secondary">'
+                                        '<a title="Click again to confirm" class="safe-remove btn btn-secondary">'
                                         '   <i class="ti ti-minus"></i>'
                                         '</a>'
                                         '</div>'
                                         ),
-                                        css_class="form-group col"
+                                        css_class="form-group"
                                     ),
-                                    css_class="col-5"
+                                    css_class="col-4"
                                 ),
                                 css_class="row card-header py-1 px-3"
                             ),
                             Div(
                                 Div(
                                     Div(
-                                        Div(Field('kind', css_class="select"), css_class="col-4"),
-                                        Div(Field('plan', css_class="select"), css_class="col-4"),
+                                        Div(Field('kind', css_class="select-alt"), css_class="col-4"),
+                                        Div(Field('absorption_edge'), css_class="col-4"),
                                         Div(Field('resolution'), css_class="col-4"),
                                         css_class="row"
                                     ),
                                     Div(
-                                        Div(Field('absorption_edge'), css_class="col-4"),
-                                        Div(Field('comments'), css_class="col-8"),
+                                        Div(Field('comments'), css_class="col-12"),
                                         css_class="row"
                                     ),
+                                    Field('shipment'),
+                                    Field('priority'),
+                                    Field('id'),
                                     css_class="card-body"
                                 ),
                                 css_class="collapse",
-                                css_id="group-details-{rowcount}"
+                                id="group-details--{rowcount}"
                             ),
-                            Field('shipment'),
-                            Field('id', css_id="id"),
-                            Field('priority', type="hidden", css_id="priority"),
                             css_class="template repeat-row card border-0"
                         ),
                         css_class="repeat-group repeat-container",
                     ),
+                    Div(
+                        StrictButton(
+                            "<i class='ti ti-plus'></i> Add Group", type="button",
+                            css_class='btn btn-sm btn-success add'
+                        ),
+                        css_class="col-12 mt-3"
+                    ),
                     css_class="repeat-wrapper"
                 ),
-                Div(
-                    StrictButton(
-                        "<i class='ti ti-plus'></i> Add Row", type="button",
-                        css_class='btn btn-sm btn-success add'
-                    ),
-                    fill_btn,
-                    css_class="col-12 mt-3"
-                ),
+
                 css_class='repeat row'
-            ),
-            Field('sample_locations', type="hidden"),
-            Div(
-                Div(
-                    Div(
-                        Div(
-                            HTML(
-                                """<h3 class="modal-title">Select Seats for Samples in Group <span class="group-name"></span></h3>"""),
-                            css_class="modal-header"
-                        ),
-                        Div(
-                            # Field('locations', template="users/forms/layout.html"),
-                            Div(
-                                Div(
-                                    Div(
-                                        StrictButton('Done', type='button', name="done",
-                                                     onclick="hideModal($(this));",
-                                                     css_class='btn btn-primary'),
-                                        css_class="float-right"
-                                    ),
-                                    css_class="col-12"
-                                ),
-                                css_class="row form-action"
-                            ),
-                            css_class="modal-body",
-                            css_id="modal-content",
-                        ),
-                        css_class="modal-content",
-                    ),
-                    css_class="modal-dialog modal-md",
-                ),
-                css_class="modal fade extra-modal",
-                css_id="group-select",
-                css_role="dialog",
             ),
             action_row,
         )
@@ -1178,8 +1108,7 @@ class ShipmentGroupForm(forms.ModelForm):
             return Div(
                 HTML(
                     '<h4 class="mb-0">Add Sample Groups</h4>'
-                    '<p>Group similar samples together. '
-                    'You can add more groups later.</p>'
+                    '<p>Group similar samples together. You can add more groups later.</p>'
                 )
             )
 
@@ -1191,15 +1120,25 @@ class ShipmentGroupForm(forms.ModelForm):
                 cleaned_data['{}_set'.format(field)] = self.data.getlist('groups-{}'.format(field))
             else:
                 cleaned_data['{}_set'.format(field)] = self.data.getlist(field)
-        cleaned_data['sample_count_set'] = [count or 0 for count in cleaned_data.get('sample_count_set')]
         if len(set(cleaned_data['name_set'])) != len(cleaned_data['name_set']):
             self.add_error(None, forms.ValidationError("Groups in a shipment must each have a unique name"))
         if not self.is_valid():
             for k, v in cleaned_data.items():
                 if isinstance(v, list):
                     self.repeated_data[k] = [str(e) for e in v]
-
         return cleaned_data
+
+
+class ShipmentSamplesForm(forms.ModelForm):
+    id = forms.CharField(required=False, widget=forms.HiddenInput)
+
+    class Meta:
+        model = Shipment
+        fields = ['id']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['containers'].queryset = self.initial.get('containers')
 
 
 class GroupSelectForm(forms.ModelForm):

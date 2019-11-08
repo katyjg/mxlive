@@ -1248,18 +1248,16 @@ span.label-unusable-score {
 }
 
 /* Bootstrap margin fixes */
-.row [class^=col-] + [class^=col-] {
-    padding-left: 0;
+/*.row {
+    margin-left:  -.5rem;
+    margin-right: -.5rem
 }
+.row [class^=col-] + [class^=col-] {
+    padding-left:  .5rem;
+    padding-right: .5rem
+}*/
 
 @media (max-width: 768px) {
-    .row [class^=col-] + .col-12 {
-        padding-left: 1rem;
-    }
-
-    .row .col-12 {
-        padding-left: 1rem !important;
-    }
 
     #objlist-search + ul.nav-pills {
         padding-left: 1rem;
@@ -1284,10 +1282,6 @@ span.label-unusable-score {
 
 .chosen-choices, .chosen-single {
     border-radius: 4px !important;
-}
-
-.row .col-12 + .col-12 {
-    padding-left: 15px;
 }
 
 .btn-margin {
@@ -1452,8 +1446,45 @@ svg * {
 .spaced-buttons {
     display: flex;
     flex-direction: row;
-    justify-content: end;
+    justify-content: flex-end;
 }
 .spaced-buttons > * {
     margin-left: 0.5rem;
+}
+
+.sample-seater .modal-body {
+    min-height: 500px;
+}
+
+.group-selector {
+    opacity: 0.5;
+}
+.group-selector.selected {
+    opacity: 1;
+}
+
+.group-selector.selected::after {
+    font-family: Themify;
+    content: " \e61f ";
+    font-size: 1rem;
+    float: right;
+}
+
+.seater {
+    position: relative;
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    flex-basis: 0;
+    flex-grow: .5;
+}
+.seater.uni-puck {
+    flex-grow: .3 !important;
+}
+.seater.cassette {
+    flex-grow: .5 !important;
+}
+
+.seater .sample {
+    cursor: pointer;
 }

@@ -22,19 +22,7 @@
         let defaults = {
             url: $(this).data('form-action'),
             setup: function (body) {
-                body.find('form').attr('action', "");
-                /* chosen */
-                body.find(".chosen").chosen({
-                    placeholder_text_single: "Select an option",
-                    search_contains: true,
-                    allow_single_deselect: true,
-                    disable_search_threshold: 8,
-                });
-                body.find(".chosen").trigger("chosen:updated");
-
-                /* select2 */
-                body.find(".select").select2();
-
+                body.find(".select").select2({theme: 'bootstrap4'});
                 body.find("select[data-update-on]").each(function(){
                     let src = $('[name="'+ $(this).data('update-on')+'"]');
                     let dst = $(this);
@@ -54,12 +42,11 @@
                                         dst.append($('<option>', {
                                                 value : item[0],
                                                 text: item[1],
-                                            selected: (initial == item[0])
+                                                selected: (initial === item[0])
                                             })
                                         );
                                     });
-                                    dst.trigger('chosen:updated');
-                                    dst.trigger('change');
+                                    dst.trigger('change.select2');
                                 }
                             });
                         }
@@ -74,7 +61,7 @@
                         window.location.replace(data.url);
                     }
                 } else {
-                    window.loacation.reload();
+                    window.location.reload();
                 }
             }
         };
@@ -96,23 +83,23 @@
         });
         target.off("click", ":submit");
         target.on("click", ":submit", function(e){
-            console.log(target.find('form'));
+            let form = target.find('form');
             e.preventDefault();
             e.stopPropagation();
             let button = $(this);
             button.html('<i class="ti ti-reload spin"></i>');
 
-            target.find("form").ajaxSubmit({
+            form.ajaxSubmit({
                 type: 'post',
-                url: settings.url,
+                url: form.attr('action'),
                 data: {'submit': button.attr('value')},
 			    beforeSend: function(xhr, settings){
                     xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
                 },
                 success: function(data, status, xhr) {
                     let dataType = xhr.getResponseHeader("content-type") || "";
-
                     // contains form
+                    console.log(data, dataType);
                     if (/html/.test(dataType)) {
                         let response = $(data);
                         let contents = target.find(".modal-content");
@@ -120,6 +107,7 @@
                         if (contents.length && new_contents.length) {
                             contents.html(new_contents.html());
                             settings.setup(target);
+
                         } else {
                             target.html(data);
                             settings.setup(target);

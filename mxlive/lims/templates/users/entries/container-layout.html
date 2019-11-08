@@ -1,13 +1,15 @@
 <div id="svglayout-{{ container.pk }}"
      data-layout-url= "{% url 'fetch-layout' pk=container.pk %}"
      data-pk="{{ container.pk }}"
-     data-detailed="{% if show_samples %}true{% else %}false{% endif %}"
-     data-labelled="{% if label_samples %}true{% else %}false{% endif %}"
-     data-loadable="{% if loadable %}true{% else %}false{% endif %}"
      class="p-0">
 </div>
 <script>
     $(document).ready(function() {
-        $('#svglayout-{{ container.pk }}').layoutContainer()
+        $('#svglayout-{{ container.pk }}').layoutContainer({
+            detailed: {% if show_samples %}true{% else %}false{% endif %},
+            labelled: {% if label_samples %}true{% else %}false{% endif %},
+            loadable: {% if loadable %}true{% else %}false{% endif %},
+            prefix: "cntld"
+        })
     });
 </script>

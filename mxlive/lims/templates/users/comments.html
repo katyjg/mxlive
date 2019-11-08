@@ -1,5 +1,4 @@
-<div id="comments-{{ object.pk }}" class="collapse">
-    <div class="container col-12">
+<div id="comments-{{ object.pk }}" class="status-bar collapse">
     <div class="comments row">
         {% if object.comments %}
         <div class="col-2 col-sm-1 text-right">
@@ -30,6 +29,4 @@
         </div>
         {% else %}<div class="col-sm-6"></div>{% endif %}
     </div>
-        </div>
-    <hr/>
 </div>
