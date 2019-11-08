@@ -48,17 +48,15 @@
         </div>
     </div>
     <div class="form-action row">
-        <small class="col-9">
-            <div class="alert alert-info" id="seater-instructions">
+        <div class="col-9 small">
+            <div class="alert alert-info m-0" id="seater-instructions">
                 <i class="ti ti-xl ti-info-alt float-left pr-2"></i>
                 Click on a group to select it, then click the locations of the corresponding samples in each container.
                 Click previously selected samples to remove them.
             </div>
-        </small>
-        <div class="col-3">
-            <div class="float-right">
-                <button class="btn btn btn-primary" name="save" type="button">Save Samples</button>
-            </div>
+        </div>
+        <div class="col-3 my-auto text-right">
+            <button id='save-seats' class="btn btn btn-primary" name="save" type="button">Save Samples</button>
         </div>
 
     </div>
@@ -85,17 +83,18 @@
                 $('.group-selector.selected').removeClass('selected');
                 $(this).toggleClass('selected', remove);
             });
+            
             $(document).on('click', 'svg.sample', function () {
                 let group = $('.group-selector.selected').data();
                 if (group) {
-                    let envel = $(this).find('>:first-child');
-                    if (envel.hasClass('empty')) {
-                        envel.removeClass('empty');
-                        envel.attr('fill', colorScale(group.selector));
-                        $(this).data('group', group.group);
+                    if ($(this).hasClass('empty')) {
+                        $(this).removeClass('empty')
+                            .attr('data-group', group.group)
+                            .find(' > .envelope')
+                                .attr('fill', colorScale(group.selector));
                     } else {
-                        envel.addClass('empty');
-                        $(this).removeData('group');
+                        $(this).addClass('empty')
+                            .removeData('group');
                     }
                 }
             });
@@ -112,22 +111,35 @@
                         $(this).css('background-color', '');
                     }
                 }
-            );
-            $('.seater .badge[data-pk]').click(function () {
+            ).click(function () {
                 let group = $('.group-selector.selected').data();
                 if (group) {
-                    $('#seats-for-' + $(this).data('pk')).find('svg.sample > :first-child').each(function () {
-                        let toadd = $(this).filter('.empty');
-                        let toremove = $(this).filter('[data-group="'+ group.group +'"]');
-                        console.log(toadd.length, toremove.length);
-                        toadd.removeClass('empty');
-                        toadd.attr('fill', colorScale(group.selector));
-                        toadd.data('group', group.group);
-                        console.log(toadd.length, toremove.length);
-                        toremove.removeData('group');
-                        toremove.addClass('empty');
-                    });
+                    let pins = $('#seats-for-' + $(this).data('pk') + ' svg.sample');
+                    let to_add = pins.filter('.empty');
+                    let to_del = pins.filter('[data-group='+group.group+']');
+                    if (to_add.length > 0) {
+                        to_add.removeClass('empty')
+                            .attr('data-group', group.group)
+                            .find('> .envelope').attr('fill', colorScale(group.selector));
+                    } else {
+                        to_del.removeData('group')
+                            .addClass('empty');
+                    }
                 }
+            });
+            $('#save-seats').click(function(){
+                let info = [];
+                $('.seat-container').each(function(){
+                    let cid = $(this).data('pk');
+                    $(this).find('svg.sample[data-group]').each(function(){
+                        info.push({
+                            group: $(this).data('group'),
+                            container: cid,
+                            location: $(this).data('loc'),
+                        })
+                    })
+                });
+                console.log(info);
             });
         }
 

@@ -635,25 +635,25 @@ form .list-group-item {
 
 /* Container/Layout styles */
 
-svg .outline {
+svg.outline > .envelope {
     stroke: black;
     fill: #fefefe;
 }
 
-svg .empty {
+svg.empty > .envelope {
     fill: #eee;
 }
 
-svg .ignore {
+svg.ignore > .envelope {
     fill: none;
     stroke: none;
 }
 
-svg .occupied {
+svg.occupied > .envelope {
     fill: #17a2b8;
 }
 
-svg .started {
+svg.started > .envelope {
     opacity: 0.30;
 }
 

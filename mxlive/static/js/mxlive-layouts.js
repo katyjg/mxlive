@@ -75,7 +75,6 @@
         let cw = parent.width() || parent.data('width');
         let ch = parent.height() || parent.data('height');
         let detailed = settings.detailed;
-        let labelled = settings.labelled;
         let aspect = cw / ch;
         let factor = Math.sqrt(cw ** 2 + ch ** 2) / (100 * Math.sqrt(2));
 
@@ -101,6 +100,18 @@
                     cy = d.x * 0.5 * Math.cos(d.y) * 100 + 50;
                 }
 
+                if (d.final && settings.detailed) {
+                    cls += ' outline';
+                } else if ((settings.detailed && d.sample) || (!settings.detailed && d.final)) {
+                    cls += ' occupied';
+                } else if (d.id && !d.final) {
+                    cls += ' ignore';
+                } else {
+                    cls += ' empty'
+                }
+                if (d.sample && d.started) {
+                    cls += ' started'
+                }
                 if (data.accepts) {
                     cls += ' cursor';
                 } else {
@@ -159,20 +170,9 @@
         // Draw children envelopes
         added.append(d => document.createElementNS(d3.namespaces.svg, (d.envelope || 'circle')))
             .attrs(function (d) {
-                let cls = 'empty';
-                if (d.final && settings.detailed) {
-                    cls = 'outline';
-                } else if ((settings.detailed && d.sample) || (!settings.detailed && d.final)) {
-                    cls = 'occupied';
-                } else if (d.id && !d.final) {
-                    cls = 'ignore';
-                }
-                if (d.sample && d.started) {
-                    cls += ' started'
-                }
                 return {
                     x: '0%', y: '0%', width: '100%', height: '100%',
-                    cx: '50%', cy: '50%', r: '49%', class: cls + ' envelope'
+                    cx: '50%', cy: '50%', r: '49%', class: 'envelope'
                 }
             });
 
