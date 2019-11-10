@@ -5,15 +5,16 @@
 {% block modal_assets %}
     {{ block.super }}
     <script src="{% static "js/mxlive-layouts.js" %}"></script>
+    <script src="{% static "js/mxlive-seater.js" %}"></script>
 {% endblock %}
 {% block modal_styles %}modal-lg{% endblock %}
 {% block modal_title %}<strong>{{ shipment }}</strong> | Sample Seat Selection{% endblock %}
 {% block modal_body %}
-    <div class="row sample-seater">
+    <div id="sample-seater" class="row" >
         <div class="col-9">
             <div class="row">
                 {% for container in shipment.containers.all %}
-                    <div class="col-4 seater {{ container.kind.name|slugify }} text-center"
+                    <div class="col-3 seater {{ container.kind.name|slugify }} text-center"
                          id="seater-{{ container.pk }}">
                         <h5 class="m-0">
                             <a href="#!" class="badge badge-secondary text-condensed text-thin" title="Toggle All"
@@ -38,7 +39,9 @@
                             <a href="#!" class="list-group-item group-selector py-1"
                                data-group="{{ group.pk }}"
                                data-name="{{ group.name }}"
-                               data-selector="{{ forloop.counter }}">
+                               data-selector="{{ forloop.counter }}"
+                               {% if group.comments %}title="{{ group.comments }}"{% endif %}
+                            >
                                 <strong>{{ group.name }}</strong>
                             </a>
                         {% endwith %}
@@ -56,7 +59,9 @@
             </div>
         </div>
         <div class="col-3 my-auto text-right">
-            <button id='save-seats' class="btn btn btn-primary" name="save" type="button">Save Samples</button>
+            <button id='save-seats' class="btn btn btn-primary" name="save" type="button"
+                    data-post-action="{% url 'create-samples' pk=shipment.pk %}"
+            >Save Samples</button>
         </div>
 
     </div>
@@ -64,87 +69,8 @@
 
 {% block modal_scripts %}
     <script>
-        function initializeModal() {
-            $('.seat-container').each(function () {
-                $(this).layoutContainer({
-                    detailed: true,
-                    labelled: true,
-                    loadable: false,
-                    prefix: 'sscnt'
-                });
-            });
-            const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-            d3.selectAll('.group-chooser [data-selector]')
-                .style('color', '#fff')
-                .style('background-color', function () {
-                    return colorScale($(this).data('selector'));
-                }).on('click', function () {
-                let remove = (!$(this).hasClass('selected'));
-                $('.group-selector.selected').removeClass('selected');
-                $(this).toggleClass('selected', remove);
-            });
-            
-            $(document).on('click', 'svg.sample', function () {
-                let group = $('.group-selector.selected').data();
-                if (group) {
-                    if ($(this).hasClass('empty')) {
-                        $(this).removeClass('empty')
-                            .attr('data-group', group.group)
-                            .find(' > .envelope')
-                                .attr('fill', colorScale(group.selector));
-                    } else {
-                        $(this).addClass('empty')
-                            .removeData('group');
-                    }
-                }
-            });
-            $('.seater .badge[data-pk]').hover(
-                function () { //enter
-                    let group = $('.group-selector.selected').data();
-                    if (group) {
-                        $(this).css('background-color', colorScale(group.selector));
-                    }
-                },
-                function () { //exit
-                    let group = $('.group-selector.selected').data();
-                    if (group) {
-                        $(this).css('background-color', '');
-                    }
-                }
-            ).click(function () {
-                let group = $('.group-selector.selected').data();
-                if (group) {
-                    let pins = $('#seats-for-' + $(this).data('pk') + ' svg.sample');
-                    let to_add = pins.filter('.empty');
-                    let to_del = pins.filter('[data-group='+group.group+']');
-                    if (to_add.length > 0) {
-                        to_add.removeClass('empty')
-                            .attr('data-group', group.group)
-                            .find('> .envelope').attr('fill', colorScale(group.selector));
-                    } else {
-                        to_del.removeData('group')
-                            .addClass('empty');
-                    }
-                }
-            });
-            $('#save-seats').click(function(){
-                let info = [];
-                $('.seat-container').each(function(){
-                    let cid = $(this).data('pk');
-                    $(this).find('svg.sample[data-group]').each(function(){
-                        info.push({
-                            group: $(this).data('group'),
-                            container: cid,
-                            location: $(this).data('loc'),
-                        })
-                    })
-                });
-                console.log(info);
-            });
-        }
-
         $('#modal').on('shown.bs.modal', function () {
-            initializeModal();
+            initSampleSeater();
         });
     </script>
 {% endblock %}

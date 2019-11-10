@@ -2,10 +2,12 @@
     $.fn.layoutContainer = function (options) {
         let parent = $(this);
         let settings = $.extend({
-            'detailed': parent.data('detailed'),
-            'labelled': parent.data('labelled'),
-            'loadable' : parent.data('loadable'),
-            'prefix': parent.data('prefix') || 'cnt',
+            detailed: parent.data('detailed'),
+            labelled: parent.data('labelled'),
+            loadable : parent.data('loadable'),
+            prefix: parent.data('prefix') || 'cnt',
+            on_complete: function() {
+            },
         }, options);
 
         let url = parent.data('layout-url');
@@ -56,6 +58,8 @@
                         unloadUpdateData(this, settings);
                     });
                 }
+                // run complete function
+                settings.on_complete();
             }
         });
     }
@@ -77,7 +81,6 @@
         let detailed = settings.detailed;
         let aspect = cw / ch;
         let factor = Math.sqrt(cw ** 2 + ch ** 2) / (100 * Math.sqrt(2));
-
         let subs = d3.select(parent[0])
             .selectAll("svg" + "[data-parent='" + data.id + "']")
             .data(data.children || []);
@@ -359,7 +362,7 @@ function unloadUpdateData(element, settings) {
     });
 }
 
-// Initialize global Layout Event handlers
+// Initialize global Layout Event handlers for env
 $(document).ready(function () {
     $(document).on('mouseenter', '[data-highlight]', function () {
         let sel = "svg[data-" + $(this).data('highlight') + "='" + $(this).data('reference') + "'] >:first-child";
@@ -369,3 +372,4 @@ $(document).ready(function () {
         $('svg > .active-envelope').removeClass('active-envelope');
     });
 });
+

@@ -1,4 +1,8 @@
 import re
+import json
+
+from operator import itemgetter
+from collections import defaultdict
 
 from django import http
 from django.db import transaction
@@ -121,3 +125,36 @@ class UnloadContainer(AdminRequiredMixin, View):
 
         return JsonResponse(root.get_layout(), safe=False)
 
+
+class CreateShipmentSamples(LoginRequiredMixin, View):
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        if request.user.is_superuser:
+            qs = models.Shipment.objects.filter()
+        else:
+            qs = models.Shipment.objects.filter(project=self.request.user)
+        try:
+            shipment = qs.get(pk=self.kwargs['pk'])
+            samples = json.loads(request.POST.get('samples', '[]'))
+            grouped_samples = defaultdict(list)
+            loc_info = dict(models.ContainerLocation.objects.values_list('name', 'pk'))
+            for sample in sorted(samples, key=itemgetter('container', 'location')):
+                grouped_samples[sample['group']].append(
+                    {
+                        'project': shipment.project,
+                        'container_id': sample['container'],
+                        'location_id': loc_info[str(sample['location'])]
+                    }
+                )
+
+            to_create = []
+            models.Sample.objects.filter(container__shipment=shipment).delete()
+            for group in shipment.groups.all():
+                # remove existing samples
+                for i, details in enumerate(grouped_samples.get(group.pk, [])):
+                    to_create.append(models.Sample(name='{}_{}'.format(group.name, i+1), group=group, **details))
+            shipment.project.samples.bulk_create(to_create)
+            return JsonResponse({'url': shipment.get_absolute_url()}, safe=False)
+        except models.Container.DoesNotExist:
+            raise http.Http404('Shipment Not Found!')

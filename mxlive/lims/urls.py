@@ -75,6 +75,7 @@ urlpatterns = [
     path('sessions/<int:pk>/data/', views.SessionDataList.as_view(), name='session-data'),
     path('sessions/<int:pk>/reports/', views.SessionReportList.as_view(), name='session-reports'),
 
+    path('ajax/create_samples/<int:pk>/', ajax_views.CreateShipmentSamples.as_view(), name='create-samples'),
     path('ajax/update_locations/<int:pk>/', ajax_views.UpdateLocations.as_view(), name='update-locations'),
     path('ajax/update_priority/', cache_page(60*60*24)(ajax_views.UpdatePriority.as_view()), name='update-priority'),
     path('ajax/report/<int:pk>/', ajax_views.FetchReport.as_view(), name='fetch-report'),

@@ -862,7 +862,7 @@ class Container(TransitStatusMixin):
             if with_samples:
                 samples = list(
                     self.samples.values(
-                        'id', 'name', loc=F('location'), sample=Value(True, BooleanField()),
+                        'id', 'name', loc=F('location__name'), sample=Value(True, BooleanField()),
                         batch=F('group__pk'), envelope=Value('circle', CharField()),
                         started=Count('datasets')
                     )
@@ -998,7 +998,6 @@ class Group(ProjectObjectMixin):
     plan = models.IntegerField(choices=EXP_PLANS, default=EXP_PLANS.COLLECT_BEST)
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(blank=True, null=True)
-    sample_count = models.PositiveIntegerField('Number of Samples', default=1)
 
     class Meta:
         verbose_name = 'Group'
@@ -1026,9 +1025,6 @@ class Group(ProjectObjectMixin):
             if results:
                 return [results[0].sample.pk, results[0].score]
 
-    def unassigned_samples(self):
-        return self.sample_count - self.samples.count()
-
     def is_closable(self):
         return self.samples.all().exists() and not self.samples.exclude(
             status__in=[Sample.STATES.RETURNED, Sample.STATES.ARCHIVED]).exists() and \
@@ -1045,7 +1041,7 @@ class Sample(ProjectObjectMixin):
         'cascade': 'datasets and results',
         'cascade_help': 'All associated datasets and results will be left without a sample',
         'name': "Avoid using spaces or special characters in sample names",
-        'barcode': "If there is a datamatrix code on sample, please scan or input the value here",
+        'barcode': "If there is a data-matrix code on sample, please scan or input the value here",
         'comments': 'You can use restructured text formatting in this field',
         'location': 'This field is required only if a container has been selected',
         'group': 'This field is optional here.  Samples can also be added to a group on the groups page.',
@@ -1054,7 +1050,8 @@ class Sample(ProjectObjectMixin):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='samples')
     barcode = models.SlugField(null=True, blank=True)
     container = models.ForeignKey(Container, null=True, blank=True, on_delete=models.CASCADE, related_name='samples')
-    location = models.CharField(max_length=10, null=True, blank=True, verbose_name='port')
+    location = models.ForeignKey(ContainerLocation, on_delete=models.CASCADE,  related_name='samples')
+    loc_name = models.CharField(max_length=10, null=True, blank=True)
     comments = models.TextField(blank=True, null=True)
     collect_status = models.BooleanField(default=False)
     priority = models.IntegerField(null=True, blank=True)
@@ -1062,7 +1059,7 @@ class Sample(ProjectObjectMixin):
 
     class Meta:
         unique_together = (
-            ("project", "container", "location"),
+            ("container", "location"),
         )
         ordering = ['priority', 'container__name', 'location', 'name']
 
@@ -1107,7 +1104,7 @@ class Sample(ProjectObjectMixin):
             'barcode': self.barcode,
             'priority': (self.group.priority, self.priority if self.priority else 1),
             'comments': self.comments,
-            'location': self.location,
+            'location': self.location.name,
             'port': self.port(),
         }
 

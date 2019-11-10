@@ -985,7 +985,6 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                             'resolution': form.cleaned_data.get('resolution_set') and
                                           form.cleaned_data['resolution_set'][i] and float(
                                 form.cleaned_data['resolution_set'][i]) or None,
-                            'sample_count': 0,
                             'shipment': self.shipment,
                             'project': project,
                             'priority': i + 1

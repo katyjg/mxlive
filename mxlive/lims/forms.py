@@ -589,6 +589,14 @@ class ContainerForm(forms.ModelForm):
 
 
 class GroupForm(forms.ModelForm):
+    class Meta:
+        model = Group
+        fields = ('project', 'name', 'kind', 'plan', 'resolution', 'absorption_edge', 'comments')
+        widgets = {
+            'project': disabled_widget,
+            'resolution': forms.TextInput(attrs={'pattern': '\d+\.?\d*'}),
+            'comments': forms.Textarea(attrs={'rows': 5}),
+        }
 
     def __init__(self, *args, **kwargs):
         super(GroupForm, self).__init__(*args, **kwargs)
@@ -639,10 +647,6 @@ class GroupForm(forms.ModelForm):
             self.add_error('name', forms.ValidationError("Groups in a shipment must each have a unique name"))
         return name
 
-    class Meta:
-        model = Group
-        fields = ('project', 'name', 'kind', 'plan', 'resolution', 'absorption_edge', 'comments')
-        widgets = {'project': disabled_widget, 'resolution': forms.TextInput(attrs={'pattern': '\d+\.?\d*'})}
 
 
 class ContainerLoadForm(forms.ModelForm):

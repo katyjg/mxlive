@@ -121,3 +121,4 @@ local/*
 !local/settings.py.example
 .idea/workspace.xml
 
+/mxlive/static/bootstrap/scss/
