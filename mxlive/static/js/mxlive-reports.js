@@ -25,7 +25,7 @@ function inv_sqrt(a) {
         A[i] = Math.pow(a[i], -0.5);
     }
     return A;
-};
+}
 
 
 // Live Reports from MxLIVE
@@ -286,7 +286,7 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
         let ySingleChart = d3.scaleLinear().range([heightStackChart, 0]).domain([0, d3.max(data, function (d) { return d[key_keep]; })]);
 
         for (i = 0; i < legendClassArray.length; i++) {
-            if (legendClassArray[i] != class_keep) {
+            if (legendClassArray[i] !== class_keep) {
                 state.selectAll(".class" + legendClassArray[i])
                     .transition()
                     .duration(500)

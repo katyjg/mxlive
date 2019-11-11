@@ -29,17 +29,16 @@
             });
 
         $(document).on('click', '#sample-seater svg.sample', function () {
-
             let group = $('.group-selector.selected').data();
             if (group) {
                 if ($(this).hasClass('empty')) {
                     $(this).removeClass('empty')
                         .attr('data-group', group.group)
-                        .find(' > .envelope')
-                            .attr('fill', colorScale(group.selector));
+                        .find(' > .envelope').attr('fill', colorScale(group.selector));
                 } else {
                     $(this).addClass('empty')
-                        .removeAttr('data-group');
+                        .removeAttr('data-group')
+                        .removeData('group');
                 }
             }
         });
@@ -67,8 +66,9 @@
                         .attr('data-group', group.group)
                         .find('> .envelope').attr('fill', colorScale(group.selector));
                 } else {
-                    to_del.removeAttr('data-group')
-                        .addClass('empty');
+                    to_del.addClass('empty')
+                        .removeAttr('data-group')
+                        .removeData('group');
                 }
             }
         });

@@ -10,10 +10,10 @@ def save_loc_name(apps, schema_editor):
     Sample = apps.get_model('lims', 'Sample')
 
     db_alias = schema_editor.connection.alias
-    Sample.objects.filter(container__isnull=True).delete()
-    Sample.objects.filter(location__isnull=True).delete()
+    Sample.objects.using(db_alias).filter(container__isnull=True).delete()
+    Sample.objects.using(db_alias).filter(location__isnull=True).delete()
     Sample.objects.using(db_alias).update(loc_name=models.F('location'))
-    for s in Sample.objects.all():
+    for s in Sample.objects.using(db_alias).all():
         loc = s.container.kind.locations.get(name=s.location)
         s.location = loc.pk
         s.save()

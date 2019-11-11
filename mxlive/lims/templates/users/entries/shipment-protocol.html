@@ -51,7 +51,7 @@
     <div class="row">
         <div class="col-12 col-sm-4">
             <div class="card">
-                <div class="card-header text-center"><h4 class="text-wide m-0">GROUPS</h4></div>
+                <div class="card-header p-1 text-center text-wide text-muted"><small>GROUPS</small></div>
                     <div class="list-group list-group-flush" role="tablist">
                     {% for group in groups %}
                         <a class="list-group-item list-group-item-action" role="tab" aria-controls="group{{ group.pk }}"
@@ -62,7 +62,7 @@
                     </div>
             </div>
         </div>
-        <div class="col-12 col-sm-8">
+        <div class="col-12 col-sm-9">
             <div class="tab-content">
                 {% for group in groups %}
                     <div class="tab-pane fade" id="group-{{ group.pk }}" role="tabpanel" aria-labelledby="show-group{{ group.pk }}">
@@ -73,8 +73,8 @@
         </div>
     </div>
     {% endwith %}
-
 {% endblock %}
+
 {% block extra_js %}
 <script>
     var getUrlParameter = function getUrlParameter(sParam) {

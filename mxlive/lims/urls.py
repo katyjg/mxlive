@@ -57,7 +57,6 @@ urlpatterns = [
     path('groups/<int:pk>/', views.GroupDetail.as_view(), name='group-detail'),
     path('groups/<int:pk>/edit/', views.GroupEdit.as_view(), name='group-edit'),
     path('groups/<int:pk>/delete/', views.GroupDelete.as_view(), name='group-delete'),
-    path('groups/<int:pk>/select/', views.GroupSelect.as_view(), name='group-select'),
 
     path('data/', views.DataList.as_view(), name='data-list'),
     path('data/<int:pk>/', views.DataDetail.as_view(), name='data-detail'),

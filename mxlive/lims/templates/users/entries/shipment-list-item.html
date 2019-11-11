@@ -1,5 +1,5 @@
 {% load icons %}
-<div class="list-group-item list-group-item-{% if shipment.status == shipment.STATES.ON_SITE %}primary{% elif shipment.status == shipment.STATES.DRAFT %}warning{% elif shipment.status == shipment.STATES.SENT %}success{% elif shipment.status == shipment.STATES.RETURNED and not user.is_superuser %}empty{% else %}default{% endif %}">
+<div class="p-2 list-group-item list-group-item-{% if shipment.status == shipment.STATES.ON_SITE %}primary{% elif shipment.status == shipment.STATES.DRAFT %}warning{% elif shipment.status == shipment.STATES.SENT %}success{% elif shipment.status == shipment.STATES.RETURNED and not user.is_superuser %}empty{% else %}default{% endif %}">
     <div class="row">
         <div class="col">
             <div class="tools-box float-right">
@@ -45,10 +45,11 @@
                     <strong>{% if user.is_superuser %}{{ shipment.project.name|upper }}{% else %}{{ shipment.identity }}{% endif %}</strong> |
                     {{ shipment.name }}
                 </a></h5>
-                <span class="overflow ellipsis">
+                <div class="overflow ellipsis">
                     <strong>{{ stats.containers }}</strong> Container{{ stats.containers|pluralize }} /
                     <strong>{{ stats.groups }}</strong> Group{{ stats.groups|pluralize }} /
-                    <strong>{{ stats.samples }}</strong> Sample{{ stats.samples|pluralize }}</span>
+                    <strong>{{ stats.samples }}</strong> Sample{{ stats.samples|pluralize }}
+                </div>
             </div>
         </div>
     </div>

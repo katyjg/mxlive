@@ -1042,8 +1042,8 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMixin, 
     @transaction.atomic
     def form_valid(self, form):
         data = form.cleaned_data
-        print(data)
-        data['shipment'].groups.exclude(pk__in=[int(v) for v in data['id_set'] if v]).delete()
+        shipment = data['shipment']
+        shipment.groups.exclude(pk__in=[int(v) for v in data['id_set'] if v]).delete()
 
         for i, name in enumerate(data['name_set']):
             info = {
@@ -1067,62 +1067,6 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMixin, 
 class SeatSamples(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, detail.DetailView):
     template_name = "users/forms/seat-samples.html"
     model = models.Shipment
-
-
-class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
-    form_class = forms.GroupSelectForm
-    template_name = "users/forms/add-wizard.html"
-    model = models.Group
-    success_message = "Group has been updated."
-
-    def get_initial(self):
-        initial = super(GroupSelect, self).get_initial()
-        initial['shipment'] = self.get_object().shipment
-        initial['containers'] = [(c.pk, c.kind.pk, c.name) for c in initial['shipment'].containers.all()]
-        initial['sample_locations'] = json.dumps(
-            {g.name: {c.pk: list(c.samples.filter(group=g).values_list('location', flat=True))
-                      for c in initial['shipment'].containers.all()}
-             for g in initial['shipment'].groups.all()})
-        initial['containers'] = initial['shipment'].containers.all()
-        return initial
-
-    @transaction.atomic
-    def form_valid(self, form):
-        data = form.cleaned_data
-        sample_locations = json.loads(data['sample_locations'])
-        group = self.object
-
-        # Delete samples removed from containers
-        for container, locations in sample_locations[group.name].items():
-            models.Sample.objects.filter(container__pk=int(container), group__name=group).exclude(
-                location__in=locations).delete()
-
-        # group = models.Group.objects.get(pk=int(data['id']))
-        to_create = []
-        j = 1
-        priority = max(group.samples.values_list('priority', flat=True) or [0]) + 1
-        names = []
-        for c, locations in sample_locations.get(group.name, {}).items():
-            container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
-            for location in locations:
-                if not models.Sample.objects.filter(container=container, location=location).exists():
-                    while True:
-                        name = "{0}_{1:02d}".format(group.name, j)
-                        if models.Sample.objects.filter(group=group, name=name).exists() or name in names:
-                            j += 1
-                            continue
-                        names.append(name)
-                        break
-                    to_create.append(
-                        models.Sample(group=group, container=container, location=location, name=name,
-                                      project=self.request.user, priority=priority))
-                    priority += 1
-
-        models.Sample.objects.bulk_create(to_create)
-        if group.sample_count < group.samples.count():
-            group.sample_count = group.samples.count()
-            group.save()
-        return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': data['shipment'].pk})})
 
 
 class ProxyView(View):

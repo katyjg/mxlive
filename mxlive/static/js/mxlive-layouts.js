@@ -185,7 +185,7 @@
             added.append("text")
                 .attr("x", '50%')
                 .attr("y", '50%')
-                .attr("font-size", 0.9 + 'rem')
+                .attr("font-size", '75%')
                 .attr("fill", "black")
                 .attr("text-anchor", 'middle')
                 .attr("opacity", d => (d.id) ? 0.7 : 0.3)

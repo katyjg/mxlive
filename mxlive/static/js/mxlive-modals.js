@@ -54,6 +54,7 @@
                 });
             },
             complete: function(data) {
+                console.log(data);
                 if (data.url) {
                     if (data.modal) {
                         target.load(data.url);
@@ -106,7 +107,6 @@
                         if (contents.length && new_contents.length) {
                             contents.html(new_contents.html());
                             settings.setup(target);
-
                         } else {
                             target.html(data);
                             settings.setup(target);
