@@ -46,9 +46,7 @@
                                 <a href="{% url "report-detail" data.report.pk %}"
                                    title="View Analysis Report"
                                    class="{% ifequal data sample.best_overall.data %}stress{%endifequal %}">
-                                   <span class="badge badge-default badge-score">
-                                        <strong>{{ data.report.score|color_score:2 }}</strong>
-                                    </span>
+                                   {% score_badge data.report.score %}
                                 </a>
                             {% endif %}
                             <br> {% endfor %}

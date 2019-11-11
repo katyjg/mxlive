@@ -43,7 +43,7 @@ def second_view(angle):
 @register.filter
 def get_meta_data(data):
     return collections.OrderedDict(
-        [(k, data.meta_data.get(k)) for k in data.METADATA[data.kind] if k in data.meta_data])
+        [(k, data.meta_data.get(k)) for k in data.kind.metadata if k in data.meta_data])
 
 
 def get_json_info(path):

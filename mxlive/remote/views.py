@@ -17,7 +17,7 @@ from mxlive.utils.signing import Signer
 from .middleware import get_client_address
 from ..lims.models import ActivityLog
 from ..lims.models import Beamline, Dewar
-from ..lims.models import Data
+from ..lims.models import Data, DataType
 from ..lims.models import Project, Session
 from ..lims.templatetags.converter import humanize_duration
 from ..staff.models import UserList, RemoteConnection
@@ -274,7 +274,6 @@ class ProjectSamples(VerificationMixin, View):
 TRANSFORMS = {
     'file_name': 'filename',
     'exposure_time': 'exposure',
-    'kind': 'type',
 }
 
 
@@ -311,7 +310,6 @@ class AddReport(VerificationMixin, View):
         except:
             raise http.Http404("Data does not exist")
 
-        # Download  key
         # Download  key
         try:
             key = make_secure_path(info.get('directory'))
@@ -400,8 +398,9 @@ class AddData(VerificationMixin, View):
             'group': sample and sample.group or None,
         }
 
-        base_fields = ['energy', 'frames', 'file_name', 'exposure_time', 'kind', 'attenuation', 'name', 'beam_size']
-        details.update(**{f: info.get(f in TRANSFORMS and TRANSFORMS[f] or f) for f in base_fields})
+        base_fields = ['energy', 'frames', 'file_name', 'exposure_time', 'attenuation', 'name', 'beam_size']
+        details.update({f: info.get(f in TRANSFORMS and TRANSFORMS[f] or f) for f in base_fields})
+        details.update(kind=DataType.objects.get_by_natural_key(info['type']))
 
         for k in ['sample_id', 'group', 'port', 'frames', 'energy', 'filename', 'exposure', 'attenuation',
                   'container', 'name', 'directory', 'type', 'id']:
@@ -416,5 +415,5 @@ class AddData(VerificationMixin, View):
             data, created = Data.objects.get_or_create(**details)
 
         ActivityLog.objects.log_activity(request, data, ActivityLog.TYPE.CREATE, "{} uploaded from {}".format(
-            data.get_kind_display(), beamline.acronym))
+            data.kind.name, beamline.acronym))
         return JsonResponse({'id': data.pk})

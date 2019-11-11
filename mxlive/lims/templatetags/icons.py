@@ -10,5 +10,5 @@ def show_icon(label='', icon='', badge=None, color='', tooltip=''):
         'icon': icon,
         'badge': badge,
         'color': color,
-        'tooltip': ''
+        'tooltip': tooltip
     }

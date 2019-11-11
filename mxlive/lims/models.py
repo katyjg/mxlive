@@ -1051,7 +1051,6 @@ class Sample(ProjectObjectMixin):
     barcode = models.SlugField(null=True, blank=True)
     container = models.ForeignKey(Container, null=True, blank=True, on_delete=models.CASCADE, related_name='samples')
     location = models.ForeignKey(ContainerLocation, on_delete=models.CASCADE,  related_name='samples')
-    loc_name = models.CharField(max_length=10, null=True, blank=True)
     comments = models.TextField(blank=True, null=True)
     collect_status = models.BooleanField(default=False)
     priority = models.IntegerField(null=True, blank=True)
@@ -1158,27 +1157,28 @@ class FrameField(models.TextField):
         return value
 
 
+class DataTypeManager(models.Manager):
+    def get_by_natural_key(self, acronym):
+        return self.get(acronym=acronym)
+
+
+class DataType(models.Model):
+    name = models.CharField(max_length=20)
+    acronym = models.SlugField(unique=True)
+    description = models.TextField()
+    template = models.CharField(max_length=100)
+    metadata = JSONField(default=[])
+
+    objects = DataTypeManager()
+
+    def natural_key(self):
+        return self.acronym,
+
+    def __str__(self):
+        return self.name
+
+
 class Data(ActiveStatusMixin):
-    DATA_TYPES = Choices(
-        ('MX_SCREEN', 'MX Screening'),
-        ('MX_DATA', 'MX Dataset'),
-        ('XRD_DATA', 'XRD Dataset'),
-        ('RASTER', 'Raster'),
-        ('XAS_SCAN', 'XAS Scan'),
-        ('XRF_SCAN', 'XRF Scan'),
-        ('MAD_SCAN', 'MAD Scan'),
-    )
-    METADATA = {
-        DATA_TYPES.MX_SCREEN: ['delta_angle', 'start_angle', 'resolution', 'detector', 'detector_type', 'detector_size',
-                               'pixel_size', 'beam_x', 'beam_y', 'two_theta'],
-        DATA_TYPES.MX_DATA: ['delta_angle', 'start_angle', 'resolution', 'detector', 'detector_type', 'detector_size',
-                             'pixel_size', 'beam_x', 'beam_y', 'two_theta'],
-        DATA_TYPES.MAD_SCAN: ['roi', 'edge'],
-        DATA_TYPES.XRF_SCAN: [],
-        DATA_TYPES.RASTER: ['grid_points', 'grid_origin', 'start_angle', 'delta_angle', 'detector_type',
-                            'detector_size', 'pixel_size', 'beam_x', 'beam_y', 'inverse_beam'],
-        DATA_TYPES.XRD_DATA: [],
-    }
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='datasets')
     group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL, related_name='datasets')
     sample = models.ForeignKey(Sample, null=True, blank=True, on_delete=models.SET_NULL, related_name='datasets')
@@ -1191,7 +1191,7 @@ class Data(ActiveStatusMixin):
     beamline = models.ForeignKey(Beamline, on_delete=models.PROTECT, related_name='datasets')
     beam_size = models.FloatField(null=True, blank=True)
     url = models.CharField(max_length=200)
-    kind = models.CharField('Data type', choices=DATA_TYPES, default=DATA_TYPES.MX_SCREEN, max_length=20)
+    kind = models.ForeignKey(DataType, on_delete=models.PROTECT, related_name='datasets')
     download = models.BooleanField(default=False)
     meta_data = JSONField(default={})
 
@@ -1231,7 +1231,7 @@ class Data(ActiveStatusMixin):
         return "{}/{}.gif".format(self.url, self.name)
 
     def get_meta_data(self):
-        return OrderedDict([(k, self.meta_data.get(k)) for k in self.METADATA[self.kind] if k in self.meta_data])
+        return OrderedDict([(k, self.meta_data.get(k)) for k in self.kind.metadata if k in self.meta_data])
 
     def report(self):
         return self.reports.first()

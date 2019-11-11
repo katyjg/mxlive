@@ -16,14 +16,13 @@
 	font-weight: normal;
 	font-variant: normal;
 	text-transform: none;
-	line-height: 1;
 
 	/* Better Font Rendering =========== */
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	vertical-align: middle;
-	display: inline-block;
-
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .ti-wand:before {

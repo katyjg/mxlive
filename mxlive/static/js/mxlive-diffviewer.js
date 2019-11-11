@@ -51,7 +51,7 @@
         this.element.bind('touchstart.' + this.widgetName, function (event) {
             self._touchActive = true;
             return self._mouseDown(makeMouseEvent(event));
-        })
+        });
 
         var self = this;
         // these delegates are required to keep context
@@ -72,7 +72,7 @@
             .bind('touchend.' + this.widgetName, this._mouseUpDelegate);
 
         _mouseInit.apply(this);
-    }
+    };
 
     /**
      * Simple implementation of jQuery like getters/setters

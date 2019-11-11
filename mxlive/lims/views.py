@@ -68,6 +68,9 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
                     'data__sample__container__shipment__status__in': [
                         models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT
                     ]
+                },
+                'sessions': {
+                    'stretches__end__isnull': True
                 }
             }
         else:
@@ -83,6 +86,9 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
                 'reports': {
                     'project': self.request.user,
                     'data__sample__container__shipment__status__lt': models.Shipment.STATES.ARCHIVED
+                },
+                'sessions': {
+                    'project': self.request.user,
                 }
             }
 
@@ -117,7 +123,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             for shipment in shipments.prefetch_related('project').order_by('status', '-date_received', '-date_shipped')
         ]
 
-        sessions = models.Session.objects.filter(stretches__end__isnull=True)
+        sessions = models.Session.objects.filter(**filters['sessions'])[:7]
         session_data = dict(sessions.values_list('pk', Count('datasets')))
         session_reports = dict(sessions.values_list('pk', Count('datasets__reports')))
         context['sessions'] = [
@@ -133,33 +139,11 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
 
         if self.request.user.is_superuser:
             kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('types', flat=True)
-            context['automounters'] = models.Dewar.objects.filter(active=True).prefetch_related('container',
-                                                                                                'beamline').order_by(
-                'beamline__name')
+            context['automounters'] = models.Dewar.objects.filter(active=True).prefetch_related(
+                'container','beamline').order_by('beamline__name')
             context['containers'] = models.Container.objects.filter(
-                kind__in=kinds, dewars__isnull=True, #status__gt=models.Container.STATES.DRAFT
+                kind__in=kinds, dewars__isnull=True, status__gt=models.Container.STATES.DRAFT
             ).order_by('name')
-        else:
-            pass
-            # referrer = self.request.META.get('HTTP_REFERER')
-            # if referrer and re.sub('^https?:\/\/', '', referrer).split('/')[1] == 'login':
-            #     context['show_help'] = self.request.user.show_archives
-            #     if context['show_help']:
-            #         models.Project.objects.filter(username=self.request.user.username).update(show_archives=False)
-
-            # shipments = self.object.shipments.filter(status__lt=models.Shipment.STATES.ARCHIVED)
-            # self.object.shipments.filter(status__lt=models.Shipment.STATES.ARCHIVED).order_by('modified')
-            # base_set = sh.filter(status__lte=models.Shipment.STATES.ON_SITE).distinct()
-            # if base_set.count() < 7:
-            #     pks = [s.pk for s in list(
-            #         chain(base_set, list(sh.exclude(pk__in=base_set.values_list('pk')))[0:7 - base_set.count()]))]
-            # else:
-            #     pks = base_set.values_list('pk')
-            # context['shipments'] = sh.filter(pk__in=pks).order_by('status', '-modified')
-            # sessions = self.get_object().sessions.filter(
-            #     pk__in=models.Stretch.objects.recent_days(180).values_list('session__pk', flat=True)).order_by(
-            #     '-created')
-            # context['sessions'] = sessions.count() < 7 and sessions or sessions[:7]
 
         return context
 

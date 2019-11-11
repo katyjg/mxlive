@@ -18,14 +18,14 @@
             <div class="row">
                 <div class="col-4">
                 {% if user.is_superuser %}
-                    <span class="tools-box float-right align-middle" style="padding-top: 0; padding-bottom: 0; padding-right: 20px !important;">
+                    <span class="tools-box float-right" style="padding-top: 0; padding-bottom: 0; padding-right: 20px !important;">
                         <a data-link="{% url "sample-admin-edit" sample.pk %}" title="Add/Edit Notes"><i class="fa fa-fw fa-2 fa-comment-o"></i></a>
                     </span>
                     <form class="hidden" method="post" id="{{ sample.pk }}-done" action="{% url "sample-done" sample.pk %}">
                         {% csrf_token %}
                         <input class="hidden" onchange="$('#{{ sample.pk }}-done').submit();" name="collect_status" pk="{{ sample.pk }}" {% if sample.collect_status %}checked{% endif %} type="checkbox"/>
                     </form>
-                    <span title="Mark as {% if sample.collect_status %}in{% endif %}complete" class="cursor align-middle text-primary"
+                    <span title="Mark as {% if sample.collect_status %}in{% endif %}complete" class="cursor text-primary"
                           style="padding-top: 0; margin-top: 0;"
                           onclick="$('input[pk={{ sample.pk }}]').attr('checked', !$('input[pk={{ sample.pk }}]').attr('checked')).change();">
                         <i class="fa fa-2 fa-fw {% if sample.collect_status %}fa-check-square-o{% else %}fa-square-o{% endif %}"></i>

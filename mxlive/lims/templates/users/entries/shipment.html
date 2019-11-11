@@ -73,10 +73,9 @@
                 <div class="col">
                     <small class="text-muted text-condensed">Ready to Ship:</small><br>
                     {{ shipment.shipping_errors|yesno:"No,Yes" }}
-                {% label_badge header='SCRN' value=0.65  score=True %}
                 </div>
                 {% else %}{% if shipment.status < shipment.STATES.RETURNED %}
-                    <div class="col">
+                    <div class="col-3">
                         <small class="text-muted text-condensed">Sent:</small><br>
                         <span class="text-muted">via</span> {{ shipment.carrier }}
                         {% if shipment.tracking_code and shipment.carrier %}

@@ -294,46 +294,37 @@ img {
 }
 
 .box-status {
-  position: absolute;
-  left: 0;
-  top: 0;
   width: 65px;
-  padding-right: 0.5em;
-  padding-left: 0.5em;
-  padding-top: 0.5em;
+  min-width: 65px;
   border-right: 1px solid rgba(0, 0, 0, 0.15);
-}
-
-.panel-heading .box-status {
-  position: relative;
-  padding-left: 0;
-  padding-top: 0;
-  margin-left: -5px;
 }
 
 .box-info {
   padding-left: 1em;
+  min-width: 0;
+
+  > * {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
+
 
 a.text-muted:hover {
   color: #333;
 }
 
-.box-status + .box-info {
-  padding-left: 65px;
-}
-
-.panel-heading .box-status + .box-info {
-  padding-left: 75px;
-}
-
 .tool-label, .btn-label, .icon-label {
   display: inline-block;
-  font-size: 85%;
+  font-size: 0.85rem;
   color: inherit;
   line-height: 0.75;
-  padding-top: 0.5em;
+  padding-top: 0.35rem;
+  min-width: 3rem;
+  margin: 0 0.5rem;
 }
+
 
 @media (max-width: 768px) {
   /* hidden tool labels on small screens */
@@ -1048,6 +1039,9 @@ a[data-link], .back text[port], .cursor {
   }
 }
 
+.badge {
+  vertical-align: middle !important;
+}
 
 .badge.score {
   font-size: 0.95em;
@@ -1346,15 +1340,7 @@ a:hover {
   }
 }
 
-.icon-label {
-  display: inline-block;
-  font-size: .85rem;
-  color: inherit;
-  line-height: 1;
-  padding-top: 0.5em;
-  margin: 0 0.5rem;
-  min-width: 3rem;
-}
+
 
 .modal-body {
   margin: 2px;
@@ -1465,7 +1451,7 @@ svg * {
 .label {
   > * {
     color: #fff;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     padding: 0.3rem 1rem;
     text-align: center;
     align-self: stretch;
