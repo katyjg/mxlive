@@ -5,6 +5,13 @@
 {% load stats %}
 {% load get_version %}
 
+{% block pre_js %}
+    <link href="{% static "css/reports.css" %}" rel="stylesheet">
+    <script type="text/javascript" src="{% static "js/d3.v5.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/d3.legend.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/showdown.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mxlive-reports.js" %}"></script>
+{% endblock %}
 {% block page_heading %}
     <h3 class="text-condensed narrow-heading">
         <strong class="text-muted">{{ object.username|upper }}</strong> | Statistics
@@ -19,14 +26,14 @@
 
 
 {% block full %}
+{% get_yearly_sessions object as sessions %}
+{% samples_per_hour object sessions as samples_per_hour %}
 
 <div class="row">
     <div class="col-sm-12">
         <h3 class="section-title">Since {% now 'Y' %}</h3>
     </div>
 
-    {% get_yearly_sessions object as sessions %}
-    {% samples_per_hour object sessions as samples_per_hour %}
     {% for category in object.categories.all %}
         <div class="col-sm-12 status-bar">
             <div class="col-sm-3">
@@ -47,8 +54,8 @@
         </div>
     {% endfor %}
     <div id="data-stats" class="col-12"></div>
-
 </div>
+<div class="row">
     <div class="col-sm-12">
         <h3 class="section-title">Sessions in the past year</h3>
         <table class="table table-hover">
@@ -67,7 +74,7 @@
                     <tr>
                         <td>{{ s.name }}</td>
                         <td>{{ s.start }}</td>
-                        <td>{{ s.samples.count }} / {{ s.total_time }}</td>
+                        <td>{{ s.samples.count }} / {{ s.total_time | floatformat:3}}</td>
                         <td>{{ s.shift_parts }}</td>
                         <td>{{ s.total_time | floatformat:2 }}</td>
                         <td>{{ s.shift_parts }} * 8 - {{ s.total_time | floatformat:2 }}</td>
@@ -76,17 +83,12 @@
             </tbody>
         </table>
     </div>
-
-
-<link href="{% static "css/reports.css" %}" rel="stylesheet">
-
-<script type="text/javascript" src="{% static "js/d3.v5.min.js" %}"></script>
-<script type="text/javascript" src="{% static "js/d3.legend.js" %}"></script>
-<script type="text/javascript" src="{% static "js/showdown.min.js" %}"></script>
-<script type="text/javascript" src="{% static "js/mxlive-reports.js" %}"></script>
-
+</div>
 <script>
-    var json = {% get_project_stats object %};
-    build_report('#data-stats', json);
+    $(document).ready(function(){
+        let report = {% get_project_stats user %};
+        build_report('#data-stats', report);
+    });
 </script>
+
 {% endblock %}

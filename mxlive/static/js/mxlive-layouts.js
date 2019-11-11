@@ -142,7 +142,10 @@
                 };
 
                 if (d.id) {
-                    options.title = (data.final ? d.name : d.owner + '|' + d.name)
+                    // do not show sample tooltips when loading
+                    if (!(settings.loadable && d.sample)) {
+                        options.title = (data.final ? d.name : d.owner + '|' + d.name)
+                    }
                 } else if (d.accepts) {
                     options.title = d.loc;
                 }

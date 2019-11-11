@@ -1,6 +1,6 @@
 from django import template
 from django.utils.safestring import mark_safe
-
+from datetime import datetime
 from mxlive.lims.models import *
 from mxlive.staff.models import UserCategory
 from .converter import humanize_duration
@@ -18,12 +18,12 @@ SHIFT = getattr(settings, "SHIFT_LENGTH", 8)
 def get_data_stats(bl, year):
     data = bl.datasets.all()
     years = sorted({v['created'].year for v in Data.objects.values("created").order_by("created").distinct()})
-    kinds = [k for k in Data.DATA_TYPES if data.filter(kind=k[0]).exists()]
+    kinds = [k for k in DataType.objects.all() if data.filter(kind=k).exists()]
     yrs = [{'Year': yr} for yr in years]
     for yr in yrs:
-        yr.update({k[1]: data.filter(created__year=yr['Year'], kind=k[0]).count() for k in kinds})
-    yearly = [[k[1]] + [data.filter(created__year=yr, kind=k[0]).count() for yr in years] +
-              [data.filter(kind=k[0]).count()] for k in kinds]
+        yr.update({k.name: data.filter(created__year=yr['Year'], kind=k).count() for k in kinds})
+    yearly = [[k.name] + [data.filter(created__year=yr, kind=k).count() for yr in years] +
+              [data.filter(kind=k).count()] for k in kinds]
     totals = [['Total'] + [data.filter(created__year=yr).count() for yr in years] + [data.count()]]
     data = data.filter(created__year=year)
     stats = {'details': [
@@ -141,15 +141,20 @@ def samples_per_hour_percentile(category, user):
 @register.simple_tag(takes_context=False)
 def get_project_stats(user):
     data = user.datasets.all()
+    stats = {}
+
+
     years = sorted({v['created'].year for v in Data.objects.values("created").order_by("created").distinct()})
-    kinds = [k for k in Data.DATA_TYPES if data.filter(kind=k[0]).exists()]
+    kinds = [k for k in DataType.objects.all() if data.filter(kind=k).exists()]
     yrs = [{'Year': yr} for yr in years]
     for yr in yrs:
-        yr.update({k[1]: data.filter(created__year=yr['Year'], kind=k[0]).count() for k in kinds})
+        yr.update({k.name: data.filter(created__year=yr['Year'], kind=k).count() for k in kinds})
     yearly = [
-        [k[1]] + [data.filter(created__year=yr, kind=k[0]).count() for yr in years] + [data.filter(kind=k[0]).count()]
+        [k.name] + [data.filter(created__year=yr, kind=k).count() for yr in years] + [data.filter(kind=k).count()]
         for k in kinds]
     totals = [['Total'] + [data.filter(created__year=yr).count() for yr in years] + [data.count()]]
+
+    """
     shifts = total_shifts(user.sessions.all(), user)
     ttime = total_time(user.sessions.all(), user)
     shutters = round(sum([d.num_frames() * d.exposure_time for d in data if d.exposure_time]), 2)/3600.
@@ -205,7 +210,8 @@ def get_project_stats(user):
             ]
         }
         ]}
-    return mark_safe(json.dumps(stats))
+        """
+    return stats
 
 
 @register.simple_tag(takes_context=False)
@@ -224,7 +230,7 @@ def get_beamline_usage(bl):
     shifts = [len(set([y for x in [s.shifts() for s in sessions[i]] for y in x])) for i, _ in enumerate(years)]
     datasets = [bl.datasets.filter(session__in=sessions[i]) for i, _ in
                 enumerate(years)]
-    full_data = [d.filter(kind__contains='DATA') for d in datasets]
+    full_data = [d.filter(kind__acronym__in=['DATA', 'XRD']) for d in datasets]
     full_data_count = [d.count() for d in full_data]
     total_time = [round(sum([s.total_time() for s in sessions[i]]), 2) for i, _ in enumerate(years)]
     data_rate = [round(float(full_data_count[i]) / shifts[i], 2) if shifts[i] else 0 for i, _ in enumerate(years)]
@@ -446,9 +452,9 @@ def get_session_stats(data, session):
                     'data': [['Shutter Open', "{} ({:.2f}%)".format(humanize_duration(hours=shutters), shutters * 100 / session.total_time() if session.total_time() else 0 )],
                              ['Last Dataset', data.last() and datetime.strftime(timezone.localtime(data.last().modified), '%c') or ''],
                              ['Avg Frames/Dataset', sum([len(d.frames) for d in data.filter(kind="MX_DATA")]) / data.filter(
-                                  kind="MX_DATA").count() if data.filter(kind="MX_DATA").count() else 0],
-                             ['Avg Frames/Screen', sum([len(d.frames) for d in data.filter(kind="MX_SCREEN")]) / data.filter(
-                                  kind="MX_SCREEN").count() if data.filter(kind="MX_SCREEN").count() else 0]],
+                                  kind__acronym="DATA").count() if data.filter(kind__acronym="DATA").count() else 0],
+                             ['Avg Frames/Screen', sum([len(d.frames) for d in data.filter(kind__acronym="SCREEN")]) / data.filter(
+                                  kind="MX_SCREEN").count() if data.filter(kind__acronym="SCREEN").count() else 0]],
                     'header': 'column',
                     'style': 'col-4',
                 },
