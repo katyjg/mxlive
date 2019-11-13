@@ -6,7 +6,7 @@
         <div class="box-status text-center text-muted">
             {% show_icon label=session.start.date|date:"M j"|upper icon='ti ti-md ti-time' %}
         </div>
-        <div class="box-info">
+        <div class="pl-3 overflow-ellipsis">
             <h5 class="text-condensed narrow-heading overflow ellipsis">
                 <a class="text-muted" href="{% url "session-detail" session.pk %}"
                    title='View Session "{{ session.name }}"'>

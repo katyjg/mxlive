@@ -12,7 +12,6 @@
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{% static 'bootstrap/css/style.min.css' %}">
-    <link href="https://fonts.googleapis.com/css?family=Fira+Code|Fira+Sans+Condensed:400,800|Fira+Sans:200,400,800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static "themify-icons/themify-icons.css" %}">
     {% block site_css %}
         <link rel="stylesheet" href="{% static "css/toastr.css" %}" type="text/css"/>
@@ -38,10 +37,10 @@
             <i class="fa fa-spinner fa-spin"></i>
         </div>
         <div class="container-fluid">
-            <div class="pagelet mt-3">
-                <div class="pagelet-header d-flex flex-row justify-content-between">
-                    <div class="float-left">{% block page_heading %}{% endblock %}</div>
-                    <div class="tools-box float-right">{% block object_tools %}{% endblock %}</div>
+            <div class="folio mt-3">
+                <div class="folio-header d-flex flex-row justify-content-between overflow-ellipsis">
+                    <div class="heading-box">{% block page_heading %}{% endblock %}</div>
+                    <div class="no-overflow tools-box">{% block object_tools %}{% endblock %}</div>
                 </div>
                 {% block object_status %}{% endblock %}
                 {% if maintenance %}
@@ -51,7 +50,7 @@
                     temporary inconvenience.
                 </div>
                 {% endif %}
-                <div class="pagelet-body">
+                <div class="folio-body">
                     {% block full %}{% endblock %}
                 </div>
             </div>

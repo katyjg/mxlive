@@ -14,7 +14,7 @@
                 {% show_icon label=shipment.date_returned|date:"M j"|upper icon='ti ti-md ti-archive' tooltip='Archived' %}
             {% endif %}
         </div>
-        <div class="box-info text-muted">
+        <div class="pl-3 overflow-ellipsis text-muted">
             <h5>
                 <a class="text-muted text-condensed" href="{% url "shipment-detail" shipment.pk %}"
                    title='View Shipment "{{ shipment.name }}"'>

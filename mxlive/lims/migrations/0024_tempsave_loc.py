@@ -8,15 +8,19 @@ def save_loc_name(apps, schema_editor):
     Save Locations from layout into Location Object
     """
     Sample = apps.get_model('lims', 'Sample')
+    ContainerLocation = apps.get_model('lims', 'ContainerLocation')
 
     db_alias = schema_editor.connection.alias
     Sample.objects.using(db_alias).filter(container__isnull=True).delete()
     Sample.objects.using(db_alias).filter(location__isnull=True).delete()
     Sample.objects.using(db_alias).update(loc_name=models.F('location'))
     for s in Sample.objects.using(db_alias).all():
-        loc = s.container.kind.locations.get(name=s.location)
-        s.location = loc.pk
-        s.save()
+        try:
+            loc = s.container.kind.locations.get(name=s.location)
+            s.location = loc.pk
+            s.save()
+        except ContainerLocation.DoesNotExist:
+            s.delete()
 
 
 class Migration(migrations.Migration):

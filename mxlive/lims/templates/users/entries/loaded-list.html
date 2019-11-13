@@ -43,7 +43,7 @@
                     </div>
                 </div>
 
-                <div class="box-info">
+                <div class="pl-3 overflow-ellipsis">
                     <h4 class="list-group-item-heading"><strong>{{ project|upper }}</strong></h4>
                     <div class="list-group-item-text overflow ellipsis">
                         <span class="text-muted">{% for container in containers %}{{ container.location }}
@@ -69,7 +69,7 @@
                         <div class="box-status" style="margin-top: 5px;">
                             <div class="text-center text-condensed text-medium">{{ container.location }}</div>
                         </div>
-                        <div class="box-info">
+                        <div class="pl-3 overflow-ellipsis">
                             <h4 class="text-condensed list-group-item-heading overflow ellipsis"><a
                                     href="{% url "container-detail" pk=container.pk %}"><strong>{{ container.name }}</strong></a>
                                 |
@@ -84,7 +84,7 @@
                 <div class="box-status text-center" style="margin-top: 10px;">
                     <i class="fa fa-fw fa-2x fa-info-circle"></i>
                 </div>
-                <div class="box-info">
+                <div class="pl-3 overflow-ellipsis">
                     <h5 class="list-group-item-heading overflow ellipsis">Nothing is loaded</h5>
                     <div class="list-group-item-text overflow ellipsis">
                         <span class="text-muted">Choose a position in the layout to load one of the containers on-site.</span>
@@ -113,7 +113,7 @@
                     <div class="box-status" style="margin-top: 10px;">
                         <div class="text-center text-condensed text-large">{{ container.location }}</div>
                     </div>
-                    <div class="box-info">
+                    <div class="pl-3 overflow-ellipsis">
                         <h5 class="list-group-item-heading"><a href="{% url "container-detail" pk=container.pk %}"><span
                                 class="text-muted">{{ container.get_project|upper }}</span> |
                             <strong>{{ container.name }}</strong></a></h5>
@@ -163,7 +163,7 @@
                     <div class="box-status text-center" style="margin-top: 10px;">
                         <i class="fa fa-fw fa-2x fa-info-circle"></i>
                     </div>
-                    <div class="box-info">
+                    <div class="pl-3 overflow-ellipsis">
                         <h4 class="list-group-item-heading overflow ellipsis">Nothing is loaded</h4>
                         <div class="list-group-item-text overflow ellipsis">
                             <span class="text-muted">Choose a position in the layout to load one of the containers on-site.</span>

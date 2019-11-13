@@ -1,5 +1,5 @@
 html {
-  font-size: 10.0pt;
+  font-size: 11.5pt;
   min-height: 100%;
 }
 
@@ -18,7 +18,7 @@ body {
 }
 
 header > nav {
-  background-color: #75507b !important;
+  background-color: #5c325d !important;
   max-height: 51px !important;
 }
 
@@ -27,7 +27,7 @@ main {
   padding-bottom: 51px;
 }
 
-.pagelet {
+.folio {
   background: none repeat scroll 0 0 #fff;
   border-bottom: none !important;
   border-top: 0;
@@ -37,7 +37,7 @@ main {
   transition: padding 500ms ease 0s;
   min-height: calc(100vh - 51px - 2rem);
 
-  .pagelet {
+  .folio {
     box-shadow: none;
     transition: none;
     padding-top: 0;
@@ -45,26 +45,26 @@ main {
   }
 }
 
-.pagelet-body {
+.folio-body {
   padding: 15px;
 }
 
-.pagelet-heading {
+.folio-heading {
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   font-weight: 300;
 }
 
-.pagelet-footer, .pagelet-header {
+.folio-footer, .folio-header {
   padding: 0.5em 1em;
   min-height: 37px;
   position: relative;
 }
 
-.pagelet-footer {
+.folio-footer {
   border-top: 1px solid rgba(0, 0, 0, 0.15);
 }
 
-.pagelet-header {
+.folio-header {
   margin-top: -1em;
   border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 
@@ -299,15 +299,13 @@ img {
   border-right: 1px solid rgba(0, 0, 0, 0.15);
 }
 
-.box-info {
-  padding-left: 1em;
-  min-width: 0;
-
-  > * {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.overflow-ellipsis {
+    min-width: 0;
+    > *:not(.no-overflow) {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 }
 
 
@@ -526,7 +524,7 @@ p {
   float: left;
 }
 
-.pagelet-body {
+.folio-body {
   overflow: auto;
 }
 

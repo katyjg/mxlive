@@ -1,8 +1,13 @@
 // style.scss
 
-// Variable Overrides
-$grid-gutter-width: 1rem !default;
-//$link-color: #75507b;
+// Variables
+$web-font-path: "https://fonts.googleapis.com/css?family=Fira+Code|Fira+Sans+Condensed:400,800|Fira+Sans:200,400,800&display=swap" !default;
 
-// Option A: Include all of Bootstrap
+$grid-gutter-width: 1rem !default;
+$link-color: #5e5e5e;
+
+
+// import font and web-font
+@import url($web-font-path);
 @import "../scss/bootstrap";
+
