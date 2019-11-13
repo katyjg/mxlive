@@ -2,10 +2,24 @@
 
 // Variables
 $web-font-path: "https://fonts.googleapis.com/css?family=Fira+Code|Fira+Sans+Condensed:400,800|Fira+Sans:200,400,800&display=swap" !default;
-
 $grid-gutter-width: 1rem !default;
-$link-color: #5e5e5e;
+$primary: #3f0e40 !default;
+$secondary:#868e96 !default;
+$success:#28a745 !default;
+$danger:#dc3545 !default;
+$info:#17a2b8 !default;
+$warning:#ffc107 !default;
+$light:#f8f9fa !default;
+$dark:#343434 !default;
 
+$border-color: rgba(0,0,0,0.15) !default;
+$table-border-color: $border-color !default;
+$input-border-color: $border-color !default;
+$nav-tabs-border-color: $border-color !default;
+$nav-divider-color:  rgba(0,0,0,0.15)  !default;
+$pagination-border-color: $border-color !default;
+$pagination-disabled-border-color: $border-color !default;
+$pagination-hover-border-color: $border-color !default;
 
 // import font and web-font
 @import url($web-font-path);

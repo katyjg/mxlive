@@ -1,5 +1,5 @@
 {% load icons %}
-<div class="p-2 list-group-item list-group-item-{% if shipment.status == shipment.STATES.ON_SITE %}primary{% elif shipment.status == shipment.STATES.DRAFT %}warning{% elif shipment.status == shipment.STATES.SENT %}success{% elif shipment.status == shipment.STATES.RETURNED and not user.is_superuser %}empty{% else %}default{% endif %}">
+<div class="p-2 list-group-item list-group-item-{% if shipment.status == shipment.STATES.ON_SITE %}info{% elif shipment.status == shipment.STATES.DRAFT %}warning{% elif shipment.status == shipment.STATES.SENT %}success{% elif shipment.status == shipment.STATES.RETURNED and not user.is_superuser %}empty{% else %}default{% endif %}">
     <div class="d-flex flex-row">
         <div class="box-status text-center">
             {% if shipment.status == shipment.STATES.DRAFT %}
@@ -7,7 +7,7 @@
             {% elif shipment.status == shipment.STATES.SENT %}
                 {% show_icon label=shipment.date_shipped|date:"M j"|upper icon='ti ti-md ti-truck text-dark' tooltip='Sent' %}
             {% elif shipment.status == shipment.STATES.ON_SITE %}
-                {% show_icon label=shipment.date_shipped|date:"M j"|upper icon='ti ti-md ti-location-pin text-success' tooltip='On-site' %}
+                {% show_icon label=shipment.date_shipped|date:"M j"|upper icon='ti ti-md ti-location-pin' tooltip='On-site' %}
             {% elif shipment.status == shipment.STATES.RETURNED %}
                 {% show_icon label=shipment.date_returned|date:"M j"|upper icon='ti ti-md ti-check-box' tooltip='Returned' %}
             {% elif shipment.status == shipment.STATES.ARCHIVED %}

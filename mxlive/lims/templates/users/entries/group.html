@@ -38,7 +38,7 @@
                                 {% elif object.status == object.STATES.DRAFT %}warning
                                 {% elif object.status == object.STATES.SENT %}success
                                 {% elif object.status == object.STATES.RETURNED and not user.is_superuser %}success
-                                {% else %}default{% endif %}">{{ object.get_status_display }}</span>
+                                {% else %}primary{% endif %}">{{ object.get_status_display }}</span>
                 </h3>
             </div>
             <div class="col">
