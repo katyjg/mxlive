@@ -5,7 +5,7 @@
 {% load stats %}
 
 {% block page_heading %}
-    <h3 class="text-condensed narrow-heading">
+    <h3 class="text-condensed">
         <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
         <strong class="text-muted">{{ object.acronym }}</strong> | {{ year }} Beamline Statistics
     </h3>

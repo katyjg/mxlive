@@ -8,7 +8,7 @@
 {% load data_server %}
 
 {% block page_heading %}
-    <h4 class="text-condensed narrow-heading overflow ellipsis">
+    <h4 class="text-condensed">
         <span class="text-muted">{% if user.is_superuser %}{{ object.project|upper }} | {% endif %}</span><strong>{{ object.name }}</strong>
     </h4>
     <span class="text-muted">

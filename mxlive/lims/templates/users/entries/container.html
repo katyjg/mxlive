@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block page_heading %}
-    <h3 class="text-condensed narrow-heading">
+    <h3 class="text-condensed">
         <i class="text-muted ti {% if object.is_editable %}ti-unlock{% else %}ti-lock{% endif %}"></i>
         <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}</span><strong>{{ object.name }}</strong>
     </h3>

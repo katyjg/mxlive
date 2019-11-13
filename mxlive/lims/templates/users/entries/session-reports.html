@@ -2,7 +2,7 @@
 {% load static %}
 {% load icons %}
 {% block page_heading %}
-    <h3 class="text-condensed narrow-heading overflow ellipsis">
+    <h3 class="text-condensed">
         <span class="text-muted">{% if user.is_superuser %}{{ session.project|upper }} | {% endif %}</span><strong>{{ session.name }}</strong>
     </h3>
     <span class="text-muted">

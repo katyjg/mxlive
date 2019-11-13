@@ -33,8 +33,8 @@ $mono-font: "Fira Code";
 
 $min_width: 300px;
 $max_width: 1200px;
-$min_font: 12px;
-$max_font: 16px;
+$min_font: 11px;
+$max_font: 15px;
 
 :root {
   --gray-alpha: #{$gray-alpha};
@@ -223,11 +223,6 @@ a.navbar-brand {
   overflow: hidden;
   display: block;
   padding-bottom: 0.15em;
-}
-
-.narrow-heading {
-  margin: 0 !important;
-  line-height: inherit !important;
 }
 
 .absolute-right {
@@ -475,6 +470,13 @@ p {
 
 .tools-box a {
   cursor: pointer;
+}
+
+.heading-box {
+  align-self: center;
+  h3, h4 {
+    margin: 0;
+  }
 }
 
 .mini-profile {

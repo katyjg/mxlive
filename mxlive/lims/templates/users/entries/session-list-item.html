@@ -7,7 +7,7 @@
             {% show_icon label=session.start.date|date:"M j"|upper icon='ti ti-md ti-time' %}
         </div>
         <div class="pl-3 overflow-ellipsis">
-            <h5 class="text-condensed narrow-heading overflow ellipsis">
+            <h5 class="text-condensed">
                 <a class="text-muted" href="{% url "session-detail" session.pk %}"
                    title='View Session "{{ session.name }}"'>
                     <strong>{{ session.beamline.acronym }}</strong>{% if user.is_superuser %} |
