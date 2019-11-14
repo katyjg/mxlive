@@ -6,8 +6,8 @@
         <div class="box-status text-center text-muted">
             {% show_icon label=session.start.date|date:"M j"|upper icon='ti ti-md ti-time' %}
         </div>
-        <div class="pl-3 overflow-ellipsis">
-            <h5 class="text-condensed">
+        <div class="pl-3 overflow-ellipsis align-self-center">
+            <h5 class="m-0 text-condensed">
                 <a class="text-muted" href="{% url "session-detail" session.pk %}"
                    title='View Session "{{ session.name }}"'>
                     <strong>{{ session.beamline.acronym }}</strong>{% if user.is_superuser %} |

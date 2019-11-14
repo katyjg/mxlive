@@ -4,7 +4,7 @@
 {% load msgs %}
 
 {% block page_heading %}
-<h3 class="text-condensed"> <span class="text-muted">{{ user.username|upper }} |</span> User</h3>
+    <h3 class="text-condensed"> <span class="text-muted"><strong>{{ user.username|upper }}</strong> |</span> User</h3>
     <span class="text-muted hidden-xs">
         Start here to manage and monitor shipments, review recent sessions, view and download data, and much more.
     </span>
@@ -37,9 +37,8 @@
                                 <div><small>Start Now</small></div>
                             </div>
                         </div>
-                        <div class="pl-3 overflow-ellipsis flex-shrink-1">
-                            <h4 class="p-0 text-condensed">Click here to start a
-                                new shipment!</h4>
+                        <div class="pl-3 overflow-ellipsis flex-shrink-1 align-self-center">
+                            <h4 class="p-0 m-0 text-condensed">Click here to start a new shipment!</h4>
                             <span>Follow the steps to enter your sample information</span>
                         </div>
                     </a>
