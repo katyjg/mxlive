@@ -2,7 +2,12 @@
 
 // Variables
 $web-font-path: "https://fonts.googleapis.com/css?family=Fira+Code|Fira+Sans+Condensed:400,800|Fira+Sans:200,400,800&display=swap" !default;
-$grid-gutter-width: 1rem !default;
+$spacer: 1rem !default;
+$grid-gutter-width:           1rem !default;
+$form-grid-gutter-width:      .75rem !default;
+
+//$grid-gutter-width: 1rem !default;
+//$spacer: 0.5 * $grid-gutter-width !default;
 $primary: #3f0e40 !default;
 $secondary:#868e96 !default;
 $success:#28a745 !default;
@@ -22,15 +27,10 @@ $pagination-disabled-border-color: $border-color !default;
 $pagination-hover-border-color: $border-color !default;
 
 $modal-xl:                          1140px !default;
-$modal-lg:                          900px !default;
+$modal-lg:                          850px !default;
 $modal-md:                          500px !default;
 $modal-sm:                          300px !default;
-
 
 // import font and web-font
 @import url($web-font-path);
 @import "../scss/bootstrap";
-
-.modal-body {
-  padding: $spacer/2;
-}

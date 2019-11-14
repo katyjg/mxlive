@@ -14,13 +14,17 @@
 {% endblock %}
 
 {% block modal_styles %}{% endblock %}
-{% block modal_title %}{{ form.helper.title }}{% endblock %}
+{% block modal_title %}{{ form.body.title }}{% endblock %}
+{% block pre_content %}<form action="{{ form.form_action }}" method="{{form.method}}">{% endblock %}
 {% block modal_body %}
     {% if form.errors %}
-        <div id="form-errors" class="alert alert-warning"><strong>It looks like there's a problem!</strong> Please correct the errors below.
+        <div id="form-errors" class="alert alert-warning">
+            <strong>It looks like there's a problem!</strong> Please correct the errors below.
             <hr class="my-2"/>
             <small>{{ form.errors }}</small>
         </div>
     {% endif %}
-    {% crispy form form.helper %}
+    {% crispy form form.body %}
 {% endblock %}
+{% block modal_footer %}{% crispy form form.footer %}{% endblock %}
+{% block post_content %}</form>{% endblock %}

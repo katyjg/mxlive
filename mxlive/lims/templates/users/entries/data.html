@@ -23,56 +23,56 @@
 {% endblock %}
 
 {% block modal_body %}
-    <small class="row py-1">
-            <div class="col-3">
-                <strong>Type:</strong><br/>
-                <span class="text-muted">{{ object.kind }} from {{ object.modified|naturalday }}</span><br/>
-                <span class="text-muted">{% if object.session %}Session
-                    <a href="{% url 'session-detail' object.session.pk %}">{{ object.session.name }}</a>{% else %}
-                    Unrecorded Session{% endif %}</span>
-            </div>
-            <div class="col">
-                <strong>Beam:</strong><br/>
-                <span class="text-muted">{{ object.beamline }} at {{ object.energy }} keV</span><br/>
-                {% if object.beam_size %}<span class="text-muted" title="Beam Size">{{ object.beam_size|floatformat:2 }} &mu;m</span>{% endif %}
-            </div>
-            <div class="col">
-                <strong>Parameters:</strong><br/>
-                <span class="text-muted">
-                            <span title="Exposure Time">{{ object.exposure_time }}s exposure time</span><br/>
-                            <span title="Attenuation">{{ object.attenuation }}% attenuated</span>
-                        </span>
-            </div>
-            <div class="col-3">
-                <strong>Sample:</strong><span class="text-muted"> {% if object.sample %}
-                <a href="{% url "sample-detail" object.sample.pk %}">{{ object.sample }}</a>{% else %}
-                None{% endif %}</span><br/>
-                <strong>Group:</strong><span class="text-muted"> {% if object.sample %}
-                <a href="{% url "group-detail" object.sample.group.pk %}">{{ object.sample }}</a>{% else %}
-                None{% endif %}</span><br/>
-                <strong>Report:</strong><span class="text-muted">
-                {% for report in object.reports.all %}
-                <a href="{% url "report-detail" report.pk %}" title="View {{ report.name }} Report">
-                    {% score_badge report.score %}
-                </a>
-                {% endfor %}
-                        </span>
-            </div>
-            <div class="col-2 p-0">
-                <div class="tools-box float-right">
-                {% if object.url %}
-                    <a href="{% url 'files-proxy' section='archive' path=object.download_url %}"
-                       download="{{ object.name }}.tar.gz" title="Download Full Dataset">
-                        {% show_icon label="Download" icon="ti ti-md ti-download" %}
-                    </a>
-                {% else %}
-                    <span class="text-muted not-allowed" title="Download Not Available">
-                        {% show_icon label="Download" icon="ti ti-md ti-download" %}
+    <div class="row small py-1 overflow-ellipsis">
+        <div class="col">
+            <strong>Type:</strong><br/>
+            <span class="text-muted">{{ object.kind }} from {{ object.modified|naturalday }}</span><br/>
+            <span class="text-muted">{% if object.session %}Session
+                <a href="{% url 'session-detail' object.session.pk %}">{{ object.session.name }}</a>{% else %}
+                Unrecorded Session{% endif %}</span>
+        </div>
+        <div class="col">
+            <strong>Beam:</strong><br/>
+            <span class="text-muted">{{ object.beamline }} at {{ object.energy }} keV</span><br/>
+            {% if object.beam_size %}<span class="text-muted" title="Beam Size">{{ object.beam_size|floatformat:2 }} &mu;m</span>{% endif %}
+        </div>
+        <div class="col">
+            <strong>Parameters:</strong><br/>
+            <span class="text-muted">
+                        <span title="Exposure Time">{{ object.exposure_time }}s exposure time</span><br/>
+                        <span title="Attenuation">{{ object.attenuation }}% attenuated</span>
                     </span>
-                {% endif %}
-                </div>
+        </div>
+        <div class="col">
+            <strong>Sample:</strong><span class="text-muted"> {% if object.sample %}
+            <a href="{% url "sample-detail" object.sample.pk %}">{{ object.sample }}</a>{% else %}
+            None{% endif %}</span><br/>
+            <strong>Group:</strong><span class="text-muted"> {% if object.sample %}
+            <a href="{% url "group-detail" object.sample.group.pk %}">{{ object.sample }}</a>{% else %}
+            None{% endif %}</span><br/>
+            <strong>Report:</strong><span class="text-muted">
+            {% for report in object.reports.all %}
+            <a href="{% url "report-detail" report.pk %}" title="View {{ report.name }} Report">
+                {% score_badge report.score %}
+            </a>
+            {% endfor %}
+                    </span>
+        </div>
+        <div class="col p-0">
+            <div class="tools-box float-right">
+            {% if object.url %}
+                <a href="{% url 'files-proxy' section='archive' path=object.download_url %}"
+                   download="{{ object.name }}.tar.gz" title="Download Full Dataset">
+                    {% show_icon label="Download" icon="ti ti-md ti-download" %}
+                </a>
+            {% else %}
+                <span class="text-muted not-allowed" title="Download Not Available">
+                    {% show_icon label="Download" icon="ti ti-md ti-download" %}
+                </span>
+            {% endif %}
             </div>
-    </small>
+        </div>
+    </div>
     <hr class="row mt-0"/>
     {% include object.kind.template %}
 {% endblock %}

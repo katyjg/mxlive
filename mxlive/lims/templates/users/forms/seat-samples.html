@@ -51,20 +51,20 @@
             </div>
         </div>
     </div>
-    <div class="form-action row">
-        <div class="col-9">
-            <div class="alert alert-info m-0 small" id="seater-instructions">
-                <i class="ti ti-xl ti-info-alt float-left pr-2"></i>
-                Click on a group to select it, then click the locations of the corresponding samples in each container.
-                Click previously selected samples to remove them.
-            </div>
-        </div>
-        <div class="col-3 my-auto text-right">
-            <button id='save-seats' class="btn btn btn-primary" name="save" type="button"
-                    data-post-action="{% url 'create-samples' pk=shipment.pk %}"
-            >Save Samples</button>
-        </div>
+{% endblock %}
 
+{% block modal_footer %}
+    <div class="col-9">
+        <div class="alert alert-info m-0 small" id="seater-instructions">
+            <i class="ti ti-xl ti-info-alt float-left pr-2"></i>
+            Click on a group to select it, then click the locations of the corresponding samples in each container.
+            Click previously selected samples to remove them.
+        </div>
+    </div>
+    <div class="col-3 my-auto text-right">
+        <button id='save-seats' class="btn btn btn-primary" name="save" type="button"
+                data-post-action="{% url 'create-samples' pk=shipment.pk %}"
+        >Save Samples</button>
     </div>
 {% endblock %}
 

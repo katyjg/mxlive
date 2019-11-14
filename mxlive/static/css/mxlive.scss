@@ -85,7 +85,7 @@ main {
 }
 
 .folio-body {
-  padding: 15px;
+  padding: 1rem;
 }
 
 .folio-heading {
@@ -512,7 +512,7 @@ p {
   display: flex;
   justify-content: flex-end;
   border-top: 1px solid var(--gray-alpha);
-  padding-top: 1rem;
+  padding: 1rem 0 0;
   margin-top: 1rem;
 }
 
@@ -872,8 +872,10 @@ a[data-link], .back text[port], .cursor {
 }
 
 .data-viewer .modal-body {
-  padding-top: 0 !important;
-  margin-top: 0 !important;
+  padding: 0 0.5rem;
+}
+.modal-footer:empty {
+    display: none;
 }
 
 #data-viewer {
@@ -1302,7 +1304,6 @@ a:hover {
 
 
 .modal-body {
-
   .form-group {
     margin-bottom: 0.25rem;
 
@@ -1405,6 +1406,8 @@ svg * {
     }
   }
 }
+
+
 
 .label {
   > * {

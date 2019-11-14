@@ -8,6 +8,7 @@
 <div class="modal fade {% block modal_classes %}{% endblock %}" id="modal" tabindex="-1" role="dialog" aria-labelledby="Form" aria-hidden="true">
     <div class="modal-dialog {% block modal_styles %}{% endblock %}">
         <div class="modal-content">
+            {% block pre_content %}{% endblock %}
             <div class="modal-header bg-light text-dark d-flex justify-content-end align-items-center">
                 {% block modal_title_tools %}{% endblock %}
                 <h4 class="modal-title my-0 py-0 w-100">
@@ -17,16 +18,17 @@
                     <span class="ti ti-close p-1" aria-hidden="true"></span>
                 </button>
             </div>
-            <div class="modal-body"  id="modal-content">
-                {% block modal_body %}{% endblock %}
-                {% block modal_scripts %}
-                    <script>
-                    function initializeModal() {}
-                    $('#modal').on('shown.bs.modal', function() {
-                        initializeModal();
-                    });
-                    </script>
-                {% endblock %}
+            <div class="modal-body"  id="modal-content">{% block modal_body %}{% endblock %}</div>
+            <div class="modal-footer" id="modal-footer">{% block modal_footer %}{% endblock %}</div>
+            {% block post_content %}{% endblock %}
+            {% block modal_scripts %}
+                <script>
+                function initializeModal() {}
+                $('#modal').on('shown.bs.modal', function() {
+                    initializeModal();
+                });
+                </script>
+            {% endblock %}
             </div>
         </div>
     </div>
