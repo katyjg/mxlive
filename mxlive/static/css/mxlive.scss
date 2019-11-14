@@ -517,10 +517,6 @@ p {
   margin-top: 1rem;
 }
 
-.repeat-group + .form-action {
-  margin-top: -20px;
-}
-
 form .list-group-item {
   border: none;
   border-top: 1px solid var(--gray-alpha);
@@ -1316,7 +1312,7 @@ a:hover {
     }
   }
 
-  .repeat-wrapper {
+  .repeat-container {
     max-height: 40vh;
     overflow-y: auto;
     overflow-x: hidden;
@@ -1352,7 +1348,7 @@ svg * {
 .spaced-buttons {
   display: flex;
   flex-direction: row;
-  justify-content: flex-end;
+  justify-content: flex-start;
 
   > * {
     margin-left: 0.5rem;

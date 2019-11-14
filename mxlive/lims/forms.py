@@ -47,39 +47,39 @@ class ProjectForm(forms.ModelForm):
         self.body.layout = Layout(
             Div(
                 Div('contact_person', css_class='col-12'),
-                css_class="row"
+                css_class="form-row"
             ),
             Div(
                 Div('contact_email', css_class='col-6'),
                 Div('contact_phone', css_class='col-6'),
-                css_class="row"
+                css_class="form-row"
             ),
             Div(
                 Div(Field('carrier', css_class="select"), css_class='col-6'),
                 Div('account_number', css_class='col-6'),
-                css_class="row"
+                css_class="form-row"
             ),
             Div(
                 Div('organisation', css_class='col-12'),
-                css_class="row"
+                css_class="form-row"
             ),
             Div(
                 Div('department', css_class='col-12'),
-                css_class="row"
+                css_class="form-row"
             ),
             Div(
                 Div('address', css_class='col-12'),
-                css_class="row"
+                css_class="form-row"
             ),
             Div(
                 Div('city', css_class='col-6'),
                 Div('province', css_class='col-6'),
-                css_class="row"
+                css_class="form-row"
             ),
             Div(
                 Div('country', css_class='col-6'),
                 Div('postal_code', css_class='col-6'),
-                css_class="row"
+                css_class="form-row"
             )
         )
         self.footer.layout = Layout(
@@ -111,21 +111,21 @@ class NewProjectForm(forms.ModelForm):
             Div(
                 Div('username', css_class='col-6'),
                 Div(Field('password', disabled=True), css_class="col-6"),
-                css_class="row"
+                css_class="form-row"
             ),
             Div(
                 Div('first_name', css_class='col-6'),
                 Div('last_name', css_class='col-6'),
-                css_class="row"
+                css_class="form-row"
             ),
             Div(
                 Div('contact_person', css_class='col-12'),
-                css_class="row"
+                css_class="form-row"
             ),
             Div(
                 Div('contact_email', css_class='col-6'),
                 Div('contact_phone', css_class='col-6'),
-                css_class="row"
+                css_class="form-row"
             )
         )
         self.footer.layout = Layout(
@@ -242,7 +242,7 @@ class SampleForm(forms.ModelForm):
                 Div('name', css_class='col-6'),
                 Div('barcode', css_class='col-6'),
                 Div('comments', css_class='col-12'),
-                css_class="row"
+                css_class="form-row"
             )
         )
         self.footer.layout = Layout(
@@ -280,7 +280,7 @@ class SampleAdminForm(forms.ModelForm):
         self.body.layout = Layout(
             Div(
                 Div('staff_comments', css_class='col-12'),
-                css_class="row"
+                css_class="form-row"
             )
         )
         self.footer.layout = Layout(
@@ -330,7 +330,7 @@ class ShipmentSendForm(forms.ModelForm):
                 Div('tracking_code', css_class="col-6"),
                 Div(Field('components', css_class="select"), css_class="col-12"),
                 Div('comments', css_class="col-12"),
-                css_class="row"
+                css_class="form-row"
             )
         )
         self.footer.layout = Layout(
@@ -360,13 +360,13 @@ class ShipmentReturnForm(forms.ModelForm):
         self.body.layout = Layout(
             Div(
                 Div(Field('loaded'), css_class="col-12"),
-                css_class="row"
+                css_class="form-row"
             ),
             Div(
                 Div(Field('carrier', css_class="select"), css_class="col-6"),
                 Div('return_code', css_class="col-6"),
                 Div('staff_comments', css_class="col-12"),
-                css_class="row"
+                css_class="form-row"
             ),
         )
         self.footer.layout = Layout(
@@ -395,7 +395,7 @@ class ShipmentRecallSendForm(forms.ModelForm):
                 Div('tracking_code', css_class="col-6"),
                 Div(Field('components', css_class="select"), css_class="col-12"),
                 Div('comments', css_class="col-12"),
-                css_class="row"
+                css_class="form-row"
             )
         )
         self.footer.layout = Layout(
@@ -420,7 +420,7 @@ class ShipmentRecallReturnForm(forms.ModelForm):
                 Div(Field('carrier', css_class="select"), css_class="col-6"),
                 Div('return_code', css_class="col-6"),
                 Div('staff_comments', css_class="col-12"),
-                css_class="row"
+                css_class="form-row"
             )
         )
         self.footer.layout = Layout(
@@ -526,21 +526,21 @@ class GroupForm(forms.ModelForm):
             'project',
             Div(
                 Div('name', css_class="col-12"),
-                css_class="row"
+                css_class="form-row"
             ),
             Div(
                 Div(Field('kind', css_class="select", css_id="kind"), css_class="col-6"),
                 Div(Field('plan', css_class="select", css_id="plan"), css_class="col-6"),
-                css_class="row"
+                css_class="form-row"
             ),
             Div(
                 Div(Field('absorption_edge', css_id="absorption_edge"), css_class="col-6"),
                 Div(Field('resolution', css_id="resolution"), css_class="col-6"),
-                css_class="row"
+                css_class="form-row"
             ),
             Div(
                 Div('comments', css_class="col-12"),
-                css_class="row"
+                css_class="form-row"
             )
         )
         self.footer.layout = Layout(
@@ -584,7 +584,7 @@ class ContainerLoadForm(forms.ModelForm):
                     ),
                     css_class="col-6"
                 ),
-                css_class="row"
+                css_class="form-row"
             )
         )
         self.footer.layout = Layout(
@@ -664,7 +664,7 @@ class LocationLoadForm(forms.ModelForm):
                     Field('child', css_class="select"),
                     css_class="col-12"
                 ),
-                css_class="row"
+                css_class="form-row"
             ))
         self.footer.layout = Layout(
             StrictButton('Load', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
@@ -686,7 +686,7 @@ class AddShipmentForm(forms.ModelForm):
             name_row = Div(
                 Div(Field('project', css_class="select"), css_class="col-4"),
                 Div('name', css_class="col-8"),
-                css_class="row"
+                css_class="form-row"
             )
         else:
             self.fields['project'].widget = forms.HiddenInput()
@@ -706,7 +706,7 @@ class AddShipmentForm(forms.ModelForm):
                     Field('comments', rows="2", css_class="col-12"),
                     css_class="col-12"
                 ),
-                css_class="row"
+                css_class="form-row"
             )
         )
         self.footer.layout = Layout(
@@ -759,13 +759,7 @@ class ShipmentContainerForm(forms.ModelForm):
             )
 
         self.body.layout = Layout(
-            Div(
-                Div(
-                    self.help_text(),
-                    css_class="col-12"
-                ),
-                css_class="row"
-            ),
+            self.help_text(),
             Div(
                 Div(
                     Div(
@@ -778,36 +772,37 @@ class ShipmentContainerForm(forms.ModelForm):
                                         HTML(
                                             '<label></label>'
                                             '<div class="spaced-buttons">'
-                                            '<a title="Remove Container" class="safe-remove btn btn-warning">'
-                                            '<i class="ti ti-minus"></i>'
+                                            '<a title="Delete Container" class="remove btn btn-danger" '
+                                            '   style="display: none;">'
+                                            '   <i class="ti ti-minus"></i>'
                                             '</a>'
-                                            '<a title="Click again to confirm" class="remove btn btn-danger text-white" style="display: none;">'
-                                            '<i class="ti ti-minus"></i>'
+                                            '<a title="Click again to confirm" class="safe-remove btn btn-sm btn-warning">'
+                                            '   <i class="ti ti-minus"></i>'
                                             '</a>'
-                                            '</div'
+                                            '</div>'
                                         ),
                                         css_class="form-group"
                                     ),
                                     css_class="col-2"
                                 ),
-                                css_class="row",
+                                css_class="form-row"
                             ),
                             Field('shipment'),
                             Field('id'),
-                            css_class="template repeat-row border-0"
+                            css_class="template repeat-row"
                         ),
                         css_class="repeat-group repeat-container",
                     ),
-
-                    css_class="repeat-wrapper col-12"
-                ),
-                Div(
-                    StrictButton(
-                        "<i class='ti ti-plus'></i> Add Container", type="button",
-                        css_class='btn btn-sm btn-success add mt-3'
+                    Div(
+                        StrictButton(
+                            "<i class='ti ti-plus'></i> Add Container", type="button",
+                            css_class='btn btn-sm btn-success add'
+                        ),
+                        css_class="mt-3"
                     ),
+                    css_class="repeat-wrapper col"
                 ),
-                css_class='repeat row'
+                css_class='repeat form-row'
             ),
         )
 
@@ -889,13 +884,6 @@ class ShipmentGroupForm(forms.ModelForm):
         self.body.layout = Layout(
             Div(
                 Div(
-                    self.help_text(),
-                    css_class="col-12"
-                ),
-                css_class="row"
-            ),
-            Div(
-                Div(
                     Div(
                         Div(
                             Div(
@@ -928,7 +916,7 @@ class ShipmentGroupForm(forms.ModelForm):
                                     ),
                                     css_class="col-4"
                                 ),
-                                css_class="row card-header py-1 px-3"
+                                css_class="form-row card-header py-1 px-3"
                             ),
                             Div(
                                 Div(
@@ -940,7 +928,7 @@ class ShipmentGroupForm(forms.ModelForm):
                                     ),
                                     Div(
                                         Div(Field('comments'), css_class="col-12"),
-                                        css_class="row"
+                                        css_class="form-row"
                                     ),
                                     Field('shipment'),
                                     Field('priority'),
@@ -952,36 +940,40 @@ class ShipmentGroupForm(forms.ModelForm):
                             ),
                             css_class="template repeat-row card border-0"
                         ),
-                        css_class="repeat-group repeat-container",
+                        css_class="repeat-container",
                     ),
                     Div(
-                        StrictButton(
-                            "<i class='ti ti-plus'></i> Add Group", type="button",
-                            css_class='btn btn-sm btn-success add'
+                        Div(
+                            StrictButton(
+                                "<i class='ti ti-plus'></i> Add Group", type="button",
+                                css_class='btn btn-sm btn-success add'
+                            ),
+                            css_class="col-3"
                         ),
-                        css_class="col-12 mt-3"
+                        Div(
+                            self.help_text(),
+                            css_class="col"
+                        ),
+
+                        css_class="row mt-3"
                     ),
                     css_class="repeat-wrapper"
                 ),
 
-                css_class='repeat row'
+                css_class='repeat form-row'
             ),
         )
 
     def help_text(self):
         if self.initial.get('shipment'):
-            return Div(
-                HTML(
-                    'Update sample groups<br/>'
-                    '<strong class="text-danger">Removing a group will also remove any samples in the group</strong>'
-                )
+            return HTML(
+                'Update sample groups: '
+                '<span class="text-danger">Removing a group will also remove any samples in the group</span>'
             )
         else:
-            return Div(
-                HTML(
-                    '<h4 class="mb-0">Add Sample Groups</h4>'
-                    '<p>Group similar samples together. You can add more groups later.</p>'
-                )
+            return HTML(
+                'Add Sample Groups: '
+                '<span>Group similar samples together. You can add more groups later.</span>'
             )
 
     def clean(self):

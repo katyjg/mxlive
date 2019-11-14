@@ -14,9 +14,10 @@
     <strong class="text-condensed">Create a Shipment:&emsp;</strong>
     <span class="text-muted text-right">Step <strong style="color: dodgerblue;">{{ wizard.steps.step1 }}</strong> of {{ wizard.steps.count }}</span>
 {% endblock %}
-{% block pre_content%}<form action="{{ request.path }}" method="post">{% endblock %}
-{% block modal_body %}
 
+{% block pre_content%}<form action="{{ request.path }}" method="post">{% endblock %}
+
+{% block modal_body %}
     {% csrf_token %}
     {{ wizard.management_form }}
     {% if wizard.form.forms %}
@@ -34,6 +35,7 @@
         {% crispy wizard.form wizard.form.body %}
     {% endif %}
 {% endblock %}
+
 {% block modal_footer %}
     {% if wizard.form.forms %}
         {% crispy wizard.form wizard.form.footer %}
@@ -43,6 +45,7 @@
 {% endblock %}
 
 {% block post_content %}</form>{% endblock %}
+
 {% block modal_scripts %}
 <script>
      function initializeModal() {
