@@ -1,11 +1,10 @@
 // Variables
 $gray-label: #555;
-$gray-alpha: rgba(0,0,0,0.15);
-$gray-barely: rgba(0,0,0,0.05);
+$gray-alpha: rgba(0, 0, 0, 0.15);
+$gray-barely: rgba(0, 0, 0, 0.05);
 $base-font: "Fira Sans";
 $narrow-font: "Fira Sans Condensed";
 $mono-font: "Fira Code";
-
 
 
 @function strip-unit($value) {
@@ -297,12 +296,13 @@ a.navbar-brand {
 }
 
 .overflow-ellipsis {
-    min-width: 0;
-    > *:not(.no-overflow) {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+  min-width: 0;
+
+  > *:not(.no-overflow) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 
@@ -474,6 +474,7 @@ p {
 
 .heading-box {
   align-self: center;
+
   h3, h4 {
     margin: 0;
   }
@@ -874,8 +875,9 @@ a[data-link], .back text[port], .cursor {
 .data-viewer .modal-body {
   padding: 0 0.5rem;
 }
+
 .modal-footer:empty {
-    display: none;
+  display: none;
 }
 
 #data-viewer {
@@ -1302,7 +1304,6 @@ a:hover {
 }
 
 
-
 .modal-body {
   .form-group {
     margin-bottom: 0.25rem;
@@ -1408,7 +1409,6 @@ svg * {
 }
 
 
-
 .label {
   > * {
     color: var(--white);
@@ -1419,11 +1419,51 @@ svg * {
     align-content: center;
     line-height: 1;
   }
+
   .label-header {
     border-radius: 0.25rem 0 0 0.25rem;
     background-color: #555;
   }
+
   .label-value {
     border-radius: 0 0.25rem 0.25rem 0;
+  }
+}
+
+.sticky-notes {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+
+  .comment {
+    font-size: .95rem;
+    font-family: "Architects Daughter", sans-serif;
+  }
+
+  .note {
+    position: absolute;
+    bottom: 0;
+    margin: 1rem;
+    box-shadow: 5px 5px 7px rgba(33,33,33,.3);
+    background: #fefcaf linear-gradient(#fefcaf, #fffeee);
+    border: 1px solid transparent;
+    border-image: linear-gradient(to bottom right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.1) 100%) 1;
+    transform: rotate(-6deg) scale(.4);
+    &:nth-child(even) {
+      transform: rotate(6deg) translateY(-1rem) translateX(3rem)  scale(.4);
+    }
+    &:hover, &:focus {
+      transform: scale(1) !important;
+      z-index: 500;
+    }
+    a {
+      text-decoration: none;
+      color: #000;
+      display: block;
+      height: 15rem;
+      width: 15rem;
+      padding: 1rem;
+    }
   }
 }

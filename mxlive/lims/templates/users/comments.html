@@ -1,32 +1,23 @@
-<div id="comments-{{ object.pk }}" class="status-bar collapse">
-    <div class="comments row">
+{% if object.comments or object.staff_comments %}
+    <div class="sticky-notes">
         {% if object.comments %}
-        <div class="col-2 col-sm-1 text-right">
-            <span title="Comments from {{ object.project.username }}">
-                <i class="ti ti-lg ti-user"></i>
-            </span>
+        <div class="note">
+            <a href="#!">
+                <h5 class="text-thin text-muted my-0"><i class="ti ti-comments"></i>&nbsp;{{ object.project.username|upper }}</h5>
+                <hr class="my-1"/>
+                <p class="comment">{{ object.comments }}</p>
+            </a>
         </div>
-        <div class="col-10 col-sm-5">
-            <div class="panel panel-default">
-                <div class="panel-heading panel-heading-left">
-                    {{ object.comments }}
-                </div>
-            </div>
-        </div>
-        {% else %}<div class="col-sm-6"></div>{% endif %}
+        {% endif %}
         {% if object.staff_comments %}
-        <div class="col-10 col-sm-5">
-            <div class="panel panel-default text-right">
-                <div class="panel-heading panel-heading-right">
-                    {{ object.staff_comments }}
-                </div>
-            </div>
+        <div class="note">
+            <a href="#!">
+                <h5 class="text-thin text-muted my-0"><i class="ti ti-comments"></i>&nbsp;<span>STAFF</span></h5>
+                <hr class="my-1"/>
+                <p class="comment">{{ object.staff_comments }}</p>
+            </a>
         </div>
-        <div class="col-2 col-sm-1 text-left">
-            <span title="Comments from staff">
-                <i class="ti ti-lg ti-user"></i>
-            </span>
-        </div>
-        {% else %}<div class="col-sm-6"></div>{% endif %}
+        {% endif %}
     </div>
-</div>
+    {% if object.staff_comments %}{% endif %}
+{% endif %}

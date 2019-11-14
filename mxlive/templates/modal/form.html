@@ -15,7 +15,7 @@
 
 {% block modal_styles %}{% endblock %}
 {% block modal_title %}{{ form.body.title }}{% endblock %}
-{% block pre_content %}<form action="{{ form.form_action }}" method="{{form.method}}">{% endblock %}
+{% block pre_content %}<form action="{{ form.body.form_action }}" method="{{form.body.method}}">{% endblock %}
 {% block modal_body %}
     {% if form.errors %}
         <div id="form-errors" class="alert alert-warning">

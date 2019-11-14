@@ -45,9 +45,6 @@
             {% show_icon label='Labels' icon='ti ti-md ti-tag' %}
         </a>
     {% endif %}
-    <a data-toggle="collapse" href="#comments-{{ shipment.pk }}">
-        {% show_icon label='Comments' icon='ti ti-md ti-comments' badge=shipment.has_comments %}
-    </a>
 {% elif user.is_superuser %}
     {% comment %}Staff Actions{% endcomment %}
     <div class="separator"></div>
