@@ -706,7 +706,7 @@ class AddShipmentForm(forms.ModelForm):
                     Field('comments', rows="2", css_class="col-12"),
                     css_class="col-12"
                 ),
-                css_class="form-row"
+                css_class="row"
             )
         )
         self.footer.layout = Layout(
@@ -772,11 +772,11 @@ class ShipmentContainerForm(forms.ModelForm):
                                         HTML(
                                             '<label></label>'
                                             '<div class="spaced-buttons">'
-                                            '<a title="Delete Container" class="remove btn btn-danger" '
+                                            '<a title="Delete Container" class="remove btn btn-sm btn-danger ml-auto"'
                                             '   style="display: none;">'
                                             '   <i class="ti ti-minus"></i>'
                                             '</a>'
-                                            '<a title="Click again to confirm" class="safe-remove btn btn-sm btn-warning">'
+                                            '<a title="Click again to confirm" class="safe-remove btn btn-sm btn-warning ml-auto">'
                                             '   <i class="ti ti-minus"></i>'
                                             '</a>'
                                             '</div>'
@@ -791,18 +791,18 @@ class ShipmentContainerForm(forms.ModelForm):
                             Field('id'),
                             css_class="template repeat-row"
                         ),
-                        css_class="repeat-group repeat-container",
+                        css_class="repeat-group repeat-container modal-flush",
                     ),
                     Div(
                         StrictButton(
                             "<i class='ti ti-plus'></i> Add Container", type="button",
                             css_class='btn btn-sm btn-success add'
                         ),
-                        css_class="mt-3"
+                        css_class="mt-2"
                     ),
                     css_class="repeat-wrapper col"
                 ),
-                css_class='repeat form-row'
+                css_class='repeat row'
             ),
         )
 
@@ -940,7 +940,7 @@ class ShipmentGroupForm(forms.ModelForm):
                             ),
                             css_class="template repeat-row card border-0"
                         ),
-                        css_class="repeat-container",
+                        css_class="repeat-container modal-flush",
                     ),
                     Div(
                         Div(
@@ -960,7 +960,7 @@ class ShipmentGroupForm(forms.ModelForm):
                     css_class="repeat-wrapper"
                 ),
 
-                css_class='repeat form-row'
+                css_class='repeat row'
             ),
         )
 

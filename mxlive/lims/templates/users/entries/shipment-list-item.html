@@ -38,11 +38,11 @@
                 <a class="separator"></a>
             {% endif %}{% if user.is_superuser and shipment.status <= shipment.STATES.ON_SITE and shipment.status >= shipment.STATES.SENT %}
                 {% if shipment.status == shipment.STATES.ON_SITE %}
-                    <a data-link="{% url "shipment-return" shipment.pk %}" title="Return shipment">
+                    <a data-form-link="{% url "shipment-return" shipment.pk %}" title="Return shipment">
                         {% show_icon label='Return' icon='ti ti-md ti-location-arrow' %}
                     </a>
                 {% else %}
-                    <a data-link="{% url "shipment-receive" shipment.pk %}" title="Receive shipment">
+                    <a data-form-link="{% url "shipment-receive" shipment.pk %}" title="Receive shipment">
                         {% show_icon label='Receive' icon='ti ti-md ti-shopping-cart-full' %}
                     </a>
                 {% endif %}

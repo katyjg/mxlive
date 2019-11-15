@@ -15,10 +15,10 @@
     <a href="{% url "project-labels" object.username %}" title="Get Shipping Labels">
         {% show_icon label="Labels" icon="ti ti-md ti-tag" %}
     </a>
-    <a href="#!" data-link="{% url "edit-profile" object.username %}" title="Edit Profile">
+    <a href="#!" data-form-link="{% url "edit-profile" object.username %}" title="Edit Profile">
         {% show_icon label="Edit" icon="ti ti-md ti-pencil-alt" %}
     </a>
-    <a href="#!" data-link="{% url "user-delete" object.username %}" title="Delete User">
+    <a href="#!" data-form-link="{% url "user-delete" object.username %}" title="Delete User">
         {% show_icon label="Delete" icon="ti ti-md ti-trash" %}
     </a>
 {% endif %}

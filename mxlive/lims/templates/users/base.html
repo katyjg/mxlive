@@ -10,10 +10,9 @@
     <title>{% block page_title %}MxLIVE{% endblock %}</title>
     <link rel="icon" href="{% static 'img/icon.ico' %}">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="{% static 'bootstrap/css/style.min.css' %}">
-    <link rel="stylesheet" href="{% static "themify-icons/themify-icons.css" %}">
+    <!-- Styles -->
     {% block site_css %}
+        <link rel="stylesheet" href="{% static "themify-icons/themify-icons.css" %}">
         <link rel="stylesheet" href="{% static "css/toastr.css" %}" type="text/css"/>
         <link rel="stylesheet" href="{% static "css/jquery.scrollbar.css" %}"/>
         <link rel="stylesheet" href="{% static "css/mxlive.min.css" %}" type="text/css"/>
@@ -60,7 +59,7 @@
 <div id="modal-target"></div>
 {% if user.is_authenticated %}
     <div class="footer text-muted">
-        <div class="footer-wrapper">
+        <div class="footer-wrapper overflow-ellipsis">
             <div class="footer-item"> {{ version }}</div>
             <div class="footer-item">&#9400; 2010&ndash;{% now "Y" %}</div>
             <div class="footer-item"><a class="text-muted" href="/">Dashboard</a></div>
