@@ -736,7 +736,7 @@ class Container(TransitStatusMixin):
         unique_together = (
             ("project", "name", "shipment"),
         )
-        ordering = ('kind', 'location')
+        ordering = ('kind', 'location', 'name')
 
     def __str__(self):
         return "{} | {} | {}".format(self.kind.name.title(), self.project.name.upper(), self.name)
@@ -820,6 +820,18 @@ class Container(TransitStatusMixin):
         if self.parent:
             if self.location:
                 return self.location.name
+
+    def placeholders(self):
+        """
+        Generate a list of container locations that can hold samples or samples samples contained in the container.
+        """
+        samples = {s.location: s for s in self.samples.select_related('location', 'group').all()}
+        return [
+            {
+                'location': loc
+            } if loc not in samples else samples[loc]
+            for loc in self.kind.locations.all()
+        ]
 
     def get_layout(self, with_samples=True):
         """
@@ -927,32 +939,6 @@ class Dewar(models.Model):
             'comments': self.staff_comments,
             'container': [container.pk for container in self.children.all()]
         }
-
-
-class SpaceGroup(models.Model):
-    CS_CHOICES = (
-        ('a', 'triclinic'),
-        ('m', 'monoclinic'),
-        ('o', 'orthorombic'),
-        ('t', 'tetragonal'),
-        ('h', 'hexagonal'),
-        ('c', 'cubic'),
-    )
-
-    LT_CHOICES = (
-        ('P', 'primitive'),
-        ('C', 'side-centered'),
-        ('I', 'body-centered'),
-        ('F', 'face-centered'),
-        ('R', 'rhombohedral'),
-    )
-
-    name = models.CharField(max_length=20)
-    crystal_system = models.CharField(max_length=1, choices=CS_CHOICES)
-    lattice_type = models.CharField(max_length=1, choices=LT_CHOICES)
-
-    def __str__(self):
-        return self.name
 
 
 class Group(ProjectObjectMixin):

@@ -5,8 +5,8 @@
 {% load static %}
 
 {% block pre_js %}
-    <script src="{% static 'js/d3.v5.min.js' %}"></script>
-    <script src="{% static 'js/d3-selection-multi.v1.min.js' %}"></script>
+    <script src="{% static 'js/d3/d3.v5.min.js' %}"></script>
+    <script src="{% static 'js/d3/d3-selection-multi.v1.min.js' %}"></script>
     <script src="{% static "js/mxlive-layouts.min.js" %}"></script>
 {% endblock %}
 
@@ -27,6 +27,9 @@
 {% endblock %}
 
 {% block object_tools %}
+    <a href="#!" data-form-link="{% url 'container-spreadsheet' object.pk %}">
+        {% show_icon label='Samples' icon='ti ti-md ti-layout-grid4' %}
+    </a>
     {% include "users/tools-base.html" %}
     {% if object.parent_history.all %}
         <a href="#!" data-link="{% url "container-history" object.pk %}">

@@ -161,13 +161,18 @@ function initShipmentWizard() {
         });
 
         // Connect remove event handler globally for this repeat-group
-        $(this).on('click', '.safe-remove', function (){
-            let cur_row = $(this).closest('.repeat-row');
-            $(this).hide();
-            cur_row.find($('.remove')).show();
+        $(this).on('click', '.safe-remove:not(.remove)', function (){
+            let btn = $(this);
+            btn.switchClass('btn-warning', 'btn-danger', 100, 'fade', function(){
+                btn.addClass('remove', 'text-white');
+                btn.popover({content: 'Click again to confirm', placement: 'bottom'});
+                btn.popover('show');
+            });
             setTimeout(function(){
-                cur_row.find($('.safe-remove')).show();
-                cur_row.find($('.remove')).hide();
+                btn.popover('dispose');
+                btn.switchClass('btn-danger', 'btn-warning', 100, 'fade', function(){
+                    btn.removeClass('remove', 'text-white');
+                });
             }, 3000);
         });
 
@@ -199,6 +204,6 @@ function initShipmentWizard() {
             $.each($('input[name$="priority"]'), function(i, e) {
                $(e).val(i);
             });
-        } );
+        });
     });
 }

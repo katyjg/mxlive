@@ -32,8 +32,8 @@
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
-            <div class="col">
-                <h3 class="py-0">
+            <div class="col d-flex flex-row">
+                <h3 class="align-self-center m-0 p-0">
                     <span class="badge badge-{% if object.status == object.STATES.ON_SITE %}info
                                 {% elif object.status == object.STATES.DRAFT %}warning
                                 {% elif object.status == object.STATES.SENT %}success
@@ -59,11 +59,10 @@
             </div>
         </div>
     </div>
-    {% include "users/comments.html" with object=object %}
+
 {% endblock %}
 
 {% block full %}
-
 <div class="row">
     <div class="col-sm-12 bulk-edit">
         {% if object.is_editable %}
@@ -83,17 +82,17 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th class="col-1 col-lg-1">Priority</th>
-                        <th class="col-3 col-lg-2">Name</th>
-                        <th class="col-2 col-lg-2">Container Location</th>
-                        <th class="col-2 col-lg-2">Barcode</th>
-                        <th class="col-4 col-lg-5">Comments</th>
+                        <th class="">Priority</th>
+                        <th class="">Name</th>
+                        <th class="">Container Location</th>
+                        <th class="">Barcode</th>
+                        <th class="">Comments</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for sample in object.samples.all %}
-                    <tr sample="{{ sample.pk }}" data-detail-url="{% url 'sample-edit' sample.pk %}">
-                        <td><span class='cursor'><i class='movable fa fa-fw fa-1x fa-grip'></i> {{ sample.priority }}</span></td>
+                    <tr data-sample="{{ sample.pk }}" data-detail-url="{% url 'sample-edit' sample.pk %}">
+                        <td><span class='cursor'><i class='movable ti ti-move'></i></span></td>
                         <td class="input"><input id="name-{{ forloop.counter }}" type="text" initial="{{ sample.name }}" value="{{ sample.name }}" /></td>
                         <td>{{ sample.container_and_location }}</td>
                         <td class="input"><input id="barcode-{{ forloop.counter }}" type="text" initial="{{ sample.barcode|default_if_none:"" }}" value="{{ sample.barcode|default_if_none:"" }}" /></td>
@@ -110,15 +109,13 @@
             <table class="table table-sm">
                 <thead>
                     <tr>
-                        <th class="col-1 col-lg-1">Priority</th>
                         <th class="col-5 col-lg-2">Sample</th>
-                        <th class="text-right col-6 col-lg-9">Data & Analysis</th>
+                        <th class="text-right col-7 col-lg-10">Data & Analysis</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for sample in samples %}
                         <tr>
-                            <td class="text-medium" style="vertical-align: middle; padding-left: 20px !important;">{{ sample.priority|default_if_none:"" }}</td>
                             <td style="vertical-align: middle; padding-right: 15px !important;">
                                 <span class="overflow ellipsis" style="padding: 5px; margin-top: 0;">
                                     <a href="{% url "sample-detail" sample.pk %}"><strong>{{ sample.name }}</strong></a>
@@ -128,7 +125,7 @@
                                     {{ sample.container_and_location }}
                                 </small>
                                 </td>
-                            <td class="col-8">
+                            <td class="col-9">
                                 {% include "users/entries/sample-data.html" %}
                             </td>
                         </tr>
@@ -148,7 +145,7 @@
         {% endif %}
     </div>
 </div>
-
+    {% include "users/comments.html" with object=object %}
 {% endblock %}
 
 {% block extra_js %}
@@ -226,7 +223,7 @@
         var data = [];
         $('.sortable table input[id^=name-]').each(function() {
             var idx = this.id.split('-')[1];
-            var pk = $(this).parent().parent().attr('sample');
+            var pk = $(this).parent().parent().data('sample');
             var name = $(this).val() !== $(this).attr('initial');
             var brcd = $("input[id=barcode-"+idx+"]").val() !== $("input[id=barcode-"+idx+"]").attr('initial');
             var cmnt = $("input[id=comments-"+idx+"]").val() !== $("input[id=comments-"+idx+"]").attr('initial');
@@ -248,7 +245,7 @@
                         $('.error-panel').html(response.join('<br/>')).css('display', 'block');
                     }
                 } else {
-                    window.location.href=window.location.href;
+                    window.location.reload();
                 }
             }
         });

@@ -8,9 +8,4 @@
             {% show_icon label='Edit' icon='ti ti-md ti-pencil-alt' %}
         </a>
     {% endif %}
-    {% if object.comments or object.staff_comments %}
-        <a href="#!" data-toggle="collapse" href="#comments-{{ object.pk }}">
-            {% show_icon label='Comments' icon='ti ti-md ti-comment-alt' badge=object.has_comments color='warning' %}
-        </a>
-    {% endif %}
 {% endif %}

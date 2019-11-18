@@ -1053,6 +1053,11 @@ class SeatSamples(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, detai
     model = models.Shipment
 
 
+class ContainerSpreadsheet(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, detail.DetailView):
+    template_name = "users/forms/container-spreadsheet.html"
+    model = models.Container
+
+
 class ProxyView(View):
     def get(self, request, *args, **kwargs):
         remote_url = DOWNLOAD_PROXY_URL + request.path

@@ -40,6 +40,7 @@ urlpatterns = [
     path('containers/<int:pk>/history/', views.ContainerDetail.as_view(template_name="users/entries/container-history.html"), name='container-history'),
     path('automounter/<int:pk>/history/', views.ContainerDetail.as_view(template_name="users/entries/automounter-history.html"), name='automounter-history'),
     path('containers/<int:pk>/edit/', views.ContainerEdit.as_view(), name='container-edit'),
+    path('containers/<int:pk>/samples/', views.ContainerSpreadsheet.as_view(), name='container-spreadsheet'),
     path('containers/<int:pk>/delete/', views.ContainerDelete.as_view(), name='container-delete'),
     path('containers/<int:pk>/load/', views.ContainerLoad.as_view(), name='container-load'),
     path('containers/<int:pk>/unload/', ajax_views.UnloadContainer.as_view(), name='container-unload'),

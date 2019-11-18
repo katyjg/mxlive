@@ -1,34 +1,33 @@
 // Variables
 $web-font-path: "https://fonts.googleapis.com/css?family=Fira+Code|Fira+Sans+Condensed:400,800|Fira+Sans:200,400,800|Architects+Daughter&display=swap" !default;
 $spacer: 1rem !default;
-$grid-gutter-width:           1rem !default;
+$grid-gutter-width: 1rem !default;
 $half-spacer: 0.5*$spacer;
-$form-grid-gutter-width:      .75*$grid-gutter-width !default;
+$form-grid-gutter-width: .75*$grid-gutter-width !default;
 
 //$grid-gutter-width: 1rem !default;
 //$spacer: 0.5 * $grid-gutter-width !default;
-$primary: #3f0e40 !default;
-$secondary:#868e96 !default;
-$success:#28a745 !default;
-$danger:#dc3545 !default;
-$info:#17a2b8 !default;
-$warning:#ffc107 !default;
-$light:#f8f9fa !default;
-$dark:#343434 !default;
+$theme-colors: (
+        "primary": #3f0e40,
+        "secondary": #868e96,
+        "success": #28a745,
+        "danger": #dc3545,
+        "info": #17a2b8,
+        "warning": #ffc107,
+        "light": #f8f9fa,
+        "dark": #343434
+);
 
-$border-color: rgba(0,0,0,0.15) !default;
+$border-color: rgba(0, 0, 0, 0.15) !default;
 $table-border-color: $border-color !default;
 $input-border-color: $border-color !default;
 $nav-tabs-border-color: $border-color !default;
-$nav-divider-color:  rgba(0,0,0,0.15)  !default;
+$nav-divider-color: rgba(0, 0, 0, 0.15) !default;
 $pagination-border-color: $border-color !default;
 $pagination-disabled-border-color: $border-color !default;
 $pagination-hover-border-color: $border-color !default;
 
-$modal-xl:                          1140px !default;
-$modal-lg:                          850px !default;
-$modal-md:                          500px !default;
-$modal-sm:                          300px !default;
+$modal-lg: 850px !default;
 
 // custom css variables
 :root {
@@ -74,7 +73,7 @@ $mono-font: "Fira Code";
 
 $min_width: 300px;
 $max_width: 1200px;
-$min_font: 11px;
+$min_font: 10px;
 $max_font: 15px;
 
 :root {
@@ -435,7 +434,7 @@ table {
 
 .status-bar {
   background-color: var(--gray-barely);
-  padding: 0.5em 1em;
+  padding: 0.25em 1em;
 }
 
 .underline {
@@ -846,6 +845,15 @@ a[data-link], .back text[port], .cursor {
 
 .repeat-row {
   padding: 0;
+  padding-bottom: 0.5rem;
+
+  &:nth-child(even) {
+    background-color: $gray-barely;
+  }
+
+  & + .repeat-row {
+    border-top: 1px solid $border-color;
+  }
 }
 
 .list-group-item .alert {
@@ -1402,11 +1410,21 @@ svg * {
   }
 }
 
-#sample-seater {
-  height: 400px;
+#sample-seater, #container-spreadsheet {
+  min-height: 350px;
   max-height: 450px;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+#container-spreadsheet td[contenteditable="true"] {
+  &:hover, &:focus {
+    background-color: rgba(217, 245, 255, 0.5);
+  }
+  &.error {
+    color: $danger;
+    font-weight: bold;
+  }
 }
 
 .text-thin {
@@ -1475,38 +1493,65 @@ svg * {
 
 .sticky-notes {
   position: fixed;
-  bottom: 0;
+  width: 100vw;
+  bottom: 2rem;
   left: 0;
   z-index: 1000;
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  padding: 0 2rem;
 
   .comment {
-    font-size: .95rem;
+    font-size: .8rem;
     font-family: "Architects Daughter", sans-serif;
+  }
+
+  .note-holder {
+    display: block;
+    position: relative;
+    min-width: 15rem;
+
+    h5 {
+      font-size: 1rem !important;
+    }
+
+    &:nth-child(even) .note {
+      z-index: 5000;
+      transform: rotate(8deg) translateY(10.5rem);
+
+      &:focus {
+        transform: scale(1.25);
+        z-index: 5002;
+      }
+    }
+
+    &:nth-child(odd) .note {
+      transform: rotate(-6deg) translateY(9.5rem);
+      z-index: 5001;
+
+      &:focus {
+        transform: scale(1.25);
+        z-index: 5002;
+      }
+    }
   }
 
   .note {
     position: absolute;
-    bottom: 0;
+    text-decoration: none;
+    color: #000;
+    height: 12rem;
+    width: 12rem;
     margin: 1rem;
-    box-shadow: 5px 5px 7px rgba(33,33,33,.3);
-    background: #fefcaf linear-gradient(#fefcaf, #fffeee);
-    border: 1px solid transparent;
-    border-image: linear-gradient(to bottom right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.1) 100%) 1;
-    transform: rotate(-6deg) scale(.4);
-    &:nth-child(even) {
-      transform: rotate(6deg) translateY(-1rem) translateX(3rem)  scale(.4);
-    }
-    &:hover, &:focus {
-      transform: scale(1) !important;
-      z-index: 500;
-    }
-    a {
-      text-decoration: none;
-      color: #000;
-      display: block;
-      height: 15rem;
-      width: 15rem;
-      padding: 1rem;
-    }
+    padding: 1rem;
+    display: inline-block;
+    bottom: 0;
+    z-index: 5000;
+    transition: .15s linear;
+    box-shadow: 5px 5px 7px rgba(33, 33, 33, .3);
+    background: #feeb77 linear-gradient(#feeb77, #fffeee);
+
   }
 }
+

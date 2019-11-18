@@ -18,9 +18,9 @@
         <link rel="stylesheet" href="{% static "css/mxlive.min.css" %}" type="text/css"/>
     {% endblock %}
     {% block extra_css %}{% endblock %}
-    <script src="{% static "jquery/jquery-3.4.1.min.js" %}"></script>
-    <script src="{% static "js/underscore-min.js" %}"></script>
-    <script src="{% static "js/jquery.cookie.js" %}"></script>
+    <script src="{% static "js/jquery/jquery-3.4.1.min.js" %}"></script>
+    <script src="{% static "js/misc/underscore-min.js" %}"></script>
+    <script src="{% static "js/misc/jquery.cookie.min.js" %}"></script>
     <script src="{% static "js/mxlive-modals.min.js" %}"></script>
 
     {% block pre_js %}{% endblock %}
@@ -71,8 +71,8 @@
 {% block post_js %}{% endblock %}
 
 <script src="{% static "bootstrap/js/bootstrap.bundle.min.js" %}"></script>
-<!--script src="{% static "jquery/jquery-ui.min.js" %}"></script-->
-<script src="{% static "jquery/jquery.scrollbar.js" %}"></script>
+<!--script src="{% static "js/jquery/jquery-ui.min.js" %}"></script-->
+<script src="{% static "js/misc/jquery.scrollbar.min.js" %}"></script>
 
 {% block extra_js %}{% endblock %}
 <script>
@@ -119,9 +119,6 @@
             $('#modal-target').loadModal("{% url 'user-guide' %}");
         {% endif %}
 
-            // configure pretty scrollbars
-            $('.scrollbar-outer').scrollbar();
-            $('.scrollbar-inner').scrollbar();
         });
         </script>
 

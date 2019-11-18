@@ -54,7 +54,6 @@
                 });
             },
             complete: function(data) {
-                console.log(data);
                 if (data.url) {
                     if (data.modal) {
                         target.load(data.url);
@@ -156,4 +155,8 @@ function slugify(str) {
         .replace(/-+/g, '-')
         .replace(/^-|-$/g, '');
     return slug;
+}
+
+function strip(s) {
+    return s.replace(/^\s*|\s*$/g, '');
 }

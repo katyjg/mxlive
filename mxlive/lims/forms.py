@@ -764,45 +764,36 @@ class ShipmentContainerForm(forms.ModelForm):
                 Div(
                     Div(
                         Div(
+                            Div(Field('name'), css_class="col-5"),
+                            Div(Field('kind', css_class="select-alt"), css_class="col-5"),
                             Div(
-                                Div(Field('name'), css_class="col-5"),
-                                Div(Field('kind', css_class="select-alt"), css_class="col-5"),
                                 Div(
+                                    HTML("<label>&nbsp;</label>"),
                                     Div(
-                                        HTML(
-                                            '<label></label>'
-                                            '<div class="spaced-buttons">'
-                                            '<a title="Delete Container" class="remove btn btn-sm btn-danger ml-auto"'
-                                            '   style="display: none;">'
-                                            '   <i class="ti ti-minus"></i>'
-                                            '</a>'
-                                            '<a title="Click again to confirm" class="safe-remove btn btn-sm btn-warning ml-auto">'
-                                            '   <i class="ti ti-minus"></i>'
-                                            '</a>'
-                                            '</div>'
+                                        StrictButton(
+                                            '<i class="ti ti-minus"></i>',
+                                            css_class="btn btn-warning float-right safe-remove"
                                         ),
-                                        css_class="form-group"
                                     ),
-                                    css_class="col-2"
+                                    css_class="form-group"
                                 ),
-                                css_class="form-row"
+                                css_class="col-2"
                             ),
-                            Field('shipment'),
-                            Field('id'),
-                            css_class="template repeat-row"
+                            Div('shipment', 'id', css_class="col-12 d-none"),
+                            css_class="repeat-row template row"
                         ),
-                        css_class="repeat-group repeat-container modal-flush",
+                        css_class="col-12 repeat-group repeat-container"
                     ),
                     Div(
                         StrictButton(
                             "<i class='ti ti-plus'></i> Add Container", type="button",
                             css_class='btn btn-sm btn-success add'
                         ),
-                        css_class="mt-2"
+                        css_class="col-12 mt-2"
                     ),
-                    css_class="repeat-wrapper col"
+                    css_class="row repeat-wrapper"
                 ),
-                css_class='repeat row'
+                css_class='repeat'
             ),
         )
 
@@ -810,9 +801,8 @@ class ShipmentContainerForm(forms.ModelForm):
         if self.initial.get('shipment'):
             return Div(
                 HTML(
-                    '<p>Use names that are visible on your containers.<br/>'
-                    '   <strong class="text-danger">Removing a container will remove the samples inside</strong>'
-                    '</p>'
+                    'Use names that are visible on your containers. '
+                    '<strong class="text-danger">Removing a container will remove the samples inside</strong>'
                 )
             )
         else:
@@ -882,85 +872,64 @@ class ShipmentGroupForm(forms.ModelForm):
             )
 
         self.body.layout = Layout(
+            self.help_text(),
             Div(
                 Div(
                     Div(
                         Div(
+                            Div('name', css_class="col-4"),
+                            Div(Field('plan', css_class="select-alt"), css_class="col-4"),
                             Div(
-                                Div('name', css_class="col-4"),
-                                Div(Field('plan', css_class="select-alt"), css_class="col-4"),
                                 Div(
-                                    Div(
-                                        HTML(
-                                            '<label></label>'
-                                            '<div class="spaced-buttons">'
-                                            '<a title="Drag to change group priority" '
-                                            '   class="move btn btn-white">'
-                                            '   <i class="ti ti-move"></i>'
-                                            '</a>'
-                                            '<a title="Edit more group details" href="#group-details--{rowcount}" '
-                                            '   class="btn btn-info btn-collapse collapsed"'
-                                            '   aria-expanded="false" data-toggle="collapse">'
-                                            '   <i class="ti ti-angle-double-right"></i>'
-                                            '</a>'
-                                            '<a title="Delete Group" class="remove btn btn-danger" '
-                                            '   style="display: none;">'
-                                            '   <i class="ti ti-minus"></i>'
-                                            '</a>'
-                                            '<a title="Click again to confirm" class="safe-remove btn btn-secondary">'
-                                            '   <i class="ti ti-minus"></i>'
-                                            '</a>'
-                                            '</div>'
-                                        ),
-                                        css_class="form-group"
+                                    HTML(
+                                        '<label></label>'
+                                        '<div class="spaced-buttons">'
+                                        '<a title="Drag to change group priority" '
+                                        '   class="move btn btn-white">'
+                                        '   <i class="ti ti-move"></i>'
+                                        '</a>'
+                                        '<a title="Edit more group details" href="#group-details--{rowcount}" '
+                                        '   class="btn btn-info btn-collapse collapsed"'
+                                        '   aria-expanded="false" data-toggle="collapse">'
+                                        '   <i class="ti ti-angle-double-right"></i>'
+                                        '</a>'
+                                        '<a title="Delete Group" class="btn safe-remove btn-warning">'
+                                        '   <i class="ti ti-minus"></i>'
+                                        '</a>'
+                                        '</div>'
                                     ),
-                                    css_class="col-4"
+                                    css_class="form-group float-right"
                                 ),
-                                css_class="form-row card-header py-1 px-3"
+                                css_class="col-4"
                             ),
                             Div(
                                 Div(
-                                    Div(
-                                        Div(Field('kind', css_class="select-alt"), css_class="col-4"),
-                                        Div(Field('absorption_edge'), css_class="col-4"),
-                                        Div(Field('resolution'), css_class="col-4"),
-                                        css_class="row"
-                                    ),
-                                    Div(
-                                        Div(Field('comments'), css_class="col-12"),
-                                        css_class="form-row"
-                                    ),
-                                    Field('shipment'),
-                                    Field('priority'),
-                                    Field('id'),
-                                    css_class="card-body"
+                                    Div(Field('kind', css_class="select-alt"), css_class="col-4"),
+                                    Div(Field('absorption_edge'), css_class="col-4"),
+                                    Div(Field('resolution'), css_class="col-4"),
+                                    Div(Field('comments'), css_class="col-12"),
+                                    css_class="form-row"
                                 ),
-                                css_class="collapse",
+                                Field('shipment'),
+                                Field('priority'),
+                                Field('id'),
+                                css_class="col-12 collapse",
                                 id="group-details--{rowcount}"
                             ),
-                            css_class="template repeat-row card border-0"
+                            css_class="repeat-row template row"
                         ),
-                        css_class="repeat-container modal-flush",
+                        css_class="col-12 repeat-group repeat-container"
                     ),
                     Div(
-                        Div(
-                            StrictButton(
-                                "<i class='ti ti-plus'></i> Add Group", type="button",
-                                css_class='btn btn-sm btn-success add'
-                            ),
-                            css_class="col-3"
+                        StrictButton(
+                            "<i class='ti ti-plus'></i> Add Container", type="button",
+                            css_class='btn btn-sm btn-success add'
                         ),
-                        Div(
-                            self.help_text(),
-                            css_class="col"
-                        ),
-
-                        css_class="row mt-3"
+                        css_class="col-12 mt-2"
                     ),
-                    css_class="repeat-wrapper"
+                    css_class="row repeat-wrapper"
                 ),
-
-                css_class='repeat row'
+                css_class='repeat'
             ),
         )
 

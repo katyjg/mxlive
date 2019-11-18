@@ -51,11 +51,7 @@
     <a href="{% url "shipment-labels" shipment.pk %}">
         {% show_icon label='Labels' icon='ti ti-md ti-tag' %}
     </a>
-    <a data-toggle="collapse" href="#comments-{{ shipment.pk }}">
-        {% show_icon label='Comments' icon='ti ti-md ti-comments' badge=shipment.has_comments %}
-    </a>
-    <div class="separator"></div>
-    <a href="#!" data-link="{% url "shipment-comments" shipment.pk %}">
+    <a href="#!" data-form-link="{% url "shipment-comments" shipment.pk %}">
         {% show_icon label='Comment' icon='ti ti-md ti-comment-alt' %}
     </a>
     {% if shipment.status == shipment.STATES.SENT %}
