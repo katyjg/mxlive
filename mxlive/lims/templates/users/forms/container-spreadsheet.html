@@ -14,7 +14,7 @@
         <table class="table table-sm">
             <thead>
             <tr>
-                <th>Port</th>
+                <th style="width: 7%;">Port</th>
                 <th>Name</th>
                 <th>Group</th>
                 <th>Barcode</th>
@@ -41,13 +41,13 @@
 {% block modal_footer %}
     <div class="col-10">
         <div class="alert alert-info m-0 p-2" id="spreadsheet-instructions">
-            <i class="ti ti-info-alt float-left pr-2"></i>
+            <i class="ti ti-md ti-info-alt float-left pr-2"></i>
             Click on a field to edit it. Copy and paste single columns from a spreadsheet. Remove existing samples by clearing the name.
         </div>
     </div>
     <div class="col-2 my-auto text-right">
         <button id='save-spreadsheet' class="btn btn btn-primary" name="save" type="button"
-                data-post-action="{% url 'create-container-samples' pk=container.pk %}"
+                data-post-action="{% url 'edit-container-samples' pk=container.pk %}"
         >Save
         </button>
     </div>

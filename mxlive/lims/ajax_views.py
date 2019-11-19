@@ -156,39 +156,53 @@ class CreateShipmentSamples(LoginRequiredMixin, View):
                     to_create.append(models.Sample(name='{}_{}'.format(group.name, i+1), group=group, **details))
             shipment.project.samples.bulk_create(to_create)
             return JsonResponse({'url': shipment.get_absolute_url()}, safe=False)
-        except models.Container.DoesNotExist:
+        except models.Shipment.DoesNotExist:
             raise http.Http404('Shipment Not Found!')
 
 
-class CreateContainerSamples(LoginRequiredMixin, View):
+class SaveContainerSamples(LoginRequiredMixin, View):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
         if request.user.is_superuser:
-            qs = models.Shipment.objects.filter()
+            qs = models.Container.objects.filter()
         else:
-            qs = models.Shipment.objects.filter(project=self.request.user)
+            qs = models.Container.objects.filter(project=self.request.user)
         try:
             container = qs.get(pk=self.kwargs['pk'])
             samples = json.loads(request.POST.get('samples', '[]'))
-            grouped_samples = defaultdict(list)
-            loc_info = dict(models.ContainerLocation.objects.values_list('name', 'pk'))
-            for sample in sorted(samples, key=itemgetter('container', 'location')):
-                grouped_samples[sample['group']].append(
-                    {
-                        'project': shipment.project,
-                        'container_id': sample['container'],
-                        'location_id': loc_info[str(sample['location'])]
-                    }
+            groups = {
+                sample['group'] if sample['group'] else sample['name']  # use sample name if group is blank
+                for sample in samples
+                if sample['name']
+            }
+            group_map = {}
+            for name in groups:
+                group, created = models.Group.objects.get_or_create(
+                    project=container.project, shipment=container.shipment,
+                    name=name,
                 )
+                group_map[name] = group
 
-            to_create = []
-            models.Sample.objects.filter(container__shipment=shipment).delete()
-            for group in shipment.groups.all():
-                # remove existing samples
-                for i, details in enumerate(grouped_samples.get(group.pk, [])):
-                    to_create.append(models.Sample(name='{}_{}'.format(group.name, i+1), group=group, **details))
-            container.samples.bulk_create(to_create)
+            for sample in samples:
+                group_name = sample['group'] if sample['group'] else sample['name']  # use name if group is blank
+                info = {
+                    'name': sample['name'],
+                    'group': group_map[group_name],
+                    'location_id': sample['location'],
+                    'container': container,
+                    'barcode': sample['barcode'],
+                    'comments': sample['comments'],
+                }
+                if sample.get('name') and sample.get('sample'):  # update entries
+                    models.Sample.objects.filter(project=container.project, pk=sample.get('sample')).update(**info)
+                elif sample.get('name'):  # create new entry
+                    models.Sample.objects.create(project=container.project, **info)
+                else:   # delete existing entry
+                    models.Sample.objects.filter(
+                        project=container.project, location_id=sample['location'], container=container
+                    ).delete()
+
             return JsonResponse({'url': container.get_absolute_url()}, safe=False)
         except models.Container.DoesNotExist:
             raise http.Http404('Container Not Found!')

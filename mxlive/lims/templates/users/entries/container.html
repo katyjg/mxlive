@@ -27,7 +27,7 @@
 {% endblock %}
 
 {% block object_tools %}
-    <a href="#!" data-form-link="{% url 'container-spreadsheet' object.pk %}">
+    <a href="#!" data-form-link="{% url 'edit-container-samples' object.pk %}">
         {% show_icon label='Samples' icon='ti ti-md ti-layout-grid4' %}
     </a>
     {% include "users/tools-base.html" %}

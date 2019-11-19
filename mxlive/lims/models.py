@@ -830,7 +830,7 @@ class Container(TransitStatusMixin):
             {
                 'location': loc
             } if loc not in samples else samples[loc]
-            for loc in self.kind.locations.all()
+            for loc in self.kind.locations.order_by('pk')
         ]
 
     def get_layout(self, with_samples=True):

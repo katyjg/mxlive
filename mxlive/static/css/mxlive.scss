@@ -79,6 +79,8 @@ $max_font: 15px;
 :root {
   --gray-alpha: #{$gray-alpha};
   --gray-barely: #{$gray-barely};
+  --main-background: #{$white};
+  --main-text: #{$black};
   @include fluid-type($min_width, $max_width, $min_font, $max_font);
 }
 
@@ -107,7 +109,8 @@ main {
 }
 
 .folio {
-  background: none repeat scroll 0 0 var(--white);
+  color: var(--main-text);
+  background: none repeat scroll 0 0 var(--main-background);
   border-bottom: none !important;
   border-top: 0;
   margin-bottom: 1rem;
@@ -494,7 +497,7 @@ p {
   }
 
   .alert {
-    margin-bottom: 0px;
+    margin-bottom: 0;
     padding: 5px;
   }
 }
@@ -562,81 +565,6 @@ form .list-group-item {
   border: none;
   border-top: 1px solid var(--gray-alpha);
   padding-top: 5px;
-}
-
-/*svg {*/
-/*    transition: all 1s;*/
-/*    transform-origin: 0% 0%;*/
-/*    max-width: 100%;*/
-/*}*/
-
-/*svg[kind], svg.gauge {*/
-/*    overflow: visible;*/
-/*}*/
-
-.comments {
-  background-color: rgba(0, 110, 182, 0.15);
-  padding: 15px 0;
-  margin-top: -20px;
-
-  .panel {
-    position: relative;
-    margin-bottom: 10px;
-
-    > {
-      .panel-heading {
-        &:after, &:before {
-          position: absolute;
-          top: 11px;
-          width: 0;
-          height: 0;
-          display: block;
-          content: " ";
-          border-color: transparent;
-          border-style: solid solid outset;
-          pointer-events: none;
-        }
-      }
-
-      .panel-heading-left {
-        &:after {
-          border-width: 7px;
-          border-right-color: #f7f7f7;
-          margin-top: 1px;
-          margin-left: 2px;
-        }
-
-        &:before {
-          border-right-color: #ddd;
-          border-width: 8px;
-        }
-
-        &:after, &:before {
-          left: -16px;
-          right: 100%;
-        }
-      }
-
-      .panel-heading-right {
-        &:after, &:before {
-          right: 0px;
-          left: 100%;
-        }
-
-        &:after {
-          border-width: 7px;
-          border-left-color: #f7f7f7;
-          margin-top: 1px;
-          margin-right: 2px;
-        }
-
-        &:before {
-          border-left-color: #ddd;
-          border-width: 8px;
-        }
-      }
-    }
-  }
 }
 
 /* Container/Layout styles */
@@ -1540,7 +1468,7 @@ svg * {
   .note {
     position: absolute;
     text-decoration: none;
-    color: #000;
+    color: $black;
     height: 12rem;
     width: 12rem;
     margin: 1rem;
@@ -1549,7 +1477,7 @@ svg * {
     bottom: 0;
     z-index: 5000;
     transition: .15s linear;
-    box-shadow: 5px 5px 7px rgba(33, 33, 33, .3);
+    box-shadow: 5px 5px 7px rgba(0,0,0,0.2);
     background: #feeb77 linear-gradient(#feeb77, #fffeee);
 
   }

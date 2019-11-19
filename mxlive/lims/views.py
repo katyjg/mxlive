@@ -1048,14 +1048,59 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMixin, 
         return JsonResponse({})
 
 
-class SeatSamples(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, detail.DetailView):
+class SeatSamples(OwnerRequiredMixin, AsyncFormMixin, detail.DetailView):
     template_name = "users/forms/seat-samples.html"
     model = models.Shipment
 
 
-class ContainerSpreadsheet(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, detail.DetailView):
+class ContainerSpreadsheet(LoginRequiredMixin, AsyncFormMixin, detail.DetailView):
     template_name = "users/forms/container-spreadsheet.html"
     model = models.Container
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        if request.user.is_superuser:
+            qs = models.Container.objects.filter()
+        else:
+            qs = models.Container.objects.filter(project=self.request.user)
+        try:
+            container = qs.get(pk=self.kwargs['pk'])
+            samples = json.loads(request.POST.get('samples', '[]'))
+            groups = {
+                sample['group'] if sample['group'] else sample['name']  # use sample name if group is blank
+                for sample in samples
+                if sample['name']
+            }
+            group_map = {}
+            for name in groups:
+                group, created = models.Group.objects.get_or_create(
+                    project=container.project, shipment=container.shipment,
+                    name=name,
+                )
+                group_map[name] = group
+
+            for sample in samples:
+                group_name = sample['group'] if sample['group'] else sample['name']  # use name if group is blank
+                info = {
+                    'name': sample['name'],
+                    'group': group_map.get(group_name),
+                    'location_id': sample['location'],
+                    'container': container,
+                    'barcode': sample['barcode'],
+                    'comments': sample['comments'],
+                }
+                if sample.get('name') and sample.get('sample'):  # update entries
+                    models.Sample.objects.filter(project=container.project, pk=sample.get('sample')).update(**info)
+                elif sample.get('name'):  # create new entry
+                    models.Sample.objects.create(project=container.project, **info)
+                else:  # delete existing entry
+                    models.Sample.objects.filter(
+                        project=container.project, location_id=sample['location'], container=container
+                    ).delete()
+
+            return JsonResponse({'url': container.get_absolute_url()}, safe=False)
+        except models.Container.DoesNotExist:
+            raise http.Http404('Container Not Found!')
 
 
 class ProxyView(View):

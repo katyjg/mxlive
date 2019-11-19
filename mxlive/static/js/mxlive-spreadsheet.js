@@ -84,14 +84,13 @@ function initSampleSpreadsheet() {
 
         console.log(samples);
 
-        /*$.ajax({
+        $.ajax({
             type: 'post',
             dataType: "json",
             url: btn.data('post-action'),
-            data: {'samples': JSON.stringify(info)},
+            data: {'samples': JSON.stringify(samples)},
             beforeSend: function (xhr, settings) {
                 xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
-                console.log(info);
             },
             success: function (data, status, xhr) {
                 if (data.url) {
@@ -104,6 +103,6 @@ function initSampleSpreadsheet() {
                 btn.shake();
                 btn.html('<i class="ti ti-alert"></i>');
             }
-        });*/
+        });
     });
 }
