@@ -11,26 +11,26 @@
 {% block modal_body %}
     <div class="row">
         <div class="col-12">
-            <table>
+            <table class="small table table-sm">
                 <tr>
-                    <th class="col-3">Container</th>
-                    <th class="col-3">Start</th>
-                    <th class="col-3 text-right">End</th>
-                    <th class="col-3 text-right">Loaded Time</th></tr>
+                    <th>Container</th>
+                    <th>Start</th>
+                    <th class="text-right">End</th>
+                    <th class="text-right">Loaded Time</th></tr>
                 {% for stretch in object.children_history.active %}
                     <tr>
-                        <td class="col-3">{{ stretch.child.project }} | {{ stretch.child.name }} <strong>{{ stretch.location }}</strong></td>
-                        <td class="col-3">{{ stretch.start }}</td>
-                        <td class="col-3 text-right">{{ stretch.end }}</td>
-                        <td class="col-3 text-right">{{ stretch.duration|default:"Active" }} {% if stretch.duration %}minutes{% endif %}</td>
+                        <td>{{ stretch.child.project }} | {{ stretch.child.name }} <strong>{{ stretch.location }}</strong></td>
+                        <td>{{ stretch.start }}</td>
+                        <td class="text-right">{{ stretch.end }}</td>
+                        <td class="text-right">{{ stretch.duration|default:"Active" }} {% if stretch.duration %}minutes{% endif %}</td>
                     </tr>
                 {% endfor %}
                 {% for stretch in object.children_history.with_duration|slice:"50" %}
                     <tr>
-                        <td class="col-3">{{ stretch.child.project }} | {{ stretch.child.name }} <strong>{{ stretch.location }}</strong></td>
-                        <td class="col-3">{{ stretch.start }}</td>
-                        <td class="col-3 text-right">{{ stretch.end }}</td>
-                        <td class="col-3 text-right">{{ stretch.duration|humanize_duration|default:"0 minutes" }}</td>
+                        <td>{{ stretch.child.project }} | {{ stretch.child.name }} <strong>{{ stretch.location }}</strong></td>
+                        <td>{{ stretch.start }}</td>
+                        <td class="text-right">{{ stretch.end }}</td>
+                        <td class="text-right">{{ stretch.duration|humanize_duration|default:"0 minutes" }}</td>
                     </tr>
                 {% endfor %}
             </table>

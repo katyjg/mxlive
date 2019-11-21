@@ -9,23 +9,23 @@
 {% block modal_body %}
     <div class="row">
         <div class="col-12">
-            <table>
+            <table class="small table table-sm">
                 <tr>
-                    <th class="col-4">Start</th>
-                    <th class="col-4 text-right">End</th>
-                    <th class="col-4 text-right">Uptime</th></tr>
+                    <th>Start</th>
+                    <th class="text-right">End</th>
+                    <th class="text-right">Uptime</th></tr>
                 {% for stretch in object.stretches.active %}
                     <tr>
-                        <td class="col-4">{{ stretch.start }}</td>
-                        <td class="col-4 text-right">{{ stretch.end }}</td>
-                        <td class="col-4 text-right">{{ stretch.duration|default:"Active" }} {% if stretch.duration %}minutes{% endif %}</td>
+                        <td>{{ stretch.start }}</td>
+                        <td class="text-right">{{ stretch.end }}</td>
+                        <td class="text-right">{{ stretch.duration|default:"Active" }} {% if stretch.duration %}minutes{% endif %}</td>
                     </tr>
                 {% endfor %}
                 {% for stretch in object.stretches.with_duration %}
                     <tr>
-                        <td class="col-4">{{ stretch.start }}</td>
-                        <td class="col-4 text-right">{{ stretch.end }}</td>
-                        <td class="col-4 text-right">{{ stretch.duration|humanize_duration|default:"0 minutes" }}</td>
+                        <td>{{ stretch.start }}</td>
+                        <td class="text-right">{{ stretch.end }}</td>
+                        <td class="text-right">{{ stretch.duration|humanize_duration|default:"0 minutes" }}</td>
                     </tr>
                 {% endfor %}
             </table>

@@ -59,7 +59,6 @@
             </div>
         </div>
     </div>
-
 {% endblock %}
 
 {% block full %}
@@ -79,7 +78,7 @@
         <div class="error-panel alert alert-warning" style="display: none;"></div>
         {% if object.status == object.STATES.DRAFT %}
             <div class="item-list sortable">
-            <table class="table table-hover">
+            <table class="table table-hover table-sm">
                 <thead>
                     <tr>
                         <th class="">Priority</th>
@@ -91,12 +90,12 @@
                 </thead>
                 <tbody>
                 {% for sample in object.samples.all %}
-                    <tr data-sample="{{ sample.pk }}" data-detail-url="{% url 'sample-edit' sample.pk %}">
+                    <tr data-sample="{{ sample.pk }}">
                         <td><span class='cursor'><i class='movable ti ti-move'></i></span></td>
-                        <td class="input"><input id="name-{{ forloop.counter }}" type="text" initial="{{ sample.name }}" value="{{ sample.name }}" /></td>
+                        <td><a href="#!" data-form-link="{% url 'sample-edit' sample.pk %}">{{ sample.name }}</a></td>
                         <td>{{ sample.container_and_location }}</td>
-                        <td class="input"><input id="barcode-{{ forloop.counter }}" type="text" initial="{{ sample.barcode|default_if_none:"" }}" value="{{ sample.barcode|default_if_none:"" }}" /></td>
-                        <td class="input"><input id="comments-{{ forloop.counter }}" type="text" initial="{{ sample.comments|default_if_none:"" }}" value="{{ sample.comments|default_if_none:"" }}" /></td>
+                        <td>{{ sample.barcode|default_if_none:"" }}</td>
+                        <td>{{ sample.comments|default_if_none:"" }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

@@ -28,7 +28,7 @@
 
 {% block object_tools %}
     <a href="#!" data-form-link="{% url 'edit-container-samples' object.pk %}">
-        {% show_icon label='Samples' icon='ti ti-md ti-layout-grid4' %}
+        {% show_icon label='Samples' icon='ti ti-md ti-paint-bucket' %}
     </a>
     {% include "users/tools-base.html" %}
     {% if object.parent_history.all %}
