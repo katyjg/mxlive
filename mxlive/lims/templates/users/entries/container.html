@@ -27,7 +27,17 @@
 {% endblock %}
 
 {% block object_tools %}
-    <a href="#!" data-form-link="{% url 'edit-container-samples' object.pk %}">
+    <a href="#!" data-form-link="{% url 'edit-container-samples' object.pk %}"
+        {% if not object.samples.exists %}
+            class="attention"
+            title="No Samples"
+            data-toggle="popover"
+            data-trigger="hover"
+            data-placement="bottom"
+            data-type="popover-info"
+            data-content="Click here to add samples"
+        {% endif %}
+        >
         {% show_icon label='Samples' icon='ti ti-md ti-paint-bucket' %}
     </a>
     {% include "users/tools-base.html" %}

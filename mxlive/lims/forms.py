@@ -8,6 +8,7 @@ from django.conf import settings
 from django.urls import reverse_lazy
 
 from .models import Project, Shipment, Dewar, Sample, ComponentType, Container, Group, ContainerLocation, ContainerType
+from ..staff.models import UserCategory, UserList, Announcement
 
 
 class BodyHelper(FormHelper):
@@ -972,3 +973,112 @@ class ShipmentSamplesForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['containers'].queryset = self.initial.get('containers')
+
+
+class AnnouncementForm(forms.ModelForm):
+
+    class Meta:
+        model = Announcement
+        fields = ['title', 'description', 'attachment', 'url', 'priority']
+
+    def __init__(self, *args, **kwargs):
+        super(AnnouncementForm, self).__init__(*args, **kwargs)
+
+        self.body = BodyHelper(self)
+        self.footer = FooterHelper(self)
+        if self.instance.pk:
+            self.body.title = u"Edit Announcement"
+            self.body.form_action = reverse_lazy('announcement-edit', kwargs={'pk': self.instance.pk})
+        else:
+            self.body.title = u"New Announcement"
+            self.body.form_action = reverse_lazy('new-announcement')
+        self.body.layout = Layout(
+            Div(
+                Div('priority', css_class="col-2"),
+                Div('title', css_class="col-10"),
+                css_class="row"
+            ),
+            Div(
+                Div('description', css_class="col-12"),
+                css_class="row"
+            ),
+            Div(
+                Div('url', css_class="col-12"),
+                css_class="row"
+            ),
+            Div(
+                Div('attachment', css_class="col-12"),
+                css_class="row"
+            ),
+        )
+        self.footer.layout = Layout(
+            StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
+            StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+        )
+
+
+class AccessForm(forms.ModelForm):
+
+    class Meta:
+        model = UserList
+        fields = ('users',)
+
+    def __init__(self, *args, **kwargs):
+        super(AccessForm, self).__init__(*args, **kwargs)
+        self.fields['users'].label = "Users on %s" % format(self.instance)
+        self.fields['users'].queryset = self.fields['users'].queryset.order_by('name')
+
+        self.body = BodyHelper(self)
+        self.footer = FooterHelper(self)
+        self.body.title = u"Edit Remote Access List"
+        self.body.form_action = reverse_lazy('access-edit', kwargs={'address': self.instance.address})
+        self.body.layout = Layout(
+            Div(
+                Div(
+                    Field('users', css_class="chosen"),
+                    css_class="col-12"
+                ),
+                css_class="row"
+            ),
+            Div(
+                Div(
+                    HTML("""It may take a few minutes for your changes to be updated on the server.<br/>
+                            Changes are pulled every 5 minutes."""),
+                    css_class="col-12"
+                ),
+                css_class="row"
+            )
+        )
+        self.footer.layout = Layout(
+            StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+        )
+
+
+class CategoryForm(forms.ModelForm):
+
+    class Meta:
+        model = UserCategory
+        fields = ('projects',)
+
+    def __init__(self, *args, **kwargs):
+        super(CategoryForm, self).__init__(*args, **kwargs)
+        self.fields['projects'].label = "%s Users" % format(self.instance)
+        self.fields['projects'].queryset = self.fields['projects'].queryset.order_by('name')
+
+        self.body = BodyHelper(self)
+        self.footer = FooterHelper(self)
+        self.body.title = u"Edit User Categories"
+        self.body.form_action = reverse_lazy('category-edit', kwargs={'pk': self.instance.pk})
+        self.body.layout = Layout(
+            Div(
+                Div(
+                    Field('projects', css_class="chosen"),
+                    css_class="col-12"
+                ),
+                css_class="row"
+            )
+        )
+        self.footer.layout = Layout(
+            StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+        )
+

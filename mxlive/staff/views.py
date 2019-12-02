@@ -9,11 +9,12 @@ from django.utils import dateformat, timezone
 from django.views.generic import edit, detail
 from itemlist.views import ItemListView
 
-from mxlive.lims.forms import NewProjectForm
-from mxlive.lims.models import Project, ActivityLog
 from mxlive.utils import slap
 from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin
-from . import models, forms
+from . import models
+from ..lims.models import Project, ActivityLog
+from ..lims import forms
+
 
 User = get_user_model()
 
@@ -129,12 +130,12 @@ class UserDetail(AdminRequiredMixin, detail.DetailView):
     model = Project
     template_name = "users/entries/user.html"
 
-    def get_object(self):
+    def get_object(self, **kwargs):
         return Project.objects.get(username=self.kwargs.get('username'))
 
 
 class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
-    form_class = NewProjectForm
+    form_class = forms.NewProjectForm
     template_name = "modal/form.html"
     model = Project
     success_url = reverse_lazy('user-list')
@@ -150,8 +151,8 @@ class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edi
         # Make sure user with username does not already exist
         if User.objects.filter(username=user_info.get('username')).exists():
             user_info.pop('username', '')
-
-        info = slap.add_user(user_info)
+        ldap = slap.Directory()
+        info = ldap.add_user(user_info)
         info['name'] = info.get('username')
         for k in ['contact_email', 'contact_person', 'contact_phone']:
             info[k] = data.get(k, '')
@@ -175,7 +176,7 @@ class ProjectDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edi
     success_url = reverse_lazy('user-list')
     success_message = "Account has been deleted"
 
-    def get_object(self):
+    def get_object(self, *kwargs):
         obj = self.model.objects.get(username=self.kwargs.get('username'))
         return obj
 
@@ -186,7 +187,8 @@ class ProjectDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edi
 
     def delete(self, *args, **kwargs):
         obj = self.get_object()
-        info = slap.del_user(obj.username)
+        ldap = slap.Directory()
+        info = ldap.delete_user(obj.username)
         obj.delete()
         self.success_message = "{} account has been deleted".format(kwargs.get('username'))
         return JsonResponse({'url': self.success_url}, safe=False)

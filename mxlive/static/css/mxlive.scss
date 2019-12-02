@@ -81,6 +81,7 @@ $max_font: 15px;
   --gray-barely: #{$gray-barely};
   --main-background: #{$white};
   --main-text: #{$black};
+
   @include fluid-type($min_width, $max_width, $min_font, $max_font);
 }
 
@@ -90,7 +91,7 @@ body, .tooltip, .popover {
 }
 
 pre {
-  font-family: monospace;
+  font-family: $mono-font, monospace;
 }
 
 body {
@@ -1483,3 +1484,42 @@ svg * {
   }
 }
 
+
+.attention {
+    animation: glow 1s infinite alternate;
+}
+
+@keyframes glow {
+    to {
+        text-shadow: 0 0 2px $info;
+    }
+}
+
+
+// Alternate styles
+//
+// Generate contextual modifier classes for colorizing the popover.
+@mixin popover-variant($background, $color) {
+  //color: $color;
+  //background-color: $color;
+  //border-color: $border-color;
+
+  .popover-header {
+    color: $color;
+    background-color: $background;
+  }
+
+  &.bs-popover-bottom .arrow::after,
+  &.bs-popover-auto[x-placement^="bottom"] .arrow::after {
+        border-bottom-color: $background;
+  }
+}
+
+@each $color, $value in $theme-colors {
+  .popover.popover-#{$color} {
+@include popover-variant(
+                theme-color-level($color, $alert-bg-level),
+                theme-color-level($color, $alert-color-level));
+
+  }
+}

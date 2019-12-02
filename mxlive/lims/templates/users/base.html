@@ -91,7 +91,7 @@
     $(document).ready(function () {
         // enable tooltips
 
-        $("[title]").not("[data-toggle='popover']").tooltip({
+        $("[title]").not("[data-toggle]").tooltip({
             container: 'body',
             viewport: {selector: 'body', padding: 5}
             //placement: 'auto'
@@ -99,9 +99,16 @@
 
         // Enable popovers
         $("[data-toggle='popover']").popover({
-            container: 'body'
-            //placement: 'bottom'
+            container: 'body',
+            placement:  function(context, src) {
+                $(context).addClass($(src).data('type') || '');
+                console.log(context, src);
+                return 'auto';
+            }
         });
+
+        // show attention popovers
+        $(".attention").popover('show');
 
         // Handle data-link, data-form-link and data-href
         $(document).on('click', '[data-href]', function () {
