@@ -239,7 +239,7 @@ class ListViewMixin(LoginRequiredMixin):
             selector = {'project': self.request.user}
         return super().get_queryset().filter(**selector)
 
-    def get_list_title(self):
+    def page_title(self):
         return self.model._meta.verbose_name_plural.title()
 
 
@@ -511,11 +511,11 @@ class ContainerDetail(DetailListMixin, SampleList):
     template_name = "users/entries/container.html"
     list_columns = ['name', 'barcode', 'group', 'location', 'comments']
     link_url = 'sample-edit'
-    link_data = True
+    link_attr = 'data-form-link'
     show_project = False
     detail_target = '#modal-target'
 
-    def get_list_title(self):
+    def page_title(self):
         object = self.get_object()
         return 'Samples in {}'.format(object.name)
 
@@ -653,10 +653,10 @@ class GroupDetail(DetailListMixin, SampleList):
         'priority': movable,
     }
     link_url = 'sample-edit'
-    link_data = True
+    link_attr = 'data-form-link'
     detail_target = '#modal-target'
 
-    def get_list_title(self):
+    def page_title(self):
         object = self.get_object()
         if 'project' in self.list_columns:
             self.list_columns.pop(0)
@@ -715,7 +715,7 @@ class DataList(ListViewMixin, ItemListView):
     list_search = ['id', 'name', 'beamline__name', 'sample__name', 'frames', 'project__name', 'modified']
     link_url = 'data-detail'
     link_field = 'name'
-    link_data = True
+    link_attr = 'data-link'
     detail_target = '#modal-target'
     ordering = ['-modified']
     list_transforms = {}
@@ -760,7 +760,7 @@ class ShipmentDataList(DataList):
     lookup = 'group__shipment__pk'
     detail_model = models.Shipment
 
-    def get_list_title(self):
+    def page_title(self):
         return 'Data in {} - {}'.format(self.object.__class__.__name__.title(), self.object)
 
     def get_queryset(self):
@@ -783,7 +783,7 @@ class ShipmentReportList(ReportList):
     lookup = 'data__group__shipment__pk'
     detail_model = models.Shipment
 
-    def get_list_title(self):
+    def page_title(self):
         return 'Reports in {} - {}'.format(self.object.__class__.__name__.title(), self.object)
 
     def get_queryset(self):
@@ -822,7 +822,7 @@ class ActivityLogList(ListViewMixin, ItemListView):
     ordering_proxies = {}
     list_transforms = {}
     link_url = 'activitylog-detail'
-    link_data = True
+    link_attr = 'data-link'
     detail_target = '#modal-target'
 
 

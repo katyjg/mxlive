@@ -988,6 +988,7 @@ a[data-link], .back text[port], .cursor {
 
 .badge.score {
   font-size: 0.95em;
+  border: 1px solid rgba(0,0,0,0.075);
 }
 
 .highlight {
@@ -1402,21 +1403,24 @@ svg * {
 .label {
   > * {
     color: var(--white);
-    font-size: 0.85rem;
-    padding: 0.3rem 1rem;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.4rem;
     text-align: center;
     align-self: stretch;
     align-content: center;
     line-height: 1;
+    border: 1px solid rgba(0,0,0,0.075);
   }
 
   .label-header {
     border-radius: 0.25rem 0 0 0.25rem;
     background-color: #555;
+    text-shadow: 1px 1px 1px #000;
   }
 
   .label-value {
     border-radius: 0 0.25rem 0.25rem 0;
+    min-width: 2.5rem;
   }
 }
 

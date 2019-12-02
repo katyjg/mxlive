@@ -536,7 +536,7 @@
     <span class="n">detail_ajax</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">detail_target</span> <span class="o">=</span> <span class="s1">&#39;#modal-target&#39;</span>
 
-    <span class="k">def</span> <span class="nf">get_list_title</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">page_title</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span>
         <span class="k">if</span> <span class="s1">&#39;project&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_display</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">list_display</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -669,7 +669,7 @@
     <span class="n">detail_ajax</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">detail_target</span> <span class="o">=</span> <span class="s1">&#39;#modal-target&#39;</span>
 
-    <span class="k">def</span> <span class="nf">get_list_title</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">page_title</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span>
         <span class="k">if</span> <span class="s1">&#39;project&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_display</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">list_display</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -780,7 +780,7 @@
             <span class="nb">object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_model</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pk&#39;</span><span class="p">))</span>
         <span class="k">return</span> <span class="nb">object</span>
 
-    <span class="k">def</span> <span class="nf">get_list_title</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">page_title</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="s1">&#39;project&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_display</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">list_display</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="nb">object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span>
@@ -808,7 +808,7 @@
             <span class="nb">object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_model</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pk&#39;</span><span class="p">))</span>
         <span class="k">return</span> <span class="nb">object</span>
 
-    <span class="k">def</span> <span class="nf">get_list_title</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">page_title</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="s1">&#39;project&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_display</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">list_display</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="nb">object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span>

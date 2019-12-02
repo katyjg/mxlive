@@ -1061,7 +1061,7 @@ class Sample(ProjectObjectMixin):
         return AnalysisReport.objects.filter(project=self.project, data__sample=self)
 
     def container_and_location(self):
-        return "{} - {}".format(self.container.name, self.location)
+        return "{}⋮{}".format(self.container.name, self.location)
 
     container_and_location.short_description = "Container Location"
 
@@ -1222,32 +1222,17 @@ class Data(ActiveStatusMixin):
     def report(self):
         return self.reports.first()
 
-    def result(self):
-        if len(self.result_set.all()) is 1:
-            return self.result_set.all()[0]
-        return False
-
-    def wavelength(self):
-        _h = 4.13566733e-15  # eV.s
-        _c = 299792458e10  # A/s
-        if float(self.energy) == 0.0:
-            return 0.0
-        return round((_h * _c) / (float(self.energy) * 1000.0), 4)
-
     def total_angle(self):
         return float(self.meta_data.get('delta_angle', 0)) * self.num_frames()
 
-    def start_angle_for_frame(self, frame):
-        return (frame - self.first_frame) * self.delta_angle + self.start_angle
-
     def archive(self, request=None):
-        for obj in self.result_set.all():
+        for obj in self.reports.all():
             if obj.status not in [GLOBAL_STATES.ARCHIVED, GLOBAL_STATES.TRASHED]:
                 obj.archive(request=request)
         super(Data, self).archive(request=request)
 
     def trash(self, request=None):
-        for obj in self.result_set.all():
+        for obj in self.reports.all():
             if obj.status not in [GLOBAL_STATES.TRASHED]:
                 obj.trash(request=request)
         super(Data, self).trash(request=request)

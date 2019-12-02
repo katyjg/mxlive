@@ -401,6 +401,7 @@ class AddData(VerificationMixin, View):
         base_fields = ['energy', 'frames', 'file_name', 'exposure_time', 'attenuation', 'name', 'beam_size']
         details.update({f: info.get(f in TRANSFORMS and TRANSFORMS[f] or f) for f in base_fields})
         details.update(kind=DataType.objects.get_by_natural_key(info['type']))
+        #FIXME: Make sure autoprocess/MxDC sends the appropriate natural key (DataType.acronym) via API when adding
 
         for k in ['sample_id', 'group', 'port', 'frames', 'energy', 'filename', 'exposure', 'attenuation',
                   'container', 'name', 'directory', 'type', 'id']:

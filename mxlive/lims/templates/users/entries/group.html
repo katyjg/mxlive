@@ -20,7 +20,7 @@
 {% endblock %}
 
 {% block object_tools %}
-    {% if object.status == object.STATES.DRAFT %}
+    {%  if object.status == object.STATES.DRAFT %}
         <a href="#!" data-form-link="{% url "seat-samples" object.shipment.pk %}" title="Sample Seat Selection">
             {% show_icon label='Samples' icon='ti ti-md ti-paint-bucket' %}
         </a>
@@ -105,32 +105,38 @@
         {% else %}
             {% load progress_extras %}
             {% group_samples object session as samples %}
-            <table class="table table-sm">
+            <table class="table table-sm text-condensed">
                 <thead>
                     <tr>
-                        <th class="col-5 col-lg-2">Sample</th>
-                        <th class="text-right col-7 col-lg-10">Data & Analysis</th>
+                        <th>Sample</th>
+                        <th>Container</th>
+                        <th>Loaded</th>
+                        <th>Data&nbsp;Sets</th>
+                        <th>Analysis&nbsp;Reports</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for sample in samples %}
                         <tr>
-                            <td style="vertical-align: middle; padding-right: 15px !important;">
-                                <span class="overflow ellipsis" style="padding: 5px; margin-top: 0;">
-                                    <a href="{% url "sample-detail" sample.pk %}"><strong>{{ sample.name }}</strong></a>
-                                </span>
-                                <small class="overflow ellipsis">
-                                    {% if sample.dewar %}<span class="text-muted"><strong>{{ sample.dewar.beamline.acronym }} {{ sample.port }}</strong> |</span>{% endif %}
-                                    {{ sample.container_and_location }}
-                                </small>
-                                </td>
-                            <td class="col-9">
-                                {% include "users/entries/sample-data.html" %}
+                            <td class="overflow-ellipsis">
+                                <a href="{% url "sample-detail" sample.pk %}">{{ sample.name }}</a>
+                            </td>
+                            <td class="overflow-ellipsis">
+                                <a href="{% url "container-detail" sample.container.pk %}">{{ sample.container_and_location }}</a>
+                            </td>
+                            <td class="overflow-ellipsis">
+                                <div >{{ sample.dewar.beamline.acronym|default:'&mdash;' }}&nbsp;{{ sample.port }}</div>
+                            </td>
+                            <td>
+                            {% include "users/entries/sample-data.html" %}
+                            </td>
+                            <td>
+                            {% include "users/entries/sample-reports.html" %}
                             </td>
                         </tr>
                         {% if sample.comments or sample.staff_comments %}
                             <tr>
-                                <td colspan="2" style="border-top: none; padding-top: 3px;">
+                                <td colspan="6" class="border-top">
                                     {% if sample.comments %}<strong>Comments:</strong> {{ sample.comments }}{% endif %}
                                     {% if sample.comments and sample.staff_comments %}<br/>{% endif %}
                                     <span class="highlight">{% if sample.staff_comments %}<strong>Collection Notes:</strong> {% endif %}

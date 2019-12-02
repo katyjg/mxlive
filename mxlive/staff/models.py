@@ -51,11 +51,10 @@ class UserList(StaffBaseClass):
     modified = models.DateTimeField('date modified', auto_now_add=True, editable=False)
 
     def allowed_users(self):
-        return ';'.join(self.users.values_list('username', flat=True))
+        return ' | '.join(self.users.values_list('username', flat=True))
 
     def current_users(self):
-        return ';'.join(self.connections.filter(status__in=['Connected', 'Disconnected'])
-                        .values_list('user__username', flat=True).distinct())
+        return ' | '.join(self.connections.filter(status__in=['Connected', 'Disconnected']).values_list('user__username', flat=True).distinct())
 
     def identity(self):
         return self.name
@@ -72,7 +71,7 @@ class UserCategory(models.Model):
     projects = models.ManyToManyField("lims.Project", blank=True, related_name="categories")
 
     def current_users(self):
-        return '; '.join(self.projects.values_list('username', flat=True))
+        return ' | '.join(self.projects.values_list('username', flat=True))
 
     def num_users(self):
         return self.projects.count()

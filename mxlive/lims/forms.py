@@ -1035,7 +1035,7 @@ class AccessForm(forms.ModelForm):
         self.body.layout = Layout(
             Div(
                 Div(
-                    Field('users', css_class="chosen"),
+                    Field('users', css_class="select"),
                     css_class="col-12"
                 ),
                 css_class="row"
@@ -1072,7 +1072,7 @@ class CategoryForm(forms.ModelForm):
         self.body.layout = Layout(
             Div(
                 Div(
-                    Field('projects', css_class="chosen"),
+                    Field('projects', css_class="select"),
                     css_class="col-12"
                 ),
                 css_class="row"

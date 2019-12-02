@@ -23,13 +23,14 @@ class AccessList(AdminRequiredMixin, ItemListView):
     model = models.UserList
     list_filters = []
     list_columns = ['name', 'description', 'current_users', 'allowed_users', 'address', 'active']
-    list_search = ['name', 'description', 'current_users']
+    list_search = ['name', 'description']
     tool_template = "users/tools-access.html"
     link_url = 'access-edit'
     link_kwarg = 'address'
-    link_data = True
+    link_attr = 'data-form-link'
     ordering = ['name']
     template_name = "users/list.html"
+    page_title = 'Remote Access'
 
 
 class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
@@ -53,7 +54,8 @@ class RemoteConnectionList(AdminRequiredMixin, ItemListView):
     ordering = ['-created']
     template_name = "users/list.html"
     link_url = 'connection-detail'
-    link_data = True
+    link_attr = 'data-link'
+    page_title = 'Remote Connections'
 
 
 class RemoteConnectionDetail(AdminRequiredMixin, detail.DetailView):
@@ -67,8 +69,9 @@ class CategoryList(AdminRequiredMixin, ItemListView):
     list_columns = ['name', 'current_users', 'num_users']
     list_search = ['name']
     link_url = 'category-edit'
-    link_data = True
+    link_attr = 'data-form-link'
     template_name = "users/list.html"
+    page_title = 'User Categories'
 
 
 class CategoryEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):

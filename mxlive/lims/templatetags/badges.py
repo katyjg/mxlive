@@ -7,7 +7,7 @@ register = template.Library()
 @register.filter("dataset")
 def dataset(data):
     if data.kind.acronym in ['RASTER', 'SCREEN', 'XRD', 'DATA']:
-        return "{} frames".format(len(data.frames))
+        return "{} imgs".format(len(data.frames))
     else:
         return "{} keV".format(data.energy)
 

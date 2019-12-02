@@ -1,8 +1,8 @@
 {% extends "users/base.html" %}
 {% load static %}
-{% block page_heading %}<h3>{{ view.get_list_title }}</h3>{% endblock %}
+{% block page_heading %}<h3>{{ view.page_title }}</h3>{% endblock %}
 
-{% block object_tools %}{% if view.tool_template %}{% include tool_template %}{% endif %}{% endblock %}
+{% block object_tools %}{% if view.tool_template %}{% include view.tool_template %}{% endif %}{% endblock %}
 
 {% block full %}
 <div class="row">
