@@ -66,13 +66,13 @@ class HTML2PdfMixin(object):
         tmp = mkdtemp(prefix=TEMP_PREFIX)
         html_file = os.path.join(tmp, '{}.html'.format(name))
         f = open(html_file, 'w')
-        f.write(rendered_tpl)
+        f.write(rendered_tpl.decode())
         f.close()
         pdf_filename = "{}/{}.pdf".format(tmp, name)
         try:
             cmd = 'xvfb-run wkhtmltopdf -L 25mm -R 25mm -T 20mm -B 20mm -s Letter {0}.html {0}.pdf'.format(name)
             subprocess.call(cmd.split(), cwd=tmp)
-            pdf = open(pdf_filename).read()
+            pdf = open(pdf_filename, 'rb').read()
 
         finally:
             shutil.rmtree(tmp)
