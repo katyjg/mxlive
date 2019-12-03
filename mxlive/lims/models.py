@@ -912,6 +912,8 @@ class LoadHistory(models.Model):
     class Meta:
         ordering = ['-start', ]
 
+    def __str__(self):
+        return '{}|{}|{}|{}'.format(self.child, self.parent, self.start, self.end)
 
 class Dewar(models.Model):
     """
