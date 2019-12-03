@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'debug_toolbar',
+    'memoize',
     'itemlist',
     'mxlive.staff',
     'mxlive.lims',
