@@ -16,9 +16,9 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext as _
-# from django.contrib.postgres.fields import JSONField
 from jsonfield.fields import JSONField
 from model_utils import Choices
+from memoize import memoize
 
 from mxlive.utils import slap
 
@@ -715,6 +715,11 @@ class LocationCoord(models.Model):
         return "{}:{}".format(self.kind.name, self.location.name)
 
 
+class ContainerManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related('kind', 'project')
+
+
 class Container(TransitStatusMixin):
     HELP = {
         'name': "A visible label on the container. If there is a barcode on the container, scan it here",
@@ -731,6 +736,7 @@ class Container(TransitStatusMixin):
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, related_name="children")
     location = models.ForeignKey(ContainerLocation, blank=True, null=True, on_delete=models.SET_NULL,
                                  related_name='contents')
+    objects = ContainerManager()
 
     class Meta:
         unique_together = (
@@ -842,7 +848,7 @@ class Container(TransitStatusMixin):
 
         info = self.kind.layout
         locations = list(
-            self.kind.coords.values(
+            self.kind.coords.select_related('location').values(
                 'x', 'y', loc=F('location__name'), accepts=Count('location__accepts'),
             )
         )
@@ -1024,6 +1030,11 @@ class Group(ProjectObjectMixin):
         super(Group, self).archive(request=request)
 
 
+class SampleManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related('group', 'location', 'container', 'project')
+
+
 class Sample(ProjectObjectMixin):
     HELP = {
         'cascade': 'datasets and results',
@@ -1044,6 +1055,8 @@ class Sample(ProjectObjectMixin):
     priority = models.IntegerField(null=True, blank=True)
     group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL, related_name='samples')
 
+    objects = SampleManager()
+
     class Meta:
         unique_together = (
             ("container", "location"),
@@ -1056,6 +1069,7 @@ class Sample(ProjectObjectMixin):
     def identity(self):
         return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
 
+    @memoize(timeout=60)
     def dewar(self):
         return self.container.dewar()
 
@@ -1166,6 +1180,11 @@ class DataType(models.Model):
         return self.name
 
 
+class DataManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related('kind')
+
+
 class Data(ActiveStatusMixin):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='datasets')
     group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL, related_name='datasets')
@@ -1182,6 +1201,8 @@ class Data(ActiveStatusMixin):
     kind = models.ForeignKey(DataType, on_delete=models.PROTECT, related_name='datasets')
     download = models.BooleanField(default=False)
     meta_data = JSONField(default={})
+
+    objects = DataManager()
 
     class Meta:
         verbose_name = 'Dataset'

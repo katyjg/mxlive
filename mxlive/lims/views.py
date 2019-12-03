@@ -202,6 +202,7 @@ class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AsyncFormMixin, edit
         return self.request.user.is_superuser or self.get_object() == self.request.user
 
 
+
 class ProjectLabels(AdminRequiredMixin, HTML2PdfMixin, detail.DetailView):
     template_name = "users/pdf/return_labels.html"
     model = models.Project
