@@ -1,64 +1,49 @@
 {% load badges %}
-{% load data_server %}
+{% load humanize %}
+{% load markup %}
+{% load icons %}
+{% load progress_extras %}
 
-<table class="table table-hover collapse in" id="group-{{ group.pk }}">
+{% group_samples group session as samples %}
+<table class="table table-sm text-condensed">
     <thead>
-        <tr>
-            <th>Name</th>
-            <th>Barcode</th>
-            <th>Container</th>
-            <th>Comments</th>
-            <th>Screening</th>
-            <th>Data</th>
-        </tr>
+    <tr>
+        <th>Sample</th>
+        <th>Container</th>
+        <th>Loaded</th>
+        <th>Data&nbsp;Sets</th>
+        <th>Analysis&nbsp;Reports</th>
+    </tr>
     </thead>
-    {% for sample in group.samples.all %}
-        <tr class="hover-row" sample="{{ sample.name }}">
-            <td class="col-2">
-                {% if request.user.is_superuser %}
-                    <form method="post" id="{{ sample.pk }}-done" action="{% url "sample-done" sample.pk %}">
-                        {% csrf_token %}
-                        <input onchange="$('#{{ sample.pk }}-done').submit();" name="collect_status" pk="{{ sample.pk }}" {% if sample.collect_status %}checked{% endif %} type="checkbox"/>
-                        <label >&nbsp;<a href="{% url "sample-detail" sample.pk %}"><strong>{{ sample.name }}</strong></a></label>
-                    </form>
-                {% else %}
-                    <a href="{% url "sample-detail" sample.pk %}"><strong>{{ sample.name }}</strong></a>
-                {% endif %}
-                </td>
-            <td class="col-1">{{ sample.barcode|default_if_none:"" }}</td>
-            <td class="col-2">{% if sample.container.parent %}<span class="text-muted"><strong>{{ sample.dewar }} {{ sample.port }}</strong> |</span>{% endif %}
-                    {{ sample.container_and_location }} </td>
-            <td class="col-2">{{ sample.comments|default_if_none:"" }}
-                {% if sample.comments and sample.staff_comments %}<br/>{% endif %}
-                <span class="highlight">{% if sample.staff_comments %}<strong>Collection Notes:</strong> {% endif %}{{ sample.staff_comments|default_if_none:""  }}</span>
-                {% if request.user.is_superuser %}
-                    <a data-link="{% url "sample-admin-edit" sample.pk %}" title="Add/Edit Notes"><i class="fa fa-fw fa-comment-o"></i></a></td>
-                {% endif %}
-            <td class="col-2">
-                <table class="subtable">
-                    <tr>
-                        <td>{% for data in sample.datasets.screening %}
-                            <a data-link="{% url "data-detail" data.pk %}"
-                               class="{% ifequal data sample.best_overall.data %}stress{% endifequal %}">
-                                {{ data.name }}
-                            </a>
-                            {% if data.report %}
-                                <a href="{% url "report-detail" data.report.pk %}"
-                                   title="View Analysis Report"
-                                   class="{% ifequal data sample.best_overall.data %}stress{%endifequal %}">
-                                   {% score_badge data.report.score %}
-                                </a>
-                            {% endif %}
-                            <br> {% endfor %}
-                        </td>
-                    </tr>
-                </table>
+    <tbody>
+    {% for sample in samples %}
+        <tr>
+            <td class="overflow-ellipsis">
+                <a href="{% url "sample-detail" sample.pk %}">{{ sample.name }}</a>
             </td>
-        <td class="col-4">
-                {% for data in sample.datasets.collection %}
-                    {% include "users/entries/data-thumbnail.html" with data=data %}
-                {% endfor %}
+            <td class="overflow-ellipsis">
+                <a href="{% url "container-detail" sample.container.pk %}">{{ sample.container_and_location }}</a>
+            </td>
+            <td class="overflow-ellipsis">
+                <div>{{ sample.dewar.beamline.acronym|default:'&mdash;' }}&nbsp;{{ sample.port }}</div>
+            </td>
+            <td>
+                {% include "users/entries/sample-data.html" %}
+            </td>
+            <td>
+                {% include "users/entries/sample-reports.html" %}
             </td>
         </tr>
+        {% if sample.comments or sample.staff_comments %}
+            <tr>
+                <td colspan="6" class="border-top">
+                    {% if sample.comments %}<strong>Comments:</strong> {{ sample.comments }}{% endif %}
+                    {% if sample.comments and sample.staff_comments %}<br/>{% endif %}
+                    <span class="highlight">{% if sample.staff_comments %}<strong>Collection Notes:</strong> {% endif %}
+                        {{ sample.staff_comments|default_if_none:"" }}</span>
+                </td>
+            </tr>
+        {% endif %}
     {% endfor %}
+    </tbody>
 </table>

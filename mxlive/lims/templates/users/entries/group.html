@@ -103,50 +103,7 @@
             </div>
 
         {% else %}
-            {% load progress_extras %}
-            {% group_samples object session as samples %}
-            <table class="table table-sm text-condensed">
-                <thead>
-                    <tr>
-                        <th>Sample</th>
-                        <th>Container</th>
-                        <th>Loaded</th>
-                        <th>Data&nbsp;Sets</th>
-                        <th>Analysis&nbsp;Reports</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for sample in samples %}
-                        <tr>
-                            <td class="overflow-ellipsis">
-                                <a href="{% url "sample-detail" sample.pk %}">{{ sample.name }}</a>
-                            </td>
-                            <td class="overflow-ellipsis">
-                                <a href="{% url "container-detail" sample.container.pk %}">{{ sample.container_and_location }}</a>
-                            </td>
-                            <td class="overflow-ellipsis">
-                                <div >{{ sample.dewar.beamline.acronym|default:'&mdash;' }}&nbsp;{{ sample.port }}</div>
-                            </td>
-                            <td>
-                            {% include "users/entries/sample-data.html" %}
-                            </td>
-                            <td>
-                            {% include "users/entries/sample-reports.html" %}
-                            </td>
-                        </tr>
-                        {% if sample.comments or sample.staff_comments %}
-                            <tr>
-                                <td colspan="6" class="border-top">
-                                    {% if sample.comments %}<strong>Comments:</strong> {{ sample.comments }}{% endif %}
-                                    {% if sample.comments and sample.staff_comments %}<br/>{% endif %}
-                                    <span class="highlight">{% if sample.staff_comments %}<strong>Collection Notes:</strong> {% endif %}
-                                        {{ sample.staff_comments|default_if_none:""  }}</span>
-                                </td>
-                            </tr>
-                        {% endif %}
-                    {% endfor %}
-                </tbody>
-            </table>
+            {% include "users/entries/group-protocol.html" with group=object %}
         {% endif %}
     </div>
 </div>
@@ -155,7 +112,6 @@
 
 {% block extra_js %}
 <script>
-
     $(".sortable table").sortable({
         items: "tr",
         handle: ".cursor",
@@ -167,94 +123,21 @@
         }
     });
 
-    $("input").on('change keyup paste blur', function() {
-        if ($(this).attr('initial') !== $(this).val()) {
-            $(this).css('color', '#883a6a').css('font-weight', '700');
-            $(this).css('border-color', '#883a6a');
-            $(this).addClass('changed');
-        } else {
-            $(this).css('color', 'black').css('font-weight', '400');
-            $(this).css('border-color', '#a0c4e3');
-            $(this).removeClass('changed');
-        }
-        if ($('input.changed').length) {
-            $('button[name=submit]').removeAttr('disabled');
-        } else {
-            $('button[name=submit]').attr('disabled', true);
-        }
-    });
 
-    var strip = function(s) { return s.replace(/^\s*|\s*$/g, ''); }
-
-    $("input").on('paste', function(e) {
-        e.stopPropagation();
-        var field = e.target.id.split('-')[0];
-        var k = parseInt(e.target.id.split('-')[1]);
-        var lines = strip(e.originalEvent.clipboardData.getData('Text')).split(/\r?\n/);
-        if (lines.length == 1) {
-            return;
-        }
-        for (var i = 1; i <= lines.length; i++) {
-            var el = $('#' + field + '-' + k);
-            el.val(strip(lines[i-1].split(/\r?\t/)[0] || ''));
-            el.blur();
-            k++;
-        }
-    });
-
-    function reset_inputs() {
-        $("input").each(function() {
-            $(this).val($(this).attr("initial"));
-            $(this).blur();
-        });
-        $('.error-panel').html('').css('display', 'none');
-    }
-
-    function prioritize() {
+     function prioritize() {
         var order = $(".sortable table").sortable("toArray", {key: 'sample', attribute: 'sample'} );
-        $.ajax({
-        type: "POST", dataType: "json", url: "{% url 'update-priority' %}",
-        data: {
-            'group': {{ object.pk }},
-            'samples': order
-        },
-        success: function(response) {
-            window.location.href=window.location.href;
-        }
-        });
-    }
-
-    function submit_changes() {
-        var data = [];
-        $('.sortable table input[id^=name-]').each(function() {
-            var idx = this.id.split('-')[1];
-            var pk = $(this).parent().parent().data('sample');
-            var name = $(this).val() !== $(this).attr('initial');
-            var brcd = $("input[id=barcode-"+idx+"]").val() !== $("input[id=barcode-"+idx+"]").attr('initial');
-            var cmnt = $("input[id=comments-"+idx+"]").val() !== $("input[id=comments-"+idx+"]").attr('initial');
-            if ((name !== null) || (brcd !== null) || (cmnt !== null )) {
-                data.push([pk, $(this).val(),  $("input[id=barcode-"+idx+"]").val(), $("input[id=comments-"+idx+"]").val()]);
-            }
-        });
         $.ajax({
             type: "POST",
             dataType: "json",
-            url: "{% url 'bulk-edit' %}",
+            url: "{% url 'update-priority' %}",
             data: {
                 'group': {{ object.pk }},
-                'samples': data
+                'samples': order
             },
             success: function(response) {
-                if (response.length) {
-                    for(i=0; response[i]; i++) {
-                        $('.error-panel').html(response.join('<br/>')).css('display', 'block');
-                    }
-                } else {
-                    window.location.reload();
-                }
+                window.location.href=window.location.href;
             }
         });
     }
-
 </script>
 {% endblock %}

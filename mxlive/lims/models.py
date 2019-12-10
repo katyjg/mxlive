@@ -756,6 +756,9 @@ class Container(TransitStatusMixin):
     def num_samples(self):
         return self.samples.count()
 
+    def aspect_ratio(self):
+        return 100.0 * self.kind.layout.get('height', 1.0)
+
     def capacity(self):
         return self.kind.locations.count()
 

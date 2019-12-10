@@ -37,7 +37,7 @@
                 <div class="card-header p-1 text-center text-wide text-muted"><small class="">BEAMLINES</small></div>
                 <div class="list-group list-group-flush list-group-hover">
                 {% for am in automounters %}
-                    <a href="{% url "beamline-detail" pk=am.beamline.pk %}" class="text-center list-group-item" style="overflow: auto;">
+                    <a href="{% url "beamline-detail" pk=am.beamline.pk %}" class="text-center list-group-item p-2">
                             <div id="layout-{{ am.container.pk }}" class="layout-lg">
                                 <h5 class="text-condensed">
                                     <strong><span class="text-muted">{{ am.beamline.acronym }}</span></strong> | {{ am.container.kind }}
@@ -51,7 +51,7 @@
             </div>
             <div class="card mb-4">
                 <div class="card-header p-1 text-center text-wide text-muted"><small>ADAPTORS</small></div>
-                <div class="card-body">
+                <div class="card-body p-2">
                 <div class="row">
                 {% for container in containers %}
                 {% include "users/entries/container-item.html" %}

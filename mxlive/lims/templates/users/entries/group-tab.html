@@ -2,58 +2,52 @@
 {% load badges %}
 {% group_samples group session as samples %}
 
-    <span class="tools-box float-right">
-        <small>{{ group.comments|default:"No comments" }}</small>
-    </span>
-    <h4><a href="{% url 'group-detail' group.pk %}"><strong>{{ group.name }}</strong></a> | {{ group.get_kind_display }}</h4>
-    <div class="list-group list-group-flush">
-        <div class="list-group-item">
-            <div class="row">
-                <strong class="col-4 pl-0">Sample</strong>
-                <strong class="col-8 pl-0">Data & Analysis</strong>
-            </div>
-        </div>
+<h4 class="m-0"><a href="{% url 'group-detail' group.pk %}"><strong>{{ group.name }}</strong></a> | {{ group.get_kind_display }}</h4>
+<small class="text-muted">{{ group.comments|default:"No comments" }}</small>
+<table class="table table-sm text-condensed">
+    <thead>
+        <tr>
+            {% if user.is_superuser %}<th></th>{% endif %}
+            <th>Sample</th>
+            <th>Container</th>
+            <th>Loaded</th>
+            <th>Data&nbsp;Sets</th>
+            <th>Analysis&nbsp;Reports</th>
+        </tr>
+    </thead>
+    <tbody>
         {% for sample in samples %}
-        <div class="list-group-item">
-            <div class="row">
-                <div class="col-4">
-                {% if user.is_superuser %}
-                    <span class="tools-box float-right" style="padding-top: 0; padding-bottom: 0; padding-right: 20px !important;">
-                        <a data-link="{% url "sample-admin-edit" sample.pk %}" title="Add/Edit Notes"><i class="fa fa-fw fa-2 fa-comment-o"></i></a>
-                    </span>
-                    <form class="hidden" method="post" id="{{ sample.pk }}-done" action="{% url "sample-done" sample.pk %}">
-                        {% csrf_token %}
-                        <input class="hidden" onchange="$('#{{ sample.pk }}-done').submit();" name="collect_status" pk="{{ sample.pk }}" {% if sample.collect_status %}checked{% endif %} type="checkbox"/>
-                    </form>
-                    <span title="Mark as {% if sample.collect_status %}in{% endif %}complete" class="cursor text-primary"
-                          style="padding-top: 0; margin-top: 0;"
-                          onclick="$('input[pk={{ sample.pk }}]').attr('checked', !$('input[pk={{ sample.pk }}]').attr('checked')).change();">
-                        <i class="fa fa-2 fa-fw {% if sample.collect_status %}fa-check-square-o{% else %}fa-square-o{% endif %}"></i>
-                    </span>
-                {% endif %}
-                    <span class="overflow ellipsis" style="padding: 5px; margin-top: 0;">
-                        <a href="{% url "sample-detail" sample.pk %}"><strong>{{ sample.name }}</strong></a>
-                    </span>
-                    <small class="overflow ellipsis">
-                        {% if sample.dewar %}<span class="text-muted"><strong>{{ sample.dewar.beamline.acronym }} {{ sample.port }}</strong> |</span>{% endif %}
-                        {{ sample.container_and_location }}
-                    </small>
-                </div>
-                <div class="col-8">
-                    {% include "users/entries/sample-data.html" %}
-                </div>
-                {% if sample.comments or sample.staff_comments %}
-                <div class="col-12">
-                    {% if sample.comments %}<strong>Comments:</strong> {{ sample.comments }}{% endif %}
-                    {% if sample.comments and sample.staff_comments %}<br/>{% endif %}
-                    <span class="highlight">{% if sample.staff_comments %}<strong>Collection Notes:</strong> {% endif %}
-                        {{ sample.staff_comments|default_if_none:""  }}</span>
-                </div>
-                {% endif %}
-            </div>
-        </div>
+        <tr>
+            {% if user.is_superuser %}
+                <td {% if sample.staff_comments %}
+                    data-toggle="popover"
+                    data-content="{{ sample.staff_comments|default:''}}"
+                    data-placement="bottom"
+                    data-trigger="hover"
+                    {% endif %}
+                >
+                    <a href="#!"
+                       data-form-link="{% url "sample-admin-edit" sample.pk %}"
+                       title="Add/Edit Notes"
+                    >{% if sample.staff_comments %}<i class="ti ti-comment-alt"></i>{% else %}<i class="ti ti-comment"></i>{% endif %}</a>
+                </td>
+            {% endif %}
+            <td class="overflow-ellipsis">
+                <a href="{% url "sample-detail" sample.pk %}">{{ sample.name }}</a>
+            </td>
+            <td class="overflow-ellipsis">
+                <a href="{% url "container-detail" sample.container.pk %}">{{ sample.container_and_location }}</a>
+            </td>
+            <td class="overflow-ellipsis">
+                <div>{{ sample.dewar.beamline.acronym|default:'&mdash;' }}&nbsp;{{ sample.port }}</div>
+            </td>
+            <td>
+                {% include "users/entries/sample-data.html" %}
+            </td>
+            <td>
+                {% include "users/entries/sample-reports.html" %}
+            </td>
+        </tr>
     {% endfor %}
-    </div>
-
-
-
+    </tbody>
+</table>

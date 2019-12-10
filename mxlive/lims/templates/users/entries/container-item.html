@@ -1,18 +1,18 @@
-<div class="col-12 col-sm-6 p-1">
-    <div class="border p-3">
+<div class="col-6 col-sm-4 p-2">
+    <div class="border p-2">
         <div class="text-center">
             <a href="{% url "container-detail" pk=container.pk %}">
-                <h6 class="underline text-condensed overflow ellipsis">
+                <div class="underline text-condensed overflow-ellipsis">
                     <strong>{{ container.name }}</strong>
-                </h6>
+                </div>
             </a>
         </div>
         {% include "users/entries/container-layout.html" %}
         <div class="text-center">
             {% if container.dewar %}
-                <h6><span class="badge badge-info" title="Loaded in {{ container.dewar }}">{{ container.dewar.beamline }}</span></h6>
+                <span class="badge badge-info" title="Loaded in {{ container.dewar }}">{{ container.dewar.beamline }}</span>
             {% else %}
-                <h6><span class="badge badge-secondary" title="Not Loaded">None</span></h6>
+                <span class="badge badge-secondary" title="Not Loaded">None</span>
             {% endif %}
         </div>
     </div>

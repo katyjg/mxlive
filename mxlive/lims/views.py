@@ -467,7 +467,7 @@ class SampleEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.U
     success_message = "Sample has been updated."
 
     def get_success_url(self):
-        return self.object.container.get_absolute_url()
+        return "" #self.object.container.get_absolute_url()
 
 
 class SampleDone(SampleEdit):

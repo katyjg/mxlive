@@ -1361,6 +1361,11 @@ svg * {
   font-weight: 200 !important;
 }
 
+.container-layout > svg {
+  position: absolute;
+  top: 0; bottom: 0; left: 0; right: 0;
+}
+
 .group-chooser {
   position: sticky;
   top: 0;
