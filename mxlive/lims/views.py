@@ -717,7 +717,6 @@ class DataList(ListViewMixin, ItemListView):
     link_url = 'data-detail'
     link_field = 'name'
     link_attr = 'data-link'
-    detail_target = '#modal-target'
     ordering = ['-modified']
     list_transforms = {}
 
