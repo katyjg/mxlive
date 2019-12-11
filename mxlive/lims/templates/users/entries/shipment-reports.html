@@ -4,12 +4,16 @@
 {% load static %}
 
 {% block page_heading %}
-    <h3 class="text-condensed">
-        <i class="text-muted fa fa-fw {% if shipment.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
-        <span class="text-muted">{% if user.is_superuser %}{{ shipment.project|upper }} | {% endif %}</span><strong>{{ shipment.name }}</strong>
+    <h3>
+        <span class="text-thin">Reports |</span>
+        <span class="text-condensed">
+            <span class="text-muted">{% if user.is_superuser %}{{ shipment.project }} | {% endif %}</span><strong>{{ shipment.name }}</strong>
+        </span>
     </h3>
     <span class="text-muted">
-        Reports from Shipment
+        {% if not shipment.is_editable %}<i class="text-muted ti ti-lock"></i>{% endif %}
+        {{ shipment.identity }} |
+        Analysis Reports from Shipment
     </span>
 {% endblock %}
 

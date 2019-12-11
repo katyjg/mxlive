@@ -3,40 +3,31 @@
 {% group_samples group session as samples %}
 
 <h4 class="m-0"><a href="{% url 'group-detail' group.pk %}"><strong>{{ group.name }}</strong></a> | {{ group.get_kind_display }}</h4>
-<small class="text-muted">{{ group.comments|default:"No comments" }}</small>
 <table class="table table-sm text-condensed">
     <thead>
         <tr>
-            {% if user.is_superuser %}<th></th>{% endif %}
+
             <th>Sample</th>
             <th>Container</th>
             <th>Loaded</th>
             <th>Data&nbsp;Sets</th>
             <th>Analysis&nbsp;Reports</th>
+            {% if user.is_superuser %}<th></th>{% endif %}
         </tr>
     </thead>
     <tbody>
         {% for sample in samples %}
         <tr>
-            {% if user.is_superuser %}
-                <td {% if sample.staff_comments %}
-                    data-toggle="popover"
-                    data-content="{{ sample.staff_comments|default:''}}"
-                    data-placement="bottom"
-                    data-trigger="hover"
-                    {% endif %}
-                >
-                    <a href="#!"
-                       data-form-link="{% url "sample-admin-edit" sample.pk %}"
-                       title="Add/Edit Notes"
-                       class="{% if sample.collect_status %}text-success{% else %}text-warning{% endif %}"
-                    >
-                        <i class="ti ti-comment{% if sample.staff_comments %}-alt{% endif %}"></i>
-                    </a>
-                </td>
+            <td class="overflow-ellipsis"
+            {% if sample.staff_comments %}
+                title="Staff Comments"
+                data-toggle="popover"
+                data-content="{{ sample.staff_comments|default:''}}"
+                data-placement="bottom"
+                data-trigger="hover"
             {% endif %}
-            <td class="overflow-ellipsis">
-                <a href="{% url "sample-detail" sample.pk %}">{{ sample.name }}</a>
+            >
+                <a href="{% url "sample-detail" sample.pk %}" {% if sample.staff_comments %}class="checkout-dot"{% endif %}>{{ sample.name }}</a>
             </td>
             <td class="overflow-ellipsis">
                 <a href="{% url "container-detail" sample.container.pk %}">{{ sample.container_and_location }}</a>
@@ -50,7 +41,22 @@
             <td>
                 {% include "users/entries/sample-reports.html" %}
             </td>
+            {% if user.is_superuser %}
+                <td>
+                    <a href="#!"
+                       data-form-link="{% url "sample-admin-edit" sample.pk %}"
+                       title="Add/Edit Notes"
+                    >
+                        {% if sample.collect_status %}
+                            <i class="ti ti-check-box"></i>
+                        {% else %}
+                            <i class="ti ti-pencil-alt"></i>
+                        {% endif %}
+                    </a>
+                </td>
+            {% endif %}
         </tr>
     {% endfor %}
     </tbody>
 </table>
+

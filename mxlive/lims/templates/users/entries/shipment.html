@@ -12,12 +12,15 @@
 {% endblock %}
 
 {% block page_heading %}
-    <h3 class="text-condensed">
-        <i class="text-muted ti {% if shipment.is_editable %}ti-unlock{% else %}ti-lock{% endif %}"></i>
-        <span class="text-muted">{% if user.is_superuser %}{{ shipment.project }}{% endif %}</span> |
-        <strong>{{ shipment.name }}</strong>
+    <h3>
+        <span class="text-thin">Shipment |</span>
+        <span class="text-condensed">
+            <span class="text-muted">{% if user.is_superuser %}{{ shipment.project }} | {% endif %}</span><strong>{{ shipment.name }}</strong>
+        </span>
     </h3>
     <span class="text-muted">
+        {% if not shipment.is_editable %}<i class="text-muted ti ti-lock"></i>{% endif %}
+        {{ shipment.identity }} |
         {% if shipment.status == shipment.STATES.DRAFT %}Created {{ shipment.created|naturalday }}
         {% elif shipment.status == shipment.STATES.SENT %}Sent {{ shipment.date_shipped|naturalday }}
         {% elif shipment.status == shipment.STATES.ON_SITE %}Received

@@ -4,11 +4,15 @@
 {% load icons %}
 
 {% block page_heading %}
-    <h3 class="text-condensed">
-        <i class="text-muted ti {% if object.is_editable %}ti-unlock{% else %}ti-lock{% endif %}"></i>
-        <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}{{ object.identity }} | </span><strong>{{ object.name }}</strong>
+    <h3>
+        <span class="text-thin">Group |</span>
+        <span class="text-condensed">
+            <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}</span><strong>{{ object.name }}</strong>
+        </span>
     </h3>
     <span class="text-muted">
+        {% if not object.is_editable %}<i class="text-muted ti ti-lock"></i>{% endif %}
+        {{ object.identity }} |
         {% if object.shipment %}
             {% with object.shipment.groups.count as count %}
             <strong>1</strong> of <strong>{{ count }}</strong> Group{{ count|pluralize }} in Shipment {{object.shipment.name}}
@@ -74,9 +78,9 @@
             </a>
         </div>
         {% endif %}
-        <h3>Samples in {{ object.name }}</h3>
-        <div class="error-panel alert alert-warning" style="display: none;"></div>
+
         {% if object.status == object.STATES.DRAFT %}
+            <h3>Samples in {{ object.name }}</h3>
             <div class="item-list sortable">
             <table class="table table-hover table-sm">
                 <thead>
@@ -101,7 +105,6 @@
                 </tbody>
             </table>
             </div>
-
         {% else %}
             {% include "users/entries/group-protocol.html" with group=object %}
         {% endif %}

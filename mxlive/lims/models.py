@@ -252,7 +252,7 @@ class Session(models.Model):
     url = models.CharField(max_length=200, null=True)
 
     def identity(self):
-        return 'SE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+        return 'SES-{:07,d}'.format(self.id).replace(',', '-')
 
     def download_url(self):
         return '{}/{}.tar.gz'.format(self.url, self.name)
@@ -503,7 +503,7 @@ class Shipment(TransitStatusMixin):
     storage_location = models.CharField(max_length=60, null=True, blank=True)
 
     def identity(self):
-        return 'SH%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+        return 'SHP-{:07,d}'.format(self.id).replace(',', '-')
 
     def get_absolute_url(self):
         return reverse('shipment-detail', kwargs={'pk': self.id})
@@ -747,6 +747,9 @@ class Container(TransitStatusMixin):
     def __str__(self):
         return "{} | {} | {}".format(self.kind.name.title(), self.project.name.upper(), self.name)
 
+    def identity(self):
+        return 'CNT-{:07,d}'.format(self.id).replace(',', '-')
+
     def get_absolute_url(self):
         return reverse('container-detail', kwargs={'pk': self.id})
 
@@ -925,6 +928,7 @@ class LoadHistory(models.Model):
     def __str__(self):
         return '{}|{}|{}|{}'.format(self.child, self.parent, self.start, self.end)
 
+
 class Dewar(models.Model):
     """
     A through-model relating a Beamline object to a Container object. The container referenced here should be the
@@ -941,7 +945,7 @@ class Dewar(models.Model):
         return "{} | {}".format(self.beamline.acronym, self.container.name)
 
     def identity(self):
-        return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+        return 'DEW-{:07,d}'.format(self.id).replace(',', '-')
 
     def json_dict(self):
         return {
@@ -1005,7 +1009,7 @@ class Group(ProjectObjectMixin):
         ordering = ['priority']
 
     def identity(self):
-        return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+        return 'GRP-{:07,d}'.format(self.id).replace(',', '-')
 
     def get_absolute_url(self):
         return reverse('group-detail', kwargs={'pk': self.id})
@@ -1071,7 +1075,7 @@ class Sample(ProjectObjectMixin):
         return reverse('sample-detail', kwargs={'pk': self.id})
 
     def identity(self):
-        return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+        return 'SPL-{:07,d}'.format(self.id).replace(',', '-')
 
     def dewar(self):
         return self.container.dewar()
@@ -1214,7 +1218,7 @@ class Data(ActiveStatusMixin):
         return '%s (%d)' % (self.name, self.num_frames())
 
     def identity(self):
-        return 'DA%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+        return 'DAT-{:07,d}'.format(self.id).replace(',', '-')
 
     def get_absolute_url(self):
         return reverse('data-detail', kwargs={'pk': self.id})
@@ -1280,7 +1284,7 @@ class AnalysisReport(ActiveStatusMixin):
         return '{}/{}-report-{}.tar.gz'.format(self.url, dataset.name, self.pk)
 
     def identity(self):
-        return 'AR%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
+        return 'RPT-{:07,d}'.format(self.id).replace(',', '-')
 
     def get_absolute_url(self):
         return reverse('report-detail', kwargs={'pk': self.id})

@@ -11,11 +11,15 @@
 {% endblock %}
 
 {% block page_heading %}
-    <h3 class="text-condensed">
-        <i class="text-muted ti {% if object.is_editable %}ti-unlock{% else %}ti-lock{% endif %}"></i>
-        <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}</span><strong>{{ object.name }}</strong>
+    <h3>
+        <span class="text-thin">Container |</span>
+        <span class="text-condensed">
+            <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}</span><strong>{{ object.name }}</strong>
+        </span>
     </h3>
     <span class="text-muted">
+        {% if not object.is_editable %}<i class="text-muted ti ti-lock"></i>{% endif %}
+        {{ object.identity }} |
         {% if object.shipment %}
             {% with object.shipment.containers.count as count %}
             <strong>1</strong> of <strong>{{ count }}</strong> Container{{ count|pluralize }} in Shipment {{object.shipment.name}}
@@ -27,6 +31,7 @@
 {% endblock %}
 
 {% block object_tools %}
+    {% if object.is_editable %}
     <a href="#!" data-form-link="{% url 'edit-container-samples' object.pk %}"
         {% if not object.samples.exists %}
             class="attention"
@@ -40,6 +45,7 @@
         >
         {% show_icon label='Samples' icon='ti ti-md ti-paint-bucket' %}
     </a>
+    {% endif %}
     {% include "users/tools-base.html" %}
     {% if object.parent_history.all %}
         <a href="#!" data-link="{% url "container-history" object.pk %}">
@@ -119,9 +125,10 @@
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        {% for sample in object.samples.all %}
-            $('circle[sample={{ sample.name }}]').attr('data-href', '{% url "sample-detail" sample.pk %}');
-        {% endfor %}
+        $(document).on('click', 'svg.sample[data-id]', function(){
+            let url = '{% url "sample-detail" 0 %}';
+            window.location.href = url.replace('0/', $(this).data('id'));
+        });
     });
 </script>
 {% endblock %}
