@@ -467,15 +467,7 @@ class SampleEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.U
     success_message = "Sample has been updated."
 
     def get_success_url(self):
-        return "" #self.object.container.get_absolute_url()
-
-
-class SampleDone(SampleEdit):
-    form_class = forms.SampleDoneForm
-
-    def get_success_url(self):
-        return reverse_lazy("shipment-protocol", kwargs={'pk': self.object.container.shipment.pk}) + '?q={}'.format(
-            self.object.group.pk)
+        return ""
 
 
 class SampleDelete(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):

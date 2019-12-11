@@ -1072,7 +1072,6 @@ class Sample(ProjectObjectMixin):
     def identity(self):
         return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
 
-    @memoize(timeout=60)
     def dewar(self):
         return self.container.dewar()
 

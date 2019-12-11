@@ -29,7 +29,10 @@
                     <a href="#!"
                        data-form-link="{% url "sample-admin-edit" sample.pk %}"
                        title="Add/Edit Notes"
-                    >{% if sample.staff_comments %}<i class="ti ti-comment-alt"></i>{% else %}<i class="ti ti-comment"></i>{% endif %}</a>
+                       class="{% if sample.collect_status %}text-success{% else %}text-warning{% endif %}"
+                    >
+                        <i class="ti ti-comment{% if sample.staff_comments %}-alt{% endif %}"></i>
+                    </a>
                 </td>
             {% endif %}
             <td class="overflow-ellipsis">

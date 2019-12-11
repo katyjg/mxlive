@@ -211,18 +211,6 @@ class DewarForm(forms.ModelForm):
         )
 
 
-class SampleDoneForm(forms.ModelForm):
-    class Meta:
-        model = Sample
-        fields = ('collect_status',)
-
-    def __init__(self, *args, **kwargs):
-        super(SampleDoneForm, self).__init__(*args, **kwargs)
-
-        self.body = BodyHelper(self)
-        self.body.layout = Layout('collect_status')
-
-
 class SampleForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
@@ -269,14 +257,26 @@ class SampleForm(forms.ModelForm):
 
 class SampleAdminForm(forms.ModelForm):
 
+    class Meta:
+        model = Sample
+        fields = ('staff_comments','collect_status')
+        widgets = {
+            'staff_comments': forms.Textarea(attrs={'rows': "4"}),
+            'collect_status': forms.HiddenInput,
+        }
+
     def __init__(self, *args, **kwargs):
         super(SampleAdminForm, self).__init__(*args, **kwargs)
         pk = self.instance.pk
 
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
-        self.body.title = u"Add Staff Comments to Sample"
+        self.body.title = u"Update Sample"
         self.body.form_action = reverse_lazy('sample-admin-edit', kwargs={'pk': pk})
+        if not self.instance.collect_status:
+            mark_btn = StrictButton("Mark Complete", type='submit', name="submit", value='done', css_class='btn btn-success')
+        else:
+            mark_btn = StrictButton("Mark Incomplete", type='submit', name="submit", value='done', css_class='btn btn-warning')
 
         self.body.layout = Layout(
             Div(
@@ -285,16 +285,20 @@ class SampleAdminForm(forms.ModelForm):
             )
         )
         self.footer.layout = Layout(
-            StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
-            StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+            Field('collect_status'),
+            StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary mr-auto"),
+            mark_btn,
+            StrictButton('Save Comments', type='submit', name="submit", value='save', css_class='btn btn-primary'),
         )
 
-    class Meta:
-        model = Sample
-        fields = ('staff_comments',)
-        widgets = {
-            'staff_comments': forms.Textarea(attrs={'rows': "4"}),
-        }
+    def clean(self):
+        collect_status = self.instance.collect_status
+        if self.data.get('submit') == 'done':
+            collect_status = not collect_status
+        cleaned_data = super().clean()
+        cleaned_data['collect_status'] = collect_status
+        print(self.instance, self.instance.collect_status, collect_status)
+        return cleaned_data
 
 
 class ShipmentSendForm(forms.ModelForm):
