@@ -1493,6 +1493,11 @@ svg * {
   }
 }
 
+tr.sample-completed {
+  > td {
+    opacity: 0.5;
+  }
+}
 
 .attention {
     animation: glow 1s infinite alternate;

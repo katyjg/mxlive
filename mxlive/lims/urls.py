@@ -51,7 +51,6 @@ urlpatterns = [
     path('samples/<int:pk>/', views.SampleDetail.as_view(), name='sample-detail'),
     path('samples/<int:pk>/edit/', views.SampleEdit.as_view(), name='sample-edit'),
     path('samples/<int:pk>/delete/', views.SampleDelete.as_view(), name='sample-delete'),
-    path('samples/<int:pk>/done/', views.SampleDone.as_view(), name='sample-done'),
     path('samples/<int:pk>/staff/edit/', views.SampleEdit.as_view(form_class=forms.SampleAdminForm), name='sample-admin-edit'),
 
     path('groups/', views.GroupList.as_view(), name='group-list'),
