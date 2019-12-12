@@ -2,7 +2,6 @@
 {% load badges %}
 {% group_samples group session as samples %}
 
-<h4 class="m-0"><a href="{% url 'group-detail' group.pk %}"><strong>{{ group.name }}</strong></a> | {{ group.get_kind_display }}</h4>
 <table class="table table-sm text-condensed">
     <thead>
         <tr>
