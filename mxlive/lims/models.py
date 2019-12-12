@@ -251,6 +251,9 @@ class Session(models.Model):
     comments = models.TextField()
     url = models.CharField(max_length=200, null=True)
 
+    def __str__(self):
+        return '{}-{}'.format(self.project.name.upper(), self.name)
+
     def identity(self):
         return 'SES-{:07,d}'.format(self.id).replace(',', '-')
 

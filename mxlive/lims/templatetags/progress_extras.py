@@ -15,6 +15,17 @@ def group_samples(group, session=None):
     return group.samples.all()
 
 
+@register.filter
+def group_parameters(group):
+    parameters = [
+        None if not group.resolution else '{:0.1f} Å'.format(group.resolution),
+        None if not group.energy else '{:0.3f} keV'.format(group.energy),
+        None if not group.absorption_edge else group.absorption_edge,
+    ]
+    print(parameters)
+    return ", ".join(filter(None, parameters))
+
+
 @register.simple_tag
 def sample_data(sample, session=None):
     if session:

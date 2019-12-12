@@ -89,7 +89,7 @@
             <div class="tab-content">
                 {% for group in groups %}
                     <div class="tab-pane fade" id="group-{{ group.pk }}" role="tabpanel" aria-labelledby="show-group{{ group.pk }}">
-                    {% include "users/entries/group-tab.html" with session=object %}
+                    {% include "users/entries/group-protocol.html" with session=object %}
                     </div>
                 {% endfor %}
             </div>
