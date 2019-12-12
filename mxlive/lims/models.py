@@ -1286,6 +1286,9 @@ class AnalysisReport(ActiveStatusMixin):
     def identity(self):
         return 'RPT-{:07,d}'.format(self.id).replace(',', '-')
 
+    def label(self):
+        return self.kind[:3].upper()
+
     def get_absolute_url(self):
         return reverse('report-detail', kwargs={'pk': self.id})
 

@@ -2,6 +2,6 @@
 
     {% for report in sample.reports.all %}
         <a href="{% url 'report-detail' report.pk %}" class="d-inline-block p-1">
-        {% label_badge header=report.kind|slice:":3"|upper value=report.score score=True %}
+        {% label_badge header=report.label value=report|report_summary score=report.score %}
         </a>
     {% endfor %}

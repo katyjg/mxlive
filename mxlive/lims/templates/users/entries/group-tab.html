@@ -6,7 +6,7 @@
 <table class="table table-sm text-condensed">
     <thead>
         <tr>
-
+            {% if user.is_superuser %}<th></th>{% endif %}
             <th>Sample</th>
             <th>Container</th>
             <th>Loaded</th>
@@ -18,6 +18,16 @@
     <tbody>
         {% for sample in samples %}
         <tr>
+            {% if user.is_superuser %}
+                <td>
+                    <a href="#!"
+                       data-form-link="{% url "sample-admin-edit" sample.pk %}"
+                       title="Edit Notes"
+                    >
+                        <i class="ti ti-comment{% if sample.staff_comments %}-alt{% endif %}"></i>
+                    </a>
+                </td>
+            {% endif %}
             <td class="overflow-ellipsis"
             {% if sample.staff_comments %}
                 title="Staff Comments"
@@ -45,12 +55,12 @@
                 <td>
                     <a href="#!"
                        data-form-link="{% url "sample-admin-edit" sample.pk %}"
-                       title="Add/Edit Notes"
+                       title="Mark Complete/Incomplete"
                     >
                         {% if sample.collect_status %}
                             <i class="ti ti-check-box"></i>
                         {% else %}
-                            <i class="ti ti-pencil-alt"></i>
+                            <i class="ti ti-pencil"></i>
                         {% endif %}
                     </a>
                 </td>
