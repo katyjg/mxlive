@@ -983,7 +983,7 @@ class AnnouncementForm(forms.ModelForm):
 
     class Meta:
         model = Announcement
-        fields = ['title', 'description', 'attachment', 'url', 'priority']
+        fields = ['title', 'description', 'staff_only', 'attachment', 'url', 'priority']
 
     def __init__(self, *args, **kwargs):
         super(AnnouncementForm, self).__init__(*args, **kwargs)
@@ -1008,10 +1008,15 @@ class AnnouncementForm(forms.ModelForm):
             ),
             Div(
                 Div('url', css_class="col-12"),
+
                 css_class="row"
             ),
             Div(
                 Div('attachment', css_class="col-12"),
+                css_class="row"
+            ),
+            Div(
+                Div('staff_only', css_class="col"),
                 css_class="row"
             ),
         )

@@ -41,6 +41,9 @@ class Announcement(StaffBaseClass):
     def __str__(self):
         return self.title
 
+    class Meta:
+        ordering = ("priority",)
+
 
 class UserList(StaffBaseClass):
     name = models.CharField(max_length=60, unique=True)
