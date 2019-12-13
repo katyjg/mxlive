@@ -5,14 +5,18 @@
 {% load converter %}
 {% load static %}
 {% load time_extras %}
-{% load data_server %}
+{% load progress_extras %}
 
 {% block page_heading %}
-    <h4 class="text-condensed">
-        <span class="text-muted">{% if user.is_superuser %}{{ object.project|upper }} | {% endif %}</span><strong>{{ object.name }}</strong>
-    </h4>
+    <h3>
+        <span class="text-thin">Session |</span>
+        <span class="text-condensed">
+            <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}</span><strong>{{ object.name }}</strong>
+        </span>
+    </h3>
     <span class="text-muted">
-        Beamline Session started {{ object.created|naturalday }}
+        {{ object.identity }} |
+       Started {{ object.created|naturalday }}
     </span>
 {% endblock %}
 
@@ -89,7 +93,15 @@
             <div class="tab-content">
                 {% for group in groups %}
                     <div class="tab-pane fade" id="group-{{ group.pk }}" role="tabpanel" aria-labelledby="show-group{{ group.pk }}">
-                    {% include "users/entries/group-protocol.html" with session=object %}
+                        <h4>
+                            <a href="{% url 'group-detail' group.pk %}"><strong>{{ group.name }}</strong></a> |
+                            <span class="text-muted text-thin">
+                            {{ group.get_kind_display }} |
+                            {{ group.get_plan_display }} |
+                            Requrements: {{ group | group_parameters | default:"&mdash;"}}
+                            </span>
+                        </h4>
+                        {% include "users/entries/group-protocol.html" with session=object %}
                     </div>
                 {% endfor %}
             </div>

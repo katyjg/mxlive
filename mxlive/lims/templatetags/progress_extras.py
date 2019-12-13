@@ -11,7 +11,7 @@ def num_session_samples(group, session):
 @register.simple_tag
 def group_samples(group, session=None):
     if session:
-        return group.samples.filter(datasets__session=session.pk)
+        return group.samples.filter(datasets__session=session.pk).distinct()
     return group.samples.all()
 
 

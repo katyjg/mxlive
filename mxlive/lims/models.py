@@ -243,6 +243,11 @@ class StretchManager(models.Manager.from_queryset(StretchQuerySet)):
     use_for_related_fields = True
 
 
+class ProjectObjectManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related('project')
+
+
 class Session(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     name = models.CharField(max_length=100)
@@ -250,6 +255,8 @@ class Session(models.Model):
     beamline = models.ForeignKey(Beamline, related_name="sessions", on_delete=models.CASCADE)
     comments = models.TextField()
     url = models.CharField(max_length=200, null=True)
+
+    objects = ProjectObjectManager()
 
     def __str__(self):
         return '{}-{}'.format(self.project.name.upper(), self.name)
@@ -271,10 +278,10 @@ class Session(models.Model):
         self.stretches.active().update(end=timezone.now())
 
     def groups(self):
-        return self.project.groups.filter(pk__in=self.datasets.values_list('sample__group__pk'))
+        return Group.objects.filter(samples__datasets__session=self, project=self.project).distinct()
 
     def reports(self):
-        return self.project.reports.filter(data__in=self.datasets.all())
+        return self.project.reports.filter(data__session=self).distinct()
 
     def num_datasets(self):
         return self.datasets.count()
@@ -287,7 +294,7 @@ class Session(models.Model):
     num_reports.short_description = "Reports"
 
     def samples(self):
-        return self.project.samples.filter(pk__in=self.datasets.values_list('sample__pk', flat=True))
+        return self.project.samples.filter(datasets__session=self).distinct()
 
     def is_active(self):
         return self.stretches.active().exists()
@@ -299,7 +306,7 @@ class Session(models.Model):
                     timezone.localtime(stretch.start) -
                     timedelta(hours=timezone.localtime(
                         stretch.start).hour % SHIFT_HRS, minutes=stretch.start.minute, seconds=stretch.start.second
-                    )
+                              )
             )
             end = timezone.localtime(stretch.end) if stretch.end else timezone.now()
             et = end - timedelta(hours=end.hour % SHIFT_HRS, minutes=end.minute, seconds=end.second)
@@ -504,6 +511,8 @@ class Shipment(TransitStatusMixin):
     date_returned = models.DateTimeField(null=True, blank=True)
     carrier = models.ForeignKey(Carrier, null=True, blank=True, on_delete=models.SET_NULL)
     storage_location = models.CharField(max_length=60, null=True, blank=True)
+
+    objects = ProjectObjectManager()
 
     def identity(self):
         return 'SHP-{:07,d}'.format(self.id).replace(',', '-')
@@ -1004,6 +1013,8 @@ class Group(ProjectObjectMixin):
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(blank=True, null=True)
 
+    objects = ProjectObjectManager()
+
     class Meta:
         verbose_name = 'Group'
         unique_together = (
@@ -1060,7 +1071,7 @@ class Sample(ProjectObjectMixin):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='samples')
     barcode = models.SlugField(null=True, blank=True)
     container = models.ForeignKey(Container, null=True, blank=True, on_delete=models.CASCADE, related_name='samples')
-    location = models.ForeignKey(ContainerLocation, on_delete=models.CASCADE,  related_name='samples')
+    location = models.ForeignKey(ContainerLocation, on_delete=models.CASCADE, related_name='samples')
     comments = models.TextField(blank=True, null=True)
     collect_status = models.BooleanField(default=False)
     priority = models.IntegerField(null=True, blank=True)
@@ -1192,7 +1203,7 @@ class DataType(models.Model):
 
 class DataManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().select_related('kind')
+        return super().get_queryset().select_related('kind', 'project')
 
 
 class Data(ActiveStatusMixin):
@@ -1278,6 +1289,8 @@ class AnalysisReport(ActiveStatusMixin):
     data = models.ManyToManyField(Data, blank=True, related_name="reports")
     url = models.CharField(max_length=200)
     details = JSONField(default=[])
+
+    objects = ProjectObjectManager()
 
     class Meta:
         ordering = ['-score']

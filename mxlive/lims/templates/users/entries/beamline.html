@@ -36,7 +36,7 @@
     <a href="{% url "beamline-history" pk=object.pk %}">
         {% show_icon label='Sessions' icon='ti ti-md ti-time' %}
     </a>
-    <a href="#!" data-link="{% url "dewar-edit" pk=object.active_dewar.pk %}">
+    <a href="#!" data-form-link="{% url "dewar-edit" pk=object.active_dewar.pk %}">
         {% show_icon label='Comment' icon='ti ti-md ti-comment-alt' %}
     </a>
 {% endblock %}
@@ -53,9 +53,7 @@
                 <small class="text-muted text-condensed">Energy Range:</small><br>
                 {{ object.energy_lo }} - {{ object.energy_hi }}
             </div>
-            <div class="col-3 col-sm-4 pull-right text-right">
-                <small class="text-muted text-condensed">Staff Comments:</small><br>
-                {{ object.active_dewar.staff_comments|safe }}
+            <div class="col">
             </div>
         </div>
     </div>
@@ -72,6 +70,7 @@
                 {% include "users/entries/loaded.html" %}
             </div>
         </div>
+        {% include "users/comments.html" with object=automounter.dewar %}
     {% endwith %}
 {% endblock %}
 

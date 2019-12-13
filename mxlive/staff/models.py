@@ -29,6 +29,7 @@ class Announcement(StaffBaseClass):
     description = models.TextField(blank=True)
     priority = models.IntegerField(blank=True)
     attachment = models.FileField(blank=True, upload_to=get_storage_path)
+    staff_only = models.BooleanField(default=False)
     url = models.CharField(max_length=200, blank=True)
 
     def has_document(self):

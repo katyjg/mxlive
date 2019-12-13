@@ -8,7 +8,7 @@ $form-grid-gutter-width: .75*$grid-gutter-width !default;
 //$grid-gutter-width: 1rem !default;
 //$spacer: 0.5 * $grid-gutter-width !default;
 $theme-colors: (
-        "primary": #4f0e50,
+        "primary": #400d41,
         "secondary": #868e96,
         "success": #28a745,
         "danger": #dc3545,
@@ -73,8 +73,8 @@ $mono-font: "Fira Code";
 
 $min_width: 300px;
 $max_width: 1200px;
-$min_font: 10px;
-$max_font: 15px;
+$min_font: 9px;
+$max_font: 14px;
 
 :root {
   --gray-alpha: #{$gray-alpha};
@@ -310,7 +310,7 @@ a.navbar-brand {
     padding: 0 0.125em;
   }
 
-  &:empty {
+  &:empty, &:blank, &:-moz-only-whitespace {
     display: none;
   }
 
@@ -1500,6 +1500,21 @@ tr.sample-completed {
 
 .attention {
     animation: glow 1s infinite alternate;
+}
+
+.accordion {
+  [aria-expanded]:after {
+    font-family: "Themify";
+    float: right;
+    opacity: 0.5;
+  }
+  [aria-expanded="false"]:after {
+    content: "\e649";
+  }
+  [aria-expanded="true"]:after {
+    content: "\e64b";
+  }
+
 }
 
 @keyframes glow {

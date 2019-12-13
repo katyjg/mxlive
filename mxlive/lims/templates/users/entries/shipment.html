@@ -72,7 +72,7 @@
                 </div>
             {% endif %}
 
-            {% ifequal shipment.status shipment.STATES.DRAFT %}
+            {% if shipment.status == shipment.STATES.DRAFT %}
                 <div class="col">
                     <small class="text-muted text-condensed">Ready to Ship:</small><br>
                     {{ shipment.shipping_errors|yesno:"No,Yes" }}
@@ -86,8 +86,8 @@
                                 title="Track with {{ shipment.carrier }}">{{ shipment.tracking_code }}</a>]
                         {% endif %}
                     </div>
-                {% endif %}{% endifequal %}
-
+                {% endif %}
+            {% endif%}
             {% if shipment.status >= shipment.STATES.RETURNED %}
                 <div class="col">
                     {% if shipment.status < shipment.STATES.RETURNED %}

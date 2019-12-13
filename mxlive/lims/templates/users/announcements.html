@@ -1,33 +1,68 @@
 {% load icons %}
-<div class="list-group">
+
+<div class="accordion" id="guide-accordion">
+    <div class="card">
+        <div class="card-header p-1 text-center text-wide text-muted"><small>USER GUIDE</small></div>
+    </div>
     {% for a in announcements %}
-        <div class="list-group-item">
-            {% if request.user.is_superuser or a.has_document %}
-                <span class="tools-box float-right">
-                    {% if a.has_document %}<a href="{{ a.attachment.url }}" title="Download File"><i class="ti ti-download"></i></a>{% endif %}
-                    {% if request.user.is_superuser %}
-                        <a href="#!" data-link="{% url "announcement-edit" a.pk %}" title="Edit Announcement" style="padding-left: 0; padding-right: 0;">
+        {% if a.staff_only and not user.is_superuser %}
+        {% else %}
+        <div class="card">
+            <div class="card-header overflow-ellipsis py-2" id="heading-{{ forloop.counter }}">
+                <a href="#!" class="m-0 p-0" data-toggle="collapse"
+                   data-target="#collapse-{{ forloop.counter }}"
+                   aria-expanded="false"
+                   aria-controls="collapse-{{ forloop.counter }}"
+                >
+                    <i class="ti ti-sm ti-agenda text-muted"></i>
+                    &nbsp; {{ a.title }}
+                </a>
+            </div>
+
+            <div id="collapse-{{ forloop.counter }}" class="collapse" aria-labelledby="heading-{{ forloop.counter }}"
+                 data-parent="#guide-accordion">
+                <div class="card-body">
+                    <h5 class="text-condensed pb-4">
+                        <strong>
+                            {% if a.url %}
+                                <a href="{{ a.url }}" target="_blank">{{ a.title }}</a>
+                            {% else %}
+                                <span class="text-muted">{{ a.title }}</span>
+                            {% endif %}
+                        </strong>
+                    </h5>
+                    {% if a.has_image %}
+                        <img style="max-width: 100%;" src="{{ a.attachment.url }}"/>
+                    {% endif %}
+                    <span class="text-condensed">{{ a.description }}</span>
+
+                    {% if request.user.is_superuser or a.has_document %}
+                        <span class="tools-box float-right">
+                    {% if a.has_document %}<a href="{{ a.attachment.url }}" title="Download File"><i
+                            class="ti ti-download"></i></a>{% endif %}
+                            {% if request.user.is_superuser %}
+                                <a href="#!" data-link="{% url "announcement-edit" a.pk %}" title="Edit Announcement"
+                                   style="padding-left: 0; padding-right: 0;">
                             {% show_icon icon='ti ti-md ti-pencil' %}
                         </a>
-                        <a href="#!" data-link="{% url "announcement-delete" a.pk %}" title="Delete Announcement">
+                                <a href="#!" data-link="{% url "announcement-delete" a.pk %}"
+                                   title="Delete Announcement">
                             {% show_icon icon='ti ti-md ti-trash' %}
                         </a>
-                    {% endif %}
+                            {% endif %}
                 </span>
-            {% endif %}
-            <h5 class="text-condensed pb-4">
-                <strong>
-                    {% if a.url %}
-                        <a href="{{ a.url }}" target="_blank">{{ a.title }}</a>
-                    {% else %}
-                        <span class="text-muted">{{ a.title }}</span>
                     {% endif %}
-                </strong>
-            </h5>
-            {% if a.has_image %}
-                    <img style="max-width: 100%;" src="{{ a.attachment.url }}" />
-            {% endif %}
-            <span class="text-condensed">{{ a.description }}</span>
+                </div>
+            </div>
         </div>
+        {% endif %}
     {% endfor %}
 </div>
+
+<script>
+    $(document).ready(function () {
+        $(".accordion [data-toggle]").mouseover(function () {
+            $(this).trigger("click");
+        });
+    });
+</script>
