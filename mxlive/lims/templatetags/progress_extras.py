@@ -22,7 +22,6 @@ def group_parameters(group):
         None if not group.energy else '{:0.3f} keV'.format(group.energy),
         None if not group.absorption_edge else group.absorption_edge,
     ]
-    print(parameters)
     return ", ".join(filter(None, parameters))
 
 

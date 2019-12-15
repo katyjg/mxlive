@@ -8,16 +8,16 @@
         {% if a.staff_only and not user.is_superuser %}
         {% else %}
         <div class="card">
-            <div class="card-header overflow-ellipsis py-2" id="heading-{{ forloop.counter }}">
-                <a href="#!" class="m-0 p-0" data-toggle="collapse"
-                   data-target="#collapse-{{ forloop.counter }}"
-                   aria-expanded="false"
-                   aria-controls="collapse-{{ forloop.counter }}"
-                >
-                    <i class="ti ti-sm ti-agenda text-muted"></i>
-                    &nbsp; {{ a.title }}
-                </a>
-            </div>
+            <a href="#!" data-toggle="collapse"
+               data-target="#collapse-{{ forloop.counter }}"
+               aria-expanded="false"
+               aria-controls="collapse-{{ forloop.counter }}"
+               class="card-header overflow-ellipsis py-2"
+               id="heading-{{ forloop.counter }}"
+            >
+                <i class="ti ti-sm ti-agenda text-muted"></i>
+                &nbsp; {{ a.title }}
+            </a>
 
             <div id="collapse-{{ forloop.counter }}" class="collapse" aria-labelledby="heading-{{ forloop.counter }}"
                  data-parent="#guide-accordion">
@@ -60,9 +60,11 @@
 </div>
 
 <script>
+    /*
     $(document).ready(function () {
         $(".accordion [data-toggle]").mouseover(function () {
             $(this).trigger("click");
         });
     });
+    */
 </script>

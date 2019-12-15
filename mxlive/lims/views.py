@@ -635,7 +635,7 @@ class GroupList(ListViewMixin, ItemListView):
 
 
 def movable(val, record):
-    return "<span class='cursor'><i class='movable fa fa-fw fa-1x fa-grip'></i> {}</span>".format(val or "")
+    return "<span class='cursor'><i class='movable ti ti-move'></i> {}</span>".format(val or "")
 
 
 class GroupDetail(DetailListMixin, SampleList):
@@ -936,12 +936,20 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
 
     @transaction.atomic
     def done(self, form_list, **kwargs):
-
+        project = None
         for label, form in kwargs['form_dict'].items():
             if label == 'shipment':
                 data = form.cleaned_data
-                project = self.request.user.is_superuser and data.get('project') or self.request.user
-                data.update({'project': project})
+                if self.request.user.is_superuser:
+                    data.update({
+                        'project': data.get('project'),
+                        'staff_comments': 'Created by staff!'
+                    })
+                else:
+                    data.update({
+                        'project': self.request.user
+                    })
+                project = data['project']
                 self.shipment, created = models.Shipment.objects.get_or_create(**data)
             elif label == 'containers':
                 for i, name in enumerate(form.cleaned_data['name_set']):
@@ -953,19 +961,36 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                     }
                     container, created = models.Container.objects.get_or_create(**data)
             elif label == 'groups':
-                for i, name in enumerate(form.cleaned_data['name_set']):
-                    if name:
-                        data = {field: form.cleaned_data['{}_set'.format(field)][i]
-                                for field in ['name', 'kind', 'comments', 'plan', 'absorption_edge']}
-                        data.update({
-                            'resolution': form.cleaned_data.get('resolution_set') and
-                                          form.cleaned_data['resolution_set'][i] and float(
-                                form.cleaned_data['resolution_set'][i]) or None,
-                            'shipment': self.shipment,
-                            'project': project,
-                            'priority': i + 1
-                        })
-                        group, created = models.Group.objects.get_or_create(**data)
+                if self.request.POST.get('submit') == 'Fill':
+                    for i, container in enumerate(self.shipment.containers.all()):
+                        group = self.shipment.groups.create(name=container.name, project=project, priority=(i+1))
+                        group_samples = [
+                            models.Sample(
+                                name='{}_{}'.format(group.name, j+1), group=group, project=project, container=container,
+                                location=location
+                            )
+                            for j, location in enumerate(container.kind.locations.all())
+                        ]
+                        models.Sample.objects.bulk_create(group_samples)
+                else:
+                    for i, name in enumerate(form.cleaned_data['name_set']):
+                        if name:
+                            data = {
+                                field: form.cleaned_data['{}_set'.format(field)][i]
+                                for field in ['name', 'kind', 'comments', 'plan', 'absorption_edge']
+                            }
+                            data.update({
+                                'resolution': None if not form.cleaned_data.get('resolution_set') else float(form.cleaned_data['resolution_set'][i]),
+                                'shipment': self.shipment,
+                                'project': project,
+                                'priority': i + 1
+                            })
+                            group, created = models.Group.objects.get_or_create(**data)
+
+        # Staff created shipments should be sent and received automatically.
+        if self.request.user.is_superuser:
+            self.shipment.send()
+            self.shipment.receive()
         return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': self.shipment.pk})})
 
 

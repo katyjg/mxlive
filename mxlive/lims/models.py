@@ -258,6 +258,9 @@ class Session(models.Model):
 
     objects = ProjectObjectManager()
 
+    class Meta:
+        ordering = ('-created',)
+
     def __str__(self):
         return '{}-{}'.format(self.project.name.upper(), self.name)
 
@@ -462,12 +465,12 @@ class ProjectObjectMixin(models.Model):
 
 
 class TransitStatusMixin(ProjectObjectMixin):
-    STATUS_CHOICES = (
-        (ProjectObjectMixin.STATES.DRAFT, _('Draft')),
-        (ProjectObjectMixin.STATES.SENT, _('Sent')),
-        (ProjectObjectMixin.STATES.ON_SITE, _('On-site')),
-        (ProjectObjectMixin.STATES.RETURNED, _('Returned')),
-        (ProjectObjectMixin.STATES.ARCHIVED, _('Archived'))
+    STATUS_CHOICES = Choices(
+        (ProjectObjectMixin.STATES.DRAFT, 'DRAFT', _('Draft')),
+        (ProjectObjectMixin.STATES.SENT, 'SENT', _('Sent')),
+        (ProjectObjectMixin.STATES.ON_SITE, 'ON_SITE', _('On-site')),
+        (ProjectObjectMixin.STATES.RETURNED, 'RETURNED', _('Returned')),
+        (ProjectObjectMixin.STATES.ARCHIVED, 'ARCHIVED', _('Archived'))
     )
     status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectObjectMixin.STATES.DRAFT)
 

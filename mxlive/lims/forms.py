@@ -297,7 +297,6 @@ class SampleAdminForm(forms.ModelForm):
             collect_status = not collect_status
         cleaned_data = super().clean()
         cleaned_data['collect_status'] = collect_status
-        print(self.instance, self.instance.collect_status, collect_status)
         return cleaned_data
 
 
@@ -601,7 +600,6 @@ class ContainerLoadForm(forms.ModelForm):
         if self.data.get('submit') == 'Unload':
             self.cleaned_data.update({'location': None})
         else:
-            print("CLEANED", self.cleaned_data, self.instance)
             if self.cleaned_data['location']:
                 loc_filled = self.cleaned_data['parent'].children.exclude(pk=self.instance.pk).filter(
                     location=self.cleaned_data['location']).exists()
@@ -705,8 +703,13 @@ class AddShipmentForm(forms.ModelForm):
         self.body.layout = Layout(
             Div(
                 Div(
-                    HTML("""<h4>Give your shipment a name!</h4>"""),
-                    HTML("""<small>This name will be visible to you and staff at the beamline.</small>"""),
+                    Div(
+                        HTML(
+                            'A default name has been chosen for your shipment. You can modify it as needed. This name '
+                            'will be visible to staff at the beamline.'
+                        ),
+                        css_class="text-condensed mb-1"
+                    ),
                     name_row,
                     Field('comments', rows="2", css_class="col-12"),
                     css_class="col-12"
@@ -806,16 +809,20 @@ class ShipmentContainerForm(forms.ModelForm):
         if self.initial.get('shipment'):
             return Div(
                 HTML(
-                    'Use names that are visible on your containers. '
-                    '<strong class="text-danger">Removing a container will remove the samples inside</strong>'
-                )
+                    '<h5 class="my-0"><strong>Update containers</strong></h5>'
+                    'Use labels that are visible on your containers. <span class="text-danger">Removing a container '
+                    'will delete all its contents.</strong>'
+                ),
+                css_class="text-condensed mb-1"
             )
         else:
             return Div(
                 HTML(
-                    '<h4>Add the containers you are bringing!</h4>'
-                    '<p>Use labels that are visible on your containers. You can always add more containers later.</p>'
-                )
+                    '<h5 class="my-0"><strong>Add the containers you are sending!</strong></h5>'
+                    'To avoid confusion, use labels that are externally visible on your containers. It is possible to '
+                    'add more containers later.'
+                ),
+                css_class="text-condensed mb-1"
             )
 
     def clean(self):
@@ -850,6 +857,8 @@ class ShipmentGroupForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ShipmentGroupForm, self).__init__(*args, **kwargs)
+        self.fields['name'].required = False
+        self.fields['plan'].required = False
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
         self.footer.layout = Layout()
@@ -873,8 +882,12 @@ class ShipmentGroupForm(forms.ModelForm):
             self.body.form_action = reverse_lazy('shipment-add-groups', kwargs={'pk': self.initial['shipment'].pk})
         else:
             self.footer.layout.append(
-                StrictButton('Finish', type='submit', name="submit", value='Finish', css_class='btn btn-primary')
+                StrictButton('Fill Containers', type='submit', name="submit", value='Fill', css_class='mr-auto btn btn-warning'),
             )
+            self.footer.layout.append(
+                StrictButton('Finish', type='submit', name="submit", value='Finish', css_class='btn btn-primary'),
+            )
+
 
         self.body.layout = Layout(
             self.help_text(),
@@ -927,7 +940,7 @@ class ShipmentGroupForm(forms.ModelForm):
                     ),
                     Div(
                         StrictButton(
-                            "<i class='ti ti-plus'></i> Add Container", type="button",
+                            "<i class='ti ti-plus'></i> Add Group", type="button",
                             css_class='btn btn-sm btn-success add'
                         ),
                         css_class="col-12 mt-2"
@@ -940,14 +953,23 @@ class ShipmentGroupForm(forms.ModelForm):
 
     def help_text(self):
         if self.initial.get('shipment'):
-            return HTML(
-                'Update sample groups: '
-                '<span class="text-danger">Removing a group will also remove any samples in the group</span>'
+            return Div(
+                HTML(
+                    '<h5 class="my-0"><strong>Update Groups</strong></h5>'
+                    'Samples in new groups can be added later using the <i class="ti ti-paint-bucket"></i> tool. '
+                    '<span class="text-danger">Removing a group will also remove any samples in the group</span>'
+                ),
+                css_class="text-condensed mb-1"
             )
         else:
-            return HTML(
-                'Add Sample Groups: '
-                '<span>Group similar samples together. You can add more groups later.</span>'
+            return Div(
+                HTML(
+                    '<h5 class="my-0"><strong>Add Groups</strong></h5>'
+                    'Specify groups for similar samples. Use the <i class="ti ti-paint-bucket"></i> tool to add samples'
+                    'later. "Fill Containers" to auto-create one group per container filled with samples ignoring '
+                    'the groups defined below.'
+                ),
+                css_class="text-condensed mb-1"
             )
 
     def clean(self):

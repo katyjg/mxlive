@@ -99,6 +99,10 @@ body {
   min-height: calc(100vh - 51px - 2rem);
 }
 
+a {
+   outline: 0;
+}
+
 header > nav {
   background-color: var(--primary) !important;
   max-height: 51px !important;
