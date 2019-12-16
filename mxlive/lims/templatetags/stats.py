@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 from datetime import datetime
 from mxlive.lims.models import *
 from mxlive.staff.models import UserCategory
+from memoize import memoize
 from .converter import humanize_duration
 
 import json
@@ -15,17 +16,34 @@ GRAY_SCALE = ["#000000", "#555555", "#888888", "#cccccc", "#eeeeee"]
 SHIFT = getattr(settings, "SHIFT_LENGTH", 8)
 
 
+@memoize(timeout=3600)
+def get_data_years():
+    return sorted(Data.objects.values_list("created__year", flat=True).distinct())
+
+
 @register.simple_tag(takes_context=False)
 def get_data_stats(bl, year):
+
     data = bl.datasets.all()
-    years = sorted({v['created'].year for v in Data.objects.values("created").order_by("created").distinct()})
-    kinds = [k for k in DataType.objects.all() if data.filter(kind=k).exists()]
-    yrs = [{'Year': yr} for yr in years]
-    for yr in yrs:
-        yr.update({k.name: data.filter(created__year=yr['Year'], kind=k).count() for k in kinds})
-    yearly = [[k.name] + [data.filter(created__year=yr, kind=k).count() for yr in years] +
-              [data.filter(kind=k).count()] for k in kinds]
-    totals = [['Total'] + [data.filter(created__year=yr).count() for yr in years] + [data.count()]]
+    years = get_data_years()
+    kinds = list(DataType.objects.annotate(count=Count('datasets')).filter(count__gt=0))
+    yearly_info = defaultdict(lambda: defaultdict(int))
+
+    for summary in Data.objects.values('created__year', 'kind__name').annotate(count=Count('pk')):
+        yearly_info[summary['created__year']][summary['kind__name']] = summary['count']
+    yearly = []
+    for k in kinds:
+        kind_counts = [yearly_info[yr][k.name] for yr in years]
+        yearly.append([k.name] + kind_counts + [sum(kind_counts)])
+    year_counts = [sum(yearly_info[yr].values()) for yr in years]
+    yearly.append(['Total'] + year_counts + [sum(year_counts)])
+    histogram_data = []
+
+    for year, counts in yearly_info.items():
+        series = {'Year': year}
+        series.update(counts)
+        histogram_data.append(series)
+
     data = data.filter(created__year=year)
     stats = {'details': [
         {
@@ -36,7 +54,7 @@ def get_data_stats(bl, year):
                 {
                     'title': '',
                     'kind': 'table',
-                    'data': [[''] + years + ['All']] + yearly + totals,
+                    'data': [[''] + years + ['All']] + yearly,
                     'header': 'row',
                     'style': 'col-12'
                 },
@@ -45,7 +63,7 @@ def get_data_stats(bl, year):
                     'kind': 'histogram',
                     'data': {
                         'x-label': 'Year',
-                        'data': yrs,
+                        'data': histogram_data,
                     },
                     'style': 'col-12'
                 }
@@ -143,9 +161,8 @@ def samples_per_hour_percentile(category, user):
 def get_project_stats(user):
     data = user.datasets.all()
     stats = {}
+    years = get_data_years()
 
-
-    years = sorted({v['created'].year for v in Data.objects.values("created").order_by("created").distinct()})
     kinds = [k for k in DataType.objects.all() if data.filter(kind=k).exists()]
     yrs = [{'Year': yr} for yr in years]
     for yr in yrs:
@@ -467,6 +484,7 @@ def get_session_stats(data, session):
                     'data': [
                         ['Shutter Open', "{} ({:.2f}%)".format(humanize_duration(hours=shutters), shutters * 100 / session.total_time() if session.total_time() else 0 )],
                         ['Last Dataset', data.last() and datetime.strftime(timezone.localtime(data.last().modified), '%c') or ''],
+                        ['No. of Logins',  session.stretches.count()],
                     ] + data_stats,
                     'header': 'column',
                     'style': 'col-4',
