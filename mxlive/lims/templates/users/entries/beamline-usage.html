@@ -16,14 +16,12 @@
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
-            <div class="col-1">
-                Yearly Statistics:
-            </div>
-            <div class="col-11">
+            <h4 class="col-11">
+                Year:
                 {% for yr in object|get_years %}
                     <a href="{% url "usage-yearly-statistics" object.pk yr %}"><span class="badge badge-info">{{ yr }}</span></a>&nbsp;
                 {% endfor %}
-            </div>
+            </h4>
         </div>
     </div>
 {% endblock %}

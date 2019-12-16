@@ -159,10 +159,9 @@ function drawStackChart(data, label, canvasStackChart, colorStackChart, xStackCh
         .call(d3.axisBottom(xStackChart))
         .selectAll("text")
         .attr("y", 10)
-        .attr("x", -10)
+        .attr("x", 0)
         .attr("dy", ".35em")
-        .attr("transform", "rotate(-45)")
-        .style("text-anchor", "end");
+        .style("text-anchor", "middle");
 
     var state = canvasStackChart.selectAll("."+label+"")
         .data(data)
@@ -351,8 +350,9 @@ function draw_xy_chart() {
                 innerheight = height - margin.top - margin.bottom;
 
             var svg = d3.select(this)
-                .attr("width", width)
-                .attr("height", height)
+                .attr("viewBox", "0 0 "+ width + " " + height)
+                //.attr("width", width)
+                //.attr("height", height)
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -878,16 +878,16 @@ function draw_xy_chart() {
 function build_report(selector, report) {
     var converter = new showdown.Converter();
     $.each(report['details'], function (i, section) {
-        var section_box = $(selector).append('<section class="container" id="section-' + i + '"></section>').children(":last-child");
+        var section_box = $(selector).append('<section id="section-' + i + '"></section>').children(":last-child");
         if (section['title']) {
-            section_box.append("<div class='col-12'><h3 class='section-title' >" + section['title'] + "</h3></div>");
+            section_box.append("<h3 class='col-12 section-title' >" + section['title'] + "</h3>");
         }
-        section_box.addClass(section['style'] || '');
+        section_box.addClass(section['style'] || 'col-12');
         if (section['description']) {
             section_box.append("<div class='col-12'>" + converter.makeHtml(section['description']) + "</div>");
         }
         $.each(section['content'], function (j, entry) {
-            var entry_row = section_box.append("<div class='col-12' id='entry-" + i + "-" + j + "'></div>").children(":last-child");
+            var entry_row = section_box.append("<div id='entry-" + i + "-" + j + "'></div>").children(":last-child");
             entry_row.addClass(entry['style'] || '');
             if (entry['title']) {
                 if (!entry['kind']) {
@@ -938,11 +938,12 @@ function build_report(selector, report) {
 
                 var x = d3.scaleBand().range([0, width]).padding(0.1);
                 var y = d3.scaleLinear().range([height, 0]);
-                var colors = d3.scaleOrdinal(entry['data']['colors'] || ["#883A6A", "#C27844", "#551863", "#CBEFB6", "#5BC0DE"])
+                var colors = d3.scaleOrdinal(entry['data']['colors'] || d3.schemeTableau10);
 
                 var canvas = d3.select('#figure-' + i + '-' + j).append("svg").attr('id', 'plot-' + i + "-" + j)
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
+                    .attr("viewBox", "0 0 "+ (width + margin.left + margin.right) + " " + (height + margin.top + margin.bottom))
+                    //.attr("width", width + margin.left + margin.right)
+                    //.attr("height", height + margin.top + margin.bottom)
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 

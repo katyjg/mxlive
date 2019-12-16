@@ -6,7 +6,7 @@
 {% load tz %}
 
 {% block object_tools %}
-    <a class="pull-right" data-link="{% url "session-history" object.pk %}">
+    <a href="#!" class="pull-right" data-link="{% url "session-history" object.pk %}">
         {% show_icon label='History' icon='ti ti-md ti-timer' %}
     </a>
 {% endblock %}
@@ -18,114 +18,62 @@
 </div>
 <div class="row">
     <div class="col-12">
-        <section class="container col-12">
-            <div class="col-12">
-                <h3 class="section-title">{{ object.start|date }} {% if object.is_active %}to {% now "N j, Y"%}{% else %}{% ifnotequal object.start|date object.end|date %}to {{ object.end|date }}{% endifnotequal %}{% endif %}</h3>
-            </div>
-            <div class="col-12">
-                <p>
-                    <span class="label" style="background-color: rgb(174,199,232);">Session Open</span>
-                    <span class="label" style="background-color: rgb(31,119,180);">Data Collection</span>
-                </p>
-                <div id="timeline" data-toggle="tooltip" title="Session Timeline"></div>
-            </div>
-        </section>
+        <h4 class="section-title">{{ object.start|date }} {% if object.is_active %}to {% now "N j, Y"%}{% else %}{% ifnotequal object.start|date object.end|date %}to {{ object.end|date }}{% endifnotequal %}{% endif %}</h4>
     </div>
+    <div class="col-12">
+        <h4>
+            <span class="badge" style="background-color: rgb(174,199,232);">Session Open</span>
+            <span class="badge" style="background-color: rgb(31,119,180);">Data Collection</span>
+        </h4>
+        <div id="timeline" data-toggle="tooltip" title="Session Timeline"></div>
+    </div>
+
     {% get_session_gaps object.datasets.all as gaps %}
     {% if gaps %}
-    <div class="col-12">
-        <section class="container col-12">
-            <div class="col-12">
-                <h3 class="section-title">Time Gaps</h3>
-            </div>
-            <div class="col-12">
-                <p>Periods of possible inactivity while the session was open, greater than 10 minutes, </p>
-            </div>
-            <div class="col-12">
-                <table class="table table-hover table-condensed">
-                    <thead>
-                    <tr><th>Start</th><th>End</th><th>Duration</th></tr>
-                    </thead>
-                    <tbody>
-                    {% for gap in gaps %}
-                        <tr><td>{{ gap.0 }}</td><td>{{ gap.1 }}</td><td>{{ gap.2 }}</td></tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </div>
+        <div class="col-12">
+            <h4 class="section-title">Time Gaps</h4>
+        </div>
+        <div class="col-12">
+            <p>Periods of possible inactivity while the session was open, greater than 10 minutes</p>
+        </div>
+        <div class="col-12">
+            <table class="table table-sm">
+                <thead>
+                <tr><th>Start</th><th>End</th><th>Duration</th></tr>
+                </thead>
+                <tbody>
+                {% for gap in gaps %}
+                    <tr><td>{{ gap.0 }}</td><td>{{ gap.1 }}</td><td>{{ gap.2 }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     {% endif %}
 </div>
 
 
 <link href="{% static "css/reports.css" %}" rel="stylesheet">
 
-<script type="text/javascript" src="{% static "libs/d3/dist/d3.min.js" %}"></script>
-<script type="text/javascript" src="{% static "js/d3.legend.js" %}"></script>
+<script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
 <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/mxlive-reports.min.js" %}"></script>
 <style> /* set the CSS */
-
 .indicator, .indicator-box {
   position: absolute;
 }
-
 </style>
+
 <script>
     var json = {% get_session_stats object.datasets.all object %};
     build_report('#data-stats', json);
-
-
 </script>
 
 
-<script src="{% static 'js/d3-timeline.js' %}"></script>
+<script src="{% static 'js/d3/d3-timeline.min.js' %}"></script>
 <script>
     var endDate = {{ object.end|date:'U' }}000;
-    var cycleData = [
-        {% for stretch in object.stretches.with_duration %}
-        {
-            times: [{
-                "starting_time": {{ stretch.start|date:'U' }}000,
-                "ending_time": {{ stretch.end|date:'U' }}000,
-                "color": "rgb(174,199,232)"
-            }],
-            hover: "Beamline Stretch ({{ stretch.duration }})"
-        },
-        {% endfor %}
-        {% if object.is_active %}
-            {
-                times: [{
-                    "starting_time": {{ object.stretches.first.start|date:'U' }}000,
-                    "ending_time": {% now "U" %}000,
-                    "color": "rgb(174, 199, 232)"
-                }],
-                hover: "Active Beamline Stretch"
-            },
-        {% endif %}
-        {% for data in object.datasets %}
-            {
-                times: [{
-                    "starting_time": {{ data|started|date:'U' }}000,
-                    "ending_time": {{ data.created|date:'U' }}000,
-                    "y": {{ data.num_frames }},
-                    "color": "rgb(31,119,180)"
-                }],
-                hover: "{{ data.get_kind_display }} | {{ data }}"
-            },
-        {% endfor %}
-        {% if object.due_date %}
-            {
-                times: [{
-                    "starting_time": {{ object.due_date|date:'U' }}000,
-                    "display": "circle",
-                    "color": "rgb(31,119,180)"
-                }],
-                hover: "Reviews Due {{ object.due_date|date:'D, M j' }}"
-            },
-        {% endif %}
-    ];
+    var cycleData = {{ object | get_data_timeline | safe }};
 
     function cycleTimeline() {
         var chart = d3.timeline()
@@ -182,5 +130,7 @@
     }
     cycleTimeline();
 </script>
+{% comment %}
+{% endcomment %}
 
 {% endblock %}

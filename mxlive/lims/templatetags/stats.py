@@ -1,3 +1,4 @@
+from collections import defaultdict
 from django import template
 from django.utils.safestring import mark_safe
 from datetime import datetime
@@ -30,14 +31,14 @@ def get_data_stats(bl, year):
         {
             'title': '{} Summary'.format(bl.acronym),
             'description': 'Data Collection Summary for {}'.format(bl.name),
-            'style': "col-12",
+            'style': "row",
             'content': [
                 {
                     'title': '',
                     'kind': 'table',
                     'data': [[''] + years + ['All']] + yearly + totals,
                     'header': 'row',
-                    'style': 'col-sm-8'
+                    'style': 'col-12'
                 },
                 {
                     'title': '',
@@ -46,52 +47,52 @@ def get_data_stats(bl, year):
                         'x-label': 'Year',
                         'data': yrs,
                     },
-                    'style': 'col-sm-4'
+                    'style': 'col-12'
                 }
             ]
         },
         {
             'title': '{} Beamline Parameters'.format(year),
             'description': 'Data Collection Parameters Summary',
-            'style': 'col-12',
+            'style': 'row',
             'content': [
-                           {
-                               'title': 'Attenuation vs. Exposure Time',
-                               'kind': 'scatterplot',
-                               'data':
-                                   {'x': ['Exposure Time (s)'] + [d for d in
-                                                                  data.values_list('exposure_time', flat=True)],
-                                    'y1': [
-                                        ['Attenuation (%)'] + [d for d in data.values_list('attenuation', flat=True)]],
-                                    'x-scale': 'log'},
-                               'style': 'col-8'
-                           } if data.count() else {},
-                           {
-                               'title': 'Beam Size',
-                               'kind': 'pie',
-                               'data': [
-                                   {'label': "{}".format(d),
-                                    'value': 360 * data.filter(beam_size=d).count() / data.count(),
-                                    'color': COLOR_SCHEME[i]}
-                                   for i, d in enumerate(data.values_list('beam_size', flat=True).distinct())
-                                   ],
-                               'style': 'col-4'
-                           } if data.count() else {},
-                       ]
+                   {
+                       'title': 'Attenuation vs. Exposure Time',
+                       'kind': 'scatterplot',
+                       'data':
+                           {'x': ['Exposure Time (s)'] + [d for d in
+                                                          data.values_list('exposure_time', flat=True)],
+                            'y1': [
+                                ['Attenuation (%)'] + [d for d in data.values_list('attenuation', flat=True)]],
+                            'x-scale': 'log'},
+                       'style': 'col-12 col-md-6'
+                   } if data.count() else {},
+                   {
+                       'title': 'Beam Size',
+                       'kind': 'pie',
+                       'data': [
+                           {'label': "{}".format(d),
+                            'value': 360 * data.filter(beam_size=d).count() / data.count(),
+                            'color': COLOR_SCHEME[i]}
+                           for i, d in enumerate(data.values_list('beam_size', flat=True).distinct())
+                           ],
+                       'style': 'col-12 col-md-6'
+                   } if data.count() else {},
+            ]
         },
         {
             'title': '',
-            'style': 'col-12',
+            'style': 'row',
             'content': [
-                            {
-                                'title': e.title(),
-                                'kind': 'barchart',
-                                'data': {
-                                    'data': [float(d) for d in data.values_list(e, flat=True) if d != None],
-                                    'color': [COLOR_SCHEME[i + 1]]
-                                },
-                                'style': 'col-6 col-sm-4'
-                            } for i, e in enumerate(['energy', 'exposure_time', 'attenuation'])] if data.count() else []
+                {
+                    'title': e.title(),
+                    'kind': 'barchart',
+                    'data': {
+                        'data': [float(d) for d in data.values_list(e, flat=True) if d != None],
+                        'color': [COLOR_SCHEME[i + 1]]
+                    },
+                    'style': 'col-6 col-sm-4'
+                } for i, e in enumerate(['energy', 'exposure_time', 'attenuation'])] if data.count() else []
         }
     ]}
     return mark_safe(json.dumps(stats))
@@ -240,7 +241,7 @@ def get_beamline_usage(bl):
     stats = {'details': [
         {
             'title': 'Usage Metrics',
-            'style': 'col-12',
+            'style': 'row',
             'content': [
                 {
                     'title': 'Usage Statistics',
@@ -255,7 +256,7 @@ def get_beamline_usage(bl):
                         ['Average Exposure Time (s)'] + data_duration,
                         ['Time (h)/ Dataset'] + data_time
                     ],
-                    'style': 'col-sm-6',
+                    'style': 'col-12',
                     'header': 'column',
                     'description': 'Total time is the number of hours an active session was running on the beamline.'
                 },
@@ -264,7 +265,7 @@ def get_beamline_usage(bl):
                     'kind': 'histogram',
                     'data': {
                         'x-label': 'Year',
-                        'colors': COLOR_SCHEME,
+                        #'colors': COLOR_SCHEME,
                         'data': [{'Year': years[i],
                                   'Samples': samples[i],
                                   'Datasets': full_data_count[i],
@@ -272,7 +273,7 @@ def get_beamline_usage(bl):
                                   } for i, _ in enumerate(years)
                                  ]
                     },
-                    'style': 'col-sm-6'
+                    'style': 'col-12 col-md-6'
                 },
                 {
                     'title': 'Productivity',
@@ -285,9 +286,12 @@ def get_beamline_usage(bl):
                             'x-scale': 'time',
                             'time-format': "%Y"
                         },
-                    'style': 'col-sm-12',
-                    'description': """Datasets / Shift is the average number of datasets collected per shift (or part of a shift) used on the beamline.                                    
-                                      Time / Dataset (h) is average time in hours to collect one full dataset."""
+                    'style': 'col-12 col-md-6',
+                    'notes': (
+                         "Datasets / Shift is the average number of datasets collected per shift "
+                         "(or part of a shift) used on the beamline. Time / Dataset (h) is average time in "
+                         "hours to collect one full dataset."
+                    )
                 }
             ]
         }
@@ -335,7 +339,7 @@ def get_usage_stats(bl, year):
                     'title': 'Total Activity',
                     'kind': 'table',
                     'data': [['Shifts (or parts of shifts) Used', '{} ({})'.format(shifts, humanize_duration(shifts * 8))],
-                             ['Datasets Collected', datasets.filter(kind__contains='DATA').count()],
+                             ['Datasets Collected', datasets.filter(kind__acronym='DATA').count()],
                              ['Shutters Open', humanize_duration(sum([u['shutters']/3600. for u in data]))],
                              ['Samples Screened', screened],
                              ['Samples Collected', collected]],
@@ -428,33 +432,42 @@ def get_usage_stats(bl, year):
 @register.simple_tag(takes_context=False)
 def get_session_stats(data, session):
     shutters = sum([d.exposure_time * d.num_frames() for d in data.all()]) / 3600.
+    data_counts = [
+        [count['key'], count['value']] for count in session.datasets.values(key=F('kind__name')).annotate(value=Count('id'))
+    ]
+    frame_stats = defaultdict(list)
+    for info in session.datasets.values(key=F('kind__name')).values('key', 'frames'):
+        size = len(info.get('frames', []))
+        if size:
+            frame_stats[info['key']].append(size)
+    data_stats = [
+        ['Avg Frames/{}'.format(key), '{:0.0f}'.format(sum(sizes)/len(sizes))]
+        for key, sizes in frame_stats.items() if sizes
+    ]
     stats = {'details': [
         {
-            'title': 'Beamline Control Statistics',
+            'title': 'Session Statistics',
             'description': 'Data Collection Summary',
-            'style': "col-12",
+            'style': "row",
             'content': [
                 {
                     'title': '',
                     'kind': 'table',
-                    'data': [['Total Time', humanize_duration(session.total_time())],
-                             ['First Login', session.stretches.last() and datetime.strftime(timezone.localtime(session.start()), '%B %d, %Y %H:%M') or ''],
-                             ['Datasets', data.filter(kind="MX_DATA").count()],
-                             ['Screens', data.filter(kind="MX_SCREEN").count()],
-                             ['Samples', session.samples().count()]
-                             ],
+                    'data': [
+                        ['Total Time', humanize_duration(session.total_time())],
+                        ['First Login', session.stretches.last() and datetime.strftime(timezone.localtime(session.start()), '%B %d, %Y %H:%M') or ''],
+                        ['Samples', session.samples().count()]
+                    ] + data_counts,
                     'header': 'column',
                     'style': 'col-4',
                 },
                 {
                     'title': '',
                     'kind': 'table',
-                    'data': [['Shutter Open', "{} ({:.2f}%)".format(humanize_duration(hours=shutters), shutters * 100 / session.total_time() if session.total_time() else 0 )],
-                             ['Last Dataset', data.last() and datetime.strftime(timezone.localtime(data.last().modified), '%c') or ''],
-                             ['Avg Frames/Dataset', sum([len(d.frames) for d in data.filter(kind="MX_DATA")]) / data.filter(
-                                  kind__acronym="DATA").count() if data.filter(kind__acronym="DATA").count() else 0],
-                             ['Avg Frames/Screen', sum([len(d.frames) for d in data.filter(kind__acronym="SCREEN")]) / data.filter(
-                                  kind="MX_SCREEN").count() if data.filter(kind__acronym="SCREEN").count() else 0]],
+                    'data': [
+                        ['Shutter Open', "{} ({:.2f}%)".format(humanize_duration(hours=shutters), shutters * 100 / session.total_time() if session.total_time() else 0 )],
+                        ['Last Dataset', data.last() and datetime.strftime(timezone.localtime(data.last().modified), '%c') or ''],
+                    ] + data_stats,
                     'header': 'column',
                     'style': 'col-4',
                 },
@@ -463,51 +476,54 @@ def get_session_stats(data, session):
                     'kind': 'histogram',
                     'data': {
                         'x-label': 'Type',
-                        'data': [{'Type': k, 'val': data.filter(kind=k).count()} for k in
-                                 data.values_list('kind', flat=True).order_by('kind').distinct()],
+                        'data': [
+                            {'Type': row[0], 'val': row[1]}
+                            for row in data_counts],
                     },
                     'style': 'col-4'
                 }
 
             ]
         },
-        {
-            'title': 'Beamline Parameters',
-            'description': 'Data Collection Parameters Summary',
-            'style': 'col-12',
-            'content': [
-                {
-                    'title': 'Attenuation vs. Exposure Time',
-                    'kind': 'scatterplot',
-                    'data':
-                        {'x': ['Exposure Time (s)'] + [d for d in data.values_list('exposure_time', flat=True)],
-                         'y1': [['Attenuation (%)'] + [d for d in data.values_list('attenuation', flat=True)]]},
-                    'style': 'col-9'
-                } if data.count() else {},
-                {
-                    'title': 'Beam Size',
-                    'kind': 'pie',
-                    'data': [
-                        {'label': "{}".format(d),
-                         'value': 360 * data.filter(beam_size=d).count() / data.count(),
-                         'color': COLOR_SCHEME[i]}
-                        for i, d in enumerate(data.values_list('beam_size', flat=True).distinct())
-                        ],
-                    'style': 'col-3'
-                } if data.count() else {},
-            ] + [{
-                'title': e.title(),
-                'kind': 'histogram',
-                'data': {
-                    'x-label': e.title(),
-                    'data': [{e.title(): str(v), 'val': data.filter(**{e: v}).count()}
-                             for v in data.values_list(e, flat=True).order_by(e).distinct() if v != None],
-                    'colors': [COLOR_SCHEME[i+1]]
-                },
-                'style': 'col-4'
-            } for i, e in enumerate(['energy', 'exposure_time', 'attenuation'])] if data.count() else []
-        }
     ]}
+    """
+            ,
+            {
+                'title': 'Beamline Parameters',
+                'description': 'Data Collection Parameters Summary',
+                'style': 'col-12',
+                'content': [
+                    {
+                        'title': 'Attenuation vs. Exposure Time',
+                        'kind': 'scatterplot',
+                        'data':
+                            {'x': ['Exposure Time (s)'] + [d for d in data.values_list('exposure_time', flat=True)],
+                             'y1': [['Attenuation (%)'] + [d for d in data.values_list('attenuation', flat=True)]]},
+                        'style': 'col-9'
+                    } if data.count() else {},
+                    {
+                        'title': 'Beam Size',
+                        'kind': 'pie',
+                        'data': [
+                            {'label': "{}".format(d),
+                             'value': 360 * data.filter(beam_size=d).count() / data.count(),
+                             'color': COLOR_SCHEME[i]}
+                            for i, d in enumerate(data.values_list('beam_size', flat=True).distinct())
+                            ],
+                        'style': 'col-3'
+                    } if data.count() else {},
+                ] + [{
+                    'title': e.title(),
+                    'kind': 'histogram',
+                    'data': {
+                        'x-label': e.title(),
+                        'data': [{e.title(): str(v), 'val': data.filter(**{e: v}).count()}
+                                 for v in data.values_list(e, flat=True).order_by(e).distinct() if v != None],
+                        'colors': [COLOR_SCHEME[i+1]]
+                    },
+                    'style': 'col-4'
+                } for i, e in enumerate(['energy', 'exposure_time', 'attenuation'])] if data.count() else []
+            }"""
     return mark_safe(json.dumps(stats))
 
 
@@ -520,6 +536,37 @@ def get_session_gaps(data):
             gaps.append([data[i].created, started(data[i+1]),
                          humanize_duration((started(data[i+1])-data[i].created).total_seconds()/3600.)])
     return gaps
+
+
+def js_epoch(dt):
+    return int("{:0.0f}000".format(dt.timestamp() if dt else datetime.now().timestamp()))
+
+
+@register.filter(takes_context=False)
+def get_data_timeline(session):
+    timeline = []
+    for stretch in session.stretches.with_duration():
+        timeline.append({
+            "times": [{
+                "starting_time": js_epoch(stretch.start),
+                "ending_time": js_epoch(stretch.end),
+                "color": "rgb(174,199,232)"
+            }],
+            "hover": "Beamline Stretch ({})".format(stretch.duration) if stretch.end else "Active Beamline Stretch",
+        })
+
+    for data in session.datasets.all():
+        timeline.append({
+            "times": [{
+                "starting_time": js_epoch(started(data)),
+                "ending_time": js_epoch(data.created),
+                "y": data.num_frames(),
+                "color": "rgb(31,119,180)"
+            }],
+            "hover": "{} | {}".format(data.kind, data.name)
+        })
+
+    return timeline
 
 
 @register.filter
