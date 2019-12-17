@@ -11,7 +11,7 @@ from django.db.models import Count
 from django.http import JsonResponse, HttpResponse, Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
-from django.utils.text import slugify
+
 from django.views.generic import edit, detail, View
 from formtools.wizard.views import SessionWizardView
 from itemlist.views import ItemListView
@@ -19,6 +19,7 @@ from proxy.views import proxy_view
 
 from mxlive.lims import forms, models
 from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, HTML2PdfMixin
+from mxlive.utils import filters
 
 DOWNLOAD_PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', "http://mxlive-data/download")
 
@@ -822,9 +823,16 @@ def format_total_time(val, record):
     return int(val) or ""
 
 
+FromYearListFilter = filters.DateLimitFilterFactory(
+    models.Session, field_name='created', filter_title='From Year', limit=filters.DATE_LIMIT.LEFT
+)
+ToYearListFilter = filters.DateLimitFilterFactory(
+    models.Session, field_name='created', filter_title='To Year', limit=filters.DATE_LIMIT.RIGHT
+)
+
 class SessionList(ListViewMixin, ItemListView):
     model = models.Session
-    list_filters = ['created', 'beamline', ]
+    list_filters = [FromYearListFilter, ToYearListFilter, 'beamline', ]
     list_columns = ['name', 'created', 'beamline', 'total_time', 'num_datasets', 'num_reports']
     list_search = ['beamline__acronym', 'project__username', 'name']
     link_field = 'name'
