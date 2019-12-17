@@ -17,14 +17,12 @@
 {% block object_status %}
     <div class="status-bar hidden-print">
         <div class="row">
-            <div class="col-1">
-                Yearly Statistics:
-            </div>
-            <div class="col-11">
+            <h4 class="col-11">
+                Year:
                 {% for yr in object|get_years %}
                     <a href="{% url "beamline-statistics" object.pk yr %}"><span class="badge badge-info">{{ yr }}</span></a>&nbsp;
                 {% endfor %}
-            </div>
+            </h4>
         </div>
     </div>
 {% endblock %}
@@ -42,7 +40,7 @@
 <link href="{% static "css/reports.css" %}" rel="stylesheet">
 
 <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
-<script type="text/javascript" src="{% static "js/d3.legend.js" %}"></script>
+<script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
 <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/mxlive-reports.min.js" %}"></script>
 

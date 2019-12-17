@@ -47,6 +47,10 @@ ldap:
     - "636:636"
   restart: always
 
+cache:
+  image: bitnami/memcached:latest
+  restart: always
+
 app:
   image: mxlive:latest
   hostname: mxlive.example.ca
@@ -62,4 +66,5 @@ app:
     - dataproxy:mxlive-data
     - ldap:mxlive-ldap
     - mail:mxlive-mail
+    - cache:mxlive-cache
   restart: always

@@ -6,13 +6,13 @@ caption, figcaption {
     caption-side: bottom;
 }
 
-#report-builder {
+.report-viewer {
     max-width: 60em;
     margin: 2rem auto;
 }
-#report-builder h3 {
-    border-bottom: 1px solid black;
-    margin-bottom: 3rem;
+.report-viewer h3 {
+    border-bottom: 1px solid #333;
+    margin-bottom: 2rem;
 }
 
 g.tick text {
@@ -50,18 +50,17 @@ table.report-table, table + .caption {
     box-shadow: 2px 2px 10px #ddd;
 }
 
-
-#report-builder table  tbody td {
+.report-viewer table  tbody td {
     text-align: right;
 }
-#report-builder table  thead th {
+.report-viewer table  thead th {
     text-align: right;
 }
-#report-builder table  thead th:first-child {
+.report-viewer table  thead th:first-child {
     text-align: left;
 }
 
-#report-builder table  tbody {
+.report-viewer table  tbody {
     border-bottom: 1px solid #bbb;
     border-top: 1px solid #bbb;
 }

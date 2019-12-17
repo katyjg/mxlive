@@ -14,14 +14,7 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 EXPOSE 443
 
-RUN wget https://github.com/d3/d3/releases/download/v4.10.2/d3.zip -O /tmp/d3.v4.zip && \
-    wget https://github.com/d3/d3/releases/download/v3.5.16/d3.zip -O /tmp/d3.v3.zip
-
 ADD . /mxlive
-
-RUN unzip /tmp/d3.v4.zip -d /tmp/d3.v4 && /bin/cp /tmp/d3.v4/d3.min.js /mxlive/mxlive/static/js/d3.v4.min.js && \
-    unzip /tmp/d3.v3.zip -d /tmp/d3.v3 && /bin/cp /tmp/d3.v3/d3.min.js /mxlive/mxlive/static/js/d3.v3.min.js && \
-    /bin/rm -rf /tmp/d3.*
 
 ADD ./local /mxlive/local
 ADD deploy/run-server.sh /run-server.sh

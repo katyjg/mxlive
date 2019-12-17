@@ -10,7 +10,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Q, F, Avg, Count, CharField, BooleanField, Value
+from django.db.models import Q, F, Avg, Count, CharField, BooleanField, Value, Sum, When, Case
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.urls import reverse
@@ -230,13 +230,13 @@ class StretchQuerySet(models.QuerySet):
 
     def with_duration(self):
         return self.filter(end__isnull=False).annotate(
-            duration=Minutes((F('end') - F('start')) / 60, output_field=models.FloatField()))
+            duration=Minutes((F('end') - F('start')) / 60, default=0, output_field=models.FloatField()))
 
     def with_hours(self):
-        return self.annotate(hours=Hours(F('end'), F('start'), output_field=models.FloatField()))
+        return self.annotate(hours=Hours(F('end'), F('start'), default=0, output_field=models.FloatField()))
 
     def with_shifts(self):
-        return self.annotate(shifts=Shifts(F('end'), F('start'), output_field=models.FloatField()))
+        return self.annotate(shifts=Shifts(F('end'), F('start'), default=0, output_field=models.FloatField()))
 
 
 class StretchManager(models.Manager.from_queryset(StretchQuerySet)):
@@ -244,6 +244,30 @@ class StretchManager(models.Manager.from_queryset(StretchQuerySet)):
 
 
 class ProjectObjectManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related('project')
+
+
+class SessionQuerySet(models.QuerySet):
+    def with_duration(self):
+        return self.annotate(
+            duration=Sum(Minutes((F('stretches__end') - F('stretches__start')) / 60), default=0.0, output_field=models.FloatField())
+        )
+
+    def with_hours(self):
+        return self.annotate(
+            hours=Sum(Hours(F('stretches__end'), F('stretches__start')), filter=Q(stretches__end__isnull=False), default=0.0, output_field=models.FloatField()),
+        )
+
+    def with_shifts(self):
+        return self.annotate(
+            shifts=Sum(Shifts(F('end'), F('start')), default=0.0, output_field=models.FloatField())
+        )
+
+
+class SessionManager(models.Manager.from_queryset(SessionQuerySet)):
+    use_for_related_fields = True
+
     def get_queryset(self):
         return super().get_queryset().select_related('project')
 
@@ -256,7 +280,7 @@ class Session(models.Model):
     comments = models.TextField()
     url = models.CharField(max_length=200, null=True)
 
-    objects = ProjectObjectManager()
+    objects = SessionManager()
 
     class Meta:
         ordering = ('-created',)

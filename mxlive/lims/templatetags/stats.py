@@ -6,7 +6,7 @@ from mxlive.lims.models import *
 from mxlive.staff.models import UserCategory
 from memoize import memoize
 from .converter import humanize_duration
-
+from math import ceil
 import json
 
 register = template.Library()
@@ -23,13 +23,12 @@ def get_data_years():
 
 @register.simple_tag(takes_context=False)
 def get_data_stats(bl, year):
-
     data = bl.datasets.all()
     years = get_data_years()
-    kinds = list(DataType.objects.annotate(count=Count('datasets')).filter(count__gt=0))
+    kinds = list(DataType.objects.annotate(count=Count('datasets', filter=Q(datasets__beamline=bl))).filter(count__gt=0))
     yearly_info = defaultdict(lambda: defaultdict(int))
 
-    for summary in Data.objects.values('created__year', 'kind__name').annotate(count=Count('pk')):
+    for summary in data.values('created__year', 'kind__name').annotate(count=Count('pk')):
         yearly_info[summary['created__year']][summary['kind__name']] = summary['count']
     yearly = []
     for k in kinds:
@@ -39,10 +38,14 @@ def get_data_stats(bl, year):
     yearly.append(['Total'] + year_counts + [sum(year_counts)])
     histogram_data = []
 
-    for year, counts in yearly_info.items():
+    for year, counts in sorted(yearly_info.items()):
         series = {'Year': year}
         series.update(counts)
         histogram_data.append(series)
+
+    beam_size_query = data.filter(beam_size__isnull=False)
+    beam_sizes = beam_size_query.values('beam_size').annotate(count=Count('pk'))
+    beam_sizes_totals = beam_size_query.count()
 
     data = data.filter(created__year=year)
     stats = {'details': [
@@ -55,7 +58,7 @@ def get_data_stats(bl, year):
                     'title': '',
                     'kind': 'table',
                     'data': [[''] + years + ['All']] + yearly,
-                    'header': 'row',
+                    'header': 'column row',
                     'style': 'col-12'
                 },
                 {
@@ -74,28 +77,28 @@ def get_data_stats(bl, year):
             'description': 'Data Collection Parameters Summary',
             'style': 'row',
             'content': [
-                   {
-                       'title': 'Attenuation vs. Exposure Time',
-                       'kind': 'scatterplot',
-                       'data':
-                           {'x': ['Exposure Time (s)'] + [d for d in
-                                                          data.values_list('exposure_time', flat=True)],
-                            'y1': [
-                                ['Attenuation (%)'] + [d for d in data.values_list('attenuation', flat=True)]],
-                            'x-scale': 'log'},
-                       'style': 'col-12 col-md-6'
-                   } if data.count() else {},
-                   {
-                       'title': 'Beam Size',
-                       'kind': 'pie',
-                       'data': [
-                           {'label': "{}".format(d),
-                            'value': 360 * data.filter(beam_size=d).count() / data.count(),
-                            'color': COLOR_SCHEME[i]}
-                           for i, d in enumerate(data.values_list('beam_size', flat=True).distinct())
-                           ],
-                       'style': 'col-12 col-md-6'
-                   } if data.count() else {},
+                {
+                    'title': 'Attenuation vs. Exposure Time',
+                    'kind': 'scatterplot',
+                    'data': {
+                        'x': ['Exposure Time (s)'] + list(data.values_list('exposure_time', flat=True)),
+                        'y1': [['Attenuation (%)'] + list(data.values_list('attenuation', flat=True))],
+                        'x-scale': 'pow'
+                    },
+                    'style': 'col-12 col-sm-6'
+                } if beam_sizes_totals else {},
+                {
+                    'title': 'Beam Size',
+                    'kind': 'pie',
+                    'data': [
+                        {
+                            'label': "{:0.0f}".format(entry['beam_size']),
+                            'value': 360 * entry['count'] / beam_sizes_totals,
+                        }
+                        for entry in beam_sizes
+                    ],
+                    'style': 'col-12 col-sm-6'
+                } if beam_sizes_totals else {},
             ]
         },
         {
@@ -107,9 +110,8 @@ def get_data_stats(bl, year):
                     'kind': 'barchart',
                     'data': {
                         'data': [float(d) for d in data.values_list(e, flat=True) if d != None],
-                        'color': [COLOR_SCHEME[i + 1]]
                     },
-                    'style': 'col-6 col-sm-4'
+                    'style': 'col-12 col-sm-6'
                 } for i, e in enumerate(['energy', 'exposure_time', 'attenuation'])] if data.count() else []
         }
     ]}
@@ -234,26 +236,52 @@ def get_project_stats(user):
 
 @register.simple_tag(takes_context=False)
 def get_beamline_usage(bl):
-    years = sorted({v['created'].year for v in Data.objects.values("created").order_by("created").distinct()})
+    years = get_data_years()
+
     staff = UserCategory.objects.filter(name__icontains="staff").first()
+    sample_counts = {
+        entry['created__year']: entry['count']
+        for entry in Sample.objects.values('created__year').order_by('created__year').annotate(count=Count('id'))
+    }
 
-    sessions = [bl.sessions.filter(created__year=year) for year in years]
-    samples = [Sample.objects.filter(container__shipment__date_shipped__year=year) for year in years]
-    if staff:
-        sessions = [s.exclude(project__in=staff.projects.all()) for s in sessions]
-        samples = [s.exclude(project__in=staff.projects.all()).count() for s in samples]
-    else:
-        samples = [s.count() for s in samples]
+    session_params = bl.sessions.values('created__year').order_by('created__year').annotate(count=Count('id'))
+    session_times = bl.sessions.values('created__year').order_by('created__year').annotate(
+        hours=Sum(Hours((F('stretches__end') - F('stretches__start'))))
+    ).values('created__year', 'hours')
 
-    shifts = [len(set([y for x in [s.shifts() for s in sessions[i]] for y in x])) for i, _ in enumerate(years)]
-    datasets = [bl.datasets.filter(session__in=sessions[i]) for i, _ in
-                enumerate(years)]
-    full_data = [d.filter(kind__acronym__in=['DATA', 'XRD']) for d in datasets]
-    full_data_count = [d.count() for d in full_data]
-    total_time = [round(sum([s.total_time() for s in sessions[i]]), 2) for i, _ in enumerate(years)]
-    data_rate = [round(float(full_data_count[i]) / shifts[i], 2) if shifts[i] else 0 for i, _ in enumerate(years)]
-    data_duration = [round(sum([d.exposure_time for d in ds]) / ds.count(), 2) if ds.count() else 0 for ds in full_data]
-    data_time = [round(total_time[i] / full_data_count[i], 2) if full_data_count[i] else 0 for i, _ in enumerate(years)]
+    session_counts = {
+        entry['created__year']: entry['count']
+        for entry in session_params
+    }
+    session_shifts = {
+        entry['created__year']: ceil(entry['hours']/8)
+        for entry in session_times
+    }
+    session_hours = {
+        entry['created__year']: entry['hours']
+        for entry in session_times
+    }
+    data_params = bl.datasets.exclude(kind__acronym__icontains='SCREEN').values('created__year').order_by('created__year').annotate(
+        count=Count('id'), exposure=Avg('exposure_time')
+    )
+    dataset_counts = {
+        entry['created__year']: entry['count']
+        for entry in data_params
+    }
+    dataset_exposure = {
+        entry['created__year']: entry['exposure']
+        for entry in data_params
+    }
+
+    dataset_per_shift = {
+        key: value/session_shifts[key]
+        for key, value in sorted(dataset_counts.items())
+    }
+
+    hours_per_dataset = {
+        key: value/dataset_counts[key]
+        for key, value in sorted(session_hours.items())
+    }
 
     stats = {'details': [
         {
@@ -265,13 +293,14 @@ def get_beamline_usage(bl):
                     'kind': 'table',
                     'data': [
                         ['Year'] + years,
-                        ['Samples On-site'] + samples,
-                        ['Shifts (or parts of shifts) Used'] + shifts,
-                        ['Total Time (h)'] + total_time,
-                        ['Datasets Collected'] + full_data_count,
-                        ['Datasets / Shift'] + data_rate,
-                        ['Average Exposure Time (s)'] + data_duration,
-                        ['Time (h)/ Dataset'] + data_time
+                        ['Samples On-site'] + [sample_counts[yr] for yr in years],
+                        ['Sessions'] + [session_counts[yr] for yr in years],
+                        ['Shifts (or parts of shifts) Used'] + [v for k, v in session_shifts.items()],
+                        ['Total Time (h)'] + ['{:0.1f}'.format(v) for k, v in session_hours.items()],
+                        ['Datasets Collected'] + [v for k, v in dataset_counts.items()],
+                        ['Datasets / Shift'] + ['{:0.1f}'.format(v) for k, v in dataset_per_shift.items()],
+                        ['Average Exposure Time (s)'] + ['{:0.2f}'.format(v) for k, v in dataset_exposure.items()],
+                        ['Time (h)/ Dataset'] + ['{:0.2f}'.format(v) for k, v in hours_per_dataset.items()]
                     ],
                     'style': 'col-12',
                     'header': 'column',
@@ -282,13 +311,14 @@ def get_beamline_usage(bl):
                     'kind': 'histogram',
                     'data': {
                         'x-label': 'Year',
-                        #'colors': COLOR_SCHEME,
-                        'data': [{'Year': years[i],
-                                  'Samples': samples[i],
-                                  'Datasets': full_data_count[i],
-                                  'Total Time': total_time[i],
-                                  } for i, _ in enumerate(years)
-                                 ]
+                        'data': [
+                            {
+                                'Year': year,
+                                'Samples': sample_counts[year],
+                                'Datasets': dataset_counts[year],
+                                'Total Time': session_hours[year],
+                            } for year in years
+                        ]
                     },
                     'style': 'col-12 col-md-6'
                 },
@@ -298,34 +328,41 @@ def get_beamline_usage(bl):
                     'data':
                         {
                             'x': ['Year'] + [datetime.strftime(datetime(yr, 1, 1, 0, 0), '%c') for yr in years],
-                            'y1': [['Datasets / Shift'] + data_rate],
-                            'y2': [['Average Exposure Time'] + data_duration],
+                            'y1': [['Datasets / Shift'] + list(dataset_per_shift.values())],
+                            'y2': [['Average Exposure Time'] + list(dataset_exposure.values())],
                             'x-scale': 'time',
                             'time-format': "%Y"
                         },
                     'style': 'col-12 col-md-6',
                     'notes': (
-                         "Datasets / Shift is the average number of datasets collected per shift "
-                         "(or part of a shift) used on the beamline. Time / Dataset (h) is average time in "
-                         "hours to collect one full dataset."
+                        "Datasets / Shift is the average number of datasets collected per shift "
+                        "(or part of a shift) used on the beamline. Time / Dataset (h) is average time in "
+                        "hours to collect one full dataset."
                     )
                 }
             ]
         }
-      ]
+    ]
     }
     return mark_safe(json.dumps(stats))
 
 
 @register.simple_tag(takes_context=False)
 def get_usage_stats(bl, year):
-    KIND_COLORS = { "11": {"color": "#0275d8", "name": '/'.join(UserCategory.objects.filter(pk__in=[1]).values_list('name', flat=True))},
-                    "12": {"color": "#883a6a", "name": '/'.join(UserCategory.objects.filter(pk__in=[2]).values_list('name', flat=True))},
-                    "13": {"color": "#E9953B", "name": '/'.join(UserCategory.objects.filter(pk__in=[3]).values_list('name', flat=True))},
-                    "14": {"color": "#999999", "name": '/'.join(UserCategory.objects.filter(pk__in=[4]).values_list('name', flat=True))},
-                    "23": {"color": "#A28EB4", "name": '/'.join(UserCategory.objects.filter(pk__in=[1, 2]).values_list('name', flat=True))},
-                    "24": {"color": "#DBC814", "name": '/'.join(UserCategory.objects.filter(pk__in=[1, 3]).order_by('-name').values_list('name', flat=True))},
-                    "25": {"color": "#B36255", "name": '/'.join(UserCategory.objects.filter(pk__in=[2, 3]).values_list('name', flat=True))}}
+    KIND_COLORS = {"11": {"color": "#0275d8",
+                          "name": '/'.join(UserCategory.objects.filter(pk__in=[1]).values_list('name', flat=True))},
+                   "12": {"color": "#883a6a",
+                          "name": '/'.join(UserCategory.objects.filter(pk__in=[2]).values_list('name', flat=True))},
+                   "13": {"color": "#E9953B",
+                          "name": '/'.join(UserCategory.objects.filter(pk__in=[3]).values_list('name', flat=True))},
+                   "14": {"color": "#999999",
+                          "name": '/'.join(UserCategory.objects.filter(pk__in=[4]).values_list('name', flat=True))},
+                   "23": {"color": "#A28EB4",
+                          "name": '/'.join(UserCategory.objects.filter(pk__in=[1, 2]).values_list('name', flat=True))},
+                   "24": {"color": "#DBC814", "name": '/'.join(
+                       UserCategory.objects.filter(pk__in=[1, 3]).order_by('-name').values_list('name', flat=True))},
+                   "25": {"color": "#B36255",
+                          "name": '/'.join(UserCategory.objects.filter(pk__in=[2, 3]).values_list('name', flat=True))}}
     sessions = bl.sessions.filter(created__year=year).order_by('project')
     datasets = bl.datasets.filter(session__in=sessions)
     data = [
@@ -333,12 +370,15 @@ def get_usage_stats(bl, year):
             'project': Project.objects.get(pk=p),  # User
             'sessions': sessions.filter(project=p).count(),  # Sessions
             'num_data': datasets.filter(kind__contains='DATA', project__pk=p).count(),  # Full Datasets
-            'shutters': round(sum([d.num_frames() * d.exposure_time for d in datasets.filter(project__pk=p)]), 2),  # Shutter Open
+            'shutters': round(sum([d.num_frames() * d.exposure_time for d in datasets.filter(project__pk=p)]), 2),
+            # Shutter Open
             'shifts': total_shifts(sessions, p),  # Shifts
             'total_time': round(total_time(sessions, p), 2),  # Total Time
             'used_time': int(total_time(sessions, p) / (total_shifts(sessions, p) * SHIFT) * 100),  # Used Time (%)
-            'data_rate': round(datasets.filter(kind__contains='DATA', project__pk=p).count() / total_time(sessions, p), 2) if total_time(sessions, p) else 0,  # Datasets/Hour
-            'samples': round(sum([s.samples().count() for s in sessions.filter(project=p)]) / total_time(sessions, p), 2) if total_time(sessions, p) else 0,  # Sample Rate
+            'data_rate': round(datasets.filter(kind__contains='DATA', project__pk=p).count() / total_time(sessions, p),
+                               2) if total_time(sessions, p) else 0,  # Datasets/Hour
+            'samples': round(sum([s.samples().count() for s in sessions.filter(project=p)]) / total_time(sessions, p),
+                             2) if total_time(sessions, p) else 0,  # Sample Rate
         }
         for p in sessions.values_list('project', flat=True).distinct()
     ]
@@ -355,21 +395,25 @@ def get_usage_stats(bl, year):
                 {
                     'title': 'Total Activity',
                     'kind': 'table',
-                    'data': [['Shifts (or parts of shifts) Used', '{} ({})'.format(shifts, humanize_duration(shifts * 8))],
-                             ['Datasets Collected', datasets.filter(kind__acronym='DATA').count()],
-                             ['Shutters Open', humanize_duration(sum([u['shutters']/3600. for u in data]))],
-                             ['Samples Screened', screened],
-                             ['Samples Collected', collected]],
+                    'data': [
+                        ['Shifts (or parts of shifts) Used', '{} ({})'.format(shifts, humanize_duration(shifts * 8))],
+                        ['Datasets Collected', datasets.filter(kind__acronym='DATA').count()],
+                        ['Shutters Open', humanize_duration(sum([u['shutters'] / 3600. for u in data]))],
+                        ['Samples Screened', screened],
+                        ['Samples Collected', collected]],
                     'style': 'col-sm-6',
                     'header': 'column'
                 },
                 {
                     'title': 'Average Efficiency',
                     'kind': 'table',
-                    'data': [['Actual Time Used (h)', "{} ({:.1f}%)".format(humanize_duration(ttime), ttime * 100 / (shifts * 8) if shifts else 0)],
+                    'data': [['Actual Time Used (h)', "{} ({:.1f}%)".format(humanize_duration(ttime), ttime * 100 / (
+                            shifts * 8) if shifts else 0)],
 
-                             ['Datasets/Hour Used', round(datasets.filter(kind__contains='DATA').count() / ttime, 2) if ttime else 0],
-                             ['Shutters Open/Hour Used', "{:.1f}%".format(sum([u['shutters']/3600. for u in data]) * 100 / ttime) if ttime else 0],
+                             ['Datasets/Hour Used',
+                              round(datasets.filter(kind__contains='DATA').count() / ttime, 2) if ttime else 0],
+                             ['Shutters Open/Hour Used', "{:.1f}%".format(
+                                 sum([u['shutters'] / 3600. for u in data]) * 100 / ttime) if ttime else 0],
                              ['Samples Screened/Hour', round(screened / ttime, 2) if ttime else 0],
                              ['Samples Collected/Hour', round(collected / ttime, 2) if ttime else 0]],
                     'style': 'col-sm-6',
@@ -386,11 +430,12 @@ def get_usage_stats(bl, year):
                                 'xstart': 0,
                                 'xend': max([u['total_time'] for u in data] or [0]),
                                 'yend': 0,
-                                'ystart': max([u['total_time'] for u in data] or [0]) * datasets.filter(kind__contains='DATA').count() / ttime if ttime else 0,
+                                'ystart': max([u['total_time'] for u in data] or [0]) * datasets.filter(
+                                    kind__contains='DATA').count() / ttime if ttime else 0,
                                 'color': '#883a6a',
                                 'display': None
                             }]
-                         },
+                        },
                     'description': 'The line plotted shows the average number of full datasets collected per hour.',
                     'style': 'col-sm-12'
                 },
@@ -407,13 +452,15 @@ def get_usage_stats(bl, year):
                                   'Time': u['used_time'],
                                   'color': KIND_COLORS.get("{}{}".format(u['project'].categories.count(), sum(
                                       u['project'].categories.values_list('pk', flat=True))), {}).get('color', '')
-                                  } for u in sorted(data, key=lambda x: x['shutters'] / x['total_time'] if x['total_time'] else 0)],
+                                  } for u in
+                                 sorted(data, key=lambda x: x['shutters'] / x['total_time'] if x['total_time'] else 0)],
                     },
                     'notes': "&nbsp;".join(
-                        ["<span class='label hover-label' style='background-color: {}; color: white;'>{}</span>".format(v['color'],
-                                                                                                            v['name'])
-                         for v in sorted(KIND_COLORS.values(), key=lambda x: x['name'])]) +
-                         "<dl><dt>Shutters</dt><dd>Percentage of time used when the shutter was open</dd><dt>Samples</dt><dd>Average number of samples collected or screened per hour</dd><dt>Datasets</dt><dd>Average number of full datasets collected per hour</dd><dt>Time</dt><dd>Percentage of time used ([actual time used] / [shifts used * 8])</dd></dl>",
+                        ["<span class='label hover-label' style='background-color: {}; color: white;'>{}</span>".format(
+                            v['color'],
+                            v['name'])
+                            for v in sorted(KIND_COLORS.values(), key=lambda x: x['name'])]) +
+                             "<dl><dt>Shutters</dt><dd>Percentage of time used when the shutter was open</dd><dt>Samples</dt><dd>Average number of samples collected or screened per hour</dd><dt>Datasets</dt><dd>Average number of full datasets collected per hour</dd><dt>Time</dt><dd>Percentage of time used ([actual time used] / [shifts used * 8])</dd></dl>",
                     'style': 'col-sm-12'
                 },
                 {
@@ -435,10 +482,12 @@ def get_usage_stats(bl, year):
                     'data': [['User', 'Sessions', 'Shifts', 'Shutters Open',
                               'Total Time', 'Used Time (%)', 'Full Datasets', 'Full Datasets/Hour',
                               'Samples/Hour']] +
-                            [[u['project'].username, u['sessions'], u['shifts'], humanize_duration(u['shutters']/3600),
+                            [[u['project'].username, u['sessions'], u['shifts'],
+                              humanize_duration(u['shutters'] / 3600),
                               humanize_duration(u['total_time']), u['used_time'], u['num_data'], u['data_rate'],
                               u['samples']]
-                             for u in sorted(data, key=lambda x: x['total_time'] / x['shutters'] if x['shutters'] else 0)]
+                             for u in
+                             sorted(data, key=lambda x: x['total_time'] / x['shutters'] if x['shutters'] else 0)]
                 }
             ]
         }
@@ -450,7 +499,8 @@ def get_usage_stats(bl, year):
 def get_session_stats(data, session):
     shutters = sum([d.exposure_time * d.num_frames() for d in data.all()]) / 3600.
     data_counts = [
-        [count['key'], count['value']] for count in session.datasets.values(key=F('kind__name')).annotate(value=Count('id'))
+        [count['key'], count['value']] for count in
+        session.datasets.values(key=F('kind__name')).order_by('key').annotate(value=Count('id'))
     ]
     frame_stats = defaultdict(list)
     for info in session.datasets.values(key=F('kind__name')).values('key', 'frames'):
@@ -458,7 +508,7 @@ def get_session_stats(data, session):
         if size:
             frame_stats[info['key']].append(size)
     data_stats = [
-        ['Avg Frames/{}'.format(key), '{:0.0f}'.format(sum(sizes)/len(sizes))]
+        ['Avg Frames/{}'.format(key), '{:0.0f}'.format(sum(sizes) / len(sizes))]
         for key, sizes in frame_stats.items() if sizes
     ]
     stats = {'details': [
@@ -471,10 +521,12 @@ def get_session_stats(data, session):
                     'title': '',
                     'kind': 'table',
                     'data': [
-                        ['Total Time', humanize_duration(session.total_time())],
-                        ['First Login', session.stretches.last() and datetime.strftime(timezone.localtime(session.start()), '%B %d, %Y %H:%M') or ''],
-                        ['Samples', session.samples().count()]
-                    ] + data_counts,
+                                ['Total Time', humanize_duration(session.total_time())],
+                                ['First Login',
+                                 session.stretches.last() and datetime.strftime(timezone.localtime(session.start()),
+                                                                                '%B %d, %Y %H:%M') or ''],
+                                ['Samples', session.samples().count()]
+                            ] + data_counts,
                     'header': 'column',
                     'style': 'col-4',
                 },
@@ -482,10 +534,13 @@ def get_session_stats(data, session):
                     'title': '',
                     'kind': 'table',
                     'data': [
-                        ['Shutter Open', "{} ({:.2f}%)".format(humanize_duration(hours=shutters), shutters * 100 / session.total_time() if session.total_time() else 0 )],
-                        ['Last Dataset', data.last() and datetime.strftime(timezone.localtime(data.last().modified), '%c') or ''],
-                        ['No. of Logins',  session.stretches.count()],
-                    ] + data_stats,
+                                ['Shutter Open', "{} ({:.2f}%)".format(humanize_duration(hours=shutters),
+                                                                       shutters * 100 / session.total_time() if session.total_time() else 0)],
+                                ['Last Dataset',
+                                 data.last() and datetime.strftime(timezone.localtime(data.last().modified),
+                                                                   '%c') or ''],
+                                ['No. of Logins', session.stretches.count()],
+                            ] + data_stats,
                     'header': 'column',
                     'style': 'col-4',
                 },
@@ -549,10 +604,10 @@ def get_session_stats(data, session):
 def get_session_gaps(data):
     data = data.order_by('created')
     gaps = []
-    for i in range(data.count()-1):
-        if data[i].created <= (started(data[i+1]) - timedelta(minutes=10)):
-            gaps.append([data[i].created, started(data[i+1]),
-                         humanize_duration((started(data[i+1])-data[i].created).total_seconds()/3600.)])
+    for i in range(data.count() - 1):
+        if data[i].created <= (started(data[i + 1]) - timedelta(minutes=10)):
+            gaps.append([data[i].created, started(data[i + 1]),
+                         humanize_duration((started(data[i + 1]) - data[i].created).total_seconds() / 3600.)])
     return gaps
 
 
@@ -589,11 +644,13 @@ def get_data_timeline(session):
 
 @register.filter
 def get_years(bl):
-    return sorted({v['created'].year for v in Data.objects.filter(beamline=bl).values("created").order_by("created").distinct()})
+    return sorted(
+        {v['created'].year for v in Data.objects.filter(beamline=bl).values("created").order_by("created").distinct()})
+
 
 @register.filter
 def started(data):
-    return data.modified - timedelta(seconds=(data.exposure_time*data.num_frames()))
+    return data.modified - timedelta(seconds=(data.exposure_time * data.num_frames()))
 
 
 def total_shifts(sessions, project):
@@ -603,4 +660,3 @@ def total_shifts(sessions, project):
 
 def total_time(sessions, project):
     return sum([s.total_time() for s in sessions.filter(project=project)])
-

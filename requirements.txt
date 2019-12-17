@@ -1,7 +1,5 @@
 asn1crypto
-cached-property
 cryptography
-django-appconf
 django-crispy-forms
 django-debug-toolbar-request-history
 django-formtools
@@ -15,3 +13,4 @@ msgpack
 numpy
 pip-chill
 psycopg2-binary
+python-memcached

@@ -1,50 +1,54 @@
-# LDAP
-LDAP_BASE_DN        = "dc=example,dc=com"
+# Internal Access Settings
+TRUSTED_IPS = ['127.0.0.1/32']
+TRUSTED_PROXIES = 1
+
+# Downloads
+RESTRICT_DOWNLOADS = False
+DOWNLOAD_PROXY_URL = "http://mxlive-data/download"
+
+# Shift parameters
+HOURS_PER_SHIFT = 8
+
+# LDAP Server Settings
+LDAP_BASE_DN = 'dc=example,dc=com'
 LDAP_ADMIN_UIDS      = [1000]
-LDAP_MANAGER_CN     = "cn=Directory Manager"
-LDAP_MANAGER_SECRET = "secret"
-LDAP_USER_ROOT      = "/home"
-LDAP_USER_SHELL     = "/bin/bash"
-LDAP_SEND_EMAILS    = True
-AUTH_LDAP_SERVER_URI = 'ldap://ldap.example.com'
+LDAP_SERVER_URI = 'dc=example,dc=com'
+LDAP_MANAGER_DN = 'cn=Directory Manager'
+LDAP_MANAGER_SECRET = '********'
+LDAP_USER_TABLE = 'ou=People'
+LDAP_USER_ROOT = '/users'
+LDAP_GROUP_TABLE = 'ou=Groups'
+LDAP_USER_SHELL = '/bin/bash'
+LDAP_SEND_EMAILS = False
 
-INTERNAL_IPS = [
-    '0.0.0.0/0',
-]
-
-FACILITY_NAME = "CMCF"
-DEBUG = True
-DOWNLOAD_CACHE_DIR = "/mxlive/local/cache"
+# LDAP Authentication Settings
+LDAP_AUTH_URL = "ldap://{}:389".format(LDAP_SERVER_URI)
+LDAP_AUTH_SEARCH_BASE = "{},{}".format(LDAP_USER_TABLE, LDAP_BASE_DN)
+LDAP_AUTH_OBJECT_CLASS = "posixAccount"
+LDAP_AUTH_USER_LOOKUP_FIELDS = ("username",)
+LDAP_AUTH_USE_TLS = True
+LDAP_AUTH_USER_FIELDS = {
+    "username": "uid",
+    "first_name": "givenName",
+    "last_name": "sn",
+    "email": "mail",
+}
 
 DATABASES = {
     'default': {
-	    'ENGINE': 'django.db.backends.mysql',
-	    'NAME': 'mxlive',
-	    'USER': 'root',
-	    'PASSWORD': '',
-	    'HOST': 'db.example.com',
-	    'PORT': ''
-    },
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mxlive',
+        'USER': 'mxlive',
+        'PASSWORD': 'ieCootha1yahquazuew0coh4',
+        'HOST': 'mxlive-db',
+        'PORT': '5432'
+    }
 }
 
-ADMINS = [
-    ('Admin','admin@example.com'),
-]
-MANAGERS = [
-    ('Manager','Manager@example.com'),
-]
-
-EMAIL_SUBJECT_PREFIX = '[MxLIVE] '
-
-TIME_ZONE = "America/Regina"
-
-EMAIL_HOST_USER = "system@mail.example.com"
-EMAIL_HOST_PASSWORD = "secret"
-EMAIL_PORT = 25
-EMAIL_HOST = "mail.example.com"
-
-
-# Uncomment the following two lines to enable trusting self-signed certificates
-
-#import ssl
-#ssl._create_default_https_context = ssl._create_unverified_context
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'KEY_FUNCTION': 'mxlive.utils.cache.make_key',
+        'LOCATION': 'mxlive-cache:11211',
+    }
+}

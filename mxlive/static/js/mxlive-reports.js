@@ -3,6 +3,11 @@ function rounded(v) {
     return Math.round(v*exp)/exp;
 }
 
+function choose(choices) {
+  var index = Math.floor(Math.random() * choices.length);
+  return choices[index];
+}
+
 Array.cleanspace = function(a, b, steps){
     var A= [];
 
@@ -30,18 +35,21 @@ function inv_sqrt(a) {
 
 // Live Reports from MxLIVE
 function draw_pie_chart() {
+    let color_scheme = d3.schemeSet2.concat(d3.schemeDark2);
+    let colors = d3.scaleOrdinal( color_scheme);
 
     function chart(selection) {
         selection.each(function (data) {
-            var margin = {out: 10, left: width * 0.1};
+            var margin = {out: 10, left: Math.max(10, 0.5*(width-height)), top: Math.max(10, 0.5*(height-width))};
 
             var svg = d3.select(this)
-                .attr("width", width)
-                .attr("height", height)
+                .attr("viewBox", "0 0 " + width + " "+ height)
+                //.attr("width", width)
+                //.attr("height", height)
                 .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.left + ")");
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-            var radius = width/2 - margin.left;
+            var radius = Math.min(width - 2*margin.left, height - 2*margin.top)/2.0;
 
             var arc = d3.arc()
                     .innerRadius((radius)*innerRadius)
@@ -71,12 +79,12 @@ function draw_pie_chart() {
                     .data(data)
                     .enter().append('path')
                     .attr('fill', function(d, i) {
-                        return data[i]['color'];
+                        return data[i]['color'] || colors(i);
                     })
                     .attr('d', arc);
 
             var lg = svg.append('g')
-                    .attr('class', 'label')
+                    .attr('class', 'axis-label')
                     .attr('transform', centerTx);
 
             var labels = [];
@@ -111,7 +119,7 @@ function draw_pie_chart() {
                         }
                     })
                     .attr('fill', function (d, i) {
-                        return data[i]['color'];
+                        return data[i]['color'] || colors(i);
                     });
             } else {
                 lg.append('text').text(labels[0]).attr('class', 'text-large').attr('text-anchor', 'middle').attr('alignment-baseline', 'middle');
@@ -345,18 +353,16 @@ function draw_xy_chart() {
             } else {
                 var bmargin = 20;
             }
-            var margin = {top: 20, right: width * 0.1, bottom: bmargin, left: width * 0.1},
+            var margin = {top: 20, right: width * 0.15, bottom: bmargin, left: width * 0.15},
                 innerwidth = width - margin.left - margin.right,
                 innerheight = height - margin.top - margin.bottom;
 
             var svg = d3.select(this)
                 .attr("viewBox", "0 0 "+ width + " " + height)
-                //.attr("width", width)
-                //.attr("height", height)
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-            var color_scale = d3.scaleOrdinal(d3.schemeCategory10);
+            var color_scale = d3.scaleOrdinal(d3.schemeDark2);
             var y1data = [], y2data = [];
             var y1datasets = [], y2datasets = [];
 
@@ -876,7 +882,10 @@ function draw_xy_chart() {
 
 
 function build_report(selector, report) {
+    $(selector).addClass('report-viewer');
     var converter = new showdown.Converter();
+    var color_scheme = d3.schemeSet2.concat(d3.schemeDark2);
+
     $.each(report['details'], function (i, section) {
         var section_box = $(selector).append('<section id="section-' + i + '"></section>').children(":last-child");
         if (section['title']) {
@@ -907,7 +916,7 @@ function build_report(selector, report) {
                         if (line) {
                             var tr = $('<tr></tr>');
                             for (k = 0; k < line.length; k++) {
-                                if ((k === 0 && entry['header'] === 'column') || (l === 0 && entry['header'] === 'row')) {
+                                if ((k === 0 && entry['header'].includes('column')) || (l === 0 && entry['header'].includes('row'))) {
                                     var td = $('<th></th>').text(line[k]);
                                 } else {
                                     var td = $('<td></td>').text(line[k]);
@@ -938,12 +947,10 @@ function build_report(selector, report) {
 
                 var x = d3.scaleBand().range([0, width]).padding(0.1);
                 var y = d3.scaleLinear().range([height, 0]);
-                var colors = d3.scaleOrdinal(entry['data']['colors'] || d3.schemeTableau10);
+                var colors = d3.scaleOrdinal(entry['data']['colors'] || color_scheme);
 
                 var canvas = d3.select('#figure-' + i + '-' + j).append("svg").attr('id', 'plot-' + i + "-" + j)
                     .attr("viewBox", "0 0 "+ (width + margin.left + margin.right) + " " + (height + margin.top + margin.bottom))
-                    //.attr("width", width + margin.left + margin.right)
-                    //.attr("height", height + margin.top + margin.bottom)
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -966,7 +973,7 @@ function build_report(selector, report) {
                 var timeformat = entry['data']['time-format'] || null;
                 var y1label = '', y2label = '';
                 if (entry['kind'] === 'barchart') {
-                    data = {'data': entry['data']['data'], 'color': entry['data']['color']};
+                    data = {'data': entry['data']['data'], 'color': entry['data']['color'] || choose(color_scheme)};
                     if (xscale == 'time') {
                         $.each(data['data'], function(i, d) {
                             data['data'][i] = new Date(d)
@@ -992,7 +999,7 @@ function build_report(selector, report) {
                 y2label = entry['data']['y2-label'] || y2label;
                 var xy_chart = draw_xy_chart()
                     .width(width)
-                    .height(width/2)
+                    .height(width*9/16)
                     .xlabel(xlabel)
                     .y1label(y1label)
                     .y2label(y2label)
@@ -1005,7 +1012,9 @@ function build_report(selector, report) {
                     .timeformat(timeformat)
                     .interpolation(interpolation)
                     .scatter(entry['kind'] === 'scatterplot' && 'scatter' || entry['kind'] === 'lineplot' && 'line' || entry['kind'] === 'barchart' && 'bar');
-                var svg = d3.select('#figure-' + i + '-' + j).append("svg").attr('id', 'plot-' + i + "-" + j)
+                var svg = d3.select('#figure-' + i + '-' + j).append("svg")
+                    .attr("viewBox", "0 0 "+ width + " " + (width*9/16))
+                    .attr('id', 'plot-' + i + "-" + j)
                     .datum(data)
                     .call(xy_chart);
                 if (entry['title']) {
@@ -1029,9 +1038,12 @@ function build_report(selector, report) {
 
                 var pie_chart = draw_pie_chart()
                     .width(width)
-                    .height(width)
+                    .height(width*9/16)
                     .innerRadius(entry['kind'] === 'gauge' && 0.5 || 0);
-                var svg = d3.select('#figure-' + i + '-' + j).append("svg").attr('id', 'plot-' + i + "-" + j).attr('class', 'gauge')
+                var svg = d3.select('#figure-' + i + '-' + j).append("svg")
+                    .attr("viewBox", "0 0 "+ width + " " + (width*9/16))
+                    .attr('id', 'plot-' + i + "-" + j)
+                    .attr('class', 'gauge')
                     .datum(data)
                     .call(pie_chart);
                 if (entry['title']) {
