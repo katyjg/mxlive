@@ -10,9 +10,8 @@ urlpatterns = [
 
     path('beamline/<int:pk>/', views.BeamlineDetail.as_view(), name='beamline-detail'),
     path('beamline/<int:pk>/history/', views.BeamlineHistory.as_view(), name='beamline-history'),
-    path('beamline/<int:pk>/statistics/<int:year>/', views.BeamlineStatistics.as_view(template_name="users/entries/beamline-statistics.html"), name='beamline-statistics'),
+    path('beamline/<int:pk>/statistics/<int:year>/', views.BeamlineStatistics.as_view(), name='yearly-statistics'),
     path('beamline/<int:pk>/usage/', views.BeamlineUsage.as_view(), name='usage-statistics'),
-    path('beamline/<int:pk>/usage/<int:year>/', views.BeamlineStatistics.as_view(), name='usage-yearly-statistics'),
     path('dewar/<int:pk>/edit/', views.DewarEdit.as_view(), name='dewar-edit'),
 
     path('shipments/', views.ShipmentList.as_view(), name='shipment-list'),

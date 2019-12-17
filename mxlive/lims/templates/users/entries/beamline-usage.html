@@ -3,6 +3,7 @@
 {% load static %}
 {% load json_to_dict %}
 {% load stats %}
+{% load icons %}
 
 {% block page_heading %}
     <h3 class="text-condensed">
@@ -17,15 +18,21 @@
     <div class="status-bar">
         <div class="row">
             <h4 class="col-11">
-                Year:
+                Stats:
                 {% for yr in object|get_years %}
-                    <a href="{% url "usage-yearly-statistics" object.pk yr %}"><span class="badge badge-info">{{ yr }}</span></a>&nbsp;
+                    <a href="{% url "yearly-statistics" object.pk yr %}"><span class="badge badge-info">{{ yr }}</span></a>&nbsp;
                 {% endfor %}
             </h4>
         </div>
     </div>
 {% endblock %}
 
+{% block object_tools %}
+    {% now "Y" as yr %}
+    <a  href="{% url "yearly-statistics" object.pk yr %}">
+        {% show_icon label='Stats' icon='ti ti-md ti-bar-chart' %}
+    </a>
+{% endblock %}
 
 {% block full %}
 

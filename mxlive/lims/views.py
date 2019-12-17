@@ -832,7 +832,7 @@ ToYearListFilter = filters.DateLimitFilterFactory(
 
 class SessionList(ListViewMixin, ItemListView):
     model = models.Session
-    list_filters = [FromYearListFilter, ToYearListFilter, 'beamline', ]
+    list_filters = [FromYearListFilter, ToYearListFilter, 'beamline']
     list_columns = ['name', 'created', 'beamline', 'total_time', 'num_datasets', 'num_reports']
     list_search = ['beamline__acronym', 'project__username', 'name']
     link_field = 'name'
@@ -892,7 +892,7 @@ class BeamlineHistory(AdminRequiredMixin, ListViewMixin, ItemListView):
 
 
 class BeamlineStatistics(BeamlineDetail):
-    template_name = "users/entries/beamline-usage-yearly.html"
+    template_name = "users/entries/beamline-statistics.html"
 
     def get_context_data(self, **kwargs):
         c = super(BeamlineStatistics, self).get_context_data(**kwargs)

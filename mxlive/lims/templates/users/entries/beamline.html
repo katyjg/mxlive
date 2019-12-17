@@ -27,7 +27,7 @@
     </a>
     {% endif %}
     {% now "Y" as current_year %}
-    <a href="{% url "beamline-statistics" object.pk current_year %}">
+    <a href="{% url "yearly-statistics" object.pk current_year %}">
         {% show_icon label='Stats' icon='ti ti-md ti-bar-chart' %}
     </a>
     <a href="{% url "usage-statistics" object.pk %}">
