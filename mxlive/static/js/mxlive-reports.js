@@ -348,10 +348,9 @@ function draw_xy_chart() {
                 })
             }
             var xoffset = notes_labels.length && 40 || 0;
+            var bmargin = 20;
             if (xlabel) {
-                var bmargin = 50;
-            } else {
-                var bmargin = 20;
+                bmargin = 50;
             }
             var margin = {top: 20, right: width * 0.15, bottom: bmargin, left: width * 0.15},
                 innerwidth = width - margin.left - margin.right,

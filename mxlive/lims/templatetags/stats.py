@@ -1,28 +1,18 @@
 from collections import defaultdict
+from datetime import datetime
+
 from django import template
 from django.utils.safestring import mark_safe
-from datetime import datetime
+
 from mxlive.lims.models import *
 from mxlive.staff.models import UserCategory
-from memoize import memoize
-
-from mxlive.utils.functions import Hours, ShiftEnd, ShiftStart
 from .converter import humanize_duration
-from math import ceil
-import json
+from ..stats import SHIFT, get_data_periods
 
 register = template.Library()
 
 COLOR_SCHEME = ["#883a6a", "#1f77b4", "#aec7e8", "#5cb85c", "#f0ad4e"]
 GRAY_SCALE = ["#000000", "#555555", "#888888", "#cccccc", "#eeeeee"]
-SHIFT = getattr(settings, "SHIFT_LENGTH", 8)
-SHIFT_SECONDS = SHIFT*3600
-
-
-@memoize(timeout=3600)
-def get_data_periods(period='year'):
-    field = 'created__{}'.format(period)
-    return sorted(Data.objects.values_list(field, flat=True).distinct())
 
 
 @register.simple_tag(takes_context=False)
@@ -236,145 +226,6 @@ def get_project_stats(user):
         ]}
         """
     return stats
-
-
-@register.simple_tag(takes_context=False)
-def get_beamline_usage(bl, period='year', filter={}):
-    periods = get_data_periods(period=period)
-    field = 'created__{}'.format(period)
-    sample_counts = {
-        entry[field]: entry['count']
-        for entry in Sample.objects.filter(datasets__beamline=bl, **filter).values(field).order_by(field).annotate(count=Count('id'))
-    }
-
-    session_params = bl.sessions.filter(**filter).values(field).order_by(field).annotate(count=Count('id'))
-
-    session_shift_durations = Session.objects.filter(beamline=bl, **filter).values(field).order_by(field).annotate(
-        duration=Sum(
-            ShiftEnd('stretches__end') - ShiftStart('stretches__start'), filter=Q(stretches__end__isnull=False)
-        )
-    )
-
-    session_used_durations = Session.objects.filter(beamline=bl, **filter).values(field).order_by(field).annotate(
-        duration=Sum(
-            F('stretches__end') - F('stretches__start'), filter=Q(stretches__end__isnull=False)
-        )
-    )
-
-    session_counts = {
-        entry[field]: entry['count']
-        for entry in session_params
-    }
-    session_shifts = {
-        entry[field]: ceil(entry['duration'].total_seconds()/(SHIFT_SECONDS))
-        for entry in session_shift_durations
-    }
-    session_hours = {
-        entry[field]: entry['duration'].total_seconds()/3600
-        for entry in session_used_durations
-    }
-
-    session_efficiency = {
-        key: session_hours[key]/(SHIFT*session_shifts[key])
-        for key in periods
-    }
-
-    data_params = bl.datasets.filter(kind__acronym__in=['DATA', 'XRD']).values(field).order_by(field).annotate(
-        count=Count('id'), exposure=Avg('exposure_time')
-    )
-    dataset_counts = {
-        entry[field]: entry['count']
-        for entry in data_params
-    }
-    dataset_exposure = {
-        entry[field]: entry['exposure']
-        for entry in data_params
-    }
-
-    dataset_per_shift = {
-        key: value/session_shifts[key]
-        for key, value in sorted(dataset_counts.items())
-    }
-
-    hours_per_dataset = {
-        key: value/dataset_counts[key]
-        for key, value in sorted(session_hours.items())
-    }
-
-    minutes_per_sample = {
-        key: 60*session_hours[key]/sample_counts[key]
-        for key in periods
-    }
-
-    samples_per_dataset = {
-        key: sample_counts[key]/dataset_counts[key]
-        for key in periods
-    }
-
-    stats = {'details': [
-        {
-            'title': 'Usage Metrics',
-            'style': 'row',
-            'content': [
-                {
-                    'title': 'Usage Statistics',
-                    'kind': 'table',
-                    'data': [
-                        [period.title()] + periods,
-                        ['Samples Measured'] + [sample_counts[p] for p in periods],
-                        ['Sessions'] + [session_counts[p] for p in periods],
-                        ['Shifts Used'] + [v for k, v in session_shifts.items()],
-                        ['Time Used (hr)'] + ['{:0.1f}'.format(v) for k, v in session_hours.items()],
-                        ['Usage Efficiency (%)'] + ['{:.0%}'.format(v) for k, v in session_efficiency.items()],
-                        ['Datasets Collected'] + [v for k, v in dataset_counts.items()],
-                        ['Datasets/Shift'] + ['{:0.1f}'.format(v) for k, v in dataset_per_shift.items()],
-                        ['Average Exposure Time (sec)'] + ['{:0.2f}'.format(v) for k, v in dataset_exposure.items()],
-                        ['Time/Sample (min)'] + ['{:0.1f}'.format(v) for k, v in minutes_per_sample.items()],
-                        ['Samples/Dataset'] + ['{:0.1f}'.format(v) for k, v in samples_per_dataset.items()],
-
-                    ],
-                    'style': 'col-12',
-                    'header': 'column',
-                    'notes': 'Total time is the number of hours an active session was running on the beamline.'
-                },
-                {
-                    'title': 'Usage Statistics',
-                    'kind': 'histogram',
-                    'data': {
-                        'x-label': period.title(),
-                        'data': [
-                            {
-                                period.title(): per,
-                                'Samples': sample_counts[per],
-                                'Datasets': dataset_counts[per],
-                                'Total Time': session_hours[per],
-                            } for per in periods
-                        ]
-                    },
-                    'style': 'col-12 col-md-6'
-                },
-                {
-                    'title': 'Productivity',
-                    'kind': 'lineplot',
-                    'data':
-                        {
-                            'x': [period.title()] + [datetime.strftime(datetime(per, 1, 1, 0, 0), '%c') for per in periods],
-                            'y1': [['Datasets/Shift'] + list(dataset_per_shift.values())],
-                            'y2': [['Average Exposure Time'] + list(dataset_exposure.values())],
-                            'x-scale': 'time',
-                            'time-format': "%Y"
-                        },
-                    'style': 'col-12 col-md-6',
-                    'notes': (
-                        "Datasets/Shift is the average number of datasets collected per shift"
-                        "used on the beamline."
-                    )
-                }
-            ]
-        }
-    ]
-    }
-    return mark_safe(json.dumps(stats))
 
 
 @register.simple_tag(takes_context=False)

@@ -8,18 +8,18 @@ from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
 from django.db.models import Count
-from django.http import JsonResponse, HttpResponse, Http404, HttpResponseRedirect
+from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
-
 from django.views.generic import edit, detail, View
 from formtools.wizard.views import SessionWizardView
 from itemlist.views import ItemListView
 from proxy.views import proxy_view
 
-from mxlive.lims import forms, models
-from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, HTML2PdfMixin
 from mxlive.utils import filters
+from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, HTML2PdfMixin
+
+from . import forms, models, stats
 
 DOWNLOAD_PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', "http://mxlive-data/download")
 
@@ -900,13 +900,25 @@ class BeamlineStatistics(BeamlineDetail):
         return c
 
 
-class BeamlineUsage(BeamlineDetail):
+class UsageStatistics(BeamlineDetail):
     template_name = "users/entries/beamline-usage.html"
 
     def get_context_data(self, **kwargs):
-        c = super(BeamlineUsage, self).get_context_data(**kwargs)
-        c['year'] = self.kwargs.get('year', timezone.now().year)
-        return c
+        context = super(UsageStatistics, self).get_context_data(**kwargs)
+        yearly = 'year' not in self.kwargs
+        period = 'year' if yearly else 'month'
+        filters = {} if yearly else {'created__year': self.kwargs.get('year')}
+
+        context['years'] = stats.get_data_periods(period='year')
+        context['year'] = self.kwargs.get('year')
+        context['usage_stats'] = stats.usage_stats(self.object, period=period, **filters)
+        return context
+
+    def page_title(self):
+        if self.kwargs.get('year'):
+            return '{} Usage Statistics'.format(self.kwargs['year'])
+        else:
+            return 'Usage Statistics'
 
 
 class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):

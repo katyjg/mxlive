@@ -6,9 +6,13 @@ caption, figcaption {
     caption-side: bottom;
 }
 
-.report-viewer {
+#report-builder {
     max-width: 60em;
-    margin: 2rem auto;
+    margin: 1rem auto;
+}
+
+.report-viewer {
+    padding: 1rem;
 }
 .report-viewer h3 {
     border-bottom: 1px solid #333;

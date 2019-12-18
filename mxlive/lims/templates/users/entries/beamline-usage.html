@@ -1,13 +1,11 @@
 {% extends "users/base.html" %}
 
 {% load static %}
-{% load json_to_dict %}
-{% load stats %}
 {% load icons %}
 
 {% block page_heading %}
     <h3 class="text-condensed">
-        <strong class="text-muted">{{ object.acronym }}</strong> | {{ year }} Usage Statistics
+        <strong class="text-muted"> {{ beamline }}</strong> | {{ view.page_title }}
     </h3>
     <span class="text-muted">
         {{ object.name }}
@@ -18,10 +16,12 @@
     <div class="status-bar">
         <div class="row">
             <h4 class="col-11">
-                Stats:
-                {% for yr in object|get_years %}
-                    <a href="{% url "yearly-statistics" object.pk yr %}"><span class="badge badge-info">{{ yr }}</span></a>&nbsp;
+                Monthly:
+                <a href="{% url "usage-statistics" object.pk%}"><span class="badge badge-info">All</span></a>&nbsp;
+                {% for yr in years %}
+                    <a href="{% url "monthly-usage-stats" object.pk yr %}"><span class="badge badge-{% if yr == year %}primary{% else %}warning{% endif %}">{{ yr }}</span></a>&nbsp;
                 {% endfor %}
+
             </h4>
         </div>
     </div>
@@ -49,19 +49,7 @@
 <script type="text/javascript" src="{% static "js/mxlive-reports.min.js" %}"></script>
 
 <script>
-    var json = {% get_beamline_usage object %};
-    build_report('#data-stats', json);
-
-    $(document).ready(function() {
-        $('.hover-label').hover(function(e) {
-            $.each($("rect[style*='" + $(this).css('background-color') + "']"), function() {
-                $(this).css('stroke', '#ff0000').css('stroke-width', '3px');
-            })
-        }, function(e) {
-            $.each($("rect[style*='" + $(this).css('background-color') + "']"), function() {
-                $(this).css('stroke', 'none');
-            });
-        });
-    });
+    var report = {{ usage_stats | safe }};
+    build_report('#data-stats', report);
 </script>
 {% endblock %}
