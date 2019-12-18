@@ -6,7 +6,7 @@ from mxlive.lims.models import *
 from mxlive.staff.models import UserCategory
 from memoize import memoize
 
-from utils.functions import Hours, ShiftEnd, ShiftStart
+from mxlive.utils.functions import Hours, ShiftEnd, ShiftStart
 from .converter import humanize_duration
 from math import ceil
 import json
@@ -17,6 +17,7 @@ COLOR_SCHEME = ["#883a6a", "#1f77b4", "#aec7e8", "#5cb85c", "#f0ad4e"]
 GRAY_SCALE = ["#000000", "#555555", "#888888", "#cccccc", "#eeeeee"]
 SHIFT = getattr(settings, "SHIFT_LENGTH", 8)
 SHIFT_SECONDS = SHIFT*3600
+
 
 @memoize(timeout=3600)
 def get_data_periods(period='year'):
@@ -301,13 +302,13 @@ def get_beamline_usage(bl, period='year', filter={}):
     }
 
     minutes_per_sample = {
-        key: 60*session_hours[key]/value
-        for key, value in sorted(sample_counts.items())
+        key: 60*session_hours[key]/sample_counts[key]
+        for key in periods
     }
 
     samples_per_dataset = {
-        key: value/dataset_counts[key]
-        for key, value in sorted(sample_counts.items())
+        key: sample_counts[key]/dataset_counts[key]
+        for key in periods
     }
 
     stats = {'details': [

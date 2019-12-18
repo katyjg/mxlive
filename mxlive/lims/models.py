@@ -21,7 +21,7 @@ from model_utils import Choices
 from memoize import memoize
 
 from mxlive.utils import slap
-from utils.functions import Hours, Minutes, Shifts
+from mxlive.utils.functions import Hours, Minutes, Shifts
 
 IDENTITY_FORMAT = '-%y%m'
 RESTRICT_DOWNLOADS = getattr(settings, 'RESTRICT_DOWNLOADS', False)
