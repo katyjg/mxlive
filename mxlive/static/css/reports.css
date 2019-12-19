@@ -15,8 +15,10 @@ caption, figcaption {
     padding: 1rem;
 }
 .report-viewer h3 {
-    border-bottom: 1px solid #333;
-    margin-bottom: 2rem;
+    font-weight: 200;
+    border-left: 0.25rem solid rgba(0,0,0,0.2);
+    margin-left: 0.25rem;
+    margin-bottom: 1rem;
 }
 
 g.tick text {
@@ -38,14 +40,14 @@ g.axis {
     max-width: 80%;
     margin: auto;
     background-color: #efefef;
-    padding: 15px;
-    margin-bottom: 30px;
+    padding: 1rem;
+    margin-bottom: 2rem;
 }
 th.table-heading {
     text-align: center;
 }
 div[id^=entry] {
-    margin-top: 20px !important;
+    margin-bottom: 2rem !important;
 }
 table.report-table, table + .caption {
     max-width: 80%;
@@ -67,4 +69,14 @@ table.report-table, table + .caption {
 .report-viewer table  tbody {
     border-bottom: 1px solid #bbb;
     border-top: 1px solid #bbb;
+}
+
+.report-viewer .notes {
+    background: rgba(0,0,0,0.05);
+    padding: 1rem;
+    color: #333;
+}
+
+.report-viewer .notes p:last-child {
+    margin-bottom: 0;
 }

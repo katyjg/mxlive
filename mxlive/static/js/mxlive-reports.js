@@ -922,7 +922,7 @@ function build_report(selector, report) {
                                 }
                                 tr.append(td);
                             }
-                            if (entry['header'] === 'row' && l === 0) {
+                            if (entry['header'].includes('row') && l === 0) {
                                 thead.append(tr);
                             } else {
                                 tbody.append(tr);
@@ -1050,7 +1050,7 @@ function build_report(selector, report) {
                 }
             }
             if (entry['notes']) {
-                entry_row.append("<div class='notes pb-4'>" + converter.makeHtml(entry['notes']) + "</div>");
+                entry_row.append("<div class='notes'>" + converter.makeHtml(entry['notes']) + "</div>");
             }
         });
     });

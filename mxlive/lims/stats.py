@@ -1,4 +1,5 @@
 import calendar
+from collections import defaultdict
 from datetime import datetime
 from math import ceil
 
@@ -7,7 +8,7 @@ from django.db.models import Count, Sum, Q, F, Avg
 from django.utils import timezone
 from memoize import memoize
 
-from mxlive.lims.models import Data, Sample, Session
+from mxlive.lims.models import Data, Sample, Session, DataType, Project
 from mxlive.utils.functions import ShiftEnd, ShiftStart
 
 SHIFT = getattr(settings, "SHIFT_LENGTH", 8)
@@ -28,8 +29,17 @@ def usage_stats(beamline, period='year', **filters):
         for entry in Sample.objects.filter(datasets__beamline=beamline, **filters).values(field).order_by(field).annotate(count=Count('id'))
     }
 
-    session_params = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(count=Count('id'))
+    project_info = Project.objects.filter(sessions__beamline=beamline, **filters).values(field, 'name').order_by(field, 'name').annotate(count=Count('name'))
+    project_counts = defaultdict(int)
+    project_names = defaultdict(list)
+    for info in project_info:
+        if info['count'] > 0:
+            project_counts[info[field]] += 1
+            project_names[info[field]].append(info['name'])
 
+    print(project_names)
+
+    session_params = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(count=Count('id'))
     session_shift_durations = Session.objects.filter(beamline=beamline, **filters).values(field).order_by(field).annotate(
         duration=Sum(
             ShiftEnd('stretches__end') - ShiftStart('stretches__start'), filter=Q(stretches__end__isnull=False)
@@ -87,6 +97,20 @@ def usage_stats(beamline, period='year', **filters):
         for key in periods
     }
 
+    # Dataset statistics
+    data_types = list(
+        DataType.objects.annotate(count=Count('datasets', filter=Q(datasets__beamline=beamline))).filter(count__gt=0))
+    period_data = defaultdict(lambda: defaultdict(int))
+    for summary in beamline.datasets.filter(**filters).values(field, 'kind__name').annotate(count=Count('pk')):
+        period_data[summary[field]][summary['kind__name']] = summary['count']
+    datatype_table = []
+    for key in data_types:
+        kind_counts = [period_data[per][key.name] for per in periods]
+        datatype_table.append([key.name] + kind_counts + [sum(kind_counts)])
+    period_counts = [sum(period_data[per].values()) for per in periods]
+    datatype_table.append(['Total'] + period_counts + [sum(period_counts)])
+    histogram_data = []
+
     period_names = periods
     period_xvalues = periods
     x_scale = 'linear'
@@ -103,6 +127,12 @@ def usage_stats(beamline, period='year', **filters):
         time_format = '%Y'
         x_scale = 'time'
 
+    # data histogram
+    for i, per in enumerate(periods):
+        series = {period.title(): period_names[i]}
+        series.update(period_data[per])
+        histogram_data.append(series)
+
     stats = {'details': [
         {
             'title': 'Usage Metrics',
@@ -113,6 +143,7 @@ def usage_stats(beamline, period='year', **filters):
                     'kind': 'table',
                     'data': [
                         [period.title()] + period_names,
+                        ['Projects'] + [project_counts.get(p, 0) for p in periods],
                         ['Samples Measured'] + [sample_counts.get(p, 0) for p in periods],
                         ['Sessions'] + [session_counts.get(p, 0) for p in periods],
                         ['Shifts Used'] + [session_shifts.get(p, 0) for p in periods],
@@ -126,7 +157,7 @@ def usage_stats(beamline, period='year', **filters):
 
                     ],
                     'style': 'col-12',
-                    'header': 'column',
+                    'header': 'column row',
                     'notes': 'Total time is the number of hours an active session was running on the beamline.'
                 },
                 {
@@ -163,7 +194,29 @@ def usage_stats(beamline, period='year', **filters):
                     )
                 }
             ]
-        }
+        },
+        {
+            'title': 'Data Summary'.format(beamline.acronym),
+            'style': "row",
+            'content': [
+                {
+                    'title': 'Dataset summary by {}'.format(period),
+                    'kind': 'table',
+                    'data': [[''] + period_names + ['All']] + datatype_table,
+                    'header': 'column row',
+                    'style': 'col-12'
+                },
+                {
+                    'title': 'Dataset summary by {}'.format(period),
+                    'kind': 'histogram',
+                    'data': {
+                        'x-label': period.title(),
+                        'data': histogram_data,
+                    },
+                    'style': 'col-12 col-sm-6'
+                }
+            ]
+        },
     ]
     }
     return stats

@@ -44,8 +44,7 @@ def get_data_stats(bl, year):
     data = data.filter(created__year=year)
     stats = {'details': [
         {
-            'title': '{} Summary'.format(bl.acronym),
-            'description': 'Data Collection Summary for {}'.format(bl.name),
+            'title': 'Data Summary',
             'style': "row",
             'content': [
                 {
