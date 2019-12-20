@@ -29,15 +29,22 @@ def usage_stats(beamline, period='year', **filters):
         for entry in Sample.objects.filter(datasets__beamline=beamline, **filters).values(field).order_by(field).annotate(count=Count('id'))
     }
 
-    project_info = Project.objects.filter(sessions__beamline=beamline, **filters).values(field, 'name').order_by(field, 'name').annotate(count=Count('name'))
+    project_info = Session.objects.filter(beamline=beamline, **filters).values(field, 'project__name').distinct().order_by(field, 'project__name').annotate(count=Count('project__name'))
     project_counts = defaultdict(int)
     project_names = defaultdict(list)
     for info in project_info:
-        if info['count'] > 0:
-            project_counts[info[field]] += 1
-            project_names[info[field]].append(info['name'])
+        project_counts[info[field]] += 1
+        project_names[info[field]].append(info['project__name'])
 
-    print(project_names)
+    new_project_info = Project.objects.filter(sessions__beamline=beamline, **filters).values(field, 'name').order_by(field, 'name').annotate(count=Count('name'))
+    new_project_counts = defaultdict(int)
+    new_project_names = defaultdict(list)
+    for info in new_project_info:
+        if info['count'] > 0:
+            new_project_counts[info[field]] += 1
+            new_project_names[info[field]].append(info['name'])
+
+    print(new_project_names)
 
     session_params = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(count=Count('id'))
     session_shift_durations = Session.objects.filter(beamline=beamline, **filters).values(field).order_by(field).annotate(
@@ -143,7 +150,8 @@ def usage_stats(beamline, period='year', **filters):
                     'kind': 'table',
                     'data': [
                         [period.title()] + period_names,
-                        ['Projects'] + [project_counts.get(p, 0) for p in periods],
+                        ['Users'] + [project_counts.get(p, 0) for p in periods],
+                        ['New Users'] + [new_project_counts.get(p, 0) for p in periods],
                         ['Samples Measured'] + [sample_counts.get(p, 0) for p in periods],
                         ['Sessions'] + [session_counts.get(p, 0) for p in periods],
                         ['Shifts Used'] + [session_shifts.get(p, 0) for p in periods],

@@ -895,9 +895,19 @@ class BeamlineStatistics(BeamlineDetail):
     template_name = "users/entries/beamline-statistics.html"
 
     def get_context_data(self, **kwargs):
-        c = super(BeamlineStatistics, self).get_context_data(**kwargs)
-        c['year'] = self.kwargs.get('year', timezone.now().year)
-        return c
+        context = super(BeamlineStatistics, self).get_context_data(**kwargs)
+        yearly = 'year' not in self.kwargs
+        period = 'year' if yearly else 'month'
+        filters = {} if yearly else {'created__year': self.kwargs.get('year')}
+        context['year'] = self.kwargs.get('year')
+        context['years'] = stats.get_data_periods(period='year')
+        return context
+
+    def page_title(self):
+        if self.kwargs.get('year'):
+            return '{} Monthly Statistics'.format(self.kwargs['year'])
+        else:
+            return 'Yearly Statistics'
 
 
 class UsageStatistics(BeamlineDetail):
@@ -916,9 +926,9 @@ class UsageStatistics(BeamlineDetail):
 
     def page_title(self):
         if self.kwargs.get('year'):
-            return '{} Usage Statistics'.format(self.kwargs['year'])
+            return '{} Monthly Usage'.format(self.kwargs['year'])
         else:
-            return 'Usage Statistics'
+            return 'Yearly Usage'
 
 
 class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):

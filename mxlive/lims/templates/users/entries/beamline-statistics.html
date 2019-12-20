@@ -7,8 +7,7 @@
 
 {% block page_heading %}
     <h3 class="text-condensed">
-        <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
-        <strong class="text-muted">{{ object.acronym }}</strong> | {{ year }} Beamline Statistics
+        <strong class="text-muted"> {{ beamline }}</strong> | {{ view.page_title }}
     </h3>
     <span class="text-muted">
         {{ object.name }}
@@ -17,7 +16,7 @@
 
 {% block object_tools %}
     {% now "Y" as yr %}
-    <a  href="{% url "usage-statistics" object.pk %}">
+    <a href="{% url "usage-statistics" object.pk %}">
         {% show_icon label='Usage' icon='ti ti-md ti-stats-up' %}
     </a>
 {% endblock %}
@@ -28,32 +27,30 @@
             <h4 class="col-11">
                 Year:
                 {% for yr in object|get_years %}
-                    <a href="{% url "yearly-statistics" object.pk yr %}"><span class="badge badge-info">{{ yr }}</span></a>&nbsp;
+                    <a href="{% url "yearly-statistics" object.pk yr %}"><span class="badge badge-info">{{ yr }}</span></a>
                 {% endfor %}
             </h4>
         </div>
     </div>
 {% endblock %}
 
+{% block extra_css %}
+    <link href="{% static "css/reports.min.css" %}" rel="stylesheet">
+{% endblock %}
 
 {% block full %}
+    <div class="row">
+        <div id="data-stats" class="col-12"></div>
+    </div>
+{% endblock %}
 
-<div class="row">
-    <div id="data-stats" class="col-12"></div>
-
-
-</div>
-
-
-<link href="{% static "css/reports.css" %}" rel="stylesheet">
-
-<script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
-<script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
-<script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
-<script type="text/javascript" src="{% static "js/mxlive-reports.min.js" %}"></script>
-
-<script>
-    var json = {% get_data_stats object year %};
-    build_report('#data-stats', json);
-</script>
+{% block extra_js %}
+    <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mxlive-reports.min.js" %}"></script>
+    <script type="text/javascript">
+        var json = {% get_data_stats object year %};
+        build_report('#data-stats', json);
+    </script>
 {% endblock %}
