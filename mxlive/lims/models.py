@@ -1,6 +1,5 @@
 import copy
 import hashlib
-import itertools
 import json
 from collections import OrderedDict
 from datetime import timedelta
@@ -21,6 +20,7 @@ from model_utils import Choices
 from memoize import memoize
 
 from mxlive.utils import slap
+from mxlive.utils.data import parse_frames, frame_ranges
 from mxlive.utils.functions import Hours, Minutes, Shifts
 
 IDENTITY_FORMAT = '-%y%m'
@@ -1097,24 +1097,6 @@ class Sample(ProjectObjectMixin):
         }
 
 
-def parse_frames(frame_string):
-    frames = []
-    if frame_string:
-        for w in frame_string.split(','):
-            v = list(map(int, w.split('-')))
-            if len(v) == 2:
-                frames.extend(range(v[0], v[1] + 1))
-            elif len(v) == 1:
-                frames.extend(v)
-    return frames
-
-
-def frame_ranges(frame_list):
-    for a, b in itertools.groupby(enumerate(frame_list), lambda xy: xy[1] - xy[0]):
-        b = list(b)
-        yield b[0][1], b[-1][1]
-
-
 class FrameField(models.TextField):
     description = _("List of frames")
 
@@ -1179,6 +1161,7 @@ class Data(ActiveStatusMixin):
     session = models.ForeignKey(Session, null=True, blank=True, on_delete=models.SET_NULL, related_name='datasets')
     file_name = models.CharField(max_length=200, null=True, blank=True)
     frames = FrameField(null=True, blank=True)
+    num_frames = models.IntegerField(default=1)
     exposure_time = models.FloatField(null=True, blank=True)
     attenuation = models.FloatField(default=0.0)
     energy = models.DecimalField(decimal_places=4, max_digits=10)
@@ -1195,17 +1178,13 @@ class Data(ActiveStatusMixin):
         verbose_name = 'Dataset'
 
     def __str__(self):
-        return '%s (%d)' % (self.name, self.num_frames())
+        return '%s (%d)' % (self.name, self.num_frames)
 
     def identity(self):
         return 'DAT-{:07,d}'.format(self.id).replace(',', '-')
 
     def get_absolute_url(self):
         return reverse('data-detail', kwargs={'pk': self.id})
-
-    # need a method to determine how many frames are in item
-    def num_frames(self):
-        return len(self.frames) if self.frames else 0
 
     def download_url(self):
         return "{}/{}.tar.gz".format(self.url, self.name)
@@ -1233,7 +1212,7 @@ class Data(ActiveStatusMixin):
         return self.reports.first()
 
     def total_angle(self):
-        return float(self.meta_data.get('delta_angle', 0)) * self.num_frames()
+        return float(self.meta_data.get('delta_angle', 0)) * self.num_frames
 
     def archive(self, request=None):
         for obj in self.reports.all():

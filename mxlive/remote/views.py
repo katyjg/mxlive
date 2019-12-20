@@ -14,6 +14,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 
 from mxlive.utils.signing import Signer
+from mxlive.utils.data import parse_frames, frame_ranges
+
 from .middleware import get_client_address
 from ..lims.models import ActivityLog
 from ..lims.models import Beamline, Dewar
@@ -401,8 +403,10 @@ class AddData(VerificationMixin, View):
         base_fields = ['energy', 'frames', 'file_name', 'exposure_time', 'attenuation', 'name', 'beam_size']
         details.update({f: info.get(f in TRANSFORMS and TRANSFORMS[f] or f) for f in base_fields})
         details.update(kind=DataType.objects.get_by_natural_key(info['type']))
-        #FIXME: Make sure autoprocess/MxDC sends the appropriate natural key (DataType.acronym) via API when adding
+        if info.get('frames'):
+            details.update(num_frames=len(parse_frames(info['frames'])))
 
+        #FIXME: Make sure autoprocess/MxDC sends the appropriate natural key (DataType.acronym) via API when adding
         for k in ['sample_id', 'group', 'port', 'frames', 'energy', 'filename', 'exposure', 'attenuation',
                   'container', 'name', 'directory', 'type', 'id']:
             if k in info:

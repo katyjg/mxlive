@@ -103,3 +103,15 @@ class ShiftEnd(models.Func):
                 ")"
             ).format(shift=SHIFT_DURATION, offset=OFFSET)
         )
+
+
+class ListLength(models.Func):
+    function = 'json_array_length'
+    template = '%(function)s(%(expressions)s::json)'
+
+    def as_postgresql(self, compiler, connection):
+        self.arg_joiner = " - "
+        return self.as_sql(
+            compiler, connection, function="json_array_length",
+            template="%(function)s(%(expressions)s::json)"
+        )

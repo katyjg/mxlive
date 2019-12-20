@@ -942,7 +942,7 @@ function build_report(selector, report) {
                 //Draw Stack Chart
                 var margin = { top: 20, right: 20, bottom: 50, left: 40 },
                     width = $('#figure-' + i + "-" + j).width() - margin.left - margin.right,
-                    height = width/2;
+                    height = width*9/16;
 
                 var x = d3.scaleBand().range([0, width]).padding(0.1);
                 var y = d3.scaleLinear().range([height, 0]);

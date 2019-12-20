@@ -4,7 +4,7 @@ from datetime import datetime
 from math import ceil
 
 from django.conf import settings
-from django.db.models import Count, Sum, Q, F, Avg
+from django.db.models import Count, Sum, Q, F, Avg, FloatField
 from django.utils import timezone
 from memoize import memoize
 
@@ -44,8 +44,6 @@ def usage_stats(beamline, period='year', **filters):
             new_project_counts[info[field]] += 1
             new_project_names[info[field]].append(info['name'])
 
-    print(new_project_names)
-
     session_params = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(count=Count('id'))
     session_shift_durations = Session.objects.filter(beamline=beamline, **filters).values(field).order_by(field).annotate(
         duration=Sum(
@@ -77,9 +75,11 @@ def usage_stats(beamline, period='year', **filters):
         for key in periods
     }
 
-    data_params = beamline.datasets.filter(kind__acronym__in=['DATA', 'XRD'], **filters).values(field).order_by(field).annotate(
-        count=Count('id'), exposure=Avg('exposure_time')
+    data_params = beamline.datasets.filter(**filters).values(field).order_by(field).annotate(
+        count=Count('id'), exposure=Avg('exposure_time'),
+        duration=Sum(F('exposure_time')*F('num_frames'), output_field=FloatField())
     )
+
     dataset_counts = {
         entry[field]: entry['count']
         for entry in data_params
@@ -89,13 +89,23 @@ def usage_stats(beamline, period='year', **filters):
         for entry in data_params
     }
 
+    dataset_durations = {
+        entry[field]: entry['duration']/3600
+        for entry in data_params
+    }
+
     dataset_per_shift = {
         key: dataset_counts.get(key, 0)/session_shifts.get(key, 1)
         for key in periods
     }
 
-    minutes_per_sample = {
-        key: 60*session_hours.get(key, 0)/sample_counts.get(key, 1)
+    dataset_per_hour = {
+        key: dataset_counts.get(key, 0)/dataset_durations.get(key, 1)
+        for key in periods
+    }
+
+    minutes_per_dataset = {
+        key: dataset_durations.get(key, 0)*60/dataset_counts.get(key, 1)
         for key in periods
     }
 
@@ -155,18 +165,22 @@ def usage_stats(beamline, period='year', **filters):
                         ['Samples Measured'] + [sample_counts.get(p, 0) for p in periods],
                         ['Sessions'] + [session_counts.get(p, 0) for p in periods],
                         ['Shifts Used'] + [session_shifts.get(p, 0) for p in periods],
-                        ['Time Used (hr)'] + ['{:0.1f}'.format(session_hours.get(p, 0)) for p in periods],
-                        ['Usage Efficiency (%)'] + ['{:.0%}'.format(session_efficiency.get(p, 0)) for p in periods],
-                        ['Datasets Collected'] + [dataset_counts.get(p, 0) for p in periods],
-                        ['Datasets/Shift'] + ['{:0.1f}'.format(dataset_per_shift.get(p, 0)) for p in periods],
-                        ['Average Exposure Time (sec)'] + ['{:0.2f}'.format(dataset_exposure.get(p, 0)) for p in periods],
-                        ['Time/Sample (min)'] + ['{:0.1f}'.format(minutes_per_sample.get(p, 0)) for p in periods],
-                        ['Samples/Dataset'] + ['{:0.1f}'.format(samples_per_dataset.get(p, 0))  for p in periods],
+                        ['Time Used¹ (hr)'] + ['{:0.1f}'.format(session_hours.get(p, 0)) for p in periods],
+                        ['Usage Efficiency² (%)'] + ['{:.0%}'.format(session_efficiency.get(p, 0)) for p in periods],
+                        ['Datasets³ Collected'] + [dataset_counts.get(p, 0) for p in periods],
+                        ['Minutes/Dataset³'] + ['{:0.1f}'.format(minutes_per_dataset.get(p, 0)) for p in periods],
+                        ['Datasets³/Hour'] + ['{:0.1f}'.format(dataset_per_hour.get(p, 0)) for p in periods],
+                        ['Average Exposure (sec)'] + ['{:0.2f}'.format(dataset_exposure.get(p, 0)) for p in periods],
+                        ['Samples/Dataset³'] + ['{:0.1f}'.format(samples_per_dataset.get(p, 0)) for p in periods],
 
                     ],
                     'style': 'col-12',
                     'header': 'column row',
-                    'notes': 'Total time is the number of hours an active session was running on the beamline.'
+                    'notes': (
+                        ' 1. Time Used is the number of hours an active session was running on the beamline.  \n'
+                        ' 2. Usage efficiency is the percentage of used shifts during which a session was active.  \n'
+                        ' 3. All datasets are considered for this statistic irrespective of dataset type.'
+                    )
                 },
                 {
                     'title': 'Usage Statistics',
@@ -196,10 +210,6 @@ def usage_stats(beamline, period='year', **filters):
                             'time-format': time_format
                         },
                     'style': 'col-12 col-md-6',
-                    'notes': (
-                        "Datasets/Shift is the average number of datasets collected per shift"
-                        "used on the beamline."
-                    )
                 }
             ]
         },
