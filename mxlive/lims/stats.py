@@ -176,6 +176,7 @@ def usage_stats(beamline, period='year', **filters):
                     ],
                     'style': 'col-12',
                     'header': 'column row',
+                    'description': 'Summary of time, datasets and usage statistics',
                     'notes': (
                         ' 1. Time Used is the number of hours an active session was running on the beamline.  \n'
                         ' 2. Usage efficiency is the percentage of used shifts during which a session was active.  \n'

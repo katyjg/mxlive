@@ -32,22 +32,33 @@ function inv_sqrt(a) {
     return A;
 }
 
+function renderMarkdown(text) {
+    let markdown = new showdown.Converter();
+    return markdown.makeHtml(text);
+}
+
+var figureTypes = ["histogram", "lineplot", "barchart", "pie", "gauge"];
+
 var contentTemplate = _.template(
-    '<div id="entry-<%= id %>" <% let style = entry.style || ""; %>' +
-    '       class="section-entry <%= style %>">' +
-    '       <%  if ((entry.title) &! (entry.kind))  {%>' +
+    '<div id="entry-<%= id %>" <% let style = entry.style || ""; %> class="section-entry <%= style %>" >' +
+    '   <% if ((entry.title) &! (entry.kind))  { %>' +
     '       <h4><%= entry.title %></h4>' +
+    '   <% } %>' +
+    '   <% if (entry.description) { %>' +
+    '       <div class="description"><%= renderMarkdown(entry.description) %></div>' +
+    '   <% } %>' +
+    '   <% if ((entry.kind === "table") && (entry.data)) { %>' +
+    '       <%= tableTemplate({id: id, entry: entry}) %>' +
+    '   <% } else if (figureTypes.includes(entry.kind)) { %>' +
+    '       <figure id="figure-<%= id %>" data-chart=\'<%= JSON.stringify(entry) %>\' >' +
+    '       <% if (entry.title) { %>' +
+    '           <figcaption class="text-center"><%= entry.title %></figcaption>' +
     '       <% } %>' +
-    '       <%  if (entry.description)  {%>' +
-    '       <%     let html = markdown.makeHTML(entry.description); %>' +
-    '       <div class="description"><%= html %></div>' +
-    '       <% } %>' +
-    '       <%  if ((entry.kind === "table") && (entry.data))  {%>' +
-    '       <% let html = buildTable(entry, id); %>' +
-    '       <%= html %>' +
-    '       <% } %>' +
+    '       </figure>' +
+    '   <% }%>' +
     '</div>'
 );
+
 var sectionTemplate = _.template(
     '<section id="section-<%= id %>" <% let style = section.style || "col-12"; %>' +
     '       class="<%= style %>">' +
@@ -62,54 +73,31 @@ var sectionTemplate = _.template(
     '</section>'
 );
 
-
-
-function buildTable(entry, id) {
-    let table = $('<table></table>');
-    table.attr('id', 'table-'+id);
-    table.addClass('table table-hover table-sm');
-    if ((entry.kind === 'table') && (entry.data)) {
-        console.log(entry);
-        let thead = $('<thead></thead>');
-        let tbody = $('<tbody></tbody>');
-
-        $.each(entry.data, function (l, line) {
-            if (line) {
-                let tr = $('<tr></tr>');
-                $.each(line, function(k, datum) {
-                    let td =  '';
-                    if ((k === 0 && entry.header.includes('column')) || (l === 0 && entry.header.includes('row'))) {
-                        td = $('<th></th>').text(line[k]);
-                    } else {
-                        td = $('<td></td>').text(line[k]);
-                    }
-                    tr.append(td);
-                });
-
-                if (entry.header.includes('row') && l === 0) {
-                    thead.append(tr);
-                } else {
-                    tbody.append(tr);
-                }
-            }
-        });
-        table.append(thead);
-        table.append(tbody);
-        if (entry.title) {
-            table.append("<caption class='text-center'>Table " + ($('table').length + 1) + '. ' + entry['title'] + "</caption>");
-        }
-
-    }
-    console.log(table[0]);
-    return table[0].outerHTML;
-}
-
 var tableTemplate = _.template(
     '<table id="table-<%= id %>" class="table table-sm table-hover">' +
-    '<thead></thead>' +
-    '<tbody></tbody>' +
+    '<%   if (entry.header.includes("row")) { %>' +
+    '   <thead><tr>' +
+    '       <% _.each(entry.data[0], function(cell, i){ %>' +
+    '       <th><%= cell %></th>' +
+    '       <% }); %>' +
+    '   </tr></thead>' +
+    '<% } %>' +
+    '<tbody>' +
+    '<% _.each(entry.data, function(row, j){ %>' +
+    '   <% if ((!entry.header.includes("row")) || (j>0)) { %>' +
+    '       <tr>' +
+    '       <% _.each(row, function(cell, i){ %>' +
+    '           <% if (entry.header.includes("column") && (i==0)) { %>' +
+    '               <th><%= cell %></th>' +
+    '           <% } else { %>' +
+    '               <td><%= cell %></td>' +
+    '           <% } %>' +
+    '       <% }); %>' +
+    '       </tr>' +
+    '   <% } %>' +
+    '<% }); %>' +
+    '</tbody>' +
     '</table>'
-
 );
 
 (function ($) {
@@ -117,13 +105,42 @@ var tableTemplate = _.template(
         let target = $(this);
         let defaults = {
             data: {},
-            scheme: d3.schemeSet2.concat(d3.schemeDark2)
+            scheme: d3.schemeSet2
         };
         let settings = $.extend(defaults, options);
-        let markdown = new showdown.Converter();
+
         target.addClass('report-viewer');
         $.each(settings.data.details, function (i, section) {
             target.append(sectionTemplate({id: i, section: section}))
         });
+
+        target.find('figure').each(function(){
+            let chart = $(this).data('chart');
+            if (chart.kind === 'histogram') {
+                let data = [];
+                let xkey = chart.data['x-label'];
+                
+                $.each(chart['data'].data, function(i, item){
+                    let xvalue = item[xkey];
+                    $.each(item, function(key, yvalue){
+                        let point = {};
+                        point['name'] = key;
+                        point['value'] = yvalue;
+                        point[xkey] = xvalue;
+                        data.push(point);
+                    });
+                });
+                $(this).height($(this).width()*9/16);
+                var visualization = d3plus.viz()
+                    .container("#"+$(this).attr('id'))
+                    .data(data)
+                    .type("bar")
+                    .id("name")
+                    .x(xkey)
+                    .y("value")
+                    .draw();
+            }
+        });
+        
     };
 }(jQuery));
