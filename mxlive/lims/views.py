@@ -891,23 +891,25 @@ class BeamlineHistory(AdminRequiredMixin, ListViewMixin, ItemListView):
         return qs.filter(beamline__pk=self.kwargs['pk'])
 
 
-class BeamlineStatistics(BeamlineDetail):
+class ParameterStatistics(BeamlineDetail):
     template_name = "users/entries/beamline-statistics.html"
 
     def get_context_data(self, **kwargs):
-        context = super(BeamlineStatistics, self).get_context_data(**kwargs)
+        context = super(ParameterStatistics, self).get_context_data(**kwargs)
         yearly = 'year' not in self.kwargs
-        period = 'year' if yearly else 'month'
         filters = {} if yearly else {'created__year': self.kwargs.get('year')}
+
         context['year'] = self.kwargs.get('year')
         context['years'] = stats.get_data_periods(period='year')
+
+        context['report'] = stats.parameter_stats(self.object, **filters)
         return context
 
     def page_title(self):
         if self.kwargs.get('year'):
-            return '{} Monthly Statistics'.format(self.kwargs['year'])
+            return '{} Monthly Parameters'.format(self.kwargs['year'])
         else:
-            return 'Yearly Statistics'
+            return 'Yearly Parameters'
 
 
 class UsageStatistics(BeamlineDetail):
@@ -917,11 +919,12 @@ class UsageStatistics(BeamlineDetail):
         context = super(UsageStatistics, self).get_context_data(**kwargs)
         yearly = 'year' not in self.kwargs
         period = 'year' if yearly else 'month'
-        filters = {} if yearly else {'created__year': self.kwargs.get('year')}
 
-        context['years'] = stats.get_data_periods(period='year')
         context['year'] = self.kwargs.get('year')
-        context['usage_stats'] = stats.usage_stats(self.object, period=period, **filters)
+        context['years'] = stats.get_data_periods(period='year')
+
+        filters = {} if yearly else {'created__year': self.kwargs.get('year')}
+        context['report'] = stats.usage_stats(self.object, period=period, **filters)
         return context
 
     def page_title(self):

@@ -14,10 +14,16 @@ figcaption {
 	caption-side: bottom;
 }
 .report-viewer figure {
+	width: 100%;
+	height: 100%;
 	counter-increment: figures;
 }
 .report-viewer figcaption:before {
 	content: 'Figure ' counter(figures)	' - ';
+}
+
+.report-viewer .table caption:before {
+	content: 'Table ' counter(tables)	' - ';
 }
 
 #report-builder {
@@ -26,14 +32,16 @@ figcaption {
 }
 .report-viewer {
 	padding: 1rem;
-	counter-reset: figures;
+	counter-reset: figures tables;
+
 	h3 {
 		font-weight: 200;
 		border-left: 0.25rem solid rgba(0,0,0,0.2);
 		margin-left: 0.25rem;
 		margin-bottom: 1rem;
 	}
-	table {
+	.table {
+		counter-increment: tables;
 		tbody {
 			td {
 				text-align: right;
@@ -116,5 +124,11 @@ table {
 			border: 1px solid #ddd;
 			box-shadow: 2px 2px 10px #ddd;
 		}
+	}
+}
+
+.report-viewer {
+	.c3-axis-y-label, .c3-axis-y2-label, .c3-axis-x-label {
+		font-size: 1rem;
 	}
 }

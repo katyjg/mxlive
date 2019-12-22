@@ -1,8 +1,6 @@
 {% extends "users/base.html" %}
 
 {% load static %}
-{% load json_to_dict %}
-{% load stats %}
 {% load icons %}
 
 {% block page_heading %}
@@ -16,7 +14,7 @@
 
 {% block object_tools %}
     {% now "Y" as yr %}
-    <a href="{% url "usage-statistics" object.pk %}">
+    <a href="{% url "yearly-usage" object.pk %}">
         {% show_icon label='Usage' icon='ti ti-md ti-stats-up' %}
     </a>
 {% endblock %}
@@ -24,11 +22,15 @@
 {% block object_status %}
     <div class="status-bar hidden-print">
         <div class="row">
-            <h4 class="col-11">
-                Year:
-                {% for yr in object|get_years %}
-                    <a href="{% url "yearly-statistics" object.pk yr %}"><span class="badge badge-info">{{ yr }}</span></a>
+            <h4 class="col my-0 p-2">
+                <a href="{% url "yearly-statistics" object.pk %}"><span
+                        class="badge badge-{% if year %}info{% else %}primary{% endif %}">Yearly</span></a>&nbsp;
+                {% for yr in years %}
+                    <a href="{% url "monthly-statistics" object.pk yr %}"><span
+                            class="badge badge-{% if yr == year %}primary{% else %}info{% endif %}">{{ yr }}</span></a>
+                    &nbsp;
                 {% endfor %}
+
             </h4>
         </div>
     </div>
@@ -48,9 +50,14 @@
     <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
     <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/mxlive-reports.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mxlive-report.min.js" %}"></script>
     <script type="text/javascript">
-        var json = {% get_data_stats object year %};
-        build_report('#data-stats', json);
+        var report = {{ report | safe }}
+        $(document).ready(function(){
+            $('#data-stats').liveReport({
+                data: report
+            })
+        });
     </script>
 {% endblock %}

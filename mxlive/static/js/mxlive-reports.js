@@ -930,13 +930,13 @@ function build_report(selector, report) {
                         }
                     });
                     if (entry['title']) {
-                        table.append("<caption class='text-center'>Table " + ($('table').length + 1) + '. ' + entry['title'] + "</caption>");
+                        table.append("<caption class='text-center'>" + entry['title'] + "</caption>");
                     }
                     table.append(thead);
                     table.append(tbody);
                     entry_row.append(table);
                 }
-            } else if (entry['kind'] === 'histogram') {
+            } else if (entry['kind'] === 'barchart') {
                 $("#entry-" + i + "-" + j).append("<figure id='figure-" + i + "-" + j + "'></figure>");
                 var data = entry['data']['data'];
                 //Draw Stack Chart
@@ -958,7 +958,7 @@ function build_report(selector, report) {
                 if (entry['title']) {
                     $('#figure-' + i + '-' + j).append("<figcaption class='text-center'>Figure " + ($('figure').length + 1) + '. ' + entry['title'] + "</figcaption>")
                 }
-            } else if (entry['kind'] === 'lineplot' || entry['kind'] === 'scatterplot' || entry['kind'] === 'barchart') {
+            } else if (entry['kind'] === 'lineplot' || entry['kind'] === 'scatterplot' || entry['kind'] === 'histogram') {
                 $("#entry-" + i + "-" + j).append("<figure id='figure-" + i + "-" + j + "'></figure>");
                 var data = [];
                 var xlabel = entry['data']['x-label'] || (entry['data']['x'] && entry['data']['x'].shift()) || null;
@@ -971,7 +971,7 @@ function build_report(selector, report) {
                 var binning = entry['data']['bins'] || 50;
                 var timeformat = entry['data']['time-format'] || null;
                 var y1label = '', y2label = '';
-                if (entry['kind'] === 'barchart') {
+                if (entry['kind'] === 'histogram') {
                     data = {'data': entry['data']['data'], 'color': entry['data']['color'] || choose(color_scheme)};
                     if (xscale == 'time') {
                         $.each(data['data'], function(i, d) {
@@ -1010,14 +1010,14 @@ function build_report(selector, report) {
                     .binning(binning)
                     .timeformat(timeformat)
                     .interpolation(interpolation)
-                    .scatter(entry['kind'] === 'scatterplot' && 'scatter' || entry['kind'] === 'lineplot' && 'line' || entry['kind'] === 'barchart' && 'bar');
+                    .scatter(entry['kind'] === 'scatterplot' && 'scatter' || entry['kind'] === 'lineplot' && 'line' || entry['kind'] === 'histogram' && 'bar');
                 var svg = d3.select('#figure-' + i + '-' + j).append("svg")
                     .attr("viewBox", "0 0 "+ width + " " + (width*9/16))
                     .attr('id', 'plot-' + i + "-" + j)
                     .datum(data)
                     .call(xy_chart);
                 if (entry['title']) {
-                    $('#figure-' + i + '-' + j).append("<figcaption class='text-center'>Figure " + ($('figure').length + 1) + '. ' + entry['title'] + "</figcaption>")
+                    $('#figure-' + i + '-' + j).append("<figcaption class='text-center'>" + entry['title'] + "</figcaption>")
                 }
             } else if (entry['kind'] === 'pie' || entry['kind'] === 'gauge') {
                 $("#entry-" + i + "-" + j).append("<figure id='figure-" + i + "-" + j + "'></figure>");
@@ -1046,7 +1046,7 @@ function build_report(selector, report) {
                     .datum(data)
                     .call(pie_chart);
                 if (entry['title']) {
-                    $('#figure-' + i + '-' + j).append("<figcaption class='text-center'>Figure " + ($('figure').length + 1) + '. ' + entry['title'] + "</figcaption>")
+                    $('#figure-' + i + '-' + j).append("<figcaption class='text-center'>" + entry['title'] + "</figcaption>")
                 }
             }
             if (entry['notes']) {
@@ -1056,3 +1056,18 @@ function build_report(selector, report) {
     });
 
 }
+
+(function ($) {
+    $.fn.liveReport = function (options) {
+        let target = $(this);
+        let defaults = {
+            data: {},
+            scheme: d3.schemeSet2
+        };
+        let settings = $.extend(defaults, options);
+
+        target.addClass('report-viewer');
+        build_report(this, settings.data)
+
+    };
+}(jQuery));

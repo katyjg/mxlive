@@ -44,28 +44,6 @@ def get_data_stats(bl, year):
     data = data.filter(created__year=year)
     stats = {'details': [
         {
-            'title': 'Data Summary',
-            'style': "row",
-            'content': [
-                {
-                    'title': '',
-                    'kind': 'table',
-                    'data': [[''] + years + ['All']] + yearly,
-                    'header': 'column row',
-                    'style': 'col-12'
-                },
-                {
-                    'title': '',
-                    'kind': 'histogram',
-                    'data': {
-                        'x-label': 'Year',
-                        'data': histogram_data,
-                    },
-                    'style': 'col-12'
-                }
-            ]
-        },
-        {
             'title': '{} Beamline Parameters'.format(year),
             'description': 'Data Collection Parameters Summary',
             'style': 'row',
@@ -74,12 +52,11 @@ def get_data_stats(bl, year):
                     'title': 'Attenuation vs. Exposure Time',
                     'kind': 'scatterplot',
                     'data': {
-                        'x': ['Exposure Time (s)'] + list(data.values_list('exposure_time', flat=True)),
-                        'y1': [['Attenuation (%)'] + list(data.values_list('attenuation', flat=True))],
-                        'x-scale': 'pow'
+                        'x': ['Exposure'] + list(data.values_list('exposure_time', flat=True)),
+                        'y1': [['Attenuation'] + list(data.values_list('attenuation', flat=True))],
                     },
                     'style': 'col-12 col-sm-6'
-                } if beam_sizes_totals else {},
+                },
                 {
                     'title': 'Beam Size',
                     'kind': 'pie',
@@ -100,7 +77,7 @@ def get_data_stats(bl, year):
             'content': [
                 {
                     'title': e.title(),
-                    'kind': 'barchart',
+                    'kind': 'histogram',
                     'data': {
                         'data': [float(d) for d in data.values_list(e, flat=True) if d != None],
                     },

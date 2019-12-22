@@ -16,10 +16,10 @@
     <div class="status-bar">
         <div class="row">
             <h4 class="col my-0 p-2">
-                <a href="{% url "usage-statistics" object.pk %}"><span
+                <a href="{% url "yearly-usage" object.pk %}"><span
                         class="badge badge-{% if year %}info{% else %}primary{% endif %}">Yearly</span></a>&nbsp;
                 {% for yr in years %}
-                    <a href="{% url "monthly-usage-stats" object.pk yr %}"><span
+                    <a href="{% url "monthly-usage" object.pk yr %}"><span
                             class="badge badge-{% if yr == year %}primary{% else %}info{% endif %}">{{ yr }}</span></a>
                     &nbsp;
                 {% endfor %}
@@ -31,12 +31,13 @@
 
 {% block object_tools %}
     {% now "Y" as yr %}
-    <a href="{% url "yearly-statistics" object.pk yr %}">
+    <a href="{% url "monthly-statistics" object.pk yr %}">
         {% show_icon label='Stats' icon='ti ti-md ti-bar-chart' %}
     </a>
 {% endblock %}
 
 {% block extra_css %}
+    <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
     <link href="{% static "css/reports.min.css" %}" rel="stylesheet">
 {% endblock %}
 
@@ -51,11 +52,10 @@
     <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
     <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/d3/d3plus.full.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/mxlive-report.min.js" %}"></script>
     <script type="text/javascript">
-        var report = {{ usage_stats | safe }};
-        //build_report('#data-stats', report);
+        var report = {{ report | safe }};
         $(document).ready(function(){
             $('#data-stats').liveReport({
                 data: report

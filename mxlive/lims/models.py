@@ -1161,7 +1161,7 @@ class Data(ActiveStatusMixin):
     session = models.ForeignKey(Session, null=True, blank=True, on_delete=models.SET_NULL, related_name='datasets')
     file_name = models.CharField(max_length=200, null=True, blank=True)
     frames = FrameField(null=True, blank=True)
-    num_frames = models.IntegerField(default=1)
+    num_frames = models.IntegerField("Frame Count", default=1)
     exposure_time = models.FloatField(null=True, blank=True)
     attenuation = models.FloatField(default=0.0)
     energy = models.DecimalField(decimal_places=4, max_digits=10)

@@ -3,6 +3,8 @@ from collections import defaultdict
 from datetime import datetime
 from math import ceil
 
+import numpy
+
 from django.conf import settings
 from django.db.models import Count, Sum, Q, F, Avg, FloatField
 from django.utils import timezone
@@ -85,7 +87,7 @@ def usage_stats(beamline, period='year', **filters):
         for entry in data_params
     }
     dataset_exposure = {
-        entry[field]: entry['exposure']
+        entry[field]: round(entry['exposure'], 3)
         for entry in data_params
     }
 
@@ -126,7 +128,7 @@ def usage_stats(beamline, period='year', **filters):
         datatype_table.append([key.name] + kind_counts + [sum(kind_counts)])
     period_counts = [sum(period_data[per].values()) for per in periods]
     datatype_table.append(['Total'] + period_counts + [sum(period_counts)])
-    histogram_data = []
+    chart_data = []
 
     period_names = periods
     period_xvalues = periods
@@ -137,7 +139,7 @@ def usage_stats(beamline, period='year', **filters):
         yr = timezone.now().year
         period_names = [calendar.month_abbr[per].title() for per in periods]
         period_xvalues = [datetime.strftime(datetime(yr, per, 1, 0, 0), '%c') for per in periods]
-        time_format = '%m'
+        time_format = '%b'
         x_scale = 'time'
     elif period == 'year':
         period_xvalues = [datetime.strftime(datetime(per, 1, 1, 0, 0), '%c') for per in periods]
@@ -148,7 +150,7 @@ def usage_stats(beamline, period='year', **filters):
     for i, per in enumerate(periods):
         series = {period.title(): period_names[i]}
         series.update(period_data[per])
-        histogram_data.append(series)
+        chart_data.append(series)
 
     stats = {'details': [
         {
@@ -185,7 +187,7 @@ def usage_stats(beamline, period='year', **filters):
                 },
                 {
                     'title': 'Usage Statistics',
-                    'kind': 'histogram',
+                    'kind': 'barchart',
                     'data': {
                         'x-label': period.title(),
                         'data': [
@@ -193,7 +195,7 @@ def usage_stats(beamline, period='year', **filters):
                                 period.title(): period_names[i],
                                 'Samples': sample_counts.get(per, 0),
                                 'Datasets': dataset_counts.get(per, 0),
-                                'Total Time': session_hours.get(per,0),
+                                'Total Time': round(session_hours.get(per, 0), 1),
                             } for i, per in enumerate(periods)
                         ]
                     },
@@ -205,8 +207,8 @@ def usage_stats(beamline, period='year', **filters):
                     'data':
                         {
                             'x': [period.title()] + period_xvalues,
-                            'y1': [['Datasets/Shift'] + list(dataset_per_shift.values())],
-                            'y2': [['Average Exposure Time'] + list(dataset_exposure.values())],
+                            'y1': [['Datasets/Shift'] + [round(dataset_per_shift.get(per, 0),2) for per in periods]],
+                            'y2': [['Average Exposure'] + [round(dataset_exposure.get(per, 0),2) for per in periods]],
                             'x-scale': x_scale,
                             'time-format': time_format
                         },
@@ -227,15 +229,96 @@ def usage_stats(beamline, period='year', **filters):
                 },
                 {
                     'title': 'Dataset summary by {}'.format(period),
-                    'kind': 'histogram',
+                    'kind': 'barchart',
                     'data': {
                         'x-label': period.title(),
-                        'data': histogram_data,
+                        'stack': [[d.name for d in data_types]],
+                        'data': chart_data,
                     },
-                    'style': 'col-12 col-sm-6'
+                    'style': 'col-12 col-md-6'
                 }
             ]
         },
     ]
     }
+    return stats
+
+
+def get_histogram_points(data, range=None):
+    counts, edges = numpy.histogram(data, bins='doane', range=range, density=False)
+    centers = (edges[:1] + edges[1:])*0.5
+
+    return list(zip(centers.astype(float).tolist(), counts.astype(int).tolist()))
+
+
+
+def parameter_stats(beamline, **filters):
+    beam_sizes = beamline.datasets.filter(beam_size__isnull=False, **filters).values('beam_size').order_by('beam_size').annotate(
+        count=Count('id')
+    )
+
+    data_info = beamline.datasets.filter(**filters).values('exposure_time', 'attenuation', 'energy', 'num_frames')
+    data_names = {
+        field_name: Data._meta.get_field(field_name).verbose_name
+        for field_name in ('exposure_time', 'attenuation', 'energy', 'num_frames')
+    }
+
+    ranges = {
+        'exposure_time': (0.01, 20)
+    }
+    data_histograms = {
+        field_name: get_histogram_points(
+            [float(d[field_name]) for d in data_info if d[field_name] is not None],
+            range=ranges.get(field_name)
+        )
+        for field_name in ('exposure_time', 'attenuation', 'energy', 'num_frames')
+    }
+
+    stats = {'details': [
+        {
+            'title': 'Parameter Distributions',
+            'style': 'row',
+            'content': [
+                {
+                    'title': 'Attenuation vs. Exposure Time',
+                    'kind': 'scatterplot',
+                    'data': {
+                        'x': ['Exposure Time (s)'] + [d['exposure_time'] for d in data_info if d['exposure_time'] is not None],
+                        'y1': [['Attenuation (%)'] + [d['attenuation'] for d in data_info if d['exposure_time'] is not None]],
+                    },
+                    'style': 'col-12 col-md-6'
+                },
+                {
+                    'title': 'Beam Size',
+                    'kind': 'pie',
+                    'data': [
+                        {
+                            'label': "{:0.0f}".format(entry['beam_size']),
+                            'value': entry['count'],
+                        }
+                        for entry in beam_sizes
+                    ],
+                    'style': 'col-12 col-md-6'
+                },
+            ]
+        },
+        {
+            'title': '',
+            'style': 'row',
+            'content': [
+                {
+                    'title': data_names[param].title(),
+                    'kind': 'histogram',
+                    'data': [
+                        {
+                            "x": row[0],
+                            "y": row[1]
+                        }
+                        for row in data_histograms[param]
+                    ],
+                    'style': 'col-12 col-md-6'
+                } for param in ('energy', 'exposure_time', 'attenuation', 'num_frames')
+            ]
+        }
+    ]}
     return stats
