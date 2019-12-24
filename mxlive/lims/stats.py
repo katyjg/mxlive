@@ -10,7 +10,7 @@ from django.db.models import Count, Sum, Q, F, Avg, FloatField
 from django.utils import timezone
 from memoize import memoize
 
-from mxlive.lims.models import Data, Sample, Session, DataType, Project
+from mxlive.lims.models import Data, Sample, Session, DataType, Project, AnalysisReport
 from mxlive.utils.functions import ShiftEnd, ShiftStart
 
 SHIFT = getattr(settings, "SHIFT_LENGTH", 8)
@@ -244,50 +244,56 @@ def usage_stats(beamline, period='year', **filters):
     return stats
 
 
-def get_histogram_points(data, range=None):
-    counts, edges = numpy.histogram(data, bins='doane', range=range, density=False)
-    centers = (edges[:1] + edges[1:])*0.5
-
-    return list(zip(centers.astype(float).tolist(), counts.astype(int).tolist()))
-
+def get_histogram_points(data, range=None, bins='doane'):
+    counts, edges = numpy.histogram(data, bins=bins, range=range)
+    centers = (edges[:-1] + edges[1:])*0.5
+    return list(zip(centers, counts))
 
 
 def parameter_stats(beamline, **filters):
-    beam_sizes = beamline.datasets.filter(beam_size__isnull=False, **filters).values('beam_size').order_by('beam_size').annotate(
+    beam_sizes = Data.objects.filter(beamline=beamline, beam_size__isnull=False, **filters).values('beam_size').order_by('beam_size').annotate(
         count=Count('id')
     )
 
-    data_info = beamline.datasets.filter(**filters).values('exposure_time', 'attenuation', 'energy', 'num_frames')
-    data_names = {
+    report_info = AnalysisReport.objects.filter(data__beamline=beamline, **filters).values('score')
+
+    data_info = Data.objects.filter(beamline=beamline, **filters).values('exposure_time', 'attenuation', 'energy', 'num_frames')
+    param_names = {
         field_name: Data._meta.get_field(field_name).verbose_name
-        for field_name in ('exposure_time', 'attenuation', 'energy', 'num_frames')
+        for field_name in ['exposure_time', 'attenuation', 'energy', 'num_frames']
     }
+    param_names.update({
+        field_name: AnalysisReport._meta.get_field(field_name).verbose_name
+        for field_name in ('score', )
+    })
 
     ranges = {
-        'exposure_time': (0.01, 20)
+        'exposure_time': (0.01, 20),
+        'score': (0.01, 1),
+        'energy': (4., 18.)
     }
-    data_histograms = {
+    binning = {
+        'energy': 8,
+        'attenuation': numpy.linspace(0, 100, 11)
+    }
+
+    param_histograms = {
         field_name: get_histogram_points(
             [float(d[field_name]) for d in data_info if d[field_name] is not None],
-            range=ranges.get(field_name)
+            range=ranges.get(field_name), bins=binning.get(field_name, 'doane')
         )
         for field_name in ('exposure_time', 'attenuation', 'energy', 'num_frames')
     }
+    param_histograms['score'] = get_histogram_points(
+        [float(d['score']) for d in report_info if d['score'] is not None],
+        range=ranges.get('score')
+    )
 
     stats = {'details': [
         {
             'title': 'Parameter Distributions',
             'style': 'row',
             'content': [
-                {
-                    'title': 'Attenuation vs. Exposure Time',
-                    'kind': 'scatterplot',
-                    'data': {
-                        'x': ['Exposure Time (s)'] + [d['exposure_time'] for d in data_info if d['exposure_time'] is not None],
-                        'y1': [['Attenuation (%)'] + [d['attenuation'] for d in data_info if d['exposure_time'] is not None]],
-                    },
-                    'style': 'col-12 col-md-6'
-                },
                 {
                     'title': 'Beam Size',
                     'kind': 'pie',
@@ -300,24 +306,19 @@ def parameter_stats(beamline, **filters):
                     ],
                     'style': 'col-12 col-md-6'
                 },
-            ]
-        },
-        {
-            'title': '',
-            'style': 'row',
-            'content': [
+            ] + [
                 {
-                    'title': data_names[param].title(),
+                    'title': param_names[param].title(),
                     'kind': 'histogram',
                     'data': [
                         {
                             "x": row[0],
                             "y": row[1]
                         }
-                        for row in data_histograms[param]
+                        for row in param_histograms[param]
                     ],
                     'style': 'col-12 col-md-6'
-                } for param in ('energy', 'exposure_time', 'attenuation', 'num_frames')
+                } for param in ('score', 'energy', 'exposure_time', 'attenuation', 'num_frames')
             ]
         }
     ]}

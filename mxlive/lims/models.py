@@ -1114,7 +1114,7 @@ class FrameField(models.TextField):
                 return val_str
         return value
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection):
         if value is None or isinstance(value, list):
             return value
         if isinstance(value, str):
@@ -1230,7 +1230,7 @@ class Data(ActiveStatusMixin):
 class AnalysisReport(ActiveStatusMixin):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='reports')
     kind = models.CharField(max_length=100)
-    score = models.FloatField(null=True, default=0.0)
+    score = models.FloatField("Analysis Report Score", null=True, default=0.0)
     data = models.ManyToManyField(Data, blank=True, related_name="reports")
     url = models.CharField(max_length=200)
     details = JSONField(default=[])

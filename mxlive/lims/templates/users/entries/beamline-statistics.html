@@ -28,7 +28,6 @@
                 {% for yr in years %}
                     <a href="{% url "monthly-statistics" object.pk yr %}"><span
                             class="badge badge-{% if yr == year %}primary{% else %}info{% endif %}">{{ yr }}</span></a>
-                    &nbsp;
                 {% endfor %}
 
             </h4>
@@ -37,6 +36,7 @@
 {% endblock %}
 
 {% block extra_css %}
+    <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
     <link href="{% static "css/reports.min.css" %}" rel="stylesheet">
 {% endblock %}
 

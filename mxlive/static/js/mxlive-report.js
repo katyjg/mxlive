@@ -45,8 +45,8 @@ const scheme8 = [
     "#afc441", "#cc5c3e", "#64c192", "#9aa156", "#829aba", "#9565c9", "#c7588a", "#a39384"
 ];
 const scheme14 = [
-    "#cdc339", "#67aec1", "#c45a81", "#6dc758", "#c255b6", "#6db586", "#cd4f55", "#805cd6",
-    "#cf622d", "#667ccd", "#a69e4c", "#a084b6", "#ae8e6b", "#9b9795"
+    "#cdc339", "#67aec1", "#c45a81", "#6dc758", "#a084b6", "#667ccd", "#c255b6", "#6db586", "#cd4f55", "#805cd6",
+    "#cf622d", "#a69e4c", "#ae8e6b", "#9b9795"
 ];
 
 var contentTemplate = _.template(
@@ -117,7 +117,7 @@ function drawLineChart(figure, chart, options) {
     let colors = {};
     let columns = [];
     let axes = {};
-    let axis_opts = {};
+    let axis_opts = {x: {}, y: {}};
 
     // remove raw data from dom
     figure.removeData('chart').removeAttr('data-chart');
@@ -136,7 +136,18 @@ function drawLineChart(figure, chart, options) {
     } else {
         columns.push(chart.data.x);  // add x-axis
     }
+    
+    if (chart.data.x.length > 15) {
+        axis_opts.x = {
+            tick: {
+                //fit: true,
+                multiline: false,
+                //format: v => v.toFixed(2),
+                //culling: { max: 10}
 
+            }
+        }
+    }
 
     // gather y axes data
     let index = 0;
@@ -144,7 +155,7 @@ function drawLineChart(figure, chart, options) {
         columns.push(line);
         axes[line[0]] = 'y';
         colors[line[0]] = options.scheme[index++];
-        axis_opts['y'] = {label: line[0]};
+        axis_opts.y.label = line[0];
     });
 
     // gather y axes data
@@ -157,12 +168,12 @@ function drawLineChart(figure, chart, options) {
 
     // configure axis
     if (chart.data['x-scale'] === 'time') {
-        axis_opts['x'] = {
+        axis_opts.x = {
             type: 'timeseries',
-            tick: {'format': chart.data['time-format']}
+            tick: {format: chart.data['time-format']}
         };
     } else {
-        axis_opts['x'] = { type: 'category'};
+        axis_opts.x.type = 'category'
     }
 
     c3.generate({
@@ -231,11 +242,13 @@ function drawBarChart(figure, chart, options) {
 
 
 function drawHistogram(figure, chart, options) {
-    let colors = {};
+    let yscale = chart['y-scale'];
 
     // remove raw data from dom
     figure.removeData('chart');
     figure.removeAttr('data-chart');
+
+
     c3.generate({
         bindto: `#${figure.attr('id')}`,
         size: {width: options.width, height: options.height},
@@ -256,10 +269,14 @@ function drawHistogram(figure, chart, options) {
                     count: 10,
                     format: v => v.toFixed(1)
                 }
+            },
+            y : {
+                type: yscale
             }
         },
         legend: {hide: true},
         grid: {y: {show: true}},
+        bar: {width: {ratio: 0.5}},
         onresize: function () {
             this.api.resize({
                 width: figure.width(),
@@ -306,37 +323,52 @@ function drawPieChart(figure, chart, options) {
 
 
 function drawScatterChart(figure, chart, options) {
-    let series = [];
+    let colors = {};
+    let columns = [];
+    let axes = {};
+    let pairs = {};
+    let axis_opts = {};
 
     // remove raw data from dom
-    figure.removeData('chart');
-    figure.removeAttr('data-chart');
+    figure.removeData('chart').removeAttr('data-chart');
 
-    // series names
+    // gather x axis column data
+    columns.push(chart.data.x);  // add x-axis
+
+    // gather y axes data
     let index = 0;
-    $.each(chart.data["data"][0], function (key, value) {
-        if (key !== chart.data["x-label"]) {
-            series.push(key);
-            colors[key] = options.scheme[index++];
-        }
+    $.each(chart.data.y1, function(i, line){  // y1
+        columns.push(line);
+        axes[line[0]] = 'y';
+        pairs[line[0]] = chart.data.x[0];
+        colors[line[0]] = options.scheme[index++];
+        axis_opts['y'] = {label: line[0]};
     });
+
+    // gather y axes data
+    $.each(chart.data.y2, function(i, line){  // y2
+        columns.push(line);
+        axes[line[0]] = 'y2';
+        pairs[line[0]] = chart.data.x[0];
+        colors[line[0]] = options.scheme[index++];
+        axis_opts['y2'] = {show: true, label: line[0]};
+    });
+
+    // configure axis
+    axis_opts['x'] = { tick: {fit: false}};
 
     c3.generate({
         bindto: `#${figure.attr('id')}`,
         size: {width: options.width, height: options.height},
         data: {
-            type: 'bar',
-            json: chart.data["data"],
-            color: choose(options.scheme),
-            keys: {
-                x: chart.data["x-label"],
-                value: series
-            },
-            groups: chart.data.stack || [],
+            type: 'scatter',
+            columns: columns,
+            colors: colors,
+            axes: axes,
+            xs: pairs,
         },
+        axis: axis_opts,
         grid: {y: {show: true}},
-        axis: {x: {type: 'category', label: chart.data['x-label']}},
-        bar: {width: {ratio: 0.85}},
         onresize: function () {
             this.api.resize({
                 width: figure.width(),
@@ -345,6 +377,7 @@ function drawScatterChart(figure, chart, options) {
         }
     });
 }
+
 
 
 (function ($) {
@@ -382,11 +415,16 @@ function drawScatterChart(figure, chart, options) {
                     drawPieChart(figure, chart, options);
                     break;
                 case 'scatterplot':
-                    //drawScatterChart(figure, chart, options);
+                    drawScatterChart(figure, chart, options);
                     break;
             }
+            
+            // caption
+
             if (chart.title) {
-                $(this).append(`<figcaption class="text-center">${chart.title}</figcaption>`);
+                figure.after(`<figcaption class="text-center">${chart.title}</figcaption>`);
+            } else {
+                figure.after(`<figcaption class="text-center"></figcaption>`);
             }
         });
 

@@ -21,7 +21,6 @@
                 {% for yr in years %}
                     <a href="{% url "monthly-usage" object.pk yr %}"><span
                             class="badge badge-{% if yr == year %}primary{% else %}info{% endif %}">{{ yr }}</span></a>
-                    &nbsp;
                 {% endfor %}
 
             </h4>
