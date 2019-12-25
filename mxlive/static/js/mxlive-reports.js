@@ -988,6 +988,7 @@ function build_report(selector, report) {
                         y1label = line.shift();
                         data.push({'label': y1label, 'x': entry['data']['x'], 'y1': line});
                     });
+
                     $.each(entry['data']['y2'], function (l, line) {
                         y2label = line.shift();
                         data.push({'label': y2label, 'x': entry['data']['x'], 'y2': line});

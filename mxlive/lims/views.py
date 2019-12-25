@@ -728,7 +728,7 @@ def format_score(val, record):
 
 class ReportList(ListViewMixin, ItemListView):
     model = models.AnalysisReport
-    list_filters = ['modified', ]
+    list_filters = ['modified', 'kind' ]
     list_columns = ['id','kind', 'score', 'modified']
     list_search = ['project__username', 'name', 'data__name']
     link_field = 'id'

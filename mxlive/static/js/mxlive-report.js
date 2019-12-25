@@ -1,6 +1,5 @@
 function rounded(v) {
-    let exp = Math.pow(10, -Math.ceil(Math.log(Math.abs(v), 10)));
-    return Math.round(v * exp) / exp;
+    return v.toPrecision(1);
 }
 
 function choose(choices) {
@@ -8,21 +7,15 @@ function choose(choices) {
     return choices[index];
 }
 
-Array.cleanspace = function (a, b, steps) {
-    let A = [];
-    let min = rounded((b - a) / 8);
 
-    steps = steps || 7;
-    a = Math.ceil(a / min) * min;
-    b = Math.floor(b / min) * min;
-    let step = Math.ceil(((b - a) / steps) / min) * min;
 
-    A[0] = a;
-    while (a + step <= b) {
-        A[A.length] = a += step;
-    }
-    return A;
-};
+function getPrecision(row, steps) {
+    steps = steps || 8;
+    let a = row[0];
+    let b = row[row.length-1];
+    let min = ((b - a) / steps).toPrecision(1);
+    return Math.max(0, Math.ceil(Math.log10(1/min)) || 2)
+}
 
 function inv_sqrt(a) {
     let A = [];
@@ -113,43 +106,75 @@ var tableTemplate = _.template(
 );
 
 
-function drawLineChart(figure, chart, options) {
+function drawXYChart(figure, chart, options, type='line') {
     let colors = {};
     let columns = [];
     let axes = {};
-    let axis_opts = {x: {}, y: {}};
+    let data_type = type;
+    let spline_opts = {interpolation: {}};
+    let axis_opts = {x: {}, y: {}, y2: {}};
+    let xdata = [];
 
-    // remove raw data from dom
-    figure.removeData('chart').removeAttr('data-chart');
-    
-    // gather x axis column data
+    // Axis limits
+    if (chart.data['x-limits']) {
+        axis_opts.x.min = chart.data['x-limits'][0] || null;
+        axis_opts.x.max = chart.data['x-limits'][0] || null;
+    }
+    if (chart.data['y1-limits']) {
+        axis_opts.y.min = chart.data['y1-limits'][0] || null;
+        axis_opts.y.max = chart.data['y1-limits'][0] || null;
+    }
+    if (chart.data['y2-limits']) {
+        axis_opts.y2.min = chart.data['y2-limits'][0] || null;
+        axis_opts.y2.max = chart.data['y2-limits'][0] || null;
+    }
+
+    // Spline Plo type
+    if (["linear", "cardinal", "basis", "step", "step-before", "step-after"].includes(chart.data['interpolation'])) {
+        data_type = 'spline';
+        spline_opts.interpolation.type = chart.data['interpolation'];
+    }
+
+    // configure x-axis interpolation
     if (chart.data['x-scale'] === 'time') {
-        let scaled_x = [];
-        $.each(chart.data.x, function(i, value){
+        axis_opts.x = {
+            type: 'timeseries',
+            tick: {format: chart.data['time-format']}
+        };
+
+        // convert x values to time series
+        $.each(chart.data.x, function (i, value) {
             if (i === 0) {
-                scaled_x.push(value)
+                xdata.push(value)  // series label
             } else {
-                scaled_x.push(Date.parse(value))
+                xdata.push(Date.parse(value))
             }
-            columns.push(scaled_x);
         });
     } else {
-        columns.push(chart.data.x);  // add x-axis
-    }
-    
-    if (chart.data.x.length > 15) {
+        xdata = chart.data.x;
+        let xvalues = xdata.slice(1, xdata.length);
+        let prec = getPrecision(xvalues);
+        let xconv = d3.interpolateDiscrete(xvalues);
         axis_opts.x = {
+            type: 'category',
             tick: {
-                //fit: true,
+                centered: true,
+                fit: false,
                 multiline: false,
-                //format: v => v.toFixed(2),
-                //culling: { max: 10}
-
+                culling: {max: 8},
+                format: function (x) {
+                    let val = x / (xvalues.length);
+                    return xconv(val).toFixed(prec);
+                }
             }
-        }
+        };
     }
 
-    // gather y axes data
+    // remove raw data from dom, not needed anymore
+    figure.removeData('chart').removeAttr('data-chart');
+
+    // gather columns data and configure labels and color
+    columns.push(xdata);  // add x-axis
     let index = 0;
     $.each(chart.data.y1, function(i, line){  // y1
         columns.push(line);
@@ -166,26 +191,18 @@ function drawLineChart(figure, chart, options) {
         axis_opts['y2'] = {show: true, label: line[0]};
     });
 
-    // configure axis
-    if (chart.data['x-scale'] === 'time') {
-        axis_opts.x = {
-            type: 'timeseries',
-            tick: {format: chart.data['time-format']}
-        };
-    } else {
-        axis_opts.x.type = 'category'
-    }
-
     c3.generate({
         bindto: `#${figure.attr('id')}`,
         size: {width: options.width, height: options.height},
         data: {
-            type: 'line',
+            type: data_type,
             columns: columns,
             colors: colors,
             axes: axes,
             x: chart.data.x[0],
         },
+        spline: spline_opts,
+        point: {show: (chart.data.x.length < 15)},
         axis: axis_opts,
         grid: {y: {show: true}},
         onresize: function () {
@@ -406,7 +423,7 @@ function drawScatterChart(figure, chart, options) {
                     drawBarChart(figure, chart, options);
                     break;
                 case 'lineplot':
-                    drawLineChart(figure, chart, options);
+                    drawXYChart(figure, chart, options, 'line');
                     break;
                 case 'histogram':
                     drawHistogram(figure, chart, options);
@@ -415,7 +432,7 @@ function drawScatterChart(figure, chart, options) {
                     drawPieChart(figure, chart, options);
                     break;
                 case 'scatterplot':
-                    drawScatterChart(figure, chart, options);
+                    drawXYChart(figure, chart, options, 'scatter');
                     break;
             }
             
