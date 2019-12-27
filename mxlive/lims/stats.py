@@ -19,6 +19,10 @@ SHIFT = getattr(settings, "SHIFT_LENGTH", 8)
 SHIFT_SECONDS = SHIFT*3600
 
 
+def js_epoch(dt):
+    return int("{:0.0f}000".format(dt.timestamp() if dt else datetime.now().timestamp()))
+
+
 @memoize(timeout=3600)
 def get_data_periods(period='year'):
     field = 'created__{}'.format(period)
@@ -96,6 +100,11 @@ def usage_stats(beamline, period='year', **filters):
     dataset_durations = {
         entry[field]: entry['duration'].total_seconds()/3600
         for entry in data_params
+    }
+
+    dataset_efficiency = {
+        key: dataset_durations.get(key, 0) / (session_hours.get(key, 1))
+        for key in periods
     }
 
     dataset_per_shift = {
@@ -377,6 +386,24 @@ def session_stats(session):
     total_time = session.total_time()
     last_data = session.datasets.last()
 
+    data_times = defaultdict(list)
+    for data in session.datasets.values('start_time', 'end_time', 'kind__name'):
+        data_times[data['kind__name']].append({
+            'timeRange': [js_epoch(data['start_time']), js_epoch(data['end_time'])],
+            'val': data['kind__name'],
+        })
+
+    timeline_info = [
+        {
+            "group": "Session",
+            "data": [
+                {
+                    "label": key,
+                    "data": data,
+                } for key, data in data_times.items()
+            ]
+        }
+    ]
     stats = {'details': [
         {
             'title': 'Session Statistics',
@@ -436,6 +463,13 @@ def session_stats(session):
                     ],
                     'style': 'col-12 col-md-4'
                 } for param in ('score', 'energy', 'exposure_time', 'attenuation', 'num_frames')
+            ] + [
+                {
+                    'title': 'Session Timeline',
+                    'kind': 'timeline',
+                    'data': timeline_info,
+                    'style': 'col-12'
+                }
             ]
         }
     ]}

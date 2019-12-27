@@ -300,18 +300,12 @@ class Session(models.Model):
         return last_data.modified if last_data else self.created
 
     def gaps(self):
-
-        for i, data in enumerate(self.datasets.order_by('created')):
-            if i == 0:
-                prev = data
-                continue
-            gap = data.created - (prev.created + timedelta(seconds=(prev.num_frames*prev.exposure_time)))
-            prev = data
-        for i in range(data.count() - 1):
-            if data[i].created <= (started(data[i + 1]) - timedelta(minutes=10)):
-                gaps.append([data[i].created, started(data[i + 1]),
-                             humanize_duration((started(data[i + 1]) - data[i].created).total_seconds() / 3600.)])
-        return gaps
+        data = list(self.datasets.order_by('start_time'))
+        max_gap = timedelta(minutes=10)
+        return [
+            (first.end_time, second.start_time, (second.start_time - first.end_time))
+            for first, second in zip(data[:-1], data[1:]) if (second.start_time - first.end_time) > max_gap
+        ]
 
 
 class Stretch(models.Model):

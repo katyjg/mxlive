@@ -30,3 +30,9 @@ def humanize_duration(hours, sec=False):
             's': sec and seconds and "{} second{}".format(seconds, seconds > 1 and 's' or '') or ""
         })
     return "0 minutes"
+
+
+@register.filter("natural_duration")
+def natural_duration(delta, sec=False):
+    hours = delta.total_seconds()/3600
+    return humanize_duration(hours, sec=sec)

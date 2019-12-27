@@ -30,7 +30,9 @@ function renderMarkdown(text) {
     return markdown.makeHtml(text);
 }
 
-const figureTypes = ["histogram", "lineplot", "barchart", "scatterplot", "pie", "gauge"];
+const figureTypes = [
+    "histogram", "lineplot", "barchart", "scatterplot", "pie", "gauge", "timeline"
+];
 
 
 const scheme4 = ["#a0b552", "#c56052", "#9f6dbf", "#8f9f9a"];
@@ -341,61 +343,22 @@ function drawPieChart(figure, chart, options) {
 
 
 function drawScatterChart(figure, chart, options) {
-    let colors = {};
-    let columns = [];
-    let axes = {};
-    let pairs = {};
-    let axis_opts = {};
+    drawXYChart(figure, chart, options, 'scatter');
+}
+
+function drawTimeline(figure, chart, options) {
+    let colors = d3.scaleOrdinal(d3.schemeDark2);
+
 
     // remove raw data from dom
     figure.removeData('chart').removeAttr('data-chart');
 
-    // gather x axis column data
-    columns.push(chart.data.x);  // add x-axis
 
-    // gather y axes data
-    let index = 0;
-    $.each(chart.data.y1, function(i, line){  // y1
-        columns.push(line);
-        axes[line[0]] = 'y';
-        pairs[line[0]] = chart.data.x[0];
-        colors[line[0]] = options.scheme[index++];
-        axis_opts['y'] = {label: line[0]};
-    });
-
-    // gather y axes data
-    $.each(chart.data.y2, function(i, line){  // y2
-        columns.push(line);
-        axes[line[0]] = 'y2';
-        pairs[line[0]] = chart.data.x[0];
-        colors[line[0]] = options.scheme[index++];
-        axis_opts['y2'] = {show: true, label: line[0]};
-    });
-
-    // configure axis
-    axis_opts['x'] = { tick: {fit: false}};
-
-    c3.generate({
-        bindto: `#${figure.attr('id')}`,
-        size: {width: options.width, height: options.height},
-        data: {
-            type: 'scatter',
-            columns: columns,
-            colors: colors,
-            axes: axes,
-            xs: pairs,
-        },
-        axis: axis_opts,
-        grid: {y: {show: true}},
-        onresize: function () {
-            this.api.resize({
-                width: figure.width(),
-                height: figure.width()*options.height/options.width
-            });
-        }
-    });
+    const myChart = TimelinesChart()(document.getElementById(`${figure.attr('id')}`));
+    myChart.data(chart.data)
+        .zColorScale(colors)
+        .width(figure.width());
 }
-
 
 
 (function ($) {
@@ -434,6 +397,9 @@ function drawScatterChart(figure, chart, options) {
                     break;
                 case 'scatterplot':
                     drawXYChart(figure, chart, options, 'scatter');
+                    break;
+                case 'timeline':
+                    drawTimeline(figure, chart, options);
                     break;
             }
             
