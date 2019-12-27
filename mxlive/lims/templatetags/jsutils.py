@@ -4,11 +4,12 @@ import json
 
 register = template.Library()
 
+
 @register.filter
-def json_to_dict(data):
+def to_json(data):
     return mark_safe(json.dumps(data))
 
 
 @register.filter
-def dict_to_dict(data):
-    return mark_safe(data)
+def from_json(data):
+    return json.loads(data)

@@ -6,12 +6,14 @@ from math import ceil
 import numpy
 
 from django.conf import settings
-from django.db.models import Count, Sum, Q, F, Avg, FloatField
+from django.db.models import Count, Sum, Q, F, Avg, FloatField, Max
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from memoize import memoize
 
 from mxlive.lims.models import Data, Sample, Session, DataType, Project, AnalysisReport
 from mxlive.utils.functions import ShiftEnd, ShiftStart
+from mxlive.utils.misc import humanize_duration
 
 SHIFT = getattr(settings, "SHIFT_LENGTH", 8)
 SHIFT_SECONDS = SHIFT*3600
@@ -49,13 +51,13 @@ def usage_stats(beamline, period='year', **filters):
     session_params = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(count=Count('id'))
     session_shift_durations = Session.objects.filter(beamline=beamline, **filters).values(field).order_by(field).annotate(
         duration=Sum(
-            ShiftEnd('stretches__end') - ShiftStart('stretches__start'), filter=Q(stretches__end__isnull=False)
+            ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')
         )
     )
 
     session_used_durations = Session.objects.filter(beamline=beamline, **filters).values(field).order_by(field).annotate(
         duration=Sum(
-            F('stretches__end') - F('stretches__start'), filter=Q(stretches__end__isnull=False)
+            Coalesce('stretches__end', timezone.now()) - F('stretches__start'),
         )
     )
 
@@ -64,7 +66,7 @@ def usage_stats(beamline, period='year', **filters):
         for entry in session_params
     }
     session_shifts = {
-        entry[field]: ceil(entry['duration'].total_seconds()/(SHIFT_SECONDS))
+        entry[field]: ceil(entry['duration'].total_seconds()/SHIFT_SECONDS)
         for entry in session_shift_durations
     }
     session_hours = {
@@ -79,7 +81,7 @@ def usage_stats(beamline, period='year', **filters):
 
     data_params = beamline.datasets.filter(**filters).values(field).order_by(field).annotate(
         count=Count('id'), exposure=Avg('exposure_time'),
-        duration=Sum(F('exposure_time')*F('num_frames'), output_field=FloatField())
+        duration=Sum(F('end_time')-F('start_time'))
     )
 
     dataset_counts = {
@@ -92,7 +94,7 @@ def usage_stats(beamline, period='year', **filters):
     }
 
     dataset_durations = {
-        entry[field]: entry['duration']/3600
+        entry[field]: entry['duration'].total_seconds()/3600
         for entry in data_params
     }
 
@@ -117,15 +119,15 @@ def usage_stats(beamline, period='year', **filters):
     }
 
     # Dataset statistics
-    data_types = list(
-        DataType.objects.annotate(count=Count('datasets', filter=Q(datasets__beamline=beamline))).filter(count__gt=0))
+    data_types = beamline.datasets.filter(**filters).values('kind__name').order_by('kind__name').annotate(count=Count('id'))
+
     period_data = defaultdict(lambda: defaultdict(int))
     for summary in beamline.datasets.filter(**filters).values(field, 'kind__name').annotate(count=Count('pk')):
         period_data[summary[field]][summary['kind__name']] = summary['count']
     datatype_table = []
-    for key in data_types:
-        kind_counts = [period_data[per][key.name] for per in periods]
-        datatype_table.append([key.name] + kind_counts + [sum(kind_counts)])
+    for item in data_types:
+        kind_counts = [period_data[per][item['kind__name']] for per in periods]
+        datatype_table.append([item['kind__name']] + kind_counts + [sum(kind_counts)])
     period_counts = [sum(period_data[per].values()) for per in periods]
     datatype_table.append(['Total'] + period_counts + [sum(period_counts)])
     chart_data = []
@@ -232,16 +234,50 @@ def usage_stats(beamline, period='year', **filters):
                     'kind': 'barchart',
                     'data': {
                         'x-label': period.title(),
-                        'stack': [[d.name for d in data_types]],
+                        'stack': [[d['kind__name'] for d in data_types]],
                         'data': chart_data,
                     },
                     'style': 'col-12 col-md-6'
-                }
+                },
+                {
+                    'title': 'Dataset Types',
+                    'kind': 'pie',
+                    'data': [
+                        {
+                            'label': entry['kind__name'],
+                            'value': entry['count'],
+                        }
+                        for entry in data_types
+                    ],
+                    'style': 'col-12 col-md-6'
+                },
             ]
         },
     ]
     }
     return stats
+
+
+# Histogram Parameters
+PARAMETER_NAMES = {
+    field_name: Data._meta.get_field(field_name).verbose_name
+    for field_name in ['exposure_time', 'attenuation', 'energy', 'num_frames']
+}
+PARAMETER_NAMES.update({
+    field_name: AnalysisReport._meta.get_field(field_name).verbose_name
+    for field_name in ('score', )
+})
+
+PARAMETER_RANGES = {
+    'exposure_time': (0.01, 20),
+    'score': (0.01, 1),
+    'energy': (4., 18.)
+}
+
+PARAMETER_BINNING = {
+    'energy': 8,
+    'attenuation': numpy.linspace(0, 100, 11)
+}
 
 
 def get_histogram_points(data, range=None, bins='doane'):
@@ -250,44 +286,36 @@ def get_histogram_points(data, range=None, bins='doane'):
     return list(zip(centers, counts))
 
 
+def make_parameter_histogram(data_info, report_info):
+    """
+    Create a histogram for parameters in the query results
+    :param data_info: Query result for data
+    :param report_info: Query result for reports
+    :return: histogram data
+    """
+
+    histograms = {
+        field_name: get_histogram_points(
+            [float(d[field_name]) for d in data_info if d[field_name] is not None],
+            range=PARAMETER_RANGES.get(field_name), bins=PARAMETER_BINNING.get(field_name, 'doane')
+        )
+        for field_name in ('exposure_time', 'attenuation', 'energy', 'num_frames')
+    }
+    histograms['score'] = get_histogram_points(
+        [float(d['score']) for d in report_info if d['score'] is not None],
+        range=PARAMETER_RANGES.get('score')
+    )
+    return histograms
+
+
 def parameter_stats(beamline, **filters):
     beam_sizes = Data.objects.filter(beamline=beamline, beam_size__isnull=False, **filters).values('beam_size').order_by('beam_size').annotate(
         count=Count('id')
     )
 
     report_info = AnalysisReport.objects.filter(data__beamline=beamline, **filters).values('score')
-
     data_info = Data.objects.filter(beamline=beamline, **filters).values('exposure_time', 'attenuation', 'energy', 'num_frames')
-    param_names = {
-        field_name: Data._meta.get_field(field_name).verbose_name
-        for field_name in ['exposure_time', 'attenuation', 'energy', 'num_frames']
-    }
-    param_names.update({
-        field_name: AnalysisReport._meta.get_field(field_name).verbose_name
-        for field_name in ('score', )
-    })
-
-    ranges = {
-        'exposure_time': (0.01, 20),
-        'score': (0.01, 1),
-        'energy': (4., 18.)
-    }
-    binning = {
-        'energy': 8,
-        'attenuation': numpy.linspace(0, 100, 11)
-    }
-
-    param_histograms = {
-        field_name: get_histogram_points(
-            [float(d[field_name]) for d in data_info if d[field_name] is not None],
-            range=ranges.get(field_name), bins=binning.get(field_name, 'doane')
-        )
-        for field_name in ('exposure_time', 'attenuation', 'energy', 'num_frames')
-    }
-    param_histograms['score'] = get_histogram_points(
-        [float(d['score']) for d in report_info if d['score'] is not None],
-        range=ranges.get('score')
-    )
+    param_histograms = make_parameter_histogram(data_info, report_info)
 
     stats = {'details': [
         {
@@ -308,7 +336,7 @@ def parameter_stats(beamline, **filters):
                 },
             ] + [
                 {
-                    'title': param_names[param].title(),
+                    'title': PARAMETER_NAMES[param].title(),
                     'kind': 'histogram',
                     'data': [
                         {
@@ -318,6 +346,95 @@ def parameter_stats(beamline, **filters):
                         for row in param_histograms[param]
                     ],
                     'style': 'col-12 col-md-6'
+                } for param in ('score', 'energy', 'exposure_time', 'attenuation', 'num_frames')
+            ]
+        }
+    ]}
+    return stats
+
+
+def session_stats(session):
+
+    data_extras = session.datasets.values(key=F('kind__name')).order_by('key').annotate(
+        count=Count('id'), time=Sum(F('exposure_time')*F('num_frames'), output_field=FloatField()),
+        frames=Sum('num_frames'),
+    )
+
+    data_stats = [
+        ['Avg Frames/{}'.format(info['key']), round(info['frames']/info['count'], 1)]
+        for info in data_extras
+    ]
+    data_counts = [
+        [info['key'], round(info['count'], 1)]
+        for info in data_extras
+    ]
+
+    data_info = session.datasets.values('exposure_time', 'attenuation', 'energy', 'num_frames')
+    report_info = AnalysisReport.objects.filter(data__session=session).values('score')
+    param_histograms = make_parameter_histogram(data_info, report_info)
+
+    shutters = sum([info['time'] for info in data_extras])/3600
+    total_time = session.total_time()
+    last_data = session.datasets.last()
+
+    stats = {'details': [
+        {
+            'title': 'Session Statistics',
+            'description': 'Data Collection Summary',
+            'style': "row",
+            'content': [
+                {
+                    'title': '',
+                    'kind': 'table',
+                    'data': [
+                                ['Total Time', humanize_duration(total_time)],
+                                ['First Login', timezone.localtime(session.start()).strftime('%c')],
+                                ['Samples', session.samples().count()],
+                            ] + data_counts,
+                    'header': 'column',
+                    'style': 'col-12 col-md-6',
+                },
+                {
+                    'title': '',
+                    'kind': 'table',
+                    'data': [
+                                ['Shutters Open', "{} ({:.2f}%)".format(
+                                    humanize_duration(hours=shutters),
+                                    shutters * 100 / total_time if total_time else 0)
+                                ],
+                                ['Last Dataset', '' if not last_data else last_data.modified.strftime('%c')],
+                                ['No. of Logins', session.stretches.count()],
+                            ] + data_stats,
+                    'header': 'column',
+                    'style': 'col-12 col-md-6',
+                },
+                {
+                    'title': 'Types of data collected',
+                    'kind': 'barchart',
+                    'data': {
+                        'x-label': 'Data Type',
+                        'data': [{
+                            'Data Type': row['key'],
+                            'Total': row['count'],
+                        }
+                        for row in data_extras
+                        ]
+                    },
+                    'style': 'col-12 col-md-4'
+                }
+
+            ] + [
+                {
+                    'title': PARAMETER_NAMES[param].title(),
+                    'kind': 'histogram',
+                    'data': [
+                        {
+                            "x": row[0],
+                            "y": row[1]
+                        }
+                        for row in param_histograms[param]
+                    ],
+                    'style': 'col-12 col-md-4'
                 } for param in ('score', 'energy', 'exposure_time', 'attenuation', 'num_frames')
             ]
         }

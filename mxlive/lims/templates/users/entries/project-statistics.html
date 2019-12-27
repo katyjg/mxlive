@@ -1,7 +1,7 @@
 {% extends "users/base.html" %}
 
 {% load static %}
-{% load json_to_dict %}
+{% load jsutils %}
 {% load stats %}
 {% load get_version %}
 
@@ -70,14 +70,14 @@
                 </tr>
             </thead>
             <tbody>
-                {% for s in sessions %}
+                {% for s in sessions.with_duration %}
                     <tr>
                         <td>{{ s.name }}</td>
                         <td>{{ s.start }}</td>
                         <td>{{ s.samples.count }} / {{ s.total_time | floatformat:3}}</td>
-                        <td>{{ s.shift_parts }}</td>
+                        <td>{{ s.shifts }}</td>
                         <td>{{ s.total_time | floatformat:2 }}</td>
-                        <td>{{ s.shift_parts }} * 8 - {{ s.total_time | floatformat:2 }}</td>
+                        <td>{{ s.shifts }} * 8 - {{ s.total_time | floatformat:2 }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

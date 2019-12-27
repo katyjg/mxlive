@@ -5,7 +5,6 @@ from datetime import datetime
 
 SHIFT = getattr(settings, "SHIFT_LENGTH", 8)
 SHIFT_DURATION = '{:d} hour'.format(SHIFT)
-
 OFFSET = -timezone.make_aware(datetime.now(), timezone.get_default_timezone()).utcoffset().total_seconds()
 
 class Hours(models.Func):

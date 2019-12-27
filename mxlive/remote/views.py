@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import msgpack
 
 import requests
@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.http import JsonResponse
-from django.utils import timezone
+from django.utils import timezone, dateparse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
@@ -358,7 +358,10 @@ class AddData(VerificationMixin, View):
     :param filename: filename (if single frame) or formattable template (e.g. "test_{:0>4d}.img")
     :param beamline: Beamline__acronym
     :param sample_id: If known
-    :param frames: frames collected (e.g. "1-4,8,10-99")
+    :param frames: frames collected (e.g. "1-4,8,10-99"),
+    :param start_time:  Starting time for data acquisition. If omitted, will be now - frames * exposure time
+    :param end_time: End time for data acquisition. If omitted and start_time, is provided,
+                     will be start_time + frames * exposure_time, otherwise it will be now
 
     :Return: {'id': < Created Data.pk >}
 
@@ -403,10 +406,20 @@ class AddData(VerificationMixin, View):
         base_fields = ['energy', 'frames', 'file_name', 'exposure_time', 'attenuation', 'name', 'beam_size']
         details.update({f: info.get(f in TRANSFORMS and TRANSFORMS[f] or f) for f in base_fields})
         details.update(kind=DataType.objects.get_by_natural_key(info['type']))
+        num_frames = 1
         if info.get('frames'):
-            details.update(num_frames=len(parse_frames(info['frames'])))
+            num_frames = len(parse_frames(info['frames']))
+            details.update(num_frames=num_frames)
 
-        #FIXME: Make sure autoprocess/MxDC sends the appropriate natural key (DataType.acronym) via API when adding
+        # FIXME: Make sure MxDC sends the start and end time of data acquisition
+        # Set start and end time for dataset
+        end_time = timezone.now() if 'end_time' not in info else dateparse.parse_datetime(info['end_time'])
+        start_time = (
+            end_time - timedelta(seconds=(num_frames*info['exposure_time']))
+        ) if 'start_time' not in info else dateparse.parse_datetime(info['start_time'])
+        details.update(start_time=start_time, end_time=end_time)
+
+        #FIXME: Make sure MxDC sends the appropriate natural key (DataType.acronym) via API when adding
         for k in ['sample_id', 'group', 'port', 'frames', 'energy', 'filename', 'exposure', 'attenuation',
                   'container', 'name', 'directory', 'type', 'id']:
             if k in info:

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 def update_num_frames(apps, schema_editor):
     """
-    Update Cassette location coordinates to be more centered since labels
-    are now shown entirely within each sample location
+    Data  num frames
     """
     Data = apps.get_model('lims', 'Data')
     db_alias = schema_editor.connection.alias
-    for data in Data.objects.all():
+    for data in Data.objects.using(db_alias).all():
         if data.frames:
             num_frames = len(data.frames)
-            Data.objects.filter(pk=data.pk).update(num_frames=num_frames)
+            Data.objects.using(db_alias).filter(pk=data.pk).update(num_frames=num_frames)
 
 
 class Migration(migrations.Migration):

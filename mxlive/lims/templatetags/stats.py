@@ -1,3 +1,5 @@
+import json
+
 from collections import defaultdict
 from datetime import datetime
 
@@ -146,7 +148,7 @@ def get_project_stats(user):
 
     shifts = total_shifts(user.sessions.all(), user)
     ttime = total_time(user.sessions.all(), user)
-    shutters = round(sum([d.num_frames() * d.exposure_time for d in data if d.exposure_time]), 2)/3600.
+    shutters = round(sum([d.num_frames * d.exposure_time for d in data if d.exposure_time]), 2)/3600.
 
     stats = {'details': [
         {
@@ -204,7 +206,7 @@ def get_project_stats(user):
 
 @register.simple_tag(takes_context=False)
 def get_session_stats(data, session):
-    shutters = sum([d.exposure_time * d.num_frames() for d in data.all()]) / 3600.
+    shutters = sum([d.exposure_time * d.num_frames for d in data.all()]) / 3600.
     data_counts = [
         [count['key'], count['value']] for count in
         session.datasets.values(key=F('kind__name')).order_by('key').annotate(value=Count('id'))
@@ -340,7 +342,7 @@ def get_data_timeline(session):
             "times": [{
                 "starting_time": js_epoch(started(data)),
                 "ending_time": js_epoch(data.created),
-                "y": data.num_frames(),
+                "y": data.num_frames,
                 "color": "rgb(31,119,180)"
             }],
             "hover": "{} | {}".format(data.kind, data.name)
@@ -357,7 +359,7 @@ def get_years(bl):
 
 @register.filter
 def started(data):
-    return data.modified - timedelta(seconds=(data.exposure_time * data.num_frames()))
+    return data.modified - timedelta(seconds=(data.exposure_time * data.num_frames))
 
 
 def total_shifts(sessions, project):

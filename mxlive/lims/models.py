@@ -1,6 +1,8 @@
 import copy
 import hashlib
 import json
+import operator
+import functools
 from collections import OrderedDict
 from datetime import timedelta
 
@@ -10,6 +12,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q, F, Avg, Count, CharField, BooleanField, Value, Sum
+from django.db.models.functions import Coalesce
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.urls import reverse
@@ -21,11 +24,12 @@ from memoize import memoize
 
 from mxlive.utils import slap
 from mxlive.utils.data import parse_frames, frame_ranges
-from mxlive.utils.functions import Hours, Minutes, Shifts
+from mxlive.utils.functions import Hours, Minutes, Shifts, ShiftEnd, ShiftStart
 
 IDENTITY_FORMAT = '-%y%m'
 RESTRICT_DOWNLOADS = getattr(settings, 'RESTRICT_DOWNLOADS', False)
 SHIFT_HRS = getattr(settings, 'SHIFT_LENGTH', 8)
+SHIFT_SECONDS = SHIFT_HRS*3600
 
 DRAFT = 0
 SENT = 1
@@ -167,14 +171,10 @@ class StretchQuerySet(models.QuerySet):
         return self.filter(Q(end__isnull=True) | Q(end__gte=recently))
 
     def with_duration(self):
-        return self.filter(end__isnull=False).annotate(
-            duration=Minutes((F('end') - F('start')) / 60, default=0, output_field=models.FloatField()))
-
-    def with_hours(self):
-        return self.annotate(hours=Hours(F('end'), F('start'), default=0, output_field=models.FloatField()))
-
-    def with_shifts(self):
-        return self.annotate(shifts=Shifts(F('end'), F('start'), default=0, output_field=models.FloatField()))
+        return self.annotate(
+            duration=Coalesce('end', timezone.now()) - F('start'),
+            shift_duration=ShiftEnd(Coalesce('end', timezone.now())) - ShiftStart('start')
+        )
 
 
 class StretchManager(models.Manager.from_queryset(StretchQuerySet)):
@@ -189,17 +189,12 @@ class ProjectObjectManager(models.Manager):
 class SessionQuerySet(models.QuerySet):
     def with_duration(self):
         return self.annotate(
-            duration=Sum(Minutes((F('stretches__end') - F('stretches__start')) / 60), default=0.0, output_field=models.FloatField())
-        )
-
-    def with_hours(self):
-        return self.annotate(
-            hours=Sum(Hours(F('stretches__end'), F('stretches__start')), filter=Q(stretches__end__isnull=False), default=0.0, output_field=models.FloatField()),
-        )
-
-    def with_shifts(self):
-        return self.annotate(
-            shifts=Sum(Shifts(F('end'), F('start')), default=0.0, output_field=models.FloatField())
+            duration=Sum(
+                Coalesce('stretches__end', timezone.now()) - F('stretches__start')
+            ),
+            shift_duration=Sum(
+                ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')
+            )
         )
 
 
@@ -250,37 +245,22 @@ class Session(models.Model):
 
     def num_datasets(self):
         return self.datasets.count()
-
     num_datasets.short_description = "Datasets"
 
     def num_reports(self):
         return self.reports().count()
-
     num_reports.short_description = "Reports"
 
     def samples(self):
         return self.project.samples.filter(datasets__session=self).distinct()
 
+    @memoize(60)
     def is_active(self):
         return self.stretches.active().exists()
 
     def shifts(self):
-        shifts = []
-        for stretch in self.stretches.all():
-            st = (
-                    timezone.localtime(stretch.start) -
-                    timedelta(
-                        hours=timezone.localtime(stretch.start).hour % SHIFT_HRS,
-                        minutes=stretch.start.minute, seconds=stretch.start.second
-                    )
-            )
-            end = timezone.localtime(stretch.end) if stretch.end else timezone.now()
-            et = end - timedelta(hours=end.hour % SHIFT_HRS, minutes=end.minute, seconds=end.second)
-            shifts.append(st)
-            while st < et:
-                st += timedelta(hours=SHIFT_HRS)
-                shifts.append(st)
-        return shifts
+        total = self.stretches.with_duration().aggregate(time=Sum('shift_duration'))
+        return total['time'].total_seconds() / SHIFT_SECONDS
 
     def shift_parts(self):
         shifts = set()
@@ -296,25 +276,42 @@ class Session(models.Model):
                 shifts.add(st)
             return len(shifts)
 
+    @memoize(60)
     def total_time(self):
-        """Returns total time the session was active, in hours"""
-        d = self.stretches.with_duration().aggregate(Avg('duration'), Count('duration'))
-        t = d['duration__count'] * d['duration__avg'] if (d.get('duration__count') and d.get('duration__avg')) else 0
-        if self.is_active():
-            t += int((timezone.now() - self.stretches.active().first().start).total_seconds()) / 3600.0
-        return t
+        """
+        Returns total time the session was active, in hours
+        """
+        total = self.stretches.with_duration().aggregate(time=Sum('duration'))
 
+        return total['time'].total_seconds()/3600
     total_time.short_description = "Duration"
 
+    @memoize(60)
     def start(self):
-        return self.stretches.last().start
+        return self.stretches.earliest('start').start
 
+    @memoize(60)
     def end(self):
-        return self.stretches.first().end
+        return self.stretches.latest('start').end
 
+    @memoize(60)
     def last_record_time(self):
         last_data = self.datasets.last()
         return last_data.modified if last_data else self.created
+
+    def gaps(self):
+
+        for i, data in enumerate(self.datasets.order_by('created')):
+            if i == 0:
+                prev = data
+                continue
+            gap = data.created - (prev.created + timedelta(seconds=(prev.num_frames*prev.exposure_time)))
+            prev = data
+        for i in range(data.count() - 1):
+            if data[i].created <= (started(data[i + 1]) - timedelta(minutes=10)):
+                gaps.append([data[i].created, started(data[i + 1]),
+                             humanize_duration((started(data[i + 1]) - data[i].created).total_seconds() / 3600.)])
+        return gaps
 
 
 class Stretch(models.Model):
@@ -1159,6 +1156,8 @@ class Data(ActiveStatusMixin):
     group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL, related_name='datasets')
     sample = models.ForeignKey(Sample, null=True, blank=True, on_delete=models.SET_NULL, related_name='datasets')
     session = models.ForeignKey(Session, null=True, blank=True, on_delete=models.SET_NULL, related_name='datasets')
+    start_time = models.DateTimeField(null=True, blank=False)
+    end_time = models.DateTimeField(null=True, blank=False)
     file_name = models.CharField(max_length=200, null=True, blank=True)
     frames = FrameField(null=True, blank=True)
     num_frames = models.IntegerField("Frame Count", default=1)
@@ -1171,6 +1170,7 @@ class Data(ActiveStatusMixin):
     kind = models.ForeignKey(DataType, on_delete=models.PROTECT, related_name='datasets')
     download = models.BooleanField(default=False)
     meta_data = JSONField(default={})
+
 
     objects = DataManager()
 

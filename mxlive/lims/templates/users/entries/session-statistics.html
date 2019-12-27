@@ -1,9 +1,10 @@
 {% extends "users/entries/session.html" %}
 {% load icons %}
 {% load static %}
-{% load json_to_dict %}
-{% load stats %}
+{% load jsutils %}
 {% load tz %}
+
+
 
 {% block object_tools %}
     <a href="#!" class="pull-right" data-link="{% url "session-history" object.pk %}">
@@ -11,8 +12,17 @@
     </a>
 {% endblock %}
 
-{% block full %}
+{% block extra_css %}
+    <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
+    <link href="{% static "css/reports.min.css" %}" rel="stylesheet">
+    <style> /* set the CSS */
+    .indicator, .indicator-box {
+      position: absolute;
+    }
+    </style>
+{% endblock %}
 
+{% block full %}
 <div class="row">
     <div id="data-stats" class="col-12"></div>
 </div>
@@ -21,13 +31,14 @@
         <h4 class="section-title">{{ object.start|date }} {% if object.is_active %}to {% now "N j, Y"%}{% else %}{% ifnotequal object.start|date object.end|date %}to {{ object.end|date }}{% endifnotequal %}{% endif %}</h4>
     </div>
     <div class="col-12">
-        <h4>
+        <h5>
             <span class="badge" style="background-color: rgb(174,199,232);">Session Open</span>
             <span class="badge" style="background-color: rgb(31,119,180);">Data Collection</span>
-        </h4>
+        </h5>
         <div id="timeline" data-toggle="tooltip" title="Session Timeline"></div>
     </div>
 
+    {% comment %}
     {% get_session_gaps object.datasets.all as gaps %}
     {% if gaps %}
         <div class="col-12">
@@ -49,88 +60,45 @@
             </table>
         </div>
     {% endif %}
+    {% endcomment %}
 </div>
 
-
-<link href="{% static "css/reports.min.css" %}" rel="stylesheet">
-
-<script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
-<script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
-<script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
-<script type="text/javascript" src="{% static "js/mxlive-reports.min.js" %}"></script>
-<style> /* set the CSS */
-.indicator, .indicator-box {
-  position: absolute;
-}
-</style>
-
-<script>
-    var json = {% get_session_stats object.datasets.all object %};
-    build_report('#data-stats', json);
-</script>
+{% endblock %}
 
 
-<script src="{% static 'js/d3/d3-timeline.min.js' %}"></script>
-<script>
-    var endDate = {{ object.end|date:'U' }}000;
-    var cycleData = {{ object | get_data_timeline | safe }};
+{% block extra_js %}
+    <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
+    <script type="text/javascript" src="{% static 'js/d3/d3-timelines.min.js' %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mxlive-report.min.js" %}"></script>
+    <script type="text/javascript">
+        var report = {{ report | safe }};
+        $(document).ready(function() {
+            $('#data-stats').liveReport({
+                data: report
+            });
 
-    function cycleTimeline() {
-        var chart = d3.timeline()
-                .margin({left: 15, right: 15, top: 15, bottom: 15})
-                .itemHeight(100)
-                .tickFormat({
-                    format: d3.timeFormat("%-I %p"),
-                    tickTime: d3.timeHour,
-                    numTicks: Math.min({{ object.total_time }}, 24),
-                    tickInterval: 1,
-                    tickSize: 5
-                })
-                .showToday()
-                .showTodayFormat({width: 2, marginTop: 2, marginBottom: 0, color: "rgba(254,128,40,0.5)"})
-                .hover(function (d, i, datum, x, t){
-                    var format = d3.timeFormat("%-I:%M %p");
-                    $('line[x1]').attr('x1', x).attr('x2', x);
+            var testData = [
+                {
+                    label: "person a", times: [
+                        {"starting_time": 1355752800000, "ending_time": 1355759900000},
+                        {"starting_time": 1355767900000, "ending_time": 1355774400000}]
+                },
+                {
+                    label: "person b", times: [
+                        {"starting_time": 1355759910000, "ending_time": 1355761900000}]
+                },
+                {
+                    label: "person c", times: [
+                        {"starting_time": 1355761910000, "ending_time": 1355763910000}]
+                }
+            ];
+            var chart = d3.timelines();
 
-                    d3.select('.indicator').style("opacity", 1);
-                    d3.select('.indicator-box').style("opacity", 1);
-                    if (datum.times[0].y) {
-                        var text = format(t);
-                        var fill = "rgb(31, 110, 180)";
-                        $('#timeline').attr("title", datum.hover);
-                    } else {
-                        var text = format(t);
-                        var fill = "black";
-                    }
-
-                    d3.select('.indicator').html(text);
-                    var boxwidth = Math.max($('.indicator').width(), 55) + 10;
-                    d3.select('.indicator')
-                        .attr('x', Math.max(x - boxwidth/2, 0) + 7)
-                        .attr('y', 137)
-                        .attr('fill', 'white');
-
-                   d3.select('.indicator-box')
-                       .attr('x', Math.max(x - boxwidth/2, 0))
-                       .attr('y', 120)
-                       .attr('fill', fill)
-                       .attr('width', boxwidth)
-                       .attr('height', 25);
-                });
-        var width = $("#timeline").width();
-        var svg = d3.select("#timeline")
-                .append("svg")
-                .attr("width", width)
-                .datum(cycleData).call(chart);
-
-        function resize(e){
-            var width = $('#timeline').width();
-        }
-        $(window).on('resize', resize);
-    }
-    cycleTimeline();
-</script>
-{% comment %}
-{% endcomment %}
-
+            var svg = d3.select("#timeline").append("svg").attr("width", 500)
+                .datum(testData).call(chart);
+        });
+    </script>
 {% endblock %}

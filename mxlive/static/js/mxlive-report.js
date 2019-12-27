@@ -106,7 +106,7 @@ var tableTemplate = _.template(
 );
 
 
-function drawXYChart(figure, chart, options, type='line') {
+function drawXYChart(figure, chart, options, type='spline') {
     let colors = {};
     let columns = [];
     let axes = {};
@@ -130,7 +130,7 @@ function drawXYChart(figure, chart, options, type='line') {
     }
 
     // Spline Plo type
-    if (["linear", "cardinal", "basis", "step", "step-before", "step-after"].includes(chart.data['interpolation'])) {
+    if (["cardinal", "basis", "step", "step-before", "step-after"].includes(chart.data['interpolation'])) {
         data_type = 'spline';
         spline_opts.interpolation.type = chart.data['interpolation'];
     }
@@ -205,6 +205,7 @@ function drawXYChart(figure, chart, options, type='line') {
         point: {show: (chart.data.x.length < 15)},
         axis: axis_opts,
         grid: {y: {show: true}},
+        zoom: {  enabled: true,   type: 'drag'},
         onresize: function () {
             this.api.resize({
                 width: figure.width(),
@@ -231,7 +232,6 @@ function drawBarChart(figure, chart, options) {
             colors[key] = options.scheme[index++];
         }
     });
-
     c3.generate({
         bindto: `#${figure.attr('id')}`,
         size: {width: options.width, height: options.height},
@@ -247,6 +247,7 @@ function drawBarChart(figure, chart, options) {
         },
         grid: {y: {show: true}},
         axis: {x: {type: 'category', label: chart.data['x-label']}},
+        legend: {hide: (series.length === 1)},
         bar: {width: {ratio: 0.85}},
         onresize: function () {
             this.api.resize({
@@ -329,7 +330,7 @@ function drawPieChart(figure, chart, options) {
                 value: series
             },
         },
-        onresize: function () {
+        onresiz1e: function () {
             this.api.resize({
                 width: figure.width(),
                 height: figure.width()*options.height/options.width
@@ -437,12 +438,18 @@ function drawScatterChart(figure, chart, options) {
             }
             
             // caption
-
             if (chart.title) {
                 figure.after(`<figcaption class="text-center">${chart.title}</figcaption>`);
             } else {
                 figure.after(`<figcaption class="text-center"></figcaption>`);
             }
+
+            // fix viewbox
+            /*figure.find('svg[width]').each(function(){
+                let viewbox = `0 0 ${$(this).width()} ${$(this).height()}`;
+                $(this).attr('viewBox', viewbox);
+            });*/
+
         });
 
     };

@@ -1,5 +1,5 @@
 {% extends "users/base.html" %}
-
+{% load jsutils %}
 {% load static %}
 {% load icons %}
 
@@ -31,7 +31,7 @@
 {% block object_tools %}
     {% now "Y" as yr %}
     <a href="{% url "monthly-statistics" object.pk yr %}">
-        {% show_icon label='Stats' icon='ti ti-md ti-bar-chart' %}
+        {% show_icon label='Parameters' icon='ti ti-md ti-bar-chart' %}
     </a>
 {% endblock %}
 
@@ -51,7 +51,7 @@
     <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
     <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/c3.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/mxlive-report.min.js" %}"></script>
     <script type="text/javascript">
         var report = {{ report | safe }};
