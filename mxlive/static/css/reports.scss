@@ -1,21 +1,14 @@
 
-caption {
+caption, figcaption {
 	padding-top: .75rem;
 	padding-bottom: .75rem;
 	color: #6c757d;
 	text-align: left;
 	caption-side: bottom;
 }
-figcaption {
-	padding-top: .75rem;
-	padding-bottom: .75rem;
-	color: #6c757d;
-	text-align: left;
-	caption-side: bottom;
-}
+
 .report-viewer figure {
 	width: 100%;
-	height: 100%;
 	counter-increment: figures;
 }
 .report-viewer figcaption:before {
@@ -87,18 +80,24 @@ g.tick {
 	}
 	line {
 		fill: none !important;
-		stroke: rgba(0,0,0,0.1);
-		stroke-width: 1pt;
+		stroke: var(--secondary);
+		//stroke: rgba(0,0,0,0.3);
+		//stroke-width: 1pt;
 	}
 }
-path.domain {
-	fill: none !important;
-	stroke: rgba(0,0,0,0.1);
-	stroke-width: 1pt;
+path {
+	&.domain {
+		fill: none !important;
+		stroke: var(--secondary);
+		//stroke-width: 1pt;
+	}
+
+	&.line {
+		//stroke-width: 1pt;
+
+	}
 }
-path.line {
-	stroke-width: 2px;
-}
+
 g.axis {
 	font-size: 0.95rem;
 }

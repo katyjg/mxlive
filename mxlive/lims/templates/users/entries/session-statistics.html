@@ -22,41 +22,15 @@
 <div class="row">
     <div id="data-stats" class="col-12"></div>
 </div>
-<div class="row">
-    {% with session.gaps as gaps %}
-        {% if gaps %}
-        <div class="col-12">
-            <h4 class="section-title">Inactivity Gaps</h4>
-        </div>
-        <div class="col-12">
-            <p>Periods of possible inactivity while the session was open, greater than 10 minutes</p>
-        </div>
-        <div class="col-12">
-            <table class="table table-sm">
-                <thead>
-                <tr><th>Start</th><th>End</th><th>Duration</th></tr>
-                </thead>
-                <tbody>
-                {% for gap in gaps %}
-                    <tr><td>{{ gap.0 }}</td><td>{{ gap.1 }}</td><td>{{ gap.2 | natural_duration }}</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endif %}
-    {% endwith %}
-</div>
-
 {% endblock %}
 
 
 {% block extra_js %}
     <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
-    <script type="text/javascript" src="{% static 'js/d3/d3-timelines.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/d3/d3.timeline.min.js' %}"></script>
     <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/misc/timelines-chart.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/mxlive-report.min.js" %}"></script>
 
     <script type="text/javascript">
@@ -65,8 +39,6 @@
             $('#data-stats').liveReport({
                 data: report
             });
-
-
         });
     </script>
 {% endblock %}

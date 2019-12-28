@@ -26,12 +26,11 @@ def update_data_times(apps, schema_editor):
     ).update(
         start_time=(
             F('created') - F('num_frames')*timedelta(seconds=1)*F('exposure_time')
-            - F('num_frames')*timedelta(seconds=offset)
         )
     )
 
-    # 3 seconds offset for marccd or adsc, and all others
-    offset = 3
+    # 0.9 seconds offset for marccd or adsc, and all others, conservative
+    offset = 0.9
     Data.objects.using(db_alias).filter(
         kind__acronym__in=['DATA', 'RASTER', 'XRD', 'SCREEN'],
     ).exclude(

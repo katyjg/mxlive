@@ -3,7 +3,7 @@
 {% load icons %}
 {% block page_heading %}
     <h3 class="text-condensed">
-        <span class="text-muted">{{ object.name }}</span> | <strong>{{ object.first_name }} {{ object.last_name }}</strong>
+        <span class="text-muted">{{ object.name|upper }}</span> | <strong>{{ object.first_name }} {{ object.last_name }}</strong>
     </h3>
     <span class="text-muted">
         Beamline User since {{ object.created|naturalday }}
@@ -22,7 +22,7 @@
         {% show_icon label="Delete" icon="ti ti-md ti-trash" %}
     </a>
 {% endif %}
-    <a href="{% url "data-list" %}?q={{ object.username }}" title="Go to Data for {{ object.username }}">
+    <a href="{% url "data-list" %}?search={{ object.username }}" title="Go to Data for {{ object.username }}">
         {% show_icon label="Data" icon="ti ti-md ti-layout-grid3" badge=object.datasets.count %}
     </a>
     <a class="pull-right" href="{% url "result-list" %}?q={{ object.username }}" title="Go to Reports for {{ object.username }}">

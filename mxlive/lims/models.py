@@ -288,11 +288,11 @@ class Session(models.Model):
 
     @memoize(60)
     def start(self):
-        return self.stretches.earliest('start').start
+        return timezone.localtime(self.stretches.earliest('start').start)
 
     @memoize(60)
     def end(self):
-        return self.stretches.latest('start').end
+        return timezone.localtime(self.stretches.latest('start').end or timezone.now())
 
     @memoize(60)
     def last_record_time(self):
@@ -302,6 +302,7 @@ class Session(models.Model):
     def gaps(self):
         data = list(self.datasets.order_by('start_time'))
         max_gap = timedelta(minutes=10)
+
         return [
             (first.end_time, second.start_time, (second.start_time - first.end_time))
             for first, second in zip(data[:-1], data[1:]) if (second.start_time - first.end_time) > max_gap

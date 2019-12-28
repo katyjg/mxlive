@@ -8,13 +8,12 @@ function choose(choices) {
 }
 
 
-
 function getPrecision(row, steps) {
     steps = steps || 8;
     let a = row[0];
-    let b = row[row.length-1];
+    let b = row[row.length - 1];
     let min = ((b - a) / steps).toPrecision(1);
-    return Math.max(0, Math.ceil(Math.log10(1/min)) || 2)
+    return Math.max(0, Math.ceil(Math.log10(1 / min)) || 2)
 }
 
 function inv_sqrt(a) {
@@ -35,13 +34,18 @@ const figureTypes = [
 ];
 
 
-const scheme4 = ["#a0b552", "#c56052", "#9f6dbf", "#8f9f9a"];
+const scheme4 = [
+    "#8f9f9a", "#c56052", "#9f6dbf", "#a0b552"
+];
 const scheme8 = [
-    "#afc441", "#cc5c3e", "#64c192", "#9aa156", "#829aba", "#9565c9", "#c7588a", "#a39384"
+    "#67aec1", "#c7588a", "#64c192", "#cc5c3e",
+    "#a39384", "#829aba", "#afc441", "#9565c9",
 ];
 const scheme14 = [
-    "#cdc339", "#67aec1", "#c45a81", "#6dc758", "#a084b6", "#667ccd", "#c255b6", "#6db586", "#cd4f55", "#805cd6",
-    "#cf622d", "#a69e4c", "#ae8e6b", "#9b9795"
+    "#67aec1", "#c45a81", "#cdc339", "#ae8e6b",
+    "#6dc758", "#a084b6", "#667ccd", "#cd4f55",
+    "#805cd6", "#cf622d", "#a69e4c", "#9b9795",
+    "#6db586", "#c255b6"
 ];
 
 var contentTemplate = _.template(
@@ -108,7 +112,7 @@ var tableTemplate = _.template(
 );
 
 
-function drawXYChart(figure, chart, options, type='spline') {
+function drawXYChart(figure, chart, options, type = 'spline') {
     let colors = {};
     let columns = [];
     let axes = {};
@@ -178,7 +182,7 @@ function drawXYChart(figure, chart, options, type='spline') {
     // gather columns data and configure labels and color
     columns.push(xdata);  // add x-axis
     let index = 0;
-    $.each(chart.data.y1, function(i, line){  // y1
+    $.each(chart.data.y1, function (i, line) {  // y1
         columns.push(line);
         axes[line[0]] = 'y';
         colors[line[0]] = options.scheme[index++];
@@ -186,7 +190,7 @@ function drawXYChart(figure, chart, options, type='spline') {
     });
 
     // gather y axes data
-    $.each(chart.data.y2, function(i, line){  // y2
+    $.each(chart.data.y2, function (i, line) {  // y2
         columns.push(line);
         axes[line[0]] = 'y2';
         colors[line[0]] = options.scheme[index++];
@@ -207,11 +211,11 @@ function drawXYChart(figure, chart, options, type='spline') {
         point: {show: (chart.data.x.length < 15)},
         axis: axis_opts,
         grid: {y: {show: true}},
-        zoom: {  enabled: true,   type: 'drag'},
+        zoom: {enabled: true, type: 'drag'},
         onresize: function () {
             this.api.resize({
                 width: figure.width(),
-                height: figure.width()*options.height/options.width
+                height: figure.width() * options.height / options.width
             });
         }
     });
@@ -254,7 +258,7 @@ function drawBarChart(figure, chart, options) {
         onresize: function () {
             this.api.resize({
                 width: figure.width(),
-                height: figure.width()*options.height/options.width
+                height: figure.width() * options.height / options.width
             });
         }
     });
@@ -290,7 +294,7 @@ function drawHistogram(figure, chart, options) {
                     format: v => v.toFixed(1)
                 }
             },
-            y : {
+            y: {
                 type: yscale
             }
         },
@@ -300,7 +304,7 @@ function drawHistogram(figure, chart, options) {
         onresize: function () {
             this.api.resize({
                 width: figure.width(),
-                height: figure.width()*options.height/options.width
+                height: figure.width() * options.height / options.width
             });
         }
     });
@@ -315,7 +319,7 @@ function drawPieChart(figure, chart, options) {
     figure.removeData('chart');
     figure.removeAttr('data-chart');
 
-    $.each(chart.data, function(i, item){
+    $.each(chart.data, function (i, item) {
         data[item.label] = item.value;
         series.push(item.label);
         colors[item.label] = options.scheme[i];
@@ -335,7 +339,7 @@ function drawPieChart(figure, chart, options) {
         onresiz1e: function () {
             this.api.resize({
                 width: figure.width(),
-                height: figure.width()*options.height/options.width
+                height: figure.width() * options.height / options.width
             });
         }
     });
@@ -346,20 +350,220 @@ function drawScatterChart(figure, chart, options) {
     drawXYChart(figure, chart, options, 'scatter');
 }
 
-function drawTimeline(figure, chart, options) {
-    let colors = d3.scaleOrdinal(d3.schemeDark2);
+function callout(g, value, color) {
+    if (!value) return g.style("display", "none");
 
+    if (g.attr('data-label')) {
+        value = `${value} - ${g.attr('data-label')}`;
+    }
+    g.attr('data-label');
+
+    g.style("display", null)
+        .style("pointer-events", "none")
+        .style("font", "10px sans-serif");
+
+    const path = g.selectAll("path")
+        .data([null])
+        .join("path")
+        .attr("fill", "var(--warning)")
+        .attr("stroke", "black");
+
+    const text = g.selectAll("text")
+        .data([null])
+        .join("text")
+        .call(text => text
+            .selectAll("tspan")
+            .data((value + "").split(/\n/))
+            .join("tspan")
+            .attr("x", 0)
+            .attr("y", (d, i) => `${i * 1.1}rem`)
+            .style("font-weight", (_, i) => i ? null : "bold")
+            .text(d => d));
+
+    const {x, y, width: w, height: h} = text.node().getBBox();
+
+    text.attr("transform", `translate(${-w / 2},${10 - y})`);
+    path.attr("d", `M${-w / 2 - 10},5H-5l5,-5l5,5H${w / 2 + 10}v${h + 10}h-${w + 20}z`);
+}
+
+
+function drawTimeline(figure, chart, options) {
+
+    let types = [];
+    let margin = {top: 10, right: 10, bottom: 10, left: 10};
+    let width = figure.width() - margin.left - margin.right;
+    let height = 240;
+    let xcenter = width / 2;
+    // assign colors
+    $.each(chart.data, function (i, entry) {
+        if (!types.includes(entry.type)) {
+            types.push(entry.type);
+        }
+    });
+
+    types.sort();
+
+    let colors = d3.scaleOrdinal().domain(types).range(scheme14);
+    let timeline = d3.timeline()
+        .size([width, 150])
+        .extent([chart.start, chart.end])
+        .bandStart(d => d.start)
+        .bandEnd(d => d.end)
+        .padding(2);
+
+    let timelineBands = timeline(chart.data);
+    let x_scale = d3.scaleLinear()
+        .domain([chart.start, chart.end])
+        .range([0, width]);
+
+    let x_axis = d3.axisBottom()
+        .scale(x_scale)
+        .tickFormat(d3.timeFormat('%H:%M'));
+
+    let svg = d3.select(`#${figure.attr('id')}`)
+        .append('svg')
+        .attr('viewBox', `-${margin.left} -${margin.top} ${figure.width()} ${height}`)
+        .attr('class', 'w-100');
+
+    // add events
+    svg.selectAll("rect.event")
+        .data(timelineBands)
+        .enter()
+        .append("rect")
+        .attr('class', 'event')
+        .attr("x", function (d) {
+            return d.start
+        })
+        .attr("x", function (d) {
+            return d.start
+        })
+        .attr("y", function (d) {
+            return d.y
+        })
+        .attr("height", function (d) {
+            return d.dy
+        })
+        .attr("width", function (d) {
+            return d.end - d.start
+        })
+        .attr("data-label", d => `${d.label}`)
+        .attr("data-type", d => d.type)
+        .attr('shape-rendering', 'geometricPrecision')
+        .style("fill", d => colors(d.type))
+        .style("stroke", d => colors(d.type))
+        .attr('pointer-events', 'all')
+        .on('mouseover', function () {
+            tooltip.attr('data-label', $(this).data("label"));
+        })
+        .on('mouseout', function () {
+            tooltip.attr('data-label', null);
+        });
+
+    // add x-axis
+    svg.append("g")
+        .call(x_axis)
+        .attr("transform", "translate(0, 160)");
+
+    // Add legend
+    let size = 10;
+    let left = 0;
+    let offset = 80;
+    let legend = svg.append("g");
+    let legends = legend.selectAll(".legend")
+        .data(types)
+        .enter()
+        .append("g")
+        .attr('class', "legend")
+        .attr('data-type', function (d, i) {
+            return d
+        })
+        .attr('transform', function (d, i) {
+            if (i === 0) {
+                left = d.length + offset;
+                return "translate(0,0)"
+            } else {
+                let curpos = left;
+                left += d.length + offset;
+                return `translate(${curpos}, 0)`;
+            }
+        })
+        .on('mouseover', function () {
+            let selector = $(this).data('type');
+            svg.selectAll(`rect.event:not([data-type="${selector}"])`)
+                .style('opacity', .1);
+        })
+        .on('mouseout', function () {
+            svg.selectAll('rect')
+                .style('opacity', 1);
+        });
+
+    legends.append('rect')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', size)
+        .attr('height', size)
+        .style("fill", d => colors(d));
+    legends.append('text')
+        .attr('x', size + 10)
+        .attr('y', size)
+        .text(function (d, i) {
+            return d
+        })
+        .style('text-anchor', 'start')
+        .style('font-size', '10');
+
+    // center legend in position
+    let legendx = xcenter - left / 2;
+    let legendy = height - margin.bottom - 30;
+    legend.attr('transform', `translate(${legendx}, ${legendy})`);
+
+
+    // mouse cursor and tooltip
+    const tooltip = svg.append("g");
+    const cursor = svg.append("g")
+        .attr('class', 'mouse-cursor')
+        .append("path")
+        .attr('class', "mouse-line")
+        .style('stroke', "var(--warning)")
+        .style('stroke-width', '1px')
+        .style('opacity', "0")
+        .attr('pointer-events', 'none');
+
+    svg
+        .on('mouseleave', function () {
+            d3.select('.mouse-line').style('opacity', 0);
+            tooltip.call(callout, null);
+        })
+        .on('touchmove mousemove', function () {
+            const mouse = d3.mouse(this);
+            const info = d3.timeFormat('%a %H:%M')(x_scale.invert(mouse[0]));
+            if (mouse[1] < 165) {
+                d3.select('.mouse-line')
+                    .style("opacity", 1)
+                    .attr("d", function () {
+                        return `M ${mouse[0]}, 160, ${mouse[0]} 0`;
+                    });
+                tooltip
+                    .attr("transform", `translate(${mouse[0]}, 164)`)
+                    .call(callout, info);
+            } else {
+                d3.select('.mouse-line').style('opacity', 0);
+                tooltip.call(callout, null);
+            }
+        });
 
     // remove raw data from dom
     figure.removeData('chart').removeAttr('data-chart');
 
-
-    const myChart = TimelinesChart()(document.getElementById(`${figure.attr('id')}`));
-    myChart.data(chart.data)
-        .zColorScale(colors)
-        .width(figure.width());
+    // adjust font-size on resize
+    window.onresize = function () {
+        let scale = width / figure.width();
+        svg.selectAll("text")
+            .attr('transform', `scale(${scale} ${scale})`);
+        svg.selectAll("line")
+            .attr('stroke-width', `${scale}px`);
+    }
 }
-
 
 (function ($) {
     $.fn.liveReport = function (options) {
@@ -396,13 +600,13 @@ function drawTimeline(figure, chart, options) {
                     drawPieChart(figure, chart, options);
                     break;
                 case 'scatterplot':
-                    drawXYChart(figure, chart, options, 'scatter');
+                    drawScatterChart(figure, chart, options);
                     break;
                 case 'timeline':
                     drawTimeline(figure, chart, options);
                     break;
             }
-            
+
             // caption
             if (chart.title) {
                 figure.after(`<figcaption class="text-center">${chart.title}</figcaption>`);

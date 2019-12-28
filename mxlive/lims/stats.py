@@ -13,7 +13,7 @@ from memoize import memoize
 
 from mxlive.lims.models import Data, Sample, Session, DataType, Project, AnalysisReport
 from mxlive.utils.functions import ShiftEnd, ShiftStart
-from mxlive.utils.misc import humanize_duration
+from mxlive.utils.misc import humanize_duration, natural_duration
 
 SHIFT = getattr(settings, "SHIFT_LENGTH", 8)
 SHIFT_SECONDS = SHIFT*3600
@@ -386,27 +386,18 @@ def session_stats(session):
     total_time = session.total_time()
     last_data = session.datasets.last()
 
-    data_times = defaultdict(list)
-    for data in session.datasets.values('start_time', 'end_time', 'kind__name'):
-        data_times[data['kind__name']].append({
-            'timeRange': [js_epoch(data['start_time']), js_epoch(data['end_time'])],
-            'val': data['kind__name'],
-        })
-
-    timeline_info = [
+    timeline_data = [
         {
-            "group": "Session",
-            "data": [
-                {
-                    "label": key,
-                    "data": data,
-                } for key, data in data_times.items()
-            ]
+            "type": data['kind__name'],
+            "start": js_epoch(data['start_time']),
+            "end": js_epoch(data['end_time']),
+            "label": "{}: {}".format(data["kind__name"], data['name'])
         }
+        for data in session.datasets.values('start_time', 'end_time', 'kind__name', 'name')
     ]
     stats = {'details': [
         {
-            'title': 'Session Statistics',
+            'title': 'Session Parameters',
             'description': 'Data Collection Summary',
             'style': "row",
             'content': [
@@ -447,7 +438,7 @@ def session_stats(session):
                         for row in data_extras
                         ]
                     },
-                    'style': 'col-12 col-md-4'
+                    'style': 'col-12 col-md-6'
                 }
 
             ] + [
@@ -461,16 +452,46 @@ def session_stats(session):
                         }
                         for row in param_histograms[param]
                     ],
-                    'style': 'col-12 col-md-4'
+                    'style': 'col-12 col-md-6'
                 } for param in ('score', 'energy', 'exposure_time', 'attenuation', 'num_frames')
             ] + [
+
+            ]
+        },
+        {
+            'title': 'Session Timeline',
+            'description': (
+                'Timeline of data collection for various types of '
+                'datasets during the whole session from {} to {}'
+            ).format(session.start().strftime('%c'), session.end().strftime('%c')),
+            'style': "row",
+            'content': [
                 {
                     'title': 'Session Timeline',
                     'kind': 'timeline',
-                    'data': timeline_info,
+                    'start': js_epoch(session.start()),
+                    'end': js_epoch(session.end()),
+                    'data': timeline_data,
                     'style': 'col-12'
-                }
+                },
+                {
+                    'title': 'Inactivity Gaps',
+                    'kind': 'table',
+                    'data': [
+                        ['', 'Start', 'End', 'Duration']] + [
+                        [i + 1, gap[0].strftime('%c'), gap[1].strftime('%c'), natural_duration(gap[2])]
+                        for i, gap in enumerate(session.gaps())
+                    ],
+                    'header': 'row',
+                    'notes': "Periods of possible inactivity while the session was open, greater than 10 minutes",
+                    'style': 'col-12',
+                },
+
             ]
+
         }
+
     ]}
     return stats
+
+
