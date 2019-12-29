@@ -11,10 +11,14 @@ def update_data_times(apps, schema_editor):
     Guess meaningful start and end times for existing datasets
     """
     Data = apps.get_model('lims', 'Data')
+    Beamline = apps.get_model('lims', 'Beamline')
     db_alias = schema_editor.connection.alias
 
     # update all end_times to created time
     Data.objects.using(db_alias).update(end_time=F('created'))
+
+    # fix null exposure times to 0.5 seconds
+    Data.objects.using(db_alias).filter(exposure_time__isnull=True).update(exposure_time=0.5)
 
     # update start times based on data type and exposure time
     # Shutterless = zero offset  for cbf and h5 for Pilatus or Eiger
@@ -29,8 +33,8 @@ def update_data_times(apps, schema_editor):
         )
     )
 
-    # 0.9 seconds offset for marccd or adsc, and all others, conservative
-    offset = 0.9
+    # 2.5 seconds offset for marccd or adsc, and all others, conservative
+    offset = 2.5
     Data.objects.using(db_alias).filter(
         kind__acronym__in=['DATA', 'RASTER', 'XRD', 'SCREEN'],
     ).exclude(
@@ -59,6 +63,21 @@ def update_data_times(apps, schema_editor):
             F('created') - timedelta(seconds=2)*F('exposure_time')
         )
     )
+
+    # finally truncate overlaps by beamline
+    to_update = []
+    for beamline in Beamline.objects.using(db_alias).all():
+        prev = None
+        for data in beamline.datasets.order_by('end_time'):
+            if prev is None:
+                prev = data
+                continue
+            if prev.end_time >= data.start_time:
+                data.start_time = prev.end_time + timedelta(minutes=1)  # offset by 1 minute
+                to_update.append(data)
+            prev = data
+    Data.objects.using(db_alias).bulk_update(to_update, ['start_time'])
+
 
 
 class Migration(migrations.Migration):
