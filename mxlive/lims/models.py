@@ -28,7 +28,7 @@ from mxlive.utils.functions import Hours, Minutes, Shifts, ShiftEnd, ShiftStart
 
 IDENTITY_FORMAT = '-%y%m'
 RESTRICT_DOWNLOADS = getattr(settings, 'RESTRICT_DOWNLOADS', False)
-SHIFT_HRS = getattr(settings, 'SHIFT_LENGTH', 8)
+SHIFT_HRS = getattr(settings, 'HOURS_PER_SHIFT', 8)
 SHIFT_SECONDS = SHIFT_HRS*3600
 
 DRAFT = 0
@@ -960,7 +960,7 @@ class Group(ProjectObjectMixin):
     TRANSITIONS = copy.deepcopy(ProjectObjectMixin.TRANSITIONS)
     TRANSITIONS[ProjectObjectMixin.STATES.DRAFT] = [ProjectObjectMixin.STATES.ACTIVE]
 
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='sample_groups')
     status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectObjectMixin.STATES.DRAFT)
     shipment = models.ForeignKey(Shipment, null=True, blank=True, on_delete=models.SET_NULL, related_name='groups')
     energy = models.DecimalField(null=True, max_digits=10, decimal_places=4, blank=True)

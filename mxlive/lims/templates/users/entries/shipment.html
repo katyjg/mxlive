@@ -102,11 +102,12 @@
                     {% endif %}
                 </div>
             {% endif %}
-            {% if shipment.components.all %}
+            {% if shipment.components.count %}
                 <div class="col text-right">
                     <small class="text-muted text-condensed">Included Items</small><br>
                     {% for c in shipment.components.all %}
-                        <span class="badge badge-warning p-2">{{ c.kind }}</span> {% endfor %}
+                        <span class="badge badge-warning p-2">{{ c.kind }}</span>
+                    {% endfor %}
                 </div>
             {% endif %}
         </div>

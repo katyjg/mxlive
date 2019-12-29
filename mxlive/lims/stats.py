@@ -4,18 +4,17 @@ from datetime import datetime
 from math import ceil
 
 import numpy
-
 from django.conf import settings
-from django.db.models import Count, Sum, Q, F, Avg, FloatField, Max
+from django.db.models import Count, Sum, F, Avg, FloatField
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from memoize import memoize
 
-from mxlive.lims.models import Data, Sample, Session, DataType, Project, AnalysisReport
-from mxlive.utils.functions import ShiftEnd, ShiftStart
+from mxlive.lims.models import Data, Sample, Session, Project, AnalysisReport, Container, Shipment, Group
+from mxlive.utils.functions import ShiftEnd, ShiftStart, ShiftIndex
 from mxlive.utils.misc import humanize_duration, natural_duration
 
-SHIFT = getattr(settings, "SHIFT_LENGTH", 8)
+SHIFT = getattr(settings, "HOURS_PER_SHIFT", 8)
 SHIFT_SECONDS = SHIFT*3600
 
 
@@ -52,17 +51,14 @@ def usage_stats(beamline, period='year', **filters):
             new_project_counts[info[field]] += 1
             new_project_names[info[field]].append(info['name'])
 
-    session_params = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(count=Count('id'))
-    session_shift_durations = Session.objects.filter(beamline=beamline, **filters).values(field).order_by(field).annotate(
-        duration=Sum(
-            ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')
-        )
-    )
-
-    session_used_durations = Session.objects.filter(beamline=beamline, **filters).values(field).order_by(field).annotate(
+    session_params = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(
         duration=Sum(
             Coalesce('stretches__end', timezone.now()) - F('stretches__start'),
-        )
+        ),
+        shift_duration=Sum(
+            ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')
+        ),
+        count=Count('id')
     )
 
     session_counts = {
@@ -70,12 +66,12 @@ def usage_stats(beamline, period='year', **filters):
         for entry in session_params
     }
     session_shifts = {
-        entry[field]: ceil(entry['duration'].total_seconds()/SHIFT_SECONDS)
-        for entry in session_shift_durations
+        entry[field]: ceil(entry['shift_duration'].total_seconds()/SHIFT_SECONDS)
+        for entry in session_params
     }
     session_hours = {
         entry[field]: entry['duration'].total_seconds()/3600
-        for entry in session_used_durations
+        for entry in session_params
     }
 
     session_efficiency = {
@@ -87,6 +83,23 @@ def usage_stats(beamline, period='year', **filters):
         count=Count('id'), exposure=Avg('exposure_time'),
         duration=Sum(F('end_time')-F('start_time'))
     )
+
+    shift_params = beamline.datasets.filter(**filters).annotate(shift=ShiftIndex('end_time')).values(
+        'shift', 'end_time__week_day').order_by('end_time__week_day', 'shift').annotate(count=Count('id'))
+
+    day_shift_counts = defaultdict(dict)
+    day_names = list(calendar.day_abbr)
+    for entry in shift_params:
+        day = calendar.day_abbr[(entry['end_time__week_day'] - 2) % 7]
+        day_part = '{:02d}:00 Shift'.format(entry['shift']*SHIFT)
+        day_shift_counts[day][day_part] = entry['count']
+        day_shift_counts[day]['Day'] = day
+
+    category_params = beamline.datasets.filter(**filters).values('project__categories__name').order_by('project__categories__name').annotate(count=Count('id'))
+    category_counts = {
+        entry['project__categories__name']: entry['count']
+        for entry in category_params
+    }
 
     dataset_counts = {
         entry[field]: entry['count']
@@ -224,7 +237,30 @@ def usage_stats(beamline, period='year', **filters):
                             'time-format': time_format
                         },
                     'style': 'col-12 col-md-6',
-                }
+                },
+                {
+                    'title': 'Datasets by time of week',
+                    'kind': 'barchart',
+                    'data': {
+                        'x-label': 'Day',
+                        'data': [
+                            dict(day_shift_counts[day]) for day in day_names
+                        ]
+                    },
+                    'style': 'col-12 col-md-6'
+                },
+                {
+                    'title': 'Datasets by User Category',
+                    'kind': 'pie',
+                    'data': [
+                        {
+                            'label': key or 'Unknown',
+                            'value': count,
+                        }
+                        for key, count in category_counts.items()
+                    ],
+                    'style': 'col-12 col-md-6'
+                },
             ]
         },
         {
@@ -495,3 +531,183 @@ def session_stats(session):
     return stats
 
 
+def project_stats(project, **filters):
+
+    periods = get_data_periods()
+    field = 'created__year'
+
+    session_params = project.sessions.filter(**filters).values(field).order_by(field).annotate(
+        shift_duration=Sum(
+            ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')
+        ),
+        duration=Sum(
+            Coalesce('stretches__end', timezone.now()) - F('stretches__start'),
+        ),
+        count=Count('id')
+    )
+
+    session_counts = {
+        entry[field]: entry['count']
+        for entry in session_params
+    }
+    session_shifts = {
+        entry[field]: ceil(entry['shift_duration'].total_seconds()/SHIFT_SECONDS)
+        for entry in session_params
+    }
+    session_hours = {
+        entry[field]: entry['duration'].total_seconds()/3600
+        for entry in session_params
+    }
+
+    session_efficiency = {
+        key: session_hours.get(key, 0)/(SHIFT*session_shifts.get(key, 1))
+        for key in periods
+    }
+
+    data_params = project.datasets.filter(**filters).values(field).order_by(field).annotate(
+        count=Count('id'), exposure=Avg('exposure_time'),
+        duration=Sum(F('end_time')-F('start_time'))
+    )
+
+    dataset_counts = {
+        entry[field]: entry['count']
+        for entry in data_params
+    }
+    dataset_exposure = {
+        entry[field]: round(entry['exposure'], 3)
+        for entry in data_params
+    }
+
+    dataset_durations = {
+        entry[field]: entry['duration'].total_seconds() / 3600
+        for entry in data_params
+    }
+
+    dataset_efficiency = {
+        key: dataset_durations.get(key, 0) / (session_hours.get(key, 1))
+        for key in periods
+    }
+
+    dataset_per_shift = {
+        key: dataset_counts.get(key, 0) / session_shifts.get(key, 1)
+        for key in periods
+    }
+
+    dataset_per_hour = {
+        key: dataset_counts.get(key, 0) / dataset_durations.get(key, 1)
+        for key in periods
+    }
+
+    minutes_per_dataset = {
+        key: dataset_durations.get(key, 0) * 60 / dataset_counts.get(key, 1)
+        for key in periods
+    }
+    sample_counts = {
+        entry[field]: entry['count']
+        for entry in
+        project.samples.filter(**filters).values(field).order_by(field).annotate(count=Count('id'))
+    }
+    samples_per_dataset = {
+        key: sample_counts.get(key, 0) / dataset_counts.get(key, 1)
+        for key in periods
+    }
+
+    data_types = project.datasets.filter(**filters).values('kind__name').order_by('kind__name').annotate(count=Count('id'))
+
+    shift_params = project.datasets.filter(**filters).annotate(shift=ShiftIndex('end_time')).values(
+        'shift', 'end_time__week_day').order_by('end_time__week_day', 'shift').annotate(count=Count('id'))
+
+    day_shift_counts = defaultdict(dict)
+    day_names = list(calendar.day_abbr)
+    for entry in shift_params:
+        day = calendar.day_abbr[(entry['end_time__week_day'] - 2) % 7]
+        day_part = '{:02d}:00 Shift'.format(entry['shift']*SHIFT)
+        day_shift_counts[day][day_part] = entry['count']
+        day_shift_counts[day]['Day'] = day
+
+    shifts = sum(session_shifts.values())
+    ttime = sum(session_hours.values())
+    shutters = sum(dataset_durations.values())
+
+    period_data = defaultdict(lambda: defaultdict(int))
+    for summary in project.datasets.filter(**filters).values(field, 'kind__name').annotate(count=Count('pk')):
+        period_data[summary[field]][summary['kind__name']] = summary['count']
+    datatype_table = []
+    for item in data_types:
+        kind_counts = [period_data[per][item['kind__name']] for per in periods]
+        datatype_table.append([item['kind__name']] + kind_counts + [sum(kind_counts)])
+    period_counts = [sum(period_data[per].values()) for per in periods]
+    datatype_table.append(['Total'] + period_counts + [sum(period_counts)])
+    chart_data = []
+
+    period_names = periods
+
+    # data histogram
+    for i, per in enumerate(periods):
+        series = {'Year': period_names[i]}
+        series.update(period_data[per])
+        chart_data.append(series)
+
+    stats = {'details': [
+        {
+            'title': '{} Summary'.format(project.username.title()),
+            'description': 'Data Collection Summary for {}'.format(project.username.title()),
+            'style': "row",
+            'content': [
+                {
+                    'title': 'Time Usage',
+                    'kind': 'table',
+                    'data': [
+                        ['Shifts Used', '{} ({})'.format(shifts, humanize_duration(shifts * SHIFT))],
+                        ['Actual Time', '{} % ({})'.format(round(ttime / (shifts * SHIFT), 2), humanize_duration(ttime))],
+                        ['Shutters Open', '{}'.format(humanize_duration(shutters))],
+                    ],
+                    'header': 'column',
+                    'style': 'col-sm-6'
+                },
+                {
+                    'title': 'Overall Statistics',
+                    'kind': 'table',
+                    'data': [
+                        ['Sessions', sum(session_counts.values())],
+                        ['Shipments / Containers', "{} / {}".format(
+                            project.shipments.count(),
+                            project.containers.filter(status__gte=Container.STATES.ON_SITE).count()
+                        )],
+                        ['Groups / Samples', "{} / {}".format(
+                            project.sample_groups.filter(shipment__status__gte=Shipment.STATES.ON_SITE).count(),
+                            project.samples.filter(container__status__gte=Container.STATES.ON_SITE).count())],
+                    ],
+                    'header': 'column',
+                    'style': 'col-sm-6'
+                },
+                {
+                    'title': 'Usage Statistics',
+                    'kind': 'table',
+                    'data': [
+                        ["Year"] + period_names,
+                        ['Samples Measured'] + [sample_counts.get(p, 0) for p in periods],
+                        ['Sessions'] + [session_counts.get(p, 0) for p in periods],
+                        ['Shifts Used'] + [session_shifts.get(p, 0) for p in periods],
+                        ['Time Used¹ (hr)'] + ['{:0.1f}'.format(session_hours.get(p, 0)) for p in periods],
+                        ['Usage Efficiency² (%)'] + ['{:.0%}'.format(session_efficiency.get(p, 0)) for p in periods],
+                        ['Datasets³ Collected'] + [dataset_counts.get(p, 0) for p in periods],
+                        ['Minutes/Dataset³'] + ['{:0.1f}'.format(minutes_per_dataset.get(p, 0)) for p in periods],
+                        ['Datasets³/Hour'] + ['{:0.1f}'.format(dataset_per_hour.get(p, 0)) for p in periods],
+                        ['Average Exposure (sec)'] + ['{:0.2f}'.format(dataset_exposure.get(p, 0)) for p in periods],
+                        ['Samples/Dataset³'] + ['{:0.1f}'.format(samples_per_dataset.get(p, 0)) for p in periods],
+
+                    ],
+                    'style': 'col-12',
+                    'header': 'column row',
+                    'description': 'Summary of time, datasets and usage statistics',
+                    'notes': (
+                        ' 1. Time Used is the number of hours an active session was running on the beamline.  \n'
+                        ' 2. Usage efficiency is the percentage of used shifts during which a session was active.  \n'
+                        ' 3. All datasets are considered for this statistic irrespective of dataset type.'
+                    )
+                },
+            ]
+        }
+        ]}
+    return stats

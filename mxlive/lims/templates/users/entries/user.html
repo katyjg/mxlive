@@ -18,17 +18,14 @@
     <a href="#!" data-form-link="{% url "edit-profile" object.username %}" title="Edit Profile">
         {% show_icon label="Edit" icon="ti ti-md ti-pencil-alt" %}
     </a>
-    <a href="#!" data-form-link="{% url "user-delete" object.username %}" title="Delete User">
-        {% show_icon label="Delete" icon="ti ti-md ti-trash" %}
-    </a>
 {% endif %}
     <a href="{% url "data-list" %}?search={{ object.username }}" title="Go to Data for {{ object.username }}">
         {% show_icon label="Data" icon="ti ti-md ti-layout-grid3" badge=object.datasets.count %}
     </a>
-    <a class="pull-right" href="{% url "result-list" %}?q={{ object.username }}" title="Go to Reports for {{ object.username }}">
+    <a class="pull-right" href="{% url "result-list" %}?search={{ object.username }}" title="Go to Reports for {{ object.username }}">
         {% show_icon label="Reports" icon="ti ti-md ti-bar-chart-alt" badge=object.reports.count %}
     </a>
-    <a class="pull-right" href="{% url "session-list" %}?q={{ object.username }}" title="Go to Sessions for {{ object.username }}">
+    <a class="pull-right" href="{% url "session-list" %}?search={{ object.username }}" title="Go to Sessions for {{ object.username }}">
         {% show_icon label="Sessions" icon="ti ti-md ti-time" badge=object.sessions.all.count %}
     </a>
 {% endblock %}

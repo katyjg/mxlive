@@ -150,17 +150,6 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
 
 
 class ProjectStatistics(UserPassesTestMixin, detail.DetailView):
-    """
-    This is the "Dashboard" view. Basic information about the Project is displayed:
-
-    :For superusers, direct to staff.html, with context:
-       - shipments: Any Shipments that are Sent or On-site
-       - automounters: Any active Dewar objects (Beamline/Automounter)
-
-    :For Users, direct to project.html, with context:
-       - shipments: All Shipments that are Draft, Sent, or On-site, plus Returned shipments to bring the total displayed up to seven.
-       - sessions: Any recent Session from any beamline
-    """
     model = models.Project
     template_name = "users/entries/project-statistics.html"
     slug_field = 'username'
@@ -174,7 +163,15 @@ class ProjectStatistics(UserPassesTestMixin, detail.DetailView):
         # inject username in to kwargs if not already present
         if not self.kwargs.get('username'):
             self.kwargs['username'] = self.request.user
-        return super(ProjectStatistics, self).get_object(*args, **kwargs)
+        return super().get_object(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['report'] = stats.project_stats(self.object)
+        return context
+
+    def page_title(self):
+        return 'Project Statistics'
 
 
 class OwnerRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
