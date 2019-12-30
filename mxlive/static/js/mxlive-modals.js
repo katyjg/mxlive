@@ -86,6 +86,12 @@
             let form = target.find('form');
             e.preventDefault();
             e.stopPropagation();
+
+            if (!form[0].checkValidity()) {
+                form[0].reportValidity();
+                return
+            }
+
             let button = $(this);
             button.html('<i class="ti ti-reload spin"></i>');
 

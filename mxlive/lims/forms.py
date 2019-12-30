@@ -52,7 +52,13 @@ class ProjectForm(forms.ModelForm):
             ),
             Div(
                 Div('contact_email', css_class='col-6'),
-                Div('contact_phone', css_class='col-6'),
+                Div(
+                    Field(
+                        'contact_phone', pattern="(\+\d{1,3}-)?\d{3}-\d{3}-\d{4}( x\d+)?$",
+                        placeholder="[+9-]999-999-9999[ x9999]"
+                    ),
+                    css_class='col-6'
+                ),
                 css_class="form-row"
             ),
             Div(
@@ -1005,7 +1011,7 @@ class AnnouncementForm(forms.ModelForm):
 
     class Meta:
         model = Announcement
-        fields = ['title', 'description', 'staff_only', 'attachment', 'url', 'priority']
+        fields = ['title', 'description', 'staff_only', 'modal', 'attachment', 'url', 'priority']
 
     def __init__(self, *args, **kwargs):
         super(AnnouncementForm, self).__init__(*args, **kwargs)
@@ -1034,11 +1040,21 @@ class AnnouncementForm(forms.ModelForm):
                 css_class="row"
             ),
             Div(
-                Div('attachment', css_class="col-12"),
+                Div(
+                    Field('attachment'),
+                    css_class="col-12"
+                ),
                 css_class="row"
             ),
             Div(
-                Div('staff_only', css_class="col"),
+                Div(
+                    Field('staff_only', css_class="custom-control-input"),
+                    css_class="custom-control custom-switch col-6"
+                ),
+                Div(
+                    Field('modal', css_class="custom-control-input"),
+                    css_class="custom-control custom-switch col-6"
+                ),
                 css_class="row"
             ),
         )
@@ -1056,7 +1072,7 @@ class AccessForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AccessForm, self).__init__(*args, **kwargs)
-        self.fields['users'].label = "Users on %s" % format(self.instance)
+        self.fields['users'].label = "Users on {}".format(self.instance)
         self.fields['users'].queryset = self.fields['users'].queryset.order_by('name')
 
         self.body = BodyHelper(self)
@@ -1073,8 +1089,7 @@ class AccessForm(forms.ModelForm):
             ),
             Div(
                 Div(
-                    HTML("""It may take a few minutes for your changes to be updated on the server.<br/>
-                            Changes are pulled every 5 minutes."""),
+                    HTML("It may take a few minutes for changes to be updated on the server."),
                     css_class="col-12"
                 ),
                 css_class="row"
@@ -1093,7 +1108,7 @@ class CategoryForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(CategoryForm, self).__init__(*args, **kwargs)
-        self.fields['projects'].label = "%s Users" % format(self.instance)
+        self.fields['projects'].label = "{} Users".format(self.instance)
         self.fields['projects'].queryset = self.fields['projects'].queryset.order_by('name')
 
         self.body = BodyHelper(self)

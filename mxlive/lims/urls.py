@@ -83,4 +83,5 @@ urlpatterns = [
     path('ajax/layout/<int:pk>/', ajax_views.FetchContainerLayout.as_view(), name='fetch-layout'),
 
     path('quick-guide/', TemplateView.as_view(template_name='users/help.html'), name='user-guide'),
+    path('guide-youtube/<slug:vid>/', views.PresenterView.as_view(), name='guide-youtube'),
 ]

@@ -15,9 +15,12 @@ from django import template
 from django.conf import settings
 from django.utils.encoding import smart_bytes, force_text
 from django.utils.safestring import mark_safe
+from django.template.defaultfilters import stringfilter
 
 register = template.Library()
 
+@register.filter()
+@stringfilter
 def textile(value):
     try:
         import textile
@@ -27,8 +30,10 @@ def textile(value):
         return force_text(value)
     else:
         return mark_safe(force_text(textile.textile(smart_bytes(value), encoding='utf-8', output='utf-8')))
-textile.is_safe = True
 
+
+@register.filter()
+@stringfilter
 def markdown(value, arg=''):
     """
     Runs Markdown over a given value, optionally using various
@@ -53,26 +58,11 @@ def markdown(value, arg=''):
             raise template.TemplateSyntaxError("Error in {% markdown %} filter: The Python markdown library isn't installed.")
         return force_text(value)
     else:
-        # markdown.version was first added in 1.6b. The only version of markdown
-        # to fully support extensions before 1.6b was the shortlived 1.6a.
-        if hasattr(markdown, 'version'):
-            extensions = [e for e in arg.split(",") if e]
-            if len(extensions) > 0 and extensions[0] == "safe":
-                extensions = extensions[1:]
-                safe_mode = True
-            else:
-                safe_mode = False
+        return mark_safe(markdown.markdown(force_text(value), extensions=['markdown.extensions.fenced_code'], safe_mode=True))
 
-            # Unicode support only in markdown v1.7 or above. Version_info
-            # exist only in markdown v1.6.2rc-2 or above.
-            if getattr(markdown, "version_info", None) < (1,7):
-                return mark_safe(force_text(markdown.markdown(smart_bytes(value), extensions, safe_mode=safe_mode)))
-            else:
-                return mark_safe(markdown.markdown(force_text(value), extensions, safe_mode=safe_mode))
-        else:
-            return mark_safe(force_text(markdown.markdown(smart_bytes(value))))
-markdown.is_safe = True
 
+@register.filter()
+@stringfilter
 def restructuredtext(value):
     try:
         from docutils.core import publish_parts
@@ -84,8 +74,3 @@ def restructuredtext(value):
         docutils_settings = getattr(settings, "RESTRUCTUREDTEXT_FILTER_SETTINGS", {})
         parts = publish_parts(source=smart_bytes(value), writer_name="html4css1", settings_overrides=docutils_settings)
         return mark_safe(force_text(parts["fragment"]))
-restructuredtext.is_safe = True
-
-register.filter(textile)
-register.filter(markdown)
-register.filter(restructuredtext)

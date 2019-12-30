@@ -27,10 +27,11 @@ class StaffBaseClass(models.Model):
 class Announcement(StaffBaseClass):
     title = models.CharField(max_length=50, blank=True)
     description = models.TextField(blank=True)
-    priority = models.IntegerField(blank=True)
+    priority = models.IntegerField(null=False, default=0)
     attachment = models.FileField(blank=True, upload_to=get_storage_path)
     staff_only = models.BooleanField(default=False)
-    url = models.CharField(max_length=200, blank=True)
+    modal = models.BooleanField(default=False)
+    url = models.CharField(max_length=200, blank=True, null=True)
 
     def has_document(self):
         return self.attachment and not self.has_image()
@@ -42,7 +43,7 @@ class Announcement(StaffBaseClass):
         return self.title
 
     class Meta:
-        ordering = ("priority",)
+        ordering = ("-staff_only", "priority",)
 
 
 class UserList(StaffBaseClass):

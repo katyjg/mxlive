@@ -8,14 +8,14 @@ $form-grid-gutter-width: .75*$grid-gutter-width !default;
 //$grid-gutter-width: 1rem !default;
 //$spacer: 0.5 * $grid-gutter-width !default;
 $theme-colors: (
-        "primary": #400d41,
-        "secondary": #868e96,
-        "success": #28a745,
-        "danger": #dc3545,
-        "info": #17a2b8,
-        "warning": #ffc107,
-        "light": #f8f9fa,
-        "dark": #343434
+    "primary": #400d41,
+    "secondary": #868e96,
+    "success": #28a745,
+    "danger": #dc3545,
+    "info": #17a2b8,
+    "warning": #ffc107,
+    "light": #f8f9fa,
+    "dark": #343434
 );
 
 $border-color: rgba(0, 0, 0, 0.15) !default;
@@ -526,8 +526,7 @@ p {
 
 .mini-profile {
   white-space: nowrap;
-  padding: 15px;
-  min-width: 210px;
+  padding: 1rem;
 }
 
 .inline-list {
@@ -1319,6 +1318,7 @@ a:hover {
 
 .report-viewer table.table tbody td {
   font-family: $mono-font, sans-serif;
+  font-size: 0.9rem;
 }
 
 svg * {
@@ -1501,7 +1501,7 @@ tr.sample-completed {
 .accordion {
   [aria-expanded]:after {
     font-family: "Themify";
-    float: right;
+    margin-left: auto;
     opacity: 0.5;
   }
   [aria-expanded="false"]:after {
@@ -1510,9 +1510,15 @@ tr.sample-completed {
   [aria-expanded="true"]:after {
     content: "\e64b";
   }
-
 }
 
+.guide-snippet {
+  font-size: 0.9rem;
+  ol {
+    padding-inline-start: 2rem;
+  }
+
+}
 @keyframes glow {
     to {
         text-shadow: 0 0 2px $info;
@@ -1548,7 +1554,10 @@ tr.sample-completed {
   }
 }
 
-
 table.item-list {
   margin-bottom: 1rem;
+}
+
+input::placeholder {
+  color: rgba(0,0,0,0.3) !important;
 }

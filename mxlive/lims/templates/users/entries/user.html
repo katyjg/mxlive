@@ -1,6 +1,14 @@
 {% extends "users/base.html" %}
+{% load static %}
 {% load humanize %}
 {% load icons %}
+
+
+{% block extra_css %}
+    <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
+    <link href="{% static "css/reports.min.css" %}" rel="stylesheet">
+{% endblock %}
+
 {% block page_heading %}
     <h3 class="text-condensed">
         <span class="text-muted">{{ object.name|upper }}</span> | <strong>{{ object.first_name }} {{ object.last_name }}</strong>
@@ -58,20 +66,46 @@
 {% block full %}
 
     <div class="row">
-        <div class="col-12 col-sm-9">
-            {% include "users/address.html" with user=object %}
-            <div class="mini-profile">{{ object.contact_email|default_if_none:"" }}<br/>
-                {{ object.contact_phone|default_if_none:"" }}
+        <div class="col-12">
+            <div class="card">
+                <div class="row d-flex flex-row align-items-center">
+                    <div class="col-8">
+                        {% include "users/address.html" with user=object %}
+                        <div class="mini-profile">{{ object.contact_email|default_if_none:"" }}<br/>
+                        <pre>{{ object.contact_phone|default_if_none:"" }}</pre>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center align-items-center">
+                        <div>
+                            <img src="/static/img/{{ object.carrier|default_if_none:'walking'|slugify }}.png" title="{{ object.carrier|default_if_none:'User'|title }}">
+                            <h5>{{ object.account_number|default:"No account number" }}</h5>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-        </div>
-        <div class="col-12 col-sm-3 text-center">
-            {% if object.carrier %}
-                <img src="/static/img/{{ object.carrier|slugify }}.png" title="{{ object.carrier|default_if_none:'User'|title }}">
-            {% else %}
-                <img src="/static/img/walking.png" title="{{ object.carrier|default_if_none:'User'|title }}">
-            {% endif %}
-            <h5><span class="text-muted">{{ object.account_number|default:"No account number" }}</span></h5>
         </div>
     </div>
 
+    <div class="row">
+        <div id="data-stats" class="col-12"></div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
+    <script type="text/javascript" src="{% static 'js/d3/d3.timeline.min.js' %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mxlive-report.min.js" %}"></script>
+
+    <script type="text/javascript">
+        var report = {{ report | safe }};
+        $(document).ready(function() {
+            $('#data-stats').liveReport({
+                data: report
+            });
+        });
+    </script>
 {% endblock %}

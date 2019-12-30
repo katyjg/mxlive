@@ -1,5 +1,5 @@
 {% load static %}
-{% load get_version %}
+
 
 <!doctype html>
 <html lang="en" class="{% block html_class %}{% endblock %}">
@@ -13,12 +13,13 @@
     <!-- Styles -->
     {% block site_css %}
         <link rel="stylesheet" href="{% static "themify-icons/themify-icons.css" %}">
-        <link rel="stylesheet" href="{% static "css/toastr.css" %}" type="text/css"/>
+        <link rel="stylesheet" href="{% static "css/noty/noty.min.css" %}" type="text/css"/>
         <link rel="stylesheet" href="{% static "css/jquery.scrollbar.css" %}"/>
         <link rel="stylesheet" href="{% static "css/mxlive.min.css" %}" type="text/css"/>
     {% endblock %}
     {% block extra_css %}{% endblock %}
     <script src="{% static "js/jquery/jquery-3.4.1.min.js" %}"></script>
+    <script src="{% static 'js/misc/noty.min.js' %}"></script>
     <script src="{% static "js/misc/underscore-min.js" %}"></script>
     <script src="{% static "js/misc/jquery.cookie.min.js" %}"></script>
     <script src="{% static "js/mxlive-modals.min.js" %}"></script>

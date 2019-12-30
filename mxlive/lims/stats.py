@@ -252,13 +252,11 @@ def usage_stats(beamline, period='year', **filters):
                 {
                     'title': 'Datasets by User Category',
                     'kind': 'pie',
-                    'data': [
-                        {
-                            'label': key or 'Unknown',
-                            'value': count,
-                        }
-                        for key, count in category_counts.items()
-                    ],
+                    'data': {
+                        'data': [
+                            {'label': key or 'Unknown', 'value': count } for key, count in category_counts.items()
+                        ],
+                    },
                     'style': 'col-12 col-md-6'
                 },
             ]
@@ -287,13 +285,12 @@ def usage_stats(beamline, period='year', **filters):
                 {
                     'title': 'Dataset Types',
                     'kind': 'pie',
-                    'data': [
-                        {
-                            'label': entry['kind__name'],
-                            'value': entry['count'],
-                        }
-                        for entry in data_types
-                    ],
+                    'data': {
+                        "colors": "Live16",
+                        "data": [
+                            {'label': entry['kind__name'], 'value': entry['count']} for entry in data_types
+                        ],
+                    },
                     'style': 'col-12 col-md-6'
                 },
             ]
@@ -370,26 +367,23 @@ def parameter_stats(beamline, **filters):
                 {
                     'title': 'Beam Size',
                     'kind': 'pie',
-                    'data': [
-                        {
-                            'label': "{:0.0f}".format(entry['beam_size']),
-                            'value': entry['count'],
-                        }
-                        for entry in beam_sizes
-                    ],
+                    'data': {
+                        'data': [
+                            {'label': "{:0.0f}".format(entry['beam_size']), 'value': entry['count']}
+                            for entry in beam_sizes
+                        ]
+                    },
                     'style': 'col-12 col-md-6'
                 },
             ] + [
                 {
                     'title': PARAMETER_NAMES[param].title(),
                     'kind': 'histogram',
-                    'data': [
-                        {
-                            "x": row[0],
-                            "y": row[1]
-                        }
-                        for row in param_histograms[param]
-                    ],
+                    'data':{
+                        'data': [
+                            {"x": row[0],"y": row[1] } for row in param_histograms[param]
+                        ],
+                    },
                     'style': 'col-12 col-md-6'
                 } for param in ('score', 'energy', 'exposure_time', 'attenuation', 'num_frames')
             ]
@@ -481,13 +475,11 @@ def session_stats(session):
                 {
                     'title': PARAMETER_NAMES[param].title(),
                     'kind': 'histogram',
-                    'data': [
-                        {
-                            "x": row[0],
-                            "y": row[1]
-                        }
-                        for row in param_histograms[param]
-                    ],
+                    'data':{
+                        'data': [
+                            {"x": row[0], "y": row[1]} for row in param_histograms[param]
+                        ],
+                    },
                     'style': 'col-12 col-md-6'
                 } for param in ('score', 'energy', 'exposure_time', 'attenuation', 'num_frames')
             ] + [
@@ -532,9 +524,9 @@ def session_stats(session):
 
 
 def project_stats(project, **filters):
-
+    period = 'year'
     periods = get_data_periods()
-    field = 'created__year'
+    field = 'created__{}'.format(period)
 
     session_params = project.sessions.filter(**filters).values(field).order_by(field).annotate(
         shift_duration=Sum(
@@ -641,6 +633,16 @@ def project_stats(project, **filters):
     chart_data = []
 
     period_names = periods
+    if period == 'month':
+        yr = timezone.now().year
+        period_names = [calendar.month_abbr[per].title() for per in periods]
+        period_xvalues = [datetime.strftime(datetime(yr, per, 1, 0, 0), '%c') for per in periods]
+        time_format = '%b'
+        x_scale = 'time'
+    elif period == 'year':
+        period_xvalues = [datetime.strftime(datetime(per, 1, 1, 0, 0), '%c') for per in periods]
+        time_format = '%Y'
+        x_scale = 'time'
 
     # data histogram
     for i, per in enumerate(periods):
@@ -650,8 +652,7 @@ def project_stats(project, **filters):
 
     stats = {'details': [
         {
-            'title': '{} Summary'.format(project.username.title()),
-            'description': 'Data Collection Summary for {}'.format(project.username.title()),
+            'title': 'Data Collection Summary',
             'style': "row",
             'content': [
                 {
@@ -706,6 +707,36 @@ def project_stats(project, **filters):
                         ' 2. Usage efficiency is the percentage of used shifts during which a session was active.  \n'
                         ' 3. All datasets are considered for this statistic irrespective of dataset type.'
                     )
+                },
+                {
+                    'title': 'Usage Statistics',
+                    'kind': 'barchart',
+                    'data': {
+                        'x-label': period.title(),
+                        'colors': 'Live8',
+                        'data': [
+                            {
+                                period.title(): period_names[i],
+                                'Samples': sample_counts.get(per, 0),
+                                'Datasets': dataset_counts.get(per, 0),
+                                'Total Time': round(session_hours.get(per, 0), 1),
+                            } for i, per in enumerate(periods)
+                        ]
+                    },
+                    'style': 'col-12 col-md-6'
+                },
+                {
+                    'title': 'Productivity',
+                    'kind': 'lineplot',
+                    'data':
+                        {
+                            'x': [period.title()] + period_xvalues,
+                            'y1': [['Datasets/Shift'] + [round(dataset_per_shift.get(per, 0), 2) for per in periods]],
+                            'y2': [['Average Exposure'] + [round(dataset_exposure.get(per, 0), 2) for per in periods]],
+                            'x-scale': x_scale,
+                            'time-format': time_format
+                        },
+                    'style': 'col-12 col-md-6',
                 },
             ]
         }

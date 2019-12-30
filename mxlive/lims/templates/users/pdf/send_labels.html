@@ -1,22 +1,22 @@
 {% extends "users/pdf/doc_base.html" %}
 
 {% load static %}
-{% load get_version %}
+{% load settings %}
 
 {% block content %}
 
 <div class="container">
     <div class="row">
         <h2 class="heading text-condensed">
-            <img src="{{ "BASE_DIR"|get_from_settings }}{% static "img/bl_logo.svg" %}" style="width: 300px;"/>
+            <img src="{% get_setting 'BASE_DIR' %}{% static "img/bl_logo.svg" %}" style="width: 300px;"/>
             <span class="pull-right">SHIPPING LABEL</span>
         </h2>
         <p>Print this document and cut out the label to affix to the outside of your transport container (dewar) for shipment.</p>
         <div class="panel panel-main">
             <div class="label-sidebar">
-                <img src="{{ "BASE_DIR"|get_from_settings }}{% static "img/bl_logo-min.svg" %}"/>
+                <img src="{% get_setting 'BASE_DIR' %}{% static "img/bl_logo-min.svg" %}"/>
                 <br><br>
-                <img src="{{ "BASE_DIR"|get_from_settings }}{% static "img/fragile_sign.svg" %}"/>
+                <img src="{% get_setting 'BASE_DIR' %}{% static "img/fragile_sign.svg" %}"/>
                 <br><br>
                 <strong class="emphasize">Non-Hazardous Frozen Samples In Dry-Shipper</strong>
             </div>

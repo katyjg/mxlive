@@ -304,7 +304,11 @@ class Session(models.Model):
         max_gap = timedelta(minutes=10)
 
         return [
-            (first.end_time, second.start_time, (second.start_time - first.end_time))
+            (
+                timezone.localtime(first.end_time),
+                timezone.localtime(second.start_time),
+                (second.start_time - first.end_time)
+            )
             for first, second in zip(data[:-1], data[1:]) if (second.start_time - first.end_time) > max_gap
         ]
 

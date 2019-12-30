@@ -13,7 +13,7 @@ from mxlive.utils import slap
 from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin
 from . import models
 from ..lims.models import Project, ActivityLog
-from ..lims import forms
+from ..lims import forms, stats
 
 
 User = get_user_model()
@@ -132,9 +132,16 @@ class ProjectList(AdminRequiredMixin, ItemListView):
 class UserDetail(AdminRequiredMixin, detail.DetailView):
     model = Project
     template_name = "users/entries/user.html"
+    page_title = "User Profile"
 
     def get_object(self, **kwargs):
         return Project.objects.get(username=self.kwargs.get('username'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['report'] = stats.project_stats(self.object)
+        return context
+
 
 
 class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):

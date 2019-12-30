@@ -1,34 +1,15 @@
 {% load msgs %}
-{% load static %}
-<script type="text/javascript" src="{% static 'js/misc/toastr.min.js' %}"></script>
+
 <script type="text/javascript">
-toastr.options = {
-    "closeButton": false,
-    "debug": false,
-    "newestOnTop": false,
-    "progressBar": true,
-    "positionClass": "toast-bottom-right",
-    "preventDuplicates": true,
-    "onclick": null,
-    "showDuration": "300",
-    "hideDuration": "1000",
-    "timeOut": "2000",
-    "extendedTimeOut": "1000",
-    "showEasing": "swing",
-    "hideEasing": "linear",
-    "showMethod": "fadeIn",
-    "hideMethod": "fadeOut"
-};
-
-function generate(type, message) {
-    toastr[type](message);
-}
-
-{% if messages %}
-$(function() {
-	{% for message in messages %}
-		generate("{{message.level|msg_type}}", "{{message}}");
-	{% endfor %}
-});
-{% endif %}
+    var messages = {% prep_messages %};
+    $.each(messages, function(i, item){
+        new Noty({
+            text: item.text,
+            type: item.tags,
+            layout: 'bottomRight',
+            theme: 'sunset',
+            timeout: 4000,
+            visibilityControl: true
+        }).show()
+    });
 </script>

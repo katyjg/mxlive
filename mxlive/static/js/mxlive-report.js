@@ -33,20 +33,19 @@ const figureTypes = [
     "histogram", "lineplot", "barchart", "scatterplot", "pie", "gauge", "timeline"
 ];
 
-
-const scheme4 = [
-    "#8f9f9a", "#c56052", "#9f6dbf", "#a0b552"
-];
-const scheme8 = [
-    "#67aec1", "#c7588a", "#64c192", "#cc5c3e",
-    "#a39384", "#829aba", "#afc441", "#9565c9",
-];
-const scheme14 = [
-    "#67aec1", "#c45a81", "#cdc339", "#ae8e6b",
-    "#6dc758", "#a084b6", "#667ccd", "#cd4f55",
-    "#805cd6", "#cf622d", "#a69e4c", "#9b9795",
-    "#6db586", "#c255b6"
-];
+const ColorSchemes = {
+    Live4:  ["#8f9f9a", "#c56052", "#9f6dbf", "#a0b552"],
+    Live8:  ["#073B4C", "#06D6A0", "#FFD166", "#EF476F", "#118AB2", "#7F7EFF", "#afc765", "#78C5E7"],
+    Live16: [
+        "#67aec1", "#c45a81", "#cdc339", "#ae8e6b", "#6dc758", "#a084b6", "#667ccd", "#cd4f55",
+        "#805cd6", "#cf622d", "#a69e4c", "#9b9795", "#6db586", "#c255b6", "#073B4C", "#FFD166",
+    ],
+    Dark2: d3.schemeDark2,
+    Set1: d3.schemeSet1,
+    Set2: d3.schemeSet2,
+    Set3: d3.scheme,
+    Tableau10: d3.schemeTableau10,
+};
 
 var contentTemplate = _.template(
     '<div id="entry-<%= id %>" <% let style = entry.style || ""; %> class="section-entry <%= style %>" >' +
@@ -267,7 +266,7 @@ function drawBarChart(figure, chart, options) {
 
 function drawHistogram(figure, chart, options) {
     let yscale = chart['y-scale'];
-
+    let data = chart.data['data']
     // remove raw data from dom
     figure.removeData('chart');
     figure.removeAttr('data-chart');
@@ -278,7 +277,7 @@ function drawHistogram(figure, chart, options) {
         size: {width: options.width, height: options.height},
         data: {
             type: 'bar',
-            json: chart.data,
+            json: data,
             colors: {
                 y: options.scheme[figure.parent().index()]
             },
@@ -319,7 +318,7 @@ function drawPieChart(figure, chart, options) {
     figure.removeData('chart');
     figure.removeAttr('data-chart');
 
-    $.each(chart.data, function (i, item) {
+    $.each(chart.data.data, function (i, item) {
         data[item.label] = item.value;
         series.push(item.label);
         colors[item.label] = options.scheme[i];
@@ -391,7 +390,7 @@ function drawTimeline(figure, chart, options) {
 
     let types = [];
     let margin = {top: 10, right: 10, bottom: 10, left: 10};
-    let width = figure.width() - margin.left - margin.right;
+    let width = options.width - margin.left - margin.right;
     let height = 240;
     let xcenter = width / 2;
     // assign colors
@@ -403,7 +402,7 @@ function drawTimeline(figure, chart, options) {
 
     types.sort();
 
-    let colors = d3.scaleOrdinal().domain(types).range(scheme14);
+    let colors = d3.scaleOrdinal().domain(types).range(options.scheme);
     let timeline = d3.timeline()
         .size([width, 150])
         .extent([chart.start, chart.end])
@@ -422,7 +421,7 @@ function drawTimeline(figure, chart, options) {
 
     let svg = d3.select(`#${figure.attr('id')}`)
         .append('svg')
-        .attr('viewBox', `-${margin.left} -${margin.top} ${figure.width()} ${height}`)
+        .attr('viewBox', `-${margin.left} -${margin.top} ${options.width} ${height}`)
         .attr('class', 'w-100');
 
     // add events
@@ -584,8 +583,13 @@ function drawTimeline(figure, chart, options) {
             let options = {
                 width: figure.width(),
                 height: figure.width() * 9 / 16,
-                scheme: chart.data['colors'] || scheme14
             };
+
+            if (Array.isArray(chart.data.colors)) {
+                options.scheme = chart.data.colors;
+            } else {
+                options.scheme = ColorSchemes[chart.data.colors] || ColorSchemes.Live16;
+            }
             switch (figure.data('type')) {
                 case 'barchart':
                     drawBarChart(figure, chart, options);

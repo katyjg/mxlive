@@ -11,7 +11,7 @@ from django.db.models import Count
 from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
-from django.views.generic import edit, detail, View
+from django.views.generic import edit, detail, View, TemplateView
 from formtools.wizard.views import SessionWizardView
 from itemlist.views import ItemListView
 from proxy.views import proxy_view
@@ -189,8 +189,8 @@ class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AsyncFormMixin, edit
     form_class = forms.ProjectForm
     template_name = "modal/form.html"
     model = models.Project
-    success_url = reverse_lazy('dashboard')
-    success_message = "Your profile has been updated."
+    success_url = "."
+    success_message = "Profile has been updated."
 
     def get_object(self):
         return models.Project.objects.get(username=self.kwargs.get('username'))
@@ -1156,6 +1156,15 @@ class ContainerSpreadsheet(LoginRequiredMixin, AsyncFormMixin, detail.DetailView
             return JsonResponse({'url': container.get_absolute_url()}, safe=False)
         except models.Container.DoesNotExist:
             raise http.Http404('Container Not Found!')
+
+
+class PresenterView(TemplateView):
+    template_name = "users/guide-youtube.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(self.kwargs)
+        return context
 
 
 class ProxyView(View):

@@ -6,10 +6,6 @@ register = template.Library()
 
 
 @register.filter
-def to_json(data):
+def jsonify(data):
     return mark_safe(json.dumps(data))
 
-
-@register.filter
-def from_json(data):
-    return json.loads(data)
