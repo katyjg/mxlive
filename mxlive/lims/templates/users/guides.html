@@ -8,7 +8,7 @@
         <div class="card-header p-1 text-center text-wide text-muted"><small>USER GUIDE</small></div>
     </div>
     {% for guide in guides %}
-        {% if not guide.staff_only or guide.staff_only and not user.is_superuser%}
+        {% if not guide.staff_only or guide.staff_only and user.is_superuser%}
         <div class="card">
             <div class="card-header {% if guide.staff_only %}alert-warning{% endif %} overflow-ellipsis w-100 p-2">
                 <a href="#!" data-toggle="collapse"
@@ -59,12 +59,16 @@
                                     {{ guide.description | markdown }}
                                 </div>
                             </a>
-                        {% else %}
+                        {% elif guide.url %}
                             <a href="{% guide_link guide %}" target="_blank">
                                 <div class="text-condensed guide-snippet">
                                     {{ guide.description | markdown }}
                                 </div>
                             </a>
+                        {% else %}
+                            <div class="text-condensed guide-snippet">
+                                {{ guide.description | markdown }}
+                            </div>
                         {% endif %}
                     {% else %}
                         <div class="text-condensed guide-snippet">
