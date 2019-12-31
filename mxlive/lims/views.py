@@ -1158,12 +1158,48 @@ class ContainerSpreadsheet(LoginRequiredMixin, AsyncFormMixin, detail.DetailView
             raise http.Http404('Container Not Found!')
 
 
-class PresenterView(TemplateView):
-    template_name = "users/guide-youtube.html"
+class GuideView(detail.DetailView):
+    model = models.Guide
+    template_name = "users/components/guide-youtube.html"
+
+    def get_object(self, queryset=None):
+        if self.request.user.is_superuser:
+            return super().get_object(queryset=queryset)
+        else:
+            return super().get_object(queryset=self.get_queryset().filter(staff_only=False))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['title'] = self.object.title
         context.update(self.kwargs)
+        return context
+
+
+class GuideCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
+    form_class = forms.GuideForm
+    template_name = "modal/form.html"
+    model = models.Guide
+    success_url = reverse_lazy('dashboard')
+    success_message = "Guide has been created"
+
+
+class GuideEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    form_class = forms.GuideForm
+    template_name = "modal/form.html"
+    model = models.Guide
+    success_url = reverse_lazy('dashboard')
+    success_message = "Guide has been updated"
+
+
+class GuideDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
+    template_name = "modal/delete.html"
+    model = models.Guide
+    success_url = reverse_lazy('dashboard')
+    success_message = "Guide has been deleted"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_action'] = reverse_lazy('guide-delete', kwargs={'pk': self.object.pk})
         return context
 
 

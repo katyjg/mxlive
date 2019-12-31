@@ -12,7 +12,4 @@ urlpatterns = [
     url(r'^users/(?P<username>[-\w]+)/delete/$', views.ProjectDelete.as_view(), name='user-delete'),
     url(r'^category/$', views.CategoryList.as_view(), name='category-list'),
     url(r'^category/(?P<pk>\d+)/$', views.CategoryEdit.as_view(), name='category-edit'),
-    url(r'^announcement/new/$', views.AnnouncementCreate.as_view(), name='new-announcement'),
-    url(r'^announcement/(?P<pk>\d+)/edit/$', views.AnnouncementEdit.as_view(), name='announcement-edit'),
-    url(r'^announcement/(?P<pk>\d+)/delete/$', views.AnnouncementDelete.as_view(), name='announcement-delete'),
 ]

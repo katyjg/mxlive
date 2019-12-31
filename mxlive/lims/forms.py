@@ -7,8 +7,8 @@ from django import forms
 from django.conf import settings
 from django.urls import reverse_lazy
 
-from .models import Project, Shipment, Dewar, Sample, ComponentType, Container, Group, ContainerLocation, ContainerType
-from ..staff.models import UserCategory, UserList, Announcement
+from .models import Project, Shipment, Dewar, Sample, ComponentType, Container, Group, ContainerLocation, ContainerType, Guide
+from ..staff.models import UserCategory, UserList
 
 
 class BodyHelper(FormHelper):
@@ -1007,23 +1007,23 @@ class ShipmentSamplesForm(forms.ModelForm):
         self.fields['containers'].queryset = self.initial.get('containers')
 
 
-class AnnouncementForm(forms.ModelForm):
+class GuideForm(forms.ModelForm):
 
     class Meta:
-        model = Announcement
-        fields = ['title', 'description', 'staff_only', 'modal', 'attachment', 'url', 'priority']
+        model = Guide
+        fields = ['title', 'description', 'kind', 'staff_only', 'modal', 'attachment', 'url', 'priority']
 
     def __init__(self, *args, **kwargs):
-        super(AnnouncementForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
         if self.instance.pk:
             self.body.title = u"Edit Announcement"
-            self.body.form_action = reverse_lazy('announcement-edit', kwargs={'pk': self.instance.pk})
+            self.body.form_action = reverse_lazy('guide-edit', kwargs={'pk': self.instance.pk})
         else:
             self.body.title = u"New Announcement"
-            self.body.form_action = reverse_lazy('new-announcement')
+            self.body.form_action = reverse_lazy('new-guide')
         self.body.layout = Layout(
             Div(
                 Div('priority', css_class="col-2"),
@@ -1035,8 +1035,8 @@ class AnnouncementForm(forms.ModelForm):
                 css_class="row"
             ),
             Div(
-                Div('url', css_class="col-12"),
-
+                Div('kind', css_class="col-6"),
+                Div('url', css_class="col-6"),
                 css_class="row"
             ),
             Div(

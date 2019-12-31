@@ -83,5 +83,12 @@ urlpatterns = [
     path('ajax/layout/<int:pk>/', ajax_views.FetchContainerLayout.as_view(), name='fetch-layout'),
 
     path('quick-guide/', TemplateView.as_view(template_name='users/help.html'), name='user-guide'),
-    path('guide-youtube/<slug:vid>/', views.PresenterView.as_view(), name='guide-youtube'),
+    path('guides/<int:pk>/youtube/<slug:video>/', views.GuideView.as_view(template_name="users/components/guide-youtube.html"), name='guide-youtube'),
+    path('guides/<int:pk>/flickr/<album>/<photo>/', views.GuideView.as_view(template_name="users/components/guide-flickr.html"), name='guide-flickr'),
+    path('guides/<int:pk>/image/', views.GuideView.as_view(template_name="users/components/guide-image.html"), name='guide-image'),
+    path('guides/<int:pk>/video/', views.GuideView.as_view(template_name="users/components/guide-video.html"), name='guide-video'),
+    path('guides/new/', views.GuideCreate.as_view(), name='new-guide'),
+    path('guides/<int:pk>/edit/', views.GuideEdit.as_view(), name='guide-edit'),
+    path('guides/<int:pk>/delete/', views.GuideDelete.as_view(), name='guide-delete'),
+
 ]

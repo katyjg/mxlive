@@ -1561,3 +1561,16 @@ table.item-list {
 input::placeholder {
   color: rgba(0,0,0,0.3) !important;
 }
+
+.aspect-16-9 {
+  position: relative;
+  width: 100%;
+  padding-top: 100% * 9/16;
+  > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}

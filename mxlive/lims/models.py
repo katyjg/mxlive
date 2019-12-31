@@ -1,8 +1,11 @@
 import copy
 import hashlib
 import json
-import operator
-import functools
+import os
+import imghdr
+import mimetypes
+
+
 from collections import OrderedDict
 from datetime import timedelta
 
@@ -20,6 +23,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext as _
 from jsonfield.fields import JSONField
 from model_utils import Choices
+from model_utils.models import TimeStampedModel
 from memoize import memoize
 
 from mxlive.utils import slap
@@ -1328,6 +1332,57 @@ class ActivityLog(models.Model):
 
     def __str__(self):
         return str(self.created)
+
+
+def get_storage_path(instance, filename):
+    return os.path.join('uploads/', 'links', filename)
+
+
+DOCUMENT_MIME_TYPES = [
+    'application/x-abiword', 'text/csv', 'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/epub+zip', 'application/vnd.oasis.opendocument.presentation',
+    'application/vnd.oasis.opendocument.spreadsheet', 'application/vnd.oasis.opendocument.text',
+    'application/pdf', 'application/vnd.ms-powerpoint', 'application/rtf', 'text/plain', 'application/vnd.visio',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+]
+
+class Guide(TimeStampedModel):
+    TYPE = Choices(
+        ('snippet', _('Snippet')),
+        ('video', _('Video')),
+        ('image', _('Image')),
+    )
+    title = models.CharField(max_length=50, blank=True)
+    description = models.TextField(blank=True)
+    priority = models.IntegerField(null=False, default=0)
+    attachment = models.FileField(blank=True, upload_to=get_storage_path)
+    staff_only = models.BooleanField(default=False)
+    kind = models.CharField(max_length=20, default=TYPE.snippet, choices=TYPE)
+    modal = models.BooleanField(default=False)
+    url = models.CharField(max_length=200, blank=True, null=True)
+
+    def has_document(self):
+        if self.attachment:
+            mime, encoding = mimetypes.guess_type(self.attachment.url)
+            return mime in DOCUMENT_MIME_TYPES
+
+    def has_image(self):
+        if self.attachment:
+            mime, encoding = mimetypes.guess_type(self.attachment.url)
+            return mime.startswith('image')
+
+    def has_video(self):
+        if self.attachment:
+            mime, encoding = mimetypes.guess_type(self.attachment.url)
+            return mime.startswith('video')
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        ordering = ("-staff_only", "priority",)
 
 
 @receiver(post_delete, sender=Project)

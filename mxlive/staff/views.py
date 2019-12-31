@@ -84,33 +84,6 @@ class CategoryEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit
     admin_roles = ['admin']
 
 
-class AnnouncementCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
-    form_class = forms.AnnouncementForm
-    template_name = "modal/form.html"
-    model = models.Announcement
-    success_url = reverse_lazy('dashboard')
-    success_message = "Announcement has been created"
-
-
-class AnnouncementEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
-    form_class = forms.AnnouncementForm
-    template_name = "modal/form.html"
-    model = models.Announcement
-    success_url = reverse_lazy('dashboard')
-    success_message = "Announcement has been updated"
-
-
-class AnnouncementDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
-    template_name = "modal/delete.html"
-    model = models.Announcement
-    success_url = reverse_lazy('dashboard')
-    success_message = "Announcement has been deleted"
-
-    def get_context_data(self, **kwargs):
-        context = super(AnnouncementDelete, self).get_context_data(**kwargs)
-        context['form_action'] = reverse_lazy('announcement-delete', kwargs={'pk': self.object.pk})
-        return context
-
 
 class ProjectList(AdminRequiredMixin, ItemListView):
     model = Project
