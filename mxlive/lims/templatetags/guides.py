@@ -53,6 +53,6 @@ def guide_link(guide):
 @register.filter
 def mime_type(field):
     if field:
-        return mimetypes.guess_type(field.url)
+        return mimetypes.guess_type(field.url)[0]
     else:
         return ""

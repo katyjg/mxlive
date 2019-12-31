@@ -1017,8 +1017,16 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                                 field: form.cleaned_data['{}_set'.format(field)][i]
                                 for field in ['name', 'kind', 'comments', 'plan', 'absorption_edge']
                             }
+                            resolution = None
+                            if form.cleaned_data.get('resolution_set'):
+                                res = form.cleaned_data['resolution_set'][i]
+                                try:
+                                    resolution = float(res)
+                                except ValueError:
+                                    resolution = None
+
                             data.update({
-                                'resolution': None if not form.cleaned_data.get('resolution_set') else float(form.cleaned_data['resolution_set'][i]),
+                                'resolution': resolution,
                                 'shipment': self.shipment,
                                 'project': project,
                                 'priority': i + 1
