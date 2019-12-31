@@ -1,13 +1,7 @@
 from django.contrib import admin
-from .models import UserList, UserCategory, Announcement
+from .models import UserList, UserCategory
 
 runlist_site = admin.AdminSite()
-
-
-class AnnouncementAdmin(admin.ModelAdmin):
-    list_display = ('description', 'attachment', 'url')
-
-admin.site.register(Announcement, AnnouncementAdmin)
 
 
 class UserListAdmin(admin.ModelAdmin):
