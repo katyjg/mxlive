@@ -7,8 +7,10 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ('identity', 'project')
 
 
+admin.site.register(models.Guide)
 admin.site.register(models.Beamline)
 admin.site.register(models.Dewar)
+admin.site.register(models.ProjectType)
 admin.site.register(models.Project)
 admin.site.register(models.ComponentType)
 admin.site.register(models.DataType)

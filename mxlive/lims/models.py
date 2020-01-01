@@ -109,9 +109,17 @@ class Carrier(models.Model):
         return self.name
 
 
+class ProjectType(TimeStampedModel):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Project(AbstractUser):
     HELP = {
-        'contact_person': "Full name of contact person",
+        'contact_person': _("Full name of contact person"),
     }
     name = models.SlugField()
     contact_person = models.CharField(max_length=200, blank=True, null=True)
@@ -129,9 +137,9 @@ class Project(AbstractUser):
     organisation = models.CharField(max_length=600, blank=True, null=True)
     show_archives = models.BooleanField(default=True)
     key = models.TextField(blank=True)
-
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified', auto_now=True, editable=False)
+    kind = models.ForeignKey(ProjectType, blank=True,null=True, on_delete=models.SET_NULL, verbose_name=_("Project Type"))
+    created = models.DateTimeField(_('date created'), auto_now_add=True, editable=False)
+    modified = models.DateTimeField(_('date modified'), auto_now=True, editable=False)
     updated = models.BooleanField(default=False)
 
     def __str__(self):
@@ -157,8 +165,14 @@ class Project(AbstractUser):
         session = self.sessions.order_by('created').last()
         return session.start() if session else None
 
+    def save(self, *args, **kwargs):
+        if not self.kind:
+            self.kind = ProjectType.objects.first()
+        super().save(*args, **kwargs)
+
+
     class Meta:
-        verbose_name = "Project Account"
+        verbose_name = _("Project Account")
 
 
 class StretchQuerySet(models.QuerySet):
@@ -198,7 +212,7 @@ class SessionQuerySet(models.QuerySet):
             ),
             shift_duration=Sum(
                 ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')
-            )
+            ),
         )
 
 
@@ -210,7 +224,7 @@ class SessionManager(models.Manager.from_queryset(SessionQuerySet)):
 
 
 class Session(models.Model):
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
+    created = models.DateTimeField(_('date created'), auto_now_add=True, editable=False)
     name = models.CharField(max_length=100)
     project = models.ForeignKey(Project, related_name="sessions", on_delete=models.CASCADE)
     beamline = models.ForeignKey(Beamline, related_name="sessions", on_delete=models.CASCADE)
@@ -249,11 +263,11 @@ class Session(models.Model):
 
     def num_datasets(self):
         return self.datasets.count()
-    num_datasets.short_description = "Datasets"
+    num_datasets.short_description = _("Datasets")
 
     def num_reports(self):
         return self.reports().count()
-    num_reports.short_description = "Reports"
+    num_reports.short_description = _("Reports")
 
     def samples(self):
         return self.project.samples.filter(datasets__session=self).distinct()
@@ -288,7 +302,7 @@ class Session(models.Model):
         total = self.stretches.with_duration().aggregate(time=Sum('duration'))
 
         return total['time'].total_seconds()/3600
-    total_time.short_description = "Duration"
+    total_time.short_description = _("Duration")
 
     @memoize(60)
     def start(self):
@@ -324,8 +338,8 @@ class Stretch(models.Model):
     objects = StretchManager()
 
     class Meta:
-        verbose_name = u"Beamline Usage"
-        verbose_name_plural = u"Beamline Usage"
+        verbose_name = _("Beamline Usage")
+        verbose_name_plural = _("Beamline Usage")
         ordering = ['-start', ]
 
 
@@ -353,8 +367,8 @@ class ProjectObjectMixin(models.Model):
 
     name = models.CharField(max_length=60)
     staff_comments = models.TextField(blank=True, null=True)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified', auto_now=True, editable=False)
+    created = models.DateTimeField(_('date created'), auto_now_add=True, editable=False)
+    modified = models.DateTimeField(_('date modified'), auto_now=True, editable=False)
 
     class Meta:
         abstract = True
@@ -463,10 +477,10 @@ class ActiveStatusMixin(ProjectObjectMixin):
 
 class Shipment(TransitStatusMixin):
     HELP = {
-        'name': "This should be an externally visible label",
-        'carrier': "Select the company handling this shipment. To change the default option, edit your profile.",
-        'cascade': 'containers and samples (along with groups, datasets and results)',
-        'cascade_help': 'All associated containers will be left without a shipment'
+        'name': _("This should be an externally visible label"),
+        'carrier': _("Select the company handling this shipment. To change the default option, edit your profile."),
+        'cascade': _('containers and samples (along with groups, datasets and results)'),
+        'cascade_help': _('All associated containers will be left without a shipment')
     }
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='shipments')
     comments = models.TextField(blank=True, null=True, max_length=200)
@@ -475,7 +489,7 @@ class Shipment(TransitStatusMixin):
     date_shipped = models.DateTimeField(null=True, blank=True)
     date_received = models.DateTimeField(null=True, blank=True)
     date_returned = models.DateTimeField(null=True, blank=True)
-    carrier = models.ForeignKey(Carrier, null=True, blank=True, on_delete=models.SET_NULL)
+    carrier = models.ForeignKey(Carrier, null=True, blank=True, on_delete=models.SET_NULL, related_name='projects')
     storage_location = models.CharField(max_length=60, null=True, blank=True)
 
     objects = ProjectObjectManager()
@@ -558,9 +572,9 @@ class Shipment(TransitStatusMixin):
         """
         errors = []
         if self.num_containers() == 0:
-            errors.append("No Containers")
+            errors.append(_("No Containers"))
         if not self.num_samples():
-            errors.append("No Samples in any Container")
+            errors.append(_("No Samples in any Container"))
         return errors
 
     def groups(self):
@@ -700,10 +714,10 @@ class ContainerManager(models.Manager):
 
 class Container(TransitStatusMixin):
     HELP = {
-        'name': "A visible label on the container. If there is a barcode on the container, scan it here",
-        'capacity': "The maximum number of samples this container can hold",
-        'cascade': 'samples (along with groups, datasets and results)',
-        'cascade_help': 'All associated samples will be left without a container'
+        'name': _("A visible label on the container. If there is a barcode on the container, scan it here"),
+        'capacity': _("The maximum number of samples this container can hold"),
+        'cascade': _('samples (along with groups, datasets and results)'),
+        'cascade_help': _('All associated samples will be left without a container')
     }
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='containers')
     kind = models.ForeignKey(ContainerType, blank=False, null=False, on_delete=models.CASCADE,
@@ -945,25 +959,25 @@ class Group(ProjectObjectMixin):
     )
 
     HELP = {
-        'cascade': 'samples, datasets and results',
-        'cascade_help': 'All associated samples will be left without a group',
-        'kind': "If SAD or MAD, be sure to provide the absorption edge below. Otherwise Se-K will be assumed.",
-        'plan': "Select the plan which describes your instructions for all samples in this group.",
-        'delta_angle': 'If left blank, an appropriate value will be calculated during screening.',
-        'total_angle': 'The total angle range to collect.',
-        'multiplicity': 'Values entered here take precedence over the specified "Angle Range".',
+        'cascade': _('samples, datasets and results'),
+        'cascade_help': _('All associated samples will be left without a group'),
+        'kind': _("If SAD or MAD, be sure to provide the absorption edge below. Otherwise Se-K will be assumed."),
+        'plan': _("Select the plan which describes your instructions for all samples in this group."),
+        'delta_angle': _('If left blank, an appropriate value will be calculated during screening.'),
+        'total_angle': _('The total angle range to collect.'),
+        'multiplicity': _('Values entered here take precedence over the specified "Angle Range".'),
     }
     EXP_TYPES = Choices(
-        (0, 'NATIVE', 'Native'),
-        (1, 'MAD', 'MAD'),
-        (2, 'SAD', 'SAD'),
-        (3, 'S_SAD', 'S-SAD')
+        (0, 'NATIVE', _('Native')),
+        (1, 'MAD', _('MAD')),
+        (2, 'SAD', _('SAD')),
+        (3, 'S_SAD', _('S-SAD'))
     )
     EXP_PLANS = Choices(
-        (0, 'COLLECT_BEST', 'Collect best'),
-        (1, 'COLLECT_FIRST_GOOD', 'Collect first good'),
-        (2, 'SCREEN_AND_CONFIRM', 'Screen and confirm'),
-        (4, 'JUST_COLLECT', 'Collect all'),
+        (0, 'COLLECT_BEST', _('Collect best')),
+        (1, 'COLLECT_FIRST_GOOD', _('Collect first good')),
+        (2, 'SCREEN_AND_CONFIRM', _('Screen and confirm')),
+        (4, 'JUST_COLLECT', _('Collect all')),
     )
     TRANSITIONS = copy.deepcopy(ProjectObjectMixin.TRANSITIONS)
     TRANSITIONS[ProjectObjectMixin.STATES.DRAFT] = [ProjectObjectMixin.STATES.ACTIVE]
@@ -972,8 +986,8 @@ class Group(ProjectObjectMixin):
     status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectObjectMixin.STATES.DRAFT)
     shipment = models.ForeignKey(Shipment, null=True, blank=True, on_delete=models.SET_NULL, related_name='groups')
     energy = models.DecimalField(null=True, max_digits=10, decimal_places=4, blank=True)
-    resolution = models.FloatField('Desired Resolution (&#8491;)', null=True, blank=True)
-    kind = models.IntegerField('exp. type', choices=EXP_TYPES, default=EXP_TYPES.NATIVE)
+    resolution = models.FloatField(_('Desired Resolution (&#8491;)'), null=True, blank=True)
+    kind = models.IntegerField(_('exp. type'), choices=EXP_TYPES, default=EXP_TYPES.NATIVE)
     absorption_edge = models.CharField(max_length=5, null=True, blank=True)
     plan = models.IntegerField(choices=EXP_PLANS, default=EXP_PLANS.COLLECT_BEST)
     comments = models.TextField(blank=True, null=True)
@@ -982,7 +996,7 @@ class Group(ProjectObjectMixin):
     objects = ProjectObjectManager()
 
     class Meta:
-        verbose_name = 'Group'
+        verbose_name = _('Group')
         unique_together = (
             ("project", "name", "shipment"),
         )
@@ -1025,14 +1039,14 @@ class SampleManager(models.Manager):
 
 class Sample(ProjectObjectMixin):
     HELP = {
-        'cascade': 'datasets and results',
-        'cascade_help': 'All associated datasets and results will be left without a sample',
-        'name': "Avoid using spaces or special characters in sample names",
-        'barcode': "If there is a data-matrix code on sample, please scan or input the value here",
-        'comments': 'You can use restructured text formatting in this field',
-        'location': 'This field is required only if a container has been selected',
-        'group': 'This field is optional here.  Samples can also be added to a group on the groups page.',
-        'container': 'This field is optional here.  Samples can also be added to a container on the containers page.',
+        'cascade': _('datasets and results'),
+        'cascade_help': _('All associated datasets and results will be left without a sample'),
+        'name': _("Avoid using spaces or special characters in sample names"),
+        'barcode': _("If there is a data-matrix code on sample, please scan or input the value here"),
+        'comments': _('You can use restructured text formatting in this field'),
+        'location': _('This field is required only if a container has been selected'),
+        'group': _('This field is optional here.  Samples can also be added to a group on the groups page.'),
+        'container': _('This field is optional here.  Samples can also be added to a container on the containers page.'),
     }
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='samples')
     barcode = models.SlugField(null=True, blank=True)
@@ -1066,7 +1080,7 @@ class Sample(ProjectObjectMixin):
     def container_and_location(self):
         return "{}⋮{}".format(self.container.name, self.location)
 
-    container_and_location.short_description = "Container Location"
+    container_and_location.short_description = _("Container Location")
 
     def port(self):
         if not self.dewar():
@@ -1163,7 +1177,7 @@ class Data(ActiveStatusMixin):
     end_time = models.DateTimeField(null=True, blank=False)
     file_name = models.CharField(max_length=200, null=True, blank=True)
     frames = FrameField(null=True, blank=True)
-    num_frames = models.IntegerField("Frame Count", default=1)
+    num_frames = models.IntegerField(_("Frame Count"), default=1)
     exposure_time = models.FloatField(null=True, blank=True)
     attenuation = models.FloatField(default=0.0)
     energy = models.DecimalField(decimal_places=4, max_digits=10)
@@ -1178,7 +1192,7 @@ class Data(ActiveStatusMixin):
     objects = DataManager()
 
     class Meta:
-        verbose_name = 'Dataset'
+        verbose_name = _('Dataset')
 
     def __str__(self):
         return '%s (%d)' % (self.name, self.num_frames)
@@ -1233,7 +1247,7 @@ class Data(ActiveStatusMixin):
 class AnalysisReport(ActiveStatusMixin):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='reports')
     kind = models.CharField(max_length=100)
-    score = models.FloatField("Analysis Report Score", null=True, default=0.0)
+    score = models.FloatField(_("Analysis Report Score"), null=True, default=0.0)
     data = models.ManyToManyField(Data, blank=True, related_name="reports")
     url = models.CharField(max_length=200)
     details = JSONField(default=[])
@@ -1285,7 +1299,7 @@ class ActivityLogManager(models.Manager):
             e.user = request.user
             e.user_description = request.user.username
         except:
-            e.user_description = "System"
+            e.user_description = _("System")
         e.ip_number = request.META['REMOTE_ADDR']
         e.action_type = action_type
         e.description = description
@@ -1305,24 +1319,24 @@ class ActivityLogManager(models.Manager):
 
 class ActivityLog(models.Model):
     TYPE = Choices(
-        (0, 'LOGIN', 'Login'),
-        (1, 'LOGOUT', 'Logout'),
-        (2, 'TASK', 'Task'),
-        (3, 'CREATE', 'Create'),
-        (4, 'MODIFY', 'Modify'),
-        (5, 'DELETE', 'Delete'),
-        (6, 'ARCHIVE', 'Archive')
+        (0, 'LOGIN', _('Login')),
+        (1, 'LOGOUT', _('Logout')),
+        (2, 'TASK', _('Task')),
+        (3, 'CREATE', _('Create')),
+        (4, 'MODIFY', _('Modify')),
+        (5, 'DELETE', _('Delete')),
+        (6, 'ARCHIVE', _('Archive'))
     )
-    created = models.DateTimeField('Date/Time', auto_now_add=True, editable=False)
+    created = models.DateTimeField(_('Date/Time'), auto_now_add=True, editable=False)
     project = models.ForeignKey(Project, blank=True, null=True, on_delete=models.SET_NULL)
     user = models.ForeignKey(Project, blank=True, null=True, related_name='activities', on_delete=models.SET_NULL)
-    user_description = models.CharField('User name', max_length=60, blank=True, null=True)
-    ip_number = models.GenericIPAddressField('IP Address')
+    user_description = models.CharField(_('User name'), max_length=60, blank=True, null=True)
+    ip_number = models.GenericIPAddressField(_('IP Address'))
     object_id = models.PositiveIntegerField(blank=True, null=True)
     content_type = models.ForeignKey(ContentType, blank=True, null=True, on_delete=models.SET_NULL)
     affected_item = GenericForeignKey('content_type', 'object_id')
     action_type = models.IntegerField(choices=TYPE)
-    object_repr = models.CharField('Entity', max_length=200, blank=True, null=True)
+    object_repr = models.CharField(_('Entity'), max_length=200, blank=True, null=True)
     description = models.TextField(blank=True)
 
     objects = ActivityLogManager()
@@ -1348,6 +1362,7 @@ DOCUMENT_MIME_TYPES = [
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ]
 
+
 class Guide(TimeStampedModel):
     TYPE = Choices(
         ('snippet', _('Snippet')),
@@ -1359,7 +1374,7 @@ class Guide(TimeStampedModel):
     priority = models.IntegerField(null=False, default=0)
     attachment = models.FileField(blank=True, upload_to=get_storage_path)
     staff_only = models.BooleanField(default=False)
-    kind = models.CharField(max_length=20, default=TYPE.snippet, choices=TYPE)
+    kind = models.CharField(_("Content Type"), max_length=20, default=TYPE.snippet, choices=TYPE)
     modal = models.BooleanField(default=False)
     url = models.CharField(max_length=200, blank=True, null=True)
 

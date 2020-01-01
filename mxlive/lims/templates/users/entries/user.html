@@ -43,12 +43,13 @@
         <div class="row">
             <div class="col-2">
                 <h3 class="m-0">
-                    <span class="badge badge-{% if object.active_status == 'Active' %}info{% else %}{% if object.active_status == 'Idle' %}secondary{% else %}success{% endif %}{% endif %}" title="Last session on {{ object.last_session }}">{{ object.active_status }}</span>
+                    <div class="badge badge-{% if object.active_status == 'Active' %}info{% else %}{% if object.active_status == 'Idle' %}secondary{% else %}success{% endif %}{% endif %}"
+                         title="Last session on {{ object.last_session }}"><span class="text-thin">{{ object.kind }} | </span>{{ object.active_status }}</div>
                 </h3>
             </div>
             <div class="col-3 pull-right text-right">
                 <small class="text-muted text-condensed">Groups:</small><br>
-                {{ object.groups.count }}
+                {{ object.sample_groups.count }}
             </div>
             <div class="col-2 pull-right text-right">
                 <small class="text-muted text-condensed">Shipments:</small><br>
@@ -78,7 +79,7 @@
                     <div class="col-4 text-center align-items-center">
                         <div>
                             <img src="/static/img/{{ object.carrier|default_if_none:'walking'|slugify }}.png" title="{{ object.carrier|default_if_none:'User'|title }}">
-                            <h5>{{ object.account_number|default:"No account number" }}</h5>
+                            <h5>{{ object.account_number|default:"-- --- --- --" }}</h5>
                         </div>
                     </div>
                 </div>

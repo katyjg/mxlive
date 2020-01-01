@@ -7,7 +7,6 @@ from django import template
 from django.utils.safestring import mark_safe
 
 from mxlive.lims.models import *
-from mxlive.staff.models import UserCategory
 from .converter import humanize_duration
 from ..stats import SHIFT, get_data_periods
 

@@ -10,6 +10,4 @@ urlpatterns = [
     url(r'^users/new/$', views.ProjectCreate.as_view(), name='new-project'),
     url(r'^users/(?P<username>[-\w]+)/$', views.UserDetail.as_view(), name='user-detail'),
     url(r'^users/(?P<username>[-\w]+)/delete/$', views.ProjectDelete.as_view(), name='user-delete'),
-    url(r'^category/$', views.CategoryList.as_view(), name='category-list'),
-    url(r'^category/(?P<pk>\d+)/$', views.CategoryEdit.as_view(), name='category-edit'),
 ]

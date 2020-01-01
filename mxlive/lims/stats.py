@@ -8,6 +8,7 @@ from django.conf import settings
 from django.db.models import Count, Sum, F, Avg, FloatField
 from django.db.models.functions import Coalesce
 from django.utils import timezone
+from django.utils.timesince import timesince
 from memoize import memoize
 
 from mxlive.lims.models import Data, Sample, Session, Project, AnalysisReport, Container, Shipment, Group
@@ -51,6 +52,7 @@ def usage_stats(beamline, period='year', **filters):
             new_project_counts[info[field]] += 1
             new_project_names[info[field]].append(info['name'])
 
+    session_counts_info = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(count=Count('id'))
     session_params = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(
         duration=Sum(
             Coalesce('stretches__end', timezone.now()) - F('stretches__start'),
@@ -58,12 +60,11 @@ def usage_stats(beamline, period='year', **filters):
         shift_duration=Sum(
             ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')
         ),
-        count=Count('id')
     )
 
     session_counts = {
         entry[field]: entry['count']
-        for entry in session_params
+        for entry in session_counts_info
     }
     session_shifts = {
         entry[field]: ceil(entry['shift_duration'].total_seconds()/SHIFT_SECONDS)
@@ -95,9 +96,9 @@ def usage_stats(beamline, period='year', **filters):
         day_shift_counts[day][day_part] = entry['count']
         day_shift_counts[day]['Day'] = day
 
-    category_params = beamline.datasets.filter(**filters).values('project__categories__name').order_by('project__categories__name').annotate(count=Count('id'))
+    category_params = beamline.datasets.filter(**filters).values('project__kind__name').order_by('project__kind__name').annotate(count=Count('id'))
     category_counts = {
-        entry['project__categories__name']: entry['count']
+        entry['project__kind__name']: entry['count']
         for entry in category_params
     }
 
@@ -176,6 +177,35 @@ def usage_stats(beamline, period='year', **filters):
         series.update(period_data[per])
         chart_data.append(series)
 
+
+    # user statistics
+    user_data_info = beamline.datasets.filter(**filters).values(user=F('project__name')).order_by('user').annotate(
+        count=Count('id'),
+        shutters=Sum(F('end_time')-F('start_time'))
+    )
+    user_session_info = beamline.sessions.filter(**filters).values(user=F('project__name')).order_by('user').annotate(
+        duration=Sum(
+            Coalesce('stretches__end', timezone.now()) - F('stretches__start'),
+        ),
+        shift_duration=Sum(
+            ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')
+        ),
+    )
+
+    user_datasets = {
+        info['user']: info["count"]
+        for info in user_data_info
+    }
+
+    user_efficiency = {
+        info['user']: info["duration"] / info["shift_duration"]
+        for info in user_session_info
+    }
+    user_duration = {
+        info['user']: info["duration"].total_seconds() / 3600
+        for info in user_session_info
+    }
+
     stats = {'details': [
         {
             'title': 'Usage Metrics',
@@ -250,7 +280,7 @@ def usage_stats(beamline, period='year', **filters):
                     'style': 'col-12 col-md-6'
                 },
                 {
-                    'title': 'Datasets by User Category',
+                    'title': 'Datasets by Project Type',
                     'kind': 'pie',
                     'data': {
                         'data': [
@@ -262,7 +292,7 @@ def usage_stats(beamline, period='year', **filters):
             ]
         },
         {
-            'title': 'Data Summary'.format(beamline.acronym),
+            'title': 'Data Summary',
             'style': "row",
             'content': [
                 {
@@ -293,6 +323,41 @@ def usage_stats(beamline, period='year', **filters):
                     },
                     'style': 'col-12 col-md-6'
                 },
+            ]
+        },
+        {
+            'title': 'User Statistics',
+            'style': "row",
+            'content': [
+
+                {
+                    'title': 'Datasets',
+                    'kind': 'columnchart',
+                    'data': {
+                        'x-label': 'User',
+                        'aspect-ratio': .5,
+                        'data': [
+                            {'User': user, 'Datasets': count}
+                            for user, count in sorted(user_datasets.items(), key=lambda v: v[1], reverse=True)
+                        ],
+                    },
+                    'style': 'col-12 col-md-6'
+                },
+                {
+                    'title': 'Time Used',
+                    'kind': 'columnchart',
+                    'data': {
+                        'x-label': 'User',
+                        'aspect-ratio': .5,
+                        'colors': 'Live8',
+                        'data': [
+                            {'User': user, 'Hours': round(count,1) }
+                            for user, count in sorted(user_duration.items(), key=lambda v: v[1], reverse=True)
+                        ],
+                    },
+                    'style': 'col-12 col-md-6'
+                },
+
             ]
         },
     ]
@@ -528,6 +593,7 @@ def project_stats(project, **filters):
     periods = get_data_periods()
     field = 'created__{}'.format(period)
 
+    session_counts_info = project.sessions.filter(**filters).values(field).order_by(field).annotate(count=Count('id'))
     session_params = project.sessions.filter(**filters).values(field).order_by(field).annotate(
         shift_duration=Sum(
             ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')
@@ -535,12 +601,11 @@ def project_stats(project, **filters):
         duration=Sum(
             Coalesce('stretches__end', timezone.now()) - F('stretches__start'),
         ),
-        count=Count('id')
     )
 
     session_counts = {
         entry[field]: entry['count']
-        for entry in session_params
+        for entry in session_counts_info
     }
     session_shifts = {
         entry[field]: ceil(entry['shift_duration'].total_seconds()/SHIFT_SECONDS)
@@ -573,11 +638,6 @@ def project_stats(project, **filters):
     dataset_durations = {
         entry[field]: entry['duration'].total_seconds() / 3600
         for entry in data_params
-    }
-
-    dataset_efficiency = {
-        key: dataset_durations.get(key, 0) / (session_hours.get(key, 1))
-        for key in periods
     }
 
     dataset_per_shift = {
@@ -650,6 +710,12 @@ def project_stats(project, **filters):
         series.update(period_data[per])
         chart_data.append(series)
 
+
+    last_session = project.sessions.last()
+    first_session = project.sessions.first()
+    actual_time = 0 if not shifts else ttime/(shifts*SHIFT)
+    first_sesion_time = "Never" if not first_session else '{} ago'.format(timesince(first_session.created))
+    last_session_time = "Never" if not first_session else '{} ago'.format(timesince(last_session.created))
     stats = {'details': [
         {
             'title': 'Data Collection Summary',
@@ -660,7 +726,8 @@ def project_stats(project, **filters):
                     'kind': 'table',
                     'data': [
                         ['Shifts Used', '{} ({})'.format(shifts, humanize_duration(shifts * SHIFT))],
-                        ['Actual Time', '{} % ({})'.format(round(ttime / (shifts * SHIFT), 2), humanize_duration(ttime))],
+                        ['Sessions', sum(session_counts.values())],
+                        ['Actual Time', '{:0.0%} % ({})'.format(actual_time, humanize_duration(ttime))],
                         ['Shutters Open', '{}'.format(humanize_duration(shutters))],
                     ],
                     'header': 'column',
@@ -670,7 +737,8 @@ def project_stats(project, **filters):
                     'title': 'Overall Statistics',
                     'kind': 'table',
                     'data': [
-                        ['Sessions', sum(session_counts.values())],
+                        ['First Session', last_session_time],
+                        ['Last Session', first_sesion_time],
                         ['Shipments / Containers', "{} / {}".format(
                             project.shipments.count(),
                             project.containers.filter(status__gte=Container.STATES.ON_SITE).count()

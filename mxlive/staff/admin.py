@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserList, UserCategory
+from .models import UserList
 
 runlist_site = admin.AdminSite()
 
@@ -11,4 +11,3 @@ class UserListAdmin(admin.ModelAdmin):
     ordering = ['-created']
 
 admin.site.register(UserList, UserListAdmin)
-admin.site.register(UserCategory)

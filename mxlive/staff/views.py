@@ -63,34 +63,12 @@ class RemoteConnectionDetail(AdminRequiredMixin, detail.DetailView):
     template_name = "users/entries/connection.html"
 
 
-class CategoryList(AdminRequiredMixin, ItemListView):
-    model = models.UserCategory
-    list_filters = []
-    list_columns = ['name', 'current_users', 'num_users']
-    list_search = ['name']
-    link_url = 'category-edit'
-    link_attr = 'data-form-link'
-    template_name = "users/list.html"
-    page_title = 'User Categories'
-
-
-class CategoryEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
-    form_class = forms.CategoryForm
-    template_name = "modal/form.html"
-    model = models.UserCategory
-    success_url = reverse_lazy('category-list')
-    success_message = "User category has been updated."
-    allowed_roles = ['owner', 'admin']
-    admin_roles = ['admin']
-
-
-
 class ProjectList(AdminRequiredMixin, ItemListView):
     model = Project
     paginate_by = 25
     template_name = "users/user-list.html"
-    list_filters = ['modified', ]
-    list_columns = ['username', 'contact_person', 'contact_phone', 'contact_email']
+    list_filters = ['created', 'modified', 'kind']
+    list_columns = ['username', 'contact_person', 'contact_phone', 'contact_email', 'kind']
     list_search = [
         'username', 'contact_person', 'contact_phone', 'contact_email', 'city', 'province', 'country',
         'department', 'organisation'

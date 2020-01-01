@@ -30,7 +30,7 @@ function renderMarkdown(text) {
 }
 
 const figureTypes = [
-    "histogram", "lineplot", "barchart", "scatterplot", "pie", "gauge", "timeline"
+    "histogram", "lineplot", "barchart", "scatterplot", "pie", "gauge", "timeline", "columnchart",
 ];
 
 const ColorSchemes = {
@@ -184,6 +184,7 @@ function drawXYChart(figure, chart, options, type = 'spline') {
     $.each(chart.data.y1, function (i, line) {  // y1
         columns.push(line);
         axes[line[0]] = 'y';
+
         colors[line[0]] = options.scheme[index++];
         axis_opts.y.label = line[0];
     });
@@ -251,7 +252,7 @@ function drawBarChart(figure, chart, options) {
             groups: chart.data.stack || [],
         },
         grid: {y: {show: true}},
-        axis: {x: {type: 'category', label: chart.data['x-label']}},
+        axis: {x: {type: 'category', label: chart.data['x-label']}, rotated: (options.vertical || false) },
         legend: {hide: (series.length === 1)},
         bar: {width: {ratio: 0.85}},
         onresize: function () {
@@ -335,7 +336,7 @@ function drawPieChart(figure, chart, options) {
                 value: series
             },
         },
-        onresiz1e: function () {
+        onresize: function () {
             this.api.resize({
                 width: figure.width(),
                 height: figure.width() * options.height / options.width
@@ -582,7 +583,7 @@ function drawTimeline(figure, chart, options) {
             let chart = figure.data('chart');
             let options = {
                 width: figure.width(),
-                height: figure.width() * 9 / 16,
+                height: figure.width() / (chart.data['aspect-ratio'] || 16 / 9),
             };
 
             if (Array.isArray(chart.data.colors)) {
@@ -592,6 +593,10 @@ function drawTimeline(figure, chart, options) {
             }
             switch (figure.data('type')) {
                 case 'barchart':
+                    drawBarChart(figure, chart, options);
+                    break;
+                case 'columnchart':
+                    options.vertical = true;
                     drawBarChart(figure, chart, options);
                     break;
                 case 'lineplot':

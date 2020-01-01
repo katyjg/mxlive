@@ -3,12 +3,14 @@ import re
 from crispy_forms.bootstrap import StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Field, Layout
+from django.utils.translation import ugettext as _
 from django import forms
 from django.conf import settings
 from django.urls import reverse_lazy
 
-from .models import Project, Shipment, Dewar, Sample, ComponentType, Container, Group, ContainerLocation, ContainerType, Guide
-from ..staff.models import UserCategory, UserList
+from .models import Project, Shipment, Dewar, Sample, ComponentType, Container
+from .models import Group, ContainerLocation, ContainerType, Guide, ProjectType
+from ..staff.models import UserList
 
 
 class BodyHelper(FormHelper):
@@ -31,7 +33,7 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ('contact_person', 'contact_email', 'carrier', 'account_number', 'organisation', 'department',
-                  'address', 'city', 'province', 'postal_code', 'country', 'contact_phone')
+                  'address', 'city', 'province', 'postal_code', 'country', 'contact_phone', 'kind')
 
     def __init__(self, *args, **kwargs):
         super(ProjectForm, self).__init__(*args, **kwargs)
@@ -40,14 +42,15 @@ class ProjectForm(forms.ModelForm):
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
         if pk:
-            self.body.title = u"Edit Profile"
+            self.body.title = _("Edit Profile")
             self.body.form_action = reverse_lazy('edit-profile', kwargs={'username': self.instance.username})
         else:
-            self.body.title = u"Create New Sample"
-            self.body.form_action = reverse_lazy('sample-new')
+            self.body.title = _("Create New Profile")
+            self.body.form_action = reverse_lazy('new-project')
         self.body.layout = Layout(
             Div(
-                Div('contact_person', css_class='col-12'),
+                Div(Field('kind', css_class="select"), css_class='col-6'),
+                Div('contact_person', css_class='col-6'),
                 css_class="form-row"
             ),
             Div(
@@ -96,22 +99,22 @@ class ProjectForm(forms.ModelForm):
 
 
 class NewProjectForm(forms.ModelForm):
-    password = forms.CharField(required=False, help_text='A password will be auto-generated for this account')
+    password = forms.CharField(required=False, help_text=_('A password will be auto-generated for this account'))
 
     class Meta:
         model = Project
-        fields = ('first_name', 'last_name', 'contact_person', 'contact_email', 'contact_phone', 'username')
+        fields = ('first_name', 'last_name', 'contact_person', 'contact_email', 'contact_phone', 'username', 'kind')
 
     def __init__(self, *args, **kwargs):
         super(NewProjectForm, self).__init__(*args, **kwargs)
 
         if getattr(settings, 'LDAP_SEND_EMAILS', False):
-            self.fields['password'].help_text += ' and sent to staff once this form is submitted'
-
+            self.fields['password'].help_text += _(' and sent to staff once this form is submitted')
+        self.fields['kind'].initial = ProjectType.objects.first()
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
 
-        self.body.title = u"Create New User Account"
+        self.body.title = _("Create New User Account")
         self.body.form_action = reverse_lazy('new-project')
         self.footer.layout = Layout()
         self.body.layout = Layout(
@@ -126,7 +129,8 @@ class NewProjectForm(forms.ModelForm):
                 css_class="form-row"
             ),
             Div(
-                Div('contact_person', css_class='col-12'),
+                Div(Field('kind', css_class="select"), css_class='col-6'),
+                Div('contact_person', css_class='col-6'),
                 css_class="form-row"
             ),
             Div(
@@ -1098,33 +1102,3 @@ class AccessForm(forms.ModelForm):
         self.footer.layout = Layout(
             StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
         )
-
-
-class CategoryForm(forms.ModelForm):
-
-    class Meta:
-        model = UserCategory
-        fields = ('projects',)
-
-    def __init__(self, *args, **kwargs):
-        super(CategoryForm, self).__init__(*args, **kwargs)
-        self.fields['projects'].label = "{} Users".format(self.instance)
-        self.fields['projects'].queryset = self.fields['projects'].queryset.order_by('name')
-
-        self.body = BodyHelper(self)
-        self.footer = FooterHelper(self)
-        self.body.title = u"Edit User Categories"
-        self.body.form_action = reverse_lazy('category-edit', kwargs={'pk': self.instance.pk})
-        self.body.layout = Layout(
-            Div(
-                Div(
-                    Field('projects', css_class="select"),
-                    css_class="col-12"
-                ),
-                css_class="row"
-            )
-        )
-        self.footer.layout = Layout(
-            StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
-        )
-
