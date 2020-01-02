@@ -335,7 +335,7 @@ function drawPieChart(figure, chart, options) {
                 value: series
             },
         },
-        onresiz1e: function () {
+        onresize: function () {
             this.api.resize({
                 width: figure.width(),
                 height: figure.width() * options.height / options.width
