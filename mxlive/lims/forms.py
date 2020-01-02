@@ -36,6 +36,7 @@ class ProjectForm(forms.ModelForm):
                   'address', 'city', 'province', 'postal_code', 'country', 'contact_phone', 'kind')
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
         super(ProjectForm, self).__init__(*args, **kwargs)
         pk = self.instance.pk
 
@@ -47,9 +48,11 @@ class ProjectForm(forms.ModelForm):
         else:
             self.body.title = _("Create New Profile")
             self.body.form_action = reverse_lazy('new-project')
+
+        print('FORM', (not self.user.is_superuser))
         self.body.layout = Layout(
             Div(
-                Div(Field('kind', css_class="select"), css_class='col-6'),
+                Div(Field('kind', css_class="select", readonly=(not self.user.is_superuser)), css_class='col-6'),
                 Div('contact_person', css_class='col-6'),
                 css_class="form-row"
             ),
@@ -335,7 +338,7 @@ class ShipmentSendForm(forms.ModelForm):
             )
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
-        self.body.title = u"Add Shipping Information"
+        self.body.title = u"Send Shipment"
         self.body.form_action = reverse_lazy('shipment-send', kwargs={'pk': self.instance.pk})
         self.body.layout = Layout(
             errors,
@@ -369,7 +372,7 @@ class ShipmentReturnForm(forms.ModelForm):
             self.fields['loaded'].widget = forms.HiddenInput()
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
-        self.body.title = u"Add Shipping Information"
+        self.body.title = u"Return Shipment"
         self.body.form_action = reverse_lazy('shipment-return', kwargs={'pk': self.instance.pk})
         self.body.layout = Layout(
             Div(
@@ -574,6 +577,7 @@ class ContainerLoadForm(forms.ModelForm):
         fields = ['parent', 'location']
 
     def __init__(self, *args, **kwargs):
+        form_action = kwargs.pop('form-action')
         super(ContainerLoadForm, self).__init__(*args, **kwargs)
         self.fields['parent'].queryset = self.fields['parent'].queryset.filter(
             kind__locations__accepts=self.instance.kind
@@ -584,7 +588,7 @@ class ContainerLoadForm(forms.ModelForm):
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
         self.body.title = u"Move Container {}".format(self.instance)
-        self.body.form_action = reverse_lazy("container-load", kwargs={'pk': self.instance.pk})
+        self.body.form_action = form_action
         self.body.layout = Layout(
             Div(
                 Div(
@@ -627,14 +631,13 @@ class EmptyContainers(forms.ModelForm):
         fields = []
 
     def __init__(self, *args, **kwargs):
+        form_action = kwargs.pop('form-action')
         super(EmptyContainers, self).__init__(*args, **kwargs)
 
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
         self.body.title = u"Remove containers"
-        self.body.form_action = reverse_lazy("empty-containers", kwargs={
-            'pk': self.initial['parent'].pk,
-            'username': self.instance.username})
+        self.body.form_action = form_action
         self.body.layout = Layout(
             Div(HTML(
                 """Any containers owned by <strong>{}</strong> will be removed from the automounter.""".format(
@@ -657,6 +660,7 @@ class LocationLoadForm(forms.ModelForm):
         fields = ['child', 'location']
 
     def __init__(self, *args, **kwargs):
+        form_action = kwargs.pop('form-action')
         super(LocationLoadForm, self).__init__(*args, **kwargs)
 
         self.fields['child'].queryset = self.fields['child'].queryset.filter(parent__isnull=True).filter(
@@ -666,9 +670,7 @@ class LocationLoadForm(forms.ModelForm):
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
         self.body.title = u"Load Container in location {}".format(self.initial['location'])
-        self.body.form_action = reverse_lazy("location-load", kwargs={
-            'pk': self.instance.pk,
-            'location': self.initial['location'].name})
+        self.body.form_action = form_action
 
         self.body.layout = Layout(
             Div(

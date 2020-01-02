@@ -302,11 +302,11 @@ a.navbar-brand {
   padding-right: 0.25em !important;
   line-height: 1;
   text-align: center;
-  border-left: 1px solid var(--gray-alpha);
+  //border-left: 1px solid var(--gray-alpha);
 
   > * {
     &:first-child {
-      //border-left: 1px solid $alpha-gray;
+      border-left: 1px solid var(--gray-alpha);
       padding-left: 0.5em;
     }
 
@@ -331,7 +331,7 @@ a.navbar-brand {
   }
 
   > .separator {
-    &:first-child, &:last-child {
+    &:last-child {
       display: none !important;
     }
   }

@@ -112,7 +112,7 @@ var tableTemplate = _.template(
 
 
 function drawXYChart(figure, chart, options, type = 'spline') {
-    let colors = {};
+    let series = [];
     let columns = [];
     let axes = {};
     let data_type = type;
@@ -184,8 +184,7 @@ function drawXYChart(figure, chart, options, type = 'spline') {
     $.each(chart.data.y1, function (i, line) {  // y1
         columns.push(line);
         axes[line[0]] = 'y';
-
-        colors[line[0]] = options.scheme[index++];
+        series.push(line[0]);
         axis_opts.y.label = line[0];
     });
 
@@ -193,17 +192,23 @@ function drawXYChart(figure, chart, options, type = 'spline') {
     $.each(chart.data.y2, function (i, line) {  // y2
         columns.push(line);
         axes[line[0]] = 'y2';
-        colors[line[0]] = options.scheme[index++];
+        series.push(line[0]);
         axis_opts['y2'] = {show: true, label: line[0]};
     });
 
+    let color_scale = d3.scaleOrdinal().domain(series).range(options.scheme);
+    $.each(series, function(i, key){
+       if (!(key in options.colors)) {
+           options.colors[key] = color_scale(key);
+       }
+    });
     c3.generate({
         bindto: `#${figure.attr('id')}`,
         size: {width: options.width, height: options.height},
         data: {
             type: data_type,
             columns: columns,
-            colors: colors,
+            colors: options.colors,
             axes: axes,
             x: chart.data.x[0],
         },
@@ -224,27 +229,68 @@ function drawXYChart(figure, chart, options, type = 'spline') {
 
 function drawBarChart(figure, chart, options) {
     let series = [];
-    let colors = {};
+    let flavors = [];
+    let hidden = [];
+    let group_colors = (typeof chart.data.colors === 'object') ? chart.data.colors : {};
+
+    let colorfunc = function(color, d) {
+        return color;
+    };
 
     // remove raw data from dom
     figure.removeData('chart');
     figure.removeAttr('data-chart');
 
-    // series names
+    // series names and alternate groupings
     let index = 0;
     $.each(chart.data["data"][0], function (key, value) {
-        if (key !== chart.data["x-label"]) {
+        if (key === chart.data["color-by"]) {
+            // hide series since it will be used for coloring
+            hidden.push(key);
+        } else if (key === chart.data["x-label"]) {
+            // ignore x-axis series
+        } else {
+            // new series
             series.push(key);
-            colors[key] = options.scheme[index++];
         }
     });
+
+    // names for coloring using "color-by" field
+    if (chart.data["color-by"]) {
+        let key = chart.data["color-by"];
+        $.each(chart.data["data"], function(i, item){
+            if (!(flavors.includes(item[key]))) {
+                flavors.push(item[key])
+            }
+        });
+
+        // update color function for color-by
+        colorfunc = function(color, d) {
+            if (typeof d === "object") {
+                let flavor = chart.data['data'][d.index][key];
+                return options.colors[flavor];
+            } else {
+                return color;
+            }
+        }
+    }
+    // update color dictionary
+    let color_scale = d3.scaleOrdinal().domain(flavors.concat(series)).range(options.scheme);
+    $.each(series, function(i, key){
+       if (!(key in options.colors)) {
+           options.colors[key] = color_scale(key);
+       }
+    });
+
     c3.generate({
         bindto: `#${figure.attr('id')}`,
         size: {width: options.width, height: options.height},
         data: {
             type: 'bar',
             json: chart.data["data"],
-            colors: colors,
+            hide: hidden,
+            color: colorfunc,  // used for color-by
+            colors: options.colors,
             keys: {
                 x: chart.data["x-label"],
                 value: series
@@ -254,7 +300,7 @@ function drawBarChart(figure, chart, options) {
         grid: {y: {show: true}},
         axis: {x: {type: 'category', label: chart.data['x-label']}, rotated: (options.vertical || false) },
         legend: {hide: (series.length === 1)},
-        bar: {width: {ratio: 0.85}},
+        bar: {width: {ratio: .6}},
         onresize: function () {
             this.api.resize({
                 width: figure.width(),
@@ -267,7 +313,7 @@ function drawBarChart(figure, chart, options) {
 
 function drawHistogram(figure, chart, options) {
     let yscale = chart['y-scale'];
-    let data = chart.data['data']
+    let data = chart.data['data'];
     // remove raw data from dom
     figure.removeData('chart');
     figure.removeAttr('data-chart');
@@ -394,13 +440,13 @@ function drawTimeline(figure, chart, options) {
     let width = options.width - margin.left - margin.right;
     let height = 240;
     let xcenter = width / 2;
+
     // assign colors
     $.each(chart.data, function (i, entry) {
         if (!types.includes(entry.type)) {
             types.push(entry.type);
         }
     });
-
     types.sort();
 
     let colors = d3.scaleOrdinal().domain(types).range(options.scheme);
@@ -584,13 +630,21 @@ function drawTimeline(figure, chart, options) {
             let options = {
                 width: figure.width(),
                 height: figure.width() / (chart.data['aspect-ratio'] || 16 / 9),
+                colors: {}
             };
 
+            // if chart.data.colors is an array use it as a color scheme, if it is an
+            // object, then assume it maps names to color values
+            // if it is a string then assume it is a named color scheme in ColorSchemes
             if (Array.isArray(chart.data.colors)) {
                 options.scheme = chart.data.colors;
+            } else if (typeof chart.data.colors === 'object') {
+                options.scheme = ColorSchemes.Live16;
+                options.colors = chart.data.colors;
             } else {
                 options.scheme = ColorSchemes[chart.data.colors] || ColorSchemes.Live16;
             }
+
             switch (figure.data('type')) {
                 case 'barchart':
                     drawBarChart(figure, chart, options);

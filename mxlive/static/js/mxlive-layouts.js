@@ -6,6 +6,7 @@
             labelled: parent.data('labelled'),
             loadable : parent.data('loadable'),
             prefix: parent.data('prefix') || 'cnt',
+            root_id: parent.data('pk'),
             on_complete: function() {
             },
         }, options);
@@ -51,7 +52,7 @@
 
                 // Draw Container Children
                 $("#" + svg_id).drawContainer(data, settings);
-                listLoaded('#loaded-projects', '#loaded-containers', data);
+                listLoaded('#loaded-projects', '#loaded-containers', data, settings);
                 parent.find('[title]').tooltip();
                 if (settings.loadable) {
                     $(document).on('click', '[data-unload-url]', function () {
@@ -157,17 +158,17 @@
                 if (settings.loadable && (d.accepts||d.final)) {
                     d3.event.stopPropagation();
                     if (! d.id) {
-                        url = "/users/containers/" + data.id + "/location/" + d.loc + '/';
+                        url = `/users/containers/${settings.root_id}/${data.id}/location/${d.loc}/`;
                     } else {
-                        url = "/users/containers/" + d.id + "/load/";
+                        url = `/users/containers/${settings.root_id}/${d.id}/load/`;
                     }
                     $('#modal-target').asyncForm({
                         url: url,
-                        complete: function(info){
+                        complete: function(data){
                             let cnt = $('#' + settings.prefix + '-' + data.id);
                             cnt.empty();
-                            cnt.drawContainer(info, {loadable: settings.loadable});
-                            listLoaded('#loaded-projects', '#loaded-containers', info);
+                            cnt.drawContainer(data, settings);
+                            listLoaded('#loaded-projects', '#loaded-containers', data, settings);
                         }
                     });
                 }
@@ -256,7 +257,7 @@ var locTemplate = _.template(
     '               </div>' +
     '           </div>' +
     '           <div class="tools-box">' +
-    '               <a href="#!" data-unload-url="/users/containers/<%= id %>/unload/" data-id="<%= id %>">' +
+    '               <a href="#!" data-unload-url="/users/containers/<%= root_id %>/<%= id %>/unload/" data-id="<%= id %>">' +
     '                   <div class="icon-stack">' +
     '                       <i class="ti ti-share"></i>' +
     '                   </div>' +
@@ -276,12 +277,12 @@ var projTemplate = _.template(
     '<% _.each(details, function(container, i){ %><small class="text-muted d-inline-block list-cnt-<%= container.id %>"><%= container.port %></small><% }); %></div>' +
     '           </div>' +
     '           <div class="project-list-tools tools-box">' +
-    '               <a title="Details" data-toggle="collapse" href="#prj-<%= name.toLowerCase() %>-list"> ' +
+    '               <a data-toggle="collapse" href="#prj-<%= name.toLowerCase() %>-list"> ' +
     '                   <div class="icon-stack">' +
     '                       <i class="ti ti-md ti-zoom-in"></i>' +
     '                   </div>' +
     '               </a>' +
-    '               <a href="#!" data-form-url="/users/containers/<%= parent %>/unload/<%= name.toLowerCase() %>/">' +
+    '               <a href="#!" data-form-url="/users/containers/<%= root_id %>/<%= parent %>/unload/<%= name.toLowerCase() %>/">' +
     '                   <div class="icon-stack">' +
     '                       <i class="ti ti-md ti-share"></i>' +
     '                   </div>' +
@@ -291,11 +292,11 @@ var projTemplate = _.template(
     '</div>' +
     '<div class="collapse detail-container-list row" id="prj-<%= name.toLowerCase() %>-list">' +
     '<div class="col ml-5 my-1 ">' +
-    '     <% _.each(details, function(container, i){ %><%= locTemplate(container) %><% }); %>' +
+    '     <% _.each(details, function(container, i){ container.root_id = root_id; %><%= locTemplate(container) %><% }); %>' +
     '</div></div>'
 );
 
-function listLoaded(proj_container, loc_container, data) {
+function listLoaded(proj_container, loc_container, data, settings) {
     let info = compileProjects(data);
     let projects = d3.select(proj_container)
         .selectAll(proj_container + ' > div')
@@ -312,6 +313,7 @@ function listLoaded(proj_container, loc_container, data) {
             d.details.sort(function (a, b) {
                 return (a.loc < b.loc) ? -1: 0;
             });
+            d.root_id = settings.root_id;
             return projTemplate(d)
         });
     projects
@@ -322,6 +324,7 @@ function listLoaded(proj_container, loc_container, data) {
             d.details.sort(function (a, b) {
                 return (a.loc < b.loc) ? -1: 0;
             });
+            d.root_id = settings.root_id;
             return projTemplate(d)
         });
 
@@ -334,10 +337,12 @@ function listLoaded(proj_container, loc_container, data) {
         .append("div")
         .attr("class", d => "list-group-item py-1 list-cnt-" + d.id)
         .html(function (d) {
+            d.root_id = settings.root_id;
             return locTemplate(d)
         });
     containers
         .html(function (d) {
+            d.root_id = settings.root_id;
             return locTemplate(d)
         });
     $(proj_container + ' [title], ' + loc_container + ' [title]').tooltip();
@@ -357,7 +362,7 @@ function unloadUpdateData(element, settings) {
             let cnt = $('#' + settings.prefix + '-' + data.id);
             cnt.empty();
             cnt.drawContainer(data, settings);
-            listLoaded('#loaded-projects', '#loaded-containers', data);
+            listLoaded('#loaded-projects', '#loaded-containers', data, settings);
         },
         error: function () {
             src.shake();

@@ -17,12 +17,12 @@ def activity(apps, schema_editor):
     )
 
     # Next mark Staff accounts
-    Project.objects.using(db_alias).filter(kind__isnull=True, categories__name='Staff Account').update(
+    Project.objects.using(db_alias).filter(kind__isnull=True, categories__name__icontains='Staff').update(
         kind=ProjectType.objects.using(db_alias).get(name__iexact='Staff')
     )
 
     # Next mark industry accounts
-    Project.objects.using(db_alias).filter(kind__isnull=True, categories__name='Industry').update(
+    Project.objects.using(db_alias).filter(kind__isnull=True, categories__name__icontains='Purchased').update(
         kind=ProjectType.objects.using(db_alias).get(name__iexact='Industry')
     )
 

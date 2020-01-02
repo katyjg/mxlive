@@ -28,7 +28,8 @@
                 <strong>{{ stats.samples }}</strong> Sample{{ stats.samples|pluralize }}
             </div>
         </div>
-        <div class="tools-box ml-auto">{% if shipment.status >= shipment.STATES.ON_SITE %}
+        <div class="tools-box ml-auto">
+            {% if shipment.status >= shipment.STATES.ON_SITE %}
                 <a href="{% url "shipment-reports" shipment.pk %}" title="Go to Reports from this shipment">
                     {% show_icon label='Reports' badge=stats.reports icon='ti ti-md ti-bar-chart-alt' color='info' %}
                 </a>
@@ -36,7 +37,8 @@
                     {% show_icon label='Data' badge=stats.data icon='ti ti-md ti-layout-grid3' color='info' %}
                 </a>
                 <a class="separator"></a>
-            {% endif %}{% if user.is_superuser and shipment.status <= shipment.STATES.ON_SITE and shipment.status >= shipment.STATES.SENT %}
+            {% endif %}
+            {% if user.is_superuser and shipment.status <= shipment.STATES.ON_SITE and shipment.status >= shipment.STATES.SENT %}
                 {% if shipment.status == shipment.STATES.ON_SITE %}
                     <a data-form-link="{% url "shipment-return" shipment.pk %}" title="Return shipment">
                         {% show_icon label='Return' icon='ti ti-md ti-location-arrow' %}
@@ -46,6 +48,11 @@
                         {% show_icon label='Receive' icon='ti ti-md ti-shopping-cart-full' %}
                     </a>
                 {% endif %}
-            {% endif %}</div>
+            {% elif shipment.status == shipment.STATES.DRAFT and not user.is_superuser %}
+                    <a data-form-link="{% url "shipment-send" shipment.pk %}" title="Send shipment">
+                        {% show_icon label='Send' icon='ti ti-md ti-location-arrow' %}
+                    </a>
+            {% endif %}
+        </div>
     </div>
 </div>

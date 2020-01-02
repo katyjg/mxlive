@@ -78,7 +78,9 @@
                     </div>
                     <div class="col-4 text-center align-items-center">
                         <div>
-                            <img src="/static/img/{{ object.carrier|default_if_none:'walking'|slugify }}.png" title="{{ object.carrier|default_if_none:'User'|title }}">
+                            <img src="/static/img/{{ object.carrier|default_if_none:'walking'|slugify }}.png"
+                                 width="90%"
+                                 title="{{ object.carrier|default_if_none:'User'|title }}">
                             <h5>{{ object.account_number|default:"-- --- --- --" }}</h5>
                         </div>
                     </div>

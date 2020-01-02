@@ -25,6 +25,10 @@
 	justify-content: center;
 }
 
+.ti-hflip {
+	transform: scale(-1, 1);
+}
+
 .ti-wand:before {
 	content: "\e600";
 }
