@@ -14,18 +14,18 @@
                     <th>Start</th>
                     <th class="text-right">End</th>
                     <th class="text-right">Uptime</th></tr>
-                {% for stretch in object.stretches.active %}
+                {% for stretch in object.stretches.with_duration.active %}
                     <tr>
                         <td>{{ stretch.start }}</td>
                         <td class="text-right">{{ stretch.end }}</td>
-                        <td class="text-right">{{ stretch.duration|default:"Active" }} {% if stretch.duration %}minutes{% endif %}</td>
+                        <td class="text-right">{{ stretch.duration|default:"Active" }} {% if stretch.duration|natural_duration %}minutes{% endif %}</td>
                     </tr>
                 {% endfor %}
                 {% for stretch in object.stretches.with_duration %}
                     <tr>
                         <td>{{ stretch.start }}</td>
                         <td class="text-right">{{ stretch.end }}</td>
-                        <td class="text-right">{{ stretch.duration|humanize_duration|default:"0 minutes" }}</td>
+                        <td class="text-right">{{ stretch.duration | natural_duration }}</td>
                     </tr>
                 {% endfor %}
             </table>

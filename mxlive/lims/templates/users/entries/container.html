@@ -24,6 +24,8 @@
             {% with object.shipment.containers.count as count %}
             <strong>1</strong> of <strong>{{ count }}</strong> Container{{ count|pluralize }} in Shipment {{object.shipment.name}}
             {% endwith %}
+        {% elif object.accepts_children %}
+            Container Adaptor.
         {% else %}
             Container not in a shipment.
         {% endif %}
@@ -47,14 +49,14 @@
     </a>
     {% endif %}
     {% include "users/tools-base.html" %}
-    {% if object.parent_history.all %}
+    {% if object.parent_history.exists %}
         <a href="#!" data-link="{% url "container-history" object.pk %}">
             {% show_icon label='History' icon='ti ti-md ti-timer' %}
         </a>
     {% endif %}
-    {% if object.children_history.all %}
+    {% if object.children_history.exists %}
         <a class="pull-right" data-link="{% url "automounter-history" object.pk %}">
-            {% show_icon label='Container History' icon='ti ti-md ti-timer' %}
+            {% show_icon label='Load History' icon='ti ti-md ti-timer' %}
         </a>
     {% endif %}
 {% endblock %}
@@ -102,10 +104,20 @@
 
         </div>
     </div>
-    {% include "users/comments.html" with object=object %}
 {% endblock %}
 
 {% block full %}
+    {% if object.accepts_children %}
+        <div class="row">
+            <div {% if user.is_superuser %}id="admin-assign"{% endif %} class="col-sm-7 p-4">
+                {% include "users/entries/container-layout.html" with container=object show_samples=True loadable=True %}
+            </div>
+
+            <div class="col-sm-5 col-12">
+                {% include "users/entries/loaded.html" %}
+            </div>
+        </div>
+    {% else %}
     <div class="row">
         <div class="col-sm-8 col-12">
         <h3>Samples in {{ object.name }}</h3>
@@ -119,16 +131,21 @@
             {% include "users/entries/container-layout.html" with container=object show_samples=True label_samples=True %}
         </div>
     </div>
-
+    {% endif %}
+    {% include "users/comments.html" with object=automounter.dewar %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    {% if not object.accepts_chidren %}
     $(document).ready(function() {
         $(document).on('click', 'svg.sample[data-id]', function(){
             let url = '{% url "sample-detail" 0 %}';
             window.location.href = url.replace('0/', $(this).data('id'));
         });
     });
+    {% endif %}
 </script>
+
+
 {% endblock %}

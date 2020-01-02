@@ -116,7 +116,7 @@ class UnloadContainer(AdminRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         try:
             container = models.Container.objects.get(pk=self.kwargs['pk'])
-            root = container.parent.get_load_root()
+            root = models.Container.objects.get(pk=self.kwargs['root'])
         except models.Group.DoesNotExist:
             raise http.Http404("Can't unload Container.")
 

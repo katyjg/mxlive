@@ -3,12 +3,14 @@ import re
 from crispy_forms.bootstrap import StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Field, Layout
+from django.utils.translation import ugettext as _
 from django import forms
 from django.conf import settings
 from django.urls import reverse_lazy
 
-from .models import Project, Shipment, Dewar, Sample, ComponentType, Container, Group, ContainerLocation, ContainerType
-from ..staff.models import UserCategory, UserList, Announcement
+from .models import Project, Shipment, Dewar, Sample, ComponentType, Container
+from .models import Group, ContainerLocation, ContainerType, Guide, ProjectType
+from ..staff.models import UserList
 
 
 class BodyHelper(FormHelper):
@@ -31,23 +33,27 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ('contact_person', 'contact_email', 'carrier', 'account_number', 'organisation', 'department',
-                  'address', 'city', 'province', 'postal_code', 'country', 'contact_phone')
+                  'address', 'city', 'province', 'postal_code', 'country', 'contact_phone', 'kind')
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
         super(ProjectForm, self).__init__(*args, **kwargs)
         pk = self.instance.pk
 
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
         if pk:
-            self.body.title = u"Edit Profile"
+            self.body.title = _("Edit Profile")
             self.body.form_action = reverse_lazy('edit-profile', kwargs={'username': self.instance.username})
         else:
-            self.body.title = u"Create New Sample"
-            self.body.form_action = reverse_lazy('sample-new')
+            self.body.title = _("Create New Profile")
+            self.body.form_action = reverse_lazy('new-project')
+
+        print('FORM', (not self.user.is_superuser))
         self.body.layout = Layout(
             Div(
-                Div('contact_person', css_class='col-12'),
+                Div(Field('kind', css_class="select", readonly=(not self.user.is_superuser)), css_class='col-6'),
+                Div('contact_person', css_class='col-6'),
                 css_class="form-row"
             ),
             Div(
@@ -96,22 +102,22 @@ class ProjectForm(forms.ModelForm):
 
 
 class NewProjectForm(forms.ModelForm):
-    password = forms.CharField(required=False, help_text='A password will be auto-generated for this account')
+    password = forms.CharField(required=False, help_text=_('A password will be auto-generated for this account'))
 
     class Meta:
         model = Project
-        fields = ('first_name', 'last_name', 'contact_person', 'contact_email', 'contact_phone', 'username')
+        fields = ('first_name', 'last_name', 'contact_person', 'contact_email', 'contact_phone', 'username', 'kind')
 
     def __init__(self, *args, **kwargs):
         super(NewProjectForm, self).__init__(*args, **kwargs)
 
         if getattr(settings, 'LDAP_SEND_EMAILS', False):
-            self.fields['password'].help_text += ' and sent to staff once this form is submitted'
-
+            self.fields['password'].help_text += _(' and sent to staff once this form is submitted')
+        self.fields['kind'].initial = ProjectType.objects.first()
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
 
-        self.body.title = u"Create New User Account"
+        self.body.title = _("Create New User Account")
         self.body.form_action = reverse_lazy('new-project')
         self.footer.layout = Layout()
         self.body.layout = Layout(
@@ -126,7 +132,8 @@ class NewProjectForm(forms.ModelForm):
                 css_class="form-row"
             ),
             Div(
-                Div('contact_person', css_class='col-12'),
+                Div(Field('kind', css_class="select"), css_class='col-6'),
+                Div('contact_person', css_class='col-6'),
                 css_class="form-row"
             ),
             Div(
@@ -331,7 +338,7 @@ class ShipmentSendForm(forms.ModelForm):
             )
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
-        self.body.title = u"Add Shipping Information"
+        self.body.title = u"Send Shipment"
         self.body.form_action = reverse_lazy('shipment-send', kwargs={'pk': self.instance.pk})
         self.body.layout = Layout(
             errors,
@@ -365,7 +372,7 @@ class ShipmentReturnForm(forms.ModelForm):
             self.fields['loaded'].widget = forms.HiddenInput()
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
-        self.body.title = u"Add Shipping Information"
+        self.body.title = u"Return Shipment"
         self.body.form_action = reverse_lazy('shipment-return', kwargs={'pk': self.instance.pk})
         self.body.layout = Layout(
             Div(
@@ -570,6 +577,7 @@ class ContainerLoadForm(forms.ModelForm):
         fields = ['parent', 'location']
 
     def __init__(self, *args, **kwargs):
+        form_action = kwargs.pop('form-action')
         super(ContainerLoadForm, self).__init__(*args, **kwargs)
         self.fields['parent'].queryset = self.fields['parent'].queryset.filter(
             kind__locations__accepts=self.instance.kind
@@ -580,7 +588,7 @@ class ContainerLoadForm(forms.ModelForm):
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
         self.body.title = u"Move Container {}".format(self.instance)
-        self.body.form_action = reverse_lazy("container-load", kwargs={'pk': self.instance.pk})
+        self.body.form_action = form_action
         self.body.layout = Layout(
             Div(
                 Div(
@@ -623,14 +631,13 @@ class EmptyContainers(forms.ModelForm):
         fields = []
 
     def __init__(self, *args, **kwargs):
+        form_action = kwargs.pop('form-action')
         super(EmptyContainers, self).__init__(*args, **kwargs)
 
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
         self.body.title = u"Remove containers"
-        self.body.form_action = reverse_lazy("empty-containers", kwargs={
-            'pk': self.initial['parent'].pk,
-            'username': self.instance.username})
+        self.body.form_action = form_action
         self.body.layout = Layout(
             Div(HTML(
                 """Any containers owned by <strong>{}</strong> will be removed from the automounter.""".format(
@@ -653,6 +660,7 @@ class LocationLoadForm(forms.ModelForm):
         fields = ['child', 'location']
 
     def __init__(self, *args, **kwargs):
+        form_action = kwargs.pop('form-action')
         super(LocationLoadForm, self).__init__(*args, **kwargs)
 
         self.fields['child'].queryset = self.fields['child'].queryset.filter(parent__isnull=True).filter(
@@ -662,9 +670,7 @@ class LocationLoadForm(forms.ModelForm):
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
         self.body.title = u"Load Container in location {}".format(self.initial['location'])
-        self.body.form_action = reverse_lazy("location-load", kwargs={
-            'pk': self.instance.pk,
-            'location': self.initial['location'].name})
+        self.body.form_action = form_action
 
         self.body.layout = Layout(
             Div(
@@ -1007,23 +1013,23 @@ class ShipmentSamplesForm(forms.ModelForm):
         self.fields['containers'].queryset = self.initial.get('containers')
 
 
-class AnnouncementForm(forms.ModelForm):
+class GuideForm(forms.ModelForm):
 
     class Meta:
-        model = Announcement
-        fields = ['title', 'description', 'staff_only', 'modal', 'attachment', 'url', 'priority']
+        model = Guide
+        fields = ['title', 'description', 'kind', 'staff_only', 'modal', 'attachment', 'url', 'priority']
 
     def __init__(self, *args, **kwargs):
-        super(AnnouncementForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
         if self.instance.pk:
             self.body.title = u"Edit Announcement"
-            self.body.form_action = reverse_lazy('announcement-edit', kwargs={'pk': self.instance.pk})
+            self.body.form_action = reverse_lazy('guide-edit', kwargs={'pk': self.instance.pk})
         else:
             self.body.title = u"New Announcement"
-            self.body.form_action = reverse_lazy('new-announcement')
+            self.body.form_action = reverse_lazy('new-guide')
         self.body.layout = Layout(
             Div(
                 Div('priority', css_class="col-2"),
@@ -1035,8 +1041,8 @@ class AnnouncementForm(forms.ModelForm):
                 css_class="row"
             ),
             Div(
-                Div('url', css_class="col-12"),
-
+                Div('kind', css_class="col-6"),
+                Div('url', css_class="col-6"),
                 css_class="row"
             ),
             Div(
@@ -1098,33 +1104,3 @@ class AccessForm(forms.ModelForm):
         self.footer.layout = Layout(
             StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
         )
-
-
-class CategoryForm(forms.ModelForm):
-
-    class Meta:
-        model = UserCategory
-        fields = ('projects',)
-
-    def __init__(self, *args, **kwargs):
-        super(CategoryForm, self).__init__(*args, **kwargs)
-        self.fields['projects'].label = "{} Users".format(self.instance)
-        self.fields['projects'].queryset = self.fields['projects'].queryset.order_by('name')
-
-        self.body = BodyHelper(self)
-        self.footer = FooterHelper(self)
-        self.body.title = u"Edit User Categories"
-        self.body.form_action = reverse_lazy('category-edit', kwargs={'pk': self.instance.pk})
-        self.body.layout = Layout(
-            Div(
-                Div(
-                    Field('projects', css_class="select"),
-                    css_class="col-12"
-                ),
-                css_class="row"
-            )
-        )
-        self.footer.layout = Layout(
-            StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
-        )
-

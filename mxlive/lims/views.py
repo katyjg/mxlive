@@ -199,7 +199,10 @@ class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AsyncFormMixin, edit
         """Allow access to admin or owner"""
         return self.request.user.is_superuser or self.get_object() == self.request.user
 
-
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
 
 class ProjectLabels(AdminRequiredMixin, HTML2PdfMixin, detail.DetailView):
     template_name = "users/pdf/return_labels.html"
@@ -548,11 +551,21 @@ class ContainerLoad(AdminRequiredMixin, ContainerEdit):
     form_class = forms.ContainerLoadForm
     template_name = "modal/form.html"
 
+    def get_object(self, queryset=None):
+        self.root = models.Container.objects.get(pk=self.kwargs['root'])
+        return super().get_object(queryset=queryset)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'form-action': self.request.path
+        })
+        return kwargs
+
     def form_valid(self, form):
         data = form.cleaned_data
         location = data.get('location')
         parent = data['parent']
-        root = parent.get_load_root()
 
         if location:
             models.LoadHistory.objects.create(child=self.object, parent=data['parent'], location=location)
@@ -561,12 +574,23 @@ class ContainerLoad(AdminRequiredMixin, ContainerEdit):
             models.LoadHistory.objects.filter(child=self.object).active().update(end=timezone.now())
 
         models.Container.objects.filter(pk=self.object.pk).update(parent=parent, location=location)
-        return JsonResponse(root.get_layout(), safe=False)
+        return JsonResponse(self.root.get_layout(), safe=False)
 
 
 class LocationLoad(AdminRequiredMixin, ContainerEdit):
     form_class = forms.LocationLoadForm
     success_message = "Container has been loaded"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'form-action': self.request.path
+        })
+        return kwargs
+
+    def get_object(self, queryset=None):
+        self.root = models.Container.objects.get(pk=self.kwargs['root'])
+        return super().get_object(queryset=queryset)
 
     def get_initial(self):
         initial = super(LocationLoad, self).get_initial()
@@ -579,9 +603,7 @@ class LocationLoad(AdminRequiredMixin, ContainerEdit):
             parent=self.object, location=data['location']
         )
         models.LoadHistory.objects.create(child=data['child'], parent=self.object, location=data['location'])
-
-        root = self.object.get_load_root()
-        return JsonResponse(root.get_layout(), safe=False)
+        return JsonResponse(self.root.get_layout(), safe=False)
 
 
 class EmptyContainers(AdminRequiredMixin, edit.UpdateView):
@@ -591,7 +613,15 @@ class EmptyContainers(AdminRequiredMixin, edit.UpdateView):
     success_message = "Containers have been removed for {username}."
     success_url = reverse_lazy('dashboard')
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'form-action': self.request.path
+        })
+        return kwargs
+
     def get_object(self, queryset=None):
+        self.root = models.Container.objects.get(pk=self.kwargs['root'])
         return models.Project.objects.get(username=self.kwargs.get('username'))
 
     def get_initial(self):
@@ -601,11 +631,10 @@ class EmptyContainers(AdminRequiredMixin, edit.UpdateView):
 
     def form_valid(self, form):
         data = form.cleaned_data
-        root = data['parent'].get_load_root()
         containers = self.object.containers.filter(parent=data.get('parent'))
         models.LoadHistory.objects.filter(child__in=containers).active().update(end=timezone.now())
         containers.update(**{'location': None, 'parent': None})
-        return JsonResponse(root.get_layout(), safe=False)
+        return JsonResponse(self.root.get_layout(), safe=False)
 
 
 class ContainerDelete(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
@@ -1017,8 +1046,16 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                                 field: form.cleaned_data['{}_set'.format(field)][i]
                                 for field in ['name', 'kind', 'comments', 'plan', 'absorption_edge']
                             }
+                            resolution = None
+                            if form.cleaned_data.get('resolution_set'):
+                                res = form.cleaned_data['resolution_set'][i]
+                                try:
+                                    resolution = float(res)
+                                except ValueError:
+                                    resolution = None
+
                             data.update({
-                                'resolution': None if not form.cleaned_data.get('resolution_set') else float(form.cleaned_data['resolution_set'][i]),
+                                'resolution': resolution,
                                 'shipment': self.shipment,
                                 'project': project,
                                 'priority': i + 1
@@ -1158,12 +1195,48 @@ class ContainerSpreadsheet(LoginRequiredMixin, AsyncFormMixin, detail.DetailView
             raise http.Http404('Container Not Found!')
 
 
-class PresenterView(TemplateView):
-    template_name = "users/guide-youtube.html"
+class GuideView(detail.DetailView):
+    model = models.Guide
+    template_name = "users/components/guide-youtube.html"
+
+    def get_object(self, queryset=None):
+        if self.request.user.is_superuser:
+            return super().get_object(queryset=queryset)
+        else:
+            return super().get_object(queryset=self.get_queryset().filter(staff_only=False))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['title'] = self.object.title
         context.update(self.kwargs)
+        return context
+
+
+class GuideCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
+    form_class = forms.GuideForm
+    template_name = "modal/form.html"
+    model = models.Guide
+    success_url = reverse_lazy('dashboard')
+    success_message = "Guide has been created"
+
+
+class GuideEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    form_class = forms.GuideForm
+    template_name = "modal/form.html"
+    model = models.Guide
+    success_url = reverse_lazy('dashboard')
+    success_message = "Guide has been updated"
+
+
+class GuideDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
+    template_name = "modal/delete.html"
+    model = models.Guide
+    success_url = reverse_lazy('dashboard')
+    success_message = "Guide has been deleted"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_action'] = reverse_lazy('guide-delete', kwargs={'pk': self.object.pk})
         return context
 
 

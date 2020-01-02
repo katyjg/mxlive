@@ -1,6 +1,6 @@
 {% extends "users/base.html" %}
 {% load static %}
-{% load link_list %}
+{% load guides %}
 {% load icons %}
 
 {% block page_heading %}
@@ -25,8 +25,8 @@
         {% show_icon label="Sessions" icon="ti ti-md ti-time" %}
     </a>
     <div class="separator"></div>
-    <a href="#!"  data-form-link="{% url "new-announcement" %}" title="Create Guide">
-        {% show_icon label="Add Info" icon="ti ti-md ti-agenda" %}
+    <a href="#!" data-form-link="{% url "new-guide" %}" title="Create Guide">
+        {% show_icon label="Add Guide" icon="ti ti-md ti-agenda" %}
     </a>
 {% endblock %}
 
@@ -99,7 +99,7 @@
         </div>
 
         <div class="col-12 col-md-3">
-            {% load_announcements %}
+            {% load_guides %}
         </div>
     </div>
 {% endblock %}

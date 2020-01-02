@@ -63,61 +63,12 @@ class RemoteConnectionDetail(AdminRequiredMixin, detail.DetailView):
     template_name = "users/entries/connection.html"
 
 
-class CategoryList(AdminRequiredMixin, ItemListView):
-    model = models.UserCategory
-    list_filters = []
-    list_columns = ['name', 'current_users', 'num_users']
-    list_search = ['name']
-    link_url = 'category-edit'
-    link_attr = 'data-form-link'
-    template_name = "users/list.html"
-    page_title = 'User Categories'
-
-
-class CategoryEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
-    form_class = forms.CategoryForm
-    template_name = "modal/form.html"
-    model = models.UserCategory
-    success_url = reverse_lazy('category-list')
-    success_message = "User category has been updated."
-    allowed_roles = ['owner', 'admin']
-    admin_roles = ['admin']
-
-
-class AnnouncementCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
-    form_class = forms.AnnouncementForm
-    template_name = "modal/form.html"
-    model = models.Announcement
-    success_url = reverse_lazy('dashboard')
-    success_message = "Announcement has been created"
-
-
-class AnnouncementEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
-    form_class = forms.AnnouncementForm
-    template_name = "modal/form.html"
-    model = models.Announcement
-    success_url = reverse_lazy('dashboard')
-    success_message = "Announcement has been updated"
-
-
-class AnnouncementDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
-    template_name = "modal/delete.html"
-    model = models.Announcement
-    success_url = reverse_lazy('dashboard')
-    success_message = "Announcement has been deleted"
-
-    def get_context_data(self, **kwargs):
-        context = super(AnnouncementDelete, self).get_context_data(**kwargs)
-        context['form_action'] = reverse_lazy('announcement-delete', kwargs={'pk': self.object.pk})
-        return context
-
-
 class ProjectList(AdminRequiredMixin, ItemListView):
     model = Project
     paginate_by = 25
     template_name = "users/user-list.html"
-    list_filters = ['modified', ]
-    list_columns = ['username', 'contact_person', 'contact_phone', 'contact_email']
+    list_filters = ['created', 'modified', 'kind']
+    list_columns = ['username', 'contact_person', 'contact_phone', 'contact_email', 'kind']
     list_search = [
         'username', 'contact_person', 'contact_phone', 'contact_email', 'city', 'province', 'country',
         'department', 'organisation'

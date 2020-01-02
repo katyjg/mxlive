@@ -43,10 +43,10 @@ urlpatterns = [
     path('containers/<int:pk>/edit/', views.ContainerEdit.as_view(), name='container-edit'),
     path('containers/<int:pk>/samples/', views.ContainerSpreadsheet.as_view(), name='edit-container-samples'),
     path('containers/<int:pk>/delete/', views.ContainerDelete.as_view(), name='container-delete'),
-    path('containers/<int:pk>/load/', views.ContainerLoad.as_view(), name='container-load'),
-    path('containers/<int:pk>/unload/', ajax_views.UnloadContainer.as_view(), name='container-unload'),
-    path('containers/<int:pk>/location/<slug:location>/', views.LocationLoad.as_view(), name='location-load'),
-    path('containers/<int:pk>/unload/<slug:username>/', views.EmptyContainers.as_view(), name='empty-containers'),
+    path('containers/<int:root>/<int:pk>/load/', views.ContainerLoad.as_view(), name='container-load'),
+    path('containers/<int:root>/<int:pk>/unload/', ajax_views.UnloadContainer.as_view(), name='container-unload'),
+    path('containers/<int:root>/<int:pk>/location/<slug:location>/', views.LocationLoad.as_view(), name='location-load'),
+    path('containers/<int:root>/<int:pk>/unload/<slug:username>/', views.EmptyContainers.as_view(), name='empty-containers'),
 
     path('samples/', views.SampleList.as_view(), name='sample-list'),
     path('samples/<int:pk>/', views.SampleDetail.as_view(), name='sample-detail'),
@@ -83,5 +83,12 @@ urlpatterns = [
     path('ajax/layout/<int:pk>/', ajax_views.FetchContainerLayout.as_view(), name='fetch-layout'),
 
     path('quick-guide/', TemplateView.as_view(template_name='users/help.html'), name='user-guide'),
-    path('guide-youtube/<slug:vid>/', views.PresenterView.as_view(), name='guide-youtube'),
+    path('guides/<int:pk>/youtube/<slug:video>/', views.GuideView.as_view(template_name="users/components/guide-youtube.html"), name='guide-youtube'),
+    path('guides/<int:pk>/flickr/<album>/<photo>/', views.GuideView.as_view(template_name="users/components/guide-flickr.html"), name='guide-flickr'),
+    path('guides/<int:pk>/image/', views.GuideView.as_view(template_name="users/components/guide-image.html"), name='guide-image'),
+    path('guides/<int:pk>/video/', views.GuideView.as_view(template_name="users/components/guide-video.html"), name='guide-video'),
+    path('guides/new/', views.GuideCreate.as_view(), name='new-guide'),
+    path('guides/<int:pk>/edit/', views.GuideEdit.as_view(), name='guide-edit'),
+    path('guides/<int:pk>/delete/', views.GuideDelete.as_view(), name='guide-delete'),
+
 ]

@@ -1,13 +1,7 @@
 from django.contrib import admin
-from .models import UserList, UserCategory, Announcement
+from .models import UserList
 
 runlist_site = admin.AdminSite()
-
-
-class AnnouncementAdmin(admin.ModelAdmin):
-    list_display = ('description', 'attachment', 'url')
-
-admin.site.register(Announcement, AnnouncementAdmin)
 
 
 class UserListAdmin(admin.ModelAdmin):
@@ -17,4 +11,3 @@ class UserListAdmin(admin.ModelAdmin):
     ordering = ['-created']
 
 admin.site.register(UserList, UserListAdmin)
-admin.site.register(UserCategory)

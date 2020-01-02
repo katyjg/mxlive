@@ -24,28 +24,6 @@ class StaffBaseClass(models.Model):
         abstract = True
 
 
-class Announcement(StaffBaseClass):
-    title = models.CharField(max_length=50, blank=True)
-    description = models.TextField(blank=True)
-    priority = models.IntegerField(null=False, default=0)
-    attachment = models.FileField(blank=True, upload_to=get_storage_path)
-    staff_only = models.BooleanField(default=False)
-    modal = models.BooleanField(default=False)
-    url = models.CharField(max_length=200, blank=True, null=True)
-
-    def has_document(self):
-        return self.attachment and not self.has_image()
-
-    def has_image(self):
-        return self.attachment and imghdr.what(self.attachment)
-
-    def __str__(self):
-        return self.title
-
-    class Meta:
-        ordering = ("-staff_only", "priority",)
-
-
 class UserList(StaffBaseClass):
     name = models.CharField(max_length=60, unique=True)
     description = models.TextField(blank=True, null=True)
@@ -69,25 +47,6 @@ class UserList(StaffBaseClass):
 
     class Meta:
         verbose_name = "Access List"
-
-
-class UserCategory(models.Model):
-    name = models.CharField(max_length=100)
-    projects = models.ManyToManyField("lims.Project", blank=True, related_name="categories")
-
-    def current_users(self):
-        return ' | '.join(self.projects.values_list('username', flat=True))
-
-    def num_users(self):
-        return self.projects.count()
-    num_users.short_description = 'Number'
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "User Category"
-        verbose_name_plural = "User Categories"
 
 
 class RemoteConnection(StaffBaseClass):
