@@ -52,72 +52,21 @@
 {% endblock %}
 
 {% block full %}
-    {% with object.groups.all as groups %}
     <div class="row">
-        <div class="col-12 col-sm-3">
-            <div class="card">
-                <div class="card-header p-1 text-center text-wide text-muted"><small>GROUPS</small></div>
-                    <div class="list-group list-group-flush" role="tablist">
-                    {% for group in groups %}
-                        <a class="list-group-item list-group-item-action" role="tab" aria-controls="group{{ group.pk }}"
-                           id="show-group{{ group.pk }}" data-toggle="list" href="#group-{{ group.pk }}" data-group="{{ group.pk }}">
-                            {% include "users/entries/group-nav.html" %}
-                        </a>
-                    {% endfor %}
-                    </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-9">
-            <div class="tab-content">
-                {% for group in groups %}
-                    <div class="tab-pane fade" id="group-{{ group.pk }}" role="tabpanel" aria-labelledby="show-group{{ group.pk }}">
-                        <h4>
-                            <a href="{% url 'group-detail' group.pk %}"><strong>{{ group.name }}</strong></a> |
-                            <span class="text-muted text-thin">
-                            {{ group.get_kind_display }} |
-                            {{ group.get_plan_display }} |
-                            Requrements: {{ group | group_parameters | default:"&mdash;"}}
-                            </span>
-                        </h4>
-                        {% include "users/entries/group-protocol.html" %}
-                    </div>
-                {% endfor %}
-            </div>
+        <div class="col-12">
+            {% for group in object.groups.all %}
+                <h4>
+                    <a href="{% url 'group-detail' group.pk %}"><strong>{{ group.name }}</strong></a> |
+                    <span class="text-muted text-thin">
+                    {{ group.get_kind_display }} |
+                    {{ group.get_plan_display }} |
+                    {{ group | group_parameters | default:"No restrictions"}}
+                    </span>
+                </h4>
+                {% include "users/entries/group-progress.html" with samples=group.samples.all %}
+                <hr />
+            {% endfor %}
         </div>
     </div>
-    {% endwith %}
     {% include "users/comments.html" with object=shipment %}
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    var getUrlParameter = function getUrlParameter(sParam) {
-        var sPageURL = window.location.search.substring(1),
-            sURLVariables = sPageURL.split('&'),
-            sParameterName,
-            i;
-
-        for (i = 0; i < sURLVariables.length; i++) {
-            sParameterName = sURLVariables[i].split('=');
-
-            if (sParameterName[0] === sParam) {
-                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
-            }
-        }
-    };
-
-    $('[data-toggle="list"]').on('click', function(e) {
-        var id = $(this).data('group');
-        window.history.pushState(null, null, '?q=' + id);
-    });
-
-    $(document).ready(function(){
-        var selected = getUrlParameter('q');
-        if (!(selected)) {
-            selected = $('[data-group]').first().data('group');
-        }
-        $('#show-group'+ selected).tab('show');
-    });
-
-</script>
 {% endblock %}

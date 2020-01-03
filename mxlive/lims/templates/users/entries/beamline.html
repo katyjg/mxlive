@@ -49,7 +49,7 @@
                 </h3>
             </div>
             <div class="col-3 col-sm-4">
-                <small class="text-muted text-condensed">Energy Range:</small><br>
+                <small class="text-muted text-condensed">Energy&nbsp;Range:</small><br>
                 {{ object.energy_lo }} - {{ object.energy_hi }}
             </div>
             <div class="col">
@@ -71,24 +71,4 @@
         </div>
         {% include "users/comments.html" with object=automounter.dewar %}
     {% endwith %}
-{% endblock %}
-
-{% block extra_js %}
-    <script>
-    $(document).ready(function(){
-        $(document).on('click', '.project-list-tools [data-form-url]', function () {
-            $('#modal-target').asyncForm({
-                url: $(this).data('form-url'),
-                complete: function(info){
-                    let cnt_id = '#cnt-' + info.id;
-                    $(cnt_id).empty();
-                    drawContainers(cnt_id, info);
-                    listLoaded('#loaded-projects', '#loaded-containers', info);
-                }
-            });
-
-        });
-    });
-
-    </script>
 {% endblock %}

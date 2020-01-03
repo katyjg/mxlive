@@ -1,14 +1,12 @@
-{% load progress_extras %}
 {% load badges %}
-{% group_samples group session as samples %}
-
+{% if samples %}
 <table class="table table-sm text-condensed">
     <thead>
         <tr>
             {% if user.is_superuser %}<th></th>{% endif %}
             <th>Sample</th>
             <th>Container</th>
-            <th>Loaded</th>
+            <th>Location</th>
             <th>Data&nbsp;Sets</th>
             <th>Analysis&nbsp;Reports</th>
             {% if user.is_superuser %}<th></th>{% endif %}
@@ -19,12 +17,14 @@
         <tr>
             {% if user.is_superuser %}
                 <td>
+                    {% if sample.pk %}
                     <a href="#!"
                        data-form-link="{% url "sample-admin-edit" sample.pk %}"
                        title="Edit Notes"
                     >
                         <i class="ti ti-comment{% if sample.staff_comments %}-alt{% endif %}"></i>
                     </a>
+                    {% endif %}
                 </td>
             {% endif %}
             <td class="overflow-ellipsis"
@@ -36,13 +36,19 @@
                 data-trigger="hover"
             {% endif %}
             >
-                <a href="{% url "sample-detail" sample.pk %}" {% if sample.staff_comments %}class="checkout-dot"{% endif %}>{{ sample.name }}</a>
+                {% if sample.pk %}
+                    <a href="{% url "sample-detail" sample.pk %}" {% if sample.staff_comments %}class="checkout-dot"{% endif %}>{{ sample.name }}</a>
+                {% else %}
+                    {{ sample.name }}
+                {% endif %}
             </td>
             <td class="overflow-ellipsis">
-                <a href="{% url "container-detail" sample.container.pk %}">{{ sample.container_and_location }}</a>
+                {% if sample.pk %}
+                <a href="{% url "container-detail" sample.container.pk %}">{{ sample.container.name }}</a>
+                {% endif %}
             </td>
             <td class="overflow-ellipsis">
-                <div>{{ sample.dewar.beamline.acronym|default:'&mdash;' }}&nbsp;{{ sample.port }}</div>
+                <div>{{ sample.dewar.beamline.acronym|default:'' }}&nbsp;{{ sample.port }}</div>
             </td>
             <td>
                 {% include "users/entries/sample-data.html" %}
@@ -50,8 +56,9 @@
             <td>
                 {% include "users/entries/sample-reports.html" %}
             </td>
-            {% if user.is_superuser %}
+            {% if user.is_superuser%}
                 <td>
+                    {% if sample.pk %}
                     <a href="#!"
                        data-form-link="{% url "sample-admin-edit" sample.pk %}"
                        title="Mark Complete/Incomplete"
@@ -62,10 +69,12 @@
                             <i class="ti ti-pencil"></i>
                         {% endif %}
                     </a>
+                    {% endif %}
                 </td>
             {% endif %}
         </tr>
     {% endfor %}
     </tbody>
 </table>
+{% endif %}
 

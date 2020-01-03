@@ -8,18 +8,18 @@
         <div class="card-header p-1 text-center text-wide text-muted"><small>USER GUIDE</small></div>
     </div>
     {% for guide in guides %}
-        {% if not guide.staff_only or guide.staff_only and user.is_superuser%}
+        {% if not guide.staff_only or request.user.is_superuser%}
         <div class="card">
-            <div class="card-header {% if guide.staff_only %}alert-warning{% endif %} overflow-ellipsis w-100 p-2">
+            <div class="card-header {% if guide.staff_only %}alert-warning{% endif %} w-100 p-2">
                 <a href="#!" data-toggle="collapse"
                    data-target="#collapse-{{ forloop.counter }}"
                    aria-controls="collapse-{{ forloop.counter }}"
                    aria-expanded="false"
                    id="heading-{{ forloop.counter }}"
-                   class="d-flex flex-row"
+                   class="d-flex flex-row overflow-ellipsis"
                 >
                     <i class="ti ti-sm ti-agenda text-muted"></i>
-                    <span>&nbsp;&nbsp;{{ guide.title }}</span>
+                    <span>&nbsp;&emsp;{{ guide.title }}</span>
                 </a>
             </div>
 
@@ -106,13 +106,3 @@
         {% endif %}
     {% endfor %}
 </div>
-
-<script>
-    /*
-    $(document).ready(function () {
-        $(".accordion [data-toggle]").mouseover(function () {
-            $(this).trigger("click");
-        });
-    });
-    */
-</script>

@@ -2,11 +2,10 @@ import copy
 import hashlib
 import json
 import os
-import imghdr
 import mimetypes
 
 
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from datetime import timedelta
 
 from django.conf import settings
@@ -46,7 +45,6 @@ CONTAINER_PORT_FIELDS = [
     for i in reversed(range(MAX_CONTAINER_DEPTH))
 ]
 
-print(CONTAINER_PORT_FIELDS)
 
 DRAFT = 0
 SENT = 1
@@ -71,6 +69,13 @@ GLOBAL_STATES = Choices(
     (9, 'ARCHIVED', _('Archived')),
     (10, 'TRASHED', _('Trashed'))
 )
+
+
+class OrphanSample(object):
+    def __init__(self):
+        self.name = ""
+        self.orphaned_datasets = []
+        self.orphaned_reports = []
 
 
 class Beamline(models.Model):
@@ -276,6 +281,15 @@ class Session(models.Model):
 
     def reports(self):
         return self.project.reports.filter(data__session=self).distinct()
+
+    def orphans(self):
+        samples = defaultdict(OrphanSample)
+        for data in self.datasets.filter(sample__isnull=True).all():
+            samples[data.name].name = data.name
+            samples[data.name].orphaned_datasets.append(data)
+            samples[data.name].orphaned_reports.extend(data.reports.all())
+
+        return list(samples.values())
 
     def num_datasets(self):
         return self.datasets.count()
@@ -778,15 +792,10 @@ class Container(TransitStatusMixin):
     def capacity(self):
         return self.kind.locations.count()
 
-    def get_load_root(self):
-        if self.parent:
-            return self.parent.get_load_root()
-        else:
-            return self
-
     def has_children(self):
         return self.children.count() > 0
 
+    @memoize(3600)
     def accepts_children(self):
         return self.kind.locations.filter(accepts__isnull=False).exists()
 
@@ -1088,9 +1097,6 @@ class Sample(ProjectObjectMixin):
     def reports(self):
         return AnalysisReport.objects.filter(project=self.project, data__sample=self)
 
-    def container_and_location(self):
-        return "{}⋮{}".format(self.container.name, self.location)
-
     def port(self):
         if hasattr(self, 'port_name'):  # fetch from default annotation
             return self.port_name
@@ -1184,7 +1190,6 @@ class Data(ActiveStatusMixin):
     kind = models.ForeignKey(DataType, on_delete=models.PROTECT, related_name='datasets')
     download = models.BooleanField(default=False)
     meta_data = JSONField(default={})
-
 
     objects = DataManager()
 

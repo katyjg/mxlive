@@ -48,25 +48,25 @@
                 </h3>
             </div>
             <div class="col">
-                <small class="text-muted text-condensed"># Containers:</small><br>
+                <small class="text-muted text-condensed">#&nbsp;Containers:</small><br>
                 <strong>{{ shipment.containers.count }}</strong>
             </div>
             <div class="col">
-                <small class="text-muted text-condensed"># Groups:</small><br>
+                <small class="text-muted text-condensed">#&nbsp;Groups:</small><br>
                 <strong>{{ shipment.groups.count }}</strong>
             </div>
             <div class="col">
-                <small class="text-muted text-condensed"># Samples:</small><br>
+                <small class="text-muted text-condensed">#&nbsp;Samples:</small><br>
                 <strong>{{ shipment.num_samples }}</strong>
             </div>
             {% if shipment.status >= shipment.STATES.ON_SITE %}
-                <div class="col-3">
+                <div class="col">
                     {% if shipment.status > shipment.STATES.ON_SITE %}
-                        <small class="text-muted text-condensed">Dates On-Site:</small><br>
+                        <small class="text-muted text-condensed">On-Site:</small><br>
                         {% if shipment.date_received %}{{ shipment.date_received|naturalday }}{% else %}
                             {{ shipment.date_shipped|naturalday }}{% endif %} - {{ shipment.date_returned|naturalday }}
                     {% else %}
-                        <small class="text-muted text-condensed">Current Location:</small><br>
+                        <small class="text-muted text-condensed">Location:</small><br>
                         {{ shipment.storage_location }}
                     {% endif %}
                 </div>

@@ -72,60 +72,31 @@
 {% endblock %}
 
 {% block full %}
-    {% with object.groups.all as groups %}
-    <div class="row">
-        <div class="col-12">
-            {% for group in groups %}
-                <h4>
-                    <a href="{% url 'group-detail' group.pk %}"><strong>{{ group.name }}</strong></a> |
-                    <span class="text-muted text-thin">
+<div class="row">
+    <div class="col-12">
+        {% for group in object.groups %}
+            <h4>
+                <a href="{% url 'group-detail' group.pk %}"><strong>{{ group.name }}</strong></a> |
+                <span class="text-muted text-thin">
                     {{ group.get_kind_display }} |
                     {{ group.get_plan_display }} |
-                    Requrements: {{ group | group_parameters | default:"&mdash;"}}
-                    </span>
-                </h4>
-                {% include "users/entries/group-protocol.html" with session=object %}
-                <hr />
-                {% include "users/entries/groupless-protocol.html" with session=object %}
-            {% endfor %}
-        </div>
+                    {{ group | group_parameters | default:"No restrictions"}}
+                </span>
+            </h4>
+            {% include "users/entries/group-progress.html" with samples=group.samples.all %}
+            <hr />
+        {% endfor %}
+        {% with session.orphans as orphans %}
+            {% if orphans %}
+            <h4>
+                <strong>Orphaned Data/Reports</strong> |
+                <span class="text-muted text-thin">
+                    No associated sample
+                </span>
+            </h4>
+            {% include "users/entries/group-progress.html" with samples=orphans %}
+            {% endif %}
+        {% endwith %}
     </div>
-    {% endwith %}
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    var getUrlParameter = function getUrlParameter(sParam) {
-        var sPageURL = window.location.search.substring(1),
-            sURLVariables = sPageURL.split('&'),
-            sParameterName,
-            i;
-
-        for (i = 0; i < sURLVariables.length; i++) {
-            sParameterName = sURLVariables[i].split('=');
-
-            if (sParameterName[0] === sParam) {
-                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
-            }
-        }
-    };
-
-    function download_all(urls) {
-        $.get("", {'urls': urls}, null, 'attachment');
-    }
-
-    $('[data-toggle="list"]').on('click', function(e) {
-        var id = $(this).data('group');
-        window.history.pushState(null, null, '?q=' + id);
-    });
-
-    $(document).ready(function(){
-        var selected = getUrlParameter('q');
-        if (!(selected)) {
-            selected = $('[data-group]').first().data('group');
-        }
-        $('#show-group'+ selected).tab('show');
-    });
-
-</script>
+</div>
 {% endblock %}

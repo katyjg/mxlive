@@ -106,7 +106,7 @@
             </table>
             </div>
         {% else %}
-            {% include "users/entries/group-protocol.html" with group=object %}
+            {% include "users/entries/group-progress.html" with samples=object.samples.all %}
         {% endif %}
     </div>
 </div>
