@@ -1,20 +1,25 @@
 import os
 from datetime import datetime, timedelta
 import msgpack
+import json
+import functools
+import operator
 
 import requests
 from django import http
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+
 from django.http import JsonResponse
 from django.utils import timezone, dateparse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 
-from mxlive.utils.signing import Signer
-from mxlive.utils.data import parse_frames, frame_ranges
+from mxlive.utils.signing import Signer, InvalidSignature
+from mxlive.utils.data import parse_frames
 
 from .middleware import get_client_address
 from ..lims.models import ActivityLog
@@ -25,6 +30,7 @@ from ..lims.templatetags.converter import humanize_duration
 from ..staff.models import UserList, RemoteConnection
 
 PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', '')
+MAX_CONTAINER_DEPTH = getattr(settings, 'MAX_CONTAINER_DEPTH', 2)
 
 
 def make_secure_path(path):
@@ -49,22 +55,28 @@ class VerificationMixin(object):
     the dispatch method will return a HttpResponseNotAllowed.
     """
 
-    def is_valid(self, request, **kwargs):
-        assert kwargs.get('username') and kwargs.get('signature'), "Must provide a username and a signature."
-        User = get_user_model()
-        try:
-            user = User.objects.get(username=kwargs.get('username'))
-        except User.DoesNotExist:
-            raise http.Http404("User not found")
-
-        signer = Signer(public=user.key)
-        value = signer.unsign(kwargs.get('signature'))
-        return value == kwargs.get('username')
-
     def dispatch(self, request, *args, **kwargs):
-        if self.is_valid(request, **kwargs):
-            return super(VerificationMixin, self).dispatch(request, *args, **kwargs)
-        return http.HttpResponseNotAllowed()
+        if not (kwargs.get('username') and kwargs.get('signature')):
+            return http.HttpResponseForbidden()
+        else:
+            User = get_user_model()
+            try:
+                user = User.objects.get(username=kwargs.get('username'))
+            except User.DoesNotExist:
+                return http.HttpResponseNotFound()
+            if not user.key:
+                return http.HttpResponseBadRequest()
+            else:
+                try:
+                    signer = Signer(public=user.key)
+                    value = signer.unsign(kwargs.get('signature'))
+                except InvalidSignature:
+                    return http.HttpResponseForbidden()
+
+                if value != kwargs.get('username'):
+                    return http.HttpResponseForbidden()
+
+        return super().dispatch(request, *args, **kwargs)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -223,21 +235,26 @@ class CloseSession(VerificationMixin, View):
         return JsonResponse(session_info)
 
 
-class ActiveLayout(VerificationMixin, View):
+KEYS = {
+    'container__name': 'container',
+    'container__kind__name': 'container_type',
+    'group__name': 'group',
+    'id': 'id',
+    'name': 'name',
+    'barcode': 'barcode',
+    'comments': 'comments',
+    'location__name': 'location',
+    'port_name': 'port'
+}
 
-    def get(self, request, *args, **kwargs):
 
-        beamline_name = kwargs.get('beamline')
-        try:
-            # should only be one active layout per beamline
-            beamline = Beamline.objects.get(name__exact=beamline_name)
-            active_layout = Dewar.objects.filter(active=True, beamline=beamline).first()
-            if active_layout:
-                return JsonResponse(active_layout.json_dict())
-            else:
-                return JsonResponse({})
-        except Beamline.DoesNotExist:
-            raise http.Http404("Beamline does not exist.")
+def prep_sample(info, **kwargs):
+    sample = {
+        KEYS.get(key): value
+        for key, value in info.items()
+    }
+    sample.update(**kwargs)
+    return sample
 
 
 class ProjectSamples(VerificationMixin, View):
@@ -259,17 +276,23 @@ class ProjectSamples(VerificationMixin, View):
 
         try:
             beamline = Beamline.objects.get(acronym=beamline_name)
-        except:
-            raise http.Http404("Beamline does not exist")
+            dewar = beamline.dewars.select_related('container').get(active=True)
+        except (Beamline.DoesNotExist, Dewar.DoesNotExist):
+            raise http.Http404("Beamline or Automounter does not exist")
 
-        sample_list = project.samples.filter(container__status=Container.STATES.ON_SITE).order_by('group__priority',
-                                                                                                     'priority')
-        dewar = beamline.active_dewar()
+        lookups = ['container__{}'.format('__'.join(['parent']*(i+1))) for i in range(MAX_CONTAINER_DEPTH)]
+        query = Q(container__status=Container.STATES.ON_SITE)
+        query &= (
+            functools.reduce(operator.or_, [Q(**{lookup:dewar.container}) for lookup in lookups]) |
+            functools.reduce(operator.and_, [Q(**{"{}__isnull".format(lookup):True}) for lookup in lookups])
+        )
 
-        samples = [s.json_dict() for s in sample_list if not s.dewar() or s.dewar() == dewar]
-        for i, s in enumerate(samples):
-            samples[i]['priority'] = i + 1
-
+        sample_list = project.samples.filter(query).order_by('group__priority', 'priority').values(
+            'container__name', 'container__kind__name', 'group__name', 'id', 'name', 'barcode', 'comments',
+            'location__name', 'container__location__name', 'port_name'
+        )
+        samples = [prep_sample(sample, priority=i) for i, sample in enumerate(sample_list)]
+        print(json.dumps(samples[:5], indent=4), sample_list[:4])
         return JsonResponse(samples, safe=False)
 
 
@@ -369,7 +392,7 @@ class AddData(VerificationMixin, View):
     """
 
     def post(self, request, *args, **kwargs):
-        info = msgpack.loads(request.body, encoding='utf-8')
+        info = msgpack.loads(request.body)
 
         project_name = kwargs.get('username')
         beamline_name = kwargs.get('beamline')
@@ -411,7 +434,6 @@ class AddData(VerificationMixin, View):
             num_frames = len(parse_frames(info['frames']))
             details.update(num_frames=num_frames)
 
-        # FIXME: Make sure MxDC sends the start and end time of data acquisition
         # Set start and end time for dataset
         end_time = timezone.now() if 'end_time' not in info else dateparse.parse_datetime(info['end_time'])
         start_time = (
@@ -419,7 +441,6 @@ class AddData(VerificationMixin, View):
         ) if 'start_time' not in info else dateparse.parse_datetime(info['start_time'])
         details.update(start_time=start_time, end_time=end_time)
 
-        #FIXME: Make sure MxDC sends the appropriate natural key (DataType.acronym) via API when adding
         for k in ['sample_id', 'group', 'port', 'frames', 'energy', 'filename', 'exposure', 'attenuation',
                   'container', 'name', 'directory', 'type', 'id']:
             if k in info:

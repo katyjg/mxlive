@@ -17,6 +17,8 @@ class BodyHelper(FormHelper):
     def __init__(self, form):
         super().__init__(form)
         self.form_tag = False
+        self.use_custom_control = True
+        self.form_show_errors = False
 
 
 class FooterHelper(FormHelper):
@@ -24,6 +26,7 @@ class FooterHelper(FormHelper):
         super().__init__(form)
         self.form_tag = False
         self.disable_csrf = True
+        self.form_show_errors = False
 
 
 disabled_widget = forms.HiddenInput(attrs={'readonly': True})

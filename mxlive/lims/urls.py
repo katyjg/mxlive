@@ -6,6 +6,7 @@ from . import views, ajax_views, forms
 urlpatterns = [
     path('profile/<slug:username>/edit', views.ProjectEdit.as_view(), name='edit-profile'),
     path('profile/<slug:username>/labels', views.ProjectLabels.as_view(), name='project-labels'),
+    path('profile/<slug:username>/reset', views.ProjectReset.as_view(), name='project-reset'),
     path('profile/<slug:username>/statistics/', views.ProjectStatistics.as_view(), name='project-statistics'),
 
     path('beamline/<int:pk>/', views.BeamlineDetail.as_view(), name='beamline-detail'),

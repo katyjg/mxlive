@@ -74,37 +74,20 @@
 {% block full %}
     {% with object.groups.all as groups %}
     <div class="row">
-        <div class="col-4 col-lg-3">
-            <div class="card">
-                <div class="card-header p-1 text-center text-wide text-muted"><small>GROUPS</small></div>
-                {% if groups %}
-                    <div class="list-group list-group-flush" role="tablist">
-                    {% for group in groups %}
-                        <a class="list-group-item list-group-item-action" role="tab" aria-controls="group{{ group.pk }}"
-                           id="show-group{{ group.pk }}" data-toggle="list" href="#group-{{ group.pk }}" data-group="{{ group.pk }}">
-                            {% include "users/entries/group-nav.html" with session=object %}
-                        </a>
-                    {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-        <div class="col-8 col-lg-9">
-            <div class="tab-content">
-                {% for group in groups %}
-                    <div class="tab-pane fade" id="group-{{ group.pk }}" role="tabpanel" aria-labelledby="show-group{{ group.pk }}">
-                        <h4>
-                            <a href="{% url 'group-detail' group.pk %}"><strong>{{ group.name }}</strong></a> |
-                            <span class="text-muted text-thin">
-                            {{ group.get_kind_display }} |
-                            {{ group.get_plan_display }} |
-                            Requrements: {{ group | group_parameters | default:"&mdash;"}}
-                            </span>
-                        </h4>
-                        {% include "users/entries/group-protocol.html" with session=object %}
-                    </div>
-                {% endfor %}
-            </div>
+        <div class="col-12">
+            {% for group in groups %}
+                <h4>
+                    <a href="{% url 'group-detail' group.pk %}"><strong>{{ group.name }}</strong></a> |
+                    <span class="text-muted text-thin">
+                    {{ group.get_kind_display }} |
+                    {{ group.get_plan_display }} |
+                    Requrements: {{ group | group_parameters | default:"&mdash;"}}
+                    </span>
+                </h4>
+                {% include "users/entries/group-protocol.html" with session=object %}
+                <hr />
+                {% include "users/entries/groupless-protocol.html" with session=object %}
+            {% endfor %}
         </div>
     </div>
     {% endwith %}

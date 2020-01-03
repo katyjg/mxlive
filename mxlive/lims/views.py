@@ -149,6 +149,25 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
         return context
 
 
+class ProjectReset(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    template_name = "users/forms/project-reset.html"
+    model = models.Project
+    success_message = "Account API key reset"
+    fields = ("key", )
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()
+
+    def get_object(self, *kwargs):
+        obj = self.model.objects.get(username=self.kwargs.get('username'))
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_action'] = reverse_lazy('project-reset', kwargs={'username': self.object.username})
+        return context
+
+
 class ProjectStatistics(UserPassesTestMixin, detail.DetailView):
     model = models.Project
     template_name = "users/entries/project-statistics.html"
@@ -203,6 +222,7 @@ class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AsyncFormMixin, edit
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
         return kwargs
+
 
 class ProjectLabels(AdminRequiredMixin, HTML2PdfMixin, detail.DetailView):
     template_name = "users/pdf/return_labels.html"
@@ -505,31 +525,25 @@ class ContainerDetail(DetailListMixin, SampleList):
     template_name = "users/entries/container.html"
     list_columns = ['name', 'barcode', 'group', 'location', 'comments']
     link_url = 'sample-edit'
-    link_attr = 'data-form-link'
+    link_attr = None
     show_project = False
-    detail_target = '#modal-target'
 
     def page_title(self):
         object = self.get_object()
         return 'Samples in {}'.format(object.name)
 
-    def get_list_filters(self):
-        filters = super().get_list_filters()
-        if self.get_object().has_children():
-            filters.append('container')
-        return filters
+    def get_link_attr(self, obj):
+        if obj.container.status == obj.container.STATES.DRAFT:
+            return "data-form-link"
+        else:
+            return self.link_attr
 
-    def get_object(self):
-        obj = super(ContainerDetail, self).get_object()
-        if obj.status != self.extra_model.STATES.DRAFT:
-            self.detail_ajax = False
-            self.detail_target = None
-        return obj
-
-    def get_detail_url(self, obj):
-        if self.get_object().status == self.extra_model.STATES.DRAFT:
-            return super(ContainerDetail, self).get_detail_url(obj)
-        return reverse_lazy('sample-detail', kwargs={'pk': obj.pk})
+    def get_link_url(self, obj):
+        if obj.container.status == obj.container.STATES.DRAFT:
+            link_url = "sample-edit"
+        else:
+            link_url = "sample-detail"
+        return reverse_lazy(link_url, kwargs={'pk': obj.pk})
 
 
 class ContainerEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
@@ -923,6 +937,10 @@ class BeamlineHistory(AdminRequiredMixin, ListViewMixin, ItemListView):
     def get_queryset(self):
         qs = super(BeamlineHistory, self).get_queryset()
         return qs.filter(beamline__pk=self.kwargs['pk'])
+
+    def page_title(self):
+        beamline = models.Beamline.objects.get(pk=self.kwargs['pk'])
+        return "Sessions on {}".format(beamline)
 
 
 class ParameterStatistics(BeamlineDetail):

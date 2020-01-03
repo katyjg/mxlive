@@ -15,7 +15,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q, F, Avg, Count, CharField, BooleanField, Value, Sum
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, Concat
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.urls import reverse
@@ -34,6 +34,19 @@ IDENTITY_FORMAT = '-%y%m'
 RESTRICT_DOWNLOADS = getattr(settings, 'RESTRICT_DOWNLOADS', False)
 SHIFT_HRS = getattr(settings, 'HOURS_PER_SHIFT', 8)
 SHIFT_SECONDS = SHIFT_HRS*3600
+
+MAX_CONTAINER_DEPTH = getattr(settings, 'MAX_CONTAINER_DEPTH', 2)
+SAMPLE_PORT_FIELDS = [
+    "container{}__location__name".format("__".join([""]+(["parent"]*i)))
+    for i in reversed(range(MAX_CONTAINER_DEPTH))
+] + ['location__name']
+
+CONTAINER_PORT_FIELDS = [
+    "{}location__name".format("__".join((["parent"]*i)+[""]))
+    for i in reversed(range(MAX_CONTAINER_DEPTH))
+]
+
+print(CONTAINER_PORT_FIELDS)
 
 DRAFT = 0
 SENT = 1
@@ -92,7 +105,7 @@ class Beamline(models.Model):
         Returns the first active dewar pointing to the beamline. Generally, there should only be one active dewar
         referencing each beamline.
         """
-        return self.dewar_set.filter(active=True).first()
+        return self.dewars.filter(active=True).first()
 
 
 class Carrier(models.Model):
@@ -144,6 +157,9 @@ class Project(AbstractUser):
 
     def __str__(self):
         return self.name.upper()
+
+    def get_absolute_url(self):
+        return reverse('user-detail', kwargs={'username': self.username})
 
     def onsite_containers(self):
         return self.containers.filter(status=Container.STATES.ON_SITE).count()
@@ -707,9 +723,14 @@ class LocationCoord(models.Model):
         return "{}:{}".format(self.kind.name, self.location.name)
 
 
-class ContainerManager(models.Manager):
+class ContainerQuerySet(models.QuerySet):
+    def with_port(self):
+        return self.annotate(port_name=Concat(*CONTAINER_PORT_FIELDS))
+
+
+class ContainerManager(models.Manager.from_queryset(ContainerQuerySet)):
     def get_queryset(self):
-        return super().get_queryset().select_related('kind', 'project')
+        return super().get_queryset().select_related('kind', 'project', 'location').with_port()
 
 
 class Container(TransitStatusMixin):
@@ -797,38 +818,23 @@ class Container(TransitStatusMixin):
         return self.dewars.filter(active=True).first() or self.parent and self.parent.dewar() or None
 
     def port(self):
-        if self.parent and self.location:
+        if hasattr(self, 'port_name'):  # fetch from default annotation
+            return self.port_name
+        elif self.parent and self.location:
             return "{}{}".format(self.parent.port(), self.location.name)
-        else:
-            return ""
+        return ""
 
     def get_project(self):
-        if self.children.all():
+        if self.children.count():
             return '/'.join(set(self.children.values_list('project__username', flat=True)))
         return self.project
 
-    def update_priority(self):
-        """ Updates the Container's priority to max(group priorities)
-        """
-        for field in ['priority']:
-            priority = None
-            for sample in self.samples.all():
-                if sample.group:
-                    if priority is None:
-                        priority = getattr(sample.group, field)
-                    else:
-                        priority = max(priority, getattr(sample.group, field))
-            if priority is not None:
-                setattr(self, field, priority)
-
     def get_location_name(self):
-        if self.parent:
-            if self.location:
-                return self.location.name
+        return None if not (self.parent and self.location) else self.location.name
 
     def placeholders(self):
         """
-        Generate a list of container locations that can hold samples or samples samples contained in the container.
+        Generate a list of container locations that can hold samples or samples contained in the container.
         """
         samples = {s.location: s for s in self.samples.select_related('location', 'group').all()}
         return [
@@ -927,7 +933,7 @@ class Dewar(models.Model):
     one that samples or containers can be added to during a Project's beamtime. If a beamline has multiple containers
     (ie. Dewar objects), only the current one should be marked 'active'.
     """
-    beamline = models.ForeignKey(Beamline, on_delete=models.CASCADE)
+    beamline = models.ForeignKey(Beamline, on_delete=models.CASCADE, related_name="dewars")
     container = models.ForeignKey(Container, on_delete=models.CASCADE, related_name="dewars")
     staff_comments = models.TextField(blank=True, null=True)
     modified = models.DateTimeField('date modified', auto_now=True, editable=False)
@@ -1032,9 +1038,14 @@ class Group(ProjectObjectMixin):
         super(Group, self).archive(request=request)
 
 
-class SampleManager(models.Manager):
+class SampleQuerySet(models.QuerySet):
+    def with_port(self):
+        return self.annotate(port_name=Concat(*SAMPLE_PORT_FIELDS))
+
+
+class SampleManager(models.Manager.from_queryset(SampleQuerySet)):
     def get_queryset(self):
-        return super().get_queryset().select_related('group', 'location', 'container', 'project')
+        return super().get_queryset().select_related('group', 'location', 'container', 'project').with_port()
 
 
 class Sample(ProjectObjectMixin):
@@ -1080,12 +1091,12 @@ class Sample(ProjectObjectMixin):
     def container_and_location(self):
         return "{}⋮{}".format(self.container.name, self.location)
 
-    container_and_location.short_description = _("Container Location")
-
     def port(self):
-        if not self.dewar():
-            return ""
-        return '{}{}'.format(self.container.port(), self.location)
+        if hasattr(self, 'port_name'):  # fetch from default annotation
+            return self.port_name
+        elif self.container and self.location:
+            return "{}{}".format(self.container.port(), self.location.name)
+        return ""
 
     def is_editable(self):
         return self.container.status == self.container.STATES.DRAFT
@@ -1095,20 +1106,6 @@ class Sample(ProjectObjectMixin):
             if self.group and self.group.samples.count() == 1:
                 self.group.delete(*args, **kwargs)
             super().delete(*args, **kwargs)
-
-    def json_dict(self):
-        return {
-            'container': self.container.name,
-            'container_type': self.container.kind.name,
-            'group': self.group.name,
-            'id': self.pk,
-            'name': self.name,
-            'barcode': self.barcode,
-            'priority': (self.group.priority, self.priority if self.priority else 1),
-            'comments': self.comments,
-            'location': self.location.name,
-            'port': self.port(),
-        }
 
 
 class FrameField(models.TextField):

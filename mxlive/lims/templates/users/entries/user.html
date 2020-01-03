@@ -19,14 +19,6 @@
 {% endblock %}
 
 {% block object_tools %}
-{% if user.is_superuser %}
-    <a href="{% url "project-labels" object.username %}" title="Get Shipping Labels">
-        {% show_icon label="Labels" icon="ti ti-md ti-tag" %}
-    </a>
-    <a href="#!" data-form-link="{% url "edit-profile" object.username %}" title="Edit Profile">
-        {% show_icon label="Edit" icon="ti ti-md ti-pencil-alt" %}
-    </a>
-{% endif %}
     <a href="{% url "data-list" %}?search={{ object.username }}" title="Go to Data for {{ object.username }}">
         {% show_icon label="Data" icon="ti ti-md ti-layout-grid3" badge=object.datasets.count %}
     </a>
@@ -34,8 +26,20 @@
         {% show_icon label="Reports" icon="ti ti-md ti-bar-chart-alt" badge=object.reports.count %}
     </a>
     <a class="pull-right" href="{% url "session-list" %}?search={{ object.username }}" title="Go to Sessions for {{ object.username }}">
-        {% show_icon label="Sessions" icon="ti ti-md ti-time" badge=object.sessions.all.count %}
+        {% show_icon label="Sessions" icon="ti ti-md ti-calendar" badge=object.sessions.all.count %}
     </a>
+    {% if user.is_superuser %}
+    <span class="separator"></span>
+    <a href="{% url "project-labels" object.username %}" title="Get Shipping Labels">
+        {% show_icon label="Labels" icon="ti ti-md ti-tag" %}
+    </a>
+    <a href="#!" data-form-link="{% url "edit-profile" object.username %}" title="Edit Profile">
+        {% show_icon label="Edit" icon="ti ti-md ti-pencil-alt" %}
+    </a>
+    <a href="#!" data-form-link="{% url "project-reset" object.username %}" title="Reset API Key">
+        {% show_icon label="Reset Key" icon="ti ti-md ti-key" %}
+    </a>
+{% endif %}
 {% endblock %}
 
 {% block object_status %}
@@ -70,16 +74,16 @@
         <div class="col-12">
             <div class="card">
                 <div class="row d-flex flex-row align-items-center">
-                    <div class="col-8">
+                    <div class="col-6">
                         {% include "users/address.html" with user=object %}
                         <div class="mini-profile">{{ object.contact_email|default_if_none:"" }}<br/>
                         <pre>{{ object.contact_phone|default_if_none:"" }}</pre>
                         </div>
                     </div>
-                    <div class="col-4 text-center align-items-center">
-                        <div>
+                    <div class="col-6">
+                        <div class="text-center float-right">
                             <img src="/static/img/{{ object.carrier|default_if_none:'walking'|slugify }}.png"
-                                 width="90%"
+                                 height="100px"
                                  title="{{ object.carrier|default_if_none:'User'|title }}">
                             <h5>{{ object.account_number|default:"-- --- --- --" }}</h5>
                         </div>

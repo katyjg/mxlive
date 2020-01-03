@@ -2,7 +2,7 @@ import base64
 import time
 
 from cryptography.hazmat.primitives import hashes
-from cryptography import exceptions
+from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
@@ -38,7 +38,7 @@ class Signer(object):
 
     def unsign(self, signed_value):
         if self.sep not in signed_value:
-            raise exceptions.InvalidSignature('No "%s" found in value' % self.sep)
+            raise InvalidSignature('No "%s" found in value' % self.sep)
         timed_value, b64_sig = str(signed_value).rsplit(self.sep, 1)
         value, b62_time = timed_value.rsplit(self.sep, 1)
         signature = base64.urlsafe_b64decode(b64_sig)
@@ -48,7 +48,9 @@ class Signer(object):
         self.public_key.verify(signature, verify_value.encode('utf-8'), hashes.SHA256())
 
         if now - signature_time > self.max_delta:
-            raise exceptions.InvalidSignature('Signature is too old.')
+            raise InvalidSignature('Signature is too old.')
 
         return value
 
+
+__all__ = ['Signer', 'InvalidSignature']

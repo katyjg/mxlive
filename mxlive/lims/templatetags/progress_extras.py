@@ -1,5 +1,6 @@
 from django.template import Library
 from django.db.models import Q
+from .. import models
 register = Library()
 
 
@@ -10,9 +11,14 @@ def num_session_samples(group, session):
 
 @register.simple_tag
 def group_samples(group, session=None):
-    if session:
+    if session and group:
         return group.samples.filter(datasets__session=session.pk).distinct()
-    return group.samples.all()
+    elif session:
+        return models.Sample.objects.filter(datasets__session=session.pk, group__isnull=True).distinct()
+    elif group:
+        return group.samples.all()
+    else:
+        return  models.Sample.objects.none()
 
 
 @register.filter

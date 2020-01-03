@@ -155,6 +155,8 @@ class ProjectDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edi
         return JsonResponse({'url': self.success_url}, safe=False)
 
 
+
+
 def record_logout(sender, user, request, **kwargs):
     """ user logged outof the system """
     ActivityLog.objects.log_activity(request, user, ActivityLog.TYPE.LOGOUT, '{} logged-out'.format(user.username))

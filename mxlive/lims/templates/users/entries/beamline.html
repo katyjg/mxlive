@@ -33,7 +33,7 @@
         {% show_icon label='Usage' icon='ti ti-md ti-stats-up' %}
     </a>
     <a href="{% url "beamline-history" pk=object.pk %}">
-        {% show_icon label='Sessions' icon='ti ti-md ti-time' %}
+        {% show_icon label='Sessions' icon='ti ti-md ti-calendar' %}
     </a>
     <a href="#!" data-form-link="{% url "dewar-edit" pk=object.active_dewar.pk %}">
         {% show_icon label='Comment' icon='ti ti-md ti-comment-alt' %}

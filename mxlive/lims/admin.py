@@ -7,11 +7,16 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ('identity', 'project')
 
 
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('name', 'contact_person', 'email')
+    search_fields = ('name', 'contact_person')
+
+
 admin.site.register(models.Guide)
 admin.site.register(models.Beamline)
 admin.site.register(models.Dewar)
 admin.site.register(models.ProjectType)
-admin.site.register(models.Project)
+admin.site.register(models.Project, UserAdmin)
 admin.site.register(models.ComponentType)
 admin.site.register(models.DataType)
 admin.site.register(models.ContainerType)
