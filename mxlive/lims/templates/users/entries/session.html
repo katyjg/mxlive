@@ -32,7 +32,7 @@
     </a>
     {% if user.is_superuser %}
         <a href="{% url "session-statistics" pk=object.pk %}">
-            {% show_icon label='Statistics' icon='ti ti-md ti-bar-chart' %}
+            {% show_icon label='Statistics' icon='ti ti-md ti-pulse' %}
         </a>
     {% endif %}
     {% if object.datasets.count %}

@@ -15,7 +15,7 @@
 {% block object_tools %}
     {% now "Y" as yr %}
     <a href="{% url "yearly-usage" object.pk %}">
-        {% show_icon label='Usage' icon='ti ti-md ti-stats-up' %}
+        {% show_icon label='Usage' icon='ti ti-md ti-pie-chart' %}
     </a>
 {% endblock %}
 

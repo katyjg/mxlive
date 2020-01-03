@@ -26,46 +26,53 @@
             <div id="collapse-{{ forloop.counter }}" class="collapse" aria-labelledby="heading-{{ forloop.counter }}"
                  data-parent="#guide-accordion">
                 <div class="card-body p-3">
-                    <h5 class="text-condensed">
-                        <strong>
-                            {{ guide.title }}
-                        </strong>
-                    </h5>
                     {% if guide.url or guide.attachment %}
                         {% if guide.has_image %}
                             <a href="#!" data-link="{% guide_link guide %}">
-                                <img src="{{ guide.attachment.url}}" width="100%" />
+                                <div class="guide-overlaid-text">
+                                    <img src="{{ guide.attachment.url}}" width="100%" />
+                                    <h5><strong>{{ guide.title }}</strong></h5>
+                                </div>
                                 <div class="text-condensed guide-snippet">
                                     {{ guide.description | markdown }}
                                 </div>
                             </a>
                         {% elif guide.has_video or guide.get_kind_display == guide.TYPE.video %}
                             <a href="#!" data-link="{% guide_link guide %}">
-                                <img src="{% static 'img/video-embed.png' %}" width="100%" />
-                                <div class="text-condensed guide-snippet">
+                                <div class="guide-overlaid-text">
+                                    <img src="{% static 'img/video-embed.png' %}" width="100%" />
+                                    <h5>{{ guide.title }}</h5>
+                                </div>
+                                <div class="guide-text-condensed guide-snippet">
                                     {{ guide.description | markdown }}
                                 </div>
                             </a>
                         {% elif guide.get_kind_display == guide.TYPE.image %}
                             <a href="#!" data-link="{% guide_link guide %}">
-                                <img src="{% static 'img/image-embed.png' %}" width="100%" />
+                                <div class="guide-overlaid-text">
+                                    <img src="{% static 'img/image-embed.png' %}" width="100%" />
+                                    <h5>{{ guide.title }}</h5>
+                                </div>
                                 <div class="text-condensed guide-snippet">
                                     {{ guide.description | markdown }}
                                 </div>
                             </a>
                         {% elif guide.modal %}
+                            <h5 class="text-condensed"><strong>{{ guide.title }}</strong></h5>
                             <a href="#!" data-link="{% guide_link guide %}">
                                 <div class="text-condensed guide-snippet">
                                     {{ guide.description | markdown }}
                                 </div>
                             </a>
                         {% elif guide.url %}
+                            <h5 class="text-condensed"><strong>{{ guide.title }}</strong></h5>
                             <a href="{% guide_link guide %}" target="_blank">
                                 <div class="text-condensed guide-snippet">
                                     {{ guide.description | markdown }}
                                 </div>
                             </a>
                         {% else %}
+                            <h5 class="text-condensed"><strong>{{ guide.title }}</strong></h5>
                             <div class="text-condensed guide-snippet">
                                 {{ guide.description | markdown }}
                             </div>

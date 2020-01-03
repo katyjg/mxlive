@@ -27,10 +27,10 @@
     </a>
     {% endif %}
     <a href="{% url "yearly-statistics" object.pk  %}">
-        {% show_icon label='Stats' icon='ti ti-md ti-bar-chart' %}
+        {% show_icon label='Stats' icon='ti ti-md ti-pulse' %}
     </a>
     <a href="{% url "yearly-usage" object.pk %}">
-        {% show_icon label='Usage' icon='ti ti-md ti-stats-up' %}
+        {% show_icon label='Usage' icon='ti ti-md ti-pie-chart' %}
     </a>
     <a href="{% url "beamline-history" pk=object.pk %}">
         {% show_icon label='Sessions' icon='ti ti-md ti-calendar' %}

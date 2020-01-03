@@ -31,7 +31,7 @@
 {% block object_tools %}
     {% now "Y" as yr %}
     <a href="{% url "monthly-statistics" object.pk yr %}">
-        {% show_icon label='Parameters' icon='ti ti-md ti-bar-chart' %}
+        {% show_icon label='Stats' icon='ti ti-md ti-pulse' %}
     </a>
 {% endblock %}
 

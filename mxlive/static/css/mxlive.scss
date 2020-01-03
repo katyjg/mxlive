@@ -346,7 +346,7 @@ a.navbar-brand {
 .overflow-ellipsis {
   min-width: 0;
 
-  > *:not(.no-overflow) {
+   *:not(.no-overflow) {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1516,6 +1516,33 @@ tr.sample-completed {
   font-size: 0.9rem;
   ol {
     padding-inline-start: 2rem;
+  }
+
+}
+
+.guide-overlaid-text {
+  position: relative;
+  text-align: center;
+  > *:last-child {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: white;
+    transform: translate(-50%, -50%);
+    letter-spacing: 0.1em;
+    text-shadow:
+       -1px -1px 3px #000,
+        1px -1px 3px #000,
+        -1px 1px 3px #000,
+         1px 1px 3px #000;
+  }
+  @supports (-webkit-text-stroke: 1px black) {
+   > * {
+      -webkit-text-stroke: 1px black;
+      -webkit-text-fill-color: white;
+    }
   }
 
 }
