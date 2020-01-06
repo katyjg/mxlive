@@ -11,8 +11,8 @@
             <div id="mad-report" class="w-100 p-0"></div>
             <script>
                 // create variables for annotations
-                var choices{{ data.pk }} = {{ mad.choices | safe}};
-                var report{{ data.pk }}={{ mad.report | safe }};
+                var choices{{ data.pk }} = {{ mad.choices | jsonify}};
+                var report{{ data.pk }}={{ mad.report | jsonify }};
             </script>
         </div>
         {% if mad.choices %}

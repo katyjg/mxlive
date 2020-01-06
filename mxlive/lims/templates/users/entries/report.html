@@ -4,6 +4,7 @@
 {% load badges %}
 {% load data_server %}
 {% load icons %}
+{% load jsutils %}
 
 {% block extra_css %}
     <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
@@ -80,7 +81,7 @@
     <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
     <script type="text/javascript">
         let report = {
-            details: {{ object.details | safe }}
+            details: {{ object.details | jsonify }}
         };
         $('#report-builder').liveReport({
             data: report

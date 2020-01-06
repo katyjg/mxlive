@@ -12,10 +12,10 @@
             <script>
                 // create variables for annotations
                 var edges{{ data.pk }} = {
-                    {% for element in xrf.assignments %}{{ element.label }}: {{ element.edges | safe}},
+                    {% for element in xrf.assignments %}{{ element.label }}: {{ element.edges | jsonify}},
                     {% endfor %}
                 };
-                var report{{ data.pk }}={{ xrf.report|safe }};
+                var report{{ data.pk }}={{ xrf.report|jsonify }};
             </script>
         </div>
         {% if xrf.assignments %}

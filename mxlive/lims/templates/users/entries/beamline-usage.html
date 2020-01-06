@@ -53,7 +53,7 @@
     <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
     <script type="text/javascript">
-        var report = {{ report | safe }};
+        var report = {{ report | jsonify }};
         $(document).ready(function(){
             $('#data-stats').liveReport({
                 data: report
