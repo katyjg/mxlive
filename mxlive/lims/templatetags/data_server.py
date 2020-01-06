@@ -70,39 +70,6 @@ def get_xdi_info(path):
         return {}
 
 
-@register.simple_tag
-def get_mad_data(data):
-    xdi_path = '{}/{}'.format(data.url, data.file_name)
-    mad_path = '{}/{}.mad'.format(data.url, data.name)
-    raw = get_xdi_info(xdi_path)
-    analysis = get_json_info(mad_path)
-    if raw and analysis:
-        info = {
-            'xlabel': 'Energy ({})'.format(raw['column.1'].units),
-            'y1label': 'Fluorescence Counts',
-            'y2label': 'Anomalous Scattering Factors (f`, f``)',
-            'data': [
-                {
-                    'label': '',
-                    'x': list(raw.data['energy']),
-                    'y1': list(raw.data['normfluor'])},
-                {
-                    'label': 'f`',
-                    'x': analysis['esf']['energy'],
-                    'y2': analysis['esf']['fp']},
-                {
-                    'label': 'f``',
-                    'x': analysis['esf']['energy'],
-                    'y2': analysis['esf']['fpp']},
-            ],
-            'choices': [dict((str(k), isinstance(v, str) and str(v) or v) for k, v in choice.items())
-                        for choice in analysis['choices']]
-        }
-    else:
-        info = {'choices': [], 'data': []}
-    return info
-
-
 @register.simple_tag(takes_context=True)
 def mad_report(context):
     data = context['data']
@@ -116,7 +83,6 @@ def mad_report(context):
     if not raw and analysis:
         return {}
 
-    ymax = numpy.ceil(raw.data['normfluor'].max() * 1.05)
     x_values = numpy.round(analysis["esf"]['energy'], 4).astype(float).tolist()
     exp_values = raw.data['normfluor'][:-1].astype(int).tolist()
     fp_values = numpy.round(analysis['esf']['fp'], 3).astype(float).tolist()
@@ -127,8 +93,6 @@ def mad_report(context):
         dict((str(k), isinstance(v, str) and str(v) or v) for k, v in choice.items())
                 for choice in analysis['choices']
     ]
-
-    print(json.dumps(choices, indent=4))
 
     report = {'details': [
         {
@@ -151,8 +115,9 @@ def mad_report(context):
                             'x-label': x_label,
                             'y1-label': 'Fluorescence',
                             'y2-label': 'Anomalous Scattering Factors',
+                            'aspect-ratio': 1.5,
                             'annotations': [
-                                {'value': choice['energy'], 'text': choice['label']}
+                                {'value': choice['energy'], 'text': choice['label'].upper()}
                                 for choice in choices
                             ]
                         },
@@ -242,9 +207,10 @@ def xrf_report(context):
                                 ['Experiment'] + exp_values,
                                 ['Fit'] + fit_values,
                             ],
+                            'aspect-ratio': 1.5,
                             'y1-label': 'Fluorescence',
                             'y1-limits': [0, int(ymax)],
-                            'x-limits': [0.25, float(data.energy) + 2],
+                            'x-limits': [0.25, float(data.energy)],
                         },
                     'id': 'xrf',
                     'style': 'col-12',

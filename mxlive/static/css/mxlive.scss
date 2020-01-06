@@ -181,30 +181,34 @@ main {
   }
 }
 
-.modal-sidebar {max-height: 22rem; }
+.modal-sidebar {
+  height: 25rem;
+  margin-bottom: 1rem;
+  overflow-x: hidden;
+}
 
 @include media-breakpoint-up(sm) {
   // Automatically set modal sidebar's heights
-  .modal-sidebar {max-height: 22rem;}
+  .modal-sidebar {height: 25rem;}
   .modal-dialog.data-viewer {
     max-width: $modal-data;
   }
 }
 @include media-breakpoint-up(md) {
   // Automatically set modal sidebar's heights
-  .modal-sidebar {max-height: 22rem;}
+  .modal-sidebar {height: 25rem;}
   .modal-dialog.data-viewer {
     max-width: $modal-data;
   }
 }
 @include media-breakpoint-up(lg) {
-  .modal-sidebar { max-height: 29rem;}
+  .modal-sidebar { height: 32.5rem;}
   .modal-dialog.data-viewer {
     max-width:800px;
   }
 }
 @include media-breakpoint-up(xl) {
-  .modal-sidebar { max-height: 28rem;}
+  .modal-sidebar { height: 32rem;}
   .modal-dialog.data-viewer {
     max-width:800px;
   }

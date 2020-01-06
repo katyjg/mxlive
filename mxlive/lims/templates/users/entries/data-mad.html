@@ -7,7 +7,7 @@
 {% block data_content %}
     {% mad_report as mad %}
     <div class="row">
-        <div class="col-12 col-lg-9">
+        <div class="col-9 pr-0">
             <div id="mad-report" class="w-100 p-0"></div>
             <script>
                 // create variables for annotations
@@ -16,33 +16,38 @@
             </script>
         </div>
         {% if mad.choices %}
-            <div class="col-12 col-lg-3 pb-4 text-condensed">
+            <div class="col-3 text-condensed pl-0">
+                <div class="modal-sidebar d-flex flex-column justify-content-between">
                 <table class="table w-100 table-hover table-sm">
                     <thead>
                     <tr>
-                        <th>Choice</th>
+                        <th></th>
                         <th>Energy</th>
-                        <th>f'</th>
-                        <th>f''</th>
+                        <th>ƒ'</th>
+                        <th>ƒ"</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for choice in mad.choices %}
-                        <tr style="color: {{ element.color }};">
-                            <td>{{ choice.label }}</td>
-                            <td title="{{ choice.wavelength|floatformat:3 }} Å">{{ choice.energy|floatformat:3 }} keV</td>
-                            <td>{{ choice.fp|floatformat:2 }}</td>
-                            <td>{{ choice.fpp|floatformat:2 }}</td>
+                        <tr>
+                            <td style="vertical-align: middle;">{{ choice.label | upper }}</td>
+                            <td>{{ choice.energy|floatformat:4 }}&nbsp;keV<br/>
+                                <span class="text-muted" title="Wavelength">
+                                    {{choice.wavelength|floatformat:4}}&nbsp;Å
+                                </span>
+                            </td>
+                            <td>{{ choice.fp|floatformat:1 }}</td>
+                            <td>{{ choice.fpp|floatformat:1 }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
-                <br/>
-                <table class="table w-100 table-hover table-sm">
+
+                <table class="table w-100 table-hover table-sm pb-4">
                     <thead>
                     <tr>
-                        <th>Meta Data</th>
-                        <th>&nbsp;</th>
+                        <th>Meta</th>
+                        <th>Data</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -54,6 +59,7 @@
                     {% endfor %}
                     </tbody>
                 </table>
+                </div>
             </div>
         {% endif %}
     </div>
