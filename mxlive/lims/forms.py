@@ -1021,6 +1021,9 @@ class GuideForm(forms.ModelForm):
     class Meta:
         model = Guide
         fields = ['title', 'description', 'kind', 'staff_only', 'modal', 'attachment', 'url', 'priority']
+        widgets = {
+            'description': forms.Textarea(attrs={"cols": 40, "rows": 7}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1045,7 +1048,7 @@ class GuideForm(forms.ModelForm):
             ),
             Div(
                 Div('kind', css_class="col-6"),
-                Div('url', css_class="col-6"),
+                Div('url', css_class="col-6", title="Resource examples:\n'youtube:<vid>' or \n'flickr:<album>:<photo>'"),
                 css_class="row"
             ),
             Div(
@@ -1057,12 +1060,18 @@ class GuideForm(forms.ModelForm):
             ),
             Div(
                 Div(
-                    Field('staff_only', css_class="custom-control-input"),
-                    css_class="custom-control custom-switch col-6"
+                    Div(
+                        Field('staff_only', css_class="custom-control-input"),
+                        css_class="custom-control custom-switch"
+                    ),
+                    css_class="col-6"
                 ),
                 Div(
-                    Field('modal', css_class="custom-control-input"),
-                    css_class="custom-control custom-switch col-6"
+                    Div(
+                        Field('modal', css_class="custom-control-input"),
+                        css_class="custom-control custom-switch"
+                    ),
+                    css_class="col-6"
                 ),
                 css_class="row"
             ),

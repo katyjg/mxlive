@@ -260,7 +260,7 @@ def usage_stats(beamline, period='year', **filters):
 
     stats = {'details': [
         {
-            'title': 'Usage Metrics',
+            'title': 'Metrics Overview',
             'style': 'row',
             'content': [
                 {
@@ -293,7 +293,7 @@ def usage_stats(beamline, period='year', **filters):
                 },
                 {
                     'title': 'Usage Statistics',
-                    'kind': 'barchart',
+                    'kind': 'columnchart',
                     'data': {
                         'x-label': period.title(),
                         'data': [
@@ -322,7 +322,7 @@ def usage_stats(beamline, period='year', **filters):
                 },
                 {
                     'title': 'Datasets by time of week',
-                    'kind': 'barchart',
+                    'kind': 'columnchart',
                     'data': {
                         'x-label': 'Day',
                         'data': [
@@ -356,7 +356,7 @@ def usage_stats(beamline, period='year', **filters):
                 },
                 {
                     'title': 'Dataset summary by {}'.format(period),
-                    'kind': 'barchart',
+                    'kind': 'columnchart',
                     'data': {
                         'x-label': period.title(),
                         'stack': [[d['kind__name'] for d in data_types]],
@@ -383,7 +383,7 @@ def usage_stats(beamline, period='year', **filters):
             'content': [
                 {
                     'title': 'Datasets',
-                    'kind': 'columnchart',
+                    'kind': 'barchart',
                     'data': {
                         'x-label': 'User',
                         'aspect-ratio': .7,
@@ -402,7 +402,7 @@ def usage_stats(beamline, period='year', **filters):
                 },
                 {
                     'title': 'Samples',
-                    'kind': 'columnchart',
+                    'kind': 'barchart',
                     'data': {
                         'x-label': 'User',
                         'aspect-ratio': .7,
@@ -422,7 +422,7 @@ def usage_stats(beamline, period='year', **filters):
                 },
                 {
                     'title': 'Time Used',
-                    'kind': 'columnchart',
+                    'kind': 'barchart',
                     'data': {
                         'x-label': 'User',
                         'aspect-ratio': .7,
@@ -441,7 +441,7 @@ def usage_stats(beamline, period='year', **filters):
                 },
                 {
                     'title': 'Efficiency',
-                    'kind': 'columnchart',
+                    'kind': 'barchart',
                     'data': {
                         'x-label': 'User',
                         'aspect-ratio': .7,
@@ -462,7 +462,7 @@ def usage_stats(beamline, period='year', **filters):
                 },
                 {
                     'title': 'Schedule Efficiency',
-                    'kind': 'columnchart',
+                    'kind': 'barchart',
                     'data': {
                         'x-label': 'User',
                         'aspect-ratio': .7,
@@ -647,7 +647,7 @@ def session_stats(session):
                            },
                            {
                                'title': 'Types of data collected',
-                               'kind': 'barchart',
+                               'kind': 'columnchart',
                                'data': {
                                    'x-label': 'Data Type',
                                    'data': [{
@@ -902,7 +902,7 @@ def project_stats(project, **filters):
                 },
                 {
                     'title': 'Usage Statistics',
-                    'kind': 'barchart',
+                    'kind': 'columnchart',
                     'data': {
                         'x-label': period.title(),
                         'colors': 'Live8',

@@ -2,6 +2,7 @@
 {% load humanize %}
 {% load markup %}
 {% load icons %}
+{% load static %}
 
 {% block page_heading %}
     <h3>
@@ -38,10 +39,10 @@
         <div class="row">
             <div class="col d-flex flex-row">
                 <h3 class="align-self-center m-0 p-0">
-                    <span class="badge badge-{% if object.status == object.STATES.ON_SITE %}info
+                    <span class="badge badge-{% if object.status == object.STATES.ACTIVE %}info
                                 {% elif object.status == object.STATES.DRAFT %}warning
-                                {% elif object.status == object.STATES.SENT %}success
-                                {% elif object.status == object.STATES.RETURNED and not user.is_superuser %}success
+                                {% elif object.status == object.STATES.COMPLETE %}success
+                                {% elif object.status == object.STATES.ARCHIVED and not user.is_superuser %}success
                                 {% else %}primary{% endif %}">{{ object.get_status_display }}</span>
                 </h3>
             </div>
@@ -68,38 +69,28 @@
 {% block full %}
 <div class="row">
     <div class="col-sm-12 bulk-edit">
-        {% if object.is_editable %}
-        <div class="tools-box float-right">
-            <a class="float-right" onclick="reset_inputs();" href="#!">
-                {% show_icon label="Reload" icon="ti ti-md ti-reload" %}
-            </a>
-            <a class="float-right disabled" onclick="submit_changes();" href="#!">
-                {% show_icon label="Save" icon="ti ti-md ti-save" %}
-            </a>
-        </div>
-        {% endif %}
-
         {% if object.status == object.STATES.DRAFT %}
-            <h3>Samples in {{ object.name }}</h3>
             <div class="item-list sortable">
             <table class="table table-hover table-sm">
                 <thead>
                     <tr>
                         <th class="">Priority</th>
                         <th class="">Name</th>
-                        <th class="">Container Location</th>
+                        <th class="">Location</th>
+                        <th class="">Container</th>
                         <th class="">Barcode</th>
                         <th class="">Comments</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for sample in object.samples.all %}
-                    <tr data-sample="{{ sample.pk }}">
+                    <tr id="sample_{{ sample.pk }}" data-sample="{{ sample.pk }}">
                         <td><span class='cursor'><i class='movable ti ti-move'></i></span></td>
                         <td><a href="#!" data-form-link="{% url 'sample-edit' sample.pk %}">{{ sample.name }}</a></td>
-                        <td>{{ sample.container_and_location }}</td>
-                        <td>{{ sample.barcode|default_if_none:"" }}</td>
-                        <td>{{ sample.comments|default_if_none:"" }}</td>
+                        <td>{{ sample.location }}</td>
+                        <td>{{ sample.container.name }}</td>
+                        <td>{{ sample.barcode|default_if_none:"&mdash;" }}</td>
+                        <td>{{ sample.comments|default_if_none:"&mdash;" }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -114,33 +105,46 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    $(".sortable table").sortable({
-        items: "tr",
-        handle: ".cursor",
-        cursor: 'move',
-        opacity: 0.9,
-        axis: 'y',
-        update: function() {
-            prioritize();
-        }
-    });
-
-
-     function prioritize() {
-        var order = $(".sortable table").sortable("toArray", {key: 'sample', attribute: 'sample'} );
-        $.ajax({
-            type: "POST",
-            dataType: "json",
-            url: "{% url 'update-priority' %}",
-            data: {
-                'group': {{ object.pk }},
-                'samples': order
-            },
-            success: function(response) {
-                window.location.href=window.location.href;
+    <script src="{% static "js/jquery/jquery-ui.min.js" %}"></script>
+    <script>
+        $(".sortable tbody").sortable({
+            items: "tr",
+            handle: ".cursor",
+            cursor: 'move',
+            opacity: 0.9,
+            axis: 'y',
+            update: function () {
+                let priorities = $(this).sortable("toArray", {key: 'sample', attribute: 'data-sample'});
+                $.ajax({
+                    type: "POST",
+                    dataType: "json",
+                    url: "{% url 'update-priority' %}",
+                    data: {
+                        'group': {{ object.pk }},
+                        'samples': priorities
+                    },
+                    success: function (response) {
+                        new Noty({
+                            text: "Priorities updated!",
+                            type: "success",
+                            layout: 'bottomRight',
+                            theme: 'sunset',
+                            timeout: 4000,
+                            visibilityControl: true
+                        }).show()
+                    },
+                    error: function (response) {
+                        new Noty({
+                            text: "Could not update sample priorities!",
+                            type: "error",
+                            layout: 'bottomRight',
+                            theme: 'sunset',
+                            timeout: 4000,
+                            visibilityControl: true
+                        }).show()
+                    }
+                });
             }
         });
-    }
-</script>
+    </script>
 {% endblock %}

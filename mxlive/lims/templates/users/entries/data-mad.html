@@ -1,95 +1,81 @@
+{% extends "users/entries/data.html" %}
+
 {% load data_server %}
 {% load static %}
 {% load jsutils %}
 
-{% if object.url %}
-{% get_mad_data object as data %}
-
-<div class="row">
-    {% if data.data %}
-        <div class="col-12">
-            <div id="mad-{{ object.pk }}"></div>
+{% block data_content %}
+    {% mad_report as mad %}
+    <div class="row">
+        <div class="col-12 col-lg-9">
+            <div id="mad-report" class="w-100 p-0"></div>
+            <script>
+                // create variables for annotations
+                var choices{{ data.pk }} = {{ mad.choices | safe}};
+                var report{{ data.pk }}={{ mad.report | safe }};
+            </script>
         </div>
-    {% endif %}
-</div>
-<div class="row">
-    {% if data.choices %}
-        <div class="col-12">
-            <ul class="nav nav-tabs text-condensed">
-                <li class="active"><a data-toggle="pill" href="#choices">Analysis</a></li>
-                <li><a data-toggle="pill" href="#meta-data">Meta-Data</a></li>
-            </ul>
-        </div>
-        <div class="col-12">
-            <div class="tab-content">
-                <div id="choices" class="tab-pane fade active in">
-                    <table class="pull-right table table-hover table-condensed">
-                        {% for e in data.choices %}
-                            {% if forloop.first %}
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        {% for k in e.keys %}
-                                            <th>{{ k|title }}</th>
-                                        {% endfor %}
-                                    </tr>
-                                </thead>
-                            {% endif %}
-                            <tr>
-                                <td>
-                                    <input type="checkbox" onclick="$('.{{ e.label }}').toggleClass('hidden').toggleClass('visible');" checked />
-                                </td>
-                                {% for v in e.values %}
-                                    <td>{{ v }}</td>
-                                {% endfor %}
-                            </tr>
-                        {% endfor %}
-                    </table>
-                </div>
-                <div id="meta-data" class="tab-pane fade">
-                    <ul class="scrollbar-inner {% if not snapshot %}tall{% endif %}">
-                        {% with object|get_meta_data as meta_data %}
-                            {% for k, v in meta_data.items %}
-                                <li><strong>{{ k|title }}: </strong> {{ v }}</li>
-                            {% endfor %}
-                        {% endwith %}
-                    </ul>
-                </div>
+        {% if mad.choices %}
+            <div class="col-12 col-lg-3 pb-4 text-condensed">
+                <table class="table w-100 table-hover table-sm">
+                    <thead>
+                    <tr>
+                        <th>Choice</th>
+                        <th>Energy</th>
+                        <th>f'</th>
+                        <th>f''</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for choice in mad.choices %}
+                        <tr style="color: {{ element.color }};">
+                            <td>{{ choice.label }}</td>
+                            <td title="{{ choice.wavelength|floatformat:3 }} Å">{{ choice.energy|floatformat:3 }} keV</td>
+                            <td>{{ choice.fp|floatformat:2 }}</td>
+                            <td>{{ choice.fpp|floatformat:2 }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <br/>
+                <table class="table w-100 table-hover table-sm">
+                    <thead>
+                    <tr>
+                        <th>Meta Data</th>
+                        <th>&nbsp;</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for key, value in data.get_meta_data.items %}
+                        <tr>
+                            <td>{{ key | title }}</td>
+                            <td>{{ value }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
             </div>
-        </div>
-    {% endif %}
-</div>
+        {% endif %}
+    </div>
+{% endblock %}
 
-<link href="{% static "css/reports.min.css" %}" rel="stylesheet">
+{% block modal_assets %}
+    <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
+    <link href="{% static "css/reports.min.css" %}" rel="stylesheet">
+    <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
+    <script type="text/javascript" src="{% static 'js/d3/d3.timeline.min.js' %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
+{% endblock %}
 
-<script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
-<script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
-<script type="text/javascript" src="{% static "js/mxlive-reports.min.js" %}"></script>
-<script>
-    var data = {{ data|dict_to_dict }};
-    var annotations = [];
-    for (i=0; i < data['choices'].length; i++) {
-        annotations.push({
-            'label': data['choices'][i]['label'],
-            'x': data['choices'][i]['energy'],
-            'color': '#883a6a',
-            'display': true});
-    }
-    var xy_chart = draw_xy_chart()
-        .width(868)
-        .height(400)
-        .xlabel("{{ data.xlabel }}")
-        .y1label("{{ data.y1label }}")
-        .y2label("{{ data.y2label }}")
-        .xscale('linear')
-        .xlimits([null, null])
-        .y1limits([null, null])
-        .y2limits([null, null])
-        .interpolation('linear')
-        .notes(annotations)
-        .scatter('line');
-    var svg = d3.select('#mad-{{ object.pk }}').append("svg")
-        .datum(data.data)
-        .call(xy_chart);
-</script>
-{% endif %}
+{% block modal_scripts %}
+    <script type="text/javascript">
+        $('#modal').on('shown.bs.modal', function () {
+            $('#mad-report').liveReport({
+                data: report{{ data.pk }}
+            });
+        });
+    </script>
+{% endblock %}

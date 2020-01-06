@@ -28,7 +28,7 @@ $pagination-disabled-border-color: $border-color !default;
 $pagination-hover-border-color: $border-color !default;
 
 $modal-lg: 850px !default;
-
+$modal-data: 526px !default;
 // custom css variables
 :root {
   --spacer: #{$spacer};
@@ -36,9 +36,10 @@ $modal-lg: 850px !default;
   --half-spacer: #{$half-spacer};
 }
 
-// import font and web-font
+// import font and web-font and bootstrap
 @import url($web-font-path);
 @import "../bootstrap/scss/bootstrap";
+
 
 $gray-label: #555;
 $gray-alpha: rgba(0, 0, 0, 0.15);
@@ -160,6 +161,7 @@ main {
   }
 }
 
+// Modal tweaks
 .modal.fade {
   .modal-dialog {
     transition-property: all;
@@ -171,6 +173,53 @@ main {
     transform: scale(1) translate3d(0, 50px, 0);
   }
 }
+.modal-dialog.data-viewer {
+  max-width: $modal-data;
+  min-width: $modal-data;
+  div.section-entry {
+    margin-bottom: 1rem;
+  }
+}
+
+.modal-sidebar {max-height: 22rem; }
+
+@include media-breakpoint-up(sm) {
+  // Automatically set modal sidebar's heights
+  .modal-sidebar {max-height: 22rem;}
+  .modal-dialog.data-viewer {
+    max-width: $modal-data;
+  }
+}
+@include media-breakpoint-up(md) {
+  // Automatically set modal sidebar's heights
+  .modal-sidebar {max-height: 22rem;}
+  .modal-dialog.data-viewer {
+    max-width: $modal-data;
+  }
+}
+@include media-breakpoint-up(lg) {
+  .modal-sidebar { max-height: 29rem;}
+  .modal-dialog.data-viewer {
+    max-width:800px;
+  }
+}
+@include media-breakpoint-up(xl) {
+  .modal-sidebar { max-height: 28rem;}
+  .modal-dialog.data-viewer {
+    max-width:800px;
+  }
+}
+
+
+.modal-header {
+  min-height: 3.5rem;
+  padding: 0.5rem 1rem;
+  .modal-subtitle {
+      //margin-top: -0.25rem;
+      line-height: .9;
+  }
+}
+
 
 #spinner {
   &.loading {
@@ -471,6 +520,20 @@ table.shallow-table td {
   max-height: 250px !important;
 }
 
+.header-fixed {
+  position: relative;
+  overflow-y: auto;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background: inherit;
+    z-index: 1;
+  }
+}
+
 p {
   &.circle {
     width: 40px;
@@ -537,9 +600,6 @@ p {
   overflow: auto;
 }
 
-.modal-header .modal-subtitle {
-  margin-bottom: -10px;
-}
 
 #group-select {
   .modal-content {
@@ -662,6 +722,18 @@ form {
 
   .tab-content {
     overflow: visible;
+  }
+
+  .custom-control {
+    padding: .25rem .75rem;
+    line-height: 1.5;
+
+    &.custom-switch  {
+      padding-left: 1.5rem;
+    }
+    &.custom-radio, &.custom-checkbox {
+      padding-left: 0.75rem;
+    }
   }
 }
 
@@ -1163,17 +1235,6 @@ a[data-link], .back text[port], .cursor {
   top: 4px !important;
 }
 
-@media (min-width: var(--breakpoint-sm)) {
-  .data-viewer .modal-dialog {
-    max-width: 548px;
-  }
-}
-
-@media (min-width: var(--breakpoint-lg)) {
-  .data-viewer .modal-dialog {
-    max-width: 800px;
-  }
-}
 
 .row .mini-thumbnail[class^=col-] {
   padding: 5px;
@@ -1353,7 +1414,13 @@ svg * {
 }
 
 .text-thin {
-  font-weight: 200 !important;
+  font-weight: 200;
+}
+.text-normal {
+  font-weight: 400;
+}
+.text-bold {
+  font-weight: 900;
 }
 
 .container-layout > svg {

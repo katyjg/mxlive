@@ -10,6 +10,7 @@ caption, figcaption {
 .report-viewer figure {
 	width: 100%;
 	counter-increment: figures;
+	margin-bottom: 0;
 }
 .report-viewer figcaption:before {
 	content: 'Figure ' counter(figures)	' - ';
@@ -101,18 +102,11 @@ path {
 g.axis {
 	font-size: 0.95rem;
 }
-.caption {
-	max-width: 80%;
-	margin: auto;
-	background-color: #efefef;
-	padding: 1rem;
-	margin-bottom: 2rem;
-}
 .table-heading {
 	text-align: center;
 }
-div[id^=entry] {
-	margin-bottom: 2rem;
+div.section-entry {
+	margin-bottom: 1rem;
 }
 .report-table {
 	max-width: 80%;

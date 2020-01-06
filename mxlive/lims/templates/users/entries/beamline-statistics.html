@@ -22,15 +22,15 @@
 {% block object_status %}
     <div class="status-bar hidden-print">
         <div class="row">
-            <h4 class="col my-0 p-2">
+            <h5 class="col my-0 p-2">
                 <a href="{% url "yearly-statistics" object.pk %}"><span
-                        class="badge badge-{% if year %}info{% else %}primary{% endif %}">Yearly</span></a>&nbsp;
+                        class="badge badge-{% if year %}info{% else %}primary{% endif %}">&emsp;All&emsp;</span></a>&nbsp;
                 {% for yr in years %}
                     <a href="{% url "monthly-statistics" object.pk yr %}"><span
                             class="badge badge-{% if yr == year %}primary{% else %}info{% endif %}">{{ yr }}</span></a>
                 {% endfor %}
 
-            </h4>
+            </h5>
         </div>
     </div>
 {% endblock %}
@@ -51,7 +51,7 @@
     <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
     <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/mxlive-report.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
     <script type="text/javascript">
         var report = {{ report | safe }}
         $(document).ready(function(){

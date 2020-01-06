@@ -1,6 +1,8 @@
+{% extends "users/entries/data.html" %}
 {% load data_server %}
 {% load static %}
 
+{% block data_content %}
 <div id='data-viewer'
      data-first-file='{{ object.first_file }}'
      data-first-frame='{{ object.first_frame }}'
@@ -88,6 +90,9 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block modal_scripts %}
 <script type="text/javascript">
     var dataViewer = function () {
 
@@ -131,25 +136,6 @@
     var $current_frame_id = $viewer.data('first-frame');
     var $current_brightness_to_display = 'nm';
     var $expanded_frame_set = $viewer.data('frames');
-    dataViewer.setPars($viewer.data('wavelength'), $viewer.data('resolution'));
-
-    $('[data-target="#parameters"]').click(function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var target = $($(this).attr('data-target'));
-        var frame_list = $('.frame-list ul');
-        var height = 0;
-        if (target.hasClass('in')) {
-            height = frame_list.height() + $('#parameters').height();
-        }
-        $(this).find('i').toggleClass('fa-compress');
-        target.toggleClass('in');
-
-        if (!(height > 0)) {
-            height = frame_list.height() - $('#parameters').height();
-        }
-        frame_list.height(height);
-    });
 
     function changeBrightness(brightness) {
         if (brightness === $current_brightness_to_display) {
@@ -166,33 +152,6 @@
         $("#diffviewer").diffviewer('loadImage', url);
         updateFrameDetails();
     }
-
-    $(document).ready(function () {
-        $current_frame_to_display = $viewer.data('first-file');
-        $current_frame_id = $viewer.data('first-frame');
-        $current_brightness_to_display = "nm";
-        var url = $viewer.data('base-url') + '/' + $current_frame_to_display + '/' + $current_brightness_to_display + '.png';
-        updateFrameDetails();
-
-        $expanded_frame_set = $viewer.data('frame-set');
-        $("#diffviewer").diffviewer({
-            src: url,
-            //update_on_resize: false,
-            zoom: 50,
-            zoom_min: 50,
-            onStartLoad: function () {
-                dataViewer.showActivity();
-            },
-            onFinishLoad: function () {
-                $("#diffviewer").diffviewer('setCoords', -500, -500);
-                dataViewer.hideActivity();
-            },
-            resFunc: function (r) {
-                return dataViewer.calcRes(r);
-            }
-        });
-        updateFrameDetails();
-    });
 
     function updateFrameDetails() {
         // use jQuery to find and update the frame specific elements.
@@ -240,4 +199,55 @@
             updateFrame();
         }
     }
+
+    function initializeModal() {
+        $current_frame_to_display = $viewer.data('first-file');
+        $current_frame_id = $viewer.data('first-frame');
+        $current_brightness_to_display = "nm";
+        $expanded_frame_set = $viewer.data('frame-set');
+        dataViewer.setPars($viewer.data('wavelength'), $viewer.data('resolution'));
+        var url = $viewer.data('base-url') + '/' + $current_frame_to_display + '/' + $current_brightness_to_display + '.png';
+        updateFrameDetails();
+
+        $('[data-target="#parameters"]').click(function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var target = $($(this).attr('data-target'));
+        var frame_list = $('.frame-list ul');
+        var height = 0;
+        if (target.hasClass('in')) {
+            height = frame_list.height() + $('#parameters').height();
+        }
+        $(this).find('i').toggleClass('fa-compress');
+        target.toggleClass('in');
+
+        if (!(height > 0)) {
+            height = frame_list.height() - $('#parameters').height();
+        }
+        frame_list.height(height);
+    });
+
+
+        $("#diffviewer").diffviewer({
+            src: url,
+            //update_on_resize: false,
+            zoom: 50,
+            zoom_min: 50,
+            onStartLoad: function () {
+                dataViewer.showActivity();
+            },
+            onFinishLoad: function () {
+                $("#diffviewer").diffviewer('setCoords', -500, -500);
+                dataViewer.hideActivity();
+            },
+            resFunc: function (r) {
+                return dataViewer.calcRes(r);
+            }
+        });
+        updateFrameDetails();
+    }
+    $('#modal').on('shown.bs.modal', function () {
+       initializeModal();
+    });
 </script>
+{% endblock %}

@@ -761,6 +761,9 @@ class DataDetail(OwnerRequiredMixin, detail.DetailView):
     model = models.Data
     template_name = "users/entries/data.html"
 
+    def get_template_names(self):
+        return [self.object.kind.template, self.template_name]
+
 
 def format_score(val, record):
     return "{:.2f}".format(val)
@@ -769,9 +772,9 @@ def format_score(val, record):
 class ReportList(ListViewMixin, ItemListView):
     model = models.AnalysisReport
     list_filters = ['modified', 'kind' ]
-    list_columns = ['id','kind', 'score', 'modified']
+    list_columns = ['id', 'name', 'kind', 'score', 'modified']
     list_search = ['project__username', 'name', 'data__name']
-    link_field = 'id'
+    link_field = 'name'
     link_url = 'report-detail'
     ordering = ['-modified']
     ordering_proxies = {}
@@ -959,9 +962,9 @@ class ParameterStatistics(BeamlineDetail):
 
     def page_title(self):
         if self.kwargs.get('year'):
-            return '{} Monthly Parameters'.format(self.kwargs['year'])
+            return '{} Statistics'.format(self.kwargs['year'])
         else:
-            return 'Yearly Parameters'
+            return 'Statistics'
 
 
 class UsageStatistics(BeamlineDetail):
@@ -981,9 +984,9 @@ class UsageStatistics(BeamlineDetail):
 
     def page_title(self):
         if self.kwargs.get('year'):
-            return '{} Monthly Usage'.format(self.kwargs['year'])
+            return '{} Usage Metrics'.format(self.kwargs['year'])
         else:
-            return 'Yearly Usage'
+            return 'Usage Metrics'
 
 
 class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):

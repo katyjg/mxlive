@@ -43,9 +43,20 @@ class UpdatePriority(LoginRequiredMixin, View):
         if group.project != request.user:
             raise http.Http404()
 
-        pks = [u for u in request.POST.getlist('samples[]') if u]
-        for i, pk in enumerate(pks):
-            group.samples.filter(pk=pk).update(priority=i + 1)
+        pks = [int(u) for u in request.POST.getlist('samples[]') if u]
+        priorities = {
+            pk: i + 1
+            for i, pk in enumerate(pks)
+        }
+
+        to_update = []
+        for sample in group.samples.all():
+            new_priority = priorities.get(sample.pk, sample.priority)
+            if sample.priority != new_priority:
+                sample.priority = new_priority
+                to_update.append(sample)
+
+        group.samples.bulk_update(to_update, fields=["priority"])
 
         return JsonResponse([], safe=False)
 

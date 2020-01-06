@@ -1,126 +1,104 @@
+{% extends "users/entries/data.html" %}
+
 {% load data_server %}
 {% load static %}
 {% load jsutils %}
 
-{% if object.url %}
-    {% get_xrf_data object as data %}
+{% block data_content %}
+    {% xrf_report as xrf %}
     <div class="row">
-        {% if data.data %}
-            <div class="col-7">
-                <div id="xrf-{{ object.pk }}" style="padding-top: 15px;"></div>
-            </div>
-        {% endif %}
-        {% if data.assignments %}
-            <div class="col-5">
-                <table class="table table-hover table-condensed">
+        <div class="col-9">
+            <div id="xrf-report" class="w-100 p-0"></div>
+            <script>
+                // create variables for annotations
+                var edges{{ data.pk }} = {
+                    {% for element in xrf.assignments %}{{ element.label }}: {{ element.edges | safe}},
+                    {% endfor %}
+                };
+                var report{{ data.pk }}={{ xrf.report|safe }};
+            </script>
+        </div>
+        {% if xrf.assignments %}
+            <div class="col-3 pb-4">
+                <div class="modal-sidebar" style="overflow-y: scroll;">
+                <table class="table w-100 table-hover table-sm header-fixed">
                     <thead>
-                    <tr>
-                        <th class="col-2"></th>
-                        <th class="col-4">Element</th>
-                        <th class="col-6">Contribution (%)</th>
+                    <tr class="bg-light" style="z-index: 1;">
+                        <th>Element</th>
+                        <th class="text-right">%</th>
                     </tr>
                     </thead>
+                    <tbody>
+                    {% for element in xrf.assignments %}
+                        <tr style="color: {{ element.color }};">
+                            <td>
+                            <span class="custom-control custom-switch" style="z-index: 0;">
+                              <input type="checkbox" class="custom-control-input xrf-toggle" id="switch{{ forloop.counter0 }}"
+                                     data-element="{{ element.label }}"
+                                     data-color="{{ element.color }}"
+                                     {% if element.reliability > 2 %}checked{% endif %}
+                              >
+                              <label class="custom-control-label" for="switch{{forloop.counter0}}">&emsp;{{ element.label }}</label>
+                            </span>
+                            </td>
+                            <td class="text-right">{{ element.reliability|floatformat:1 }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
                 </table>
-                <div class="scrollbar-inner scroll-sidebar">
-                    <table class="table table-hover table-sm">
-                        {% for e in data.assignments %}
-                            <tr style="color: {{ e.color }};">
-                                <td>
-                                    <input type="checkbox"
-                                           onclick="$('.{{ e.label }}').toggleClass('hidden').toggleClass('visible');"
-                                           {% if e.reliability > 2 %}checked{% endif %}/>
-                                </td>
-                                <td>{{ e.label }}</td>
-                                <td>{{ e.reliability|floatformat:1 }}</td>
-                            </tr>
-                        {% endfor %}
-                    </table>
                 </div>
             </div>
-            </div>
-            {% comment %}
-        <div class="row">
-        <div class="col-12">
-            <ul class="nav nav-tabs text-condensed">
-                <li class="active"><a data-toggle="pill" href="#summary">Detailed Summary</a></li>
-                <li><a data-toggle="pill" href="#meta-data">Meta-Data</a></li>
-            </ul>
-        </div>
-        <div class="col-12">
-            <div class="tab-content">
-                <div id="summary" class="tab-pane fade active in">
-                    <div class="scroll-details scrollbar-inner">
-                        <table class="table table-hover table-condensed">
-                            <tr>
-                                <th>Element</th>
-                                <th>Contribution (%)</th>
-                                <th>Edge <span class="pull-right">Energy (keV)</span></th>
-                            </tr>
-                            {% for e in data.assignments %}
-                                <tr>
-                                    <td class="text-medium" style="vertical-align: middle;">{{ e.label }}</td>
-                                    <td class="text-medium" style="vertical-align: middle;">{{ e.reliability|floatformat:2 }}</td>
-                                    <td>
-                                        {% for edge in e.edges %}
-                                            {{ edge.label }} <span class="pull-right">{{ edge.energy }}</span><br/>
-                                        {% endfor %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </table>
-                    </div>
-                </div>
-                <div id="meta-data" class="tab-pane fade">
-                    <ul class="scrollbar-inner {% if not snapshot %}tall{% endif %}">
-                        {% with object|get_meta_data as meta_data %}
-                            {% for k, v in meta_data.items %}
-                                <li><strong>{{ k|title }}: </strong> {{ v }}</li>
-                            {% endfor %}
-                        {% endwith %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-{% endcomment %}
         {% endif %}
-
     </div>
+{% endblock %}
 
+{% block modal_assets %}
+    <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
     <link href="{% static "css/reports.min.css" %}" rel="stylesheet">
-
     <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/mxlive-reports.js" %}"></script>
-    <script>
-        var data = {{ data|dict_to_dict }};
-        var annotations = [];
-        for (i = 0; i < data['assignments'].length; i++) {
-            for (j = 0; j < data['assignments'][i]['edges'].length; j++) {
-                annotations.push({
-                    'class': data['assignments'][i]['label'],
-                    'label': data['assignments'][i]['edges'][j]['label'],
-                    'x': data['assignments'][i]['edges'][j]['energy'],
-                    'ystart': data['assignments'][i]['edges'][j]['amplitude'],
-                    'color': data['assignments'][i]['color'] || '#883a6a',
-                    'display': data['assignments'][i]['reliability'] > 2 && true || false
+    <script type="text/javascript" src="{% static 'js/d3/d3.timeline.min.js' %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
+{% endblock %}
+
+{% block modal_scripts %}
+    <script type="text/javascript">
+        $('#modal').on('shown.bs.modal', function () {
+            $('#xrf-report').liveReport({
+                data: report{{ data.pk }}
+            });
+
+            function updateAnnotations() {
+                let annotations = edges{{ data.pk }};
+                let xgrids = [];
+                let classes = {};
+                $('#modal input.xrf-toggle:checked').each(function(){
+                    let el_name = $(this).data('element');
+                    let edges = annotations[el_name];
+                    classes[`${el_name}-notes`] = $(this).data('color');
+                    $.each(edges, function(i, edge){
+                        xgrids.push({
+                            value: edge['energy'],
+                            text: `${el_name}-${edge['label']}`,
+                            class: `${el_name}-notes`,
+                        });
+                    });
+                });
+                let chart = $('#figure-xrf').data('c3-chart');
+                chart.xgrids(xgrids);
+                $.each(classes, function(name, color){
+                   $(`g.${name} > line`).css('stroke', color);
+                   $(`g.${name} > text`).css('fill', color);
+                   console.log(name, color);
                 });
             }
-        }
-        var xy_chart = draw_xy_chart()
-            .width(600)
-            .height(400)
-            .xlabel("{{ data.xlabel }}")
-            .y1label("{{ data.y1label }}")
-            .y2label("{{ data.y2label }}")
-            .xscale('linear')
-            .xlimits([null, {{ object.energy }}])
-            .y1limits([null, null])
-            .y2limits([null, null])
-            .interpolation('linear')
-            .notes(annotations)
-            .scatter('line');
-        var svg = d3.select('#xrf-{{ object.pk }}').append("svg")
-            .datum(data.data)
-            .call(xy_chart);
+
+            updateAnnotations();
+            $('input.xrf-toggle').click(function(){
+                updateAnnotations();
+            });
+        });
     </script>
-{% endif %}
+{% endblock %}

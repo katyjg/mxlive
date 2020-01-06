@@ -1267,6 +1267,17 @@ class AnalysisReport(ActiveStatusMixin):
         return 'RPT-{:07,d}'.format(self.id).replace(',', '-')
 
     def label(self):
+        if 'MX' in self.kind:
+            if 'Anom' in self.kind:
+                return 'ANO'
+            elif 'Merg' in self.kind:
+                return 'MRG'
+            elif 'MAD' in self.kind:
+                return 'MAD'
+            elif 'Screen' in self.kind:
+                return 'SCR'
+            else:
+                return 'NAT'
         return self.kind[:3].upper()
 
     def get_absolute_url(self):
@@ -1367,7 +1378,7 @@ DOCUMENT_MIME_TYPES = [
 
 class Guide(TimeStampedModel):
     TYPE = Choices(
-        ('snippet', _('Snippet')),
+        ('snippet', _('Text')),
         ('video', _('Video')),
         ('image', _('Image')),
     )
@@ -1378,7 +1389,7 @@ class Guide(TimeStampedModel):
     staff_only = models.BooleanField(default=False)
     kind = models.CharField(_("Content Type"), max_length=20, default=TYPE.snippet, choices=TYPE)
     modal = models.BooleanField(default=False)
-    url = models.CharField(max_length=200, blank=True, null=True)
+    url = models.CharField(_("URL or Resource"), max_length=200, blank=True, null=True)
 
     def has_document(self):
         if self.attachment:

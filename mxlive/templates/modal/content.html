@@ -12,9 +12,11 @@
             {% block pre_content %}{% endblock %}
             <div class="modal-header d-flex justify-content-end align-items-center">
                 {% block modal_title_tools %}{% endblock %}
-                <h4 class="modal-title text-thin my-0 py-0 w-100">
-                    {% block modal_title %}{% endblock %}
-                </h4>
+                <div class="modal-title my-0 py-0 w-100">
+                    <h4 class="text-thin my-0 py-0 w-100">{% block modal_title %}{% endblock %}
+                    </h4>
+                    <div class="modal-subtitle text-muted">{% block modal_subtitle %}{% endblock %}</div>
+                </div>
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true" aria-label="Close">
                     <span class="ti ti-close p-1" aria-hidden="true"></span>
                 </button>

@@ -1,27 +1,9 @@
-function rounded(v) {
-    return v.toPrecision(1);
-}
-
-function choose(choices) {
-    let index = Math.floor(Math.random() * choices.length);
-    return choices[index];
-}
-
+'use strict';
 
 function getPrecision(row, steps) {
     steps = steps || 8;
-    let a = row[0];
-    let b = row[row.length - 1];
-    let min = ((b - a) / steps).toPrecision(1);
-    return Math.max(0, Math.ceil(Math.log10(1 / min)) || 2)
-}
-
-function inv_sqrt(a) {
-    let A = [];
-    $.each(a, function (i, value) {
-        A[i] = Math.pow(value, -0.5);
-    });
-    return A;
+    let diff = (row[row.length - 1] - row[0]) / steps;
+    return Math.abs(Math.floor(Math.log10(diff.toPrecision(1))||2))
 }
 
 function renderMarkdown(text) {
@@ -33,9 +15,9 @@ const figureTypes = [
     "histogram", "lineplot", "barchart", "scatterplot", "pie", "gauge", "timeline", "columnchart",
 ];
 
-const ColorSchemes = {
-    Live4:  ["#8f9f9a", "#c56052", "#9f6dbf", "#a0b552"],
-    Live8:  ["#073B4C", "#06D6A0", "#FFD166", "#EF476F", "#118AB2", "#7F7EFF", "#afc765", "#78C5E7"],
+let ColorSchemes = {
+    Live4: ["#8f9f9a", "#c56052", "#9f6dbf", "#a0b552"],
+    Live8: ["#073B4C", "#06D6A0", "#FFD166", "#EF476F", "#118AB2", "#7F7EFF", "#afc765", "#78C5E7"],
     Live16: [
         "#67aec1", "#c45a81", "#cdc339", "#ae8e6b", "#6dc758", "#a084b6", "#667ccd", "#cd4f55",
         "#805cd6", "#cf622d", "#a69e4c", "#9b9795", "#6db586", "#c255b6", "#073B4C", "#FFD166",
@@ -47,7 +29,9 @@ const ColorSchemes = {
     Tableau10: d3.schemeTableau10,
 };
 
-var contentTemplate = _.template(
+let styleTemplate = _.template('<%= selector %> { <%= rules %> }');
+
+let contentTemplate = _.template(
     '<div id="entry-<%= id %>" <% let style = entry.style || ""; %> class="section-entry <%= style %>" >' +
     '   <% if ((entry.title) &! (entry.kind))  { %>' +
     '       <h4><%= entry.title %></h4>' +
@@ -58,7 +42,7 @@ var contentTemplate = _.template(
     '   <% if ((entry.kind === "table") && (entry.data)) { %>' +
     '       <%= tableTemplate({id: id, entry: entry}) %>' +
     '   <% } else if (figureTypes.includes(entry.kind)) { %>' +
-    '       <figure id="figure-<%= id %>" data-type="<%= entry.kind %>" data-chart=\'<%= JSON.stringify(entry) %>\' >' +
+    '       <figure id="figure-<%= entry.id || id %>" data-type="<%= entry.kind %>" data-chart=\'<%= JSON.stringify(entry) %>\' >' +
     '       </figure>' +
     '   <% }%>' +
     '   <% if (entry.notes) { %>' +
@@ -67,7 +51,7 @@ var contentTemplate = _.template(
     '</div>'
 );
 
-var sectionTemplate = _.template(
+let sectionTemplate = _.template(
     '<section id="section-<%= id %>" <% let style = section.style || "col-12"; %>' +
     '       class="<%= style %>">' +
     '       <%  if (section.title)  {%>' +
@@ -80,7 +64,7 @@ var sectionTemplate = _.template(
     '</section>'
 );
 
-var tableTemplate = _.template(
+let tableTemplate = _.template(
     '<table id="table-<%= id %>" class="table table-sm table-hover">' +
     '<% if (entry.title) { %>' +
     '   <caption class="text-center"><%= entry.title %></caption>' +
@@ -110,6 +94,7 @@ var tableTemplate = _.template(
     '</table>'
 );
 
+let NUM_TICKS = 10;
 
 function drawXYChart(figure, chart, options, type = 'spline') {
     let series = [];
@@ -119,19 +104,96 @@ function drawXYChart(figure, chart, options, type = 'spline') {
     let spline_opts = {interpolation: {}};
     let axis_opts = {x: {}, y: {}, y2: {}};
     let xdata = [];
+    let xmin = chart.data.x[1];
+    let xmax = chart.data.x[chart.data.x.length -1];
+    let xscale = d3.scaleLinear().domain([xmin, xmax]);
+    let tick_values = xscale.ticks(NUM_TICKS);
+
+    // conversion functions,
+    let xfwd = function(x) { return x};
+    let xbwd = function(x) { return x};
+    let prec = 2;
+
+    switch(chart.data['x-scale']) {
+        case 'time':
+            xfwd = function(x){ return Date.parse(x) };
+            axis_opts.x = $.extend(axis_opts.x, {
+                type: 'timeseries',
+                tick: { format: chart.data['time-format'], culling: { max: 13} }
+            });
+            break;
+        case 'pow':
+        case 'inv-square':
+            let mult = (chart.data['x-scale'] === 'pow')? 1 : -1;
+            xfwd = d3.scalePow().exponent(mult*2).domain([xmin, xmax]);
+            xbwd = xfwd.invert;
+
+            xscale.domain([xfwd(xmin), xfwd(xmax)]);
+            tick_values = xscale.ticks(NUM_TICKS);
+            
+            prec = getPrecision(tick_values);
+            axis_opts.x = $.extend(axis_opts.x, {
+                tick: {
+                    values: tick_values,
+                    multiline: false,
+                    format: x => xbwd(x).toFixed(prec)
+                }
+            });
+            break;
+        case 'log':
+            xfwd = d3.scaleLog().domain([xmin, xmax]);
+            xbwd = xfwd.invert;
+            xscale.domain([xfwd(xmin), xfwd(xmax)]);
+            tick_values = xscale.ticks(NUM_TICKS);
+            prec = getPrecision(tick_values);
+            axis_opts.x = $.extend(axis_opts.x, {
+                tick: {
+                    values: tick_values,
+                    multiline: false,
+                    format: x => xbwd(x).toFixed(prec)
+                }
+            });
+            break;
+        case 'identity':
+            axis_opts.x = $.extend(axis_opts.x, {
+                type: 'index',
+                tick: {
+                    multiline: false,
+                }
+            });
+            break;
+        default:    // linear
+            axis_opts.x = $.extend(axis_opts.x, {
+                tick: {
+                    values: tick_values,
+                    fit: true,
+                    multiline: false,
+                    format: x => xbwd(x).toFixed(prec)
+                }
+            });
+    }
 
     // Axis limits
     if (chart.data['x-limits']) {
-        axis_opts.x.min = chart.data['x-limits'][0] || null;
-        axis_opts.x.max = chart.data['x-limits'][0] || null;
+        axis_opts.x = $.extend(axis_opts.x, {
+            min: xfwd(chart.data['x-limits'][0]),
+            max: xfwd(chart.data['x-limits'][1]),
+            padding: 0,
+        });
     }
     if (chart.data['y1-limits']) {
-        axis_opts.y.min = chart.data['y1-limits'][0] || null;
-        axis_opts.y.max = chart.data['y1-limits'][0] || null;
+        axis_opts.y = $.extend(axis_opts.y, {
+            min: chart.data['y1-limits'][0],
+            max: chart.data['y1-limits'][1],
+            padding: 0,
+        });
     }
     if (chart.data['y2-limits']) {
-        axis_opts.y2.min = chart.data['y2-limits'][0] || null;
-        axis_opts.y2.max = chart.data['y2-limits'][0] || null;
+        axis_opts.y2 = $.extend(axis_opts.y2, {
+            min: chart.data['y2-limits'][0],
+            max: chart.data['y2-limits'][1],
+            padding: 0,
+        });
     }
 
     // Spline Plo type
@@ -140,69 +202,50 @@ function drawXYChart(figure, chart, options, type = 'spline') {
         spline_opts.interpolation.type = chart.data['interpolation'];
     }
 
-    // configure x-axis interpolation
-    if (chart.data['x-scale'] === 'time') {
-        axis_opts.x = {
-            type: 'timeseries',
-            tick: {format: chart.data['time-format']}
-        };
 
-        // convert x values to time series
-        $.each(chart.data.x, function (i, value) {
-            if (i === 0) {
-                xdata.push(value)  // series label
-            } else {
-                xdata.push(Date.parse(value))
-            }
-        });
-    } else {
-        xdata = chart.data.x;
-        let xvalues = xdata.slice(1, xdata.length);
-        let prec = getPrecision(xvalues);
-        let xconv = d3.interpolateDiscrete(xvalues);
-        axis_opts.x = {
-            type: 'category',
-            tick: {
-                centered: true,
-                fit: false,
-                multiline: false,
-                culling: {max: 8},
-                format: function (x) {
-                    let val = x / (xvalues.length);
-                    return xconv(val).toFixed(prec);
-                }
-            }
-        };
-    }
+    // convert x values
+    $.each(chart.data.x, function (i, value) {
+        if (i === 0) {
+            xdata.push(value)  // series label
+        } else {
+            xdata.push(xfwd(value))
+        }
+    });
+    axis_opts.x.label = chart.data["x-label"] || chart.data.x[0];
+    columns.push(xdata);
 
     // remove raw data from dom, not needed anymore
     figure.removeData('chart').removeAttr('data-chart');
 
-    // gather columns data and configure labels and color
-    columns.push(xdata);  // add x-axis
-    let index = 0;
+    // gather y1 columns data and configure labels and color
     $.each(chart.data.y1, function (i, line) {  // y1
         columns.push(line);
         axes[line[0]] = 'y';
         series.push(line[0]);
-        axis_opts.y.label = line[0];
+        if (i === 0) {
+            axis_opts.y.label = chart.data["y1-label"] || line[0];
+        }
     });
 
-    // gather y axes data
+    // gather y2 axes data
     $.each(chart.data.y2, function (i, line) {  // y2
         columns.push(line);
         axes[line[0]] = 'y2';
         series.push(line[0]);
-        axis_opts['y2'] = {show: true, label: line[0]};
+        axis_opts.y2.show = true;
+        if (i === 0) {
+            axis_opts.y2.label = chart.data["y2-label"] || line[0];
+        }
     });
 
     let color_scale = d3.scaleOrdinal().domain(series).range(options.scheme);
-    $.each(series, function(i, key){
-       if (!(key in options.colors)) {
-           options.colors[key] = color_scale(key);
-       }
+    $.each(series, function (i, key) {
+        if (!(key in options.colors)) {
+            options.colors[key] = color_scale(key);
+        }
     });
-    c3.generate({
+
+    let c3chart = c3.generate({
         bindto: `#${figure.attr('id')}`,
         size: {width: options.width, height: options.height},
         data: {
@@ -216,7 +259,7 @@ function drawXYChart(figure, chart, options, type = 'spline') {
         point: {show: (chart.data.x.length < 15)},
         axis: axis_opts,
         grid: {y: {show: true}},
-        zoom: {enabled: true, type: 'drag'},
+        //zoom: {enabled: true, type: 'drag'},
         onresize: function () {
             this.api.resize({
                 width: figure.width(),
@@ -224,6 +267,11 @@ function drawXYChart(figure, chart, options, type = 'spline') {
             });
         }
     });
+    console.log(chart.data.annotations);
+    if (chart.data.annotations) {
+        c3chart.xgrids(chart.data.annotations)
+    }
+    figure.data('c3-chart', c3chart);
 }
 
 
@@ -233,7 +281,7 @@ function drawBarChart(figure, chart, options) {
     let hidden = [];
     let group_colors = (typeof chart.data.colors === 'object') ? chart.data.colors : {};
 
-    let colorfunc = function(color, d) {
+    let colorfunc = function (color, d) {
         return color;
     };
 
@@ -258,14 +306,14 @@ function drawBarChart(figure, chart, options) {
     // names for coloring using "color-by" field
     if (chart.data["color-by"]) {
         let key = chart.data["color-by"];
-        $.each(chart.data["data"], function(i, item){
+        $.each(chart.data["data"], function (i, item) {
             if (!(flavors.includes(item[key]))) {
                 flavors.push(item[key])
             }
         });
 
         // update color function for color-by
-        colorfunc = function(color, d) {
+        colorfunc = function (color, d) {
             if (typeof d === "object") {
                 let flavor = chart.data['data'][d.index][key];
                 return options.colors[flavor];
@@ -276,13 +324,13 @@ function drawBarChart(figure, chart, options) {
     }
     // update color dictionary
     let color_scale = d3.scaleOrdinal().domain(flavors.concat(series)).range(options.scheme);
-    $.each(series, function(i, key){
-       if (!(key in options.colors)) {
-           options.colors[key] = color_scale(key);
-       }
+    $.each(series, function (i, key) {
+        if (!(key in options.colors)) {
+            options.colors[key] = color_scale(key);
+        }
     });
 
-    c3.generate({
+    let c3chart = c3.generate({
         bindto: `#${figure.attr('id')}`,
         size: {width: options.width, height: options.height},
         data: {
@@ -298,7 +346,12 @@ function drawBarChart(figure, chart, options) {
             groups: chart.data.stack || [],
         },
         grid: {y: {show: true}},
-        axis: {x: {type: 'category', label: chart.data['x-label']}, rotated: (options.vertical || false) },
+        axis: {
+            x: {
+                type: 'category', label: chart.data['x-label']
+            },
+            rotated: (options.horizontal || false)
+        },
         legend: {hide: (series.length === 1)},
         bar: {width: {ratio: .6}},
         onresize: function () {
@@ -308,6 +361,7 @@ function drawBarChart(figure, chart, options) {
             });
         }
     });
+    figure.data('c3-chart', c3chart);
 }
 
 
@@ -319,7 +373,7 @@ function drawHistogram(figure, chart, options) {
     figure.removeAttr('data-chart');
 
 
-    c3.generate({
+    let c3chart = c3.generate({
         bindto: `#${figure.attr('id')}`,
         size: {width: options.width, height: options.height},
         data: {
@@ -354,6 +408,7 @@ function drawHistogram(figure, chart, options) {
             });
         }
     });
+    figure.data('c3-chart', c3chart);
 }
 
 function drawPieChart(figure, chart, options) {
@@ -371,7 +426,7 @@ function drawPieChart(figure, chart, options) {
         colors[item.label] = options.scheme[i];
     });
 
-    c3.generate({
+    let c3chart = c3.generate({
         bindto: `#${figure.attr('id')}`,
         size: {width: options.width, height: options.height},
         data: {
@@ -389,11 +444,16 @@ function drawPieChart(figure, chart, options) {
             });
         }
     });
+    figure.data('c3-chart', c3chart);
 }
 
 
 function drawScatterChart(figure, chart, options) {
     drawXYChart(figure, chart, options, 'scatter');
+}
+
+function drawLineChart(figure, chart, options) {
+    drawXYChart(figure, chart, options, 'line');
 }
 
 function callout(g, value, color) {
@@ -647,14 +707,14 @@ function drawTimeline(figure, chart, options) {
 
             switch (figure.data('type')) {
                 case 'barchart':
+                    options.horizontal = true;
                     drawBarChart(figure, chart, options);
                     break;
                 case 'columnchart':
-                    options.vertical = true;
                     drawBarChart(figure, chart, options);
                     break;
                 case 'lineplot':
-                    drawXYChart(figure, chart, options, 'line');
+                    drawLineChart(figure, chart, options);
                     break;
                 case 'histogram':
                     drawHistogram(figure, chart, options);
@@ -677,13 +737,6 @@ function drawTimeline(figure, chart, options) {
                 figure.after(`<figcaption class="text-center"></figcaption>`);
             }
 
-            // fix viewbox
-            /*figure.find('svg[width]').each(function(){
-                let viewbox = `0 0 ${$(this).width()} ${$(this).height()}`;
-                $(this).attr('viewBox', viewbox);
-            });*/
-
         });
-
     };
 }(jQuery));

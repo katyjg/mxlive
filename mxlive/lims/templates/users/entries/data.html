@@ -13,52 +13,64 @@
     <script src="{% static "js/mxlive-diffviewer.min.js" %}"></script>
 {% endblock  %}
 
-{% block modal_styles %}modal-lg{% endblock %}
-{% block modal_classes %}data-viewer{% endblock %}
+{% block modal_styles %}data-viewer{% endblock %}
 
 {% block modal_title %}
-    <i class="text-muted ti ti-layout-grid3 float-left"></i>
-    &nbsp; {% if request.user.is_superuser %}{{ object.project | upper }} | {% endif %}
+    Data | {% if request.user.is_superuser %}<span class="text-muted">{{ object.project | upper }} | </span>{% endif %}
     <strong>{{ object.name }}</strong>
 {% endblock %}
+
+{% block modal_subtitle %}<small>{{ object.identity }} &mdash; {{ object.kind }} from {{ object.modified|naturalday }}</small>{% endblock %}
 
 {% block modal_body %}
     <div class="row small py-1 overflow-ellipsis">
         <div class="col">
-            <strong>Type:</strong><br/>
-            <span class="text-muted">{{ object.kind }} from {{ object.modified|naturalday }}</span><br/>
-            <span class="text-muted">{% if object.session %}Session
-                <a href="{% url 'session-detail' object.session.pk %}">{{ object.session.name }}</a>{% else %}
+            <strong>Session:</strong><br/>
+            <span class="text-muted">{% if object.session %}<a href="{% url 'session-detail' object.session.pk %}">{{ object.session.name }}</a>{% else %}
                 Unrecorded Session{% endif %}</span>
         </div>
         <div class="col">
+            <strong>Beamline / Energy:</strong><br/>
+            <span class="text-muted">{{ object.beamline }} at {{ object.energy }} keV</span>
+
+        </div>
+        <div class="col">
             <strong>Beam:</strong><br/>
-            <span class="text-muted">{{ object.beamline }} at {{ object.energy }} keV</span><br/>
-            {% if object.beam_size %}<span class="text-muted" title="Beam Size">{{ object.beam_size|floatformat:2 }} &mu;m</span>{% endif %}
-        </div>
-        <div class="col">
-            <strong>Parameters:</strong><br/>
             <span class="text-muted">
-                        <span title="Exposure Time">{{ object.exposure_time }}s exposure time</span><br/>
-                        <span title="Attenuation">{{ object.attenuation }}% attenuated</span>
-                    </span>
+                <span title="Exposure Time">{{ object.exposure_time }}s</span> /
+                <span title="Attenuation">{{ object.attenuation }}% </span>
+                {% if object.beam_size %}/ <span class="text-muted" title="Beam Size">{{ object.beam_size|floatformat:0 }} &mu;m</span>{% endif %}
+            </span>
         </div>
         <div class="col">
-            <strong>Sample:</strong><span class="text-muted"> {% if object.sample %}
-            <a href="{% url "sample-detail" object.sample.pk %}">{{ object.sample }}</a>{% else %}
-            None{% endif %}</span><br/>
-            <strong>Group:</strong><span class="text-muted"> {% if object.sample %}
-            <a href="{% url "group-detail" object.sample.group.pk %}">{{ object.sample }}</a>{% else %}
-            None{% endif %}</span><br/>
-            <strong>Report:</strong><span class="text-muted">
-            {% for report in object.reports.all %}
-            <a href="{% url "report-detail" report.pk %}" title="View {{ report.name }} Report">
-                {% score_badge report.score %}
-            </a>
-            {% endfor %}
-                    </span>
+            <strong>Group / Sample:</strong><br/>
+            <span class="text-muted">
+                {% if object.group %}
+                    <a title="Group" href="{% url "group-detail" object.sample.group.pk %}">{{ object.group }}</a>
+                {% else %}
+                    None
+                {% endif %}
+            /
+                {% if object.sample %}
+                    <a title="Sample" href="{% url "sample-detail" object.sample.pk %}">{{ object.sample }}</a>
+                {% else %}
+                    None
+                {% endif %}
+            </span>
         </div>
-        <div class="col p-0">
+        {% if object.reports.exists %}
+        <div class="col">
+            <strong>Reports:</strong><br/>
+            <span class="text-muted">
+            {% for report in object.reports.all %}
+                <a href="{% url "report-detail" report.pk %}" title="View {{ report.name }} Report">
+                    {% score_badge report.score %}
+                </a>
+            {% endfor %}
+            </span>
+        </div>
+        {% endif %}
+        <div class="col">
             <div class="tools-box float-right">
             {% if object.url %}
                 <a href="{% url 'files-proxy' section='archive' path=object.download_url %}"
@@ -73,6 +85,7 @@
             </div>
         </div>
     </div>
-    <hr class="row mt-0"/>
-    {% include object.kind.template %}
+    <hr class="row mt-0 mb-2"/>
+    {% block data_content %}
+    {% endblock %}
 {% endblock %}
