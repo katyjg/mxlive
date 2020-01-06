@@ -74,6 +74,8 @@
                 let annotations = edges{{ data.pk }};
                 let xgrids = [];
                 let classes = {};
+                let chart = $('#figure-xrf').data('c3-chart');
+
                 $('#modal input.xrf-toggle:checked').each(function(){
                     let el_name = $(this).data('element');
                     let edges = annotations[el_name];
@@ -82,16 +84,22 @@
                         xgrids.push({
                             value: edge['energy'],
                             text: `${el_name}-${edge['label']}`,
-                            class: `${el_name}-notes`,
+                            class: `${el_name}-notes notes`,
                         });
                     });
                 });
-                let chart = $('#figure-xrf').data('c3-chart');
+
                 chart.xgrids(xgrids);
+                // update class names
+                d3.select("#figure-xrf")
+                    .selectAll(".c3-xgrid-line")
+                    .attr("class", function (d) {
+                        return "c3-xgrid-line"+(d.class ? ` ${d.class}`: "");
+                    });
+
                 $.each(classes, function(name, color){
-                   $(`g.${name} > line`).css('stroke', color);
-                   $(`g.${name} > text`).css('fill', color);
-                   console.log(name, color);
+                   d3.selectAll(`g.${name} > line`).style('stroke', color);
+                   d3.selectAll(`g.${name} > text`).style('fill', color);
                 });
             }
 
