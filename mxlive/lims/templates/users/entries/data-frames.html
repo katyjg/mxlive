@@ -1,5 +1,6 @@
 {% extends "users/entries/data.html" %}
 {% load data_server %}
+{% load converter %}
 {% load static %}
 
 {% block data_content %}
@@ -8,8 +9,8 @@
      data-first-frame='{{ object.first_frame }}'
      data-base-url='{% url "files-proxy" section="frame" path=object.url %}'
      data-frame-set='{{ object.frames }}'
-     data-wavelength='{{ object.wavelength }}'
-     data-resolution='{{ object.meta_data.resolution|default:0 }}'
+     data-wavelength='{{ object.energy|energy_to_wavelength }}'
+     data-resolution='{{ object.meta_data.resolution|default:2 }}'
      class="d-flex"
 >
     <div>
