@@ -770,6 +770,7 @@ class ShipmentContainerForm(forms.ModelForm):
             self.repeated_data['name_set'] = [str(c.name) for c in self.initial['shipment'].containers.all()]
             self.repeated_data['id_set'] = [c.pk for c in self.initial['shipment'].containers.all()]
             self.repeated_data['kind_set'] = [c.kind.pk for c in self.initial['shipment'].containers.all()]
+            self.fields['kind'].widget.attrs['readonly'] = True
             self.body.form_action = reverse_lazy('shipment-add-containers',
                                                  kwargs={'pk': self.initial['shipment'].pk})
             self.body.title = 'Add Containers to Shipment'
@@ -788,7 +789,7 @@ class ShipmentContainerForm(forms.ModelForm):
                     Div(
                         Div(
                             Div(Field('name'), css_class="col-5"),
-                            Div(Field('kind', css_class="select-alt"), css_class="col-5"),
+                            Div(Field('kind', css_class="select-alt",  data_repeat_enable="true"), css_class="col-5"),
                             Div(
                                 Div(
                                     HTML("<label>&nbsp;</label>"),

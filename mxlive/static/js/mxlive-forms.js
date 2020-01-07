@@ -2,7 +2,7 @@ function selectOne(e, group) {
     var locations = $('input[id$=sample_locations]');
     var data = $.parseJSON(locations.val());
     var assigned_group = $(e).attr('group');
-    if (!assigned_group | group == assigned_group) {
+    if (!(assigned_group) || (group === assigned_group)) {
 
         $(e).toggleClass('empty').toggleClass('selected');
         var port = $(e).attr('port');
@@ -10,10 +10,10 @@ function selectOne(e, group) {
         if (!(group in data)) {
             data[group] = {};
         }
-        if (assigned_group == group) {
+        if (assigned_group === group) {
             $(e).attr('group','');
             data[group][container] = $.grep(data[group][container], function (value) {
-                return value != port;
+                return value !== port;
             });
         } else {
             $(e).attr('group', group);
@@ -29,64 +29,12 @@ function selectOne(e, group) {
     locations.val(JSON.stringify(data));
 }
 
-function selectAll(container) {
-    var group = $('span.group-name').html();
-    var containerid = slug(container);
-    if($('#group-select #'+container+' circle.empty').length) {
-        $.each( $('#group-select #'+container+' circle.empty'), function() {
-            selectOne(this, group);
-        });
-    } else {
-        $.each($('#group-select #' + container + ' circle.selected'), function () {
-            selectOne(this, group);
-        });
-    }
-};
-
 var slug = function(str) {
     let trimmed = $.trim(str);
     return trimmed.replace(/[^a-z0-9-_]/gi, '-')
                    .replace(/-+/g, '-')
                    .replace(/^-|-$/g, '');
 };
-
-function groupByContainer() {
-    $.each($('.repeat-row[class!="template"]'), function() {
-       if (!($(this).hasClass('template'))) {
-           $(this).find('.remove').trigger('click');
-       }
-    });
-
-    $.each( $('[id^="formlayout"] svg'), function() {
-        $('.add').trigger('click');
-        var container = $(this).attr('id');
-        var row = $('.repeat-row[class!="template"]').last();
-        row.find('input[name$="name"]').val(slug(container).toLowerCase()).trigger('focusin').trigger('change');
-        $('span.group-name').html(slug(container).toLowerCase());
-        selectAll(container);
-        var num = $('[id^="formlayout"] circle[group="'+slug(container).toLowerCase()+'"]').length;
-        row.find('input[name$="sample_count"]').val(num);
-    });
-
-    $('#group-select circle.selected').addClass('full').removeClass('selected');
-
-}
-
-$('text[port]').hover(function() {
-    $.each($(this).parents('svg').find('circle[port*="'+$(this).attr('port')+'"]').not('.full'), function() {
-       $(this).addClass('hover');
-    });
-}, function() {
-    $.each($(this).parents('svg').find('circle[port*="'+$(this).attr('port')+'"]').not('.full'), function() {
-       $(this).removeClass('hover');
-    });
-});
-$('text[port]').on('click', function() {
-    let group = $('span.group-name').html();
-    $.each($(this).parents('svg').find('circle[port*="'+$(this).attr('port')+'"]').not('.full'), function() {
-       selectOne(this, group);
-    });
-});
 
 function setInitial(data) {
     $.each(data, function(e, values) {
@@ -100,11 +48,15 @@ function setInitial(data) {
     $.each(data, function(e, values) {
         let field = e.split('_set')[0];
         $.each(values, function(i, val) {
-            let input = $(rows[i]).find($(':input[name="' + field + '"]'));
-            input.val(val);
+            let input = $(rows[i]).find($(`:input[name="${field}"]`));
+            input.val(val).trigger('change');
         });
+
     });
-    //$('.repeat-container').css('opacity', 0).fadeTo('slow', 1);
+
+    // When field should be disabled for old entries only re-enable template item after
+    // adding all old entries. add "data-repeat-enable" to disabled field to re-enable it.
+    $('.repeat-row.template :input[data-repeat-enable]').removeAttr('readonly').trigger('change');
 }
 
 
