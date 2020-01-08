@@ -27,7 +27,11 @@
 {% block object_tools %}
     {%  if object.status == object.STATES.DRAFT %}
         <a href="#!" data-form-link="{% url "seat-samples" object.shipment.pk %}" title="Sample Seat Selection">
-            {% show_icon label='Samples' icon='ti ti-md ti-paint-bucket' %}
+        {% if not objects.samples.exists %}
+            {% show_icon label='Samples' icon='ti ti-md ti-paint-bucket' badge="+" color="primary" %}
+        {% else %}
+            {% show_icon label='Samples' icon='ti ti-md ti-paint-bucket' color="primary" %}
+        {% endif %}
         </a>
         <div class="separator"></div>
     {% endif %}

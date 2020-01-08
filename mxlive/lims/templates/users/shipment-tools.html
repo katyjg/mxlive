@@ -23,16 +23,19 @@
         </a>
         <a  href="#!" data-form-link="{% url "seat-samples" shipment.pk %}"
             {% if shipment.num_samples == 0 %}
-                class="attention"
                 title="No Samples"
                 data-toggle="popover"
                 data-trigger="hover"
                 data-placement="bottom"
-                data-type="popover-danger"
+                data-type="popover-primary"
                 data-content="Click here to add samples"
             {% endif %}
             >
-            {% show_icon label="Samples" icon="ti ti-md ti-paint-bucket" %}
+        {% if shipment.num_samples == 0 %}
+            {% show_icon label='Samples' icon='ti ti-md ti-paint-bucket' badge="+" color="primary" %}
+        {% else %}
+            {% show_icon label='Samples' icon='ti ti-md ti-paint-bucket' color="primary" %}
+        {% endif %}
         </a>
         <div class="separator"></div>
         <a href="#!" data-form-link="{% url "shipment-delete" shipment.pk %}">

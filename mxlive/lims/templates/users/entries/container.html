@@ -45,7 +45,11 @@
             data-content="Click here to add samples"
         {% endif %}
         >
-        {% show_icon label='Samples' icon='ti ti-md ti-paint-bucket' %}
+        {% if not object.samples.exists %}
+            {% show_icon label='Samples' icon='ti ti-md ti-paint-bucket' badge="+" color="primary" %}
+        {% else %}
+            {% show_icon label='Samples' icon='ti ti-md ti-paint-bucket' color="primary" %}
+        {% endif %}
     </a>
     {% endif %}
     {% include "users/tools-base.html" %}

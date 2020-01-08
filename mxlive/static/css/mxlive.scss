@@ -1339,7 +1339,7 @@ a:hover {
     right: 50%;
     top: -30%;
     font-size: 0.8rem;
-    padding: 0.25em 0.5em;
+    padding: 0.2em 0.4em;
   }
 }
 
@@ -1566,8 +1566,9 @@ tr.sample-completed {
 }
 
 .attention {
-    animation: glow 1s infinite alternate;
+    animation: flash 1s infinite alternate;
 }
+
 
 .accordion {
   [aria-expanded]:after {
@@ -1619,7 +1620,16 @@ tr.sample-completed {
 }
 @keyframes glow {
     to {
-        text-shadow: 0 0 2px $info;
+        opacity: 0 0 2px $info;
+    }
+}
+
+@keyframes flash {
+    from {
+      opacity: 0;
+    }
+    to {
+        opacity: 1;
     }
 }
 
