@@ -4,7 +4,8 @@ register = Library()
 
 
 @register.inclusion_tag('users/components/icon-info.html')
-def show_icon(label='', icon='', badge=None, color='', tooltip=''):
+def show_icon(label='', icon='', badge=None, color='', tooltip='', show_null=False):
+    badge = None if not badge and not show_null else badge
     return {
         'label': label,
         'icon': icon,

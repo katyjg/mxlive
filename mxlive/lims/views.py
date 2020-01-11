@@ -1,13 +1,15 @@
 import json
 
 import requests
+from datetime import timedelta
 from django import http
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, F, Q, Sum
+from django.db.models.functions import Greatest
 from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -56,96 +58,57 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
     def get_context_data(self, **kwargs):
         context = super(ProjectDetail, self).get_context_data(**kwargs)
         if self.request.user.is_superuser:
-            filters = {
-                'shipment': {
-                    'status__in': [models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT]
-                },
-                'data': {
-                    'sample__container__shipment__status__in': [
-                        models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT
-                    ]
-                },
-                'reports': {
-                    'data__sample__container__shipment__status__in': [
-                        models.Shipment.STATES.ON_SITE, models.Shipment.STATES.SENT
-                    ]
-                },
-                'sessions': {
-                    'stretches__end__isnull': True
-                }
-            }
+            shipments = models.Shipment.objects.filter(
+                status__in=(models.Shipment.STATES.SENT, models.Shipment.STATES.ON_SITE)
+            ).annotate(
+                data_count=Count('containers__samples__datasets', distinct=True),
+                report_count=Count('containers__samples__datasets__reports', distinct=True),
+                sample_count=Count('containers__samples', distinct=True),
+                group_count=Count('groups', distinct=True),
+                container_count=Count('containers', distinct=True),
+            ).order_by('status', '-date_shipped').prefetch_related('project')
+
+            sessions = models.Session.objects.filter(
+                stretches__end__isnull=True
+            ).annotate(
+                data_count=Count('datasets', distinct=True),
+                report_count=Count('datasets__reports', distinct=True),
+                last_record=Greatest('datasets__end_time', 'datasets__reports__created'),
+                duration=Sum(F('stretches__end')-F('stretches__start'))
+            ).order_by('-last_record')
+            adaptors = models.Container.objects.filter(
+                kind__locations__accepts__isnull=False, dewars__isnull=True, status__gt=models.Container.STATES.DRAFT
+            ).distinct().order_by('name').select_related('parent')
+            automounters = models.Dewar.objects.filter(active=True).select_related(
+                'container','beamline'
+            ).order_by('beamline__name')
+
+            context.update(adaptors=adaptors, automounters=automounters, shipments=shipments, sessions=sessions)
+
         else:
-            filters = {
-                'shipment': {
-                    'project': self.request.user,
-                    'status__lt': models.Shipment.STATES.ARCHIVED
-                },
-                'data': {
-                    'project': self.request.user,
-                    'sample__container__shipment__status__lt': models.Shipment.STATES.ARCHIVED
-                },
-                'reports': {
-                    'project': self.request.user,
-                    'data__sample__container__shipment__status__lt': models.Shipment.STATES.ARCHIVED
-                },
-                'sessions': {
-                    'project': self.request.user,
-                }
-            }
+            one_year_ago = timezone.now() - timedelta(days=365)
+            project = self.request.user
+            shipments = project.shipments.filter(
+                Q(status__lt=models.Shipment.STATES.RETURNED)
+                | Q(status=models.Shipment.STATES.RETURNED, date_returned__gt=one_year_ago)
+            ).annotate(
+                data_count=Count('containers__samples__datasets', distinct=True),
+                report_count=Count('containers__samples__datasets__reports', distinct=True),
+                sample_count=Count('containers__samples', distinct=True),
+                group_count=Count('groups', distinct=True),
+                container_count=Count('containers', distinct=True),
+            ).order_by('status', '-date_shipped').prefetch_related('project')
 
-        shipments = models.Shipment.objects.filter(**filters['shipment'])
-        shipment_data = dict(models.Data.objects.filter(
-            **filters['data']
-        ).order_by('sample__container__shipment').values(
-            shipment=models.F('sample__container__shipment')
-        ).values_list('shipment', Count('shipment')))
+            sessions = project.sessions.filter(
+                created__gt=one_year_ago
+            ).annotate(
+                data_count=Count('datasets', distinct=True),
+                report_count=Count('datasets__reports', distinct=True),
+                last_record=Greatest('datasets__end_time', 'datasets__reports__created'),
+                duration=Sum(F('stretches__end')-F('stretches__start'))
+            ).order_by('-last_record').prefetch_related('project', 'beamline')[:7]
 
-        shipment_reports = dict(models.AnalysisReport.objects.filter(
-            **filters['reports']
-        ).order_by('data__sample__container__shipment').values(
-            shipment=models.F('data__sample__container__shipment')
-        ).values_list('shipment', Count('shipment')))
-
-        shipment_containers = dict(shipments.values_list('pk', Count('containers')))
-        shipment_groups = dict(shipments.values_list('pk', Count('groups')))
-        shipment_samples = dict(shipments.values_list('pk', Count('containers__samples')))
-
-        context['shipments'] = [
-            (
-                shipment,
-                {
-                    'groups': shipment_groups.get(shipment.pk),
-                    'samples': shipment_samples.get(shipment.pk),
-                    'containers': shipment_containers.get(shipment.pk),
-                    'reports': shipment_reports.get(shipment.pk),
-                    'data': shipment_data.get(shipment.pk),
-                }
-            )
-            for shipment in shipments.prefetch_related('project').order_by('status', '-date_received', '-date_shipped')
-        ]
-
-        sessions = models.Session.objects.filter(**filters['sessions'])[:7]
-        session_data = dict(sessions.values_list('pk', Count('datasets')))
-        session_reports = dict(sessions.values_list('pk', Count('datasets__reports')))
-        context['sessions'] = [
-            (
-                session,
-                {
-                    'data': session_data.get(session.pk),
-                    'reports': session_reports.get(session.pk),
-                }
-            )
-            for session in sessions.prefetch_related('project')
-        ]
-
-        if self.request.user.is_superuser:
-            kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('types', flat=True)
-            context['automounters'] = models.Dewar.objects.filter(active=True).prefetch_related(
-                'container','beamline').order_by('beamline__name')
-            context['containers'] = models.Container.objects.filter(
-                kind__in=kinds, dewars__isnull=True, status__gt=models.Container.STATES.DRAFT
-            ).order_by('name')
-
+            context.update(shipments=shipments, sessions=sessions)
         return context
 
 

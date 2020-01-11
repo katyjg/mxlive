@@ -9,8 +9,8 @@
         </div>
         {% include "users/entries/container-layout.html" %}
         <div class="text-center">
-            {% if container.dewar %}
-                <span class="badge badge-info" title="Loaded in {{ container.dewar }}">{{ container.dewar.beamline }}</span>
+            {% if container.parent %}
+                <span class="badge badge-info" title="Loaded in {{ container.parent }}">Loaded</span>
             {% else %}
                 <span class="badge badge-secondary" title="Not Loaded">None</span>
             {% endif %}

@@ -23,18 +23,18 @@
                 </a>
             </h5>
             <div>
-                <strong>{{ stats.containers }}</strong> Container{{ stats.containers|pluralize }} /
-                <strong>{{ stats.groups }}</strong> Group{{ stats.groups|pluralize }} /
-                <strong>{{ stats.samples }}</strong> Sample{{ stats.samples|pluralize }}
+                <strong>{{ shipment.container_count }}</strong> Container{{ shipment.container_count|pluralize }} /
+                <strong>{{ shipment.group_count }}</strong> Group{{ shipment.group_count|pluralize }} /
+                <strong>{{ shipment.sample_count }}</strong> Sample{{ shipment.sample_count|pluralize }}
             </div>
         </div>
         <div class="tools-box ml-auto">
             {% if shipment.status >= shipment.STATES.ON_SITE %}
-                <a href="{% url "shipment-reports" shipment.pk %}" title="Go to Reports from this shipment">
-                    {% show_icon label='Reports' badge=stats.reports icon='ti ti-md ti-bar-chart-alt' color='info' %}
-                </a>
                 <a href="{% url "shipment-data" shipment.pk %}" title="Go to Data from this shipment">
-                    {% show_icon label='Data' badge=stats.data icon='ti ti-md ti-layout-grid3' color='info' %}
+                    {% show_icon label='Data' badge=shipment.data_count icon='ti ti-md ti-layout-grid3' color='info' %}
+                </a>
+                <a href="{% url "shipment-reports" shipment.pk %}" title="Go to Reports from this shipment">
+                    {% show_icon label='Reports' badge=shipment.report_count icon='ti ti-md ti-bar-chart-alt' color='info' %}
                 </a>
                 <a class="separator"></a>
             {% endif %}

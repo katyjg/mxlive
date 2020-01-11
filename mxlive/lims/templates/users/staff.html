@@ -36,15 +36,15 @@
             <div class="card mb-4">
                 <div class="card-header p-1 text-center text-wide text-muted"><small class="">BEAMLINES</small></div>
                 <div class="list-group list-group-flush list-group-hover">
-                {% for am in automounters %}
-                    <a href="{% url "beamline-detail" pk=am.beamline.pk %}" class="text-center list-group-item p-2">
-                            <div id="layout-{{ am.container.pk }}" class="layout-lg">
+                {% for automounter in automounters %}
+                    <a href="{% url "beamline-detail" pk=automounter.beamline.pk %}" class="text-center list-group-item p-2">
+                            <div id="layout-{{ automounter.container.pk }}" class="layout-lg">
                                 <h5 class="text-condensed">
-                                    <strong><span class="text-muted">{{ am.beamline.acronym }}</span></strong> | {{ am.container.kind }}
+                                    <strong><span class="text-muted">{{ automounter.beamline.acronym }}</span></strong> | {{ automounter.container.kind }}
                                 </h5>
                                 <hr/>
                             </div>
-                            {% include "users/entries/container-layout.html" with container=am.container details=False %}
+                            {% include "users/entries/container-layout.html" with container=automounter.container details=False %}
                     </a>
                 {% endfor %}
                 </div>
@@ -53,7 +53,7 @@
                 <div class="card-header p-1 text-center text-wide text-muted"><small>ADAPTORS</small></div>
                 <div class="card-body p-2">
                 <div class="row">
-                {% for container in containers %}
+                {% for container in adaptors %}
                 {% include "users/entries/container-item.html" %}
                 {% endfor %}
                 </div>
@@ -65,7 +65,7 @@
             <div class="card mb-4">
                 <div class="card-header p-1 text-center text-wide text-muted"><small>SHIPMENTS</small></div>
                 <div class="list-group list-group-flush">
-                    {% for shipment, stats in shipments %}
+                    {% for shipment in shipments %}
                         {% include "users/entries/shipment-list-item.html" %}
                     {% endfor %}
                         <div class="p-2 list-group-item empty">
@@ -87,7 +87,7 @@
             <div class="card mb-4">
                 <div class="card-header p-1 text-center text-wide text-muted"><small>ACTIVE SESSIONS</small></div>
                 <div class="list-group list-group-flush">
-                {% for session, stats in sessions %}
+                {% for session in sessions %}
                     {% include "users/entries/session-list-item.html" %}
                 {% empty %}
                     <div class="list-group-item empty">
