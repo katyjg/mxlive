@@ -74,8 +74,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
                 data_count=Count('datasets', distinct=True),
                 report_count=Count('datasets__reports', distinct=True),
                 last_record=Greatest('datasets__end_time', 'datasets__reports__created'),
-                duration=Sum(F('stretches__end')-F('stretches__start'))
-            ).order_by('-last_record')
+            ).order_by('-last_record').with_duration()
             adaptors = models.Container.objects.filter(
                 kind__locations__accepts__isnull=False, dewars__isnull=True, status__gt=models.Container.STATES.DRAFT
             ).distinct().order_by('name').select_related('parent')
@@ -105,8 +104,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
                 data_count=Count('datasets', distinct=True),
                 report_count=Count('datasets__reports', distinct=True),
                 last_record=Greatest('datasets__end_time', 'datasets__reports__created'),
-                duration=Sum(F('stretches__end')-F('stretches__start'))
-            ).order_by('-last_record').prefetch_related('project', 'beamline')[:7]
+            ).order_by('-last_record').with_duration().prefetch_related('project', 'beamline')[:7]
 
             context.update(shipments=shipments, sessions=sessions)
         return context

@@ -1,5 +1,6 @@
 {% load humanize %}
 {% load icons %}
+{% load converter %}
 
 <div class="list-group-item p-2">
     <div class="d-flex flex-row">
@@ -14,7 +15,7 @@
                     {{ session.project.name|upper }}{% endif %} | {{ session.name }}
                 </a>
             </h5>
-            <span class="text-muted overflow ellipsis">Last record {{ session.last_record|naturaltime }}</span>
+            <span class="text-muted overflow ellipsis">Duration {{ session.duration|natural_duration }} / Last record {{ session.last_record|naturaltime }}</span>
         </div>
         <div class="tools-box ml-auto">
             <a href="{% url "session-data" session.pk %}" title="Go to Data from this session">
