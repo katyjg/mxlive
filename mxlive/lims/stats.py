@@ -636,7 +636,7 @@ def session_stats(session):
                                'kind': 'table',
                                'data': [
                                            ['Shutters Open', "{} ({:.2f}%)".format(
-                                               humanize_duration(hours=shutters),
+                                               humanize_duration(shutters),
                                                shutters * 100 / total_time if total_time else 0)
                                             ],
                                            ['Last Dataset', '' if not last_data else last_data.modified.strftime('%c')],

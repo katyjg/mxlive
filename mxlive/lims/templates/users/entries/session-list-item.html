@@ -1,5 +1,6 @@
 {% load humanize %}
 {% load icons %}
+{% load converter %}
 
 <div class="list-group-item p-2">
     <div class="d-flex flex-row">
@@ -14,15 +15,16 @@
                     {{ session.project.name|upper }}{% endif %} | {{ session.name }}
                 </a>
             </h5>
-            <span class="text-muted overflow ellipsis">Last record {{ session.last_record_time|naturaltime }}</span>
+            <span class="text-muted overflow ellipsis">Duration {{ session.duration|natural_duration }} / Last record {{ session.last_record|naturaltime }}</span>
         </div>
         <div class="tools-box ml-auto">
-            <a href="{% url "session-reports" session.pk %}" title="Go to Reports from this session">
-                {% show_icon label='Reports' badge=stats.reports icon='ti ti-md ti-bar-chart-alt' color='info' %}
-            </a>
             <a href="{% url "session-data" session.pk %}" title="Go to Data from this session">
-                {% show_icon label='Data' badge=stats.data icon='ti ti-md ti-layout-grid3' color='info' %}
+                {% show_icon label='Data' badge=session.data_count icon='ti ti-md ti-layout-grid3' color='info' %}
             </a>
+            <a href="{% url "session-reports" session.pk %}" title="Go to Reports from this session">
+                {% show_icon label='Reports' badge=session.report_count icon='ti ti-md ti-bar-chart-alt' color='info' %}
+            </a>
+
         </div>
     </div>
 </div>
