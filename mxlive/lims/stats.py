@@ -851,7 +851,7 @@ def project_stats(project, **filters):
                     'data': [
                         ['Shifts Used', '{} ({})'.format(shifts, humanize_duration(shifts * SHIFT))],
                         ['Sessions', sum(session_counts.values())],
-                        ['Actual Time', '{:0.0%} % ({})'.format(actual_time, humanize_duration(ttime))],
+                        ['Actual Time', '{:0.0%} ({})'.format(actual_time, humanize_duration(ttime))],
                         ['Shutters Open', '{}'.format(humanize_duration(shutters))],
                     ],
                     'header': 'column',
