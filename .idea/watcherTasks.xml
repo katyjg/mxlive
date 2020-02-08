@@ -16,7 +16,7 @@
       <option name="outputFromStdout" value="false" />
       <option name="program" value="sassc" />
       <option name="runOnExternalChanges" value="true" />
-      <option name="scopeName" value="Changed Files" />
+      <option name="scopeName" value="Uncompiled SCSS" />
       <option name="trackOnlyRoot" value="true" />
       <option name="workingDir" value="$FileDir$" />
       <envs />
