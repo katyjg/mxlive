@@ -1,4 +1,4 @@
-FROM python:3.7-alpine
+FROM alpine:3.10
 
 MAINTAINER Kathryn Janzen <kathryn.janzen@lightsource.ca>
 
@@ -20,8 +20,8 @@ RUN chmod -v +x /run-server.sh /wait-for-it.sh
 
 COPY deploy/mxlive.conf /etc/apache2/conf.d/zzzmxlive.conf
 
-RUN /usr/bin/python3 /mxlive/manage.py collectstatic --noinput
+RUN /mxlive/manage.py collectstatic --noinput
 
-#VOLUME ["/mxlive/local", "/etc/letsencrypt"]
+VOLUME ["/mxlive/local", "/etc/letsencrypt"]
 
 CMD /run-server.sh

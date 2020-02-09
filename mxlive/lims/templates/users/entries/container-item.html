@@ -1,19 +1,19 @@
-<div class="col-6 col-sm-4 p-2">
-    <div class="border p-2">
-        <div class="text-center">
-            <a href="{% url "container-detail" pk=container.pk %}">
-                <div class="underline text-condensed overflow-ellipsis">
-                    <strong>{{ container.name }}</strong>
+<div class="col-6 col-sm-4 p-1">
+    <a href="{% url "container-detail" pk=container.pk %}">
+        <div class="border p-1">
+            <div class="text-center">
+                <div class="underline text-condensed overflow-ellipsis mb-1">
+                    {{ container.name }}
                 </div>
-            </a>
+            </div>
+            {% include "users/entries/container-layout.html" %}
+            <div class="text-center">
+                {% if container.parent %}
+                    <span class="badge badge-info" title="Loaded in {{ container.parent }}">Loaded</span>
+                {% else %}
+                    <span class="badge badge-secondary" title="Not Loaded">None</span>
+                {% endif %}
+            </div>
         </div>
-        {% include "users/entries/container-layout.html" %}
-        <div class="text-center">
-            {% if container.parent %}
-                <span class="badge badge-info" title="Loaded in {{ container.parent }}">Loaded</span>
-            {% else %}
-                <span class="badge badge-secondary" title="Not Loaded">None</span>
-            {% endif %}
-        </div>
-    </div>
+    </a>
 </div>

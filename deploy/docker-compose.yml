@@ -1,50 +1,41 @@
-database:
-  image: postgres-bkup:latest
-  volumes:
-    - ./database:/var/lib/postgresql/data:Z
-    - ./database-init:/docker-entrypoint-initdb.d:Z
-    - ./database-backups:/backups:Z
-  environment:
-    POSTGRES_PASSWORD: the832postgres0932password
-    DATABASE_USER: postgres
-    BACKUP_DATABASE_USER: postgres
-  ports:
-    - 5432:5432
-  restart: always
+version: '2'
+services:
+  database:
+    image: postgres-bkup:latest
+    volumes:
+      - ./database:/var/lib/postgresql/data:Z
+      - ./database-init:/docker-entrypoint-initdb.d:Z
+      - ./database-backups:/backups:Z
+    environment:
+      POSTGRES_PASSWORD: '*****secret*****'
+      DATABASE_USER: postgres
+      BACKUP_DATABASE_USER: postgres
 
-dataserver:
-  image: mxlive-dataproxy:latest
-  environment:
-    SERVER_NAME: data.local
-  restart: always
-  volumes:
-    - ./data-local:/dataserver/local:Z
-    - /users:/users:ro
-    - /archive/users:/archive:ro
-    - ./data-cache:/cache:Z
-  links:
-    - database:data-db
+    restart: always
 
-cache:
-  image: memcached
-  ports:
-    - "11211:11211"
-  restart: always
+  files:
+    image: mxlive-dataproxy:latest
+    environment:
+      SERVER_NAME: files.local
+    restart: always
+    volumes:
+    - ./files/local:/dataserver/local:Z
+    - /home:/users:ro
+    - ./files/archive:/archive:ro
+    - ./files/cache:/cache:Z
 
-app:
-  image: mxlive:latest
-  hostname: mxlive.example.com
-  environment:
-    SERVER_NAME: mxlive.example.com
-    CERT_PATH: /custom-certs
-  volumes:
-    - ./app-local:/mxlive/local:Z
-    - ./certs:/custom-certs:Z
-    #- ./certs:/etc/letsencrypt:Z
-  ports:
-    - 443:443
-  links:
-    - database:mxlive-db
-    - dataserver:mxlive-data
-    - cache:mxlive-cache
-  restart: always
+  cache:
+    image: memcached
+    restart: always
+
+  app:
+    image: mxlive:latest
+    hostname: mxlive.example.com
+    environment:
+      SERVER_NAME: mxlive.example.com
+    volumes:
+      - ./app/local:/mxlive/local:Z
+      - ./app/certs:/etc/letsencrypt:Z
+    ports:
+      - "443:443"
+    restart: always

@@ -4,19 +4,10 @@ $spacer: 1rem !default;
 $grid-gutter-width: 1rem !default;
 $half-spacer: 0.5*$spacer;
 $form-grid-gutter-width: .75*$grid-gutter-width !default;
+$primary: #38024D !default;
 
 //$grid-gutter-width: 1rem !default;
 //$spacer: 0.5 * $grid-gutter-width !default;
-$theme-colors: (
-    "primary": #69156A,
-    "secondary": #868e96,
-    "success": #28a745,
-    "danger": #dc3545,
-    "info": #17a2b8,
-    "warning": #ffc107,
-    "light": #f8f9fa,
-    "dark": #343434
-);
 
 $border-color: rgba(0, 0, 0, 0.15) !default;
 $table-border-color: $border-color !default;
@@ -101,7 +92,8 @@ body {
 }
 
 a {
-   outline: 0;
+  outline: 0;
+  color: lighten($primary, 10%);
 }
 
 header > nav {
