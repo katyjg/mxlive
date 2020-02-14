@@ -1,0 +1,83 @@
+{% load icons %}
+{% load calendar %}
+
+{% calendar_view year week as info %}
+<div class="card">
+    <div class="card-header d-flex flex-row justify-content-between overflow-ellipsis">
+        <div class="heading-box">
+            <h3>Week of {{ info.start }}</h3>
+        </div>
+        <div class="calendarnav tools-box pull-right">
+            <a class="cal-nav" href="#" rel="{% url 'any-week' last_week.0 last_week.1 %}" title="Last Week">
+                {% show_icon icon="ti ti-md ti-angle-left" %}
+            </a>
+            <a class="cal-nav" href="#" rel="{% url 'this-week' %}" title="Current Week">
+                {% show_icon icon="ti ti-md ti-home" %}
+            </a>
+            <a class="cal-nav" href="#" rel="{% url 'any-week' next_week.0 next_week.1 %}" title="Next Week">
+                {% show_icon icon="ti ti-md ti-angle-right" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        <table data-beamtime-url="{% url 'beamtime-json' %}?start={{ info.start }}&end={{ info.end }}"
+               data-modes-url="{{ facility_modes_url }}"
+               class="table table-sm mb-0 item-list">
+            <thead class="card-header">
+                <tr>
+                    <th class="text-uppercase day-col">Date</th>
+                    <th class="text-uppercase time-col">Time</th>
+                    {% for bl in beamlines %}<th class="text-uppercase">{{ bl.acronym }}</th>{% endfor %}
+                    <th class="text-uppercase day-col">Local Contact</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for day, details in info.week.items %}
+                    {% for shift, mode in details.modes.items %}
+                        <tr data-shift-id="{{ day }}T{{ shift }}" class="{{ mode.kind }}">
+                            {% if forloop.first %}
+                                <td rowspan="{{ info.shifts }}" class="day-cell">
+                                    <h5 class="text-uppercase text-condensed">{{ details.name }}</h5>
+                                    <span>{{ day|date:'Y-m-d' }}{{ details.date|date:'N d' }}</span>
+                                </td>
+                            {% endif %}
+                            <td>{{ shift }}:00</td>
+                            {% for bl in beamlines %}
+                                <td data-beamline="{{bl.acronym}}"></td>
+                            {% endfor %}
+                            {% if forloop.first %}
+                                <td rowspan="{{ info.shifts }}" class="day-cell">
+                                    <h6 class="text-condensed">{{ details.support|default_if_none:"" }}</h6>
+                                    <span>{{ details.support.staff.contact_phone|default_if_none:"" }}</span>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#calendar table').displayBeamtime({
+            detailed: {% if show_modes %}true{% else %}false{% endif %},
+            prefix: "bt"
+        });
+    });
+
+    $(document).ready(function() {
+        $('.cal-nav').click(function() {
+            $.ajax({
+                url: $(this).attr('rel'),
+                context: document.body,
+                success: function(d) {
+                    $('#calendar').html(d);
+                }
+            });
+        });
+        setupEditor('#calendar');
+    });
+</script>

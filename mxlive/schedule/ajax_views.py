@@ -1,0 +1,49 @@
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import View, TemplateView
+from django.http import JsonResponse
+from django.db.models import Q
+from django.utils import timezone
+from django.conf import settings
+
+from datetime import datetime, timedelta
+import calendar
+
+from .models import Beamtime, AccessType
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class FetchBeamtime(View):
+
+    def get(self, request, *args, **kwargs):
+        start = request.GET.get('start', False)
+        end = request.GET.get('end', False)
+
+        start = start and datetime.strptime(start, '%Y-%m-%d') or False
+        end = end and datetime.strptime(end, '%Y-%m-%d') or False
+
+        queryset = Beamtime.objects.filter()
+        if start and end:
+            queryset = queryset.filter((
+                Q(start__gte=start) & Q(start__lt=end)) | (
+                Q(end__lte=end) & Q(end__gt=start)) | (
+                Q(start__gte=start) & Q(end__lte=end)))
+        elif start:
+            queryset = queryset.filter(start__gte=start)
+        elif end:
+            queryset = queryset.filter(end__lte=end)
+
+        resp = []
+        for bt in queryset:
+            field = {
+                "id": bt.pk,
+                "title": bt.display(),
+                "comments": bt.comments,
+                "beamline": bt.beamline.acronym,
+                "url": '',
+                "class": bt.access_types(),
+                "starts": bt.start_times,
+                "end": bt.end_time
+            }
+            resp.append(field)
+        return JsonResponse(resp, safe=False)
