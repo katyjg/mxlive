@@ -73,8 +73,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             ).annotate(
                 data_count=Count('datasets', distinct=True),
                 report_count=Count('datasets__reports', distinct=True),
-                last_record=Greatest('datasets__end_time', 'datasets__reports__created'),
-            ).order_by('-last_record').with_duration()
+            ).with_duration()
             adaptors = models.Container.objects.filter(
                 kind__locations__accepts__isnull=False, dewars__isnull=True, status__gt=models.Container.STATES.DRAFT
             ).distinct().order_by('name').select_related('parent')
@@ -1238,3 +1237,5 @@ def fetch_archive(request, url):
         return resp
     else:
         return http.HttpResponseNotFound()
+
+
