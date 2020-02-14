@@ -32,6 +32,7 @@ urlpatterns = [
     url(r'^staff/', include('mxlive.staff.urls')),
     url(r'^users/',  include('mxlive.lims.urls')),
     url(r'^files/(?P<section>[^/]+)/(?P<path>.*)$', ProxyView.as_view(), name='files-proxy'),
+    url(r'^calendar/', include('mxlive.schedule.urls')),
 
     path('accounts/login/',  LoginView.as_view(template_name='login.html'), name="mxlive-login"),
     path('accounts/logout/', LogoutView.as_view(), name="mxlive-logout"),

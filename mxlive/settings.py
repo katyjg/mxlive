@@ -56,7 +56,9 @@ INSTALLED_APPS = [
     'mxlive.staff',
     'mxlive.lims',
     'mxlive.remote',
+    'mxlive.schedule',
     'crispy_forms',
+    'colorfield',
 ]
 
 MIDDLEWARE = [
