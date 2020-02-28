@@ -2,6 +2,9 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
+from django.template.loader import render_to_string
+from model_utils import Choices
+from model_utils.models import TimeStampedModel, TimeFramedModel
 
 from colorfield.fields import ColorField
 from datetime import datetime, timedelta
@@ -70,14 +73,40 @@ class Beamtime(models.Model):
 
         return start_times
 
-
     def access_types(self):
         return [a.name for a in self.access.all()]
 
     def display(self):
-        return "{}{}".format(self.project.__str__(), self.comments and "..." or "")
+        return render_to_string('schedule/beamtime.html', {'bt': self})
 
     def __str__(self):
-        return self.beamline.name
+        return "{} on {}".format(self.project.project, self.beamline.acronym)
 
 
+class Downtime(TimeFramedModel):
+    SCOPE_CHOICES = Choices(
+        (0, 'FACILITY', _('Facility')),
+        (1, 'BEAMLINE', _('Beamline'))
+    )
+    scope = models.IntegerField(choices=SCOPE_CHOICES, default=SCOPE_CHOICES.FACILITY)
+    beamline = models.ForeignKey(Beamline, related_name="downtime", on_delete=models.CASCADE)
+    comments = models.TextField(blank=True)
+
+    @property
+    def start_time(self):
+        return datetime.strftime(timezone.localtime(self.start), '%Y-%m-%dT%H')
+
+    @property
+    def end_time(self):
+        return datetime.strftime(timezone.localtime(self.end), '%Y-%m-%dT%H')
+
+    @property
+    def start_times(self):
+        st = self.start
+        slot = settings.HOURS_PER_SHIFT
+        start_times = []
+        while st < self.end:
+            start_times.append(datetime.strftime(timezone.localtime(st), '%Y-%m-%dT%H'))
+            st += timedelta(hours=slot)
+
+        return start_times

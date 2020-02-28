@@ -335,9 +335,9 @@ class ShipmentSendForm(forms.ModelForm):
             errors = Div(
                 Div(
                     HTML('/ '.join(self.instance.shipping_errors())),
-                    css_class="panel-heading"
+                    css_class="card-header"
                 ),
-                css_class="panel panel-warning"
+                css_class="card bg-warning"
             )
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)

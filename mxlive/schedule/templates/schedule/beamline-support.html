@@ -1,0 +1,18 @@
+{% load icons %}
+
+{% if support %}
+    <h6 class="text-condensed">{{ support|default_if_none:"" }}</h6>
+    <span>{{ support.staff.contact_phone|default_if_none:"" }}</span>
+    <div class="tools-box float-right pr-0 mb-0">
+        <a href="#!" data-form-link="{% url "support-edit" support.pk %}" title="Edit" class="pr-0">
+            {% show_icon icon='ti ti-sm ti-pencil' %}
+        </a>
+        <a href="#!" data-form-link="{% url "support-delete" support.pk %}" title="Delete">
+            {% show_icon icon='ti ti-sm ti-trash' %}
+        </a>
+    </div>
+{% else %}
+    <a href="#!" data-form-link="{% url "new-support" %}?date={{ date }}" title="Create">
+        {% show_icon icon='ti ti-md ti-user' %}
+    </a>
+{% endif %}

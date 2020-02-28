@@ -1,0 +1,12 @@
+{% load icons %}
+
+{{ bt.project }} {% if bt.comments %}...{% endif %}
+
+<div class="tools-box float-right pr-0 my-1">
+    <a href="#!" data-form-link="{% url "beamtime-edit" bt.pk %}" title="Edit" class="pr-0">
+        {% show_icon icon='ti ti-sm ti-pencil' %}
+    </a>
+    <a href="#!" data-form-link="{% url "beamtime-delete" bt.pk %}" title="Delete">
+        {% show_icon icon='ti ti-sm ti-trash' %}
+    </a>
+</div>

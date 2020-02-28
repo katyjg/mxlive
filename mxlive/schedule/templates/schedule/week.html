@@ -11,25 +11,36 @@
             <a class="cal-nav" href="#" rel="{% url 'any-week' last_week.0 last_week.1 %}" title="Last Week">
                 {% show_icon icon="ti ti-md ti-angle-left" %}
             </a>
-            <a class="cal-nav" href="#" rel="{% url 'this-week' %}" title="Current Week">
-                {% show_icon icon="ti ti-md ti-home" %}
+            <a class="bcal-datepicker date" href="#" >
+                <span class="input-group-addon">{% show_icon icon="ti ti-md ti-calendar" %}</span>
             </a>
             <a class="cal-nav" href="#" rel="{% url 'any-week' next_week.0 next_week.1 %}" title="Next Week">
                 {% show_icon icon="ti ti-md ti-angle-right" %}
             </a>
+            <a class="cal-nav" href="#" rel="{% url 'this-week' %}" title="Today">
+                {% show_icon icon="ti ti-md ti-home" %}
+            </a>
+            <div class="break-box ml-2 pl-2" title="Mark Downtime">
+                {% show_icon icon="ti ti-md ti-flag-alt" %}
+            </div>
+            <span class="switch-box">
+                <input type="checkbox" id="dtSwitch">
+                <label class="ml-0" for="dtSwitch"></label>
+            </span>
         </div>
     </div>
 
     <div class="card-body p-0">
         <table data-beamtime-url="{% url 'beamtime-json' %}?start={{ info.start }}&end={{ info.end }}"
+               data-downtime-url="{% url 'downtime-json' %}?start={{ info.start }}&end={{ info.end }}"
                data-modes-url="{{ facility_modes_url }}"
-               class="table table-sm mb-0 item-list">
+               class="table table-sm mb-0 item-list bcal-week">
             <thead class="card-header">
                 <tr>
-                    <th class="text-uppercase day-col">Date</th>
-                    <th class="text-uppercase time-col">Time</th>
+                    <th class="text-uppercase bcal-sm-col"></th>
+                    <th class="text-uppercase bcal-sm-col">Time</th>
                     {% for bl in beamlines %}<th class="text-uppercase">{{ bl.acronym }}</th>{% endfor %}
-                    <th class="text-uppercase day-col">Local Contact</th>
+                    <th class="text-uppercase bcal-md-col">Staff</th>
                 </tr>
             </thead>
             <tbody>
@@ -37,19 +48,20 @@
                     {% for shift, mode in details.modes.items %}
                         <tr data-shift-id="{{ day }}T{{ shift }}" class="{{ mode.kind }}">
                             {% if forloop.first %}
-                                <td rowspan="{{ info.shifts }}" class="day-cell">
-                                    <h5 class="text-uppercase text-condensed">{{ details.name }}</h5>
-                                    <span>{{ day|date:'Y-m-d' }}{{ details.date|date:'N d' }}</span>
+                                <td rowspan="{{ info.shifts }}" class="bg-white bcal-day">
+                                    <text class="text-uppercase text-condensed">
+                                    {{ details.name }}<br>
+                                    <strong>{{ day|date:'Y-m-d' }}{{ details.date|date:'N d' }}</strong>
+                                    </text>
                                 </td>
                             {% endif %}
-                            <td>{{ shift }}:00</td>
+                            <td class="bg-white">{{ shift }}:00</td>
                             {% for bl in beamlines %}
                                 <td data-beamline="{{bl.acronym}}"></td>
                             {% endfor %}
                             {% if forloop.first %}
-                                <td rowspan="{{ info.shifts }}" class="day-cell">
-                                    <h6 class="text-condensed">{{ details.support|default_if_none:"" }}</h6>
-                                    <span>{{ details.support.staff.contact_phone|default_if_none:"" }}</span>
+                                <td rowspan="{{ info.shifts }}" class="bg-white text-center">
+                                    {% include "schedule/beamline-support.html" with support=details.support date=day %}
                                 </td>
                             {% endif %}
                         </tr>
@@ -62,22 +74,53 @@
 
 <script>
     $(document).ready(function() {
-        $('#calendar table').displayBeamtime({
+        $("#beamline-calendar table.bcal-week").displayBeamtime({
             detailed: {% if show_modes %}true{% else %}false{% endif %},
-            prefix: "bt"
+            prefix: "bcal"
         });
-    });
+        $("#beamline-calendar table.bcal-week").displayDowntime();
 
-    $(document).ready(function() {
         $('.cal-nav').click(function() {
             $.ajax({
                 url: $(this).attr('rel'),
                 context: document.body,
                 success: function(d) {
-                    $('#calendar').html(d);
+                    $('#beamline-calendar').html(d);
                 }
             });
         });
-        setupEditor('#calendar');
+
+
+        $('.bcal-datepicker').datepicker({
+            weekStart: 1,
+            maxViewMode: 2,
+            format: "yyyy-mm-dd",
+            orientation: "bottom right",
+            autoclose: true,
+            todayHighlight: true,
+            calendarWeeks: true,
+        }).on('changeDate', function(e) {
+            let year = e.date.getFullYear();
+            let dayone = new Date(year, 0, 1);
+            let week = Math.ceil( (((e.date - dayone) / 86400000) + dayone.getDay() + 1) / 7);
+            let url = "{% url 'this-week' %}" + year + '-W' + week + '/';
+            $.ajax({
+                url: url,
+                context: document.body,
+                success: function(d) {
+                    $('#beamline-calendar').html(d);
+                }
+            });
+        });
+        try {
+            $('.bcal-datepicker').datepicker('update', {% for day in info.week.keys %}'{{ day }}'{% if not forloop.last %},{%  endif %}{% empty %}''{% endfor %});
+        } catch {
+            // cannot update datepicker
+        }
+
+        {% if request.user.is_superuser %}
+            setupEditor('#beamline-calendar', '#dtSwitch');
+            setupDowntimeEditor('#beamline-calendar', '#dtSwitch');
+        {% endif %}
     });
 </script>

@@ -9,8 +9,13 @@
     </h3>
 {% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap-datepicker.min.css' %}" type="text/css" />
+{% endblock %}
+
 {% block pre_js %}
     <script src="{% static 'js/mxlive-scheduler.js' %}"></script>
+    <script src="{% static 'js/misc/bootstrap-datepicker.min.js' %}"></script>
 {% endblock %}
 
 {% block object_tools %}
@@ -23,8 +28,14 @@
 {% endblock %}
 
 {% block full %}
-    <div id="calendar" data-beamtime-url="{% url 'new-beamtime' %}" data-week-url="{% url 'any-week' year week %}">
+    <div id="beamline-calendar"
+        data-beamtime-url="{% url 'new-beamtime' %}"
+        data-downtime-url="{% url 'new-downtime' %}"
+        data-week-url="{% url 'any-week' year week %}">
         {% include "schedule/week.html" with year=year week=week show_modes=True %}
     </div>
+    <br>
+    <p><span class="cancelled legend px-3 mr-1"></span> Cancelled </p>
+    <p><span class="full legend px-3 mr-1"></span> Reserved</p>
 {% endblock %}
 

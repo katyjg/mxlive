@@ -35,7 +35,7 @@ def calendar_view(year, week):
     shift_count = int(24 / slot)
     shifts = {'{:02d}'.format(i * slot): {} for i in range(shift_count)}
 
-    names = [calendar.day_name[x] for x in cal.iterweekdays()]
+    names = [calendar.day_abbr[x] for x in cal.iterweekdays()]
     dates = month[i*7:i*7+7]
     start = dates[0]
     end = dates[-1] + timedelta(days=1)
