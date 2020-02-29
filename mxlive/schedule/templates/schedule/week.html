@@ -9,24 +9,25 @@
         </div>
         <div class="calendarnav tools-box pull-right">
             <a class="cal-nav" href="#" rel="{% url 'any-week' last_week.0 last_week.1 %}" title="Last Week">
-                {% show_icon icon="ti ti-md ti-angle-left" %}
+                {% show_icon icon="ti ti-lg ti-angle-left" %}
             </a>
             <a class="bcal-datepicker date" href="#" >
-                <span class="input-group-addon">{% show_icon icon="ti ti-md ti-calendar" %}</span>
+                <span class="input-group-addon">{% show_icon icon="ti ti-lg ti-calendar" %}</span>
             </a>
             <a class="cal-nav" href="#" rel="{% url 'any-week' next_week.0 next_week.1 %}" title="Next Week">
-                {% show_icon icon="ti ti-md ti-angle-right" %}
+                {% show_icon icon="ti ti-lg ti-angle-right" %}
             </a>
             <a class="cal-nav" href="#" rel="{% url 'this-week' %}" title="Today">
-                {% show_icon icon="ti ti-md ti-home" %}
+                {% show_icon icon="ti ti-lg ti-home" %}
             </a>
-            <div class="break-box ml-2 pl-2" title="Mark Downtime">
-                {% show_icon icon="ti ti-md ti-flag-alt" %}
+            <div class="toggle-box d-flex flex-column ml-3 pl-4">
+                <div class="text-condensed text-sm text-muted">Downtime</div>
+                <div class="something-else">
+                    <input type="checkbox"  id="dtSwitch" class="dn">
+                    <label for="dtSwitch" class="toggle mb-0"><span class="toggle__handler"></span></label>
+                </div>
+
             </div>
-            <span class="switch-box">
-                <input type="checkbox" id="dtSwitch">
-                <label class="ml-0" for="dtSwitch"></label>
-            </span>
         </div>
     </div>
 

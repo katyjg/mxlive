@@ -406,7 +406,9 @@ a.navbar-brand {
   }
 }
 
-
+.text-sm {
+  font-size: 75%;
+}
 a.text-muted:hover {
   color: var(--gray-dark);
 }
@@ -1768,48 +1770,75 @@ input::placeholder {
 .cancelled {
   @include striped_bg(rgba(red, 0.15));
 }
-.break-box {
+
+.toggle-box {
+  height: 100%;
   border-left: 1px solid var(--gray-alpha);
-  height: 23px;
-}
-.switch-box {
-  height: 23px;
 
-  input[type=checkbox] {
-    height: 0;
-    width: 0;
-    visibility: hidden;
+  input {
     position: absolute;
+    left: -99em;
   }
-  input:checked + label {
-    background: var(--primary);
-
+  input:checked + .toggle {
+    background: var(--success);
+    &:before {
+      color: #fff;
+    }
     &:after {
-      left: calc(100% - 2px);
-      transform: translateX(-100%);
+      color: var(--success);
+    }
+    .toggle__handler {
+      width: 27px;
+      -webkit-transform: translateX(30px);
+      transform: translateX(30px);
+      border-color: #fff;
     }
   }
-  label {
-    width: 42px;
-    height: 21px;
-    background: grey;
+  .toggle {
+    cursor: pointer;
     display: block;
-    border-radius: 2px;
     position: relative;
+    width: 60px;
+    height: 20px;
+    float: right;
+    background: var(--secondary);
+    border-radius: 3px;
+    -webkit-transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
+    transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
 
-    &:after {
-      content: '';
+    &:before, &:after {
       position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 17px;
-      height: 17px;
-      background: $white;
-      border-radius: 1px;
-      transition: 0.3s;
+      line-height: 20px;
+      font-size: 0.85rem;
+      z-index: 2;
+      -webkit-transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
+      transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
     }
-    &:active:after {
-      width: 0px;
+    &:before {
+      content: "OFF";
+      left: 5px;
+      color: var(--secondary);
     }
+    &:after {
+      content: "ON";
+      right: 5px;
+      color: #fff;
+    }
+  }
+
+  .toggle__handler {
+    display: inline-block;
+    position: absolute;
+    z-index: 1;
+    background: #fff;
+    width: 28px;
+    height: 16px;
+    border-radius: 2px;
+    top: 2px;
+    left: 2px;
+    -webkit-transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
+    transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
+    -webkit-transform: translateX(0px);
+    transform: translateX(0px);
   }
 }
