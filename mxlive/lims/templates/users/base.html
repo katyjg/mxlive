@@ -31,7 +31,9 @@
 
 {% block body %}
     <!-- User Profile Menu -->
-    {% include "users/navs.html" %}
+    {% if user.is_authenticated %}
+        {% include "users/navs.html" %}
+    {% endif %}
     <main role="main">
         <div id="spinner">
             <i class="fa fa-spinner fa-spin"></i>

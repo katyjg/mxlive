@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.db.models import Q
 from django.http import JsonResponse
+from django.views.decorators.clickjacking import xframe_options_exempt, xframe_options_sameorigin
 
 from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin
 
@@ -16,51 +17,44 @@ from datetime import datetime, timedelta
 
 
 class CalendarView(TemplateView):
-    template_name = 'schedule/schedule.html'
+    template_name = 'schedule/public-schedule.html'
+
+    @xframe_options_exempt
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        context = super(CalendarView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
+        detailed = self.request.GET.get('detailed', False)
         try:
             d = '{}-W{}-1'.format(kwargs.get('year', ''), kwargs.get('week', ''))
             now = datetime.strptime(d, '%G-W%V-%w')
         except:
             now = timezone.now()
+
         (year, week, _) = now.isocalendar()
         context['year'] = year
         context['week'] = week
         context['beamlines'] = Beamline.objects.filter(simulated=False)
+        context['access_types'] = models.AccessType.objects.all()
         context['facility_modes_url'] = settings.FACILITY_MODES
         context['next_week'] = (now + timedelta(days=7)).isocalendar()[:2]
         context['last_week'] = (now - timedelta(days=7)).isocalendar()[:2]
+        context['editable'] = detailed
 
         return context
 
 
-class BeamlineProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
-    form_class = forms.BeamlineProjectForm
-    template_name = "modal/form.html"
-    model = models.BeamlineProject
-    success_url = reverse_lazy('dashboard')
-    success_message = "Beamline Project has been created"
+class ScheduleView(AdminRequiredMixin, CalendarView):
+    template_name = 'schedule/schedule.html'
 
-
-class BeamlineProjectEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
-    form_class = forms.BeamlineProjectForm
-    template_name = "modal/form.html"
-    model = models.BeamlineProject
-    success_url = reverse_lazy('dashboard')
-    success_message = "Beamline Project has been updated"
-
-
-class BeamlineProjectDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
-    template_name = "modal/delete.html"
-    model = models.BeamlineProject
-    success_url = reverse_lazy('dashboard')
-    success_message = "Beamline Project has been deleted"
+    @xframe_options_sameorigin
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form_action'] = reverse_lazy('beamline-project-delete', kwargs={'pk': self.object.pk})
+        context['editable'] = self.request.user.is_superuser
         return context
 
 
@@ -68,7 +62,7 @@ class BeamtimeCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
     form_class = forms.BeamtimeForm
     template_name = "modal/form.html"
     model = models.Beamtime
-    success_url = reverse_lazy('calendar')
+    success_url = reverse_lazy('schedule')
     success_message = "Beamtime has been created"
 
     def get_initial(self):
@@ -103,6 +97,9 @@ class BeamtimeCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
             Q(end__lte=obj.end) & Q(end__gt=obj.start)) | (
             Q(start__gte=obj.start) & Q(end__lte=obj.end))).exclude(pk=obj.pk).delete()
 
+        if form.cleaned_data['notify']:
+            models.EmailNotification.objects.create(beamtime=self.object)
+
         success_url = self.get_success_url()
         return JsonResponse({'url': success_url})
 
@@ -111,14 +108,29 @@ class BeamtimeEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit
     form_class = forms.BeamtimeForm
     template_name = "modal/form.html"
     model = models.Beamtime
-    success_url = reverse_lazy('calendar')
+    success_url = reverse_lazy('schedule')
     success_message = "Beamtime has been updated"
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['notify'] = self.object.notifications.exists()
+        return initial
+
+    def form_valid(self, form):
+        super().form_valid(form)
+
+        self.object.notifications.all().delete()
+        if form.cleaned_data['notify']:
+            models.EmailNotification.objects.create(beamtime=self.object)
+
+        success_url = self.get_success_url()
+        return JsonResponse({'url': success_url})
 
 
 class BeamtimeDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
     template_name = "modal/delete.html"
     model = models.Beamtime
-    success_url = reverse_lazy('calendar')
+    success_url = reverse_lazy('schedule')
     success_message = "Beamtime has been deleted"
 
     def get_context_data(self, **kwargs):
@@ -136,7 +148,7 @@ class SupportCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edi
     form_class = forms.BeamlineSupportForm
     template_name = "modal/form.html"
     model = models.BeamlineSupport
-    success_url = reverse_lazy('calendar')
+    success_url = reverse_lazy('schedule')
     success_message = "Beamline Support has been created"
 
     def get_initial(self):
@@ -152,14 +164,14 @@ class SupportEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.
     form_class = forms.BeamlineSupportForm
     template_name = "modal/form.html"
     model = models.BeamlineSupport
-    success_url = reverse_lazy('calendar')
+    success_url = reverse_lazy('schedule')
     success_message = "Beamline Support has been updated"
 
 
 class SupportDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
     template_name = "modal/delete.html"
     model = models.BeamlineSupport
-    success_url = reverse_lazy('calendar')
+    success_url = reverse_lazy('schedule')
     success_message = "Beamline Support has been deleted"
 
     def get_context_data(self, **kwargs):
@@ -177,7 +189,7 @@ class DowntimeCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
     form_class = forms.DowntimeForm
     template_name = "modal/form.html"
     model = models.Downtime
-    success_url = reverse_lazy('calendar')
+    success_url = reverse_lazy('schedule')
     success_message = "Downtime has been created"
 
     def get_initial(self):
@@ -199,14 +211,22 @@ class DowntimeEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit
     form_class = forms.DowntimeForm
     template_name = "modal/form.html"
     model = models.Downtime
-    success_url = reverse_lazy('calendar')
+    success_url = reverse_lazy('schedule')
     success_message = "Downtime has been updated"
 
     def form_valid(self, form):
-        fv = super(DowntimeEdit, self).form_valid(form)
+        fv = super().form_valid(form)
         obj = form.instance
         if form.data.get('submit') == 'Delete':
             obj.delete()
             self.success_message = "Downtime has been deleted"
         return fv
+
+
+class EmailNotificationEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    form_class = forms.EmailNotificationForm
+    template_name = "modal/form.html"
+    model = models.EmailNotification
+    success_url = reverse_lazy('schedule')
+    success_message = "Email Notification has been updated"
 

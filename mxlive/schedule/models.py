@@ -11,28 +11,19 @@ from datetime import datetime, timedelta
 
 from mxlive.lims.models import Project, Beamline
 
+from geopy import geocoders
+import pytz
+from tzwhere import tzwhere
+tz = tzwhere.tzwhere()
 
 class AccessType(models.Model):
     name = models.CharField(blank=True, max_length=30)
     color = ColorField(default="#000000")
+    email_subject = models.CharField(max_length=100, verbose_name=_('Email Subject'))
+    email_body = models.TextField(blank=True)
 
     def __str__(self):
         return self.name
-
-
-class BeamlineProject(models.Model):
-    project = models.ForeignKey(Project, related_name="projects", on_delete=models.CASCADE, blank=True, null=True)
-    number = models.CharField(max_length=10, verbose_name=_('Project ID'))
-    title = models.CharField(max_length=255, verbose_name=_('Title'))
-    expiration = models.DateField(verbose_name=_('Expiration Date'))
-    email = models.EmailField(blank=True, null=True)
-
-    class Meta:
-        unique_together = ("number",)
-        verbose_name = "Active Projects"
-
-    def __str__(self):
-        return "{} {}".format(self.number, self.project and "({})".format(self.project) or "")
 
 
 class BeamlineSupport(models.Model):
@@ -44,15 +35,13 @@ class BeamlineSupport(models.Model):
 
 
 class Beamtime(models.Model):
-    project = models.ForeignKey(BeamlineProject, related_name="beamtime", on_delete=models.CASCADE, null=True)
+    project = models.ForeignKey(Project, related_name="beamtime", on_delete=models.CASCADE, null=True)
     beamline = models.ForeignKey(Beamline, related_name="beamtime", on_delete=models.CASCADE)
     comments = models.TextField(blank=True)
-    access = models.ManyToManyField(AccessType)
+    access = models.ForeignKey(AccessType, on_delete=models.SET_NULL, null=True)
+    maintenance = models.BooleanField(default=False)
     start = models.DateTimeField(verbose_name=_('Start'))
     end = models.DateTimeField(verbose_name=_('End'))
-
-    notify = models.BooleanField(default=False)
-    sent = models.BooleanField(default=False)
 
     @property
     def start_time(self):
@@ -73,14 +62,14 @@ class Beamtime(models.Model):
 
         return start_times
 
-    def access_types(self):
-        return [a.name for a in self.access.all()]
+    def display(self, detailed=False):
+        return render_to_string('schedule/beamtime.html', {'bt': self, 'detailed': detailed})
 
-    def display(self):
-        return render_to_string('schedule/beamtime.html', {'bt': self})
+    def notification(self):
+        return self.notifications.first()
 
     def __str__(self):
-        return "{} on {}".format(self.project.project, self.beamline.acronym)
+        return "{} on {}".format(self.project, self.beamline.acronym)
 
 
 class Downtime(TimeFramedModel):
@@ -110,3 +99,50 @@ class Downtime(TimeFramedModel):
             st += timedelta(hours=slot)
 
         return start_times
+
+
+class EmailNotification(models.Model):
+    beamtime = models.ForeignKey(Beamtime, related_name="notifications", on_delete=models.CASCADE)
+    email_subject = models.CharField(max_length=100, verbose_name=_('Email Subject'))
+    email_body = models.TextField(blank=True)
+    send_time = models.DateTimeField(verbose_name=_('Send Time'), null=True)
+    sent = models.BooleanField(default=False)
+
+    def beamline(self):
+        return self.beamtime.beamline.acronym
+
+    def first_name(self):
+        return self.beamtime.project and self.beamtime.project.first_name or ''
+
+    def last_name(self):
+        return self.beamtime.project and self.beamtime.project.last_name or ''
+
+    def start_date(self):
+        return datetime.strftime(timezone.localtime(self.beamtime.start), '%A, %B %-d')
+
+    def start_time(self):
+        return datetime.strftime(timezone.localtime(self.beamtime.start), '%-I%p')
+
+    def format_info(self):
+        return {
+            'first_name': self.first_name(),
+            'last_name': self.last_name(),
+            'beamline': self.beamline(),
+            'start_date': self.start_date(),
+            'start_time': self.start_time()
+        }
+
+    def save(self, *args, **kwargs):
+        # Get user's local timezone
+        locator = geocoders.Nominatim()
+        try:
+            address = "{user.city}, {user.province}, {user.country}".format(user=self.beamtime.project)
+            _, (latitude, longitude) = locator.geocode(address)
+            usertz = tz.tzNameAt(latitude, longitude)
+        except:
+            usertz = settings.TIME_ZONE
+        t = self.beamtime.start - timedelta(days=7 + (self.beamtime.start.weekday() > 4 and self.beamtime.start.weekday() - 4 or 0))
+        self.send_time = pytz.timezone(usertz).localize(datetime(year=t.year, month=t.month, day=t.day, hour=10))
+        self.email_subject = self.beamtime.access.email_subject.format(**self.format_info())
+        self.email_body = self.beamtime.access.email_body.format(**self.format_info())
+        super().save(*args, **kwargs)

@@ -19,6 +19,7 @@ class FetchBeamtime(View):
     def get(self, request, *args, **kwargs):
         start = request.GET.get('start', False)
         end = request.GET.get('end', False)
+        detailed = request.GET.get('detailed', False)
 
         start = start and datetime.strptime(start, '%Y-%m-%d') or False
         end = end and datetime.strptime(end, '%Y-%m-%d') or False
@@ -38,11 +39,11 @@ class FetchBeamtime(View):
         for bt in queryset:
             field = {
                 "id": bt.pk,
-                "title": bt.display(),
+                "title": bt.display(detailed),
                 "comments": bt.comments,
                 "beamline": bt.beamline.acronym,
                 "url": '',
-                "class": bt.access_types(),
+                "css_class": bt.access and bt.access.name or "",
                 "starts": bt.start_times,
                 "end": bt.end_time
             }
@@ -76,6 +77,7 @@ class FetchDowntime(View):
             field = {
                 "id": bt.pk,
                 "beamline": bt.beamline.acronym,
+                "comments": bt.comments,
                 "url": reverse('downtime-edit', kwargs={'pk': bt.pk}),
                 "starts": bt.start_times,
                 "end": bt.end_time

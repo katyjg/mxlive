@@ -2,88 +2,121 @@
 {% load calendar %}
 
 {% calendar_view year week as info %}
-<div class="card">
-    <div class="card-header d-flex flex-row justify-content-between overflow-ellipsis">
-        <div class="heading-box">
-            <h3>Week of {{ info.start }}</h3>
-        </div>
-        <div class="calendarnav tools-box pull-right">
-            <a class="cal-nav" href="#" rel="{% url 'any-week' last_week.0 last_week.1 %}" title="Last Week">
-                {% show_icon icon="ti ti-lg ti-angle-left" %}
-            </a>
-            <a class="bcal-datepicker date" href="#" >
-                <span class="input-group-addon">{% show_icon icon="ti ti-lg ti-calendar" %}</span>
-            </a>
-            <a class="cal-nav" href="#" rel="{% url 'any-week' next_week.0 next_week.1 %}" title="Next Week">
-                {% show_icon icon="ti ti-lg ti-angle-right" %}
-            </a>
-            <a class="cal-nav" href="#" rel="{% url 'this-week' %}" title="Today">
-                {% show_icon icon="ti ti-lg ti-home" %}
-            </a>
-            <div class="toggle-box d-flex flex-column ml-3 pl-4">
-                <div class="text-condensed text-sm text-muted">Downtime</div>
-                <div class="something-else">
-                    <input type="checkbox"  id="dtSwitch" class="dn">
-                    <label for="dtSwitch" class="toggle mb-0"><span class="toggle__handler"></span></label>
-                </div>
+<style>
+    {% for kind in access_types %}
+        .{{kind.name}} {
+          position: relative;
+        }
+        .{{kind.name}}:before {
+          content: "";
+          height: 100%;
+          width: 7px;
+          background-color: {{kind.color}};
+          position: absolute;
+          left: 0;
+          top: 0;
+        }
+    {% endfor %}
+</style>
 
+<div id="beamline-calendar"
+     data-beamtime-url="{% url 'new-beamtime' %}"
+     data-downtime-url="{% url 'new-downtime' %}"
+     data-week-url="{% url 'any-week' year week %}">
+    <div class="card">
+        <div class="card-header d-flex flex-row justify-content-between overflow-ellipsis">
+            <div class="heading-box">
+                <h3>Week of {{ info.start }}</h3>
             </div>
+            <div class="calendarnav tools-box pull-right">
+                <a class="cal-nav" href="#" rel="{% url 'any-week' last_week.0 last_week.1 %}" title="Last Week">
+                    {% show_icon icon="ti ti-md ti-angle-left" %}
+                </a>
+                <a class="bcal-datepicker date" href="#" >
+                    <span class="input-group-addon">{% show_icon icon="ti ti-md ti-calendar" %}</span>
+                </a>
+                <a class="cal-nav" href="#" rel="{% url 'any-week' next_week.0 next_week.1 %}" title="Next Week">
+                    {% show_icon icon="ti ti-md ti-angle-right" %}
+                </a>
+                <a class="cal-nav" href="#" rel="{% url 'this-week' %}" title="Today">
+                    {% show_icon icon="ti ti-md ti-home" %}
+                </a>
+                {% if editable %}
+                    <div class="toggle-box d-flex flex-column ml-3 pl-4">
+                        <div title="Edit Downtime">
+                            <text class="text-muted text-sm text-condensed mr-1" style="writing-mode: vertical-lr;">CANC</text>
+                            <input type="checkbox"  id="dtSwitch" class="dn">
+                            <label for="dtSwitch" class="toggle mb-0"><span class="toggle__handler"></span></label>
+
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <table data-beamtime-url="{% url 'beamtime-json' %}?start={{ info.start }}&end={{ info.end }}"
+                   data-downtime-url="{% url 'downtime-json' %}?start={{ info.start }}&end={{ info.end }}"
+                   data-modes-url="{{ facility_modes_url }}"
+                   class="table table-sm mb-0 item-list bcal-week">
+                <thead class="card-header">
+                    <tr>
+                        <th class="text-uppercase bcal-sm-col"></th>
+                        <th class="text-uppercase bcal-sm-col">Time</th>
+                        {% for bl in beamlines %}<th class="text-uppercase">{{ bl.acronym }}</th>{% endfor %}
+                        <th class="text-uppercase bcal-md-col">Staff</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day, details in info.week.items %}
+                        {% for shift, mode in details.modes.items %}
+                            <tr data-shift-id="{{ day }}T{{ shift }}" class="{{ mode.kind }}">
+                                {% if forloop.first %}
+                                    <td rowspan="{{ info.shifts }}" class="bg-white bcal-day">
+                                        <text class="text-uppercase text-condensed">
+                                        {{ details.name }}<br>
+                                        <strong>{{ day|date:'Y-m-d' }}{{ details.date|date:'N d' }}</strong>
+                                        </text>
+                                    </td>
+                                {% endif %}
+                                <td class="bg-white">{{ shift }}:00</td>
+                                {% for bl in beamlines %}
+                                    <td data-beamline="{{bl.acronym}}"></td>
+                                {% endfor %}
+                                {% if forloop.first %}
+                                    <td rowspan="{{ info.shifts }}" class="bg-white text-center">
+                                        {% include "schedule/beamline-support.html" with support=details.support date=day editable=editable %}
+                                    </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <div class="card-body p-0">
-        <table data-beamtime-url="{% url 'beamtime-json' %}?start={{ info.start }}&end={{ info.end }}"
-               data-downtime-url="{% url 'downtime-json' %}?start={{ info.start }}&end={{ info.end }}"
-               data-modes-url="{{ facility_modes_url }}"
-               class="table table-sm mb-0 item-list bcal-week">
-            <thead class="card-header">
-                <tr>
-                    <th class="text-uppercase bcal-sm-col"></th>
-                    <th class="text-uppercase bcal-sm-col">Time</th>
-                    {% for bl in beamlines %}<th class="text-uppercase">{{ bl.acronym }}</th>{% endfor %}
-                    <th class="text-uppercase bcal-md-col">Staff</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for day, details in info.week.items %}
-                    {% for shift, mode in details.modes.items %}
-                        <tr data-shift-id="{{ day }}T{{ shift }}" class="{{ mode.kind }}">
-                            {% if forloop.first %}
-                                <td rowspan="{{ info.shifts }}" class="bg-white bcal-day">
-                                    <text class="text-uppercase text-condensed">
-                                    {{ details.name }}<br>
-                                    <strong>{{ day|date:'Y-m-d' }}{{ details.date|date:'N d' }}</strong>
-                                    </text>
-                                </td>
-                            {% endif %}
-                            <td class="bg-white">{{ shift }}:00</td>
-                            {% for bl in beamlines %}
-                                <td data-beamline="{{bl.acronym}}"></td>
-                            {% endfor %}
-                            {% if forloop.first %}
-                                <td rowspan="{{ info.shifts }}" class="bg-white text-center">
-                                    {% include "schedule/beamline-support.html" with support=details.support date=day %}
-                                </td>
-                            {% endif %}
-                        </tr>
-                    {% endfor %}
-                {% endfor %}
-            </tbody>
-        </table>
+
+    <div class="legend-box my-3 d-flex">
+        <div class="px-3"><span class="full legend px-3 mr-1"></span> Reserved</div>
+        <div class="px-3"><span class="cancelled legend px-3 mr-1"></span> Unavailable </div>
+        {% for kind in access_types %}
+            <div class="px-3"><span class="kind.name legend px-3 mr-1" style="background-color: {{kind.color}};"></span> {{ kind.name }}</div>
+        {% endfor %}
     </div>
 </div>
 
 <script>
     $(document).ready(function() {
         $("#beamline-calendar table.bcal-week").displayBeamtime({
-            detailed: {% if show_modes %}true{% else %}false{% endif %},
+            detailed: {% if editable %}true{% else %}false{% endif %},
             prefix: "bcal"
         });
         $("#beamline-calendar table.bcal-week").displayDowntime();
 
         $('.cal-nav').click(function() {
             $.ajax({
-                url: $(this).attr('rel'),
+                url: $(this).attr('rel') {% if editable %}+ '?detailed={{ editable }}'{% endif %},
                 context: document.body,
                 success: function(d) {
                     $('#beamline-calendar').html(d);
@@ -104,7 +137,7 @@
             let year = e.date.getFullYear();
             let dayone = new Date(year, 0, 1);
             let week = Math.ceil( (((e.date - dayone) / 86400000) + dayone.getDay() + 1) / 7);
-            let url = "{% url 'this-week' %}" + year + '-W' + week + '/';
+            let url = "{% url 'this-week' %}" + year + '-W' + week + '/{% if editable %}?detailed={{ editable }}{% endif %}';
             $.ajax({
                 url: url,
                 context: document.body,
@@ -119,7 +152,7 @@
             // cannot update datepicker
         }
 
-        {% if request.user.is_superuser %}
+        {% if editable %}
             setupEditor('#beamline-calendar', '#dtSwitch');
             setupDowntimeEditor('#beamline-calendar', '#dtSwitch');
         {% endif %}

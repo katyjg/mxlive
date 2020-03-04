@@ -35,8 +35,9 @@ disabled_widget = forms.HiddenInput(attrs={'readonly': True})
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        fields = ('contact_person', 'contact_email', 'carrier', 'account_number', 'organisation', 'department',
-                  'address', 'city', 'province', 'postal_code', 'country', 'contact_phone', 'kind')
+        fields = ('first_name', 'last_name', 'email', 'contact_person', 'contact_email', 'contact_phone',
+                  'carrier', 'account_number', 'organisation', 'department', 'address', 'city', 'province',
+                  'postal_code', 'country', 'kind', 'alias')
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
@@ -52,11 +53,23 @@ class ProjectForm(forms.ModelForm):
             self.body.title = _("Create New Profile")
             self.body.form_action = reverse_lazy('new-project')
 
-        print('FORM', (not self.user.is_superuser))
+        if self.user.is_superuser:
+            kind = Field('kind', css_class="select")
+            primary = Div(
+                Div('first_name', css_class='col-6'),
+                Div('last_name', css_class='col-6'),
+                Div('email', css_class='col-12'),
+                css_class='form-row'
+            )
+        else:
+            kind = Field('kind', css_class="select", readonly=True)
+            primary = Div()
         self.body.layout = Layout(
+            primary,
             Div(
-                Div(Field('kind', css_class="select", readonly=(not self.user.is_superuser)), css_class='col-6'),
-                Div('contact_person', css_class='col-6'),
+                Div(kind, css_class='col-6'),
+                Div('alias', css_class='col-6'),
+                Div('contact_person', css_class='col-12'),
                 css_class="form-row"
             ),
             Div(
@@ -109,7 +122,7 @@ class NewProjectForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ('first_name', 'last_name', 'contact_person', 'contact_email', 'contact_phone', 'username', 'kind')
+        fields = ('first_name', 'last_name', 'email', 'contact_person', 'contact_email', 'contact_phone', 'username', 'kind')
 
     def __init__(self, *args, **kwargs):
         super(NewProjectForm, self).__init__(*args, **kwargs)
@@ -132,6 +145,7 @@ class NewProjectForm(forms.ModelForm):
             Div(
                 Div('first_name', css_class='col-6'),
                 Div('last_name', css_class='col-6'),
+                Div('email', css_class='col-12'),
                 css_class="form-row"
             ),
             Div(

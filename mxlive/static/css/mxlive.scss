@@ -1768,12 +1768,12 @@ input::placeholder {
   @include striped_bg($gray-barely);
 }
 .cancelled {
-  @include striped_bg(rgba(red, 0.15));
+  @include striped_bg(rgba(red, 0.20));
 }
 
 .toggle-box {
   height: 100%;
-  border-left: 1px solid var(--gray-alpha);
+  border-left: 1px solid $gray-alpha;
 
   input {
     position: absolute;
@@ -1789,8 +1789,8 @@ input::placeholder {
     }
     .toggle__handler {
       width: 27px;
-      -webkit-transform: translateX(30px);
-      transform: translateX(30px);
+      -webkit-transform: translateX(29px);
+      transform: translateX(29px);
       border-color: #fff;
     }
   }
@@ -1799,7 +1799,7 @@ input::placeholder {
     display: block;
     position: relative;
     width: 60px;
-    height: 20px;
+    height: 23px;
     float: right;
     background: var(--secondary);
     border-radius: 3px;
@@ -1808,7 +1808,7 @@ input::placeholder {
 
     &:before, &:after {
       position: absolute;
-      line-height: 20px;
+      line-height: 23px;
       font-size: 0.85rem;
       z-index: 2;
       -webkit-transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
@@ -1816,12 +1816,12 @@ input::placeholder {
     }
     &:before {
       content: "OFF";
-      left: 5px;
+      left: 6px;
       color: var(--secondary);
     }
     &:after {
       content: "ON";
-      right: 5px;
+      right: 7px;
       color: #fff;
     }
   }
@@ -1829,15 +1829,14 @@ input::placeholder {
   .toggle__handler {
     display: inline-block;
     position: absolute;
-    z-index: 1;
     background: #fff;
     width: 28px;
-    height: 16px;
-    border-radius: 2px;
+    height: 19px;
+    border-radius: 1px;
     top: 2px;
     left: 2px;
-    -webkit-transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
-    transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
+    -webkit-transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.85);
+    transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.85);
     -webkit-transform: translateX(0px);
     transform: translateX(0px);
   }

@@ -44,18 +44,20 @@
         }, options);
 
         let url = parent.data('beamtime-url');
+        let data = {};
+        if (settings.detailed) { data['detailed'] = settings.detailed; }
         // fetch data and render
         $.ajax({
             dataType: 'json',
             url: url,
+            data: data,
             success: function (data, status, xhr) {
                 $.each(data, function(i, bt) {
                     $.each(bt.starts, function(j, st) {
-                        parent.find('[data-shift-id="' + st + '"]').find('[data-beamline="' + bt.beamline + '"]')
-                            .html(bt.title)
-                            .attr('title', bt.comments)
-                            .addClass('full')
-                            .css('cursor', 'default');
+                        let el = parent.find('[data-shift-id="' + st + '"]').find('[data-beamline="' + bt.beamline + '"]');
+                        el.html(bt.title)
+                          .addClass('full' + ' ' + bt.css_class)
+                          .css('cursor', 'default');
                     });
                 });
 

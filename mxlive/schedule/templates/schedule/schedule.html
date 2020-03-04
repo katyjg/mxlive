@@ -2,7 +2,6 @@
 {% load i18n static %}
 {% load icons %}
 
-
 {% block page_heading %}
     <h3 class="text-condensed">
         <span class="text-muted"><strong>{{ user.username|upper }}</strong> |</span> Schedule
@@ -18,21 +17,7 @@
     <script src="{% static 'js/misc/bootstrap-datepicker.min.js' %}"></script>
 {% endblock %}
 
-{% block object_tools %}
-    <a href="#!" data-form-link="{% url 'new-beamline-project' %}" title="Add Beamline Project">
-        {% show_icon label="Add Project" icon="ti ti-md ti-clipboard" %}
-    </a>
-{% endblock %}
-
 {% block full %}
-    <div id="beamline-calendar"
-        data-beamtime-url="{% url 'new-beamtime' %}"
-        data-downtime-url="{% url 'new-downtime' %}"
-        data-week-url="{% url 'any-week' year week %}">
-        {% include "schedule/week.html" with year=year week=week show_modes=True %}
-    </div>
-    <br>
-    <p><span class="cancelled legend px-3 mr-1"></span> Cancelled </p>
-    <p><span class="full legend px-3 mr-1"></span> Reserved</p>
+    {% include "schedule/week.html" with year=year week=week show_modes=True editable=editable %}
 {% endblock %}
 

@@ -4,11 +4,9 @@ from . import views, ajax_views
 
 
 urlpatterns = [
-    path('', views.CalendarView.as_view(), name='calendar'),
+    path('', views.ScheduleView.as_view(), name='schedule'),
+    path('view', views.CalendarView.as_view(), name='calendar'),
 
-    path('beamlineproject/new/', views.BeamlineProjectCreate.as_view(), name='new-beamline-project'),
-    path('beamlineproject/<int:pk>/edit/', views.BeamlineProjectEdit.as_view(), name='beamline-project-edit'),
-    path('beamlineproject/<int:pk>/delete/', views.BeamlineProjectDelete.as_view(), name='beamline-project-delete'),
     path('beamtime/new/', views.BeamtimeCreate.as_view(), name='new-beamtime'),
     path('beamtime/<int:pk>/edit/', views.BeamtimeEdit.as_view(), name='beamtime-edit'),
     path('beamtime/<int:pk>/delete/', views.BeamtimeDelete.as_view(), name='beamtime-delete'),
@@ -17,7 +15,7 @@ urlpatterns = [
     path('support/new/', views.SupportCreate.as_view(), name='new-support'),
     path('support/<int:pk>/edit/', views.SupportEdit.as_view(), name='support-edit'),
     path('support/<int:pk>/delete/', views.SupportDelete.as_view(), name='support-delete'),
-
+    path('notification/<int:pk>/edit/', views.EmailNotificationEdit.as_view(), name='email-edit'),
 
     path('schedule/week/', views.CalendarView.as_view(template_name="schedule/week.html"), name="this-week"),
     path('schedule/week/<int:year>-W<int:week>/', views.CalendarView.as_view(template_name="schedule/week.html"), name="any-week"),

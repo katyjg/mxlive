@@ -1,12 +1,13 @@
 from django import forms
 from django.urls import reverse_lazy
+from django.utils.translation import ugettext_lazy as _
 
 from crispy_forms.bootstrap import StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Div, Field, Layout, HTML
 
 from mxlive.lims.models import Project
-from .models import AccessType, BeamlineProject, Beamtime, BeamlineSupport, Downtime
+from .models import AccessType, Beamtime, BeamlineSupport, Downtime, EmailNotification
 
 
 class BodyHelper(FormHelper):
@@ -25,56 +26,13 @@ class FooterHelper(FormHelper):
         self.form_show_errors = False
 
 
-class BeamlineProjectForm(forms.ModelForm):
-    class Meta:
-        model = BeamlineProject
-        fields = ['project', 'number', 'title', 'expiration', 'email']
-        widgets = {
-            'title': forms.Textarea(attrs={"cols": 40, "rows": 2}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.body = BodyHelper(self)
-        self.footer = FooterHelper(self)
-        if self.instance.pk:
-            self.body.title = u"Edit Beamline Project"
-            self.body.form_action = reverse_lazy('beamline-project-edit', kwargs={'pk': self.instance.pk})
-        else:
-            self.body.title = u"New Beamline Project"
-            self.body.form_action = reverse_lazy('new-beamline-project')
-        self.body.layout = Layout(
-            Div(
-                Div('project', css_class="col-12"),
-                css_class="row"
-            ),
-            Div(
-                Div('number', css_class="col-6"),
-                Div('expiration', css_class="col-6"),
-                css_class="row"
-            ),
-            Div(
-                Div('email', css_class="col-12"),
-                css_class="row"
-            ),
-            Div(
-                Div('title', css_class="col-12"),
-                css_class="row"
-            ),
-        )
-        self.footer.layout = Layout(
-            StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
-            StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
-        )
-
-
 class BeamtimeForm(forms.ModelForm):
-    access = forms.ModelMultipleChoiceField(label='Access Type', queryset=AccessType.objects.all(), required=False)
+
+    notify = forms.BooleanField(label=_("Schedule email notification"), widget=forms.CheckboxInput(), required=False)
 
     class Meta:
         model = Beamtime
-        fields = ['project', 'beamline', 'start', 'end', 'comments', 'access']
+        fields = ['project', 'beamline', 'start', 'end', 'comments', 'access', 'notify']
         widgets = {
             'comments': forms.Textarea(attrs={"cols": 40, "rows": 7}),
             'beamline': forms.HiddenInput(),
@@ -114,7 +72,8 @@ class BeamtimeForm(forms.ModelForm):
                 css_class="row"
             ),
             Div(
-                Div(Field('access', css_class="select"), css_class="col-12"),
+                Div(Field('access', css_class="select"), css_class="col-6"),
+                Div(Field('notify'), css_class="col-6 px-4 pt-4"),
                 css_class="row"
             ),
             Div(
@@ -200,6 +159,42 @@ class DowntimeForm(forms.ModelForm):
         )
         self.footer.layout = Layout(
             delete_btn,
+            StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
+            StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+        )
+
+
+class EmailNotificationForm(forms.ModelForm):
+
+    class Meta:
+        model = EmailNotification
+        fields = ['beamtime', 'send_time', 'email_subject', 'email_body']
+        widgets = {
+            'email_body': forms.Textarea(attrs={"cols": 42, "rows": 10}),
+            'beamtime': forms.HiddenInput()
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.body = BodyHelper(self)
+        self.footer = FooterHelper(self)
+        self.body.title = u"Edit Email Notification"
+        self.body.form_action = reverse_lazy('email-edit', kwargs={'pk': self.instance.pk})
+
+        self.body.layout = Layout(
+            Div(
+                Div('beamtime', css_class="col-12"),
+                Div('send_time', css_class="col-12"),
+                css_class="row"
+            ),
+            Div(
+                Div('email_subject', css_class="col-12"),
+                Div('email_body', css_class="col-12"),
+                css_class="row"
+            ),
+        )
+        self.footer.layout = Layout(
             StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
             StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
         )

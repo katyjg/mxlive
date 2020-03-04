@@ -10,12 +10,6 @@ from datetime import datetime, timedelta
 
 
 SHIFT_MAP = ["08", "16", "00"]
-ACCESS_MAP = {
-    'remote': "Remote",
-    'mail_in': "Mail-In",
-    'purchased': "Purchased Access",
-    'maintenance': "Maintenance & Commissioning"
-}
 
 def get_project_by_name(name):
     return Project.objects.filter((Q(last_name=name['last_name']) & Q(first_name=name['first_name'])) | (
@@ -28,9 +22,9 @@ def get_project_by_account(account):
     except:
         return None
 
-
-def get_end(dt, shift):
-    dt = datetime.strptime("{}T{}".format(dt, SHIFT_MAP[shift]), "%Y-%m-%dT%H") + timedelta(hours=8)
+def get_date(dt, shift, end=False):
+    dt = datetime.strptime("{}T{}".format(dt, SHIFT_MAP[shift]), "%Y-%m-%dT%H")
+    if end: dt += timedelta(hours=8)
     if shift == 2: dt += timedelta(days=1)
     return make_aware(dt)
 
@@ -43,6 +37,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         bt_file = options['file']
+        access_map = { a.name.lower().replace('-', '_'): a for a in AccessType.objects.all() }
         with open(bt_file) as json_bt:
             data = json.load(json_bt)
             projects = [p for p in data if p['model'] == 'scheduler.proposal']
@@ -54,31 +49,26 @@ class Command(BaseCommand):
             project_map = {}
 
             for p in projects:
-                info = {
-                    "number": p['fields']['proposal_id'],
-                    "expiration": p['fields']['expiration'][:10],
-                    "title": p['fields']['description'],
-                    "email": p['fields']['email'],
-                    "project": get_project_by_account(p['fields']['account']) or get_project_by_name(p['fields'])
+                project_map[p['pk']] = {
+                    'account': get_project_by_account(p['fields']['account']) or get_project_by_name(p['fields']),
+                    'email': p['fields']['email']
                 }
-                bp = BeamlineProject.objects.create(**info)
-                project_map[p['pk']] = bp
+            print({p: k for p, k in project_map.items() if k['account'] == None})
 
             for p in beamtime:
+                kind = AccessType.objects.get(name="Local")
+                for k, v in access_map.items():
+                    if p['fields'].get(k):
+                        if p['fields'][k]: kind = v
                 info = {
-                    'project': p['fields']['proposal'] and project_map[p['fields']['proposal']] or None,
+                    'project': p['fields']['proposal'] and project_map[p['fields']['proposal']]['account'] or None,
                     'beamline': Beamline.objects.get(pk=beamline_map[p['fields']['beamline']]),
                     'comments': p['fields']['description'],
-                    'notify': p['fields']['notify'],
-                    'sent': p['fields']['sent'],
-                    'start': make_aware(datetime.strptime(
-                        "{}T{}".format(p['fields']['start_date'], SHIFT_MAP[p['fields']['first_shift']]),
-                        "%Y-%m-%dT%H")),
-                    'end': get_end(p['fields']['end_date'], p['fields']['last_shift']),
+                    'access': kind,
+                    'start': get_date(p['fields']['start_date'], p['fields']['first_shift']),
+                    'end': get_date(p['fields']['end_date'], p['fields']['last_shift'], True),
                 }
                 bt = Beamtime.objects.create(**info)
-                for k, v in ACCESS_MAP.items():
-                    if p['fields'][k]: bt.access.add(AccessType.objects.get(name=v))
 
             for p in support:
                 BeamlineSupport.objects.create(staff=contact_map[p['fields']['local_contact']],
