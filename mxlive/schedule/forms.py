@@ -178,12 +178,23 @@ class EmailNotificationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        errors = Div()
+        if self.initial.get('warning'):
+            errors = Div(
+                Div(
+                    HTML(self.initial.get('warning')),
+                    css_class="card-header"
+                ),
+                css_class="card bg-danger text-white"
+            )
+
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
         self.body.title = u"Edit Email Notification"
         self.body.form_action = reverse_lazy('email-edit', kwargs={'pk': self.instance.pk})
 
         self.body.layout = Layout(
+            errors,
             Div(
                 Div(Field('recipients', readonly=True), css_class="col-12"),
                 Div('beamtime', css_class="col-12"),

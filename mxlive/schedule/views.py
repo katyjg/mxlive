@@ -11,7 +11,9 @@ from django.views.decorators.clickjacking import xframe_options_exempt, xframe_o
 from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, LoginRequiredMixin
 
 from . import models, forms
+from itemlist.views import ItemListView
 from mxlive.lims.models import Beamline
+from mxlive.lims.views import ListViewMixin
 
 from datetime import datetime, timedelta
 
@@ -119,7 +121,7 @@ class BeamtimeEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit
     def form_valid(self, form):
         super().form_valid(form)
 
-        self.object.notifications.all().delete()
+        self.object.notifications.filter(sent=False).delete()
         if form.cleaned_data['notify']:
             models.EmailNotification.objects.create(beamtime=self.object)
 
@@ -223,6 +225,22 @@ class DowntimeEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit
         return fv
 
 
+class EmailNotificationList(ListViewMixin, ItemListView):
+    model = models.EmailNotification
+    list_filters = ['send_time', 'sent']
+    list_columns = ['id', 'send_time', 'beamtime__start', 'beamtime__project__username', 'email_subject']
+    list_search = ['email_subject', 'email_body']
+    link_url = 'email-edit'
+    ordering = ['-send_time']
+    ordering_proxies = {}
+    list_transforms = {}
+    show_project = False
+    link_attr = 'data-link'
+
+    def get_queryset(self):
+        return super().get_queryset()
+
+
 class EmailNotificationEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.EmailNotificationForm
     template_name = "modal/form.html"
@@ -233,5 +251,7 @@ class EmailNotificationEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMi
     def get_initial(self):
         initial = super().get_initial()
         initial['recipients'] = '; '.join(self.object.recipient_list())
+        if self.object.unsendable():
+            initial['warning'] = "This email cannot be sent. Either the send time has already passed, or there are no recipients."
 
         return initial

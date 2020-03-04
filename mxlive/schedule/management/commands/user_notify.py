@@ -35,3 +35,6 @@ class Command(BaseCommand):
         message_dict = self.get_message_dict(notification)
         email = EmailMessage(**message_dict)
         email.send(fail_silently=fail_silently)
+
+        notification.sent = True
+        notification.save()

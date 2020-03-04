@@ -111,11 +111,11 @@ class EmailNotification(models.Model):
     def beamline(self):
         return self.beamtime.beamline.acronym
 
-    def first_name(self):
-        return self.beamtime.project and (self.beamtime.project.contact_person or self.beamtime.project.first_name) or ''
-
-    def last_name(self):
-        return self.beamtime.project and self.beamtime.project.last_name or ''
+    def name(self):
+        name = 'User'
+        if self.beamtime.project:
+            name = self.beamtime.project.contact_person or '{person.first_name} {person.last_name}'.format(person=self.beamtime.project)
+        return name
 
     def start_date(self):
         return datetime.strftime(timezone.localtime(self.beamtime.start), '%A, %B %-d')
@@ -126,10 +126,14 @@ class EmailNotification(models.Model):
     def recipient_list(self):
         return [e for e in [self.beamtime.project.email, self.beamtime.project.contact_email] if e]
 
+    def unsendable(self):
+        late = timezone.now() > (self.send_time - timedelta(minutes=30))
+        empty = not self.recipient_list()
+        return any([late, empty])
+
     def format_info(self):
         return {
-            'first_name': self.first_name(),
-            'last_name': self.last_name(),
+            'name': self.name(),
             'beamline': self.beamline(),
             'start_date': self.start_date(),
             'start_time': self.start_time()
@@ -137,15 +141,17 @@ class EmailNotification(models.Model):
 
     def save(self, *args, **kwargs):
         # Get user's local timezone
-        locator = geocoders.Nominatim()
-        try:
-            address = "{user.city}, {user.province}, {user.country}".format(user=self.beamtime.project)
-            _, (latitude, longitude) = locator.geocode(address)
-            usertz = tz.tzNameAt(latitude, longitude)
-        except:
-            usertz = settings.TIME_ZONE
-        t = self.beamtime.start - timedelta(days=7 + (self.beamtime.start.weekday() > 4 and self.beamtime.start.weekday() - 4 or 0))
-        self.send_time = pytz.timezone(usertz).localize(datetime(year=t.year, month=t.month, day=t.day, hour=10))
-        self.email_subject = self.beamtime.access.email_subject.format(**self.format_info())
-        self.email_body = self.beamtime.access.email_body.format(**self.format_info())
+        if not self.sent:
+            locator = geocoders.Nominatim()
+            try:
+                address = "{user.city}, {user.province}, {user.country}".format(user=self.beamtime.project)
+                _, (latitude, longitude) = locator.geocode(address)
+                usertz = tz.tzNameAt(latitude, longitude)
+            except:
+                usertz = settings.TIME_ZONE
+            t = self.beamtime.start - timedelta(days=7 + (self.beamtime.start.weekday() > 4 and self.beamtime.start.weekday() - 4 or 0))
+            self.send_time = pytz.timezone(usertz).localize(datetime(year=t.year, month=t.month, day=t.day, hour=10))
+            self.email_subject = self.beamtime.access.email_subject.format(**self.format_info())
+            self.email_body = self.beamtime.access.email_body.format(**self.format_info())
+
         super().save(*args, **kwargs)

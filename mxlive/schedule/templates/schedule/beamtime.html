@@ -3,17 +3,23 @@
 {% if detailed %}
     {% if bt.notification %}
     <div class="float-left">
-        <a href="#!" data-form-link="{% url "email-edit" bt.notification.pk %}" title="Edit Notification">
-            {% show_icon icon='ti ti-sm ti-email' %}
+
+        <a href="#!" class="d-flex" data-form-link="{% url 'email-edit' bt.notification.pk %}" title="Edit Notification">
+            {% if bt.notification.unsendable %}
+                {% show_icon icon='ti ti-sm ti-alert text-danger' %}
+            {% else %}
+                {% show_icon icon='ti ti-sm ti-email' %}
+            {% endif %}
+
         </a>
     </div>
     {% endif %}
 
     <div class="tools-box float-right pr-0 my-1">
-        <a href="#!" data-form-link="{% url "beamtime-edit" bt.pk %}" title="Edit" class="pr-0">
+        <a href="#!" data-form-link="{% url 'beamtime-edit' bt.pk %}" title="Edit" class="pr-0">
             {% show_icon icon='ti ti-sm ti-pencil' %}
         </a>
-        <a href="#!" data-form-link="{% url "beamtime-delete" bt.pk %}" title="Delete">
+        <a href="#!" data-form-link="{% url 'beamtime-delete' bt.pk %}" title="Delete">
             {% show_icon icon='ti ti-sm ti-trash' %}
         </a>
     </div>

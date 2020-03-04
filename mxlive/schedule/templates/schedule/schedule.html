@@ -17,6 +17,15 @@
     <script src="{% static 'js/misc/bootstrap-datepicker.min.js' %}"></script>
 {% endblock %}
 
+
+{% block object_tools %}
+    {% if editable %}
+        <a href="{% url 'email-list' %}">
+            {% show_icon label='Emails' icon='ti ti-md ti-email' %}
+        </a>
+    {% endif %}
+{% endblock %}
+
 {% block full %}
     {% include "schedule/week.html" with year=year week=week show_modes=True editable=editable %}
 {% endblock %}

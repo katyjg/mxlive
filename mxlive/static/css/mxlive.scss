@@ -1847,3 +1847,17 @@ input::placeholder {
     transform: translateX(0px);
   }
 }
+.datepicker {
+  td.active.day {
+    border-radius: 0;
+    background-image: unset;
+    background-color: var(--info) !important;
+    &:hover {
+      background-image: unset;
+      background-color: darken($info, 10%) !important;
+    }
+  }
+  &:after, &:before {
+    display: none !important;
+  }
+}
