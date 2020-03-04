@@ -165,10 +165,11 @@ class DowntimeForm(forms.ModelForm):
 
 
 class EmailNotificationForm(forms.ModelForm):
+    recipients = forms.CharField(required=False)
 
     class Meta:
         model = EmailNotification
-        fields = ['beamtime', 'send_time', 'email_subject', 'email_body']
+        fields = ['beamtime', 'send_time', 'email_subject', 'email_body', 'recipients']
         widgets = {
             'email_body': forms.Textarea(attrs={"cols": 42, "rows": 10}),
             'beamtime': forms.HiddenInput()
@@ -184,6 +185,7 @@ class EmailNotificationForm(forms.ModelForm):
 
         self.body.layout = Layout(
             Div(
+                Div(Field('recipients', readonly=True), css_class="col-12"),
                 Div('beamtime', css_class="col-12"),
                 Div('send_time', css_class="col-12"),
                 css_class="row"

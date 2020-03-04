@@ -1720,9 +1720,15 @@ input::placeholder {
   }
   .bcal-sm-col {
     width: 70px;
+    @include media-breakpoint-down(sm) {
+      width: 52px;
+    }
   }
   .bcal-md-col {
     width: 120px;
+    @include media-breakpoint-down(sm) {
+      width: 80px;
+    }
   }
   .bcal-week {
     thead {

@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.clickjacking import xframe_options_exempt, xframe_options_sameorigin
 
-from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin
+from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, LoginRequiredMixin
 
 from . import models, forms
 from mxlive.lims.models import Beamline
@@ -45,7 +45,7 @@ class CalendarView(TemplateView):
         return context
 
 
-class ScheduleView(AdminRequiredMixin, CalendarView):
+class ScheduleView(LoginRequiredMixin, CalendarView):
     template_name = 'schedule/schedule.html'
 
     @xframe_options_sameorigin
@@ -230,3 +230,8 @@ class EmailNotificationEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMi
     success_url = reverse_lazy('schedule')
     success_message = "Email Notification has been updated"
 
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['recipients'] = '; '.join(self.object.recipient_list())
+
+        return initial

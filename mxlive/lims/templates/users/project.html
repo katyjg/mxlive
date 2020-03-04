@@ -15,10 +15,13 @@
         {% show_icon label='New Shipment' icon='ti ti-md ti-plus' %}
     </a>
     <a  href="{% url "session-list" %}">
-        {% show_icon label='Sessions' icon='ti ti-md ti-calendar' %}
+        {% show_icon label='Sessions' icon='ti ti-md ti-time' %}
     </a>
     <a  href="{% url "project-statistics" username=user.username %}">
         {% show_icon label='Usage Stats' icon='ti ti-md ti-pie-chart' %}
+    </a>
+    <a  href="{% url 'schedule' %}">
+        {% show_icon label="Schedule" icon="ti ti-md ti-calendar" %}
     </a>
 {% endblock %}
 

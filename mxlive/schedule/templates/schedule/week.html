@@ -20,8 +20,8 @@
 </style>
 
 <div id="beamline-calendar"
-     data-beamtime-url="{% url 'new-beamtime' %}"
-     data-downtime-url="{% url 'new-downtime' %}"
+     data-beamtime-url="{% url 'new-beamtime' %}?detailed={{ editable }}"
+     data-downtime-url="{% url 'new-downtime' %}?detailed={{ editable }}"
      data-week-url="{% url 'any-week' year week %}">
     <div class="card">
         <div class="card-header d-flex flex-row justify-content-between overflow-ellipsis">
@@ -98,10 +98,10 @@
 
 
     <div class="legend-box my-3 d-flex">
-        <div class="px-3"><span class="full legend px-3 mr-1"></span> Reserved</div>
-        <div class="px-3"><span class="cancelled legend px-3 mr-1"></span> Unavailable </div>
+        <div class="pr-2"><span class="full legend px-3 mr-1"></span> Reserved</div>
+        <div class="px-2"><span class="cancelled legend px-3 mr-1"></span> Unavailable </div>
         {% for kind in access_types %}
-            <div class="px-3"><span class="kind.name legend px-3 mr-1" style="background-color: {{kind.color}};"></span> {{ kind.name }}</div>
+            <div class="px-2"><span class="kind.name legend px-3 mr-1" style="background-color: {{kind.color}};"></span> {{ kind.name }}</div>
         {% endfor %}
     </div>
 </div>

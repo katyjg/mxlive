@@ -35,7 +35,7 @@ class BeamlineSupport(models.Model):
 
 
 class Beamtime(models.Model):
-    project = models.ForeignKey(Project, related_name="beamtime", on_delete=models.CASCADE, null=True)
+    project = models.ForeignKey(Project, related_name="beamtime", on_delete=models.CASCADE, null=True, blank=True)
     beamline = models.ForeignKey(Beamline, related_name="beamtime", on_delete=models.CASCADE)
     comments = models.TextField(blank=True)
     access = models.ForeignKey(AccessType, on_delete=models.SET_NULL, null=True)
@@ -112,7 +112,7 @@ class EmailNotification(models.Model):
         return self.beamtime.beamline.acronym
 
     def first_name(self):
-        return self.beamtime.project and self.beamtime.project.first_name or ''
+        return self.beamtime.project and (self.beamtime.project.contact_person or self.beamtime.project.first_name) or ''
 
     def last_name(self):
         return self.beamtime.project and self.beamtime.project.last_name or ''
@@ -122,6 +122,9 @@ class EmailNotification(models.Model):
 
     def start_time(self):
         return datetime.strftime(timezone.localtime(self.beamtime.start), '%-I%p')
+
+    def recipient_list(self):
+        return [e for e in [self.beamtime.project.email, self.beamtime.project.contact_email] if e]
 
     def format_info(self):
         return {

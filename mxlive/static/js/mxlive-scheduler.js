@@ -163,9 +163,9 @@ function setupEditor(sel, sw) {
                         let bl = $('.hold').data('beamline');
                         let start = $('.hold').closest('tr').data('shift-id');
                         let end = row.data('shift-id');
-                        let url = beamtime_url + '?start=' + start + '&end=' + end + '&beamline=' + bl;
+                        let url = beamtime_url + '&start=' + start + '&end=' + end + '&beamline=' + bl;
                         if (dt) {
-                            url = downtime_url + '?start=' + start + '&end=' + end + '&beamline=' + bl;
+                            url = downtime_url + '&start=' + start + '&end=' + end + '&beamline=' + bl;
                         }
                         $('#modal-target')
                             .on('hidden.bs.modal', function () {
@@ -177,7 +177,7 @@ function setupEditor(sel, sw) {
                                     url: $(sel).data('week-url'),
                                     context: document.body,
                                     success: function (d) {
-                                        $(sel).html(d);
+                                        window.location.reload();
                                     }
                                 });
                             }
