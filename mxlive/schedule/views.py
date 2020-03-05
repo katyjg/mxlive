@@ -228,7 +228,7 @@ class DowntimeEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit
 class EmailNotificationList(ListViewMixin, ItemListView):
     model = models.EmailNotification
     list_filters = ['send_time', 'sent']
-    list_columns = ['id', 'send_time', 'beamtime__start', 'beamtime__project__username', 'email_subject']
+    list_columns = ['id', 'sent', 'unsendable', 'send_time', 'beamtime__start', 'beamtime__project__username', 'email_subject']
     list_search = ['email_subject', 'email_body']
     link_url = 'email-edit'
     ordering = ['-send_time']
