@@ -1,14 +1,9 @@
 import calendar
-from collections import defaultdict
 from datetime import datetime
-from math import ceil
 
-import numpy
-from django.conf import settings
 from django.db.models import Count, Sum, F, Avg, FloatField, Q
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from django.utils.timesince import timesince
 
 
 from .models import Publication, Journal, SubjectArea, Deposition, Metric

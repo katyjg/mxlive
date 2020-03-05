@@ -17,6 +17,9 @@ class PubEntryList(ItemListView):
     ]
     list_columns = ['id', 'published', 'cite', 'metrics__citations', 'metrics__mentions', 'journal__metrics__impact_factor']
     list_search = ['title', 'main_title', 'authors', 'code', 'comments', 'journal__title', 'funders__name']
+    list_styles = {
+        'journal__metrics__impact_factor': 'w-10',
+    }
     ordering = ['-published']
     paginate_by = 25
     page_title = 'Publication Entries'

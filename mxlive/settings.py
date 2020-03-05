@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'mxlive.lims',
     'mxlive.remote',
     'mxlive.schedule',
+    'mxlive.publications',
     'crispy_forms',
     'colorfield',
 ]

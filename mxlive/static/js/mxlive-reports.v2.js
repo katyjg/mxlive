@@ -267,7 +267,6 @@ function drawXYChart(figure, chart, options, type = 'spline') {
             });
         }
     });
-    console.log(chart.data.annotations);
     if (chart.data.annotations) {
         c3chart.xgrids(chart.data.annotations)
     }
