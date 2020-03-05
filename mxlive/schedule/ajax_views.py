@@ -1,14 +1,11 @@
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import View, TemplateView
+from django.views.generic import View
 from django.http import JsonResponse
 from django.db.models import Q
 from django.urls import reverse
-from django.utils import timezone
-from django.conf import settings
 
-from datetime import datetime, timedelta
-import calendar
+from datetime import datetime
 
 from .models import Beamtime, Downtime
 

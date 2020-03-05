@@ -9,6 +9,11 @@ import pytz
 import calendar
 import requests
 
+import warnings
+
+import logging
+logger = logging.getLogger(__name__)
+
 register = template.Library()
 
 
@@ -55,20 +60,25 @@ def calendar_view(year, week):
 
     """Could be moved to AJAX request if Access-Control-Allow-Origin header added to api resource"""
 
-    url = "{}?start={}&end={}".format(settings.FACILITY_MODES, start, end)
-    r = requests.get(url)
-    if r.status_code == 200:
-        for mode in r.json():
-            st = datetime.strptime(mode['start'], '%Y-%m-%dT%H:%M:%SZ')
-            while st < datetime.strptime(mode['end'], '%Y-%m-%dT%H:%M:%SZ'):
-                dt = format_localdate(st)
-                hr = format_localhour(st)
-                st += timedelta(hours=slot)
-                if dt in info['week'].keys():
-                    info['week'][dt]['modes'][hr] = {
-                        'kind': str(mode['kind']),
-                        'cancelled': 1 if mode['cancelled'] else 0
-                    }
+    if getattr(settings, "FACILITY_MODES", False):
+        try:
+            url = "{}?start={}&end={}".format(settings.FACILITY_MODES, start, end)
+            r = requests.get(url)
+            if r.status_code == 200:
+                for mode in r.json():
+                    st = datetime.strptime(mode['start'], '%Y-%m-%dT%H:%M:%SZ')
+                    while st < datetime.strptime(mode['end'], '%Y-%m-%dT%H:%M:%SZ'):
+                        dt = format_localdate(st)
+                        hr = format_localhour(st)
+                        st += timedelta(hours=slot)
+                        if dt in info['week'].keys():
+                            info['week'][dt]['modes'][hr] = {
+                                'kind': str(mode['kind'])
+                            }
+        except requests.exceptions.ConnectionError:
+            warnings.warn("Couldn't fetch beam modes from {}.".format(settings.FACILITY_MODES))
+        except requests.exceptions.MissingSchema:
+            warnings.warn("FACILITY_MODE must start with 'http://' or 'https://'.")
 
     return info
 

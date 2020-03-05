@@ -39,7 +39,6 @@ class CalendarView(TemplateView):
         context['week'] = week
         context['beamlines'] = Beamline.objects.filter(simulated=False)
         context['access_types'] = models.AccessType.objects.all()
-        context['facility_modes_url'] = settings.FACILITY_MODES
         context['next_week'] = (now + timedelta(days=7)).isocalendar()[:2]
         context['last_week'] = (now - timedelta(days=7)).isocalendar()[:2]
         context['editable'] = detailed
