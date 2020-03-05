@@ -66,7 +66,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
                 sample_count=Count('containers__samples', distinct=True),
                 group_count=Count('groups', distinct=True),
                 container_count=Count('containers', distinct=True),
-            ).order_by('status', '-date_shipped').prefetch_related('project')
+            ).order_by('status', 'project__username', '-date_shipped').prefetch_related('project')
 
             sessions = models.Session.objects.filter(
                 stretches__end__isnull=True
