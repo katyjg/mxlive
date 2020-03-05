@@ -1,5 +1,8 @@
 from datetime import date
 from django.contrib import admin
+from django.utils import timezone
+
+import calendar
 
 
 class DATE_LIMIT(object):
@@ -32,3 +35,54 @@ def DateLimitFilterFactory(model, field_name='date', filter_title='Start date', 
             return queryset.filter(**flt)
 
     return DateLimitListFilter
+
+
+def YearFilterFactory(field_name='created', start=None, end=None, reverse=True):
+    end = end if end else timezone.now().year
+    start = start if start else end - 15
+
+    class YearFilter(admin.SimpleListFilter):
+        parameter_name = '{}_year'.format(field_name)
+        title = parameter_name.replace('_', ' ').title()
+
+        def lookups(self, request, model_admin):
+            choices = range(start, end+1) if not reverse else reversed(range(start, end+1))
+            return ((yr, '{0}'.format(yr)) for yr in choices)
+
+        def queryset(self, request, queryset):
+            flt = {} if not self.value() else {'{}__year'.format(field_name): self.value()}
+            return queryset.filter(**flt)
+
+    return YearFilter
+
+
+def MonthFilterFactory(field_name='created'):
+
+    class MonthFilter(admin.SimpleListFilter):
+        parameter_name = '{}_month'.format(field_name)
+        title = parameter_name.replace('_', ' ').title()
+
+        def lookups(self, request, model_admin):
+            return ((month, calendar.month_name[month]) for month in range(1, 13))
+
+        def queryset(self, request, queryset):
+            flt = {} if not self.value() else {'{}__month'.format(field_name): self.value()}
+            return queryset.filter(**flt)
+
+    return MonthFilter
+
+
+def QuarterFilterFactory(field_name='created'):
+
+    class QuarterFilter(admin.SimpleListFilter):
+        parameter_name = '{}_quarter'.format(field_name)
+        title = parameter_name.replace('_', ' ').title()
+
+        def lookups(self, request, model_admin):
+            return ((i+1, 'Q{}'.format(i+1)) for i in range(4))
+
+        def queryset(self, request, queryset):
+            flt = {} if not self.value() else {'{}__quarter'.format(field_name): self.value()}
+            return queryset.filter(**flt)
+
+    return QuarterFilter

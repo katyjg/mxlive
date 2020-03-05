@@ -8,6 +8,12 @@ DOWNLOAD_PROXY_URL = "http://mxlive-data/download"
 
 # Shift parameters
 HOURS_PER_SHIFT = 8
+FACILITY_MODES = "https://external.beam.mode.src"
+""" FACILITY_MODES should reference an API that returns a JSON list containing a dictionary for each mode, with fields:
+    - "start": string formatted date matching %Y-%m-%dT%H:%M:%SZ
+    - "end": string formatted date matching %Y-%m-%dT%H:%M:%SZ
+    - "kind": code to use for CSS class for styling (built-in codes include N, NS, D, X, M, MV, M0, MT, DS, DST, DS-CSR)
+"""
 
 # LDAP Server Settings
 LDAP_BASE_DN = 'dc=example,dc=com'
@@ -52,3 +58,27 @@ CACHES = {
         'LOCATION': 'mxlive-cache:11211',
     }
 }
+
+PDB_FACILITY_ACRONYM = 'CLSI'
+GOOGLE_API_KEY = 'F09Q34FJKHGDfdsl3JDSAI43034FDSAsdfre43iQ'
+CONTACT_EMAIL = 'beamline.contact@beamline.ca'
+
+
+def clsi_beamline_tags(entry):
+    """
+    Generate proper CLSI beamline tags for publications
+    :param entry: the entry from the PDB report
+    :return: a list of tag names
+    """
+
+    acronym = entry['diffractionSource'].split()[-1]
+    acronyms = {
+        '08ID-1': ['CMCF-ID'],
+        '08ID-2': ['CMCF-ID'],
+        '08B1-1': ['CMCF-BM'],
+        'CLSI': ['CMCF-ID', 'CMCF-BM',],
+    }
+    return acronyms.get(acronym, [])
+
+
+PDB_TAG_FUNCTION = clsi_beamline_tags
