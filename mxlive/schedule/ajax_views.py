@@ -4,6 +4,7 @@ from django.views.generic import View
 from django.http import JsonResponse
 from django.db.models import Q
 from django.urls import reverse
+from django.utils import timezone
 
 from datetime import datetime
 
@@ -18,8 +19,8 @@ class FetchBeamtime(View):
         end = request.GET.get('end', False)
         detailed = request.GET.get('detailed', False)
 
-        start = start and datetime.strptime(start, '%Y-%m-%d') or False
-        end = end and datetime.strptime(end, '%Y-%m-%d') or False
+        start = start and timezone.make_aware(datetime.strptime(start, '%Y-%m-%d')) or False
+        end = end and timezone.make_aware(datetime.strptime(end, '%Y-%m-%d')) or False
 
         queryset = Beamtime.objects.filter()
         if start and end:
@@ -55,8 +56,8 @@ class FetchDowntime(View):
         start = request.GET.get('start', False)
         end = request.GET.get('end', False)
 
-        start = start and datetime.strptime(start, '%Y-%m-%d') or False
-        end = end and datetime.strptime(end, '%Y-%m-%d') or False
+        start = start and timezone.make_aware(datetime.strptime(start, '%Y-%m-%d')) or False
+        end = end and timezone.make_aware(datetime.strptime(end, '%Y-%m-%d')) or False
 
         queryset = Downtime.objects.filter()
         if start and end:
