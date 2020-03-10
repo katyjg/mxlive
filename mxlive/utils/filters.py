@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from django.contrib import admin
 from django.utils import timezone
 
@@ -86,3 +86,27 @@ def QuarterFilterFactory(field_name='created'):
             return queryset.filter(**flt)
 
     return QuarterFilter
+
+
+from django.db.models import Min, ExpressionWrapper, F, fields
+
+def NewEntryFilterFactory(field_label='New Entry', field_name='created', distinct='project__sessions'):
+
+    class NewEntryFilter(admin.SimpleListFilter):
+        parameter_name = '{}'.format(field_label)
+        title = parameter_name.replace('_', ' ').title()
+
+        def lookups(self, request, model_admin):
+            return ((1, '{}'.format(field_label)),)
+
+        def queryset(self, request, queryset):
+            if not self.value():
+                flt = {}
+            else:
+                max = ExpressionWrapper(F(field_name) - Min('{}__{}'.format(distinct, field_name)), output_field=fields.DurationField())
+                queryset = queryset.annotate(max_time=max)
+                flt = {'max_time': timedelta(hours=0)}
+            return queryset.filter(**flt)
+
+    return NewEntryFilter
+

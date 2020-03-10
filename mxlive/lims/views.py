@@ -826,16 +826,17 @@ def format_total_time(val, record):
     return int(val) or ""
 
 
-FromYearListFilter = filters.DateLimitFilterFactory(
-    models.Session, field_name='created', filter_title='From Year', limit=filters.DATE_LIMIT.LEFT
-)
-ToYearListFilter = filters.DateLimitFilterFactory(
-    models.Session, field_name='created', filter_title='To Year', limit=filters.DATE_LIMIT.RIGHT
-)
-
 class SessionList(ListViewMixin, ItemListView):
     model = models.Session
-    list_filters = [FromYearListFilter, ToYearListFilter, 'beamline']
+    list_filters = [
+        'beamline',
+        filters.YearFilterFactory('created', reverse=True),
+        filters.MonthFilterFactory('created'),
+        filters.QuarterFilterFactory('created'),
+        'project__designation',
+        'project__kind',
+        filters.NewEntryFilterFactory(field_label="First Session")
+    ]
     list_columns = ['name', 'created', 'beamline', 'total_time', 'num_datasets', 'num_reports']
     list_search = ['beamline__acronym', 'project__username', 'name']
     link_field = 'name'

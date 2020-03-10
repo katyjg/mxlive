@@ -18,7 +18,7 @@ class PubEntryList(ItemListView):
     list_columns = ['id', 'published', 'cite', 'metrics__citations', 'metrics__mentions', 'journal__metrics__impact_factor']
     list_search = ['title', 'main_title', 'authors', 'code', 'comments', 'journal__title', 'funders__name']
     list_styles = {
-        'journal__metrics__impact_factor': 'w-10',
+        'cite': 'w-75',
     }
     ordering = ['-published']
     paginate_by = 25
@@ -36,6 +36,9 @@ class PDBEntryList(ItemListView):
     ]
     list_columns = ['id', 'code', 'released', 'title', 'resolution', 'deposited', ]
     list_search = ['title', 'authors', 'code', 'reference__title']
+    list_styles = {
+        'title': 'w-75',
+    }
     ordering = ['-released']
     paginate_by = 25
     page_title = 'PDB Depositions'

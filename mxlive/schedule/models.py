@@ -13,8 +13,9 @@ from mxlive.lims.models import Project, Beamline
 
 from geopy import geocoders
 import pytz
-from tzwhere import tzwhere
-tz = tzwhere.tzwhere()
+#from tzwhere import tzwhere
+#tz = tzwhere.tzwhere()
+
 
 class AccessType(models.Model):
     name = models.CharField(blank=True, max_length=30)
@@ -141,7 +142,7 @@ class EmailNotification(models.Model):
 
     def save(self, *args, **kwargs):
         # Get user's local timezone
-        if not self.sent:
+        if not self.pk:
             locator = geocoders.Nominatim()
             try:
                 address = "{user.city}, {user.province}, {user.country}".format(user=self.beamtime.project)

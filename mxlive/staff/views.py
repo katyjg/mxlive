@@ -67,7 +67,7 @@ class ProjectList(AdminRequiredMixin, ItemListView):
     model = Project
     paginate_by = 25
     template_name = "users/user-list.html"
-    list_filters = ['created', 'modified', 'kind']
+    list_filters = ['created', 'modified', 'kind', 'designation']
     list_columns = ['username', 'contact_person', 'contact_phone', 'contact_email', 'kind']
     list_search = [
         'username', 'contact_person', 'contact_phone', 'contact_email', 'city', 'province', 'country',

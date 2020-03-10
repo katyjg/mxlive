@@ -4,6 +4,7 @@ from model_utils.models import TimeStampedModel
 from model_utils import Choices
 from mxlive.utils import temporal, fields
 
+from mxlive.lims.models import Project
 
 class SubjectArea(TimeStampedModel):
     name = models.CharField(max_length=255, unique=True)
@@ -76,6 +77,7 @@ class Publication(TimeStampedModel):
 
     published = models.DateField(_('Published'))
     authors = models.TextField()
+    #projects = models.ManyToManyField(Project, related_name="publications", blank=True)
     code = models.CharField(max_length=255, null=True, unique=True)
     keywords = fields.StringListField(blank=True)
     abstract = models.TextField(null=True, blank=True)
@@ -115,6 +117,7 @@ class Deposition(TimeStampedModel):
     code = models.CharField(max_length=20, unique=True)
     title = models.TextField()
     authors = models.TextField()
+    #projects = models.ManyToManyField(Project, related_name="publications", blank=True)
     doi = models.CharField(max_length=255, unique=True)
     resolution = models.FloatField(default=0.0)
     released = models.DateField()

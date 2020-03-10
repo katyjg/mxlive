@@ -37,7 +37,7 @@ class ProjectForm(forms.ModelForm):
         model = Project
         fields = ('first_name', 'last_name', 'email', 'contact_person', 'contact_email', 'contact_phone',
                   'carrier', 'account_number', 'organisation', 'department', 'address', 'city', 'province',
-                  'postal_code', 'country', 'kind', 'alias')
+                  'postal_code', 'country', 'kind', 'alias', 'designation')
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
@@ -55,20 +55,23 @@ class ProjectForm(forms.ModelForm):
 
         if self.user.is_superuser:
             kind = Field('kind', css_class="select")
+            alias = Field('alias')
             primary = Div(
                 Div('first_name', css_class='col-6'),
                 Div('last_name', css_class='col-6'),
-                Div('email', css_class='col-12'),
+                Div('email', css_class='col-6'),
+                Div(Field('designation', css_class='select'), css_class='col-6'),
                 css_class='form-row'
             )
         else:
             kind = Field('kind', css_class="select", readonly=True)
+            alias = Field('alias', readonly=True)
             primary = Div()
         self.body.layout = Layout(
             primary,
             Div(
                 Div(kind, css_class='col-6'),
-                Div('alias', css_class='col-6'),
+                Div(alias, css_class='col-6'),
                 Div('contact_person', css_class='col-12'),
                 css_class="form-row"
             ),

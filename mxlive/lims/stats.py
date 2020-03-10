@@ -523,7 +523,6 @@ def make_parameter_histogram(data_info, report_info):
     :param report_info: Query result for reports
     :return: histogram data
     """
-
     histograms = {
         field_name: get_histogram_points(
             [float(d[field_name]) for d in data_info if d[field_name] is not None],
@@ -532,7 +531,7 @@ def make_parameter_histogram(data_info, report_info):
         for field_name in ('exposure_time', 'attenuation', 'energy', 'num_frames')
     }
     histograms['score'] = get_histogram_points(
-        [float(d['score']) for d in report_info if d['score'] is not None],
+        [float(d['score']) for d in report_info if d['score'] > -0.1],
         range=PARAMETER_RANGES.get('score')
     )
     return histograms
