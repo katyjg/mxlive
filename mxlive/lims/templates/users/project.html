@@ -2,6 +2,7 @@
 {% load icons %}
 {% load guides %}
 {% load msgs %}
+{% load settings %}
 
 {% block page_heading %}
     <h3 class="text-condensed"> <span class="text-muted"><strong>{{ user.username|upper }}</strong> |</span> User</h3>
@@ -20,9 +21,11 @@
     <a  href="{% url "project-statistics" username=user.username %}">
         {% show_icon label='Usage Stats' icon='ti ti-md ti-pie-chart' %}
     </a>
-    <a  href="{% url 'schedule' %}">
-        {% show_icon label="Schedule" icon="ti ti-md ti-calendar" %}
-    </a>
+    {% if get_settings|"LIMS_USE_SCHEDULE" %}
+        <a  href="{% url 'schedule' %}">
+            {% show_icon label="Schedule" icon="ti ti-md ti-calendar" %}
+        </a>
+    {% endif %}
 {% endblock %}
 
 {% block full %}

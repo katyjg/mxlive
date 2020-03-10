@@ -56,11 +56,11 @@ INSTALLED_APPS = [
     'mxlive.staff',
     'mxlive.lims',
     'mxlive.remote',
-    'mxlive.schedule',
-    'mxlive.publications',
     'crispy_forms',
-    'colorfield',
 ]
+
+LIMS_USE_SCHEDULE = False
+LIMS_USE_PUBLICATIONS = False
 
 MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
@@ -237,3 +237,9 @@ try:
     from local.settings import *
 except ImportError:
     pass
+
+if LIMS_USE_SCHEDULE:
+    INSTALLED_APPS.extend(['mxlive.schedule', 'colorfield'])
+
+if LIMS_USE_PUBLICATIONS:
+    INSTALLED_APPS.extend(['mxlive.publications'])
