@@ -5,6 +5,9 @@ from django.utils import timezone
 from django.template.loader import render_to_string
 from model_utils import Choices
 from model_utils.models import TimeStampedModel, TimeFramedModel
+from django.db.models import F, Sum
+from django.db.models.functions import Coalesce
+from mxlive.utils.functions import Shifts, ShiftEnd, ShiftStart
 
 from colorfield.fields import ColorField
 from datetime import datetime, timedelta
@@ -35,6 +38,19 @@ class BeamlineSupport(models.Model):
         return "{} {}".format(self.staff.first_name, self.staff.last_name)
 
 
+class BeamtimeQuerySet(models.QuerySet):
+    def with_duration(self):
+        return self.annotate(
+            duration=Sum(F('end') - F('start')),
+            shift_duration=ShiftEnd('end') - ShiftStart('start'),
+            shifts=Shifts(F('end') - F('start'))
+        )
+
+
+class BeamtimeManager(models.Manager.from_queryset(BeamtimeQuerySet)):
+    use_for_related_fields = True
+
+
 class Beamtime(models.Model):
     project = models.ForeignKey(Project, related_name="beamtime", on_delete=models.CASCADE, null=True, blank=True)
     beamline = models.ForeignKey(Beamline, related_name="beamtime", on_delete=models.CASCADE)
@@ -43,6 +59,8 @@ class Beamtime(models.Model):
     maintenance = models.BooleanField(default=False)
     start = models.DateTimeField(verbose_name=_('Start'))
     end = models.DateTimeField(verbose_name=_('End'))
+
+    objects = BeamtimeManager()
 
     @property
     def start_time(self):
@@ -81,6 +99,8 @@ class Downtime(TimeFramedModel):
     scope = models.IntegerField(choices=SCOPE_CHOICES, default=SCOPE_CHOICES.FACILITY)
     beamline = models.ForeignKey(Beamline, related_name="downtime", on_delete=models.CASCADE)
     comments = models.TextField(blank=True)
+
+    objects = BeamtimeManager()
 
     @property
     def start_time(self):

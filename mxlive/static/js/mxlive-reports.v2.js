@@ -96,7 +96,7 @@ let tableTemplate = _.template(
 
 let NUM_TICKS = 10;
 
-function drawXYChart(figure, chart, options, type = 'spline') {
+function drawXYChart(figure, chart, options, type='spline') {
     let series = [];
     let columns = [];
     let axes = {};
@@ -422,7 +422,7 @@ function drawPieChart(figure, chart, options) {
     $.each(chart.data.data, function (i, item) {
         data[item.label] = item.value;
         series.push(item.label);
-        colors[item.label] = options.scheme[i];
+        colors[item.label] = item.color || options.scheme[i];
     });
 
     let c3chart = c3.generate({

@@ -258,6 +258,12 @@ def usage_stats(beamline, period='year', **filters):
         for user, hours in user_shift_duration.items()
     }
 
+    beamtime = {}
+    if settings.LIMS_USE_SCHEDULE:
+        from mxlive.schedule.stats import beamtime_stats
+
+        beamtime = beamtime_stats(beamline, period, **filters)
+
     stats = {'details': [
         {
             'title': 'Metrics Overview',
@@ -374,9 +380,10 @@ def usage_stats(beamline, period='year', **filters):
                         ],
                     },
                     'style': 'col-12 col-md-6'
-                },
+                }
             ]
         },
+        beamtime,
         {
             'title': 'User Statistics',
             'style': "row",
@@ -493,6 +500,7 @@ PARAMETER_NAMES = {
     field_name: Data._meta.get_field(field_name).verbose_name
     for field_name in ['exposure_time', 'attenuation', 'energy', 'num_frames']
 }
+
 PARAMETER_NAMES.update({
     field_name: AnalysisReport._meta.get_field(field_name).verbose_name
     for field_name in ('score',)

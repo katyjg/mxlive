@@ -372,6 +372,7 @@ class Session(models.Model):
         ]
 
 
+
 class Stretch(models.Model):
     start = models.DateTimeField(null=False, blank=False)
     end = models.DateTimeField(null=True, blank=True)

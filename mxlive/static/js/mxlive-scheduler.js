@@ -177,7 +177,7 @@ function setupEditor(sel, sw) {
                                     url: $(sel).data('week-url'),
                                     context: document.body,
                                     success: function (d) {
-                                        window.location.reload();
+                                        window.location.href = window.location.pathname + "?start=" + start;
                                     }
                                 });
                             }

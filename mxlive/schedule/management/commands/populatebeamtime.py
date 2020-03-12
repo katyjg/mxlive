@@ -42,6 +42,7 @@ class Command(BaseCommand):
             data = json.load(json_bt)
             projects = [p for p in data if p['model'] == 'scheduler.proposal']
             beamtime = [p for p in data if p['model'] == 'scheduler.visit']
+            downtime = [p for p in data if p['model'] == 'scheduler.stat' and p['fields']['mode'] == 'FacilityRepair']
             support = [p for p in data if p['model'] == 'scheduler.oncall']
             contact_map = { p['pk']: get_project_by_name(p['fields'])
                          for p in data if p['model'] == 'scheduler.supportperson' }
@@ -69,6 +70,16 @@ class Command(BaseCommand):
                     'end': get_date(p['fields']['end_date'], p['fields']['last_shift'], True),
                 }
                 bt = Beamtime.objects.create(**info)
+
+            for p in downtime:
+                for bl in Beamline.objects.exclude(simulated=True):
+                    info = {
+                        'start': get_date(p['fields']['start_date'], p['fields']['first_shift']),
+                        'end': get_date(p['fields']['end_date'], p['fields']['last_shift'], True),
+                        'scope': 0,
+                        'beamline': bl
+                    }
+                    downtime = Downtime.objects.create(**info)
 
             for p in support:
                 BeamlineSupport.objects.create(staff=contact_map[p['fields']['local_contact']],

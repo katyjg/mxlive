@@ -64,7 +64,9 @@ class FetchDowntime(View):
             queryset = queryset.filter((
                 Q(start__gte=start) & Q(start__lt=end)) | (
                 Q(end__lte=end) & Q(end__gt=start)) | (
-                Q(start__gte=start) & Q(end__lte=end)))
+                Q(start__gte=start) & Q(end__lte=end)) | (
+                Q(start__lte=start) & Q(end__gte=end)
+            ))
         elif start:
             queryset = queryset.filter(start__gte=start)
         elif end:

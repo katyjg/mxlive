@@ -28,11 +28,12 @@ class CalendarView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         detailed = self.request.GET.get('detailed', False)
+        now = self.request.GET.get('start') and datetime.strptime(self.request.GET['start'], '%Y-%m-%dT%H') or timezone.now()
         try:
             d = '{}-W{}-1'.format(kwargs.get('year', ''), kwargs.get('week', ''))
             now = datetime.strptime(d, '%G-W%V-%w')
         except:
-            now = timezone.now()
+            pass
 
         (year, week, _) = now.isocalendar()
         context['year'] = year
@@ -69,8 +70,8 @@ class BeamtimeCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
     def get_initial(self):
         initial = super().get_initial()
         try:
-            start = datetime.strptime(self.request.GET.get('start'), "%Y-%m-%dT%H")
-            end = datetime.strptime(self.request.GET.get('end'), "%Y-%m-%dT%H") + timedelta(hours=settings.HOURS_PER_SHIFT)
+            start = timezone.make_aware(datetime.strptime(self.request.GET.get('start'), "%Y-%m-%dT%H"))
+            end = timezone.make_aware(datetime.strptime(self.request.GET.get('end'), "%Y-%m-%dT%H") + timedelta(hours=settings.HOURS_PER_SHIFT))
             beamline = Beamline.objects.filter(acronym=self.request.GET.get('beamline')).first()
             info = {'start': start, 'end': end, 'beamline': beamline}
             if models.Beamtime.objects.filter(beamline=beamline).filter((
@@ -224,7 +225,7 @@ class DowntimeEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit
         return fv
 
 
-class EmailNotificationList(ListViewMixin, ItemListView):
+class EmailNotificationList(AdminRequiredMixin, ListViewMixin, ItemListView):
     model = models.EmailNotification
     list_filters = ['send_time', 'sent']
     list_columns = ['id', 'sent', 'unsendable', 'send_time', 'beamtime__start', 'beamtime__project__username', 'email_subject']
