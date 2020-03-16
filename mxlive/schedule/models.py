@@ -93,8 +93,8 @@ class Beamtime(models.Model):
 
 class Downtime(TimeFramedModel):
     SCOPE_CHOICES = Choices(
-        (0, 'FACILITY', _('Facility')),
-        (1, 'BEAMLINE', _('Beamline'))
+        (0, 'FACILITY', _('Facility Downtime')),
+        (1, 'BEAMLINE', _('Beamline Maintenance'))
     )
     scope = models.IntegerField(choices=SCOPE_CHOICES, default=SCOPE_CHOICES.FACILITY)
     beamline = models.ForeignKey(Beamline, related_name="downtime", on_delete=models.CASCADE)

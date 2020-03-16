@@ -2,7 +2,7 @@ import calendar
 from collections import defaultdict
 
 from django.conf import settings
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Q
 
 from memoize import memoize
 from datetime import datetime
@@ -35,19 +35,12 @@ def beamtime_stats(beamline, period='year', **filters):
 
     beamtime_info = beamline.beamtime.with_duration().filter(**filters)
 
-    start_yr = filters.get('start__{}'.format(period), beamtime_info.first().start.year)
-    end_yr = filters and start_yr or datetime.now().year
-    start = datetime(year=start_yr, month=1, day=1)
-    end = min(datetime(year=end_yr, month=12, day=31), datetime.now())
-
-    shifts = (end - start).days * 24 / SHIFT
-
     period_names = periods
     if period == 'month':
         period_names = [calendar.month_abbr[per].title() for per in periods]
 
     access_types = beamtime_info.values('access__name', 'access__color').order_by('access__name').annotate(count=Sum('shifts'))
-    project_types = beamtime_info.values('project__kind__name').order_by('project__kind__name').annotate(count=Sum('shifts'))
+    project_types = beamtime_info.values('project__kind__name').order_by('-project__kind__name').annotate(count=Sum('shifts'))
 
     access_type_colors = {a['access__name']: a['access__color'] for a in access_types}
     project_type_colors = { p['project__kind__name']: ColorScheme.Live8[i] for i, p in enumerate(project_types)}
@@ -69,10 +62,19 @@ def beamtime_stats(beamline, period='year', **filters):
                 value[project_type['project__kind__name']] = 0
 
     downtime_info = beamline.downtime.with_duration().filter(**filters)
+
     downtime_scopes = [str(Downtime.SCOPE_CHOICES[i]) for i in range(len(Downtime.SCOPE_CHOICES))]
     downtime_data = defaultdict(lambda: defaultdict(int))
     for summary in downtime_info.values(field, 'scope').annotate(shifts=Sum('shifts')):
         downtime_data[summary[field]][str(Downtime.SCOPE_CHOICES[summary['scope']])] = summary['shifts']
+
+    downtime_summary = ""
+    for scope in Downtime.SCOPE_CHOICES:
+        downtime_summary += ' <strong>{}</strong>'.format(scope[1]) + '\n\n'
+        downtime_summary += ' Unspecified ({}) '.format(sum([s['shifts'] for s in
+                                       downtime_info.filter(scope=scope[0]).filter(comments='').values(field).annotate(shifts=Sum('shifts'))]))
+        downtime_summary += ' \t'.join(['{} ({})'.format(s['comments'], s['shifts']) for s in
+                                       downtime_info.filter(scope=scope[0]).exclude(comments='').values(field, 'comments').annotate(shifts=Sum('shifts'))]) + '\n\n'
 
     downtime_table_data = []
     for i, per in enumerate(periods):
@@ -209,15 +211,9 @@ def beamtime_stats(beamline, period='year', **filters):
                 'style': 'col-12 col-md-6'
             },
             {
-                'title': 'Beamtime by access type',
-                'kind': 'pie',
-                'data': {
-                    "colors": "Live16",
-                    "data": [
-                        {'label': str(entry['access__name']), 'value': entry['count'],
-                         'color': entry['access__color']} for entry in access_types
-                    ],
-                },
+                'notes': (
+                    downtime_summary
+                ),
                 'style': 'col-12 col-md-6'
             }
         ]

@@ -86,7 +86,7 @@
                 $.each(data, function(i, bt) {
                     $.each(bt.starts, function(j, st) {
                         parent.find('[data-shift-id="' + st + '"]').find('[data-beamline="' + bt.beamline + '"]')
-                            .addClass('cancelled').attr('data-edit-link', bt.url);
+                            .addClass('cancelled').addClass(bt.style).attr('data-edit-link', bt.url);
                     });
                 });
 

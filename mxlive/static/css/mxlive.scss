@@ -1772,8 +1772,11 @@ input::placeholder {
 .full {
   @include striped_bg($gray-barely);
 }
-.cancelled {
+.FacilityDowntime {
   @include striped_bg(rgba(red, 0.20));
+}
+.BeamlineMaintenance {
+  @include striped_bg(rgba(blue, 0.10));
 }
 
 .toggle-box {

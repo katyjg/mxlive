@@ -219,7 +219,7 @@ def usage_stats(beamline, period='year', **filters):
 
     project_type_colors = {
         kind: ColorScheme.Live8[i]
-        for i, kind in enumerate(ProjectType.objects.values_list('name', flat=True))
+        for i, kind in enumerate(ProjectType.objects.values_list('name', flat=True).order_by('-name'))
     }
 
     user_datasets = {

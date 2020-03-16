@@ -77,6 +77,7 @@ class FetchDowntime(View):
             field = {
                 "id": bt.pk,
                 "beamline": bt.beamline.acronym,
+                "style": bt.get_scope_display().replace(' ', ''),
                 "comments": bt.comments,
                 "url": reverse('downtime-edit', kwargs={'pk': bt.pk}),
                 "starts": bt.start_times,

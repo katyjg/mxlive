@@ -28,6 +28,10 @@ def activity(apps, schema_editor):
             name='Student',
             description="Projects created for use by students during workshops/courses",
         ),
+        ProjectType(
+            name='Commissioning',
+            description="Projects used for beamline commissioning",
+        ),
     ]
 
     # create new datatype objects

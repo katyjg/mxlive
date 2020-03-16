@@ -166,7 +166,7 @@ class Project(AbstractUser):
     key = models.TextField(blank=True)
     kind = models.ForeignKey(ProjectType, blank=True,null=True, on_delete=models.SET_NULL, verbose_name=_("Project Type"))
     alias = models.CharField(max_length=20, blank=True, null=True)
-    designation = models.ManyToManyField(ProjectDesignation, verbose_name=_("Project Designation"))
+    designation = models.ManyToManyField(ProjectDesignation, verbose_name=_("Project Designation"), blank=True)
     created = models.DateTimeField(_('date created'), auto_now_add=True, editable=False)
     modified = models.DateTimeField(_('date modified'), auto_now=True, editable=False)
     updated = models.BooleanField(default=False)

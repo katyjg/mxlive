@@ -98,7 +98,9 @@
 
     <div class="legend-box my-3 d-flex">
         <div class="pr-2"><span class="full legend px-3 mr-1"></span> Reserved</div>
-        <div class="px-2"><span class="cancelled legend px-3 mr-1"></span> Unavailable </div>
+        {% for scope in scope_types %}
+            <div class="px-2"><span class="{{ scope.0 }} legend px-3 mr-1" style="background-color: {{kind.color}};"></span> {{ scope.1 }}</div>
+        {% endfor %}
         {% for kind in access_types %}
             <div class="px-2"><span class="kind.name legend px-3 mr-1" style="background-color: {{kind.color}};"></span> {{ kind.name }}</div>
         {% endfor %}
