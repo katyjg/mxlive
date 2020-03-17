@@ -16,6 +16,7 @@ Some of the Features:
 - Integrate with existing LDAP user accounts
 - Create custom reports using JSON file inputs
 - MxLIVE is fully integrated with MxDC
+- Optional modular apps for beamtime scheduling and publication tracking
 
 
 Deploying for Development
