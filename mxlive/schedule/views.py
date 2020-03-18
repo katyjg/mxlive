@@ -61,6 +61,38 @@ class ScheduleView(LoginRequiredMixin, CalendarView):
         return context
 
 
+class BeamtimeStatistics(TemplateView):
+    template_name = "schedule/beamtime-usage.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        yearly = 'year' not in self.kwargs
+        period = 'year' if yearly else 'month'
+
+        context['year'] = self.kwargs.get('year')
+        context['years'] = stats.get_beamtime_periods(period='year')
+
+        filters = {} if yearly else {'created__year': self.kwargs.get('year')}
+        beamlines = Beamline.objects.filter(simulated=False)
+
+        context['report'] = {'details': [{
+            'title': '{} Beamtime Summary'.format(bl.acronym),
+            'style': 'col-{}'.format(int(12 / beamlines.count())),
+            'content': stats.beamtime_stats(bl, period=period, **filters)['content']
+        } for bl in beamlines]}
+        if beamlines.count() > 1:
+            for i in range(beamlines.count()):
+                for j, fig in enumerate(context['report']['details'][i]['content']):
+                    fig['style'] = 'col-12'
+        return context
+
+    def page_title(self):
+        if self.kwargs.get('year'):
+            return '{} Beamtime Usage Metrics'.format(self.kwargs['year'])
+        else:
+            return 'Beamtime Usage Metrics'
+
+
 class BeamtimeCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
     form_class = forms.BeamtimeForm
     template_name = "modal/form.html"
@@ -121,10 +153,20 @@ class BeamtimeEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit
 
     def form_valid(self, form):
         super().form_valid(form)
+        obj = self.object
 
-        self.object.notifications.filter(sent=False).delete()
+        obj.notifications.filter(sent=False).delete()
         if form.cleaned_data['notify']:
-            models.EmailNotification.objects.create(beamtime=self.object)
+            models.EmailNotification.objects.create(beamtime=obj)
+
+        models.Beamtime.objects.filter(beamline=obj.beamline).filter(
+            Q(start__lt=obj.start) & Q(end__gt=obj.start)).update(**{'end': obj.start})
+        models.Beamtime.objects.filter(beamline=obj.beamline).filter(
+            Q(start__lt=obj.end) & Q(end__gt=obj.end)).update(**{'start': obj.end})
+        models.Beamtime.objects.filter(beamline=obj.beamline).filter((
+            Q(start__gte=obj.start) & Q(start__lt=obj.end)) | (
+            Q(end__lte=obj.end) & Q(end__gt=obj.start)) | (
+            Q(start__gte=obj.start) & Q(end__lte=obj.end))).exclude(pk=obj.pk).delete()
 
         success_url = self.get_success_url()
         return JsonResponse({'url': success_url})
@@ -145,39 +187,6 @@ class BeamtimeDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
         super().delete(request, *args, **kwargs)
         success_url = self.get_success_url()
         return JsonResponse({'url': success_url})
-
-
-class BeamtimeStatistics(TemplateView):
-    template_name = "schedule/beamtime-usage.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        yearly = 'year' not in self.kwargs
-        period = 'year' if yearly else 'month'
-
-        context['year'] = self.kwargs.get('year')
-        context['years'] = stats.get_beamtime_periods(period='year')
-        print(context['years'])
-
-        filters = {} if yearly else {'created__year': self.kwargs.get('year')}
-        beamlines = Beamline.objects.filter(simulated=False)
-
-        context['report'] = {'details': [{
-            'title': '{} Beamtime Summary'.format(bl.acronym),
-            'style': 'col-{}'.format(int(12 / beamlines.count())),
-            'content': stats.beamtime_stats(bl, period=period, **filters)['content']
-        } for bl in beamlines]}
-        if beamlines.count() > 1:
-            for i in range(beamlines.count()):
-                for j, fig in enumerate(context['report']['details'][i]['content']):
-                    fig['style'] = 'col-12'
-        return context
-
-    def page_title(self):
-        if self.kwargs.get('year'):
-            return '{} Beamtime Usage Metrics'.format(self.kwargs['year'])
-        else:
-            return 'Beamtime Usage Metrics'
 
 
 class SupportCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
@@ -221,6 +230,43 @@ class SupportDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edi
         return JsonResponse({'url': success_url})
 
 
+def split_visits(obj, start, end):
+
+    originals = models.Beamtime.objects.filter(beamline=obj.beamline).filter((Q(end__lte=end) & Q(end__gt=start))).filter(start__lt=start)
+    for bt in originals:
+        clone_info = {f.name: getattr(bt, f.name) for f in bt._meta.fields}
+        clone_info.update({'id': None, 'start': start})
+        clone = models.Beamtime(**clone_info)
+        clone.save()
+        bt.end = start
+        bt.save()
+
+    originals = models.Beamtime.objects.filter(beamline=obj.beamline).filter((Q(start__lt=end) & Q(start__gte=start))).filter(end__gt=end)
+    for bt in originals:
+        clone_info = {f.name: getattr(bt, f.name) for f in bt._meta.fields}
+        clone_info.update({'id': None, 'end': end})
+        clone = models.Beamtime(**clone_info)
+        clone.save()
+        bt.start = end
+        bt.save()
+
+    originals = models.Beamtime.objects.filter(beamline=obj.beamline).filter(start__lt=start).filter(end__gt=end)
+    for bt in originals:
+        clone1_info = {f.name: getattr(bt, f.name) for f in bt._meta.fields}
+        clone1_info.update({'id': None, 'end': end})
+        clone1 = models.Beamtime(**clone1_info)
+        clone1.save()
+
+        clone2_info = {f.name: getattr(bt, f.name) for f in bt._meta.fields}
+        clone2_info.update({'id': None, 'start': end})
+        clone2 = models.Beamtime(**clone2_info)
+        clone2.save()
+
+        bt.start = start
+        bt.end = end
+        bt.save()
+
+
 class DowntimeCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
     form_class = forms.DowntimeForm
     template_name = "modal/form.html"
@@ -242,6 +288,17 @@ class DowntimeCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
 
         return initial
 
+    def form_valid(self, form):
+        super().form_valid(form)
+        obj = self.object
+
+        split_visits(obj, obj.start, obj.end)
+        models.Beamtime.objects.filter(beamline=obj.beamline).filter(
+            (Q(start__gte=obj.start) & Q(end__lte=obj.end))).update(cancelled=True)
+
+        success_url = self.get_success_url()
+        return JsonResponse({'url': success_url})
+
 
 class DowntimeEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.DowntimeForm
@@ -253,9 +310,27 @@ class DowntimeEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit
     def form_valid(self, form):
         fv = super().form_valid(form)
         obj = form.instance
+
         if form.data.get('submit') == 'Delete':
+            models.Beamtime.objects.filter(beamline=obj.beamline, start__gte=obj.start, end__lte=obj.end).update(cancelled=False)
             obj.delete()
             self.success_message = "Downtime has been deleted"
+        else:
+            if obj.start < form.initial['start']:
+                start = obj.start
+                end = form.initial['start']
+
+                split_visits(obj, start, end)
+                models.Beamtime.objects.filter(beamline=obj.beamline).filter(
+                    (Q(start__gte=start) & Q(end__lte=end))).update(cancelled=True)
+            if obj.end > form.initial['end']:
+                start = form.initial['end']
+                end = obj.end
+
+                split_visits(obj, start, end)
+                models.Beamtime.objects.filter(beamline=obj.beamline).filter(
+                    (Q(start__gte=start) & Q(end__lte=end))).update(cancelled=True)
+
         return fv
 
 

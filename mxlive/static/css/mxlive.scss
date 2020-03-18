@@ -1772,6 +1772,9 @@ input::placeholder {
 .full {
   @include striped_bg($gray-barely);
 }
+.cancelled {
+  text-decoration: line-through;
+}
 .FacilityDowntime {
   @include striped_bg(rgba(red, 0.20));
 }

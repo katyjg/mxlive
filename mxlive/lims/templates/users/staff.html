@@ -26,12 +26,12 @@
         {% show_icon label="Accounts" icon="ti ti-md ti-user" %}
     </a>
     <a  href="{% url 'session-list' %}">
-        {% show_icon label="Sessions" icon="ti ti-md ti-time" %}
+        {% show_icon label="Sessions" icon="ti ti-md ti-calendar" %}
     </a>
 
     {% if schedule %}
         <a  href="{% url 'schedule' %}">
-            {% show_icon label="Schedule" icon="ti ti-md ti-calendar" %}
+            {% show_icon label="Schedule" icon="ti ti-md ti-time" %}
         </a>
     {% endif %}
     {% if publications %}

@@ -41,7 +41,7 @@ class FetchBeamtime(View):
                 "comments": bt.comments,
                 "beamline": bt.beamline.acronym,
                 "url": '',
-                "css_class": bt.access and bt.access.name or "",
+                "css_class": "{} {}".format(bt.access and bt.access.name or "", bt.cancelled and 'cancelled' or ''),
                 "starts": bt.start_times,
                 "end": bt.end_time
             }

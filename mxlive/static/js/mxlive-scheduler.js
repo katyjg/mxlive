@@ -86,7 +86,7 @@
                 $.each(data, function(i, bt) {
                     $.each(bt.starts, function(j, st) {
                         parent.find('[data-shift-id="' + st + '"]').find('[data-beamline="' + bt.beamline + '"]')
-                            .addClass('cancelled').addClass(bt.style).attr('data-edit-link', bt.url);
+                            .addClass('downtime').addClass(bt.style).attr('data-edit-link', bt.url);
                     });
                 });
 
@@ -110,13 +110,13 @@ function setupDowntimeEditor(sel, tog) {
         freshEditor(sel);
         if($(tog).prop('checked')) {
             $(sel + ' [data-beamline]').css('cursor', 'nw-resize');
-            $(sel + ' .cancelled').css('cursor', 'pointer');
+            $(sel + ' .downtime').css('cursor', 'pointer');
             // Handle data-link, data-form-link and data-href
-            $('.cancelled').on('click', '[data-edit-link]', function () {
+            $('.downtime').on('click', '[data-edit-link]', function () {
 
             });
         } else {
-            $('.cancelled').on('click');
+            $('.downtime').on('click');
         }
     });
 }
@@ -141,7 +141,7 @@ function setupEditor(sel, sw) {
             let row = $(this).closest('tr');
             let dt = $(sw).prop('checked');
 
-            if (dt && $(this).hasClass('cancelled')) {
+            if (dt && $(this).hasClass('downtime')) {
                 $('#modal-target').asyncForm({url: $(this).data('edit-link')});
             } else {
                 if (!$(this).hasClass('block')) {

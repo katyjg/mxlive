@@ -26,7 +26,7 @@ def beamtime_stats(beamline, period='year', **filters):
     filters = {k.replace('created', 'start'): v for k, v in filters.items()}
     field = 'start__{}'.format(period)
 
-    beamtime_info = beamline.beamtime.with_duration().filter(**filters)
+    beamtime_info = beamline.beamtime.with_duration().filter(**filters).filter(cancelled=False)
 
     period_names = periods
     if period == 'month':
@@ -69,8 +69,10 @@ def beamtime_stats(beamline, period='year', **filters):
                 value[project_type['project__kind__name']] = 0
 
     downtime_info = beamline.downtime.with_duration().filter(**filters)
+    cancelled_time = beamline.beamtime.with_duration().filter(**filters).filter(cancelled=True).values(field).annotate(shifts=Sum('shifts'))
+    cancelled_info = {c['start__year']: c['shifts'] for c in cancelled_time}
 
-    downtime_scopes = [str(Downtime.SCOPE_CHOICES[i]) for i in range(len(Downtime.SCOPE_CHOICES))]
+    downtime_scopes = [str(Downtime.SCOPE_CHOICES[i]) for i in range(len(Downtime.SCOPE_CHOICES))] + ['Cancelled Shifts']
     downtime_data = defaultdict(lambda: defaultdict(int))
     for summary in downtime_info.values(field, 'scope').annotate(shifts=Sum('shifts')):
         downtime_data[summary[field]][str(Downtime.SCOPE_CHOICES[summary['scope']])] = summary['shifts']
@@ -88,6 +90,8 @@ def beamtime_stats(beamline, period='year', **filters):
         series = {period.title(): period_names[i]}
         series.update(downtime_data[per])
         downtime_table_data.append(series)
+    for per in downtime_table_data:
+        per['Cancelled Shifts'] = cancelled_info.get(per['Year'], 0)
 
     for row in downtime_table_data:
         for k in downtime_scopes:
@@ -152,7 +156,7 @@ def beamtime_stats(beamline, period='year', **filters):
         'style': 'row',
         'content': [
             {
-                'title': 'Scheduled beamtime shifts by {}'.format(period),
+                'title': 'Delivered beamtime shifts by {}'.format(period),
                 'kind': 'table',
                 'data': [[''] + period_names + ['All']] + access_type_table,
                 'header': 'column row',
@@ -182,37 +186,7 @@ def beamtime_stats(beamline, period='year', **filters):
                 'style': 'col-12 col-md-6'
             },
             {
-                'title': 'Scheduled visits by {}'.format(period),
-                'kind': 'table',
-                'data': [[''] + period_names + ['All']] + visit_table,
-                'header': 'column row',
-                'style': 'col-12'
-            },
-            {
-                'title': 'Scheduled visits by {}'.format(period),
-                'kind': 'columnchart',
-                'data': {
-                    'x-label': period.title(),
-                    'stack': [[d['access__name'] for d in access_types]],
-                    'data': visit_data,
-                    'colors': access_type_colors
-                },
-                'style': 'col-12 col-md-6'
-            },
-            {
-                'title': 'Scheduled visits by access type',
-                'kind': 'pie',
-                'data': {
-                    "colors": "Live16",
-                    "data": [
-                        {'label': str(entry['access__name']), 'value': entry['visits'],
-                         'color': entry['access__color']} for entry in access_types
-                    ],
-                },
-                'style': 'col-12 col-md-6'
-            },
-            {
-                'title': 'Scheduled beamtime shifts by {}'.format(period),
+                'title': 'Delivered beamtime shifts by {}'.format(period),
                 'kind': 'table',
                 'data': [[''] + period_names + ['All']] + project_type_table,
                 'header': 'column row',
@@ -244,6 +218,36 @@ def beamtime_stats(beamline, period='year', **filters):
                 'style': 'col-12 col-md-6'
             },
             {
+                'title': 'Delivered visits by {}'.format(period),
+                'kind': 'table',
+                'data': [[''] + period_names + ['All']] + visit_table,
+                'header': 'column row',
+                'style': 'col-12'
+            },
+            {
+                'title': 'Delivered visits by {}'.format(period),
+                'kind': 'columnchart',
+                'data': {
+                    'x-label': period.title(),
+                    'stack': [[d['access__name'] for d in access_types]],
+                    'data': visit_data,
+                    'colors': access_type_colors
+                },
+                'style': 'col-12 col-md-6'
+            },
+            {
+                'title': 'Delivered visits by access type',
+                'kind': 'pie',
+                'data': {
+                    "colors": "Live16",
+                    "data": [
+                        {'label': str(entry['access__name']), 'value': entry['visits'],
+                         'color': entry['access__color']} for entry in access_types
+                    ],
+                },
+                'style': 'col-12 col-md-6'
+            },
+            {
                 'title': 'Downtime by {}'.format(period),
                 'kind': 'table',
                 'data': [[''] + period_names + ['All']] + downtime_table,
@@ -255,7 +259,6 @@ def beamtime_stats(beamline, period='year', **filters):
                 'kind': 'columnchart',
                 'data': {
                     'x-label': period.title(),
-                    'stack': [downtime_scopes],
                     'data': downtime_table_data,
                 },
                 'style': 'col-12 col-md-6'
