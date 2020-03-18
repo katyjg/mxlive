@@ -55,7 +55,7 @@ class Beamtime(models.Model):
     project = models.ForeignKey(Project, related_name="beamtime", on_delete=models.CASCADE, null=True, blank=True)
     beamline = models.ForeignKey(Beamline, related_name="beamtime", on_delete=models.CASCADE)
     comments = models.TextField(blank=True)
-    access = models.ForeignKey(AccessType, on_delete=models.SET_NULL, null=True)
+    access = models.ForeignKey(AccessType, related_name="beamtime", on_delete=models.SET_NULL, null=True)
     maintenance = models.BooleanField(default=False)
     start = models.DateTimeField(verbose_name=_('Start'))
     end = models.DateTimeField(verbose_name=_('End'))

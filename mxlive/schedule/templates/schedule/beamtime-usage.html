@@ -40,9 +40,9 @@
 
 {% block full %}
     <div class="row">
-        {% for report in reports %}
-            <div id="stats-{{ report.0 }}" class="col-{% widthratio 12 report|length 1 %}"></div>
-        {% endfor %}
+        <div class="col-12">
+            <div id="beamtime-stats" class="row"></div>
+        </div>
     </div>
 {% endblock %}
 
@@ -53,14 +53,12 @@
     <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
     <script type="text/javascript">
-        var reports = {{ reports | jsonify }};
+        var report = {{ report | jsonify }};
 
         $(document).ready(function(){
-            $.each(reports, function(i, report) {
-                $('#stats-' + report[0]).liveReport({
-                    data: report[1]
-                })
-            });
+            $('#beamtime-stats').liveReport({
+                data: report
+            })
         });
 
     </script>

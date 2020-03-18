@@ -6,25 +6,19 @@ from django.db.models import Sum, Count, Avg
 
 from memoize import memoize
 
-from mxlive.schedule.models import Beamtime, Downtime
+from mxlive.schedule.models import Beamtime, Downtime, AccessType
+from mxlive.lims.models import ProjectType
+from mxlive.lims.stats import ColorScheme
 
 HOUR_SECONDS = 3600
 SHIFT = getattr(settings, "HOURS_PER_SHIFT", 8)
 
 
-class ColorScheme(object):
-    Live4 = ["#8f9f9a", "#c56052", "#9f6dbf", "#a0b552"]
-    Live8 = ["#073B4C", "#06D6A0", "#FFD166", "#EF476F", "#118AB2", "#7F7EFF", "#afc765", "#78C5E7"]
-    Live16 = [
-        "#67aec1", "#c45a81", "#cdc339", "#ae8e6b", "#6dc758", "#a084b6", "#667ccd", "#cd4f55",
-        "#805cd6", "#cf622d", "#a69e4c", "#9b9795", "#6db586", "#c255b6", "#073B4C", "#FFD166",
-    ]
-
-
 @memoize(timeout=HOUR_SECONDS)
 def get_beamtime_periods(period='year', beamline=None):
     field = 'start__{}'.format(period)
-    return sorted(Beamtime.objects.filter(beamline=beamline).values_list(field, flat=True).distinct())
+    filters = beamline and {'beamline': beamline} or {}
+    return sorted(Beamtime.objects.filter(**filters).values_list(field, flat=True).distinct())
 
 
 def beamtime_stats(beamline, period='year', **filters):
@@ -38,11 +32,17 @@ def beamtime_stats(beamline, period='year', **filters):
     if period == 'month':
         period_names = [calendar.month_abbr[per].title() for per in periods]
 
-    access_types = beamtime_info.values('access__name', 'access__color').order_by('access__name').annotate(count=Sum('shifts'), visits=Count('id'))
-    project_types = beamtime_info.values('project__kind__name').order_by('-project__kind__name').annotate(count=Sum('shifts'))
+    access_types = list(
+        beamtime_info.values('access__name', 'access__color').order_by('access__name').annotate(count=Sum('shifts'), visits=Count('id')))
+    for a in AccessType.objects.exclude(name__in=[v['access__name'] for v in access_types]):
+        access_types.append({'access__name': a.name, 'access__color': a.color, 'count': 0, 'visits': 0})
+
+    project_types = list(beamtime_info.values('project__kind__name').order_by('-project__kind__name').annotate(count=Sum('shifts')))
+    for p in ProjectType.objects.exclude(name__in=[v['project__kind__name'] or '' for v in project_types]):
+        project_types.append({'project__kind__name': p.name, 'count': 0})
 
     access_type_colors = {a['access__name']: a['access__color'] for a in access_types}
-    project_type_colors = { p['project__kind__name']: ColorScheme.Live8[i] for i, p in enumerate(project_types)}
+    project_type_colors = { p['project__kind__name']: ColorScheme.Live8[i] for i, p in enumerate(sorted(project_types, key = lambda x: x['project__kind__name'] or ''))}
 
     period_data = defaultdict(lambda: defaultdict(int))
     for summary in beamtime_info.values(field, 'access__name').annotate(shifts=Sum('shifts')):

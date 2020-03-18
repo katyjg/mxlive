@@ -157,12 +157,20 @@ class BeamtimeStatistics(TemplateView):
 
         context['year'] = self.kwargs.get('year')
         context['years'] = stats.get_beamtime_periods(period='year')
+        print(context['years'])
 
         filters = {} if yearly else {'created__year': self.kwargs.get('year')}
-        context['reports'] = [
-            (bl.acronym, {'details': [stats.beamtime_stats(bl, period=period, **filters)]})
-            for bl in Beamline.objects.filter(simulated=False)
-        ]
+        beamlines = Beamline.objects.filter(simulated=False)
+
+        context['report'] = {'details': [{
+            'title': '{} Beamtime Summary'.format(bl.acronym),
+            'style': 'col-{}'.format(int(12 / beamlines.count())),
+            'content': stats.beamtime_stats(bl, period=period, **filters)['content']
+        } for bl in beamlines]}
+        if beamlines.count() > 1:
+            for i in range(beamlines.count()):
+                for j, fig in enumerate(context['report']['details'][i]['content']):
+                    fig['style'] = 'col-12'
         return context
 
     def page_title(self):
