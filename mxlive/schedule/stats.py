@@ -44,8 +44,6 @@ def beamtime_stats(beamline, period='year', **filters):
     access_type_colors = {a['access__name']: a['access__color'] for a in access_types}
     project_type_colors = { p['project__kind__name']: ColorScheme.Live8[i] for i, p in enumerate(project_types)}
 
-    print(beamtime_info.values(field, 'access__name').annotate(shifts=Count('id')))
-
     period_data = defaultdict(lambda: defaultdict(int))
     for summary in beamtime_info.values(field, 'access__name').annotate(shifts=Sum('shifts')):
         period_data[summary[field]][summary['access__name']] = summary['shifts']
