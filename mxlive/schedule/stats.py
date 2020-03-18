@@ -2,10 +2,9 @@ import calendar
 from collections import defaultdict
 
 from django.conf import settings
-from django.db.models import Count, Sum, Q
+from django.db.models import Sum, Count, Avg
 
 from memoize import memoize
-from datetime import datetime
 
 from mxlive.schedule.models import Beamtime, Downtime
 
@@ -39,17 +38,27 @@ def beamtime_stats(beamline, period='year', **filters):
     if period == 'month':
         period_names = [calendar.month_abbr[per].title() for per in periods]
 
-    access_types = beamtime_info.values('access__name', 'access__color').order_by('access__name').annotate(count=Sum('shifts'))
+    access_types = beamtime_info.values('access__name', 'access__color').order_by('access__name').annotate(count=Sum('shifts'), visits=Count('id'))
     project_types = beamtime_info.values('project__kind__name').order_by('-project__kind__name').annotate(count=Sum('shifts'))
 
     access_type_colors = {a['access__name']: a['access__color'] for a in access_types}
     project_type_colors = { p['project__kind__name']: ColorScheme.Live8[i] for i, p in enumerate(project_types)}
+
+    print(beamtime_info.values(field, 'access__name').annotate(shifts=Count('id')))
 
     period_data = defaultdict(lambda: defaultdict(int))
     for summary in beamtime_info.values(field, 'access__name').annotate(shifts=Sum('shifts')):
         period_data[summary[field]][summary['access__name']] = summary['shifts']
     for access in access_types:
         for value in period_data.values():
+            if access['access__name'] not in value.keys():
+                value[access['access__name']] = 0
+
+    visit_period_data = defaultdict(lambda: defaultdict(int))
+    for summary in beamtime_info.values(field, 'access__name').annotate(shifts=Count('id')):
+        visit_period_data[summary[field]][summary['access__name']] = summary['shifts']
+    for access in access_types:
+        for value in visit_period_data.values():
             if access['access__name'] not in value.keys():
                 value[access['access__name']] = 0
 
@@ -98,6 +107,7 @@ def beamtime_stats(beamline, period='year', **filters):
 
     access_type_data = []
     project_type_data = []
+    visit_data = []
     # beamtime histogram
     for i, per in enumerate(periods):
         series = {period.title(): period_names[i]}
@@ -108,6 +118,11 @@ def beamtime_stats(beamline, period='year', **filters):
         series = {period.title(): period_names[i]}
         series.update(project_period_data[per])
         project_type_data.append(series)
+
+    for i, per in enumerate(periods):
+        series = {period.title(): period_names[i]}
+        series.update(visit_period_data[per])
+        visit_data.append(series)
 
     project_type_table = [[p['project__kind__name']] + [0]*len(project_type_data) + [0] for p in project_types]
     total_row = ['Total'] + [0]*len(project_type_data) + [0]
@@ -120,6 +135,13 @@ def beamtime_stats(beamline, period='year', **filters):
 
     project_type_table.append(total_row)
 
+    visit_table = []
+    for item in access_types:
+        visit_counts = [visit_period_data[per][item['access__name']] for per in periods]
+        visit_table.append([item['access__name']] + visit_counts + [sum(visit_counts)])
+    visit_period_counts = [sum(visit_period_data[per].values()) for per in periods]
+    visit_table.append(['Total'] + visit_period_counts + [sum(visit_period_counts)])
+
     access_type_table = []
     for item in access_types:
         access_counts = [period_data[per][item['access__name']] for per in periods]
@@ -128,7 +150,7 @@ def beamtime_stats(beamline, period='year', **filters):
     access_type_table.append(['Total'] + bt_period_counts + [sum(bt_period_counts)])
 
     stats = {
-        'title': 'Beamtime Summary',
+        'title': '{} Beamtime Summary'.format(beamline),
         'style': 'row',
         'content': [
             {
@@ -156,6 +178,36 @@ def beamtime_stats(beamline, period='year', **filters):
                     "colors": "Live16",
                     "data": [
                         {'label': str(entry['access__name']), 'value': entry['count'],
+                         'color': entry['access__color']} for entry in access_types
+                    ],
+                },
+                'style': 'col-12 col-md-6'
+            },
+            {
+                'title': 'Scheduled visits by {}'.format(period),
+                'kind': 'table',
+                'data': [[''] + period_names + ['All']] + visit_table,
+                'header': 'column row',
+                'style': 'col-12'
+            },
+            {
+                'title': 'Scheduled visits by {}'.format(period),
+                'kind': 'columnchart',
+                'data': {
+                    'x-label': period.title(),
+                    'stack': [[d['access__name'] for d in access_types]],
+                    'data': visit_data,
+                    'colors': access_type_colors
+                },
+                'style': 'col-12 col-md-6'
+            },
+            {
+                'title': 'Scheduled visits by access type',
+                'kind': 'pie',
+                'data': {
+                    "colors": "Live16",
+                    "data": [
+                        {'label': str(entry['access__name']), 'value': entry['visits'],
                          'color': entry['access__color']} for entry in access_types
                     ],
                 },

@@ -10,7 +10,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt, xframe_o
 
 from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, LoginRequiredMixin
 
-from . import models, forms
+from . import models, forms, stats
 from itemlist.views import ItemListView
 from mxlive.lims.models import Beamline
 from mxlive.lims.views import ListViewMixin
@@ -145,6 +145,31 @@ class BeamtimeDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
         super().delete(request, *args, **kwargs)
         success_url = self.get_success_url()
         return JsonResponse({'url': success_url})
+
+
+class BeamtimeStatistics(TemplateView):
+    template_name = "schedule/beamtime-usage.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        yearly = 'year' not in self.kwargs
+        period = 'year' if yearly else 'month'
+
+        context['year'] = self.kwargs.get('year')
+        context['years'] = stats.get_beamtime_periods(period='year')
+
+        filters = {} if yearly else {'created__year': self.kwargs.get('year')}
+        context['reports'] = [
+            (bl.acronym, {'details': [stats.beamtime_stats(bl, period=period, **filters)]})
+            for bl in Beamline.objects.filter(simulated=False)
+        ]
+        return context
+
+    def page_title(self):
+        if self.kwargs.get('year'):
+            return '{} Beamtime Usage Metrics'.format(self.kwargs['year'])
+        else:
+            return 'Beamtime Usage Metrics'
 
 
 class SupportCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
