@@ -240,8 +240,10 @@ class Directory(object):
             search_filter = '(objectclass=posixAccount)'
         else:
             uid_filter = ''.join(['(uid={})'.format(name) for name in user_names])
-            search_filter = '(&(objectclass=posixAccount)(|{})'.format(uid_filter)
+            search_filter = '(&(objectclass=posixAccount)(|{}))'.format(uid_filter)
         search_attrs = ['uid', 'uidNumber'] if not full else USER_ATTRIBUTES
         with Connection(self.server, user=self.admin_user, password=self.admin_secret, auto_bind=True) as connection:
-            connection.extend.standard.paged_search(search_dn, search_filter, attributes=search_attrs, page_size=PAGE_SIZE, generator=False)
-            return connection.entries
+            entries = connection.extend.standard.paged_search(
+                search_dn, search_filter, attributes=search_attrs, paged_size=PAGE_SIZE, generator=False
+            )
+            return entries
