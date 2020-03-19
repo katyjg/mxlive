@@ -11,4 +11,6 @@ urlpatterns = [
     path('stats/<slug:tag>/', views.Statistics.as_view(), name='section-stats'),
     path('stats/<slug:tag>/<int:year>/', views.Statistics.as_view(), name='section-yearly-stats'),
     path('stats/', views.Statistics.as_view(), name='all-stats'),
+
+    path('pdbtext/', views.PDBEntryText.as_view(), name='pdb-entry-text'),
 ]

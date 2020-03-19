@@ -1,4 +1,5 @@
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, list
+
 from django.urls import reverse
 from itemlist.views import ItemListView
 from mxlive.utils import filters
@@ -42,6 +43,26 @@ class PDBEntryList(ItemListView):
     ordering = ['-released']
     paginate_by = 25
     page_title = 'PDB Depositions'
+
+
+class PDBEntryText(list.ListView):
+    model = models.Deposition
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        field_map = {
+            'PDB_ID': 'code',
+            'STRUCTURE TITLE': 'title',
+            'DEPOSITION DATE': 'deposited',
+            'RELEASE DATE': 'released',
+            'AUTHORS': 'authors'
+        }
+        header = ['PDB_ID', 'STRUCTURE TITLE', 'DEPOSITION DATE', 'RELEASE DATE', 'AUTHORS']
+        context['header'] = '\t'.join(header)
+        context['text'] = '\n'.join(
+            ['\t'.join([str(getattr(dep, field_map[f])) for f in header]) for dep in self.object_list]
+        )
+        return context
 
 
 class SubjectAreasList(ItemListView):
