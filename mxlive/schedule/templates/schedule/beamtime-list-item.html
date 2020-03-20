@@ -1,0 +1,39 @@
+{% load humanize %}
+{% load icons %}
+{% load converter %}
+
+<style>
+    {% for kind in access_types %}
+        .{{kind.name}} {
+          position: relative;
+        }
+        .{{kind.name}}:before {
+          content: "";
+          height: 100%;
+          width: 7px;
+          background-color: {{kind.color}};
+          position: absolute;
+          left: 0;
+          top: 0;
+        }
+    {% endfor %}
+</style>
+
+<div class="list-group-item p-2 {{ beamtime.access.name }}">
+    <div class="d-flex flex-row">
+        <div class="pl-3 overflow-ellipsis align-self-center">
+            <h5 class="m-0 text-condensed">
+                <a class="text-muted"
+                   title='View Session "{{ session.name }}"'>
+                    <strong>{{ beamtime.start }}</strong>
+                </a>
+            </h5>
+            <span class="text-muted text-sm overflow ellipsis">{{ beamtime.start|naturaltime }}</span>
+        </div>
+        <div class="tools-box ml-auto">
+            <a href="#!" data-link="{% url "container-history" 6317 %}" title="Get information about your upcoming beamtime">
+                {% show_icon label='Info' badge=session.data_count icon='ti ti-md ti-info-alt' color='info' %}
+            </a>
+        </div>
+    </div>
+</div>
