@@ -8,7 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
-from django.db.models import Count, F, Q, Sum
+from django.db.models import Count, F, Q, Sum, Case, When, Value, IntegerField
 from django.db.models.functions import Greatest
 from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
@@ -84,7 +84,8 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             context.update(adaptors=adaptors, automounters=automounters, shipments=shipments, sessions=sessions)
 
         else:
-            one_year_ago = timezone.now() - timedelta(days=365)
+            now = timezone.now()
+            one_year_ago = now - timedelta(days=365)
             project = self.request.user
             shipments = project.shipments.filter(
                 Q(status__lt=models.Shipment.STATES.RETURNED)
@@ -97,6 +98,11 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
                 container_count=Count('containers', distinct=True),
             ).order_by('status', '-date_shipped').prefetch_related('project')
 
+            if settings.LIMS_USE_SCHEDULE:
+                beamtimes = project.beamtime.filter(start__gte=one_year_ago).with_duration().annotate(
+                    status=Case(When(start__gte=now, then=Value(1)), default=Value(0), output_field=IntegerField())
+                ).order_by('status')
+
             sessions = project.sessions.filter(
                 created__gt=one_year_ago
             ).annotate(
@@ -105,7 +111,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
                 last_record=Greatest('datasets__end_time', 'datasets__reports__created'),
             ).order_by('-last_record').with_duration().prefetch_related('project', 'beamline')[:7]
 
-            context.update(shipments=shipments, sessions=sessions)
+            context.update(shipments=shipments, sessions=sessions, beamtimes=beamtimes)
         return context
 
 
