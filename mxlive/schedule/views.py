@@ -1,7 +1,8 @@
 from django.views.generic import TemplateView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
-from django.views.generic import edit
+from django.views.generic import edit, detail
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.utils import timezone
 from django.conf import settings
 from django.db.models import Q
@@ -60,6 +61,14 @@ class ScheduleView(LoginRequiredMixin, CalendarView):
         context['editable'] = self.request.user.is_superuser
         return context
 
+
+class BeamtimeInfo(LoginRequiredMixin, UserPassesTestMixin, detail.DetailView):
+    model = models.Beamtime
+    template_name = "schedule/beamtime-info.html"
+
+    def test_func(self):
+        # Allow access to admin or owner
+        return self.request.user.is_superuser or self.get_object().project == self.request.user
 
 class BeamtimeStatistics(TemplateView):
     template_name = "schedule/beamtime-usage.html"

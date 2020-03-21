@@ -19,7 +19,7 @@
     {% endfor %}
 </style>
 
-<div class="list-group-item p-2 {{ beamtime.access.name }}">
+<div class="list-group-item p-2 {% if beamtime.upcoming %}{{ beamtime.access.name }}{% else %}empty{% endif %}">
     <div class="d-flex flex-row">
         <div class="pl-3 overflow-ellipsis align-self-center">
             <h5 class="m-0 text-condensed">
@@ -31,9 +31,11 @@
             <span class="text-muted text-sm overflow ellipsis">{{ beamtime.start|naturaltime }}</span>
         </div>
         <div class="tools-box ml-auto">
-            <a href="#!" data-link="{% url "container-history" 6317 %}" title="Get information about your upcoming beamtime">
+            {% if beamtime.upcoming %}
+            <a href="#!" data-link="{% url "beamtime-info" beamtime.pk %}" title="Get information about your upcoming beamtime">
                 {% show_icon label='Info' badge=session.data_count icon='ti ti-md ti-info-alt' color='info' %}
             </a>
+            {% endif %}
         </div>
     </div>
 </div>

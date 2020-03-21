@@ -10,6 +10,7 @@ urlpatterns = [
     path('beamtime/new/', views.BeamtimeCreate.as_view(), name='new-beamtime'),
     path('beamtime/<int:pk>/edit/', views.BeamtimeEdit.as_view(), name='beamtime-edit'),
     path('beamtime/<int:pk>/delete/', views.BeamtimeDelete.as_view(), name='beamtime-delete'),
+    path('beamtime/<int:pk>/info/', views.BeamtimeInfo.as_view(), name='beamtime-info'),
     path('beamtime/stats/', views.BeamtimeStatistics.as_view(), name='beamtime-stats'),
     path('beamtime/stats/<int:year>/', views.BeamtimeStatistics.as_view(), name='beamtime-stats-yearly'),
 

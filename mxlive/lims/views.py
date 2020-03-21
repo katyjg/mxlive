@@ -99,9 +99,12 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             ).order_by('status', '-date_shipped').prefetch_related('project')
 
             if settings.LIMS_USE_SCHEDULE:
+                from mxlive.schedule.models import AccessType
+                access_types = AccessType.objects.all()
                 beamtimes = project.beamtime.filter(start__gte=one_year_ago, cancelled=False).with_duration().annotate(
                     upcoming=Case(When(start__gte=now, then=Value(1)), default=Value(0), output_field=IntegerField())
                 ).order_by('upcoming', '-start')
+                context.update(beamtimes=beamtimes, access_types=access_types)
 
             sessions = project.sessions.filter(
                 created__gt=one_year_ago
@@ -111,10 +114,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
                 last_record=Greatest('datasets__end_time', 'datasets__reports__created'),
             ).order_by('-last_record').with_duration().prefetch_related('project', 'beamline')[:7]
 
-            from mxlive.schedule.models import AccessType
-            access_types = AccessType.objects.all()
-
-            context.update(shipments=shipments, sessions=sessions, beamtimes=beamtimes, access_types=access_types)
+            context.update(shipments=shipments, sessions=sessions)
         return context
 
 

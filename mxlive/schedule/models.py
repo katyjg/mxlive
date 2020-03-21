@@ -87,6 +87,32 @@ class Beamtime(models.Model):
     def notification(self):
         return self.notifications.first()
 
+    def name(self):
+        name = 'User'
+        if self.project:
+            name = self.project.contact_person or '{person.first_name} {person.last_name}'.format(person=self.project)
+        return name
+
+    def start_date_display(self):
+        return datetime.strftime(timezone.localtime(self.start), '%A, %B %-d')
+
+    def start_time_display(self):
+        return datetime.strftime(timezone.localtime(self.start), '%-I%p')
+
+    def format_info(self):
+        return {
+            'name': self.name(),
+            'beamline': self.beamline.acronym,
+            'start_date': self.start_date_display(),
+            'start_time': self.start_time_display()
+        }
+
+    def info_subject(self):
+        return self.access.email_subject.format(**self.format_info())
+
+    def info_body(self):
+        return self.access.email_body.format(**self.format_info())
+
     def __str__(self):
         return "{} on {}".format(self.project, self.beamline.acronym)
 
@@ -129,21 +155,6 @@ class EmailNotification(models.Model):
     send_time = models.DateTimeField(verbose_name=_('Send Time'), null=True)
     sent = models.BooleanField(default=False)
 
-    def beamline(self):
-        return self.beamtime.beamline.acronym
-
-    def name(self):
-        name = 'User'
-        if self.beamtime.project:
-            name = self.beamtime.project.contact_person or '{person.first_name} {person.last_name}'.format(person=self.beamtime.project)
-        return name
-
-    def start_date(self):
-        return datetime.strftime(timezone.localtime(self.beamtime.start), '%A, %B %-d')
-
-    def start_time(self):
-        return datetime.strftime(timezone.localtime(self.beamtime.start), '%-I%p')
-
     def recipient_list(self):
         return [e for e in [self.beamtime.project.email, self.beamtime.project.contact_email] if e]
 
@@ -151,14 +162,6 @@ class EmailNotification(models.Model):
         late = timezone.now() > (self.send_time - timedelta(minutes=30))
         empty = not self.recipient_list()
         return any([late, empty])
-
-    def format_info(self):
-        return {
-            'name': self.name(),
-            'beamline': self.beamline(),
-            'start_date': self.start_date(),
-            'start_time': self.start_time()
-        }
 
     def save(self, *args, **kwargs):
         # Get user's local timezone
@@ -172,7 +175,7 @@ class EmailNotification(models.Model):
                 usertz = settings.TIME_ZONE
             t = self.beamtime.start - timedelta(days=7 + (self.beamtime.start.weekday() > 4 and self.beamtime.start.weekday() - 4 or 0))
             self.send_time = pytz.timezone(usertz).localize(datetime(year=t.year, month=t.month, day=t.day, hour=10))
-            self.email_subject = self.beamtime.access.email_subject.format(**self.format_info())
-            self.email_body = self.beamtime.access.email_body.format(**self.format_info())
+            self.email_subject = self.beamtime.info_subject()
+            self.email_body = self.beamtime.info_body()
 
         super().save(*args, **kwargs)
