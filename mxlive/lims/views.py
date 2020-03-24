@@ -99,7 +99,6 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             ).order_by('status', '-date_shipped').prefetch_related('project')
 
             if settings.LIMS_USE_SCHEDULE:
-                one_year_ago = now - timedelta(days=1000)
                 from mxlive.schedule.models import AccessType
                 access_types = AccessType.objects.all()
                 beamtimes = project.beamtime.filter(start__gte=one_year_ago, cancelled=False).with_duration().annotate(
