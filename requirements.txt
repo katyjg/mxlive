@@ -34,4 +34,5 @@ requests
 setuptools
 six
 sqlparse
+timezonefinder
 urllib3

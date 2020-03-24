@@ -6,7 +6,6 @@ from django.template.loader import render_to_string
 from model_utils import Choices
 from model_utils.models import TimeStampedModel, TimeFramedModel
 from django.db.models import F, Sum
-from django.db.models.functions import Coalesce
 from mxlive.utils.functions import Shifts, ShiftEnd, ShiftStart
 
 from colorfield.fields import ColorField
@@ -15,9 +14,9 @@ from datetime import datetime, timedelta
 from mxlive.lims.models import Project, Beamline, Stretch
 
 from geopy import geocoders
-import pytz
-#from tzwhere import tzwhere
-#tz = tzwhere.tzwhere()
+import timezonefinder, pytz
+
+tf = timezonefinder.TimezoneFinder()
 
 
 class AccessType(models.Model):
@@ -174,7 +173,7 @@ class EmailNotification(models.Model):
             try:
                 address = "{user.city}, {user.province}, {user.country}".format(user=self.beamtime.project)
                 _, (latitude, longitude) = locator.geocode(address)
-                usertz = tz.tzNameAt(latitude, longitude)
+                usertz = tf.certain_timezone_at(lat=latitude, lng=longitude) or settings.TIME_ZONE
             except:
                 usertz = settings.TIME_ZONE
             t = self.beamtime.start - timedelta(days=7 + (self.beamtime.start.weekday() > 4 and self.beamtime.start.weekday() - 4 or 0))
