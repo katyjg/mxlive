@@ -5,7 +5,7 @@ MAINTAINER Kathryn Janzen <kathryn.janzen@lightsource.ca>
 COPY requirements.txt /
 
 RUN apk add --no-cache --virtual .build-deps bash gcc linux-headers musl-dev postgresql-dev libpq libffi-dev \
-    apache2-ssl apache2-mod-wsgi certbot-apache openssl openssl-dev python3-dev
+    apache2-ssl apache2-mod-wsgi certbot-apache openssl openssl-dev python3-dev xvfb-run wkhtmltopdf
 
 RUN set -ex && /usr/bin/pip3 install --upgrade pip && /usr/bin/pip3 install --no-cache-dir -r /requirements.txt
 
