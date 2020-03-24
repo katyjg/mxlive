@@ -28,6 +28,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='project',
             name='designation',
-            field=models.ManyToManyField(to='lims.ProjectDesignation', verbose_name='Project Designation'),
+            field=models.ManyToManyField(blank=True, to='lims.ProjectDesignation', verbose_name='Project Designation'),
         ),
     ]

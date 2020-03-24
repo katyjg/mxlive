@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.utils.timezone import make_aware
 
 from mxlive.lims.models import Project, Beamline
-from mxlive.schedule.models import Beamtime, BeamlineSupport, AccessType
+from mxlive.schedule.models import Beamtime, BeamlineSupport, AccessType, Downtime
 
 import json
 from datetime import datetime, timedelta

@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='project',
-            name='contract_number',
-            field=models.CharField(blank=True, max_length=10, null=True),
+            name='alias',
+            field=models.CharField(blank=True, max_length=20, null=True),
         ),
     ]
