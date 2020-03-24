@@ -8,7 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
-from django.db.models import Count, F, Q, Sum, Case, When, Value, IntegerField
+from django.db.models import Count, F, Q, Sum, Case, When, Value, BooleanField
 from django.db.models.functions import Greatest
 from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
@@ -99,11 +99,14 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             ).order_by('status', '-date_shipped').prefetch_related('project')
 
             if settings.LIMS_USE_SCHEDULE:
+                one_year_ago = now - timedelta(days=1000)
                 from mxlive.schedule.models import AccessType
                 access_types = AccessType.objects.all()
                 beamtimes = project.beamtime.filter(start__gte=one_year_ago, cancelled=False).with_duration().annotate(
-                    upcoming=Case(When(start__gte=now, then=Value(1)), default=Value(0), output_field=IntegerField())
-                ).order_by('upcoming', '-start')
+                    upcoming=Case(When(start__gte=now, then=Value(True)), default=Value(False), output_field=BooleanField())
+                ).annotate(
+                    distance=Case(When(upcoming=True, then=F('start') - now), default=now - F('start'))
+                ).order_by('-upcoming', 'distance')
                 context.update(beamtimes=beamtimes, access_types=access_types)
 
             sessions = project.sessions.filter(

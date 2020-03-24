@@ -12,7 +12,7 @@ from mxlive.utils.functions import Shifts, ShiftEnd, ShiftStart
 from colorfield.fields import ColorField
 from datetime import datetime, timedelta
 
-from mxlive.lims.models import Project, Beamline
+from mxlive.lims.models import Project, Beamline, Stretch
 
 from geopy import geocoders
 import pytz
@@ -86,6 +86,10 @@ class Beamtime(models.Model):
 
     def notification(self):
         return self.notifications.first()
+
+    def sessions(self):
+        return self.project.sessions.filter(beamline=self.beamline).filter(
+            pk__in=Stretch.objects.filter(start__lte=self.end, end__gte=self.start).values_list('session__pk', flat=True))
 
     def name(self):
         name = 'User'

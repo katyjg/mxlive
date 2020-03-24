@@ -39,9 +39,8 @@
             <div class="list-group list-group-flush list-group-hover">
             {% for beamtime in beamtimes %}
                 {% include "schedule/beamtime-list-item.html" %}
-            </div>
             {% endfor %}
-
+            </div>
             {% for automounter in automounters %}
                 <a href="{% url "beamline-detail" pk=automounter.beamline.pk %}" class="text-center list-group-item p-2">
                         <div id="layout-{{ automounter.container.pk }}" class="layout-lg">
@@ -54,10 +53,8 @@
                 </a>
             {% endfor %}
 
-            </div>
-
-
         </div>
+    </div>
     {% endif %}
     <div class="col-12 {% if beamtimes %}col-md-6{% else %}col-sm-8{% endif %}">
         <div class="card mb-4">
