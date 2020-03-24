@@ -845,8 +845,43 @@ def project_stats(project, **filters):
     last_session = project.sessions.last()
     first_session = project.sessions.first()
     actual_time = 0 if not shifts else ttime / (shifts * SHIFT)
-    first_sesion_time = "Never" if not first_session else '{} ago'.format(timesince(first_session.created))
+    first_session_time = "Never" if not first_session else '{} ago'.format(timesince(first_session.created))
     last_session_time = "Never" if not first_session else '{} ago'.format(timesince(last_session.created))
+
+    sessions_total = ['Sessions', sum(session_counts.values())]
+    shifts_used_total = ['Shifts Used', '{} ({})'.format(shifts, humanize_duration(shifts * SHIFT))]
+
+    beamtime = []
+    visits = []
+    stat_table = []
+    if settings.LIMS_USE_SCHEDULE:
+        from mxlive.schedule.stats import beamtime_stats
+
+        sched_field = field.replace('created', 'start')
+        beamtime_counts = {
+            e[sched_field]: e['count']
+            for e in project.beamtime.filter(**filters, cancelled=False).values(sched_field).annotate(count=Count('id'))
+        }
+        beamtime_shifts = {
+            e[sched_field]: ceil(e['shift_duration'].total_seconds() / SHIFT_SECONDS)
+            for e in project.beamtime.filter(**filters, cancelled=False).with_duration().values(sched_field, 'shift_duration').order_by(sched_field)
+        }
+        visits = ['Visits Scheduled'] + [beamtime_counts.get(p, 0) for p in periods]
+        beamtime = ['Shifts Scheduled'] + [beamtime_shifts.get(p, 0) for p in periods]
+        scheduled_shifts = sum(beamtime_shifts.values())
+
+        time_table = [
+            ['Visits Scheduled', sum(beamtime_counts.values())],
+            ['Shifts Scheduled', '{} ({})'.format(scheduled_shifts, humanize_duration(scheduled_shifts * SHIFT))],
+            shifts_used_total
+        ]
+        stat_table = [sessions_total,]
+    else:
+        time_table = [
+            shifts_used_total,
+            sessions_total,
+        ]
+
     stats = {'details': [
         {
             'title': 'Data Collection Summary',
@@ -855,9 +890,7 @@ def project_stats(project, **filters):
                 {
                     'title': 'Time Usage',
                     'kind': 'table',
-                    'data': [
-                        ['Shifts Used', '{} ({})'.format(shifts, humanize_duration(shifts * SHIFT))],
-                        ['Sessions', sum(session_counts.values())],
+                    'data': time_table + [
                         ['Actual Time', '{:0.0%} ({})'.format(actual_time, humanize_duration(ttime))],
                         ['Shutters Open', '{}'.format(humanize_duration(shutters))],
                     ],
@@ -867,9 +900,9 @@ def project_stats(project, **filters):
                 {
                     'title': 'Overall Statistics',
                     'kind': 'table',
-                    'data': [
+                    'data': stat_table + [
                         ['First Session', last_session_time],
-                        ['Last Session', first_sesion_time],
+                        ['Last Session', first_session_time],
                         ['Shipments / Containers', "{} / {}".format(
                             project.shipments.count(),
                             project.containers.filter(status__gte=Container.STATES.ON_SITE).count()
@@ -888,6 +921,8 @@ def project_stats(project, **filters):
                         ["Year"] + period_names,
                         ['Samples Measured'] + [sample_counts.get(p, 0) for p in periods],
                         ['Sessions'] + [session_counts.get(p, 0) for p in periods],
+                        visits,
+                        beamtime,
                         ['Shifts Used'] + [session_shifts.get(p, 0) for p in periods],
                         ['Time Used¹ (hr)'] + ['{:0.1f}'.format(session_hours.get(p, 0)) for p in periods],
                         ['Usage Efficiency² (%)'] + ['{:.0%}'.format(session_efficiency.get(p, 0)) for p in periods],
