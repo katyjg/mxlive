@@ -15,7 +15,6 @@ def get_project_by_name(name):
     return Project.objects.filter((Q(last_name=name['last_name']) & Q(first_name=name['first_name'])) | (
                 Q(username__iexact=name['last_name']) | Q(username__iexact=name['first_name']))).first()
 
-
 def get_project_by_account(account):
     try:
         return Project.objects.filter(username__iexact=account.split(',')[0].strip()).first()
