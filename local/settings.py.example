@@ -8,6 +8,9 @@ DOWNLOAD_PROXY_URL = "http://mxlive-data/download"
 
 # Shift parameters
 HOURS_PER_SHIFT = 8
+
+# Schedule App settings
+LIMS_USE_SCHEDULE = True
 FACILITY_MODES = "https://external.beam.mode.src"
 """ FACILITY_MODES should reference an API that returns a JSON list containing a dictionary for each mode, with fields:
     - "start": string formatted date matching %Y-%m-%dT%H:%M:%SZ
@@ -45,7 +48,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'mxlive',
         'USER': 'mxlive',
-        'PASSWORD': 'ieCootha1yahquazuew0coh4',
+        'PASSWORD': '4dafa320isd93kjdls1829dd',
         'HOST': 'mxlive-db',
         'PORT': '5432'
     }
@@ -59,10 +62,11 @@ CACHES = {
     }
 }
 
+# Publications App Settings
+LIMS_USE_PUBLICATIONS = True
 PDB_FACILITY_ACRONYM = 'CLSI'
-GOOGLE_API_KEY = 'F09Q34FJKHGDfdsl3JDSAI43034FDSAsdfre43iQ'
+GOOGLE_API_KEY = 'Fa9googleFapi43keyRBasd9g32jaJHD9032Ksab'
 CONTACT_EMAIL = 'beamline.contact@beamline.ca'
-
 
 def clsi_beamline_tags(entry):
     """
@@ -79,6 +83,5 @@ def clsi_beamline_tags(entry):
         'CLSI': ['CMCF-ID', 'CMCF-BM',],
     }
     return acronyms.get(acronym, [])
-
 
 PDB_TAG_FUNCTION = clsi_beamline_tags

@@ -37,6 +37,7 @@ class CalendarView(TemplateView):
             pass
 
         (year, week, _) = now.isocalendar()
+        context['today'] = datetime.strftime(timezone.now(), '%Y-%m-%d')
         context['year'] = year
         context['week'] = week
         context['beamlines'] = Beamline.objects.filter(simulated=False)
@@ -160,6 +161,10 @@ class BeamtimeEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit
         initial['notify'] = self.object.notifications.exists()
         return initial
 
+    def get_success_url(self):
+        success_url = super().get_success_url()
+        return '{}?start={}'.format(success_url, datetime.strftime(self.object.start, '%Y-%m-%dT%H'))
+
     def form_valid(self, form):
         super().form_valid(form)
         obj = self.object
@@ -191,6 +196,10 @@ class BeamtimeDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
         context = super().get_context_data(**kwargs)
         context['form_action'] = reverse_lazy('beamtime-delete', kwargs={'pk': self.object.pk})
         return context
+
+    def get_success_url(self):
+        success_url = super().get_success_url()
+        return '{}?start={}'.format(success_url, datetime.strftime(self.object.start, '%Y-%m-%dT%H'))
 
     def delete(self, request, *args, **kwargs):
         super().delete(request, *args, **kwargs)

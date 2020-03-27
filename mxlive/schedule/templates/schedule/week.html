@@ -69,12 +69,12 @@
                 <tbody>
                     {% for day, details in info.week.items %}
                         {% for shift, mode in details.modes.items %}
-                            <tr data-shift-id="{{ day }}T{{ shift }}" class="{{ mode.kind }}">
+                            <tr data-shift-id="{{ day }}T{{ shift }}" class="{{ mode.kind }} {% if today == day %}today{% endif %}">
                                 {% if forloop.first %}
                                     <td rowspan="{{ info.shifts }}" class="bg-white bcal-day">
                                         <text class="text-uppercase text-condensed">
-                                        {{ details.name }}<br>
-                                        <strong>{{ day|date:'Y-m-d' }}{{ details.date|date:'N d' }}</strong>
+                                            {{ details.name }}<br>
+                                            <strong>{{ details.date|date:'N d' }}{% if today == day %}<br>Today{% endif %}</strong>
                                         </text>
                                     </td>
                                 {% endif %}

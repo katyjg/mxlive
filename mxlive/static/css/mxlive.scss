@@ -1766,9 +1766,15 @@ input::placeholder {
     }
   }
 }
+
 @mixin striped_bg($c) {
   background-image: linear-gradient(45deg, transparent 15%, $c 15%, $c 50%, transparent 50%, transparent 65%, $c 65%);
   background-size: 7px 7px;
+}
+.today {
+  td {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
 }
 .full {
   @include striped_bg($gray-barely);
