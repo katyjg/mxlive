@@ -11,7 +11,9 @@ def activity(apps, schema_editor):
     AnalysisReport = apps.get_model('lims', 'AnalysisReport')
     db_alias = schema_editor.connection.alias
 
-    AnalysisReport.objects.using(db_alias).filter(kind__endswith="XRD Profile").update(kind = 'XRD Analysis')
+    AnalysisReport.objects.using(db_alias).filter(kind__startswith="Azimuthal Integration").update(kind='XRD Analysis')
+    AnalysisReport.objects.using(db_alias).filter(kind__startswith="Azimuthal Calibration").update(kind='XRD Calibration')
+    AnalysisReport.objects.using(db_alias).filter(kind__endswith="XRD Profile").update(kind='XRD Analysis')
     # XRD
     #to_update = []
     #for report in AnalysisReport.objects.using(db_alias).filter(kind__endswith="XRD Profile").annotate(data_name=F('data__name')):
@@ -21,6 +23,7 @@ def activity(apps, schema_editor):
 
     #AnalysisReport.objects.using(db_alias).bulk_update(to_update, fields=['name', 'kind'])
 
+    AnalysisReport.objects.using(db_alias).filter(kind__startswith="Anomalous Merging").update(kind='MX Anomalous Merging')
     AnalysisReport.objects.using(db_alias).filter(kind__icontains="screening").update(kind='MX Screening')
     # screening
     #to_update = []
@@ -32,16 +35,18 @@ def activity(apps, schema_editor):
 
     #AnalysisReport.objects.using(db_alias).bulk_update(to_update, fields=['name', 'kind'])
 
-    AnalysisReport.objects.using(db_alias).filter(
+    excludes = ['XRD Analysis', 'XRD Calibration', 'MX Screening', 'MX Anomalous Merging']
+    AnalysisReport.objects.using(db_alias).exclude(kind__in=excludes).filter(
         Q(kind__icontains="Analysis") | Q(kind__icontains="Processing")).filter(kind__icontains='Anomalous').update(
         kind='MX Anomalous Analysis')
-    AnalysisReport.objects.using(db_alias).filter(
+    AnalysisReport.objects.using(db_alias).exclude(kind__in=excludes).filter(
         Q(kind__icontains="Analysis") | Q(kind__icontains="Processing")).filter(kind__icontains='Merged').update(
         kind='MX Merging')
-    AnalysisReport.objects.using(db_alias).filter(
+    AnalysisReport.objects.using(db_alias).exclude(kind__in=excludes).filter(
         Q(kind__icontains="Analysis") | Q(kind__icontains="Processing")).exclude(
         Q(kind__icontains='Anomalous') | Q(kind__icontains='Merged')).update(
         kind='MX Anomalous Analysis')
+
     # data processing
     # to_update = []
     # for report in AnalysisReport.objects.using(db_alias).filter(Q(kind__icontains="Analysis")|Q(kind__icontains="Processing")).annotate(data_name=F('data__name')):
