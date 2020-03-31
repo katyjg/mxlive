@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd "${0%/*}" && cd ../..
+/usr/local/bin/docker-compose exec app /usr/bin/python3 /mxlive/manage.py fetch_depositions
