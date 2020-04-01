@@ -91,7 +91,7 @@ def beamtime_stats(beamline, period='year', **filters):
         series.update(downtime_data[per])
         downtime_table_data.append(series)
     for per in downtime_table_data:
-        per['Cancelled Shifts'] = cancelled_info.get(per['Year'], 0)
+        per['Cancelled Shifts'] = cancelled_info.get(per[period.title()], 0)
 
     for row in downtime_table_data:
         for k in downtime_scopes:
