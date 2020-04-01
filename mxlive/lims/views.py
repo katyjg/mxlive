@@ -96,7 +96,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
                 sample_count=Count('containers__samples', distinct=True),
                 group_count=Count('groups', distinct=True),
                 container_count=Count('containers', distinct=True),
-            ).order_by('status', '-date_shipped').prefetch_related('project')
+            ).order_by('status', '-date_shipped', '-created').prefetch_related('project')
 
             if settings.LIMS_USE_SCHEDULE:
                 from mxlive.schedule.models import AccessType
