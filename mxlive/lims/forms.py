@@ -998,9 +998,9 @@ class ShipmentGroupForm(forms.ModelForm):
             return Div(
                 HTML(
                     '<h5 class="my-0"><strong>Add Groups</strong></h5>'
-                    'Specify groups for similar samples. Use the <i class="ti ti-paint-bucket"></i> tool to add samples'
-                    'later. "Fill Containers" to auto-create one group per container filled with samples ignoring '
-                    'the groups defined below.'
+                    'Specify groups for similar samples. Use the <i class="ti ti-paint-bucket"></i> tool to add samples '
+                    'after your shipment is created. "Fill Containers" to auto-create one group per container filled '
+                    'with samples ignoring the groups defined below.'
                 ),
                 css_class="text-condensed mb-1"
             )
