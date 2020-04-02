@@ -101,6 +101,7 @@ table td {
 #shipping-form table.table-xsm td {
     height: 6px !important;
     line-height: 6px;
+    padding: 0.5em;
 }
 #shipping-form table.table-lg td {
     height: 15px !important;
