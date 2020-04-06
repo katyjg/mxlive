@@ -17,7 +17,8 @@ GROUP_TABLE = getattr(settings, 'LDAP_GROUP_TABLE', 'ou=Groups')
 USER_SHELL = getattr(settings, 'LDAP_USER_SHELL', '/bin/bash')
 EMAIL_NEW_ACCOUNTS = getattr(settings, 'LDAP_SEND_EMAILS', False)
 
-USER_ATTRIBUTES = ['cn', 'uid', 'uidNumber', 'gidNumber', 'homeDirectory', 'loginShell', 'description', 'gecos']
+USER_ATTRIBUTES = ['cn', 'uid', 'uidNumber', 'gidNumber', 'homeDirectory', 'loginShell', 'description', 'gecos',
+                   'objectclass']
 PAGE_SIZE = 1000
 
 
@@ -44,7 +45,7 @@ def pwd_generator(alpha=6, numeric=3):
     :return: generated password
     """
     """
-    
+
     """
     vowels = ['a', 'e', 'i', 'o', 'u']
     consonants = [a for a in string.ascii_lowercase if a not in vowels]
@@ -87,6 +88,7 @@ class Directory(object):
     """
     A Directory manager implementing methods for listing and modifying a directory
     """
+
     def __init__(self, uri=SERVER_URI, user=MANAGER_DN, secret=MANAGER_SECRET, use_ssl=True):
         """
         :param uri: Server URI
@@ -240,10 +242,9 @@ class Directory(object):
             search_filter = '(objectclass=posixAccount)'
         else:
             uid_filter = ''.join(['(uid={})'.format(name) for name in user_names])
-            search_filter = '(&(objectclass=posixAccount)(|{}))'.format(uid_filter)
-        search_attrs = ['uid', 'uidNumber'] if not full else USER_ATTRIBUTES
+            search_filter = '(&(objectclass=posixAccount)(|{})'.format(uid_filter)
+        search_attrs = ['uid', 'uidNumber', 'objectclass'] if not full else USER_ATTRIBUTES
         with Connection(self.server, user=self.admin_user, password=self.admin_secret, auto_bind=True) as connection:
-            entries = connection.extend.standard.paged_search(
-                search_dn, search_filter, attributes=search_attrs, paged_size=PAGE_SIZE, generator=False
-            )
-            return entries
+            connection.extend.standard.paged_search(search_dn, search_filter, attributes=search_attrs,
+                                                    paged_size=PAGE_SIZE, generator=False)
+            return connection.entries
