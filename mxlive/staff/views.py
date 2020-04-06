@@ -3,7 +3,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http import JsonResponse
-from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.utils import dateformat, timezone
 from django.views.generic import edit, detail
@@ -117,18 +116,18 @@ class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edi
         info['name'] = info.get('username')
         for k in ['contact_email', 'contact_person', 'contact_phone']:
             info[k] = data.get(k, '')
-        info.pop('password')
 
         # create local user
-        proj = Project.objects.create(**info)
+        response = super().form_valid(form)
+        #proj = Project.objects.create(**info)
 
-        info_msg = 'New Account {} added'.format(proj)
+        info_msg = 'New Account {} added'.format(self.object)
 
         ActivityLog.objects.log_activity(
-            self.request, proj, ActivityLog.TYPE.CREATE, info_msg
+            self.request, self.object, ActivityLog.TYPE.CREATE, info_msg
         )
         # messages are simply passed down to the template via the request context
-        return render(self.request, "users/redirect.html")
+        return response
 
 
 class ProjectDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
