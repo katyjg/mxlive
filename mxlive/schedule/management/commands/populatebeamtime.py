@@ -49,10 +49,24 @@ class Command(BaseCommand):
             project_map = {}
 
             for p in projects:
+                mxproject = get_project_by_account(p['fields']['account']) or get_project_by_name(p['fields'])
                 project_map[p['pk']] = {
-                    'account': get_project_by_account(p['fields']['account']) or get_project_by_name(p['fields']),
-                    'email': p['fields']['email']
+                    'account': mxproject,
+                    'email': p['fields']['email'],
                 }
+                try:
+                    if not mxproject.email and p['fields']['email']:
+                        mxproject.email = p['fields']['email']
+                        mxproject.save()
+                        print("Updating email '{}' for '{}'".format(mxproject.email, mxproject.username))
+                except:
+                    pass
+                try:
+                    mxproject.alias = int(p['fields']['last_name'])
+                    mxproject.save()
+                    print('Updating alias "{}" for "{}"'.format(mxproject.alias, mxproject.username))
+                except:
+                    pass
             print({p: k for p, k in project_map.items() if k['account'] == None})
 
             for p in beamtime:
