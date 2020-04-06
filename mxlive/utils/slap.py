@@ -54,7 +54,7 @@ def pwd_generator(alpha=6, numeric=3):
     ####utility functions
     def a_part(slen):
         ret = ''
-        for i in range(slen):
+        for i in range(int(slen)):
             if i % 2 == 0:
                 randid = random.randint(0, 20)  # number of consonants
                 ret += consonants[randid]
@@ -66,7 +66,7 @@ def pwd_generator(alpha=6, numeric=3):
 
     def n_part(slen):
         ret = ''
-        for i in range(slen):
+        for i in range(int(slen)):
             randid = random.randint(0, 9)  # number of digits
             ret += digits[randid]
         return ret
@@ -107,7 +107,7 @@ class Directory(object):
         :return: dictionary of new user information
         """
 
-        users = {user['uid']: user['uidNumber'] for user in self.fetch_users()}
+        users = {user['uid'].value: user['uidNumber'].value for user in self.fetch_users()}
         uidNumber = gidNumber = max(list(users.values())) + 1
         if not info.get('username', '').strip():
             info['username'] = uniquefy(info['last_name'], list(users.keys()))
