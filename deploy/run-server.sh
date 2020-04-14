@@ -16,11 +16,11 @@ rm -rf /run/httpd/* /tmp/httpd*
 ./wait-for-it.sh mxlive-db:5432 -t 60 &&
 
 if [ ! -f /mxlive/local/.dbinit ]; then
-    /mxlive/manage.py migrate --noinput &&
+    /usr/bin/python3 /mxlive/manage.py migrate --noinput &&
     touch /mxlive/local/.dbinit
     chown -R apache:apache /mxlive/local/media /mxlive/local/cache
 else
-    /mxlive/manage.py migrate --noinput
+    /usr/bin/python3 /mxlive/manage.py migrate --noinput
 fi
 
 exec /usr/sbin/httpd -DFOREGROUND -e debug
