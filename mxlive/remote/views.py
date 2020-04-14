@@ -108,7 +108,7 @@ class AccessList(View):
         errors = []
 
         if list:
-            data = msgpack.loads(request.body, encoding='utf-8')
+            data = msgpack.loads(request.body)
             for conn in data:
                 try:
                     project = Project.objects.get(username=conn['project'])
@@ -321,7 +321,7 @@ class AddReport(VerificationMixin, View):
     """
 
     def post(self, request, *args, **kwargs):
-        info = msgpack.loads(request.body, encoding='utf-8')
+        info = msgpack.loads(request.body)
 
         from ..lims.models import Project, Data, AnalysisReport
         project_name = kwargs.get('username')
