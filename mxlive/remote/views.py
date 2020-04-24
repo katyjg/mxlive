@@ -292,7 +292,6 @@ class ProjectSamples(VerificationMixin, View):
             'location__name', 'container__location__name', 'port_name'
         )
         samples = [prep_sample(sample, priority=i) for i, sample in enumerate(sample_list)]
-        print(json.dumps(samples[:5], indent=4), sample_list[:4])
         return JsonResponse(samples, safe=False)
 
 
@@ -391,7 +390,7 @@ class AddData(VerificationMixin, View):
     """
 
     def post(self, request, *args, **kwargs):
-        info = msgpack.loads(request.body)
+        info = msgpack.loads(request.body, raw=False)
 
         project_name = kwargs.get('username')
         beamline_name = kwargs.get('beamline')
@@ -407,7 +406,6 @@ class AddData(VerificationMixin, View):
 
         # Download  key
         try:
-            print(info)
             key = make_secure_path(info.get('directory'))
         except ValueError:
             return http.HttpResponseServerError("Unable to create SecurePath")
