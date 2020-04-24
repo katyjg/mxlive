@@ -43,7 +43,7 @@ def get_client_address(request):
             address = None
     else:
         address = ip_address(request.META['REMOTE_ADDR'])
-    return address
+    return address and address.exploded or address
 
 
 class TrustedAccessMiddleware(object):

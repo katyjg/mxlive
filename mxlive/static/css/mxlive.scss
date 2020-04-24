@@ -398,7 +398,9 @@ a.navbar-brand {
   }
 }
 
-
+.text-sm {
+  font-size: 75%;
+}
 a.text-muted:hover {
   color: var(--gray-dark);
 }
@@ -961,6 +963,7 @@ a[data-link], .back text[port], .cursor {
     li {
       line-height: 24px;
       border-bottom: 1px dotted #ccc;
+      padding-top: 2px;
     }
 
     #frames li {
@@ -1672,5 +1675,193 @@ input::placeholder {
     left: 0;
     width: 100%;
     height: 100%;
+  }
+}
+
+/* Calendar Styling */
+@mixin colorize_mode($color) {
+  color: #333;
+  background-color: $color;
+
+  td:hover, td.hold, td.selected {
+    background-color: lighten($color, 8%);
+  }
+}
+
+.N { @include colorize_mode(#e1f0b3); }
+.NS { @include colorize_mode(#d5e1b3); }
+.D { @include colorize_mode(#ffe1b3); }
+.X { @include colorize_mode(#fefeAD); }
+.M, .MV, .M0, .MT { @include colorize_mode(#CCF5FF); }
+.DS, .DST, .DS-CSR { @include colorize_mode(#f0d7b3); }
+
+#beamline-calendar {
+  table {
+    table-layout: fixed;
+  }
+  td {
+    padding: 0.25em 1em;
+    vertical-align: middle;
+  }
+  th {
+    padding: 0.75em 1em;
+  }
+  h3 {
+    font-weight: 200;
+    border-left: 0.25rem solid var(--primary);
+    padding-left: 0.5rem;
+  }
+  .bcal-sm-col {
+    width: 70px;
+    @include media-breakpoint-down(sm) {
+      width: 52px;
+    }
+  }
+  .bcal-md-col {
+    width: 120px;
+    @include media-breakpoint-down(sm) {
+      width: 80px;
+    }
+  }
+  .bcal-week {
+    thead {
+      background-color: $gray-700;
+      color: var(--white);
+      th {
+        text-align: center;
+      }
+    }
+    .bcal-day text {
+      -webkit-writing-mode: vertical-lr;
+      -ms-writing-mode: lr-tb;
+      writing-mode: vertical-lr;
+      line-height: 1;
+      letter-spacing: 1px;
+    }
+    .block {
+      background-color: rgba(0, 0, 0, 0.2);
+      cursor: no-drop !important;
+    }
+    .hold {
+      position: relative;
+      &:after {
+        content: "";
+        border-left: 20px solid $gray-700;
+        border-right: 20px solid transparent;
+        border-bottom: 20px solid transparent;
+        position: absolute;
+        height: 0;
+        width: 0;
+        left: 0;
+        top: -1px;
+      }
+    }
+  }
+}
+
+@mixin striped_bg($c) {
+  background-image: linear-gradient(45deg, transparent 15%, $c 15%, $c 50%, transparent 50%, transparent 65%, $c 65%);
+  background-size: 7px 7px;
+}
+.today {
+  td {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+}
+.full {
+  @include striped_bg($gray-barely);
+}
+.cancelled {
+  text-decoration: line-through;
+}
+.FacilityDowntime {
+  @include striped_bg(rgba(red, 0.20));
+}
+.BeamlineMaintenance {
+  @include striped_bg(rgba(blue, 0.10));
+}
+
+.toggle-box {
+  height: 100%;
+  border-left: 1px solid $gray-alpha;
+
+  input {
+    position: absolute;
+    left: -99em;
+  }
+  input:checked + .toggle {
+    background: var(--success);
+    &:before {
+      color: #fff;
+    }
+    &:after {
+      color: var(--success);
+    }
+    .toggle__handler {
+      width: 27px;
+      -webkit-transform: translateX(29px);
+      transform: translateX(29px);
+      border-color: #fff;
+    }
+  }
+  .toggle {
+    cursor: pointer;
+    display: block;
+    position: relative;
+    width: 60px;
+    height: 23px;
+    float: right;
+    background: var(--secondary);
+    border-radius: 3px;
+    -webkit-transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
+    transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
+
+    &:before, &:after {
+      position: absolute;
+      line-height: 23px;
+      font-size: 0.85rem;
+      z-index: 2;
+      -webkit-transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
+      transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
+    }
+    &:before {
+      content: "OFF";
+      left: 6px;
+      color: var(--secondary);
+    }
+    &:after {
+      content: "ON";
+      right: 7px;
+      color: #fff;
+    }
+  }
+
+  .toggle__handler {
+    display: inline-block;
+    position: absolute;
+    background: #fff;
+    width: 28px;
+    height: 19px;
+    border-radius: 1px;
+    top: 2px;
+    left: 2px;
+    -webkit-transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.85);
+    transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.85);
+    -webkit-transform: translateX(0px);
+    transform: translateX(0px);
+  }
+}
+.datepicker {
+  td.active.day {
+    border-radius: 0;
+    background-image: unset;
+    background-color: var(--info) !important;
+    &:hover {
+      background-image: unset;
+      background-color: darken($info, 10%) !important;
+    }
+  }
+  &:after, &:before {
+    display: none !important;
   }
 }

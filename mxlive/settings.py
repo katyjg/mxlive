@@ -59,6 +59,9 @@ INSTALLED_APPS = [
     'crispy_forms',
 ]
 
+LIMS_USE_SCHEDULE = False
+LIMS_USE_PUBLICATIONS = False
+
 MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -234,3 +237,9 @@ try:
     from local.settings import *
 except ImportError:
     pass
+
+if LIMS_USE_SCHEDULE:
+    INSTALLED_APPS.extend(['mxlive.schedule', 'colorfield'])
+
+if LIMS_USE_PUBLICATIONS:
+    INSTALLED_APPS.extend(['mxlive.publications'])

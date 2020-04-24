@@ -33,6 +33,7 @@ table td {
     padding-bottom: 10px;
     margin-bottom: 10px;
 }
+
 .panel-default {
     background-color: #efefef !important;
     padding: 1.5rem;
@@ -101,6 +102,7 @@ table td {
 #shipping-form table.table-xsm td {
     height: 6px !important;
     line-height: 6px;
+    padding: 0.5em;
 }
 #shipping-form table.table-lg td {
     height: 15px !important;
@@ -109,3 +111,7 @@ table td {
 #shipping-form .large {
     font-size: 120%;
 }
+.border-black-top {  border-top: 1px solid black !important; }
+.border-black-bottom {  border-bottom: 1px solid black !important; }
+.border-black-left {  border-left: 1px solid black !important; }
+.border-black-right {  border-right: 1px solid black !important; }

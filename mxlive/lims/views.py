@@ -8,7 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
-from django.db.models import Count, F, Q, Sum
+from django.db.models import Count, F, Q, Sum, Case, When, Value, BooleanField
 from django.db.models.functions import Greatest
 from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
@@ -66,7 +66,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
                 sample_count=Count('containers__samples', distinct=True),
                 group_count=Count('groups', distinct=True),
                 container_count=Count('containers', distinct=True),
-            ).order_by('status', '-date_shipped').prefetch_related('project')
+            ).order_by('status', 'project__username', '-date_shipped').prefetch_related('project')
 
             sessions = models.Session.objects.filter(
                 stretches__end__isnull=True
@@ -84,7 +84,8 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             context.update(adaptors=adaptors, automounters=automounters, shipments=shipments, sessions=sessions)
 
         else:
-            one_year_ago = timezone.now() - timedelta(days=365)
+            now = timezone.now()
+            one_year_ago = now - timedelta(days=365)
             project = self.request.user
             shipments = project.shipments.filter(
                 Q(status__lt=models.Shipment.STATES.RETURNED)
@@ -95,7 +96,17 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
                 sample_count=Count('containers__samples', distinct=True),
                 group_count=Count('groups', distinct=True),
                 container_count=Count('containers', distinct=True),
-            ).order_by('status', '-date_shipped').prefetch_related('project')
+            ).order_by('status', '-date_shipped', '-created').prefetch_related('project')
+
+            if settings.LIMS_USE_SCHEDULE:
+                from mxlive.schedule.models import AccessType
+                access_types = AccessType.objects.all()
+                beamtimes = project.beamtime.filter(start__gte=one_year_ago, cancelled=False).with_duration().annotate(
+                    upcoming=Case(When(start__gte=now, then=Value(True)), default=Value(False), output_field=BooleanField())
+                ).annotate(
+                    distance=Case(When(upcoming=True, then=F('start') - now), default=now - F('start'))
+                ).order_by('-upcoming', 'distance')
+                context.update(beamtimes=beamtimes, access_types=access_types)
 
             sessions = project.sessions.filter(
                 created__gt=one_year_ago
@@ -826,16 +837,17 @@ def format_total_time(val, record):
     return int(val) or ""
 
 
-FromYearListFilter = filters.DateLimitFilterFactory(
-    models.Session, field_name='created', filter_title='From Year', limit=filters.DATE_LIMIT.LEFT
-)
-ToYearListFilter = filters.DateLimitFilterFactory(
-    models.Session, field_name='created', filter_title='To Year', limit=filters.DATE_LIMIT.RIGHT
-)
-
 class SessionList(ListViewMixin, ItemListView):
     model = models.Session
-    list_filters = [FromYearListFilter, ToYearListFilter, 'beamline']
+    list_filters = [
+        'beamline',
+        filters.YearFilterFactory('created', reverse=True),
+        filters.MonthFilterFactory('created'),
+        filters.QuarterFilterFactory('created'),
+        'project__designation',
+        'project__kind',
+        filters.NewEntryFilterFactory(field_label="First Session")
+    ]
     list_columns = ['name', 'created', 'beamline', 'total_time', 'num_datasets', 'num_reports']
     list_search = ['beamline__acronym', 'project__username', 'name']
     link_field = 'name'

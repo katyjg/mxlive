@@ -252,12 +252,12 @@ var locTemplate = _.template(
     '           <div class="flex-grow-1 align-self-center py-0">' +
     '               <div class="loc-list row">' +
     '                   <strong class="col-2"><%= port %></strong>' +
-    '                   <span class="col mr-2"><a href="<%= url %>" title="<%= type %>"><%= name %></a>&nbsp;<small class="float-right badge badge-pill badge-primary detail" title="samples"><%= samples %></small></span>' +
+    '                   <span class="col mr-2"><a href="<%= url %>"><%= name %></a>&nbsp;<small class="float-right badge badge-pill badge-primary detail"><%= samples %></small></span>' +
     '                   <span class="col text-center text-muted detail"><%= project %></span>' +
     '               </div>' +
     '           </div>' +
     '           <div class="tools-box">' +
-    '               <a href="#!" data-unload-url="/users/containers/<%= root_id %>/<%= id %>/unload/" data-id="<%= id %>">' +
+    '               <a href="#!" data-unload-url="/users/containers/<%= root_id %>/<%= id %>/unload/" data-id="<%= id %>"' +
     '                   <div class="icon-stack">' +
     '                       <i class="ti ti-share"></i>' +
     '                   </div>' +
@@ -270,7 +270,7 @@ var locTemplate = _.template(
 
 var projTemplate = _.template(
     '<div class="row" data-highlight="project" data-reference="<%= name.toLowerCase() %>">' +
-    '       <h4 class="col-2 text-condensed text-center align-self-center"><span class="badge badge-pill badge-primary py-1" title="Containers"><%= details.length %></span></h4>' +
+    '       <h4 class="col-2 text-condensed text-center align-self-center"><span class="badge badge-pill badge-primary py-1"><%= details.length %></span></h4>' +
     '       <div class="col d-flex flex-row justify-content-between">' +
     '           <div class="flex-grow-1"><h5 class="m-0"><%= name %></h5>' +
     '           <div class="loc-list">' +

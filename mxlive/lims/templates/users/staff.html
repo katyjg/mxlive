@@ -2,6 +2,7 @@
 {% load static %}
 {% load guides %}
 {% load icons %}
+{% load settings %}
 
 {% block page_heading %}
     <h3 class="text-condensed"> <span class="text-muted"><strong>{{ user.username|upper }}</strong> |</span> Staff </h3>
@@ -11,19 +12,33 @@
 {% block pre_js %}
     <script src="{% static 'js/d3/d3.v5.min.js' %}"></script>
     <script src="{% static 'js/d3/d3-selection-multi.v1.min.js' %}"></script>
-    <script type="text/javascript" src="{% static "js/mxlive-layouts.min.js" %}"></script>
+    <script type="text/javascript" src="{% static 'js/mxlive-layouts.min.js' %}"></script>
 {% endblock %}
 
 {% block object_tools %}
-    <a  href="{% url "access-list" %}">
+    {% get_setting "LIMS_USE_SCHEDULE" as schedule %}
+    {% get_setting "LIMS_USE_PUBLICATIONS" as publications %}
+
+    <a  href="{% url 'access-list' %}">
         {% show_icon label="Remote" icon="ti ti-md ti-rss-alt" %}
     </a>
-    <a  href="{% url "user-list" %}">
+    <a  href="{% url 'user-list' %}">
         {% show_icon label="Accounts" icon="ti ti-md ti-user" %}
     </a>
-    <a  href="{% url "session-list" %}">
+    <a  href="{% url 'session-list' %}">
         {% show_icon label="Sessions" icon="ti ti-md ti-calendar" %}
     </a>
+
+    {% if schedule %}
+        <a  href="{% url 'schedule' %}">
+            {% show_icon label="Schedule" icon="ti ti-md ti-time" %}
+        </a>
+    {% endif %}
+    {% if publications %}
+        <a  href="{% url 'pub-entry-list' %}">
+            {% show_icon label="Publications" icon="ti ti-md ti-layout-list-post" %}
+        </a>
+    {% endif %}
     <div class="separator"></div>
     <a href="#!" data-form-link="{% url "new-guide" %}" title="Create Guide">
         {% show_icon label="Add Guide" icon="ti ti-md ti-agenda" %}

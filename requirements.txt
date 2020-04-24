@@ -7,6 +7,7 @@ certifi
 cffi
 chardet
 cryptography
+django-colorfield
 django-crispy-forms
 django-debug-toolbar
 django-debug-toolbar-request-history
@@ -16,6 +17,8 @@ django-memoize
 django-model-utils
 django-proxy
 django-python3-ldap
+geopy
+habanero
 idna
 jsonfield2
 ldap3
@@ -31,4 +34,5 @@ requests
 setuptools
 six
 sqlparse
+timezonefinder
 urllib3

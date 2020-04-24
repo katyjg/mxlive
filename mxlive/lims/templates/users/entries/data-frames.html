@@ -2,6 +2,7 @@
 {% load data_server %}
 {% load converter %}
 {% load static %}
+{% load icons %}
 
 {% block data_content %}
 <div id='data-viewer'
@@ -58,7 +59,7 @@
         <small style="flex: none;">
             <ul class="nav nav-tabs text-condensed px-2" role="tablist">
                 <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#frames">{{ object.num_frames }}
-                    Frames ({{ object.frame_sets }})</a></li>
+                    Frames ({{ object.frame_sets|truncatechars:20 }})</a></li>
                 <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#meta-data">Meta-Data</a></li>
             </ul>
         </small>
@@ -74,7 +75,8 @@
                                 <a onclick="toFrame('{{ frame_name }}', {{ frame_id }});">{{ frame_name }}</a>&nbsp;
                                 <a class="float-right download-tool" download="{{ frame_name }}"
                                    href="{% url 'files-proxy' section='raw' path=frame_url %}"
-                                   title="Download this image"><i class="fa fa-fw fa-download"></i></a>
+                                   title="Download this image">
+                                   {% show_icon icon='ti ti-sm ti-download' color='info' %}</a>
                             </li>
                         {% endfor %}
                     </ul>

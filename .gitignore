@@ -122,3 +122,4 @@ local/*
 .idea/workspace.xml
 
 /mxlive/static/bootstrap/scss/
+/docs/_build/

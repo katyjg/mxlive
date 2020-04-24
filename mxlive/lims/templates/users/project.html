@@ -2,6 +2,7 @@
 {% load icons %}
 {% load guides %}
 {% load msgs %}
+{% load settings %}
 
 {% block page_heading %}
     <h3 class="text-condensed"> <span class="text-muted"><strong>{{ user.username|upper }}</strong> |</span> User</h3>
@@ -11,6 +12,8 @@
 {% endblock %}
 
 {% block object_tools %}
+    {% get_setting "LIMS_USE_SCHEDULE" as schedule %}
+
     <a href="#!"  data-form-link="{% url "shipment-new" %}">
         {% show_icon label='New Shipment' icon='ti ti-md ti-plus' %}
     </a>
@@ -20,11 +23,40 @@
     <a  href="{% url "project-statistics" username=user.username %}">
         {% show_icon label='Usage Stats' icon='ti ti-md ti-pie-chart' %}
     </a>
+    {% if schedule %}
+        <a  href="{% url 'schedule' %}">
+            {% show_icon label="Schedule" icon="ti ti-md ti-time" %}
+        </a>
+    {% endif %}
 {% endblock %}
 
 {% block full %}
-<div class="row">
-    <div class="col-md-8">
+  <div class="row">
+    {% if beamtimes %}
+    <div class="col-12 col-md-3">
+        <div class="card mb-4">
+            <div class="card-header p-1 text-center text-wide text-muted"><small class="">BEAMTIME</small></div>
+            <div class="list-group list-group-flush list-group-hover">
+            {% for beamtime in beamtimes %}
+                {% include "schedule/beamtime-list-item.html" %}
+            {% endfor %}
+            </div>
+            {% for automounter in automounters %}
+                <a href="{% url "beamline-detail" pk=automounter.beamline.pk %}" class="text-center list-group-item p-2">
+                        <div id="layout-{{ automounter.container.pk }}" class="layout-lg">
+                            <h5 class="text-condensed">
+                                <strong><span class="text-muted">{{ automounter.beamline.acronym }}</span></strong> | {{ automounter.container.kind }}
+                            </h5>
+                            <hr/>
+                        </div>
+                        {% include "users/entries/container-layout.html" with container=automounter.container details=False %}
+                </a>
+            {% endfor %}
+
+        </div>
+    </div>
+    {% endif %}
+    <div class="col-12 {% if beamtimes %}col-md-6{% else %}col-sm-8{% endif %}">
         <div class="card mb-4">
             <div class="card-header p-1 text-center text-wide text-muted"><small>RECENT SHIPMENTS</small></div>
             <div class="list-group list-group-flush">
@@ -64,7 +96,7 @@
     </div>
 
     <!-- right region -->
-    <div class="col-sm-12 col-md-4">
+    <div class="col-12 {% if beamtimes %}col-md-3{% else %}col-sm-4{% endif %}">
         {% load_guides %}
     </div>
 

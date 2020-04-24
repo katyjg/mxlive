@@ -38,6 +38,12 @@ urlpatterns = [
     url(r'^api/v2/', include('mxlive.remote.urls')),
 ]
 
+if settings.LIMS_USE_SCHEDULE:
+    urlpatterns += [ url(r'^calendar/', include('mxlive.schedule.urls')) ]
+
+if settings.LIMS_USE_PUBLICATIONS:
+    urlpatterns += [ url(r'^publications/', include('mxlive.publications.urls')) ]
+
 if settings.DEBUG:
     import debug_toolbar
 

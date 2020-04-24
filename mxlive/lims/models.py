@@ -89,6 +89,7 @@ class Beamline(models.Model):
     energy_hi = models.FloatField(default=18.5)
     contact_phone = models.CharField(max_length=60)
     automounters = models.ManyToManyField('Container', through='Dewar', through_fields=('beamline', 'container'))
+    simulated = models.BooleanField(default=False)
 
     def __str__(self):
         return self.acronym
@@ -135,6 +136,14 @@ class ProjectType(TimeStampedModel):
         return self.name
 
 
+class ProjectDesignation(TimeStampedModel):
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Project(AbstractUser):
     HELP = {
         'contact_person': _("Full name of contact person"),
@@ -156,6 +165,8 @@ class Project(AbstractUser):
     show_archives = models.BooleanField(default=True)
     key = models.TextField(blank=True)
     kind = models.ForeignKey(ProjectType, blank=True,null=True, on_delete=models.SET_NULL, verbose_name=_("Project Type"))
+    alias = models.CharField(max_length=20, blank=True, null=True)
+    designation = models.ManyToManyField(ProjectDesignation, verbose_name=_("Project Designation"), blank=True)
     created = models.DateTimeField(_('date created'), auto_now_add=True, editable=False)
     modified = models.DateTimeField(_('date modified'), auto_now=True, editable=False)
     updated = models.BooleanField(default=False)
@@ -359,6 +370,7 @@ class Session(models.Model):
             )
             for first, second in zip(data[:-1], data[1:]) if (second.start_time - first.end_time) > max_gap
         ]
+
 
 
 class Stretch(models.Model):
@@ -1181,6 +1193,7 @@ class Data(ActiveStatusMixin):
     file_name = models.CharField(max_length=200, null=True, blank=True)
     frames = FrameField(null=True, blank=True)
     num_frames = models.IntegerField(_("Frame Count"), default=1)
+    frames_per_file = models.IntegerField(_("Maximum Frames per File"), default=1)
     exposure_time = models.FloatField(null=True, blank=True)
     attenuation = models.FloatField(default=0.0)
     energy = models.DecimalField(decimal_places=4, max_digits=10)
