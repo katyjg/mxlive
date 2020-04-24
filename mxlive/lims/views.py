@@ -1,26 +1,25 @@
 import json
+from datetime import timedelta
 
 import requests
-from datetime import timedelta
 from django import http
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
-from django.db.models import Count, F, Q, Sum, Case, When, Value, BooleanField
+from django.db.models import Count, F, Q, Case, When, Value, BooleanField
 from django.db.models.functions import Greatest
 from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
-from django.views.generic import edit, detail, View, TemplateView
+from django.views.generic import edit, detail, View
 from formtools.wizard.views import SessionWizardView
 from itemlist.views import ItemListView
 from proxy.views import proxy_view
 
 from mxlive.utils import filters
 from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, HTML2PdfMixin
-
 from . import forms, models, stats
 
 DOWNLOAD_PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', "http://mxlive-data/download")
