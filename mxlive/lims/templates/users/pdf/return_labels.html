@@ -1,24 +1,23 @@
 {% extends "users/pdf/doc_base.html" %}
 
 {% load static %}
-{% load get_version %}
+{% load settings %}
 
 {% block content %}
 
 <div class="container">
     <div class="row">
-        <h2 class="heading text-condensed narrow-heading">
-            <img src="{{ "BASE_DIR"|get_from_settings }}{% static "img/bl_logo.svg" %}" style="width: 300px;"/>
-            <span class="pull-right">RETURN SHIPPING LABEL</span>
+        <h2 class="heading">
+            <span class="text-thin">MxLIVE&nbsp;|&nbsp;</span>
+            <span class="text-condensed">RETURN SHIPPING LABEL</span>
         </h2>
         <p>Print this document and cut out the label. Remove the labels currently on the dewars and replace them with this return label.</p>
         <div class="panel panel-main">
             <div class="label-sidebar">
-                <img src="{{ "BASE_DIR"|get_from_settings }}{% static "img/bl_logo-min.svg" %}"/>
-                <br><br>
-                <img src="{{ "BASE_DIR"|get_from_settings }}{% static "img/fragile_sign.svg" %}"/>
-                <br><br>
-                <strong class="emphasize">Non-Hazardous Frozen Samples In Dry-Shipper</strong>
+                <div>
+                    <img src="{% get_setting 'PROJECT_DIR'%}{% static "img/fragile_sign.svg" %}"/>
+                </div>
+                <div class="p-2 emphasize text-center"><strong>Non-Hazardous Frozen Samples In Dry-Shipper</strong></div>
             </div>
             <table class="table table-sm">
                 <tr><td>To:</td><td>{{ project.contact_person|default:"" }}</td></tr>

@@ -1,5 +1,5 @@
 from django.conf.urls import url
-import views
+from . import views
 
 
 def keyed_url(regex, view, kwargs=None, name=None):

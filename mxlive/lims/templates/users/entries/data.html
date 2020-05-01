@@ -1,82 +1,91 @@
-{% extends "forms/modal.html" %}
-
+{% extends "modal/content.html" %}
+{% load icons %}
 {% load data_server %}
 {% load static %}
 {% load humanize %}
-{% load score_colors %}
+{% load badges %}
 
-{% block modal_size %}modal-lg modal-data{% endblock %}
+{% block modal_assets %}
+    <link rel="stylesheet" href="{% static "css/jquery.diffviewer.css" %}" />
+    <script src="{% static "js/jquery/jquery-ui.min.js" %}"></script>
+    <script src="{% static "js/jquery/jquery-migrate.min.js" %}"></script>
+    <script src="{% static "js/misc/jquery.mousewheel.min.js" %}"></script>
+    <script src="{% static "js/mxlive-diffviewer.min.js" %}"></script>
+{% endblock  %}
 
-{% block form_title_tools %}
+{% block modal_styles %}data-viewer{% endblock %}
 
+{% block modal_title %}
+    Data | {% if request.user.is_superuser %}<span class="text-muted">{{ object.project | upper }} | </span>{% endif %}
+    <strong>{{ object.name }}</strong>
 {% endblock %}
 
-{% block form_title %}
-    <span class="text-condensed">
-        <span class="text-muted">
-            <i class="text-muted fa fa-fw {% if "MX" in object.kind or "DATA" in object.kind or "RASTER" in object.kind %}fa-th{% else %}fa-line-chart{% endif %}"></i>
-            {% if request.user.is_superuser %}{{ object.project }} | {% endif %}{{ object.identity }} | </span>
-        <strong>{{ object.name }}</strong>
-    </span>
-{% endblock %}
+{% block modal_subtitle %}<small>{{ object.identity }} &mdash; {{ object.kind }} from {{ object.modified|naturalday }}</small>{% endblock %}
 
-{% block form_body %}
-    <div class="row">
-        <div class="status-bar col-xs-12">
-            <small>
-                <div class="row">
-                    <div class="col-xs-3">
-                        <strong>Type:</strong><br/>
-                        <span class="text-muted">{{ object.get_kind_display }} from {{ object.modified|naturalday }}</span><br/>
-                        <span class="text-muted">{% if object.session %}Session <a href="{% url 'session-detail' object.session.pk %}">{{ object.session.name }}</a>{% else %}Unrecorded Session{% endif %}</span>
-                    </div>
-                    <div class="col-xs-2">
-                        <strong>Beam:</strong><br/>
-                        <span class="text-muted">{{ object.beamline }} at {{ object.energy }} keV</span><br/>
-                        {% if object.beam_size %}<span class="text-muted" title="Beam Size">{{ object.beam_size|floatformat:2 }} &mu;m</span>{% endif %}
-                    </div>
-                    <div class="col-xs-3">
-                        <strong>Parameters:</strong><br/>
-                        <span class="text-muted">
-                            <span title="Exposure Time">{{ object.exposure_time }}s exposure time</span><br/>
-                            <span title="Attenuation">{{ object.attenuation }}% attenuated</span>
-                        </span>
-                    </div>
-                    <div class="col-xs-3">
-                        <strong>Sample:</strong><span class="text-muted"> {% if object.sample %}<a href="{% url "sample-detail" object.sample.pk %}">{{ object.sample }}</a>{% else %}None{% endif %}</span><br/>
-                        <strong>Group:</strong><span class="text-muted"> {% if object.sample %}<a href="{% url "group-detail" object.sample.group.pk %}">{{ object.sample }}</a>{% else %}None{% endif %}</span><br/>
-                        <strong>Report:</strong><span class="text-muted"> {% for report in object.reports.all %}
-                            <a href="{% url "report-detail" report.pk %}" title="View {{ report.name }} Report">
-                                <span class="label label-{{ report.score|label_score }}">{{ report.score|floatformat:2 }}</span>
-                            </a>
-                            {% if not forloop.last %} | {% endif %}{% endfor %}
-                        </span>
-                    </div>
+{% block modal_body %}
+    <div class="row small py-1 overflow-ellipsis">
+        <div class="col">
+            <strong>Session:</strong><br/>
+            <span class="text-muted">{% if object.session %}<a href="{% url 'session-detail' object.session.pk %}">{{ object.session.name }}</a>{% else %}
+                Unrecorded Session{% endif %}</span>
+        </div>
+        <div class="col">
+            <strong>Beamline / Energy:</strong><br/>
+            <span class="text-muted">{{ object.beamline }} at {{ object.energy }} keV</span>
 
-                    <div class="box-tools col-xs-1 pull-right text-right">
-                        {% if object.url %}
-                        <a class="pull-right" href="{% url 'files-proxy' section='archive' path=object.download_url %}" download="{{ object.name }}.tar.gz" title="Download Full Dataset">
-                            <span class="pull-right">
-                                <i class="fa fa-fw fa-2x fa-download"></i><br>
-                                <span class="tool-label">Download</span>
-                            </span>
-                        </a>
-                        {% else %}
-                            <span class="pull-right text-muted not-allowed" title="Download Not Available">
-                                <i class="fa fa-fw fa-2x fa-download"></i><br>
-                                <span class="tool-label">Download</span>
-                            </span>
-                        {% endif %}
-                    </div>
-                </div>
-            </small>
+        </div>
+        <div class="col">
+            <strong>Beam:</strong><br/>
+            <span class="text-muted">
+                <span title="Exposure Time">{{ object.exposure_time }}s</span> /
+                <span title="Attenuation">{{ object.attenuation }}% </span>
+                {% if object.beam_size %}/ <span class="text-muted" title="Beam Size">{{ object.beam_size|floatformat:0 }} &mu;m</span>{% endif %}
+            </span>
+        </div>
+        <div class="col">
+            <strong>Group / Sample:</strong><br/>
+            <span class="text-muted">
+                {% if object.group %}
+                    <a title="Group" href="{% url "group-detail" object.sample.group.pk %}">{{ object.group }}</a>
+                {% else %}
+                    None
+                {% endif %}
+            /
+                {% if object.sample %}
+                    <a title="Sample" href="{% url "sample-detail" object.sample.pk %}">{{ object.sample }}</a>
+                {% else %}
+                    None
+                {% endif %}
+            </span>
+        </div>
+        {% if object.reports.exists %}
+        <div class="col">
+            <strong>Reports:</strong><br/>
+            <span class="text-muted">
+            {% for report in object.reports.all %}
+                <a href="{% url "report-detail" report.pk %}" title="View {{ report.name }} Report">
+                    {% score_badge report.score %}
+                </a>
+            {% endfor %}
+            </span>
+        </div>
+        {% endif %}
+        <div class="col">
+            <div class="tools-box float-right">
+            {% if object.url %}
+                <a href="{% url 'files-proxy' section='archive' path=object.download_url %}"
+                   download="{{ object.name }}.tar.gz" title="Download Full Dataset">
+                    {% show_icon label="Download" icon="ti ti-md ti-download" %}
+                </a>
+            {% else %}
+                <span class="text-muted not-allowed" title="Download Not Available">
+                    {% show_icon label="Download" icon="ti ti-md ti-download" %}
+                </span>
+            {% endif %}
+            </div>
         </div>
     </div>
-    {% if "MX" in object.kind or "DATA" in object.kind or "RASTER" in object.kind %}
-        {% include "users/entries/data-mx.html" %}
-    {% elif "MAD" in object.kind %}
-        {% include "users/entries/data-mad.html" %}
-    {% elif "XRF" in object.kind %}
-        {% include "users/entries/data-xrf.html" %}
-    {% endif %}
+    <hr class="row mt-0 mb-2"/>
+    {% block data_content %}
+    {% endblock %}
 {% endblock %}

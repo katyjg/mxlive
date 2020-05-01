@@ -1,103 +1,120 @@
 {% extends "users/base.html" %}
-
-{% load link_list %}
+{% load static %}
+{% load guides %}
+{% load icons %}
+{% load settings %}
 
 {% block page_heading %}
-<h3 class="overflow ellipsis narrow-heading text-condensed">Welcome, Staff</h3>
+    <h3 class="text-condensed"> <span class="text-muted"><strong>{{ user.username|upper }}</strong> |</span> Staff </h3>
     <span class="text-muted text-condensed hidden-xs">Start here to manage shipments, load containers on a beamline, view data, and more.</span>
 {% endblock %}
 
+{% block pre_js %}
+    <script src="{% static 'js/d3/d3.v5.min.js' %}"></script>
+    <script src="{% static 'js/d3/d3-selection-multi.v1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/mxlive-layouts.min.js' %}"></script>
+{% endblock %}
+
 {% block object_tools %}
-    <span class="box-tools pull-right">
-        <a class="pull-right" data-url="{% url "new-announcement" %}" title="Create Announcement">
-            <span class="fa-stack">
-                <i class="fa fa-stack-2x fa-2 fa-bullhorn"></i>
-            </span><br/>
-            <span class="tool-label"><i class="fa fa-plus"></i> Info</span>
+    {% get_setting "LIMS_USE_SCHEDULE" as schedule %}
+    {% get_setting "LIMS_USE_PUBLICATIONS" as publications %}
+
+    <a  href="{% url 'access-list' %}">
+        {% show_icon label="Remote" icon="ti ti-md ti-rss-alt" %}
+    </a>
+    <a  href="{% url 'user-list' %}">
+        {% show_icon label="Accounts" icon="ti ti-md ti-user" %}
+    </a>
+    <a  href="{% url 'session-list' %}">
+        {% show_icon label="Sessions" icon="ti ti-md ti-calendar" %}
+    </a>
+
+    {% if schedule %}
+        <a  href="{% url 'schedule' %}">
+            {% show_icon label="Schedule" icon="ti ti-md ti-time" %}
         </a>
-    </span>
-    <span class="box-tools pull-right">
-        <a class="pull-right" href="{% url "session-list" %}">
-            <span class="fa-stack">
-                <i class="fa fa-stack-2x fa-2 fa-clock-o"></i>
-            </span><br/>
-            <span class="tool-label">Sessions</span>
+    {% endif %}
+    {% if publications %}
+        <a  href="{% url 'pub-entry-list' %}">
+            {% show_icon label="Publications" icon="ti ti-md ti-layout-list-post" %}
         </a>
-        <a class="pull-right" href="{% url "user-list" %}">
-            <span class="fa-stack">
-                <i class="fa fa-stack-2x fa-2 fa-group"></i>
-            </span><br/>
-            <span class="tool-label">Users</span>
-        </a>
-        <a class="pull-right" href="{% url "access-list" %}">
-            <span class="fa-stack">
-                <i class="fa fa-stack-2x fa-2 ti ti-rss-alt"></i>
-            </span><br/>
-            <span class="tool-label">Remote</span>
-        </a>
-    </span>
+    {% endif %}
+    <div class="separator"></div>
+    <a href="#!" data-form-link="{% url "new-guide" %}" title="Create Guide">
+        {% show_icon label="Add Guide" icon="ti ti-md ti-agenda" %}
+    </a>
 {% endblock %}
 
 {% block full %}
     <div class="row">
-        <div class="col-xs-12 col-sm-6 col-md-3">
-            <div class="list-group">
-                {% for am in automounters %}
-                    <a href="{% url "beamline-detail" pk=am.beamline.pk %}" class="text-center list-group-item" style="overflow: auto;">
-                        <div class="col-xs12">
-                            <div id="layout-{{ am.container.pk }}" class="layout-lg">
-                                <h4 class="text-condensed">
-                                    <strong><span class="text-muted">{{ am.beamline.acronym }}</span></strong> | {{ am.container.kind }}
-                                </h4>
+        <div class="col-12 col-sm-6 col-md-3">
+            <div class="card mb-4">
+                <div class="card-header p-1 text-center text-wide text-muted"><small class="">BEAMLINES</small></div>
+                <div class="list-group list-group-flush list-group-hover">
+                {% for automounter in automounters %}
+                    <a href="{% url "beamline-detail" pk=automounter.beamline.pk %}" class="text-center list-group-item p-2">
+                            <div id="layout-{{ automounter.container.pk }}" class="layout-lg">
+                                <h5 class="text-condensed">
+                                    <strong><span class="text-muted">{{ automounter.beamline.acronym }}</span></strong> | {{ automounter.container.kind }}
+                                </h5>
                                 <hr/>
                             </div>
-                            {% include "users/entries/layout-container.html" with object=am.container.pk kind=am.container.kind brief=True %}
-                        </div>
+                            {% include "users/entries/container-layout.html" with container=automounter.container details=False %}
                     </a>
                 {% endfor %}
+                </div>
             </div>
-            <h3 class="underline">Loadable Containers</h3>
-            {% for container in containers %}
+            <div class="card mb-4">
+                <div class="card-header p-1 text-center text-wide text-muted"><small>ADAPTORS</small></div>
+                <div class="card-body p-2">
+                <div class="row">
+                {% for container in adaptors %}
                 {% include "users/entries/container-item.html" %}
-            {% endfor %}
-        </div>
-        <div class="col-xs-12 col-sm-6">
-            <div class="list-group">
-                {% for object in shipments %}
-                    {% include "users/entries/shipment-list-item.html" with object=object %}
                 {% endfor %}
-                <a data-url="{% url "shipment-new" %}" class="list-group-item empty">
-                    <div class="row">
-                        <div class="col-xs-12">
-                            <div class="box-status pull-left">
+                </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-12 col-sm-6">
+            <div class="card mb-4">
+                <div class="card-header p-1 text-center text-wide text-muted"><small>SHIPMENTS</small></div>
+                <div class="list-group list-group-flush">
+                    {% for shipment in shipments %}
+                        {% include "users/entries/shipment-list-item.html" %}
+                    {% endfor %}
+                        <div class="p-2 list-group-item empty">
+                            <a href="#!" data-form-link="{% url "shipment-new" %}" class="d-flex flex-row">
+                            <div class="box-status">
                                 <div class="text-center text-muted">
-                                    <div title="Create a Shipment" class="fa fa-2x fa-plus"></div>
+                                    <div title="Create a Shipment" class="ti ti-md ti-plus"></div>
                                     <div><small>Start Now</small></div>
                                 </div>
                             </div>
-                            <div class="box-info">
-                                <h4 class="text-condensed narrow-heading overflow ellipsis">Click here to start a new shipment!</h4>
+                            <div class="pl-3 overflow-ellipsis flex-grow-1 align-self-center">
+                                <h4 class="p-0 m-0 text-condensed">Click here to start a new shipment!</h4>
                                 <span class="overflow ellipsis">Follow the steps to enter your sample information</span>
                             </div>
-                        </div>
+                        </a>
                     </div>
-                </a>
+                </div>
             </div>
-            <h3 class="underline">Active Beamline Sessions</h3>
-            <div class="list-group list-group-hover">
+            <div class="card mb-4">
+                <div class="card-header p-1 text-center text-wide text-muted"><small>ACTIVE SESSIONS</small></div>
+                <div class="list-group list-group-flush">
                 {% for session in sessions %}
-                    {% include "users/entries/session-list-item.html" with session=session %}
+                    {% include "users/entries/session-list-item.html" %}
                 {% empty %}
                     <div class="list-group-item empty">
                         No active sessions at the moment.
                     </div>
                 {% endfor %}
+                </div>
             </div>
         </div>
 
-        <div class="col-xs-12 col-sm-3">
-            {% load_announcements %}
+        <div class="col-12 col-md-3">
+            {% load_guides %}
         </div>
     </div>
 {% endblock %}
-

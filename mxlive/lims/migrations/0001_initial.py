@@ -9,7 +9,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
 import jsonfield.fields
-import lims.models
+from mxlive import lims
 
 
 class Migration(migrations.Migration):

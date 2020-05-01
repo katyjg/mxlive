@@ -1,65 +1,41 @@
-database:
-  image: mariadb
-  hostname: sql.example.com
-  volumes:
-    - ./database:/var/lib/mysql:Z
-  environment:
-    MYSQL_ROOT_PASSWORD: secret
-    MYSQL_DATABASE: mxlive
-  restart: always
+version: '2'
+services:
+  database:
+    image: postgres-bkup:latest
+    volumes:
+      - ./database:/var/lib/postgresql/data:Z
+      - ./database-init:/docker-entrypoint-initdb.d:Z
+      - ./database-backups:/backups:Z
+    environment:
+      POSTGRES_PASSWORD: '*****secret*****'
+      DATABASE_USER: postgres
+      BACKUP_DATABASE_USER: postgres
 
-dataproxy:
-  image: mxlive-dataproxy:latest
-  environment:
-    SERVER_NAME: data.local
-  restart: always
-  volumes:
-    - ./data-local:/dataserver/local:Z
-    - ./data-cache:/cache:Z
-    - /users:/users:ro
-    - /archive:/archive:ro
-  links:
-    - database:data-db
+    restart: always
 
-mail:
-  image: postfix
-  restart: always
-  environment:
-    maildomain:  mail.mxlive
-    smtp_user: system:secret
+  files:
+    image: mxlive-dataproxy:latest
+    environment:
+      SERVER_NAME: files.local
+    restart: always
+    volumes:
+    - ./files/local:/dataserver/local:Z
+    - /home:/users:ro
+    - ./files/archive:/archive:ro
+    - ./files/cache:/cache:Z
 
-ldap:
-  image: minkwe/389ds:latest
-  hostname: ldap.example.com
-  volumes:
-    - ./ldap/data:/var/lib/dirsrv:Z
-    - ./ldap/config:/etc/dirsrv:Z
-    - ./ldap/logs:/var/log/dirsrv:Z
-    - ./ldap/certs:/certs:Z
-  environment:
-    DIR_SUFFIX: "dc=example,dc=com"
-    DIR_ADMIN_USERNAME: "admin"
-    DIR_MANAGER_PASSWORD: "secret"
-    DIR_ADMIN_UID: "10000"
-    DIR_USERS_HOME: "/users"
-  ports:
-    - "389:389"
-    - "636:636"
-  restart: always
+  cache:
+    image: memcached
+    restart: always
 
-app:
-  image: mxlive:latest
-  hostname: mxlive.example.ca
-  environment:
-    SERVER_NAME: mxlive.example.ca
-  volumes:
-    - ./app:/mxlive/local:Z
-    - ./certs:/etc/letsencrypt:Z
-  ports:
-    - 443:443
-  links:
-    - database:mxlive-db
-    - dataproxy:mxlive-data
-    - ldap:mxlive-ldap
-    - mail:mxlive-mail
-  restart: always
+  app:
+    image: mxlive:latest
+    hostname: mxlive.example.com
+    environment:
+      SERVER_NAME: mxlive.example.com
+    volumes:
+      - ./app/local:/mxlive/local:Z
+      - ./app/certs:/etc/letsencrypt:Z
+    ports:
+      - "443:443"
+    restart: always

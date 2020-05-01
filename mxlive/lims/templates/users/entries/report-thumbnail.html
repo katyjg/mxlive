@@ -1,9 +1,9 @@
-{% load score_colors %}
+{% load badges %}
 
-<div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mini-thumbnail pull-right">
+<div class="col-12 col-sm-6 col-md-4 col-lg-3 mini-thumbnail pull-right">
     <a href="{% url 'report-detail' report.pk %}">
     <div class="list-group-item list-group-item-info text-condensed">
-        <span class="pull-right label label-{{ report.score|label_score }}">{{ report.score|floatformat:2 }}</span>
+        {% score_badge report.score %}
         <span class="overflow ellipsis"><strong>{{ report.name }} </strong> | {{ report.kind }} Report</span>
         <span class="text-muted overflow ellipsis">
             {% for data in report.data.all %}

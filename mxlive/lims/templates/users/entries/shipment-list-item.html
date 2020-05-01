@@ -1,84 +1,58 @@
-<div class="list-group-item list-group-item-{% if object.status == object.STATES.ON_SITE %}info
-            {% elif object.status == object.STATES.DRAFT %}warning
-            {% elif object.status == object.STATES.SENT %}success
-            {% elif object.status == object.STATES.RETURNED and not user.is_superuser %} empty
-            {% else %}default{% endif %}">
-    <div class="row">
-        <div class="col-xs-12">
-            {% if user.is_superuser and object.status <= object.STATES.ON_SITE and object.status >= object.STATES.SENT %}
-                {% if object.status == object.STATES.ON_SITE %}
-                    <div class="pull-right box-tools">
-                        <a class="pull-right" data-url="{% url "shipment-return" object.pk %}" title="Return shipment">
-                            <span class="fa-stack">
-                                <i class="fa-stack-2x fa fa-2 fa-fw fa-paper-plane"></i>
-                            </span><br/>
-                            <span class="tool-label">Return</span>
-                        </a>
-                    </div>
+{% load icons %}
+<div class="p-2 list-group-item list-group-item-{% if shipment.status == shipment.STATES.ON_SITE %}info{% elif shipment.status == shipment.STATES.DRAFT %}warning{% elif shipment.status == shipment.STATES.SENT %}success{% elif shipment.status == shipment.STATES.RETURNED and not user.is_superuser %}empty{% else %}default{% endif %}">
+    <div class="d-flex flex-row">
+        <div class="box-status text-center">
+            {% if shipment.status == shipment.STATES.DRAFT %}
+                {% show_icon label='DRAFT' icon='ti ti-md ti-clipboard' tooltip='On-site' %}
+            {% elif shipment.status == shipment.STATES.SENT %}
+                {% show_icon label=shipment.date_shipped|date:"M j"|upper icon='ti ti-md ti-truck text-dark' tooltip='Sent' %}
+            {% elif shipment.status == shipment.STATES.ON_SITE %}
+                {% show_icon label=shipment.date_shipped|date:"M j"|upper icon='ti ti-md ti-location-pin' tooltip='On-site' %}
+            {% elif shipment.status == shipment.STATES.RETURNED %}
+                {% show_icon label=shipment.date_returned|date:"M j"|upper icon='ti ti-md ti-check-box' tooltip='Returned' %}
+            {% elif shipment.status == shipment.STATES.ARCHIVED %}
+                {% show_icon label=shipment.date_returned|date:"M j"|upper icon='ti ti-md ti-archive' tooltip='Archived' %}
+            {% endif %}
+        </div>
+        <div class="pl-3 overflow-ellipsis text-muted align-self-center">
+            <h5 class="m-0">
+                <a class="text-muted text-condensed" href="{% url "shipment-detail" shipment.pk %}"
+                   title='View Shipment "{{ shipment.name }}"'>
+                    <strong>{% if user.is_superuser %}{{ shipment.project.name|upper }}{% else %}
+                        {{ shipment.identity }}{% endif %}</strong> | {{ shipment.name }}
+                </a>
+            </h5>
+            <div>
+                <strong>{{ shipment.container_count }}</strong> Container{{ shipment.container_count|pluralize }} /
+                <strong>{{ shipment.group_count }}</strong> Group{{ shipment.group_count|pluralize }} /
+                <strong>{{ shipment.sample_count }}</strong> Sample{{ shipment.sample_count|pluralize }}
+            </div>
+        </div>
+        <div class="tools-box ml-auto">
+            {% if shipment.status >= shipment.STATES.ON_SITE %}
+                <a href="{% url "shipment-data" shipment.pk %}" title="Go to Data from this shipment">
+                    {% show_icon label='Data' badge=shipment.data_count icon='ti ti-md ti-layout-grid3' color='info' %}
+                </a>
+                <a href="{% url "shipment-reports" shipment.pk %}" title="Go to Reports from this shipment">
+                    {% show_icon label='Reports' badge=shipment.report_count icon='ti ti-md ti-bar-chart-alt' color='info' %}
+                </a>
+                <a class="separator"></a>
+            {% endif %}
+            {% if user.is_superuser and shipment.status <= shipment.STATES.ON_SITE and shipment.status >= shipment.STATES.SENT %}
+                {% if shipment.status == shipment.STATES.ON_SITE %}
+                    <a data-form-link="{% url "shipment-return" shipment.pk %}" title="Return shipment">
+                        {% show_icon label='Return' icon='ti ti-md ti-location-arrow' %}
+                    </a>
                 {% else %}
-                    <div class="pull-right box-tools">
-                        <a class="pull-right" data-url="{% url "shipment-receive" object.pk %}" title="Receive shipment" style="padding-left: 0.25em">
-                            <span class="fa-stack">
-                                <i class="fa-stack-2x fa fa-2 fa-handshake-o"></i>
-                            </span><br/>
-                            <span class="tool-label">Receive</span>
-                        </a>
-                    </div>
+                    <a data-form-link="{% url "shipment-receive" shipment.pk %}" title="Receive shipment">
+                        {% show_icon label='Receive' icon='ti ti-md ti-shopping-cart-full' %}
+                    </a>
                 {% endif %}
-            {% endif %}
-            {% if object.status >= object.STATES.ON_SITE %}
-                <div class="pull-right box-tools">
-                    <a class="pull-right" href="{% url "shipment-reports" object.pk %}" title="Go to Reports from this shipment">
-                        <span class="fa-stack">
-                            <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-                            {% if object.num_results %}
-                                <span class="fa-stack-1x superscript">
-                                    <span class="badge progress-bar-info">{{ object.num_results }}</span>
-                                </span>
-                            {% endif %}
-                        </span><br>
-                        <span class="tool-label">Reports</span>
+            {% elif shipment.status == shipment.STATES.DRAFT and not user.is_superuser %}
+                    <a data-form-link="{% url "shipment-send" shipment.pk %}" title="Send shipment">
+                        {% show_icon label='Send' icon='ti ti-md ti-location-arrow' %}
                     </a>
-                    <a class="pull-right" href="{% url "shipment-data" object.pk %}" title="Go to Data from this shipment">
-                        <span class="fa-stack">
-                            <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
-                            {% if object.num_datasets %}
-                                <span class="fa-stack-1x superscript">
-                                    <span class="badge progress-bar-info">{{ object.num_datasets }}</span>
-                                </span>
-                            {% endif %}
-                        </span><br>
-                        <span class="tool-label">Data</span>
-                    </a>
-                </div>
             {% endif %}
-
-            <div class="box-status pull-left text-muted">
-                <div class="text-center text-muted">
-                    <div title="{% if object.status == object.STATES.ON_SITE %}On-site with location: {{ object.storage_location }}
-                                {% elif object.status == object.STATES.SENT %}Sent on {{ object.date_shipped }}
-                                {% elif object.status == object.STATES.RETURNED %}Returned on {{ object.date_returned }}{% endif %}"
-                         class="fa fa-2x {% if object.status == object.STATES.DRAFT %}fa-clipboard
-                                         {% elif object.status == object.STATES.SENT %}fa-plane
-                                         {% elif object.status == object.STATES.ON_SITE %}fa-map-marker
-                                         {% elif object.status == object.STATES.RETURNED %}fa-plane
-                                         {% elif object.status == object.STATES.ARCHIVED %}fa-archive{% endif %}"></div>
-                    <div><small>{% if object.status == object.STATES.DRAFT %}DRAFT
-                                {% elif object.status == object.STATES.SENT %}{{ object.date_shipped|date:"M d"|upper }}
-                                {% elif object.status == object.STATES.ON_SITE %}{{ object.date_received|date:"M d"|upper }}
-                                {% elif object.status >= object.STATES.RETURNED %}{{ object.date_returned|date:"M d"|upper }}{% endif %}</small></div>
-                </div>
-            </div>
-            <div class="box-info text-muted">
-                <h4 class="text-condensed narrow-heading overflow ellipsis"><a class="text-muted" href="{% url "shipment-detail" object.pk %}" title='View Shipment "{{ object.name }}"'>
-                    <strong>{% if user.is_superuser %}{{ object.project }}{% else %}{{ object.identity }}{% endif %}</strong> |
-                    {{ object.name }}
-                </a></h4>
-                <span class="overflow ellipsis">
-                    <strong>{{ object.num_containers }}</strong> Container{{ object.num_containers|pluralize }} /
-                    <strong>{{ object.groups.count }}</strong> Group{{ object.groups.count|pluralize }} /
-                    <strong>{{ object.num_samples }}</strong> Sample{{ object.num_samples|pluralize }}</span>
-            </div>
         </div>
     </div>
 </div>

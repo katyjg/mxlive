@@ -1,27 +1,28 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import JsonResponse, HttpResponse
-from django.core.urlresolvers import reverse, reverse_lazy
-from django.utils.text import slugify
-from django.utils import timezone
-from django.contrib.messages.views import SuccessMessageMixin
-from django.contrib.humanize.templatetags.humanize import naturaltime
-from django.views.generic import edit, detail, View
-from django.db import transaction
-from django.conf import settings
-from formtools.wizard.views import SessionWizardView
-from django import http
-
-from objlist.views import FilteredListView
-from proxy.views import proxy_view
-from lims import forms, models
-from itertools import chain
 import json
+from datetime import timedelta
+
 import requests
-import re
+from django import http
+from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.humanize.templatetags.humanize import naturaltime
+from django.contrib.messages.views import SuccessMessageMixin
+from django.db import transaction
+from django.db.models import Count, F, Q, Case, When, Value, BooleanField
+from django.db.models.functions import Greatest
+from django.http import JsonResponse, Http404, HttpResponseRedirect
+from django.urls import reverse, reverse_lazy
+from django.utils import timezone
+from django.views.generic import edit, detail, View
+from formtools.wizard.views import SessionWizardView
+from itemlist.views import ItemListView
+from proxy.views import proxy_view
 
-from mixins import AjaxableResponseMixin, AdminRequiredMixin, HTML2PdfMixin
+from mxlive.utils import filters
+from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, HTML2PdfMixin
+from . import forms, models, stats
 
-IMAGE_URL = getattr(settings, 'IMAGE_PREPEND', "http://mxlive-data/download")
+DOWNLOAD_PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', "http://mxlive-data/download")
 
 
 class ProjectDetail(UserPassesTestMixin, detail.DetailView):
@@ -48,7 +49,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
     def get_object(self, *args, **kwargs):
         # inject username in to kwargs if not already present
         if not self.kwargs.get('username'):
-            self.kwargs['username'] = self.request.user
+            self.kwargs['username'] = self.request.user.username
         if self.request.user.is_superuser:
             self.template_name = "users/staff.html"
         return super(ProjectDetail, self).get_object(*args, **kwargs)
@@ -56,43 +57,88 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
     def get_context_data(self, **kwargs):
         context = super(ProjectDetail, self).get_context_data(**kwargs)
         if self.request.user.is_superuser:
-            context['shipments'] = models.Shipment.objects.filter(status__in=[models.Shipment.STATES.ON_SITE,models.Shipment.STATES.SENT]).order_by('status','-date_received','-date_shipped')
-            context['automounters'] = models.Dewar.objects.filter(active=True).order_by('beamline__name')
-            context['sessions'] = models.Session.objects.filter(pk__in=models.Stretch.objects.active().values_list('session__pk', flat=True))
-            kinds = models.ContainerLocation.objects.all().filter(accepts__isnull=False).values_list('containers', flat=True)
-            context['containers'] = models.Container.objects.filter(kind__in=kinds).filter(dewars__isnull=True).order_by('name')
-        else:
-            referrer = self.request.META.get('HTTP_REFERER')
-            if referrer and re.sub('^https?:\/\/', '', referrer).split('/')[1] == 'login':
-                context['show_help'] = self.request.user.show_archives
-                if context['show_help']:
-                    models.Project.objects.filter(username=self.request.user.username).update(show_archives=False)
-            sh = self.get_object().shipment_set.filter(status__lt=models.Shipment.STATES.ARCHIVED).order_by('modified')
-            base_set = sh.filter(status__lte=models.Shipment.STATES.ON_SITE).distinct()
-            if base_set.count() < 7:
-                pks = [s.pk for s in list(
-                    chain(base_set, list(sh.exclude(pk__in=base_set.values_list('pk')))[0:7 - base_set.count()]))]
-            else:
-                pks = base_set.values_list('pk')
-            context['shipments'] = sh.filter(pk__in=pks).order_by('status', '-modified')
-            sessions = self.get_object().sessions.filter(pk__in=models.Stretch.objects.recent_days(180).values_list('session__pk', flat=True)).order_by('-created')
-            context['sessions'] = sessions.count() < 7 and sessions or sessions[:7]
+            shipments = models.Shipment.objects.filter(
+                status__in=(models.Shipment.STATES.SENT, models.Shipment.STATES.ON_SITE)
+            ).annotate(
+                data_count=Count('containers__samples__datasets', distinct=True),
+                report_count=Count('containers__samples__datasets__reports', distinct=True),
+                sample_count=Count('containers__samples', distinct=True),
+                group_count=Count('groups', distinct=True),
+                container_count=Count('containers', distinct=True),
+            ).order_by('status', 'project__username', '-date_shipped').prefetch_related('project')
 
+            sessions = models.Session.objects.filter(
+                stretches__end__isnull=True
+            ).annotate(
+                data_count=Count('datasets', distinct=True),
+                report_count=Count('datasets__reports', distinct=True),
+            ).with_duration()
+            adaptors = models.Container.objects.filter(
+                kind__locations__accepts__isnull=False, dewars__isnull=True, status__gt=models.Container.STATES.DRAFT
+            ).distinct().order_by('name').select_related('parent')
+            automounters = models.Dewar.objects.filter(active=True).select_related(
+                'container','beamline'
+            ).order_by('beamline__name')
+
+            context.update(adaptors=adaptors, automounters=automounters, shipments=shipments, sessions=sessions)
+
+        else:
+            now = timezone.now()
+            one_year_ago = now - timedelta(days=365)
+            project = self.request.user
+            shipments = project.shipments.filter(
+                Q(status__lt=models.Shipment.STATES.RETURNED)
+                | Q(status=models.Shipment.STATES.RETURNED, date_returned__gt=one_year_ago)
+            ).annotate(
+                data_count=Count('containers__samples__datasets', distinct=True),
+                report_count=Count('containers__samples__datasets__reports', distinct=True),
+                sample_count=Count('containers__samples', distinct=True),
+                group_count=Count('groups', distinct=True),
+                container_count=Count('containers', distinct=True),
+            ).order_by('status', '-date_shipped', '-created').prefetch_related('project')
+
+            if settings.LIMS_USE_SCHEDULE:
+                from mxlive.schedule.models import AccessType
+                access_types = AccessType.objects.all()
+                beamtimes = project.beamtime.filter(start__gte=one_year_ago, cancelled=False).with_duration().annotate(
+                    upcoming=Case(When(start__gte=now, then=Value(True)), default=Value(False), output_field=BooleanField())
+                ).annotate(
+                    distance=Case(When(upcoming=True, then=F('start') - now), default=now - F('start'))
+                ).order_by('-upcoming', 'distance')
+                context.update(beamtimes=beamtimes, access_types=access_types)
+
+            sessions = project.sessions.filter(
+                created__gt=one_year_ago
+            ).annotate(
+                data_count=Count('datasets', distinct=True),
+                report_count=Count('datasets__reports', distinct=True),
+                last_record=Greatest('datasets__end_time', 'datasets__reports__created'),
+            ).order_by('-last_record').with_duration().prefetch_related('project', 'beamline')[:7]
+
+            context.update(shipments=shipments, sessions=sessions)
+        return context
+
+
+class ProjectReset(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    template_name = "users/forms/project-reset.html"
+    model = models.Project
+    success_message = "Account API key reset"
+    fields = ("key", )
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()
+
+    def get_object(self, *kwargs):
+        obj = self.model.objects.get(username=self.kwargs.get('username'))
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_action'] = reverse_lazy('project-reset', kwargs={'username': self.object.username})
         return context
 
 
 class ProjectStatistics(UserPassesTestMixin, detail.DetailView):
-    """
-    This is the "Dashboard" view. Basic information about the Project is displayed:
-
-    :For superusers, direct to staff.html, with context:
-       - shipments: Any Shipments that are Sent or On-site
-       - automounters: Any active Dewar objects (Beamline/Automounter)
-
-    :For Users, direct to project.html, with context:
-       - shipments: All Shipments that are Draft, Sent, or On-site, plus Returned shipments to bring the total displayed up to seven.
-       - sessions: Any recent Session from any beamline
-    """
     model = models.Project
     template_name = "users/entries/project-statistics.html"
     slug_field = 'username'
@@ -106,7 +152,15 @@ class ProjectStatistics(UserPassesTestMixin, detail.DetailView):
         # inject username in to kwargs if not already present
         if not self.kwargs.get('username'):
             self.kwargs['username'] = self.request.user
-        return super(ProjectStatistics, self).get_object(*args, **kwargs)
+        return super().get_object(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['report'] = stats.project_stats(self.object)
+        return context
+
+    def page_title(self):
+        return 'Project Statistics'
 
 
 class OwnerRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -120,12 +174,12 @@ class OwnerRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return self.request.user.is_superuser or getattr(self.get_object(), self.owner_field) == self.request.user
 
 
-class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.ProjectForm
-    template_name = "forms/modal.html"
+    template_name = "modal/form.html"
     model = models.Project
-    success_url = reverse_lazy('dashboard')
-    success_message = "Your profile has been updated."
+    success_url = "."
+    success_message = "Profile has been updated."
 
     def get_object(self):
         return models.Project.objects.get(username=self.kwargs.get('username'))
@@ -133,6 +187,11 @@ class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AjaxableResponseMixi
     def test_func(self):
         """Allow access to admin or owner"""
         return self.request.user.is_superuser or self.get_object() == self.request.user
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
 
 
 class ProjectLabels(AdminRequiredMixin, HTML2PdfMixin, detail.DetailView):
@@ -156,25 +215,29 @@ class ProjectLabels(AdminRequiredMixin, HTML2PdfMixin, detail.DetailView):
 
 class ListViewMixin(LoginRequiredMixin):
     paginate_by = 25
-    owner_field = 'project__username'
     template_name = "users/list.html"
-    add_ajax = True
+    link_data = False
+    show_project = True
 
-    def get_filters(self, request):
-        if request.user.is_superuser:
-            self.list_display = ['project'] + self.list_display
-            self.owner_field = None
-        return super(ListViewMixin, self).get_filters(request)
+    def get_list_columns(self):
+        columns = super().get_list_columns()
+        if self.request.user.is_superuser and self.show_project:
+            return ['project__name'] + columns
+        return columns
 
     def get_queryset(self):
-        if self.request.user.is_superuser:
-            self.owner_field = None
-        return super(ListViewMixin, self).get_queryset()
+        selector = {}
+        if not self.request.user.is_superuser:
+            selector = {'project': self.request.user}
+        return super().get_queryset().filter(**selector)
+
+    def page_title(self):
+        return self.model._meta.verbose_name_plural.title()
 
 
 class DetailListMixin(OwnerRequiredMixin):
     add_url = None
-    list_filter = []
+    list_filters = []
     paginate_by = 25
 
     def get_context_data(self, **kwargs):
@@ -188,17 +251,18 @@ class DetailListMixin(OwnerRequiredMixin):
 
     def get_queryset(self):
         qs = super(DetailListMixin, self).get_queryset()
-        return self.get_object().sample_set.all()
+        return self.get_object().samples.all()
 
 
-class ShipmentList(ListViewMixin, FilteredListView):
+class ShipmentList(ListViewMixin, ItemListView):
     model = models.Shipment
-    list_filter = ['created', 'status']
-    list_display = ['identity', 'name', 'date_shipped', 'carrier', 'num_containers', 'status']
-    search_fields = ['project__username', 'project__name', 'name', 'comments', 'status']
-    detail_url = 'shipment-detail'
-    add_url = 'shipment-new'
-    order_by = ['status', '-modified']
+    list_filters = ['created', 'status']
+    list_columns = ['id', 'name', 'date_shipped', 'carrier', 'num_containers', 'status']
+    list_search = ['project__username', 'project__name', 'name', 'comments', 'status']
+    link_url = 'shipment-detail'
+    link_data = False
+    ordering = ['status', '-modified']
+    paginate_by = 25
 
     def get_queryset(self):
         if self.request.user.is_superuser:
@@ -232,12 +296,14 @@ class ShipmentLabels(HTML2PdfMixin, ShipmentDetail):
         return context
 
 
-class ShipmentEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class ShipmentEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.ShipmentForm
-    template_name = "forms/modal.html"
+    template_name = "modal/form.html"
     model = models.Shipment
     success_message = "Shipment has been updated."
-    success_url = reverse_lazy('shipment-list')
+
+    def get_success_url(self):
+        return reverse_lazy('shipment-detail', kwargs={'pk': self.object.pk})
 
     def get_initial(self):
         initial = super(ShipmentEdit, self).get_initial()
@@ -245,12 +311,14 @@ class ShipmentEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixi
         return initial
 
 
-class ShipmentComments(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class ShipmentComments(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.ShipmentCommentsForm
-    template_name = "forms/modal.html"
+    template_name = "modal/form.html"
     model = models.Shipment
     success_message = "Shipment has been edited by staff."
-    success_url = reverse_lazy('shipment-list')
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()
 
     def form_valid(self, form):
         obj = form.instance
@@ -261,8 +329,8 @@ class ShipmentComments(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponse
         return super(ShipmentComments, self).form_valid(form)
 
 
-class ShipmentDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
-    template_name = "forms/delete.html"
+class ShipmentDelete(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
+    template_name = "modal/delete.html"
     model = models.Shipment
     success_message = "Shipment has been deleted."
     success_url = reverse_lazy('dashboard')
@@ -270,7 +338,8 @@ class ShipmentDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMi
     def delete(self, request, *args, **kwargs):
         super(ShipmentDelete, self).delete(request, *args, **kwargs)
         success_url = self.get_success_url()
-        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE, self.success_message)
+        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE,
+                                                self.success_message)
         return JsonResponse({'url': success_url})
 
 
@@ -279,7 +348,8 @@ class SendShipment(ShipmentEdit):
 
     def get_initial(self):
         initial = super(SendShipment, self).get_initial()
-        initial['components'] = models.ComponentType.objects.filter(pk__in=self.object.components.values_list('kind__pk'))
+        initial['components'] = models.ComponentType.objects.filter(
+            pk__in=self.object.components.values_list('kind__pk'))
         return initial
 
     def form_valid(self, form):
@@ -292,7 +362,7 @@ class SendShipment(ShipmentEdit):
         form.instance.send()
         message = "Shipment sent"
         models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.MODIFY, message)
-        return super(SendShipment, self).form_valid(form)
+        return super().form_valid(form)
 
 
 class ReturnShipment(ShipmentEdit):
@@ -311,7 +381,8 @@ class RecallSendShipment(ShipmentEdit):
 
     def get_initial(self):
         initial = super(RecallSendShipment, self).get_initial()
-        initial['components'] = models.ComponentType.objects.filter(pk__in=self.object.components.values_list('kind__pk'))
+        initial['components'] = models.ComponentType.objects.filter(
+            pk__in=self.object.components.values_list('kind__pk'))
         return initial
 
     def form_valid(self, form):
@@ -360,18 +431,18 @@ class ReceiveShipment(ShipmentEdit):
         return super(ReceiveShipment, self).form_valid(form)
 
 
-class SampleList(ListViewMixin, FilteredListView):
+class SampleList(ListViewMixin, ItemListView):
     model = models.Sample
-    list_filter = ['modified']
-    list_display = ['identity', 'name', 'comments', 'container', 'location']
-    search_fields = ['project__name', 'name', 'barcode', 'comments']
-    detail_url = 'sample-detail'
-    order_by = ['-created', '-priority']
+    list_filters = ['modified']
+    list_columns = ['id', 'name', 'comments', 'container', 'location']
+    list_search = ['project__name', 'name', 'barcode', 'comments']
+    link_url = 'sample-detail'
+    ordering = ['-created', '-priority']
     ordering_proxies = {}
     list_transforms = {}
 
 
-class SampleDetail(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class SampleDetail(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     model = models.Sample
     form_class = forms.SampleForm
     template_name = "users/entries/sample.html"
@@ -379,30 +450,27 @@ class SampleDetail(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixi
     success_message = "Sample has been updated"
 
 
-class SampleEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class SampleEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.SampleForm
-    template_name = "forms/modal.html"
+    template_name = "modal/form.html"
     model = models.Sample
     success_url = reverse_lazy('sample-list')
     success_message = "Sample has been updated."
 
-
-class SampleDone(SampleEdit):
-    form_class = forms.SampleDoneForm
-
     def get_success_url(self):
-        return reverse_lazy("shipment-protocol", kwargs={'pk': self.object.container.shipment.pk}) + '?q={}'.format(self.object.group.pk)
+        return ""
 
 
-class SampleDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
+class SampleDelete(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
     success_url = reverse_lazy('dashboard')
-    template_name = "forms/delete.html"
+    template_name = "modal/delete.html"
     model = models.Sample
     success_message = "Sample has been deleted."
 
     def delete(self, request, *args, **kwargs):
         super(SampleDelete, self).delete(request, *args, **kwargs)
-        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE, self.success_message)
+        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE,
+                                                self.success_message)
         return JsonResponse({'url': self.success_url})
 
     def get_context_data(self, **kwargs):
@@ -411,13 +479,13 @@ class SampleDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixi
         return context
 
 
-class ContainerList(ListViewMixin, FilteredListView):
+class ContainerList(ListViewMixin, ItemListView):
     model = models.Container
-    list_filter = ['modified', 'kind', 'status']
-    list_display = ['identity', 'name', 'shipment', 'kind', 'capacity', 'num_samples', 'status']
-    search_fields = ['project__name', 'name', 'comments']
-    detail_url = 'container-detail'
-    order_by = ['-created']
+    list_filters = ['modified', 'kind', 'status']
+    list_columns = ['name', 'id', 'shipment', 'kind', 'capacity', 'num_samples', 'status']
+    list_search = ['project__name', 'name', 'comments']
+    link_url = 'container-detail'
+    ordering = ['-created']
     ordering_proxies = {}
     list_transforms = {}
 
@@ -425,40 +493,32 @@ class ContainerList(ListViewMixin, FilteredListView):
 class ContainerDetail(DetailListMixin, SampleList):
     extra_model = models.Container
     template_name = "users/entries/container.html"
-    list_display = ['name', 'barcode', 'group__name', 'location', 'comments']
-    detail_url = 'sample-edit'
-    detail_ajax = True
-    detail_target = '#modal-form'
+    list_columns = ['name', 'barcode', 'group', 'location', 'comments']
+    link_url = 'sample-edit'
+    link_attr = None
+    show_project = False
 
-    def get_list_title(self):
+    def page_title(self):
         object = self.get_object()
-        if 'project' in self.list_display:
-            self.list_display.pop(0)
         return 'Samples in {}'.format(object.name)
 
-    def get_filters(self, request):
-        filters = super(ListViewMixin, self).get_filters(request)
-        if self.get_object().has_children():
-            self.list_display.append('container')
+    def get_link_attr(self, obj):
+        if obj.container.status == obj.container.STATES.DRAFT:
+            return "data-form-link"
+        else:
+            return self.link_attr
 
-        return filters
-
-    def get_object(self):
-        obj = super(ContainerDetail, self).get_object()
-        if obj.status != self.extra_model.STATES.DRAFT:
-            self.detail_ajax = False
-            self.detail_target = None
-        return obj
-
-    def get_detail_url(self, obj):
-        if self.get_object().status == self.extra_model.STATES.DRAFT:
-            return super(ContainerDetail, self).get_detail_url(obj)
-        return reverse_lazy('sample-detail', kwargs={'pk': obj.pk})
+    def get_link_url(self, obj):
+        if obj.container.status == obj.container.STATES.DRAFT:
+            link_url = "sample-edit"
+        else:
+            link_url = "sample-detail"
+        return reverse_lazy(link_url, kwargs={'pk': obj.pk})
 
 
-class ContainerEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class ContainerEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.ContainerForm
-    template_name = "forms/modal.html"
+    template_name = "modal/form.html"
     model = models.Container
     success_message = "Container has been updated."
 
@@ -468,48 +528,84 @@ class ContainerEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
         return initial
 
     def get_success_url(self):
-        return reverse_lazy("container-detail", kwargs={'pk': self.object.pk})
+        return self.object.get_absolute_url()
 
 
 class ContainerLoad(AdminRequiredMixin, ContainerEdit):
     form_class = forms.ContainerLoadForm
-    template_name = "users/forms/container_load.html"
+    template_name = "modal/form.html"
+
+    def get_object(self, queryset=None):
+        self.root = models.Container.objects.get(pk=self.kwargs['root'])
+        return super().get_object(queryset=queryset)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'form-action': self.request.path
+        })
+        return kwargs
 
     def form_valid(self, form):
         data = form.cleaned_data
-        if data['parent']:
-            models.LoadHistory.objects.create(child=self.object, parent=data['parent'], location=data['location'])
+        location = data.get('location')
+        parent = data['parent']
+
+        if location:
+            models.LoadHistory.objects.create(child=self.object, parent=data['parent'], location=location)
         else:
+            parent = None
             models.LoadHistory.objects.filter(child=self.object).active().update(end=timezone.now())
-        return super(ContainerLoad, self).form_valid(form)
+
+        models.Container.objects.filter(pk=self.object.pk).update(parent=parent, location=location)
+        return JsonResponse(self.root.get_layout(), safe=False)
 
 
 class LocationLoad(AdminRequiredMixin, ContainerEdit):
     form_class = forms.LocationLoadForm
     success_message = "Container has been loaded"
-    allowed_roles = ['admin']
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'form-action': self.request.path
+        })
+        return kwargs
+
+    def get_object(self, queryset=None):
+        self.root = models.Container.objects.get(pk=self.kwargs['root'])
+        return super().get_object(queryset=queryset)
 
     def get_initial(self):
         initial = super(LocationLoad, self).get_initial()
-        initial.update(container_location=self.object.kind.container_locations.filter(
-            name__iexact=self.kwargs.get('location')).first())
+        initial.update(location=self.object.kind.locations.get(name=self.kwargs['location']))
         return initial
 
     def form_valid(self, form):
         data = form.cleaned_data
-        models.Container.objects.filter(pk=data['child'].pk).update(parent=self.object, location=data['container_location'])
-        models.LoadHistory.objects.create(child=data['child'], parent=self.object, location=data['container_location'])
-        return super(LocationLoad, self).form_valid(form)
+        models.Container.objects.filter(pk=data['child'].pk).update(
+            parent=self.object, location=data['location']
+        )
+        models.LoadHistory.objects.create(child=data['child'], parent=self.object, location=data['location'])
+        return JsonResponse(self.root.get_layout(), safe=False)
 
 
 class EmptyContainers(AdminRequiredMixin, edit.UpdateView):
     form_class = forms.EmptyContainers
-    template_name = "forms/modal.html"
+    template_name = "modal/form.html"
     model = models.Project
     success_message = "Containers have been removed for {username}."
     success_url = reverse_lazy('dashboard')
 
-    def get_object(self):
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'form-action': self.request.path
+        })
+        return kwargs
+
+    def get_object(self, queryset=None):
+        self.root = models.Container.objects.get(pk=self.kwargs['root'])
         return models.Project.objects.get(username=self.kwargs.get('username'))
 
     def get_initial(self):
@@ -519,54 +615,55 @@ class EmptyContainers(AdminRequiredMixin, edit.UpdateView):
 
     def form_valid(self, form):
         data = form.cleaned_data
-        containers = self.object.container_set.filter(parent=data.get('parent'))
+        containers = self.object.containers.filter(parent=data.get('parent'))
         models.LoadHistory.objects.filter(child__in=containers).active().update(end=timezone.now())
         containers.update(**{'location': None, 'parent': None})
-        return HttpResponse()
+        return JsonResponse(self.root.get_layout(), safe=False)
 
 
-class ContainerDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
+class ContainerDelete(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
     success_url = reverse_lazy('dashboard')
-    template_name = "forms/delete.html"
+    template_name = "modal/delete.html"
     model = models.Container
     success_message = "Container has been deleted."
 
     def delete(self, request, *args, **kwargs):
         super(ContainerDelete, self).delete(request, *args, **kwargs)
-        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE, self.success_message)
+        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE,
+                                                self.success_message)
         return JsonResponse({'url': self.success_url})
 
 
-class GroupList(ListViewMixin, FilteredListView):
+class GroupList(ListViewMixin, ItemListView):
     model = models.Group
-    list_filter = ['modified', 'status']
-    list_display = ['identity', 'name', 'kind', 'plan', 'num_samples', 'status']
-    search_fields = ['project__name', 'comments', 'name']
-    detail_url = 'group-detail'
-    order_by = ['-modified', '-priority']
+    list_filters = ['modified', 'status']
+    list_columns = ['id', 'name', 'kind', 'plan', 'num_samples', 'status']
+    list_search = ['project__name', 'comments', 'name']
+    link_url = 'group-detail'
+    ordering = ['-modified', '-priority']
     ordering_proxies = {}
     list_transforms = {}
 
 
 def movable(val, record):
-    return "<span class='cursor'><i class='movable fa fa-fw fa-1x fa-grip'></i> {}</span>".format(val or "")
+    return "<span class='cursor'><i class='movable ti ti-move'></i> {}</span>".format(val or "")
 
 
 class GroupDetail(DetailListMixin, SampleList):
     extra_model = models.Group
     template_name = "users/entries/group.html"
-    list_display = ['priority', 'name', 'barcode', 'container_and_location', 'comments']
+    list_columns = ['priority', 'name', 'barcode', 'container_and_location', 'comments']
     list_transforms = {
         'priority': movable,
     }
-    detail_url = 'sample-edit'
-    detail_ajax = True
-    detail_target = '#modal-form'
+    link_url = 'sample-edit'
+    link_attr = 'data-form-link'
+    detail_target = '#modal-target'
 
-    def get_list_title(self):
+    def page_title(self):
         object = self.get_object()
-        if 'project' in self.list_display:
-            self.list_display.pop(0)
+        if 'project' in self.list_columns:
+            self.list_columns.pop(0)
         return 'Samples in {}'.format(object.name)
 
     def get_object(self):
@@ -582,7 +679,7 @@ class GroupDetail(DetailListMixin, SampleList):
         return reverse_lazy('sample-detail', kwargs={'pk': obj.pk})
 
 
-class GroupEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class GroupEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.GroupForm
     template_name = "users/forms/group-edit.html"
     model = models.Group
@@ -595,34 +692,35 @@ class GroupEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, 
 
     def form_valid(self, form):
         resp = super(GroupEdit, self).form_valid(form)
-        for s in self.object.sample_set.all():
+        for s in self.object.samples.all():
             if self.original_name in s.name:
                 models.Sample.objects.filter(pk=s.pk).update(name=s.name.replace(self.original_name, self.object.name))
-        return resp
+        return JsonResponse({})
 
 
-class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
+class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
     success_url = reverse_lazy('dashboard')
-    template_name = "forms/delete.html"
+    template_name = "modal/delete.html"
     model = models.Group
     success_message = "Group has been deleted."
 
     def delete(self, request, *args, **kwargs):
+        group = self.get_object()
         super(GroupDelete, self).delete(request, *args, **kwargs)
-        models.ActivityLog.objects.log_activity(self.request, self.object, models.ActivityLog.TYPE.DELETE, self.success_message)
-        return JsonResponse({'url': self.success_url})
+        models.ActivityLog.objects.log_activity(self.request, group, models.ActivityLog.TYPE.DELETE,
+                                                self.success_message)
+        return JsonResponse({'url': group.shipment.get_absolute_url()})
 
 
-class DataList(ListViewMixin, FilteredListView):
+class DataList(ListViewMixin, ItemListView):
     model = models.Data
-    list_filter = ['modified', 'kind', 'beamline']
-    list_display = ['id', 'name', 'sample', 'frame_sets', 'exposure_time', 'energy', 'beamline', 'kind', 'modified']
-    search_fields = ['id', 'name', 'beamline__name', 'sample__name', 'frames', 'project__name', 'modified']
-    detail_url = 'data-detail'
-    detail_ajax = True
-    detail_target = '#modal-form'
-    order_by = ['-modified']
-    ordering_proxies = {}
+    list_filters = ['modified', 'kind', 'beamline']
+    list_columns = ['id', 'name', 'sample', 'frame_sets', 'session__name', 'energy', 'beamline', 'kind', 'modified']
+    list_search = ['id', 'name', 'beamline__name', 'sample__name', 'frames', 'project__name', 'modified']
+    link_url = 'data-detail'
+    link_field = 'name'
+    link_attr = 'data-link'
+    ordering = ['-modified']
     list_transforms = {}
 
     def get_queryset(self):
@@ -633,29 +731,29 @@ class DataDetail(OwnerRequiredMixin, detail.DetailView):
     model = models.Data
     template_name = "users/entries/data.html"
 
+    def get_template_names(self):
+        return [self.object.kind.template, self.template_name]
 
-def format_list(val, record):
-    return ' | '.join([item.name for item in val])
 
 def format_score(val, record):
     return "{:.2f}".format(val)
 
-class ReportList(ListViewMixin, FilteredListView):
+
+class ReportList(ListViewMixin, ItemListView):
     model = models.AnalysisReport
-    list_filter = ['modified',]
-    list_display = ['id', 'data__all', 'kind', 'score', 'modified']
-    search_fields = ['project__username', 'name', 'data__name']
-    detail_url = 'report-detail'
-    order_by = ['-modified']
+    list_filters = ['modified', 'kind' ]
+    list_columns = ['id', 'name', 'kind', 'score', 'modified']
+    list_search = ['project__username', 'name', 'data__name']
+    link_field = 'name'
+    link_url = 'report-detail'
+    ordering = ['-modified']
     ordering_proxies = {}
     list_transforms = {
-        'data__all': format_list,
         'score': format_score
-
     }
 
     def get_queryset(self):
-        return super(ReportList, self).get_queryset().defer('details', 'url')
+        return super().get_queryset().defer('details', 'url')
 
 
 class ReportDetail(OwnerRequiredMixin, detail.DetailView):
@@ -663,92 +761,100 @@ class ReportDetail(OwnerRequiredMixin, detail.DetailView):
     template_name = "users/entries/report.html"
 
 
-class DataListDetail(DataList):
+class ShipmentDataList(DataList):
     template_name = "users/entries/shipment-data.html"
-    extra_model = models.Shipment
+    lookup = 'group__shipment__pk'
+    detail_model = models.Shipment
 
-    def get_object(self, **kwargs):
-        if self.request.user.is_superuser:
-            object = self.extra_model.objects.get(pk=self.kwargs.get('pk'))
-        else:
-            object = self.extra_model.objects.get(project=self.request.user, pk=self.kwargs.get('pk'))
-        return object
-
-    def get_list_title(self):
-        if 'project' in self.list_display:
-            self.list_display.pop(0)
-        object = self.get_object()
-        return 'Data in {}'.format(object.name)
-
-    def get_context_data(self, **kwargs):
-        c = super(DataListDetail, self).get_context_data(**kwargs)
-        c['shipment'] = self.get_object()
-        c['total_objects'] = c['shipment'].datasets().count()
-        return c
+    def page_title(self):
+        return 'Data in {} - {}'.format(self.object.__class__.__name__.title(), self.object)
 
     def get_queryset(self):
-        qs = super(DataListDetail, self).get_queryset()
-        return qs.filter(pk__in=self.get_object().datasets().values_list("pk"))
-
-
-class ReportListDetail(ReportList):
-    template_name = "users/entries/shipment-report.html"
-    extra_model = models.Shipment
-
-    def get_object(self, **kwargs):
-        if self.request.user.is_superuser:
-            object = self.extra_model.objects.get(pk=self.kwargs.get('pk'))
-        else:
-            object = self.extra_model.objects.get(project=self.request.user, pk=self.kwargs.get('pk'))
-        return object
-
-    def get_list_title(self):
-        if 'project' in self.list_display:
-            self.list_display.pop(0)
-        object = self.get_object()
-        return 'Analysis Reports in {}'.format(object.name)
+        try:
+            self.object = self.detail_model.objects.get(**self.kwargs)
+        except self.detail_model.DoesNotExist:
+            raise Http404
+        qs = super().get_queryset()
+        return qs.filter(**{self.lookup: self.object.pk})
 
     def get_context_data(self, **kwargs):
-        c = super(ReportListDetail, self).get_context_data(**kwargs)
-        c['shipment'] = self.get_object()
-        c['total_objects'] = c['shipment'].reports().count()
-        return c
+        context = super().get_context_data(**kwargs)
+        context_name = self.object.__class__.__name__.lower()
+        context[context_name] = self.object
+        return context
+
+
+class ShipmentReportList(ReportList):
+    template_name = "users/entries/shipment-reports.html"
+    lookup = 'data__group__shipment__pk'
+    detail_model = models.Shipment
+
+    def page_title(self):
+        return 'Reports in {} - {}'.format(self.object.__class__.__name__.title(), self.object)
 
     def get_queryset(self):
-        qs = super(ReportListDetail, self).get_queryset()
-        return qs.filter(pk__in=self.get_object().reports().values_list("pk"))
+        try:
+            self.object = self.detail_model.objects.get(**self.kwargs)
+        except self.detail_model.DoesNotExist:
+            raise Http404
+        qs = super().get_queryset()
+        return qs.filter(**{self.lookup: self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context_name = self.object.__class__.__name__.lower()
+        context[context_name] = self.object
+        return context
 
 
-class ActivityLogList(ListViewMixin, FilteredListView):
+class SessionDataList(ShipmentDataList):
+    template_name = "users/entries/session-data.html"
+    lookup = 'session__pk'
+    detail_model = models.Session
+
+
+class SessionReportList(ShipmentReportList):
+    template_name = "users/entries/session-reports.html"
+    lookup = 'data__session__pk'
+    detail_model = models.Session
+
+
+class ActivityLogList(ListViewMixin, ItemListView):
     model = models.ActivityLog
-    list_filter = ['created', 'action_type']
-    list_display = ['created', 'action_type', 'user_description', 'ip_number', 'object_repr', 'description']
-    search_fields = ['description', 'ip_number', 'content_type__name', 'action_type']
-    owner_field = "project__username"
-    order_by = ['-created']
+    list_filters = ['created', 'action_type']
+    list_columns = ['created', 'action_type', 'user_description', 'ip_number', 'object_repr', 'description']
+    list_search = ['description', 'ip_number', 'content_type__name', 'action_type']
+    ordering = ['-created']
     ordering_proxies = {}
     list_transforms = {}
-    detail_url = 'activitylog-detail'
-    detail_ajax = True
-    detail_target = '#modal-form'
+    link_url = 'activitylog-detail'
+    link_attr = 'data-link'
+    detail_target = '#modal-target'
 
 
 def format_total_time(val, record):
     return int(val) or ""
 
 
-class SessionList(ListViewMixin, FilteredListView):
+class SessionList(ListViewMixin, ItemListView):
     model = models.Session
-    list_filter = ['created', 'beamline', ]
-    list_display = ['created', 'name', 'beamline', 'total_time', 'num_datasets', 'num_reports']
-    search_fields = ['beamline__acronym', 'project__username', 'name']
-    owner_field = "project__username"
-    order_by = ['-created']
-    ordering_proxies = {}
+    list_filters = [
+        'beamline',
+        filters.YearFilterFactory('created', reverse=True),
+        filters.MonthFilterFactory('created'),
+        filters.QuarterFilterFactory('created'),
+        'project__designation',
+        'project__kind',
+        filters.NewEntryFilterFactory(field_label="First Session")
+    ]
+    list_columns = ['name', 'created', 'beamline', 'total_time', 'num_datasets', 'num_reports']
+    list_search = ['beamline__acronym', 'project__username', 'name']
+    link_field = 'name'
+    ordering = ['-created']
     list_transforms = {
         'total_time': format_total_time
     }
-    detail_url = 'session-detail'
+    link_url = 'session-detail'
 
 
 class SessionDetail(OwnerRequiredMixin, detail.DetailView):
@@ -760,18 +866,27 @@ class SessionStatistics(AdminRequiredMixin, detail.DetailView):
     model = models.Session
     template_name = "users/entries/session-statistics.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['report'] = stats.session_stats(self.object)
+        return context
+
+    def page_title(self):
+        return 'Session Statistics'
+
 
 class BeamlineDetail(AdminRequiredMixin, detail.DetailView):
     model = models.Beamline
     template_name = "users/entries/beamline.html"
-    allowed_roles = ['admin']
 
     def get_context_data(self, **kwargs):
         context = super(BeamlineDetail, self).get_context_data(**kwargs)
-        context['projects'] = {
-            project: self.object.active_automounter().children.filter(project=project)
-            for project in models.Project.objects.filter(pk__in=self.object.active_automounter().children.values_list('project', flat=True)).distinct()
-        }
+        context['projects'] = {}
+        # }
+        #     project: self.object.active_automounter().children.filter(project=project)
+        #     for project in models.Project.objects.filter(
+        #         pk__in=self.object.active_automounter().children.values_list('project', flat=True)).distinct()
+        # }
         return context
 
 
@@ -779,45 +894,75 @@ def format_time(val, record):
     return naturaltime(val) or ""
 
 
-class BeamlineHistory(AdminRequiredMixin, ListViewMixin, FilteredListView):
+class BeamlineHistory(AdminRequiredMixin, ListViewMixin, ItemListView):
     model = models.Session
-    list_filter = ['project', ]
-    list_display = ['created', 'name', 'total_time', 'num_datasets', 'num_reports']
+    list_filters = ['project', ]
+    list_columns = ['created', 'name', 'total_time', 'num_datasets', 'num_reports']
     list_transforms = {
         'start': format_time,
         'end': format_time,
+        'total_time': lambda x,y: '{:0.2g} hrs'.format(x),
     }
-    search_fields = ['beamline', 'project', 'name']
-    order_by = ['pk']
+    list_search = ['beamline', 'project', 'name']
+    ordering = ['pk']
     detail_url_kwarg = 'pk'
-    detail_url = 'session-detail'
+    link_url = 'session-detail'
 
     def get_queryset(self):
         qs = super(BeamlineHistory, self).get_queryset()
         return qs.filter(beamline__pk=self.kwargs['pk'])
 
+    def page_title(self):
+        beamline = models.Beamline.objects.get(pk=self.kwargs['pk'])
+        return "Sessions on {}".format(beamline)
 
-class BeamlineStatistics(BeamlineDetail):
-    template_name = "users/entries/beamline-usage-yearly.html"
+
+class ParameterStatistics(BeamlineDetail):
+    template_name = "users/entries/beamline-statistics.html"
 
     def get_context_data(self, **kwargs):
-        c = super(BeamlineStatistics, self).get_context_data(**kwargs)
-        c['year'] = self.kwargs.get('year', timezone.now().year)
-        return c
+        context = super(ParameterStatistics, self).get_context_data(**kwargs)
+        yearly = 'year' not in self.kwargs
+        filters = {} if yearly else {'created__year': self.kwargs.get('year')}
+
+        context['year'] = self.kwargs.get('year')
+        context['years'] = stats.get_data_periods(period='year')
+
+        context['report'] = stats.parameter_stats(self.object, **filters)
+        return context
+
+    def page_title(self):
+        if self.kwargs.get('year'):
+            return '{} Statistics'.format(self.kwargs['year'])
+        else:
+            return 'Statistics'
 
 
-class BeamlineUsage(BeamlineDetail):
+class UsageStatistics(BeamlineDetail):
     template_name = "users/entries/beamline-usage.html"
 
     def get_context_data(self, **kwargs):
-        c = super(BeamlineUsage, self).get_context_data(**kwargs)
-        c['year'] = self.kwargs.get('year', timezone.now().year)
-        return c
+        context = super(UsageStatistics, self).get_context_data(**kwargs)
+        yearly = 'year' not in self.kwargs
+        period = 'year' if yearly else 'month'
+
+        context['year'] = self.kwargs.get('year')
+        context['years'] = stats.get_data_periods(period='year')
+
+        filters = {} if yearly else {'created__year': self.kwargs.get('year')}
+        context['report'] = stats.usage_stats(self.object, period=period, **filters)
+        return context
+
+    def page_title(self):
+        if self.kwargs.get('year'):
+            return '{} Usage Metrics'.format(self.kwargs['year'])
+        else:
+            return 'Usage Metrics'
 
 
-class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.DewarForm
-    template_name = "forms/modal.html"
+    template_name = "modal/form.html"
     model = models.Dewar
     success_url = reverse_lazy('dashboard')
     success_message = "Comments have been updated."
@@ -827,11 +972,18 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
     form_list = [('shipment', forms.AddShipmentForm),
                  ('containers', forms.ShipmentContainerForm),
                  ('groups', forms.ShipmentGroupForm)]
-    template_name = "forms/wizard.html"
+    template_name = "modal/wizard.html"
 
     def get_form_initial(self, step):
         if step == 'shipment':
-            return self.initial_dict.get(step, {'project': self.request.user})
+            today = timezone.now()
+            day_count = self.request.user.shipments.filter(
+                created__year=today.year, created__month=today.month, created__day=today.day
+            ).count()
+            return self.initial_dict.get(step, {
+                'project': self.request.user,
+                'name': '{} #{}'.format(timezone.now().strftime('%Y-%b%d'), day_count + 1)
+            })
         elif step == 'groups':
             containers_data = self.storage.get_step_data('containers')
             if containers_data:
@@ -843,12 +995,20 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
 
     @transaction.atomic
     def done(self, form_list, **kwargs):
-
+        project = None
         for label, form in kwargs['form_dict'].items():
             if label == 'shipment':
                 data = form.cleaned_data
-                project = self.request.user.is_superuser and data.get('project') or self.request.user
-                data.update({'project': project})
+                if self.request.user.is_superuser:
+                    data.update({
+                        'project': data.get('project'),
+                        'staff_comments': 'Created by staff!'
+                    })
+                else:
+                    data.update({
+                        'project': self.request.user
+                    })
+                project = data['project']
                 self.shipment, created = models.Shipment.objects.get_or_create(**data)
             elif label == 'containers':
                 for i, name in enumerate(form.cleaned_data['name_set']):
@@ -860,41 +1020,48 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                     }
                     container, created = models.Container.objects.get_or_create(**data)
             elif label == 'groups':
-                sample_locations = json.loads(form.cleaned_data['sample_locations'])
-                for i, name in enumerate(form.cleaned_data['name_set']):
-                    if name:
-                        data = {field: form.cleaned_data['{}_set'.format(field)][i]
-                                for field in ['name', 'kind', 'comments', 'plan', 'absorption_edge']}
-                        data.update({
-                            'resolution': form.cleaned_data.get('resolution_set') and form.cleaned_data['resolution_set'][i] and float(form.cleaned_data['resolution_set'][i]) or None,
-                            'sample_count': int(form.cleaned_data['sample_count_set'][i]),
-                            'shipment': self.shipment,
-                            'project': project,
-                            'priority': i + 1
-                        })
-                        group, created = models.Group.objects.get_or_create(**data)
-                        to_create = []
-                        j = 1
-                        slug_map = {slugify(c.name): c.name for c in self.shipment.container_set.all()}
-                        for c, locations in sample_locations.get(group.name, {}).items():
-                            container = self.shipment.container_set.get(name__iexact=slug_map.get(c,''))
-                            for sample in locations:
-                                name = "{0}_{1:02d}".format(group.name, j)
-                                to_create.append(models.Sample(group=group, container=container, location=sample,
-                                                               name=name, project=project, priority=j))
-                                j += 1
-                        models.Sample.objects.bulk_create(to_create)
-                        if group.sample_count < group.sample_set.count():
-                            group.sample_count = group.sample_set.count()
-                            group.save()
-                if project != self.request.user and self.request.user.is_superuser:
-                    self.shipment.send()
-                    self.shipment.receive()
+                if self.request.POST.get('submit') == 'Fill':
+                    for i, container in enumerate(self.shipment.containers.all()):
+                        group = self.shipment.groups.create(name=container.name, project=project, priority=(i+1))
+                        group_samples = [
+                            models.Sample(
+                                name='{}_{}'.format(group.name, j+1), group=group, project=project, container=container,
+                                location=location
+                            )
+                            for j, location in enumerate(container.kind.locations.all())
+                        ]
+                        models.Sample.objects.bulk_create(group_samples)
+                else:
+                    for i, name in enumerate(form.cleaned_data['name_set']):
+                        if name:
+                            data = {
+                                field: form.cleaned_data['{}_set'.format(field)][i]
+                                for field in ['name', 'kind', 'comments', 'plan', 'absorption_edge']
+                            }
+                            resolution = None
+                            if form.cleaned_data.get('resolution_set'):
+                                res = form.cleaned_data['resolution_set'][i]
+                                try:
+                                    resolution = float(res)
+                                except ValueError:
+                                    resolution = None
 
+                            data.update({
+                                'resolution': resolution,
+                                'shipment': self.shipment,
+                                'project': project,
+                                'priority': i + 1
+                            })
+                            group, created = models.Group.objects.get_or_create(**data)
+
+        # Staff created shipments should be sent and received automatically.
+        if self.request.user.is_superuser:
+            self.shipment.send()
+            self.shipment.receive()
         return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': self.shipment.pk})})
 
 
-class ShipmentAddContainer(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.FormView):
+class ShipmentAddContainer(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.FormView):
     form_class = forms.ShipmentContainerForm
     template_name = "users/forms/add-wizard.html"
     success_message = "Shipment updated"
@@ -907,7 +1074,7 @@ class ShipmentAddContainer(LoginRequiredMixin, SuccessMessageMixin, AjaxableResp
     @transaction.atomic
     def form_valid(self, form):
         data = form.cleaned_data
-        data['shipment'].container_set.exclude(pk__in=[int(pk) for pk in data['id_set'] if pk]).delete()
+        data['shipment'].containers.exclude(pk__in=[int(pk) for pk in data['id_set'] if pk]).delete()
         for i, name in enumerate(data['name_set']):
             if data['id_set'][i]:
                 models.Container.objects.filter(pk=int(data['id_set'][i])).update(name=data['name_set'][i])
@@ -919,12 +1086,10 @@ class ShipmentAddContainer(LoginRequiredMixin, SuccessMessageMixin, AjaxableResp
                     'project': self.request.user
                 }
                 container, created = models.Container.objects.get_or_create(**info)
-
-        return JsonResponse({'url': reverse('shipment-add-groups', kwargs={'pk': self.kwargs.get('pk')}),
-                             'target': '#modal-form'})
+        return HttpResponseRedirect(reverse('shipment-add-groups', kwargs={'pk': self.kwargs.get('pk')}))
 
 
-class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
+class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
     model = models.Group
     form_class = forms.ShipmentGroupForm
     template_name = "users/forms/add-wizard.html"
@@ -933,31 +1098,27 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
     def get_initial(self):
         initial = super(ShipmentAddGroup, self).get_initial()
         initial['shipment'] = models.Shipment.objects.get(pk=self.kwargs.get('pk'))
-        initial['containers'] = [(c.pk, c.kind.pk) for c in initial['shipment'].container_set.all()]
-        initial['sample_locations'] = json.dumps({g.name: {c.pk: list(c.sample_set.filter(group=g).values_list('location', flat=True))
-                                                for c in initial['shipment'].container_set.all()}
-                                       for g in initial['shipment'].group_set.all()})
+        initial['containers'] = [(c.pk, c.kind.pk) for c in initial['shipment'].containers.all()]
+        initial['sample_locations'] = json.dumps(
+            {g.name: {c.pk: list(c.samples.filter(group=g).values_list('location', flat=True))
+                      for c in initial['shipment'].containers.all()}
+             for g in initial['shipment'].groups.all()})
         if initial['shipment']:
-            initial['containers'] = initial['shipment'].container_set.all()
+            initial['containers'] = initial['shipment'].containers.all()
         return initial
 
     @transaction.atomic
     def form_valid(self, form):
         data = form.cleaned_data
-        data['shipment'].group_set.exclude(pk__in=[int(pk) for pk in data['id_set'] if pk]).delete()
-        sample_locations = json.loads(data['sample_locations'])
-
-        # Delete samples removed from containers
-        for group, containers in sample_locations.items():
-            for container, locations in containers.items():
-                models.Sample.objects.filter(container__pk=int(container), group__name=group).exclude(location__in=locations).delete()
+        shipment = data['shipment']
+        shipment.groups.exclude(pk__in=[int(v) for v in data['id_set'] if v]).delete()
 
         for i, name in enumerate(data['name_set']):
-            info = {field: data['{}_set'.format(field)][i] for field in ['name', 'kind', 'plan',
-                                                                         'comments', 'absorption_edge']}
+            info = {
+                field: data['{}_set'.format(field)][i]
+                for field in ['name', 'kind', 'plan', 'comments', 'absorption_edge']}
             info.update({
                 'resolution': data['resolution_set'][i] and float(data['resolution_set'][i]) or None,
-                'sample_count': int(data['sample_count_set'][i]),
                 'shipment': data['shipment'],
                 'project': self.request.user,
                 'priority': i + 1
@@ -967,90 +1128,113 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AjaxableResponse
                 group = models.Group.objects.get(pk=int(data['id_set'][i]))
             else:
                 group, created = models.Group.objects.get_or_create(**info)
-            to_create = []
-            j = 1
-            priority = max(group.sample_set.values_list('priority', flat=True) or [0]) + 1
-            names = []
-            for c, locations in sample_locations.get(group.name, {}).items():
-                container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
-                for location in locations:
-                    if not models.Sample.objects.filter(container=container, location=location).exists():
-                        while True:
-                            name = "{0}_{1:02d}".format(group.name, j)
-                            if models.Sample.objects.filter(group=group, name=name).exists() or name in names:
-                                j += 1
-                                continue
-                            names.append(name)
-                            break
-                        to_create.append(
-                            models.Sample(group=group, container=container, location=location, name=name,
-                                          project=self.request.user, priority=priority))
-                        priority += 1
 
-            models.Sample.objects.bulk_create(to_create)
-            if group.sample_count < group.sample_set.count():
-                group.sample_count = group.sample_set.count()
-                group.save()
-        return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': data['shipment'].pk})})
+        return JsonResponse({})
 
 
-class GroupSelect(OwnerRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
-    form_class = forms.GroupSelectForm
-    template_name = "users/forms/add-wizard.html"
-    model = models.Group
-    success_message = "Group has been updated."
+class SeatSamples(OwnerRequiredMixin, AsyncFormMixin, detail.DetailView):
+    template_name = "users/forms/seat-samples.html"
+    model = models.Shipment
 
-    def get_initial(self):
-        initial = super(GroupSelect, self).get_initial()
-        initial['shipment'] = self.get_object().shipment
-        initial['containers'] = [(c.pk, c.kind.pk, c.name) for c in initial['shipment'].container_set.all()]
-        initial['sample_locations'] = json.dumps({g.name: {c.pk: list(c.sample_set.filter(group=g).values_list('location', flat=True))
-                                                for c in initial['shipment'].container_set.all()}
-                                       for g in initial['shipment'].group_set.all()})
-        initial['containers'] = initial['shipment'].container_set.all()
-        return initial
+
+class ContainerSpreadsheet(LoginRequiredMixin, AsyncFormMixin, detail.DetailView):
+    template_name = "users/forms/container-spreadsheet.html"
+    model = models.Container
 
     @transaction.atomic
-    def form_valid(self, form):
-        data = form.cleaned_data
-        sample_locations = json.loads(data['sample_locations'])
-        group = self.object
+    def post(self, request, *args, **kwargs):
+        if request.user.is_superuser:
+            qs = models.Container.objects.filter()
+        else:
+            qs = models.Container.objects.filter(project=self.request.user)
+        try:
+            container = qs.get(pk=self.kwargs['pk'])
+            samples = json.loads(request.POST.get('samples', '[]'))
+            groups = {
+                sample['group'] if sample['group'] else sample['name']  # use sample name if group is blank
+                for sample in samples
+                if sample['name']
+            }
+            group_map = {}
+            for name in groups:
+                group, created = models.Group.objects.get_or_create(
+                    project=container.project, shipment=container.shipment,
+                    name=name,
+                )
+                group_map[name] = group
 
-        # Delete samples removed from containers
-        for container, locations in sample_locations[group.name].items():
-            models.Sample.objects.filter(container__pk=int(container), group__name=group).exclude(location__in=locations).delete()
+            for sample in samples:
+                group_name = sample['group'] if sample['group'] else sample['name']  # use name if group is blank
+                info = {
+                    'name': sample['name'],
+                    'group': group_map.get(group_name),
+                    'location_id': sample['location'],
+                    'container': container,
+                    'barcode': sample['barcode'],
+                    'comments': sample['comments'],
+                }
+                if sample.get('name') and sample.get('sample'):  # update entries
+                    models.Sample.objects.filter(project=container.project, pk=sample.get('sample')).update(**info)
+                elif sample.get('name'):  # create new entry
+                    models.Sample.objects.create(project=container.project, **info)
+                else:  # delete existing entry
+                    models.Sample.objects.filter(
+                        project=container.project, location_id=sample['location'], container=container
+                    ).delete()
 
-        group = models.Group.objects.get(pk=int(data['id']))
-        to_create = []
-        j = 1
-        priority = max(group.sample_set.values_list('priority', flat=True) or [0]) + 1
-        names = []
-        for c, locations in sample_locations.get(group.name, {}).items():
-            container = models.Container.objects.get(pk=c, project=self.request.user, shipment=data['shipment'])
-            for location in locations:
-                if not models.Sample.objects.filter(container=container, location=location).exists():
-                    while True:
-                        name = "{0}_{1:02d}".format(group.name, j)
-                        if models.Sample.objects.filter(group=group, name=name).exists() or name in names:
-                            j += 1
-                            continue
-                        names.append(name)
-                        break
-                    to_create.append(
-                        models.Sample(group=group, container=container, location=location, name=name,
-                                      project=self.request.user, priority=priority))
-                    priority += 1
+            return JsonResponse({'url': container.get_absolute_url()}, safe=False)
+        except models.Container.DoesNotExist:
+            raise http.Http404('Container Not Found!')
 
-        models.Sample.objects.bulk_create(to_create)
-        if group.sample_count < group.sample_set.count():
-            group.sample_count = group.sample_set.count()
-            group.save()
-        return JsonResponse({'url': reverse('shipment-detail', kwargs={'pk': data['shipment'].pk})})
+
+class GuideView(detail.DetailView):
+    model = models.Guide
+    template_name = "users/components/guide-youtube.html"
+
+    def get_object(self, queryset=None):
+        if self.request.user.is_superuser:
+            return super().get_object(queryset=queryset)
+        else:
+            return super().get_object(queryset=self.get_queryset().filter(staff_only=False))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = self.object.title
+        context.update(self.kwargs)
+        return context
+
+
+class GuideCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
+    form_class = forms.GuideForm
+    template_name = "modal/form.html"
+    model = models.Guide
+    success_url = reverse_lazy('dashboard')
+    success_message = "Guide has been created"
+
+
+class GuideEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    form_class = forms.GuideForm
+    template_name = "modal/form.html"
+    model = models.Guide
+    success_url = reverse_lazy('dashboard')
+    success_message = "Guide has been updated"
+
+
+class GuideDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
+    template_name = "modal/delete.html"
+    model = models.Guide
+    success_url = reverse_lazy('dashboard')
+    success_message = "Guide has been deleted"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_action'] = reverse_lazy('guide-delete', kwargs={'pk': self.object.pk})
+        return context
 
 
 class ProxyView(View):
     def get(self, request, *args, **kwargs):
-        remote_url = IMAGE_URL + request.path
+        remote_url = DOWNLOAD_PROXY_URL + request.path
         if kwargs.get('section') == 'archive':
             return fetch_archive(request, remote_url)
         return proxy_view(request, remote_url)
@@ -1064,3 +1248,5 @@ def fetch_archive(request, url):
         return resp
     else:
         return http.HttpResponseNotFound()
+
+

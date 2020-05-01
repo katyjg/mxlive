@@ -1,7 +1,5 @@
-<span class="box-tools pull-right">
-    <a class="pull-right" href="{% url "connection-list" %}">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw ti ti-rss-alt"></i></span><br>
-        <span class="tool-label">Connections</span>
-    </a>
-</span>
+{% load icons %}
+
+<a href="{% url "connection-list" %}">
+    {% show_icon label='Connections' icon='ti ti-md ti-rss-alt' %}
+</a>

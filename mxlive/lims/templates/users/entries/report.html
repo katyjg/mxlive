@@ -1,40 +1,37 @@
 {% extends "users/base.html" %}
 
 {% load humanize static %}
-{% load score_colors %}
+{% load badges %}
 {% load data_server %}
+{% load icons %}
+{% load jsutils %}
 
 {% block extra_css %}
-    <link href="{% static "css/reports.css" %}" rel="stylesheet">
+    <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
+    <link href="{% static "css/reports.min.css" %}" rel="stylesheet">
 {% endblock %}
 
 {% block object_tools %}
-    <div class="box-tools pull-right">
-        {% if object.url %}
-        <a class="pull-right" href="{% url 'files-proxy' section='archive' path=object.download_url %}" download="{{ object.name }}.tar.gz" title="Download all output files">
-            <span class="pull-right">
-                <i class="fa fa-fw fa-2x fa-download"></i><br>
-                <span class="tool-label">Download</span>
-            </span>
+    {% if object.url %}
+    <a  href="{% url 'files-proxy' section='archive' path=object.download_url %}" download="{{ object.name }}.tar.gz" title="Download all output files">
+        {% show_icon label="Download" icon="ti ti-md ti-download" %}
+    </a>
+    {% else %}
+        <a class="text-muted not-allowed" title="Download Not Available">
+            {% show_icon label="Download" icon="ti ti-md ti-download" %}
         </a>
-        {% else %}
-            <span class="pull-right text-muted not-allowed" title="Download Not Available">
-                <i class="fa fa-fw fa-2x fa-download"></i><br>
-                <span class="tool-label">Download</span>
-            </span>
-        {% endif %}
-    </div>
+    {% endif %}
 {% endblock %}
 
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
-            <div class="col-xs-2">
-                <h3 class="no-vmargin">
-                    <span title="Score" class="label label-{{ object.score|label_score }}">{{ object.score|floatformat:2 }}</span>
+            <div class="col-1">
+                <h3 class="m-0">
+                    {% score_badge object.score %}
                 </h3>
             </div>
-            <div class="col-xs-3">
+            <div class="col">
                 <small class="text-muted text-condensed">Session:</small><br>
                 {% for session in object.sessions %}
                     <a href="{% url "session-detail" session.pk %}">{{ session.name }}</a>
@@ -46,11 +43,11 @@
                     <a href="{% url "session-detail" object.session.pk %}">{{ object.session.name }}</a>
                 {% endif %}
             </div>
-            <div class="col-xs-4">
+            <div class="col">
                 <small class="text-muted text-condensed">Data:</small><br>
-                {% for data in object.data.all %}<a data-url="{% url "data-detail" data.pk %}">{{ data.name }}</a>{% if not forloop.last %}<span class="text-muted"> | </span>{% endif %}{% endfor %}
+                {% for data in object.data.all %}<a data-link="{% url "data-detail" data.pk %}">{{ data.name }}</a>{% if not forloop.last %}<span class="text-muted"> | </span>{% endif %}{% endfor %}
             </div>
-            <div class="col-xs-3 text-right">
+            <div class="col">
                 <small class="text-muted text-condensed">Uploaded:</small><br>
                 {{ object.modified }}
             </div>
@@ -60,15 +57,34 @@
 {% endblock %}
 
 {% block page_heading %}
-    <h3 class="text-condensed narrow-heading overflow ellipsis">
-        <i class="text-muted fa fa-fw fa-area-chart"></i>
-        <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}{{ object.identity }} | </span><strong>{{ object.name }}</strong>
-    </h3>
+    <h4>
+        <span class="text-thin">Analysis Report |</span>
+        <span class="text-condensed">
+            <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}</span><strong>{{ object.name }}</strong>
+        </span>
+    </h4>
     <span class="text-muted">
-        {{ object.kind }} Report uploaded from the beamline
+        {{ object.identity }} &mdash; {{ object.kind }} Created {{ object.created|naturalday }}
     </span>
 {% endblock %}
 
+
 {% block full %}
-    {% include "users/entries/report-builder.html" %}
+    <div id="report-builder"></div>
+{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
+    <script type="text/javascript">
+        let report = {
+            details: {{ object.details | jsonify }}
+        };
+        $('#report-builder').liveReport({
+            data: report
+        });
+    </script>
 {% endblock %}

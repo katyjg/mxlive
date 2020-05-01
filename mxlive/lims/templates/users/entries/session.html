@@ -1,140 +1,101 @@
 {% extends "users/base.html" %}
+
+{% load icons %}
 {% load humanize %}
 {% load converter %}
 {% load static %}
 {% load time_extras %}
-{% load data_server %}
-
-{% block extra_css %}
-    <link href="{% static "objlist/objlist.css" %}" rel="stylesheet"/>
-{% endblock %}
+{% load progress_extras %}
 
 {% block page_heading %}
-    <h3 class="text-condensed narrow-heading overflow ellipsis">
-        <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}{{ object.beamline.acronym }}</span> | <strong>{{ object.name }}</strong>
+    <h3>
+        <span class="text-thin">Session |</span>
+        <span class="text-condensed">
+            <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}</span><strong>{{ object.name }}</strong>
+        </span>
     </h3>
     <span class="text-muted">
-        Beamline Session started {{ object.created|naturalday }}
+        {{ object.identity }} |
+       Started {{ object.created|naturalday }}
     </span>
 {% endblock %}
 
 {% block object_tools %}
-{% if object.data_set.all %}
-<span class="box-tools pull-right">
-    <a class="pull-right" href="{% url 'files-proxy' section='archive' path=object.download_url %}">
-        <span class="pull-right">
-            <span class="fa-stack">
-                <i class="fa-stack-2x fa fa-2 fa-fw fa-download"></i>
-            </span><br>
-            <span class="tool-label">Download</span>
-        </span>
+    <a href="{% url "session-reports" object.pk %}" title="Go to Reports from this session">
+        {% show_icon label='Reports' icon='ti ti-md ti-bar-chart-alt' badge=object.num_reports %}
     </a>
-</span>
-{% endif %}
-<span class="box-tools pull-right">
+    <a href="{% url "session-data" object.pk %}" title="Go to Data from this session">
+        {% show_icon label='Data' icon='ti ti-md ti-layout-grid3' badge=object.datasets.count %}
+    </a>
+    <a href="#!" data-link="{% url "session-history" object.pk %}">
+        {% show_icon label='History' icon='ti ti-md ti-timer' %}
+    </a>
     {% if user.is_superuser %}
-        <a class="pull-right" href="{% url "session-statistics" pk=object.pk %}">
-            <span class="pull-right">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-2 fa-fw fa-bar-chart"></i>
-                </span><br>
-                <span class="tool-label">Statistics</span>
-            </span>
+        <a href="{% url "session-statistics" pk=object.pk %}">
+            {% show_icon label='Statistics' icon='ti ti-md ti-pulse' %}
         </a>
     {% endif %}
-    <a class="pull-right" data-url="{% url "session-history" object.pk %}">
-        <span class="pull-right">
-            <span class="fa-stack">
-                <i class="fa-stack-2x fa fa-2 fa-fw fa-history"></i>
-            </span><br>
-            <span class="tool-label">History</span>
-        </span>
-    </a>
-    <a class="pull-right" href="{% url "session-data" object.pk %}" title="Go to Data from this session">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
-            {% if object.data_set.count %}
-                <span class="fa-stack-1x superscript">
-                    <span class="badge progress-bar-info">{{ object.data_set.count }}</span>
-                </span>
-            {% endif %}
-        </span><br>
-        <span class="tool-label">Data</span>
-    </a>
-    <a class="pull-right" href="{% url "session-reports" object.pk %}" title="Go to Reports from this session">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-            {% if object.num_reports %}
-                <span class="fa-stack-1x superscript">
-                    <span class="badge progress-bar-info">{{ object.num_reports }}</span>
-                </span>
-            {% endif %}
-        </span><br>
-        <span class="tool-label">Reports</span>
-    </a>
-</span>
+    {% if object.datasets.count %}
+        <div class="separator"></div>
+        <a href="{% url 'files-proxy' section='archive' path=object.download_url %}">
+            {% show_icon label='Download' icon='ti ti-md ti-download' %}
+        </a>
+    {% endif %}
 {% endblock %}
 
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
             {% if object.is_active %}
-                <div class="col-xs-2">
-                    <h3 class="no-vmargin">
-                        <span class="label label-info">Active</span>
-                    </h3>
+                <div class="col">
+                    <h3 class="m-0"><span class="badge badge-info">Active</span></h3>
                 </div>
             {% endif %}
-            <div class="col-xs-2 pull-left">
+            <div class="col">
                 <small class="text-muted text-condensed">Datasets:</small><br>
-                {{ object.data_set.count }}
+                {{ object.datasets.count }}
             </div>
-            <div class="col-xs-2 pull-left">
+            <div class="col">
                 <small class="text-muted text-condensed">Reports:</small><br>
                 {{ object.num_reports }}
             </div>
-            <div class="col-xs-3 pull-right text-right">
+            <div class="col">
                 <small class="text-muted text-condensed">Total Time:</small><br>
                 {{ object.total_time|humanize_duration }}
             </div>
-            <div class="col-xs-3 pull-right text-right">
+            <div class="col">
                 <small class="text-muted text-condensed">Start:</small><br>
                 {{ object.start|naturalday }}
             </div>
-
         </div>
     </div>
 {% endblock %}
 
 {% block full %}
-
-    <div class="row">
-        <div class="col-xs-4 col-lg-3 col-xl-2">
-            {% if object.groups %}
-                <h3>Groups</h3>
-                <hr/>
-                <div class="list-group">
-                {% for group in object.groups %}
-                    {% include "users/entries/group-nav.html" with session=object %}
-                {% endfor %}
-                </div>
+<div class="row">
+    <div class="col-12">
+        {% for group in object.groups %}
+            <h4>
+                <a href="{% url 'group-detail' group.pk %}"><strong>{{ group.name }}</strong></a> |
+                <span class="text-muted text-thin">
+                    {{ group.get_kind_display }}{% if group.resolution %}({{ group.resolution }}Å){% endif %} |
+                    {{ group.get_plan_display }}{% if group.absorption_edge %}({{ group.absorption_edge }}){% endif %}
+                </span>
+            </h4>
+            {% include "users/entries/group-progress.html" with samples=group.samples.all %}
+            <hr />
+        {% endfor %}
+        {% with session.orphans as orphans %}
+            {% if orphans %}
+            <h4>
+                <strong>Orphaned Data/Reports</strong> |
+                <span class="text-muted text-thin">
+                    No associated sample
+                </span>
+            </h4>
+            {% include "users/entries/group-progress.html" with samples=orphans %}
             {% endif %}
-        </div>
-        <div class="col-xs-8 col-lg-9 col-xl-10">
-            <div class="tab-content" style="border-left: 1px solid #ddd; padding-left: 15px;">
-                {% for group in object.groups %}
-                    {% include "users/entries/group-tab.html" with session=object %}
-                {% endfor %}
-            </div>
-        </div>
+        {% endwith %}
     </div>
-
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    function download_all(urls) {
-        $.get("", {'urls': urls}, null, 'attachment');
-    }
-</script>
+</div>
 {% endblock %}

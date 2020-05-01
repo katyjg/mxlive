@@ -1,16 +1,22 @@
 import re
+import json
+
+from operator import itemgetter
+from collections import defaultdict
 
 from django import http
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotFound
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 from django.views.generic import View
 
-from lims import models
+from mxlive.utils.mixins import LoginRequiredMixin, AdminRequiredMixin
+from . import models
 
 @method_decorator(csrf_exempt, name='dispatch')
-class FetchReport(View):
+class FetchReport(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         try:
@@ -25,7 +31,7 @@ class FetchReport(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class UpdatePriority(View):
+class UpdatePriority(LoginRequiredMixin, View):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
@@ -37,15 +43,26 @@ class UpdatePriority(View):
         if group.project != request.user:
             raise http.Http404()
 
-        pks = [u for u in request.POST.getlist('samples[]') if u]
-        for i, pk in enumerate(pks):
-            group.sample_set.filter(pk=pk).update(priority=i + 1)
+        pks = [int(u) for u in request.POST.getlist('samples[]') if u]
+        priorities = {
+            pk: i + 1
+            for i, pk in enumerate(pks)
+        }
+
+        to_update = []
+        for sample in group.samples.all():
+            new_priority = priorities.get(sample.pk, sample.priority)
+            if sample.priority != new_priority:
+                sample.priority = new_priority
+                to_update.append(sample)
+
+        group.samples.bulk_update(to_update, fields=["priority"])
 
         return JsonResponse([], safe=False)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class BulkSampleEdit(View):
+class BulkSampleEdit(LoginRequiredMixin, View):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
@@ -82,7 +99,121 @@ class BulkSampleEdit(View):
         return JsonResponse(errors, safe=False)
 
 
-def update_locations(request):
-    container = models.Container.objects.get(pk=request.GET.get('pk', None))
-    locations = list(container.kind.container_locations.values_list('pk', 'name'))
-    return JsonResponse(locations, safe=False)
+class UpdateLocations(AdminRequiredMixin, View):
+
+    def get(self, request, *args, **kwargs):
+        container = models.Container.objects.get(pk=self.kwargs['pk'])
+        locations = list(container.kind.locations.values_list('pk', 'name'))
+        return JsonResponse(locations, safe=False)
+
+
+class FetchContainerLayout(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        if request.user.is_superuser:
+            qs = models.Container.objects.filter()
+        else:
+            qs = models.Container.objects.filter(project=self.request.user)
+
+        try:
+            container = qs.get(pk=self.kwargs['pk'])
+            return JsonResponse(container.get_layout(), safe=False)
+        except models.Container.DoesNotExist:
+            raise http.Http404('Container Not Found!')
+
+
+class UnloadContainer(AdminRequiredMixin, View):
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        try:
+            container = models.Container.objects.get(pk=self.kwargs['pk'])
+            root = models.Container.objects.get(pk=self.kwargs['root'])
+        except models.Group.DoesNotExist:
+            raise http.Http404("Can't unload Container.")
+
+        models.LoadHistory.objects.filter(child=self.kwargs['pk']).active().update(end=timezone.now())
+        models.Container.objects.filter(pk=container.pk).update(parent=None, location=None)
+
+        return JsonResponse(root.get_layout(), safe=False)
+
+
+class CreateShipmentSamples(LoginRequiredMixin, View):
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        if request.user.is_superuser:
+            qs = models.Shipment.objects.filter()
+        else:
+            qs = models.Shipment.objects.filter(project=self.request.user)
+        try:
+            shipment = qs.get(pk=self.kwargs['pk'])
+            samples = json.loads(request.POST.get('samples', '[]'))
+            grouped_samples = defaultdict(list)
+            loc_info = dict(models.ContainerLocation.objects.values_list('name', 'pk'))
+            for sample in sorted(samples, key=itemgetter('container', 'location')):
+                grouped_samples[sample['group']].append(
+                    {
+                        'project': shipment.project,
+                        'container_id': sample['container'],
+                        'location_id': loc_info[str(sample['location'])]
+                    }
+                )
+
+            to_create = []
+            models.Sample.objects.filter(container__shipment=shipment).delete()
+            for group in shipment.groups.all():
+                # remove existing samples
+                for i, details in enumerate(grouped_samples.get(group.pk, [])):
+                    to_create.append(models.Sample(name='{}_{}'.format(group.name, i+1), group=group, **details))
+            shipment.project.samples.bulk_create(to_create)
+            return JsonResponse({'url': shipment.get_absolute_url()}, safe=False)
+        except models.Shipment.DoesNotExist:
+            raise http.Http404('Shipment Not Found!')
+
+
+class SaveContainerSamples(LoginRequiredMixin, View):
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        if request.user.is_superuser:
+            qs = models.Container.objects.filter()
+        else:
+            qs = models.Container.objects.filter(project=self.request.user)
+        try:
+            container = qs.get(pk=self.kwargs['pk'])
+            samples = json.loads(request.POST.get('samples', '[]'))
+            groups = {
+                sample['group'] if sample['group'] else sample['name']  # use sample name if group is blank
+                for sample in samples
+                if sample['name']
+            }
+            group_map = {}
+            for name in groups:
+                group, created = models.Group.objects.get_or_create(
+                    project=container.project, shipment=container.shipment,
+                    name=name,
+                )
+                group_map[name] = group
+
+            for sample in samples:
+                group_name = sample['group'] if sample['group'] else sample['name']  # use name if group is blank
+                info = {
+                    'name': sample['name'],
+                    'group': group_map[group_name],
+                    'location_id': sample['location'],
+                    'container': container,
+                    'barcode': sample['barcode'],
+                    'comments': sample['comments'],
+                }
+                if sample.get('name') and sample.get('sample'):  # update entries
+                    models.Sample.objects.filter(project=container.project, pk=sample.get('sample')).update(**info)
+                elif sample.get('name'):  # create new entry
+                    models.Sample.objects.create(project=container.project, **info)
+                else:   # delete existing entry
+                    models.Sample.objects.filter(
+                        project=container.project, location_id=sample['location'], container=container
+                    ).delete()
+
+            return JsonResponse({'url': container.get_absolute_url()}, safe=False)
+        except models.Container.DoesNotExist:
+            raise http.Http404('Container Not Found!')

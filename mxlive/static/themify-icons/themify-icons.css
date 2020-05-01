@@ -16,11 +16,17 @@
 	font-weight: normal;
 	font-variant: normal;
 	text-transform: none;
-	line-height: 1;
 
 	/* Better Font Rendering =========== */
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.ti-hflip {
+	transform: scale(-1, 1);
 }
 
 .ti-wand:before {
@@ -380,7 +386,7 @@
 .ti-split-h:before {
 	content: "\e676";
 }
-.ti-smallcap:before {
+.ti-mdallcap:before {
 	content: "\e677";
 }
 .ti-shine:before {

@@ -18,7 +18,6 @@ Some of the Features:
 - MxLIVE is fully integrated with MxDC
 - Optional modular apps for beamtime scheduling and publication tracking
 
-
 Deploying for Development
 =========================
 
@@ -28,16 +27,29 @@ To deploy the test environment do the following:
    environment 
    * Note: if you plan to run with Docker and a database other than postgresql, be sure to modify the imports 
      in the Dockerfile (eg. for MySQL, you will need to add python-mysql)
-2. Run ./manage.py collectstatic from the top-level directory (not needed with Docker)
-3. Run ./manage.py migrate
-4. Run ./manage.py runserver 0:8000
+2. If using PyCharm, prepare your virtual environment and install all requirements
+
+    
+    pip install requirements.txt
+    sudo dnf -y install sassc
+    sudo npm install babel-minify --global --save-dev
+ 
+3. To test the server run the following commands in your virtual environment
+
+
+    ./manage.py migrate
+    ./manage.py runserver 0:8000
+    
+    
 5. Connect your browser to http://localhost:8000 and log when prompted. Make sure your LDAP server is running first.
 
 To deploy a full production production environment including docker, mail-relay, ldap, database:
 ------------------------------------------------------------------------------------------------
 1. Build the docker image with the command
 
+
     sudo docker build --rm -t mxlive:latest .
+
 
 2. Create a directory called MxLIVE somewhere else, preferably where you place your other persistent docker files
    (e.g. /apps/docker/mxlive), then create the following directory structure within it:
@@ -76,6 +88,7 @@ To deploy a full production production environment including docker, mail-relay,
 5. Update settings_local.py according to your environment
 
 6. Change to the top level directory which contains docker-compose.yml Launch the services using the following command:
+
 
         sudo docker-compose up -d
 

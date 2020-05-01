@@ -1,26 +1,15 @@
-{% extends "forms/modal.html" %}
+{% extends "modal/form.html" %}
 
 {% load static %}
 
-{% block form_js %}
+{% block modal_assets %}
     {{ block.super }}
-    <script type="text/javascript" src="{% static 'js/live-forms.js' %}"></script>
-    <script>
-        jQuery(function() {
-            {% if form.repeated_data %}
-                setInitial({{ form.repeated_data|safe }});
-            {% endif %}
-        });
-    </script>
+    <script type="text/javascript" src="{% static 'js/mxlive-forms.min.js' %}"></script>
 {% endblock %}
 
-{% block form_init %}
-<script type="text/javascript">
-function initForm() {
-    var extra_modal = $('.extra-modal');
-    extra_modal.each(function() {
-       $(this).detach().appendTo($('#modal-form'));
-    });
-}
-</script>
+{% block modal_scripts %}
+    <script>
+        initShipmentWizard();
+        {% if form.repeated_data %}setInitial({{ form.repeated_data|safe }});{% endif %}
+    </script>
 {% endblock %}

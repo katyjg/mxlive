@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import lims.models
+from mxlive import lims
 
 
 class Migration(migrations.Migration):

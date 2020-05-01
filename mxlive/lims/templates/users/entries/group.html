@@ -1,15 +1,23 @@
 {% extends "users/base.html" %}
 {% load humanize %}
 {% load markup %}
+{% load icons %}
+{% load static %}
 
 {% block page_heading %}
-    <h3 class="text-condensed narrow-heading">
-        <i class="text-muted fa fa-fw {% if object.is_editable %}fa-unlock{% else %}fa-lock{% endif %}"></i>
-        <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}{{ object.identity }} | </span><strong>{{ object.name }}</strong>
+    <h3>
+        <span class="text-thin">Group |</span>
+        <span class="text-condensed">
+            <span class="text-muted">{% if user.is_superuser %}{{ object.project }} | {% endif %}</span><strong>{{ object.name }}</strong>
+        </span>
     </h3>
     <span class="text-muted">
+        {% if not object.is_editable %}<i class="text-muted ti ti-lock"></i>{% endif %}
+        {{ object.identity }} |
         {% if object.shipment %}
-            <strong>1</strong> of <strong>{{ object.shipment.group_set.count }}</strong> Group{{ object.shipment.group_set.count|pluralize }} in Shipment {{object.shipment.name}}
+            {% with object.shipment.groups.count as count %}
+            <strong>1</strong> of <strong>{{ count }}</strong> Group{{ count|pluralize }} in Shipment {{object.shipment.name}}
+            {% endwith %}
         {% else %}
             Group not in a shipment.
         {% endif %}
@@ -17,13 +25,15 @@
 {% endblock %}
 
 {% block object_tools %}
-    {% if object.status == object.STATES.DRAFT %}
-        <span class="box-tools pull-right">
-            <a class="pull-right" data-url="{% url "group-select" object.pk %}" title="Sample Seat Selection">
-                <i class="fa fa-2 fa-fw fa-plus-circle"></i>
-                <br><span class="tool-label">Samples</span>
-            </a>
-        </span>
+    {%  if object.status == object.STATES.DRAFT %}
+        <a href="#!" data-form-link="{% url "seat-samples" object.shipment.pk %}" title="Sample Seat Selection">
+        {% if not objects.samples.exists %}
+            {% show_icon label='Samples' icon='ti ti-md ti-paint-bucket' badge="+" color="primary" %}
+        {% else %}
+            {% show_icon label='Samples' icon='ti ti-md ti-paint-bucket' color="primary" %}
+        {% endif %}
+        </a>
+        <div class="separator"></div>
     {% endif %}
     {% include "users/tools-base.html" %}
 {% endblock %}
@@ -31,234 +41,114 @@
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
-            <div class="col-xs-2">
-                <h3 class="no-vmargin">
-                    <span class="label label-{% if object.status == object.STATES.ON_SITE %}info
+            <div class="col d-flex flex-row">
+                <h3 class="align-self-center m-0 p-0">
+                    <span class="badge badge-{% if object.status == object.STATES.ACTIVE %}info
                                 {% elif object.status == object.STATES.DRAFT %}warning
-                                {% elif object.status == object.STATES.SENT %}success
-                                {% elif object.status == object.STATES.RETURNED and not user.is_superuser %}success
-                                {% else %}default{% endif %}">{{ object.get_status_display }}</span>
+                                {% elif object.status == object.STATES.COMPLETE %}success
+                                {% elif object.status == object.STATES.ARCHIVED and not user.is_superuser %}success
+                                {% else %}primary{% endif %}">{{ object.get_status_display }}</span>
                 </h3>
             </div>
-            <div class="col-xs-3">
+            <div class="col">
                 <small class="text-muted text-condensed">Shipment:</small><br>
                 {% if object.shipment %}<a href="{% url "shipment-detail" object.shipment.pk %}">{{object.shipment.name}}</a>{% endif %}
             </div>
-            <div class="col-xs-3">
+            <div class="col">
                 <small class="text-muted text-condensed">Plan:</small><br>
                 {{ object.get_plan_display }} {% if object.resolution %}({{ object.resolution }}Å){% endif %}
             </div>
-            <div class="col-xs-2">
+            <div class="col">
                 <small class="text-muted text-condensed">Type:</small><br>
                 {{ object.get_kind_display }} {% if object.absorption_edge %}({{ object.absorption_edge }}){% endif %}
             </div>
-            <div class="col-xs-2 pull-right text-right">
+            <div class="col pull-right text-right">
                 <small class="text-muted text-condensed">Number of Samples:</small><br>
                 <strong>{{ object.num_samples }}</strong>
             </div>
         </div>
     </div>
-    {% include "users/comments.html" with object=object %}
 {% endblock %}
 
 {% block full %}
-
 <div class="row">
     <div class="col-sm-12 bulk-edit">
-        {% if object.is_editable %}
-        <div class="box-tools pull-right">
-            <button type="submit" name="submit" onclick="submit_changes();" value="submit" disabled class="btn btn btn-primary">Submit</button>
-            <a class="pull-right not-active" title="Reset" onclick="reset_inputs();" href="#">
-                <span class="pull-right">
-                    <span class="fa-stack">
-                        <i class="fa-stack-2x fa fa-3 fa-fw ti ti-reload"></i>
-                    </span><br>
-                </span>
-            </a>
-        </div>
-        {% endif %}
-        <h3>Samples in {{ object.name }}</h3>
-        <div class="error-panel alert alert-warning" style="display: none;">
-        </div>
         {% if object.status == object.STATES.DRAFT %}
-            <div class="object-list sortable">
-            <table class="table table-hover">
+            <div class="item-list sortable">
+            <table class="table table-hover table-sm">
                 <thead>
                     <tr>
-                        <th class="col-xs-1 col-lg-1">Priority</th>
-                        <th class="col-xs-3 col-lg-2">Name</th>
-                        <th class="col-xs-2 col-lg-2">Container Location</th>
-                        <th class="col-xs-2 col-lg-2">Barcode</th>
-                        <th class="col-xs-4 col-lg-5">Comments</th>
+                        <th class="">Priority</th>
+                        <th class="">Name</th>
+                        <th class="">Location</th>
+                        <th class="">Container</th>
+                        <th class="">Barcode</th>
+                        <th class="">Comments</th>
                     </tr>
                 </thead>
                 <tbody>
-                {% for sample in object.sample_set.all %}
-                    <tr sample="{{ sample.pk }}" data-detail-url="{% url 'sample-edit' sample.pk %}">
-                        <td><span class='cursor'><i class='movable fa fa-fw fa-1x fa-grip'></i> {{ sample.priority }}</span></td>
-                        <td class="input"><input id="name-{{ forloop.counter }}" type="text" initial="{{ sample.name }}" value="{{ sample.name }}" /></td>
-                        <td>{{ sample.container_and_location }}</td>
-                        <td class="input"><input id="barcode-{{ forloop.counter }}" type="text" initial="{{ sample.barcode|default_if_none:"" }}" value="{{ sample.barcode|default_if_none:"" }}" /></td>
-                        <td class="input"><input id="comments-{{ forloop.counter }}" type="text" initial="{{ sample.comments|default_if_none:"" }}" value="{{ sample.comments|default_if_none:"" }}" /></td>
+                {% for sample in object.samples.all %}
+                    <tr id="sample_{{ sample.pk }}" data-sample="{{ sample.pk }}">
+                        <td><span class='cursor'><i class='movable ti ti-move'></i></span></td>
+                        <td><a href="#!" data-form-link="{% url 'sample-edit' sample.pk %}">{{ sample.name }}</a></td>
+                        <td>{{ sample.location }}</td>
+                        <td>{{ sample.container.name }}</td>
+                        <td>{{ sample.barcode|default_if_none:"&mdash;" }}</td>
+                        <td>{{ sample.comments|default_if_none:"&mdash;" }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
             </div>
-
         {% else %}
-            {% load progress_extras %}
-            {% group_samples object session as samples %}
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th class="col-xs-1 col-lg-1">Priority</th>
-                        <th class="col-xs-5 col-lg-2">Sample</th>
-                        <th class="text-right col-xs-6 col-lg-9">Data & Analysis</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for sample in samples %}
-                        <tr>
-                            <td class="text-medium" style="vertical-align: middle; padding-left: 20px !important;">{{ sample.priority|default_if_none:"" }}</td>
-                            <td style="vertical-align: middle; padding-right: 15px !important;">
-                                <span class="overflow ellipsis" style="padding: 5px; margin-top: 0;">
-                                    <a href="{% url "sample-detail" sample.pk %}"><strong>{{ sample.name }}</strong></a>
-                                <span/>
-                                <small class="overflow ellipsis">
-                                    {% if sample.dewar %}<span class="text-muted"><strong>{{ sample.dewar.beamline.acronym }} {{ sample.port }}</strong> |</span>{% endif %}
-                                    {{ sample.container_and_location }}
-                                </small>
-                                </td>
-                            <td class="col-xs-8">
-                                {% include "users/entries/sample-data.html" %}
-                            </td>
-                        </tr>
-                        {% if sample.comments or sample.staff_comments %}
-                            <tr>
-                                <td colspan="2" style="border-top: none; padding-top: 3px;">
-                                    {% if sample.comments %}<strong>Comments:</strong> {{ sample.comments }}{% endif %}
-                                    {% if sample.comments and sample.staff_comments %}<br/>{% endif %}
-                                    <span class="highlight">{% if sample.staff_comments %}<strong>Collection Notes:</strong> {% endif %}
-                                        {{ sample.staff_comments|default_if_none:""  }}</span>
-                                </td>
-                            </tr>
-                        {% endif %}
-                    {% endfor %}
-                </tbody>
-            </table>
+            {% include "users/entries/group-progress.html" with samples=object.samples.all %}
         {% endif %}
     </div>
 </div>
-
-{% endblock %}
-
-{% block extra_css %}
-    <link rel="stylesheet" href="/static/objlist/objlist.css" type="text/css" media="screen" />
+    {% include "users/comments.html" with object=object %}
 {% endblock %}
 
 {% block extra_js %}
-<script>
-
-    $(".sortable table").sortable({
-        items: "tr",
-        handle: ".cursor",
-        cursor: 'move',
-        opacity: 0.9,
-        axis: 'y',
-        update: function() {
-            prioritize();
-        }
-    });
-
-    $("input").on('change keyup paste blur', function() {
-        if ($(this).attr('initial') !== $(this).val()) {
-            $(this).css('color', '#883a6a').css('font-weight', '700');
-            $(this).css('border-color', '#883a6a');
-            $(this).addClass('changed');
-        } else {
-            $(this).css('color', 'black').css('font-weight', '400');
-            $(this).css('border-color', '#a0c4e3');
-            $(this).removeClass('changed');
-        }
-        if ($('input.changed').length) {
-            $('button[name=submit]').removeAttr('disabled');
-        } else {
-            $('button[name=submit]').attr('disabled', true);
-        }
-    });
-
-    var strip = function(s) { return s.replace(/^\s*|\s*$/g, ''); }
-
-    $("input").on('paste', function(e) {
-        e.stopPropagation();
-        var field = e.target.id.split('-')[0];
-        var k = parseInt(e.target.id.split('-')[1]);
-        var lines = strip(e.originalEvent.clipboardData.getData('Text')).split(/\r?\n/);
-        if (lines.length == 1) {
-            return;
-        }
-        for (var i = 1; i <= lines.length; i++) {
-            var el = $('#' + field + '-' + k);
-            el.val(strip(lines[i-1].split(/\r?\t/)[0] || ''));
-            el.blur();
-            k++;
-        }
-    });
-
-    function reset_inputs() {
-        $("input").each(function() {
-            $(this).val($(this).attr("initial"));
-            $(this).blur();
-        });
-        $('.error-panel').html('').css('display', 'none');
-    }
-
-    function prioritize() {
-        var order = $(".sortable table").sortable("toArray", {key: 'sample', attribute: 'sample'} );
-        $.ajax({
-        type: "POST", dataType: "json", url: "{% url 'update-priority' %}",
-        data: {
-            'group': {{ object.pk }},
-            'samples': order
-        },
-        success: function(response) {
-            window.location.href=window.location.href;
-        }
-        });
-    }
-
-    function submit_changes() {
-        var data = [];
-        $('.sortable table input[id^=name-]').each(function() {
-            var idx = this.id.split('-')[1];
-            var pk = $(this).parent().parent().attr('sample');
-            var name = $(this).val() !== $(this).attr('initial');
-            var brcd = $("input[id=barcode-"+idx+"]").val() !== $("input[id=barcode-"+idx+"]").attr('initial');
-            var cmnt = $("input[id=comments-"+idx+"]").val() !== $("input[id=comments-"+idx+"]").attr('initial');
-            if ((name !== null) || (brcd !== null) || (cmnt !== null )) {
-                data.push([pk, $(this).val(),  $("input[id=barcode-"+idx+"]").val(), $("input[id=comments-"+idx+"]").val()]);
-            }
-        });
-        $.ajax({
-            type: "POST",
-            dataType: "json",
-            url: "{% url 'bulk-edit' %}",
-            data: {
-                'group': {{ object.pk }},
-                'samples': data
-            },
-            success: function(response) {
-                if (response.length) {
-                    for(i=0; response[i]; i++) {
-                        $('.error-panel').html(response.join('<br/>')).css('display', 'block');
+    <script src="{% static "js/jquery/jquery-ui.min.js" %}"></script>
+    <script>
+        $(".sortable tbody").sortable({
+            items: "tr",
+            handle: ".cursor",
+            cursor: 'move',
+            opacity: 0.9,
+            axis: 'y',
+            update: function () {
+                let priorities = $(this).sortable("toArray", {key: 'sample', attribute: 'data-sample'});
+                $.ajax({
+                    type: "POST",
+                    dataType: "json",
+                    url: "{% url 'update-priority' %}",
+                    data: {
+                        'group': {{ object.pk }},
+                        'samples': priorities
+                    },
+                    success: function (response) {
+                        new Noty({
+                            text: "Priorities updated!",
+                            type: "success",
+                            layout: 'bottomRight',
+                            theme: 'sunset',
+                            timeout: 4000,
+                            visibilityControl: true
+                        }).show()
+                    },
+                    error: function (response) {
+                        new Noty({
+                            text: "Could not update sample priorities!",
+                            type: "error",
+                            layout: 'bottomRight',
+                            theme: 'sunset',
+                            timeout: 4000,
+                            visibilityControl: true
+                        }).show()
                     }
-                } else {
-                    window.location.href=window.location.href;
-                }
+                });
             }
         });
-    }
-
-</script>
+    </script>
 {% endblock %}

@@ -1,32 +1,50 @@
+import copy
+import hashlib
+import json
+import os
+import mimetypes
+
+
+from collections import OrderedDict, defaultdict
+from datetime import timedelta
+
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Q, F, Avg, Count
-from django.utils import timezone
-from django.contrib.auth.models import AbstractUser
-
-#from django.contrib.postgres.fields import JSONField
-from jsonfield.fields import JSONField
-
-import copy
-import hashlib
-import string
-from model_utils import Choices
-from datetime import datetime, timedelta
-import json
-import itertools
-from collections import OrderedDict
-
-from django_auth_ldap.backend import populate_user
+from django.db.models import Q, F, Avg, Count, CharField, BooleanField, Value, Sum
+from django.db.models.functions import Coalesce, Concat
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
-from staff import slap
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.translation import ugettext as _
+from jsonfield.fields import JSONField
+from model_utils import Choices
+from model_utils.models import TimeStampedModel
+from memoize import memoize
+
+from mxlive.utils import slap
+from mxlive.utils.data import parse_frames, frame_ranges
+from mxlive.utils.functions import Hours, Minutes, Shifts, ShiftEnd, ShiftStart
 
 IDENTITY_FORMAT = '-%y%m'
-RESTRICTED_DOWNLOADS = getattr(settings, 'RESTRICTED_DOWNLOADS', False)
-SHIFT_HRS = getattr(settings, 'SHIFT_LENGTH', 8)
+RESTRICT_DOWNLOADS = getattr(settings, 'RESTRICT_DOWNLOADS', False)
+SHIFT_HRS = getattr(settings, 'HOURS_PER_SHIFT', 8)
+SHIFT_SECONDS = SHIFT_HRS*3600
+
+MAX_CONTAINER_DEPTH = getattr(settings, 'MAX_CONTAINER_DEPTH', 2)
+SAMPLE_PORT_FIELDS = [
+    "container{}__location__name".format("__".join([""]+(["parent"]*i)))
+    for i in reversed(range(MAX_CONTAINER_DEPTH))
+] + ['location__name']
+
+CONTAINER_PORT_FIELDS = [
+    "{}location__name".format("__".join((["parent"]*i)+[""]))
+    for i in reversed(range(MAX_CONTAINER_DEPTH))
+]
+
 
 DRAFT = 0
 SENT = 1
@@ -53,53 +71,87 @@ GLOBAL_STATES = Choices(
 )
 
 
+class OrphanSample(object):
+    def __init__(self):
+        self.name = ""
+        self.orphaned_datasets = []
+        self.orphaned_reports = []
+
+
 class Beamline(models.Model):
-    """A Beamline object should be created for every unique facility that will be uploading data or reports,
-    or has its own automounter layout."""
+    """
+    A Beamline object should be created for every unique facility that will be uploading data or reports,
+    or has its own automounter layout.
+    """
     name = models.CharField(max_length=600)
     acronym = models.CharField(max_length=50)
     energy_lo = models.FloatField(default=4.0)
     energy_hi = models.FloatField(default=18.5)
     contact_phone = models.CharField(max_length=60)
     automounters = models.ManyToManyField('Container', through='Dewar', through_fields=('beamline', 'container'))
+    simulated = models.BooleanField(default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.acronym
 
     def active_session(self):
-        """Returns the session that is currently running on the beamline, if there is one."""
+        """
+        Returns the session that is currently running on the beamline, if there is one.
+        """
         return self.sessions.filter(pk__in=Stretch.objects.active().values_list('session__pk')).first()
 
     def active_automounter(self):
-        """Returns the container referenced by the active dewar pointing to the beamline."""
+        """
+        Returns the container referenced by the active dewar pointing to the beamline.
+        """
         return self.active_dewar().container
 
     def active_dewar(self):
-        """Returns the first active dewar pointing to the beamline. Generally, there should only be one active dewar
-        referencing each beamline. """
-        return self.dewar_set.filter(active=True).first()
+        """
+        Returns the first active dewar pointing to the beamline. Generally, there should only be one active dewar
+        referencing each beamline.
+        """
+        return self.dewars.filter(active=True).first()
 
 
 class Carrier(models.Model):
-    """A Carrier object should be created for each courier company that may be used for shipping to the beamline.
+    """
+    A Carrier object should be created for each courier company that may be used for shipping to the beamline.
     To link to shipment tracking, provide a URL that can be completed using a tracking number to link to a
-    courier-specific tracking page."""
+    courier-specific tracking page.
+    """
 
     name = models.CharField(max_length=60)
     url = models.URLField()
 
-    def __unicode__(self):
+    def __str__(self):
+        return self.name
+
+
+class ProjectType(TimeStampedModel):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class ProjectDesignation(TimeStampedModel):
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
         return self.name
 
 
 class Project(AbstractUser):
     HELP = {
-        'contact_person': "Full name of contact person",
+        'contact_person': _("Full name of contact person"),
     }
-    name = models.SlugField('account name')
+    name = models.SlugField()
     contact_person = models.CharField(max_length=200, blank=True, null=True)
     contact_email = models.EmailField(max_length=100, blank=True, null=True)
-    carrier = models.ForeignKey(Carrier, blank=True, null=True)
+    carrier = models.ForeignKey(Carrier, blank=True, null=True, on_delete=models.SET_NULL)
     account_number = models.CharField(max_length=50, blank=True, null=True)
     department = models.CharField(max_length=600, blank=True, null=True)
     address = models.CharField(max_length=600, blank=True, null=True)
@@ -112,33 +164,21 @@ class Project(AbstractUser):
     organisation = models.CharField(max_length=600, blank=True, null=True)
     show_archives = models.BooleanField(default=True)
     key = models.TextField(blank=True)
+    kind = models.ForeignKey(ProjectType, blank=True,null=True, on_delete=models.SET_NULL, verbose_name=_("Project Type"))
+    alias = models.CharField(max_length=20, blank=True, null=True)
+    designation = models.ManyToManyField(ProjectDesignation, verbose_name=_("Project Designation"), blank=True)
+    created = models.DateTimeField(_('date created'), auto_now_add=True, editable=False)
+    modified = models.DateTimeField(_('date modified'), auto_now=True, editable=False)
+    updated = models.BooleanField(default=False)
 
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified', auto_now=True, editable=False)
-    updated = models.BooleanField(default=False)    
+    def __str__(self):
+        return self.name.upper()
 
-    def __unicode__(self):
-        return self.name
-
-    def identity(self):
-        return 'PR%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
-
-    def get_archive_filter(self):
-        if self.show_archives:
-            return {'status__lte': LimsBaseClass.STATES.ARCHIVED}
-        else:
-            return {'status__lt': LimsBaseClass.STATES.ARCHIVED}
+    def get_absolute_url(self):
+        return reverse('user-detail', kwargs={'username': self.username})
 
     def onsite_containers(self):
-        return self.container_set.filter(status=Container.STATES.ON_SITE).count()
-
-    def shifts_used_by_year(self, year, blname):
-        shifts = []
-        for d in self.data_set.filter(created__year=year).filter(beamline=Beamline.objects.get(name=blname)):
-            if [d.created.date(), d.created.hour/8] not in shifts:
-                shifts.append([d.created.date(), d.created.hour/8])
-        return len(shifts)
+        return self.containers.filter(status=Container.STATES.ON_SITE).count()
 
     def label_hash(self):
         return self.name
@@ -154,73 +194,17 @@ class Project(AbstractUser):
         return 'Idle'
 
     def last_session(self):
-        return self.sessions.order_by('created').last().start() if self.sessions.order_by('created').last() else None
+        session = self.sessions.order_by('created').last()
+        return session.start() if session else None
 
-    def delete_warning(self):
-        return "Shipments ({}), Samples ({}), Sessions ({}), Datasets ({}), and Reports ({}) will be deleted.".format(
-            self.shipment_set.count(), self.sample_set.count(), self.sessions.count(), self.data_set.count(), self.analysisreport_set.count())
+    def save(self, *args, **kwargs):
+        if not self.kind:
+            self.kind = ProjectType.objects.first()
+        super().save(*args, **kwargs)
 
-    def shipment_count(self):
-        this_year = datetime.now().year
-        return Shipment.objects.filter(project__exact=self).filter(date_shipped__year=this_year).count()
-    shipment_count.short_description = "Shipments in {}".format(datetime.now().year)
 
     class Meta:
-        verbose_name = "Project Account"
-
-
-class Hours(models.Func):
-    function = 'HOUR'
-    template = '%(function)s(%(expressions)s)'
-
-    def as_postgresql(self, compiler, connection):
-        self.arg_joiner = " - "
-        return self.as_sql(compiler, connection, function="EXTRACT", template="%(function)s(epoch FROM %(expressions)s)/3600")
-
-    def as_mysql(self, compiler, connection):
-        self.arg_joiner = " , "
-        return self.as_sql(compiler, connection, function="TIMESTAMPDIFF", template="-%(function)s(HOUR,%(expressions)s)")
-
-    def as_sqlite(self, compiler, connection):
-        # the template string needs to escape '%Y' to make sure it ends up in the final SQL. Because two rounds of
-        # template parsing happen, it needs double-escaping ("%%%%").
-        return self.as_sql(compiler, connection, function="strftime", template="%(function)s(\"%%%%H\",%(expressions)s)")
-
-
-class Minutes(models.Func):
-    function = 'MINUTE'
-    template = '%(function)s(%(expressions)s)'
-
-    def as_postgresql(self, compiler, connection):
-        self.arg_joiner = " - "
-        return self.as_sql(compiler, connection, function="EXTRACT", template="%(function)s(epoch FROM %(expressions)s)/60")
-
-    def as_mysql(self, compiler, connection):
-        self.arg_joiner = " , "
-        return self.as_sql(compiler, connection, function="TIMESTAMPDIFF", template="-%(function)s(MINUTE,%(expressions)s)")
-
-    def as_sqlite(self, compiler, connection):
-        # the template string needs to escape '%Y' to make sure it ends up in the final SQL. Because two rounds of
-        # template parsing happen, it needs double-escaping ("%%%%").
-        return self.as_sql(compiler, connection, function="strftime", template="%(function)s(\"%%%%M\",%(expressions)s)")
-
-
-class Shifts(models.Func):
-    function = 'HOUR'
-    template = '%(function)s(%(expressions)s)'
-
-    def as_postgresql(self, compiler, connection):
-        self.arg_joiner = " - "
-        return self.as_sql(compiler, connection, function="EXTRACT", template="(%(function)s(epoch FROM %(expressions)s)/28800)")
-
-    def as_mysql(self, compiler, connection):
-        self.arg_joiner = " , "
-        return self.as_sql(compiler, connection, function="TIMESTAMPDIFF", template="-%(function)s(HOUR,%(expressions)s)/8")
-
-    def as_sqlite(self, compiler, connection):
-        # the template string needs to escape '%Y' to make sure it ends up in the final SQL. Because two rounds of
-        # template parsing happen, it needs double-escaping ("%%%%").
-        return self.as_sql(compiler, connection, function="strftime", template="%(function)s(\"%%%%H\",%(expressions)s)")
+        verbose_name = _("Project Account")
 
 
 class StretchQuerySet(models.QuerySet):
@@ -237,36 +221,65 @@ class StretchQuerySet(models.QuerySet):
         return self.filter(Q(end__isnull=True) | Q(end__gte=recently))
 
     def with_duration(self):
-        return self.filter(end__isnull=False).annotate(duration=Minutes((F('end')-F('start'))/60, output_field=models.FloatField()))
-
-    def with_hours(self):
-        return self.annotate(hours=Hours(F('end'), F('start'), output_field=models.FloatField()))
-
-    def with_shifts(self):
-        return self.annotate(shifts=Shifts(F('end'), F('start'), output_field=models.FloatField()))
+        return self.annotate(
+            duration=Coalesce('end', timezone.now()) - F('start'),
+            shift_duration=ShiftEnd(Coalesce('end', timezone.now())) - ShiftStart('start')
+        )
 
 
 class StretchManager(models.Manager.from_queryset(StretchQuerySet)):
     use_for_related_fields = True
 
 
+class ProjectObjectManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related('project')
+
+
+class SessionQuerySet(models.QuerySet):
+    def with_duration(self):
+        return self.annotate(
+            duration=Sum(
+                Coalesce('stretches__end', timezone.now()) - F('stretches__start')
+            ),
+            shift_duration=Sum(
+                ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')
+            ),
+        )
+
+
+class SessionManager(models.Manager.from_queryset(SessionQuerySet)):
+    use_for_related_fields = True
+
+    def get_queryset(self):
+        return super().get_queryset().select_related('project')
+
+
 class Session(models.Model):
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
+    created = models.DateTimeField(_('date created'), auto_now_add=True, editable=False)
     name = models.CharField(max_length=100)
-    project = models.ForeignKey(Project, related_name="sessions")
-    beamline = models.ForeignKey(Beamline, related_name="sessions")
+    project = models.ForeignKey(Project, related_name="sessions", on_delete=models.CASCADE)
+    beamline = models.ForeignKey(Beamline, related_name="sessions", on_delete=models.CASCADE)
     comments = models.TextField()
     url = models.CharField(max_length=200, null=True)
 
+    objects = SessionManager()
+
+    class Meta:
+        ordering = ('-created',)
+
+    def __str__(self):
+        return '{}-{}'.format(self.project.name.upper(), self.name)
+
     def identity(self):
-        return 'SE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
+        return 'SES-{:07,d}'.format(self.id).replace(',', '-')
 
     def download_url(self):
         return '{}/{}.tar.gz'.format(self.url, self.name)
 
     def launch(self):
-        Stretch.objects.active(extras={'session__beamline':self.beamline}).exclude(session=self).update(end=timezone.now())
+        Stretch.objects.active(extras={'session__beamline': self.beamline}).exclude(session=self).update(
+            end=timezone.now())
         self.stretches.recent().update(end=None)
         stretch = self.stretches.active().last() or Stretch.objects.create(session=self, start=timezone.now())
         return stretch
@@ -275,41 +288,38 @@ class Session(models.Model):
         self.stretches.active().update(end=timezone.now())
 
     def groups(self):
-        return self.project.group_set.filter(pk__in=self.data_set.values_list('sample__group__pk'))
-
-    def datasets(self):
-        return self.data_set.all()
+        return Group.objects.filter(samples__datasets__session=self, project=self.project).distinct()
 
     def reports(self):
-        return self.project.analysisreport_set.filter(data__in=self.data_set.all())
+        return self.project.reports.filter(data__session=self).distinct()
+
+    def orphans(self):
+        samples = defaultdict(OrphanSample)
+        for data in self.datasets.filter(sample__isnull=True).all():
+            samples[data.name].name = data.name
+            samples[data.name].orphaned_datasets.append(data)
+            samples[data.name].orphaned_reports.extend(data.reports.all())
+
+        return list(samples.values())
 
     def num_datasets(self):
-        return self.datasets().count()
-    num_datasets.short_description = "Datasets"
+        return self.datasets.count()
+    num_datasets.short_description = _("Datasets")
 
     def num_reports(self):
         return self.reports().count()
-    num_reports.short_description = "Reports"
+    num_reports.short_description = _("Reports")
 
     def samples(self):
-        return self.project.sample_set.filter(pk__in=self.data_set.values_list('sample__pk', flat=True))
+        return self.project.samples.filter(datasets__session=self).distinct()
 
+    @memoize(60)
     def is_active(self):
         return self.stretches.active().exists()
 
     def shifts(self):
-        shifts = []
-        for stretch in self.stretches.all():
-            st = timezone.localtime(stretch.start) - timedelta(hours=timezone.localtime(stretch.start).hour % SHIFT_HRS,
-                                                               minutes=stretch.start.minute,
-                                                               seconds=stretch.start.second)
-            end = timezone.localtime(stretch.end) if stretch.end else timezone.now()
-            et = end - timedelta(hours=end.hour % SHIFT_HRS, minutes=end.minute, seconds=end.second)
-            shifts.append(st)
-            while st < et:
-                st += timedelta(hours=SHIFT_HRS)
-                shifts.append(st)
-        return shifts
+        total = self.stretches.with_duration().aggregate(time=Sum('shift_duration'))
+        return total['time'].total_seconds() / SHIFT_SECONDS
 
     def shift_parts(self):
         shifts = set()
@@ -325,35 +335,57 @@ class Session(models.Model):
                 shifts.add(st)
             return len(shifts)
 
+    @memoize(60)
     def total_time(self):
-        """Returns total time the session was active, in hours"""
-        d = self.stretches.with_duration().aggregate(Avg('duration'), Count('duration'))
-        t = d['duration__count'] * d['duration__avg'] if (d.get('duration__count') and d.get('duration__avg')) else 0
-        if self.is_active():
-            t += int((timezone.now() - self.stretches.active().first().start).total_seconds())/3600.0
-        return t
-    total_time.short_description = "Duration"
+        """
+        Returns total time the session was active, in hours
+        """
+        total = self.stretches.with_duration().aggregate(time=Sum('duration'))
 
+        return total['time'].total_seconds()/3600
+    total_time.short_description = _("Duration")
+
+    @memoize(60)
     def start(self):
-        return self.stretches.last().start
+        return timezone.localtime(self.stretches.earliest('start').start)
 
+    @memoize(60)
     def end(self):
-        return self.stretches.first().end
+        return timezone.localtime(self.stretches.latest('start').end or timezone.now())
+
+    @memoize(60)
+    def last_record_time(self):
+        last_data = self.datasets.last()
+        return last_data.modified if last_data else self.created
+
+    def gaps(self):
+        data = list(self.datasets.order_by('start_time'))
+        max_gap = timedelta(minutes=10)
+
+        return [
+            (
+                timezone.localtime(first.end_time),
+                timezone.localtime(second.start_time),
+                (second.start_time - first.end_time)
+            )
+            for first, second in zip(data[:-1], data[1:]) if (second.start_time - first.end_time) > max_gap
+        ]
+
 
 
 class Stretch(models.Model):
     start = models.DateTimeField(null=False, blank=False)
     end = models.DateTimeField(null=True, blank=True)
-    session = models.ForeignKey(Session, related_name='stretches')
+    session = models.ForeignKey(Session, related_name='stretches', on_delete=models.CASCADE)
     objects = StretchManager()
 
     class Meta:
-        verbose_name = u"Beamline Usage"
-        verbose_name_plural = u"Beamline Usage"
+        verbose_name = _("Beamline Usage")
+        verbose_name_plural = _("Beamline Usage")
         ordering = ['-start', ]
 
 
-class LimsBaseClass(models.Model):
+class ProjectObjectMixin(models.Model):
     """ STATES/TRANSITIONS define a finite state machine (FSM) for the Shipment (and other
     models.Model instances also defined in this file).
 
@@ -375,29 +407,32 @@ class LimsBaseClass(models.Model):
         STATES.COMPLETE: [STATES.ACTIVE, STATES.PROCESSING, STATES.ARCHIVED],
     }
 
-    project = models.ForeignKey(Project)
     name = models.CharField(max_length=60)
     staff_comments = models.TextField(blank=True, null=True)
-    created = models.DateTimeField('date created', auto_now_add=True, editable=False)
-    modified = models.DateTimeField('date modified', auto_now=True, editable=False)
+    created = models.DateTimeField(_('date created'), auto_now_add=True, editable=False)
+    modified = models.DateTimeField(_('date modified'), auto_now=True, editable=False)
 
     class Meta:
         abstract = True
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def is_editable(self):
-        return self.status == self.STATES.DRAFT 
-    
+        return self.status == self.STATES.DRAFT
+
     def is_deletable(self):
-        return self.status == self.STATES.DRAFT 
+        return self.status == self.STATES.DRAFT
 
     def is_closable(self):
-        return self.status == self.STATES.RETURNED 
+        return self.status == self.STATES.RETURNED
 
-    def delete(self, request=None):
-        super(LimsBaseClass, self).delete()
+    def has_comments(self):
+        return '*' if self.comments or self.staff_comments else None
+
+    def delete(self, *args, **kwargs):
+        if self.is_deletable:
+            super().delete(*args, **kwargs)
 
     def archive(self, request=None):
         if self.is_closable():
@@ -416,19 +451,19 @@ class LimsBaseClass(models.Model):
         self.change_status(self.STATES.SENT)
 
     def receive(self, request=None):
-        self.change_status(self.STATES.ON_SITE) 
+        self.change_status(self.STATES.ON_SITE)
 
     def load(self, request=None):
-        self.change_status(self.STATES.LOADED)    
+        self.change_status(self.STATES.LOADED)
 
     def unload(self, request=None):
-        self.change_status(self.STATES.ON_SITE)   
+        self.change_status(self.STATES.ON_SITE)
 
     def returned(self, request=None):
-        self.change_status(self.STATES.RETURNED)     
+        self.change_status(self.STATES.RETURNED)
 
     def trash(self, request=None):
-        self.change_status(self.STATES.TRASHED)     
+        self.change_status(self.STATES.TRASHED)
 
     def change_status(self, status):
         if status == self.status:
@@ -441,88 +476,94 @@ class LimsBaseClass(models.Model):
 
     def add_comments(self, message):
         if self.staff_comments:
-            if string.find(self.staff_comments, message) == -1:
+            if self.staff_comments not in message:
                 self.staff_comments += ' ' + message
         else:
             self.staff_comments = message
         self.save()
 
 
-class ObjectBaseClass(LimsBaseClass):
-    STATUS_CHOICES = (
-        (LimsBaseClass.STATES.DRAFT, _('Draft')),
-        (LimsBaseClass.STATES.SENT, _('Sent')),
-        (LimsBaseClass.STATES.ON_SITE, _('On-site')),
-        (LimsBaseClass.STATES.RETURNED, _('Returned')),
-        (LimsBaseClass.STATES.ARCHIVED, _('Archived'))
+class TransitStatusMixin(ProjectObjectMixin):
+    STATUS_CHOICES = Choices(
+        (ProjectObjectMixin.STATES.DRAFT, 'DRAFT', _('Draft')),
+        (ProjectObjectMixin.STATES.SENT, 'SENT', _('Sent')),
+        (ProjectObjectMixin.STATES.ON_SITE, 'ON_SITE', _('On-site')),
+        (ProjectObjectMixin.STATES.RETURNED, 'RETURNED', _('Returned')),
+        (ProjectObjectMixin.STATES.ARCHIVED, 'ARCHIVED', _('Archived'))
     )
-    status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectObjectMixin.STATES.DRAFT)
 
     class Meta:
         abstract = True
 
 
-class DataBaseClass(LimsBaseClass):
+class ActiveStatusMixin(ProjectObjectMixin):
     STATUS_CHOICES = (
-        (LimsBaseClass.STATES.ACTIVE, _('Active')),
-        (LimsBaseClass.STATES.ARCHIVED, _('Archived')),
-        (LimsBaseClass.STATES.TRASHED, _('Trashed'))
+        (ProjectObjectMixin.STATES.ACTIVE, _('Active')),
+        (ProjectObjectMixin.STATES.ARCHIVED, _('Archived')),
+        (ProjectObjectMixin.STATES.TRASHED, _('Trashed'))
     )
-    TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
-    TRANSITIONS[LimsBaseClass.STATES.ACTIVE] = [LimsBaseClass.STATES.TRASHED, LimsBaseClass.STATES.ARCHIVED]
-    TRANSITIONS[LimsBaseClass.STATES.ARCHIVED] = [LimsBaseClass.STATES.TRASHED]
+    TRANSITIONS = copy.deepcopy(ProjectObjectMixin.TRANSITIONS)
+    TRANSITIONS[ProjectObjectMixin.STATES.ACTIVE] = [ProjectObjectMixin.STATES.TRASHED,
+                                                     ProjectObjectMixin.STATES.ARCHIVED]
+    TRANSITIONS[ProjectObjectMixin.STATES.ARCHIVED] = [ProjectObjectMixin.STATES.TRASHED]
 
-    status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.ACTIVE)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectObjectMixin.STATES.ACTIVE)
 
     def is_closable(self):
-        return self.status not in [LimsBaseClass.STATES.ARCHIVED, LimsBaseClass.STATES.TRASHED]
+        return self.status not in [ProjectObjectMixin.STATES.ARCHIVED, ProjectObjectMixin.STATES.TRASHED]
 
     class Meta:
         abstract = True
 
 
-class Shipment(ObjectBaseClass):
+class Shipment(TransitStatusMixin):
     HELP = {
-        'name': "This should be an externally visible label",
-        'carrier': "Select the company handling this shipment. To change the default option, edit your profile.",
-        'cascade': 'containers and samples (along with groups, datasets and results)',
-        'cascade_help': 'All associated containers will be left without a shipment'
+        'name': _("This should be an externally visible label"),
+        'carrier': _("Select the company handling this shipment. To change the default option, edit your profile."),
+        'cascade': _('containers and samples (along with groups, datasets and results)'),
+        'cascade_help': _('All associated containers will be left without a shipment')
     }
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='shipments')
     comments = models.TextField(blank=True, null=True, max_length=200)
     tracking_code = models.CharField(blank=True, null=True, max_length=60)
     return_code = models.CharField(blank=True, null=True, max_length=60)
     date_shipped = models.DateTimeField(null=True, blank=True)
     date_received = models.DateTimeField(null=True, blank=True)
     date_returned = models.DateTimeField(null=True, blank=True)
-    carrier = models.ForeignKey(Carrier, null=True, blank=True)
+    carrier = models.ForeignKey(Carrier, null=True, blank=True, on_delete=models.SET_NULL, related_name='projects')
     storage_location = models.CharField(max_length=60, null=True, blank=True)
 
+    objects = ProjectObjectManager()
+
     def identity(self):
-        return 'SH%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
+        return 'SHP-{:07,d}'.format(self.id).replace(',', '-')
+
+    def get_absolute_url(self):
+        return reverse('shipment-detail', kwargs={'pk': self.id})
 
     def groups_by_priority(self):
-        return self.group_set.order_by('priority')
+        return self.groups.order_by('priority')
 
     def barcode(self):
         return self.tracking_code or self.name
 
     def num_containers(self):
-        return self.container_set.count()
+        return self.containers.count()
 
     def num_samples(self):
-        return self.container_set.aggregate(Count('sample'))['sample__count']
+        return self.containers.aggregate(sample_count=Count('samples'))['sample_count']
 
     def datasets(self):
-        return self.project.data_set.filter(sample__container__shipment__pk=self.pk)
+        return self.project.datasets.filter(sample__container__shipment__pk=self.pk)
 
     def num_datasets(self):
         return self.datasets().count()
 
     def reports(self):
-        return self.project.analysisreport_set.filter(data__sample__container__shipment__pk=self.pk)
+        return self.project.reports.filter(data__sample__container__shipment__pk=self.pk)
 
-    def num_results(self):
+    def num_reports(self):
         return self.reports().count()
 
     def is_sendable(self):
@@ -531,23 +572,16 @@ class Shipment(ObjectBaseClass):
     def is_receivable(self):
         return self.status == self.STATES.SENT
 
-    def is_pdfable(self):
-        return self.is_sendable() or self.status >= self.STATES.SENT
-    
-    def is_xlsable(self):
-        # can generate spreadsheet as long as there are no orphan samples with no group)
-        return not Sample.objects.filter(container__in=self.container_set.all()).filter(group__exact=None).exists()
-    
     def is_returnable(self):
-        return self.status == self.STATES.ON_SITE 
+        return self.status == self.STATES.ON_SITE
 
     def has_labels(self):
-        return self.status <= self.STATES.SENT and (self.num_containers() or self.component_set.filter(label=True))
+        return self.status <= self.STATES.SENT and (self.num_containers() or self.components.filter(label=True))
 
     def is_processed(self):
         # if all groups in shipment are complete, then it is a processed shipment.
         group_list = Group.objects.filter(shipment__get_container_list=self)
-        for container in self.container_set.all():
+        for container in self.containers.all():
             for group in container.get_group_list():
                 if group not in group_list:
                     group_list.append(group)
@@ -557,49 +591,41 @@ class Shipment(ObjectBaseClass):
         return True
 
     def is_processing(self):
-        return self.project.sample_set.filter(container__shipment__exact=self).filter(
-            Q(pk__in=self.project.data_set.values('sample')) |
+        return self.project.samples.filter(container__shipment__exact=self).filter(
+            Q(pk__in=self.project.datasets.values('sample')) |
             Q(pk__in=self.project.result_set.values('sample'))).exists()
- 
+
     def add_component(self):
         return self.status <= self.STATES.SENT
- 
+
     def label_hash(self):
         # use dates of project, shipment, and each container within to determine
         # when contents were last changed
         txt = str(self.project) + str(self.project.modified) + str(self.modified)
-        for container in self.container_set.all():
+        for container in self.containers.all():
             txt += str(container.modified)
         h = hashlib.new('ripemd160')  # no successful collision attacks yet
         h.update(txt)
         return h.hexdigest()
-    
+
     def shipping_errors(self):
         """ Returns a list of descriptive string error messages indicating the Shipment is not
             in a 'shippable' state
         """
         errors = []
         if self.num_containers() == 0:
-            errors.append("No Containers")
+            errors.append(_("No Containers"))
         if not self.num_samples():
-            errors.append("No Samples in any Container")
+            errors.append(_("No Samples in any Container"))
         return errors
-    
-    def groups(self):
-        return self.group_set.order_by('-priority')
 
-    def delete(self, request=None, cascade=True):
-        if self.is_deletable():
-            if not cascade:
-                self.container_set.all().update(shipment=None)
-            for obj in self.container_set.all():
-                obj.delete(request=request)
-            super(Shipment, self).delete(request=request)
+    def groups(self):
+        return self.groups.order_by('-priority')
 
     def receive(self, request=None):
         self.date_received = timezone.now()
         self.save()
-        for obj in self.container_set.all():
+        for obj in self.containers.all():
             obj.receive(request=request)
         super(Shipment, self).receive(request=request)
 
@@ -607,9 +633,9 @@ class Shipment(ObjectBaseClass):
         if self.is_sendable():
             self.date_shipped = timezone.now()
             self.save()
-            for obj in self.container_set.all():
+            for obj in self.containers.all():
                 obj.send(request=request)
-            self.group_set.all().update(status=Group.STATES.ACTIVE)
+            self.groups.all().update(status=Group.STATES.ACTIVE)
             super(Shipment, self).send(request=request)
 
     def unsend(self, request=None):
@@ -617,16 +643,16 @@ class Shipment(ObjectBaseClass):
             self.date_shipped = None
             self.status = self.STATES.DRAFT
             self.save()
-            for obj in self.container_set.all():
+            for obj in self.containers.all():
                 obj.unsend()
-            self.group_set.all().update(status=Group.STATES.DRAFT)
+            self.groups.all().update(status=Group.STATES.DRAFT)
 
     def unreturn(self, request=None):
         if self.status == self.STATES.RETURNED:
             self.date_shipped = None
             self.status = self.STATES.ON_SITE
             self.save()
-            for obj in self.container_set.all():
+            for obj in self.containers.all():
                 obj.unreturn()
 
     def unreceive(self, request=None):
@@ -634,21 +660,21 @@ class Shipment(ObjectBaseClass):
             self.date_received = None
             self.status = self.STATES.SENT
             self.save()
-            for obj in self.container_set.all():
+            for obj in self.containers.all():
                 obj.unreceive()
 
     def returned(self, request=None):
         if self.is_returnable():
             self.date_returned = timezone.now()
             self.save()
-            self.container_set.all().update(parent=None, location="")
-            LoadHistory.objects.filter(child__in=self.container_set.all()).active().update(end=timezone.now())
-            for obj in self.container_set.all():
+            self.containers.all().update(parent=None, location="")
+            LoadHistory.objects.filter(child__in=self.containers.all()).active().update(end=timezone.now())
+            for obj in self.containers.all():
                 obj.returned(request=request)
             super(Shipment, self).returned(request=request)
 
     def archive(self, request=None):
-        for obj in self.container_set.all():
+        for obj in self.containers.all():
             obj.archive(request=request)
         super(Shipment, self).archive(request=request)
 
@@ -656,13 +682,13 @@ class Shipment(ObjectBaseClass):
 class ComponentType(models.Model):
     name = models.CharField(max_length=50)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
 class Component(models.Model):
-    shipment = models.ForeignKey(Shipment, related_name="components")
-    kind = models.ForeignKey(ComponentType)
+    shipment = models.ForeignKey(Shipment, related_name="components", on_delete=models.CASCADE)
+    kind = models.ForeignKey(ComponentType, on_delete=models.CASCADE)
 
 
 class ContainerType(models.Model):
@@ -688,66 +714,105 @@ class ContainerType(models.Model):
         STATES.LOADED: [STATES.PENDING],
     }
     name = models.CharField(max_length=20)
-    container_locations = models.ManyToManyField("ContainerLocation", blank=True, related_name="containers")
+    locations = models.ManyToManyField("ContainerLocation", through="LocationCoord", blank=True, related_name="types")
     layout = JSONField(null=True, blank=True)
     envelope = models.CharField(max_length=200, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
 class ContainerLocation(models.Model):
     name = models.CharField(max_length=5)
-    accepts = models.ManyToManyField(ContainerType, blank=True, related_name="locations")
+    accepts = models.ManyToManyField(ContainerType, blank=True, related_name="acceptors")
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
-class Container(ObjectBaseClass):
+class LocationCoord(models.Model):
+    """
+    A Container Location Coordinate intermediate is defined for each container<->ContainerLocation type.
+    This model stores (x,y) coordinates used to build the layout (e.g. Uni-Puck, Adaptor, Autmounter, etc.). the
+    meaning of the coordinates depends on the envelope of the parent ContainerType.
+
+    Parent envelopes 'rect' or 'circle' are supported.
+        If 'rect', [x, y] coordinates are relative to width and height.
+        If 'circle', [x, y] coordinates are actually polar coordinates [r, theta], relative to width.
+    """
+    kind = models.ForeignKey(ContainerType, on_delete=models.CASCADE, related_name='coords')
+    location = models.ForeignKey(ContainerLocation, on_delete=models.CASCADE, related_name='coords')
+    x = models.FloatField(default=0.0)
+    y = models.FloatField(default=0.0)
+
+    def __str__(self):
+        return "{}:{}".format(self.kind.name, self.location.name)
+
+
+class ContainerQuerySet(models.QuerySet):
+    def with_port(self):
+        return self.annotate(port_name=Concat(*CONTAINER_PORT_FIELDS))
+
+
+class ContainerManager(models.Manager.from_queryset(ContainerQuerySet)):
+    def get_queryset(self):
+        return super().get_queryset().select_related('kind', 'project', 'location').with_port()
+
+
+class Container(TransitStatusMixin):
     HELP = {
-        'name': "A visible label on the container. If there is a barcode on the container, scan it here",
-        'capacity': "The maximum number of samples this container can hold",
-        'cascade': 'samples (along with groups, datasets and results)',
-        'cascade_help': 'All associated samples will be left without a container'
+        'name': _("A visible label on the container. If there is a barcode on the container, scan it here"),
+        'capacity': _("The maximum number of samples this container can hold"),
+        'cascade': _('samples (along with groups, datasets and results)'),
+        'cascade_help': _('All associated samples will be left without a container')
     }
-    kind = models.ForeignKey(ContainerType, blank=False, null=False)
-    shipment = models.ForeignKey(Shipment, blank=True, null=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='containers')
+    kind = models.ForeignKey(ContainerType, blank=False, null=False, on_delete=models.CASCADE,
+                             related_name='containers')
+    shipment = models.ForeignKey(Shipment, blank=True, null=True, on_delete=models.SET_NULL, related_name='containers')
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(default=0)
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, related_name="children")
-    location = models.ForeignKey(ContainerLocation, blank=True, null=True)
+    location = models.ForeignKey(ContainerLocation, blank=True, null=True, on_delete=models.SET_NULL,
+                                 related_name='contents')
+    objects = ContainerManager()
 
     class Meta:
         unique_together = (
             ("project", "name", "shipment"),
         )
-        ordering = ('kind', 'location')
+        ordering = ('kind', 'location', 'name')
 
-    def __unicode__(self):
-        return "{} | {}".format(self.kind.name.title(), self.name)
+    def __str__(self):
+        return "{} | {} | {}".format(self.kind.name.title(), self.project.name.upper(), self.name)
 
     def identity(self):
-        return 'CN%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
+        return 'CNT-{:07,d}'.format(self.id).replace(',', '-')
+
+    def get_absolute_url(self):
+        return reverse('container-detail', kwargs={'pk': self.id})
 
     def barcode(self):
         return self.name
 
     def num_samples(self):
-        return self.sample_set.count()
+        return self.samples.count()
+
+    def aspect_ratio(self):
+        return 100.0 * self.kind.layout.get('height', 1.0)
 
     def capacity(self):
-        return self.kind.container_locations.count()
+        return self.kind.locations.count()
 
     def has_children(self):
         return self.children.count() > 0
 
+    @memoize(3600)
     def accepts_children(self):
-        return self.kind.container_locations.filter(accepts__isnull=False).exists()
+        return self.kind.locations.filter(accepts__isnull=False).exists()
 
     def accepted_by(self):
-        return ContainerType.objects.filter(pk__in=self.kind.locations.values_list('containers', flat=True))
+        return ContainerType.objects.filter(pk__in=self.kind.locations.values_list('contents', flat=True))
 
     def children_by_location(self):
         return self.children.order_by('location')
@@ -757,63 +822,130 @@ class Container(ObjectBaseClass):
 
     def groups(self):
         groups = set([])
-        for sample in self.sample_set.all():
-            for group in sample.group_set.all():
+        for sample in self.samples.all():
+            for group in sample.groups.all():
                 groups.add('%s-%s' % (group.project.name, group.name))
         return ', '.join(groups)
-    
+
     def get_group_list(self):
         groups = list()
-        for sample in self.sample_set.all():
+        for sample in self.samples.all():
             if sample.group not in groups:
                 groups.append(sample.group)
         return groups
 
+    @memoize(timeout=60)
     def dewar(self):
         return self.dewars.filter(active=True).first() or self.parent and self.parent.dewar() or None
 
     def port(self):
-        return '{}{}'.format(self.parent and self.parent.port() or "", self.location or "")
+        if hasattr(self, 'port_name'):  # fetch from default annotation
+            return self.port_name
+        elif self.parent and self.location:
+            return "{}{}".format(self.parent.port(), self.location.name)
+        return ""
 
     def get_project(self):
-        if self.children.all():
+        if self.children.count():
             return '/'.join(set(self.children.values_list('project__username', flat=True)))
         return self.project
 
-    def update_priority(self):
-        """ Updates the Container's priority to max(group priorities)
+    def get_location_name(self):
+        return None if not (self.parent and self.location) else self.location.name
+
+    def placeholders(self):
         """
-        for field in ['priority']:
-            priority = None
-            for sample in self.sample_set.all():
-                if sample.group:
-                    if priority is None:
-                        priority = getattr(sample.group, field)
-                    else:
-                        priority = max(priority, getattr(sample.group, field))
-            if priority is not None:
-                setattr(self, field, priority)
-    
-    def delete(self, request=None, cascade=True):
-        if self.is_deletable:
-            if not cascade:
-                self.sample_set.all().update(container=None)
-            for obj in self.sample_set.all():
-                obj.delete(request=request)
-            super(Container, self).delete(request=request)
+        Generate a list of container locations that can hold samples or samples contained in the container.
+        """
+        samples = {s.location: s for s in self.samples.select_related('location', 'group').all()}
+        return [
+            {
+                'location': loc
+            } if loc not in samples else samples[loc]
+            for loc in self.kind.locations.order_by('pk')
+        ]
+
+    def get_layout(self, with_samples=True):
+        """
+        Generate a nested dictionary of data representing the hierarchy of containers and samples
+        :param with_samples: Whether to include sample information or not
+        :return: dictionary
+        """
+
+        info = self.kind.layout
+        locations = list(
+            self.kind.coords.select_related('location').values(
+                'x', 'y', loc=F('location__name'), accepts=Count('location__accepts'),
+            )
+        )
+        layout = {
+            'type': self.kind.name,
+            'id': self.pk,
+            'name': self.name,
+            'parent': None if not self.parent else self.parent.pk,
+            'owner': self.project.name.upper(),
+            'height': info.get('height'),
+            'url': self.get_absolute_url(),
+            'loc': self.get_location_name(),
+            'envelope': self.kind.envelope,
+            'accepts': self.accepts_children(),
+            'port': self.port()
+        }
+
+        contents = {}
+        if self.children.exists():
+            contents = {
+                info['loc']: info
+                for child in self.children.all()
+                for info in [child.get_layout()]
+                if info['loc']
+            }
+        elif not layout['accepts']:
+            layout['final'] = True
+            # only try fetch samples if container does not accept other containers
+            if with_samples:
+                samples = list(
+                    self.samples.values(
+                        'id', 'name', loc=F('location__name'), sample=Value(True, BooleanField()),
+                        batch=F('group__pk'), envelope=Value('circle', CharField()),
+                        started=Count('datasets')
+                    )
+                )
+
+                contents = {
+                    info['loc']: info
+                    for info in samples
+                    if info['loc']
+                }
+
+        # compile data
+        for loc in locations:
+            key = loc['loc']
+            loc['radius'] = info.get('radius', 100)
+            loc['accepts'] = bool(loc.get('accepts'))
+            loc['parent'] = self.pk
+            loc.update(contents.get(key, {}))
+        layout['children'] = list(locations)
+
+        return layout
 
 
 class LoadHistory(models.Model):
     start = models.DateTimeField(auto_now_add=True, editable=False)
     end = models.DateTimeField(null=True, blank=True)
-    child = models.ForeignKey(Container, null=False, blank=False, related_name='parent_history')
-    parent = models.ForeignKey(Container, null=False, blank=False, related_name='children_history')
-    location = models.ForeignKey(ContainerLocation, blank=True, null=True)
+    child = models.ForeignKey(Container, null=False, blank=False, related_name='parent_history',
+                              on_delete=models.CASCADE)
+    parent = models.ForeignKey(Container, null=False, blank=False, related_name='children_history',
+                               on_delete=models.CASCADE)
+    location = models.ForeignKey(ContainerLocation, blank=True, null=True, on_delete=models.SET_NULL)
 
     objects = StretchManager()
 
     class Meta:
         ordering = ['-start', ]
+
+    def __str__(self):
+        return '{}|{}|{}|{}'.format(self.child, self.parent, self.start, self.end)
 
 
 class Dewar(models.Model):
@@ -822,18 +954,17 @@ class Dewar(models.Model):
     one that samples or containers can be added to during a Project's beamtime. If a beamline has multiple containers
     (ie. Dewar objects), only the current one should be marked 'active'.
     """
-    beamline = models.ForeignKey(Beamline, on_delete=models.CASCADE)
+    beamline = models.ForeignKey(Beamline, on_delete=models.CASCADE, related_name="dewars")
     container = models.ForeignKey(Container, on_delete=models.CASCADE, related_name="dewars")
     staff_comments = models.TextField(blank=True, null=True)
     modified = models.DateTimeField('date modified', auto_now=True, editable=False)
     active = models.BooleanField(default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return "{} | {}".format(self.beamline.acronym, self.container.name)
 
     def identity(self):
-        return 'DE%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
+        return 'DEW-{:07,d}'.format(self.id).replace(',', '-')
 
     def json_dict(self):
         return {
@@ -845,218 +976,161 @@ class Dewar(models.Model):
         }
 
 
-class SpaceGroup(models.Model):
-    CS_CHOICES = (
-        ('a', 'triclinic'),
-        ('m', 'monoclinic'),
-        ('o', 'orthorombic'),
-        ('t', 'tetragonal'),
-        ('h', 'hexagonal'),
-        ('c', 'cubic'),
-    )
-    
-    LT_CHOICES = (
-        ('P', 'primitive'),
-        ('C', 'side-centered'),
-        ('I', 'body-centered'),
-        ('F', 'face-centered'),
-        ('R', 'rhombohedral'),
-    )
-    
-    name = models.CharField(max_length=20)
-    crystal_system = models.CharField(max_length=1, choices=CS_CHOICES)
-    lattice_type = models.CharField(max_length=1, choices=LT_CHOICES)
-    
-    def __unicode__(self):
-        return self.name
-
-
-class Group(LimsBaseClass):
+class Group(ProjectObjectMixin):
     STATUS_CHOICES = (
-        (LimsBaseClass.STATES.DRAFT, _('Draft')),
-        (LimsBaseClass.STATES.ACTIVE, _('Active')),
-        (LimsBaseClass.STATES.PROCESSING, _('Processing')),
-        (LimsBaseClass.STATES.COMPLETE, _('Complete')),
-        (LimsBaseClass.STATES.ARCHIVED, _('Archived'))
+        (ProjectObjectMixin.STATES.DRAFT, _('Draft')),
+        (ProjectObjectMixin.STATES.ACTIVE, _('Active')),
+        (ProjectObjectMixin.STATES.PROCESSING, _('Processing')),
+        (ProjectObjectMixin.STATES.COMPLETE, _('Complete')),
+        (ProjectObjectMixin.STATES.ARCHIVED, _('Archived'))
     )
 
     HELP = {
-        'cascade': 'samples, datasets and results',
-        'cascade_help': 'All associated samples will be left without a group',
-        'kind': "If SAD or MAD, be sure to provide the absorption edge below. Otherwise Se-K will be assumed.",
-        'plan': "Select the plan which describes your instructions for all samples in this group.",
-        'delta_angle': 'If left blank, an appropriate value will be calculated during screening.',
-        'total_angle': 'The total angle range to collect.',
-        'multiplicity': 'Values entered here take precedence over the specified "Angle Range".',
+        'cascade': _('samples, datasets and results'),
+        'cascade_help': _('All associated samples will be left without a group'),
+        'kind': _("If SAD or MAD, be sure to provide the absorption edge below. Otherwise Se-K will be assumed."),
+        'plan': _("Select the plan which describes your instructions for all samples in this group."),
+        'delta_angle': _('If left blank, an appropriate value will be calculated during screening.'),
+        'total_angle': _('The total angle range to collect.'),
+        'multiplicity': _('Values entered here take precedence over the specified "Angle Range".'),
     }
     EXP_TYPES = Choices(
-        (0, 'NATIVE', 'Native'),
-        (1, 'MAD', 'MAD'),
-        (2, 'SAD', 'SAD'),
-        (3, 'S_SAD', 'S-SAD')
+        (0, 'NATIVE', _('Native')),
+        (1, 'MAD', _('MAD')),
+        (2, 'SAD', _('SAD')),
+        (3, 'S_SAD', _('S-SAD'))
     )
     EXP_PLANS = Choices(
-        (0, 'COLLECT_BEST', 'Collect best'),
-        (1, 'COLLECT_FIRST_GOOD', 'Collect first good'),
-        (2, 'SCREEN_AND_CONFIRM', 'Screen and confirm'),
-        (4, 'JUST_COLLECT', 'Collect all'),
+        (0, 'COLLECT_BEST', _('Collect best')),
+        (1, 'COLLECT_FIRST_GOOD', _('Collect first good')),
+        (2, 'SCREEN_AND_CONFIRM', _('Screen and confirm')),
+        (4, 'JUST_COLLECT', _('Collect all')),
     )
-    TRANSITIONS = copy.deepcopy(LimsBaseClass.TRANSITIONS)
-    TRANSITIONS[LimsBaseClass.STATES.DRAFT] = [LimsBaseClass.STATES.ACTIVE]
+    TRANSITIONS = copy.deepcopy(ProjectObjectMixin.TRANSITIONS)
+    TRANSITIONS[ProjectObjectMixin.STATES.DRAFT] = [ProjectObjectMixin.STATES.ACTIVE]
 
-    status = models.IntegerField(choices=STATUS_CHOICES, default=LimsBaseClass.STATES.DRAFT)
-    shipment = models.ForeignKey(Shipment, null=True, blank=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='sample_groups')
+    status = models.IntegerField(choices=STATUS_CHOICES, default=ProjectObjectMixin.STATES.DRAFT)
+    shipment = models.ForeignKey(Shipment, null=True, blank=True, on_delete=models.SET_NULL, related_name='groups')
     energy = models.DecimalField(null=True, max_digits=10, decimal_places=4, blank=True)
-    resolution = models.FloatField('Desired Resolution (&#8491;)', null=True, blank=True)
-    kind = models.IntegerField('exp. type', choices=EXP_TYPES, default=EXP_TYPES.NATIVE)
+    resolution = models.FloatField(_('Desired Resolution (&#8491;)'), null=True, blank=True)
+    kind = models.IntegerField(_('exp. type'), choices=EXP_TYPES, default=EXP_TYPES.NATIVE)
     absorption_edge = models.CharField(max_length=5, null=True, blank=True)
     plan = models.IntegerField(choices=EXP_PLANS, default=EXP_PLANS.COLLECT_BEST)
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(blank=True, null=True)
-    sample_count = models.PositiveIntegerField('Number of Samples', default=1)
+
+    objects = ProjectObjectManager()
 
     class Meta:
-        verbose_name = 'Group'
+        verbose_name = _('Group')
         unique_together = (
             ("project", "name", "shipment"),
         )
         ordering = ['priority']
 
     def identity(self):
-        return 'EX%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))    
-    identity.admin_order_field = 'pk'
+        return 'GRP-{:07,d}'.format(self.id).replace(',', '-')
+
+    def get_absolute_url(self):
+        return reverse('group-detail', kwargs={'pk': self.id})
 
     def num_samples(self):
-        return self.sample_set.count()
+        return self.samples.count()
 
     def complete(self):
-        return not self.sample_set.filter(collect_status=False).exists()
+        return not self.samples.filter(collect_status=False).exists()
 
     def best_sample(self):
         # need to change to [id, score]
         if self.plan == Group.EXP_PLANS.COLLECT_BEST:
-            results = self.project.result_set.filter(group=self, sample__in=self.sample_set.all()).order_by('-score')
+            results = self.project.reports.filter(group=self, sample__in=self.samples.all()).order_by('-score')
             if results:
                 return [results[0].sample.pk, results[0].score]
 
-    def unassigned_samples(self):
-        return self.sample_count - self.sample_set.count()
-
     def is_closable(self):
-        return self.sample_set.all().exists() and not self.sample_set.exclude(
+        return self.samples.all().exists() and not self.samples.exclude(
             status__in=[Sample.STATES.RETURNED, Sample.STATES.ARCHIVED]).exists() and \
                self.status != self.STATES.ARCHIVED
-        
-    def delete(self, request=None, cascade=True):
-        if self.is_deletable:
-            if not cascade:
-                self.sample_set.all().update(group=None)
-            for obj in self.sample_set.all():
-                obj.group = None
-                obj.delete(request=request)
-            super(Group, self).delete(request=request)
 
     def archive(self, request=None):
-        for obj in self.sample_set.exclude(status__exact=Sample.STATES.ARCHIVED):
+        for obj in self.samples.exclude(status__exact=Sample.STATES.ARCHIVED):
             obj.archive(request=request)
         super(Group, self).archive(request=request)
-        
 
-class Sample(LimsBaseClass):
+
+class SampleQuerySet(models.QuerySet):
+    def with_port(self):
+        return self.annotate(port_name=Concat(*SAMPLE_PORT_FIELDS))
+
+
+class SampleManager(models.Manager.from_queryset(SampleQuerySet)):
+    def get_queryset(self):
+        return super().get_queryset().select_related('group', 'location', 'container', 'project').with_port()
+
+
+class Sample(ProjectObjectMixin):
     HELP = {
-        'cascade': 'datasets and results',
-        'cascade_help': 'All associated datasets and results will be left without a sample',
-        'name': "Avoid using spaces or special characters in sample names",
-        'barcode': "If there is a datamatrix code on sample, please scan or input the value here",
-        'comments': 'You can use restructured text formatting in this field',
-        'container_location': 'This field is required only if a container has been selected',
-        'group': 'This field is optional here.  Samples can also be added to a group on the groups page.',
-        'container': 'This field is optional here.  Samples can also be added to a container on the containers page.',
+        'cascade': _('datasets and results'),
+        'cascade_help': _('All associated datasets and results will be left without a sample'),
+        'name': _("Avoid using spaces or special characters in sample names"),
+        'barcode': _("If there is a data-matrix code on sample, please scan or input the value here"),
+        'comments': _('You can use restructured text formatting in this field'),
+        'location': _('This field is required only if a container has been selected'),
+        'group': _('This field is optional here.  Samples can also be added to a group on the groups page.'),
+        'container': _('This field is optional here.  Samples can also be added to a container on the containers page.'),
     }
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='samples')
     barcode = models.SlugField(null=True, blank=True)
-    container = models.ForeignKey(Container, null=True, blank=True, on_delete=models.CASCADE)
-    location = models.CharField(max_length=10, null=True, blank=True, verbose_name='port')
+    container = models.ForeignKey(Container, null=True, blank=True, on_delete=models.CASCADE, related_name='samples')
+    location = models.ForeignKey(ContainerLocation, on_delete=models.CASCADE, related_name='samples')
     comments = models.TextField(blank=True, null=True)
     collect_status = models.BooleanField(default=False)
     priority = models.IntegerField(null=True, blank=True)
-    group = models.ForeignKey(Group, null=True, blank=True)
+    group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL, related_name='samples')
+
+    objects = SampleManager()
 
     class Meta:
         unique_together = (
-            ("project", "container", "location"),
+            ("container", "location"),
         )
         ordering = ['priority', 'container__name', 'location', 'name']
 
+    def get_absolute_url(self):
+        return reverse('sample-detail', kwargs={'pk': self.id})
+
     def identity(self):
-        return 'XT%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
+        return 'SPL-{:07,d}'.format(self.id).replace(',', '-')
 
     def dewar(self):
         return self.container.dewar()
 
     def reports(self):
-        reports = []
-        for d in self.data_set.all():
-            reports.extend(list(d.reports.all().values_list('pk', flat=True)))
-        return self.project.analysisreport_set.filter(pk__in=reports)
-
-    def container_and_location(self):
-        return "{} - {}".format(self.container.name, self.location)
-    container_and_location.short_description = "Container Location"
+        return AnalysisReport.objects.filter(project=self.project, data__sample=self)
 
     def port(self):
-        if not self.dewar():
-            return ""
-        return '{}{}'.format(self.container.port(), self.location)
+        if hasattr(self, 'port_name'):  # fetch from default annotation
+            return self.port_name
+        elif self.container and self.location:
+            return "{}{}".format(self.container.port(), self.location.name)
+        return ""
 
     def is_editable(self):
         return self.container.status == self.container.STATES.DRAFT
 
-    def delete(self, request=None, cascade=True):
+    def delete(self, *args, **kwargs):
         if self.is_deletable:
-            if self.group:
-                if self.group.sample_set.count() == 1:
-                    self.group.delete(request=request, cascade=False)
-            super(Sample, self).delete(request=request)
-
-    def json_dict(self):
-        return {
-            'container': self.container.name,
-            'container_type': self.container.kind.name,
-            'group': self.group.name,
-            'id': self.pk,
-            'name': self.name,
-            'barcode': self.barcode,
-            'priority': (self.group.priority, self.priority if self.priority else 1),
-            'comments': self.comments,
-            'location': self.location,
-            'port': self.port(),
-        }
-
-
-def parse_frames(frame_string):
-    frames = []
-    if frame_string:
-        for w in frame_string.split(','):
-            v = map(int, w.split('-'))
-            if len(v) == 2:
-                frames.extend(range(v[0], v[1]+1))
-            elif len(v) == 1:
-                frames.extend(v)
-    return frames
-
-
-def frame_ranges(frame_list):
-    for a, b in itertools.groupby(enumerate(frame_list), lambda (x, y): y - x):
-        b = list(b)
-        yield b[0][1], b[-1][1]
+            if self.group and self.group.samples.count() == 1:
+                self.group.delete(*args, **kwargs)
+            super().delete(*args, **kwargs)
 
 
 class FrameField(models.TextField):
     description = _("List of frames")
 
     def get_prep_value(self, value):
-        if value is None or isinstance(value, basestring):
+        if value is None or isinstance(value, str):
             return value
         else:
             try:
@@ -1069,69 +1143,80 @@ class FrameField(models.TextField):
                 return val_str
         return value
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection):
         if value is None or isinstance(value, list):
             return value
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             try:
                 v = json.loads(value)
                 if isinstance(v, list):
                     return v
-            except:
+            except Exception:
                 pass
             return parse_frames(value)
         return value
 
 
-class Data(DataBaseClass):
-    DATA_TYPES = Choices(
-        ('MX_SCREEN', 'MX Screening'),
-        ('MX_DATA', 'MX Dataset'),
-        ('XRD_DATA', 'XRD Dataset'),
-        ('RASTER', 'Raster'),
-        ('XAS_SCAN', 'XAS Scan'),
-        ('XRF_SCAN', 'XRF Scan'),
-        ('MAD_SCAN', 'MAD Scan'),
-    )
-    METADATA = {
-        DATA_TYPES.MX_SCREEN: ['delta_angle', 'start_angle', 'resolution', 'detector', 'detector_type', 'detector_size',
-                               'pixel_size', 'beam_x', 'beam_y', 'two_theta'],
-        DATA_TYPES.MX_DATA: ['delta_angle', 'start_angle', 'resolution', 'detector', 'detector_type', 'detector_size',
-                             'pixel_size', 'beam_x', 'beam_y', 'two_theta'],
-        DATA_TYPES.MAD_SCAN: ['roi', 'edge'],
-        DATA_TYPES.XRF_SCAN: [],
-        DATA_TYPES.RASTER: ['grid_points', 'grid_origin', 'start_angle', 'delta_angle', 'detector_type',
-                            'detector_size', 'pixel_size', 'beam_x', 'beam_y','inverse_beam'],
-        DATA_TYPES.XRD_DATA: [],
-    }
-    group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL)
-    sample = models.ForeignKey(Sample, null=True, blank=True, on_delete=models.SET_NULL)
-    session = models.ForeignKey(Session, null=True, blank=True, on_delete=models.SET_NULL)
+class DataTypeManager(models.Manager):
+    def get_by_natural_key(self, acronym):
+        return self.get(acronym=acronym)
+
+
+class DataType(models.Model):
+    name = models.CharField(max_length=20)
+    acronym = models.SlugField(unique=True)
+    description = models.TextField()
+    template = models.CharField(max_length=100)
+    metadata = JSONField(default=[])
+
+    objects = DataTypeManager()
+
+    def natural_key(self):
+        return self.acronym,
+
+    def __str__(self):
+        return self.name
+
+
+class DataManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related('kind', 'project')
+
+
+class Data(ActiveStatusMixin):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='datasets')
+    group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL, related_name='datasets')
+    sample = models.ForeignKey(Sample, null=True, blank=True, on_delete=models.SET_NULL, related_name='datasets')
+    session = models.ForeignKey(Session, null=True, blank=True, on_delete=models.SET_NULL, related_name='datasets')
+    start_time = models.DateTimeField(null=True, blank=False)
+    end_time = models.DateTimeField(null=True, blank=False)
     file_name = models.CharField(max_length=200, null=True, blank=True)
     frames = FrameField(null=True, blank=True)
+    num_frames = models.IntegerField(_("Frame Count"), default=1)
+    frames_per_file = models.IntegerField(_("Maximum Frames per File"), default=1)
     exposure_time = models.FloatField(null=True, blank=True)
     attenuation = models.FloatField(default=0.0)
     energy = models.DecimalField(decimal_places=4, max_digits=10)
-    beamline = models.ForeignKey(Beamline, on_delete=models.PROTECT)
+    beamline = models.ForeignKey(Beamline, on_delete=models.PROTECT, related_name='datasets')
     beam_size = models.FloatField(null=True, blank=True)
     url = models.CharField(max_length=200)
-    kind = models.CharField('Data type', choices=DATA_TYPES, default=DATA_TYPES.MX_SCREEN, max_length=20)
+    kind = models.ForeignKey(DataType, on_delete=models.PROTECT, related_name='datasets')
     download = models.BooleanField(default=False)
     meta_data = JSONField(default={})
 
-    class Meta:
-        verbose_name = 'Dataset'
+    objects = DataManager()
 
-    def __unicode__(self):
-        return '%s (%d)' % (self.name, self.num_frames())
+    class Meta:
+        verbose_name = _('Dataset')
+
+    def __str__(self):
+        return '%s (%d)' % (self.name, self.num_frames)
 
     def identity(self):
-        return 'DA%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
+        return 'DAT-{:07,d}'.format(self.id).replace(',', '-')
 
-    # need a method to determine how many frames are in item
-    def num_frames(self):
-        return len(self.frames) if self.frames else 0
+    def get_absolute_url(self):
+        return reverse('data-detail', kwargs={'pk': self.id})
 
     def download_url(self):
         return "{}/{}.tar.gz".format(self.url, self.name)
@@ -1153,48 +1238,36 @@ class Data(DataBaseClass):
         return "{}/{}.gif".format(self.url, self.name)
 
     def get_meta_data(self):
-        return OrderedDict([(k, self.meta_data.get(k)) for k in self.METADATA[self.kind] if k in self.meta_data])
+        return OrderedDict([(k, self.meta_data.get(k)) for k in self.kind.metadata if k in self.meta_data])
 
     def report(self):
         return self.reports.first()
 
-    def result(self):
-        if len(self.result_set.all()) is 1:
-            return self.result_set.all()[0]
-        return False
-
-    def wavelength(self):
-        _h = 4.13566733e-15  # eV.s
-        _c = 299792458e10  # A/s
-        if float(self.energy) == 0.0:
-            return 0.0
-        return round((_h * _c) / (float(self.energy) * 1000.0),4)
-
     def total_angle(self):
-        return float(self.meta_data.get('delta_angle', 0)) * self.num_frames()
-        
-    def start_angle_for_frame(self, frame):
-        return (frame - self.first_frame) * self.delta_angle + self.start_angle 
+        return float(self.meta_data.get('delta_angle', 0)) * self.num_frames
 
     def archive(self, request=None):
-        for obj in self.result_set.all():
+        for obj in self.reports.all():
             if obj.status not in [GLOBAL_STATES.ARCHIVED, GLOBAL_STATES.TRASHED]:
                 obj.archive(request=request)
         super(Data, self).archive(request=request)
 
     def trash(self, request=None):
-        for obj in self.result_set.all():
+        for obj in self.reports.all():
             if obj.status not in [GLOBAL_STATES.TRASHED]:
                 obj.trash(request=request)
         super(Data, self).trash(request=request)
 
 
-class AnalysisReport(DataBaseClass):
+class AnalysisReport(ActiveStatusMixin):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='reports')
     kind = models.CharField(max_length=100)
-    score = models.FloatField()
+    score = models.FloatField(_("Analysis Report Score"), null=True, default=0.0)
     data = models.ManyToManyField(Data, blank=True, related_name="reports")
     url = models.CharField(max_length=200)
     details = JSONField(default=[])
+
+    objects = ProjectObjectManager()
 
     class Meta:
         ordering = ['-score']
@@ -1204,8 +1277,24 @@ class AnalysisReport(DataBaseClass):
         return '{}/{}-report-{}.tar.gz'.format(self.url, dataset.name, self.pk)
 
     def identity(self):
-        return 'AR%03d%s' % (self.id, self.created.strftime(IDENTITY_FORMAT))
-    identity.admin_order_field = 'pk'
+        return 'RPT-{:07,d}'.format(self.id).replace(',', '-')
+
+    def label(self):
+        if 'MX' in self.kind:
+            if 'Anom' in self.kind:
+                return 'ANO'
+            elif 'Merg' in self.kind:
+                return 'MRG'
+            elif 'MAD' in self.kind:
+                return 'MAD'
+            elif 'Screen' in self.kind:
+                return 'SCR'
+            else:
+                return 'NAT'
+        return self.kind[:3].upper()
+
+    def get_absolute_url(self):
+        return reverse('report-detail', kwargs={'pk': self.id})
 
     def sessions(self):
         return self.project.sessions.filter(pk__in=self.data.values_list('session__pk', flat=True)).distinct()
@@ -1236,7 +1325,7 @@ class ActivityLogManager(models.Manager):
             e.user = request.user
             e.user_description = request.user.username
         except:
-            e.user_description = "System"
+            e.user_description = _("System")
         e.ip_number = request.META['REMOTE_ADDR']
         e.action_type = action_type
         e.description = description
@@ -1256,47 +1345,88 @@ class ActivityLogManager(models.Manager):
 
 class ActivityLog(models.Model):
     TYPE = Choices(
-        (0, 'LOGIN', 'Login'),
-        (1, 'LOGOUT', 'Logout'),
-        (2, 'TASK', 'Task'),
-        (3, 'CREATE', 'Create'),
-        (4, 'MODIFY', 'Modify'),
-        (5, 'DELETE', 'Delete'),
-        (6, 'ARCHIVE', 'Archive')
+        (0, 'LOGIN', _('Login')),
+        (1, 'LOGOUT', _('Logout')),
+        (2, 'TASK', _('Task')),
+        (3, 'CREATE', _('Create')),
+        (4, 'MODIFY', _('Modify')),
+        (5, 'DELETE', _('Delete')),
+        (6, 'ARCHIVE', _('Archive'))
     )
-    created = models.DateTimeField('Date/Time', auto_now_add=True, editable=False)
-    project = models.ForeignKey(Project, blank=True, null=True)
-    user = models.ForeignKey(Project, blank=True, null=True, related_name='activities')
-    user_description = models.CharField('User name', max_length=60, blank=True, null=True)
-    ip_number = models.GenericIPAddressField('IP Address')
+    created = models.DateTimeField(_('Date/Time'), auto_now_add=True, editable=False)
+    project = models.ForeignKey(Project, blank=True, null=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(Project, blank=True, null=True, related_name='activities', on_delete=models.SET_NULL)
+    user_description = models.CharField(_('User name'), max_length=60, blank=True, null=True)
+    ip_number = models.GenericIPAddressField(_('IP Address'))
     object_id = models.PositiveIntegerField(blank=True, null=True)
-    content_type = models.ForeignKey(ContentType, blank=True, null=True)
+    content_type = models.ForeignKey(ContentType, blank=True, null=True, on_delete=models.SET_NULL)
     affected_item = GenericForeignKey('content_type', 'object_id')
     action_type = models.IntegerField(choices=TYPE)
-    object_repr = models.CharField('Entity', max_length=200, blank=True, null=True)
+    object_repr = models.CharField(_('Entity'), max_length=200, blank=True, null=True)
     description = models.TextField(blank=True)
-    
+
     objects = ActivityLogManager()
-    
+
     class Meta:
         ordering = ('-created',)
-    
-    def __unicode__(self):
+
+    def __str__(self):
         return str(self.created)
 
 
-@receiver(populate_user)
-def populate_user_handler(sender, user, ldap_user, **kwargs):
-    user_uids = set(map(int, ldap_user.attrs.get('gidnumber', [])))
-    admin_uids = set(getattr(settings, 'LDAP_ADMIN_UIDS', []))
-    if user_uids & admin_uids:
-        user.is_superuser = True
-        user.is_staff = True
-    if not user.name:
-        user.name = user.username
-        user.save()
+def get_storage_path(instance, filename):
+    return os.path.join('uploads/', 'links', filename)
+
+
+DOCUMENT_MIME_TYPES = [
+    'application/x-abiword', 'text/csv', 'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/epub+zip', 'application/vnd.oasis.opendocument.presentation',
+    'application/vnd.oasis.opendocument.spreadsheet', 'application/vnd.oasis.opendocument.text',
+    'application/pdf', 'application/vnd.ms-powerpoint', 'application/rtf', 'text/plain', 'application/vnd.visio',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+]
+
+
+class Guide(TimeStampedModel):
+    TYPE = Choices(
+        ('snippet', _('Text')),
+        ('video', _('Video')),
+        ('image', _('Image')),
+    )
+    title = models.CharField(max_length=50, blank=True)
+    description = models.TextField(blank=True)
+    priority = models.IntegerField(null=False, default=0)
+    attachment = models.FileField(blank=True, upload_to=get_storage_path)
+    staff_only = models.BooleanField(default=False)
+    kind = models.CharField(_("Content Type"), max_length=20, default=TYPE.snippet, choices=TYPE)
+    modal = models.BooleanField(default=False)
+    url = models.CharField(_("URL or Resource"), max_length=200, blank=True, null=True)
+
+    def has_document(self):
+        if self.attachment:
+            mime, encoding = mimetypes.guess_type(self.attachment.url)
+            return mime in DOCUMENT_MIME_TYPES
+
+    def has_image(self):
+        if self.attachment:
+            mime, encoding = mimetypes.guess_type(self.attachment.url)
+            return mime.startswith('image')
+
+    def has_video(self):
+        if self.attachment:
+            mime, encoding = mimetypes.guess_type(self.attachment.url)
+            return mime.startswith('video')
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        ordering = ("-staff_only", "priority",)
 
 
 @receiver(post_delete, sender=Project)
 def on_project_delete(sender, instance, **kwargs):
-    slap.del_user(instance.name)
+    directory = slap.Directory()
+    directory.delete_user(instance.name)

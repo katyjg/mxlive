@@ -1,63 +1,60 @@
-from django.contrib.messages.views import SuccessMessageMixin
-from django.views.generic import edit, detail, TemplateView
-from django.core.urlresolvers import reverse_lazy
+from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.shortcuts import render
-from django.http import HttpResponseRedirect, JsonResponse
+from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.contrib.messages.views import SuccessMessageMixin
+from django.http import JsonResponse
+from django.urls import reverse_lazy
+from django.utils import dateformat, timezone
+from django.views.generic import edit, detail
+from itemlist.views import ItemListView
 
-import models
-import forms
-import slap
+from mxlive.utils import slap
+from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin
+from . import models
+from ..lims.models import Project, ActivityLog
+from ..lims import forms, stats
 
-from objlist.views import FilteredListView
-from mixins import AjaxableResponseMixin, AdminRequiredMixin
-from lims.models import Project, ActivityLog
-from lims.forms import NewProjectForm
 
 User = get_user_model()
 
 
-class AccessList(AdminRequiredMixin, FilteredListView):
+class AccessList(AdminRequiredMixin, ItemListView):
     model = models.UserList
-    list_filter = []
-    list_display = ['name', 'description', 'current_users', 'allowed_users', 'address', 'active']
+    list_filters = []
+    list_columns = ['name', 'description', 'current_users', 'allowed_users', 'address', 'active']
+    list_search = ['name', 'description']
     tool_template = "users/tools-access.html"
-    detail_url = 'access-edit'
-    detail_url_kwarg = 'address'
-    detail_ajax = True
-    detail_target = '#modal-form'
-    order_by = ['name']
+    link_url = 'access-edit'
+    link_kwarg = 'address'
+    link_attr = 'data-form-link'
+    ordering = ['name']
     template_name = "users/list.html"
-
-    def get_context_data(self, **kwargs):
-        ctx = super(AccessList, self).get_context_data(**kwargs)
-        ctx['tool_template'] = self.tool_template
-        return ctx
+    page_title = 'Remote Access'
 
 
-class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
+class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.AccessForm
-    template_name = "forms/modal.html"
+    template_name = "modal/form.html"
     model = models.UserList
     success_url = reverse_lazy('access-list')
     success_message = "Remote access list has been updated."
     allowed_roles = ['owner', 'admin']
     admin_roles = ['admin']
 
-    def get_object(self):
+    def get_object(self, queryset=None):
         return self.model.objects.get(address=self.kwargs.get('address'))
 
 
-class RemoteConnectionList(AdminRequiredMixin, FilteredListView):
+class RemoteConnectionList(AdminRequiredMixin, ItemListView):
     model = models.RemoteConnection
-    list_display = ['user', 'name', 'list', 'status', 'created', 'end']
-    list_filter = ['created', 'list']
-    search_fields = ['user__username', 'name', 'status', 'list__name', 'created']
-    order_by = ['-created']
+    list_columns = ['user', 'name', 'list', 'status', 'created', 'end']
+    list_filters = ['created', 'list']
+    list_search = ['user__username', 'name', 'status', 'list__name', 'created']
+    ordering = ['-created']
     template_name = "users/list.html"
-    detail_url = 'connection-detail'
-    detail_ajax = True
-    detail_target = '#modal-form'
+    link_url = 'connection-detail'
+    link_attr = 'data-link'
+    page_title = 'Remote Connections'
 
 
 class RemoteConnectionDetail(AdminRequiredMixin, detail.DetailView):
@@ -65,84 +62,41 @@ class RemoteConnectionDetail(AdminRequiredMixin, detail.DetailView):
     template_name = "users/entries/connection.html"
 
 
-class CategoryList(AdminRequiredMixin, FilteredListView):
-    model = models.UserCategory
-    list_filter = []
-    list_display = ['name', 'current_users', 'num_users']
-    detail_url = 'category-edit'
-    detail_ajax = True
-    detail_target = '#modal-form'
-    order_by = ['name']
-    template_name = "users/list.html"
-
-
-class CategoryEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
-    form_class = forms.CategoryForm
-    template_name = "forms/modal.html"
-    model = models.UserCategory
-    success_url = reverse_lazy('category-list')
-    success_message = "User category has been updated."
-    allowed_roles = ['owner', 'admin']
-    admin_roles = ['admin']
-
-
-class AnnouncementCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
-    form_class = forms.AnnouncementForm
-    template_name = "forms/modal.html"
-    model = models.Announcement
-    success_url = reverse_lazy('dashboard')
-    success_message = "Announcement has been created"
-
-
-class AnnouncementEdit(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.UpdateView):
-    form_class = forms.AnnouncementForm
-    template_name = "forms/modal.html"
-    model = models.Announcement
-    success_url = reverse_lazy('dashboard')
-    success_message = "Announcement has been updated"
-
-
-class AnnouncementDelete(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
-    template_name = "forms/delete.html"
-    model = models.Announcement
-    success_url = reverse_lazy('dashboard')
-    success_message = "Announcement has been deleted"
-
-    def get_context_data(self, **kwargs):
-        context = super(AnnouncementDelete, self).get_context_data(**kwargs)
-        context['form_action'] = reverse_lazy('announcement-delete', kwargs={'pk': self.object.pk})
-        return context
-
-
-class ProjectList(AdminRequiredMixin, FilteredListView):
+class ProjectList(AdminRequiredMixin, ItemListView):
     model = Project
     paginate_by = 25
-    template_name = "users/list.html"
-    tools_template = "users/tools-user.html"
-    list_filter = ['modified', ]
-    list_display = ['username', 'contact_person', 'contact_phone', 'contact_email', 'shipment_count']
-    search_fields = ['username', 'contact_person', 'contact_phone', 'contact_email', 'city', 'province', 'country',
-                     'department', 'organisation']
-    detail_url = 'user-detail'
-    detail_url_kwarg = 'username'
+    template_name = "users/user-list.html"
+    list_filters = ['created', 'modified', 'kind', 'designation']
+    list_columns = ['username', 'contact_person', 'contact_phone', 'contact_email', 'kind']
+    list_search = [
+        'username', 'contact_person', 'contact_phone', 'contact_email', 'city', 'province', 'country',
+        'department', 'organisation'
+    ]
+    link_url = 'user-detail'
+    link_kwarg = 'username'
     add_url = 'new-project'
     add_ajax = True
-    order_by = ['name']
-    ordering_proxies = {}
-    list_transforms = {}
+    ordering = ['name']
 
 
 class UserDetail(AdminRequiredMixin, detail.DetailView):
     model = Project
     template_name = "users/entries/user.html"
+    page_title = "User Profile"
 
-    def get_object(self):
+    def get_object(self, **kwargs):
         return Project.objects.get(username=self.kwargs.get('username'))
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['report'] = stats.project_stats(self.object)
+        return context
 
-class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.CreateView):
-    form_class = NewProjectForm
-    template_name = "forms/modal.html"
+
+
+class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
+    form_class = forms.NewProjectForm
+    template_name = "modal/form.html"
     model = Project
     success_url = reverse_lazy('user-list')
     success_message = "New Account '%(username)s' has been created."
@@ -157,32 +111,32 @@ class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
         # Make sure user with username does not already exist
         if User.objects.filter(username=user_info.get('username')).exists():
             user_info.pop('username', '')
-
-        info = slap.add_user(user_info)
+        ldap = slap.Directory()
+        info = ldap.add_user(user_info)
         info['name'] = info.get('username')
         for k in ['contact_email', 'contact_person', 'contact_phone']:
             info[k] = data.get(k, '')
-        info.pop('password')
 
         # create local user
-        proj = Project.objects.create(**info)
+        response = super().form_valid(form)
+        #proj = Project.objects.create(**info)
 
-        info_msg = 'New Account {} added'.format(proj)
+        info_msg = 'New Account {} added'.format(self.object)
 
         ActivityLog.objects.log_activity(
-            self.request, proj, ActivityLog.TYPE.CREATE, info_msg
+            self.request, self.object, ActivityLog.TYPE.CREATE, info_msg
         )
         # messages are simply passed down to the template via the request context
-        return render(self.request, "users/redirect.html")
+        return response
 
 
-class ProjectDelete(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMixin, edit.DeleteView):
-    template_name = "forms/delete.html"
+class ProjectDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
+    template_name = "modal/delete.html"
     model = User
     success_url = reverse_lazy('user-list')
     success_message = "Account has been deleted"
 
-    def get_object(self):
+    def get_object(self, *kwargs):
         obj = self.model.objects.get(username=self.kwargs.get('username'))
         return obj
 
@@ -193,8 +147,35 @@ class ProjectDelete(AdminRequiredMixin, SuccessMessageMixin, AjaxableResponseMix
 
     def delete(self, *args, **kwargs):
         obj = self.get_object()
-        info = slap.del_user(obj.username)
+        ldap = slap.Directory()
+        info = ldap.delete_user(obj.username)
         obj.delete()
         self.success_message = "{} account has been deleted".format(kwargs.get('username'))
         return JsonResponse({'url': self.success_url}, safe=False)
 
+
+
+
+def record_logout(sender, user, request, **kwargs):
+    """ user logged outof the system """
+    ActivityLog.objects.log_activity(request, user, ActivityLog.TYPE.LOGOUT, '{} logged-out'.format(user.username))
+
+
+def record_login(sender, user, request, **kwargs):
+    """ Login a user into the system """
+    if user.is_authenticated:
+        ActivityLog.objects.log_activity(request, user, ActivityLog.TYPE.LOGIN, '{} logged-in'.format(user.username))
+        last_login = ActivityLog.objects.last_login(request)
+        if last_login is not None:
+            last_host = last_login.ip_number
+            message = 'Your previous login was on {date} from {ip}.'.format(
+                date=dateformat.format(timezone.localtime(last_login.created), 'M jS @ P'),
+                ip=last_host)
+            messages.info(request, message)
+        elif not request.user.is_staff:
+            message = 'You are logging in for the first time. Please make sure your profile is updated.'
+            messages.info(request, message)
+
+
+user_logged_in.connect(record_login)
+user_logged_out.connect(record_logout)

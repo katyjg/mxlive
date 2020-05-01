@@ -1,92 +1,46 @@
 {% extends "users/base.html" %}
 
 {% load static %}
-{% load json_to_dict %}
+{% load jsutils %}
 {% load stats %}
-{% load get_version %}
+
+{% block extra_css %}
+    <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
+    <link href="{% static "css/reports.min.css" %}" rel="stylesheet">
+{% endblock %}
 
 {% block page_heading %}
-    <h3 class="text-condensed narrow-heading">
-        <strong class="text-muted">{{ object.username|upper }}</strong> | Statistics
+    <h3 class="text-condensed">
+        <strong class="text-muted">{{ object.username|upper }}</strong> | Usage Statistics
     </h3>
     <span class="text-muted">
-        Your history at {{ "BL_NAME"|get_from_settings }} in numbers
+        Your history in numbers
     </span>
 {% endblock %}
 
 {% block object_status %}
 {% endblock %}
 
-
 {% block full %}
-
 <div class="row">
-    <div class="col-sm-12">
-        <h3 class="section-title">Since {% now 'Y' %}</h3>
-    </div>
-
-    {% get_yearly_sessions object as sessions %}
-    {% samples_per_hour object sessions as samples_per_hour %}
-    {% for category in object.categories.all %}
-        <div class="col-sm-12 status-bar">
-            <div class="col-sm-3">
-                <div class="text-condensed"><strong>Average <br>Samples per<br> Hour Used</strong></div>
-            </div>
-            <div class="col-sm-3">
-                <span class="text-condensed">{{ object.username|title }}:</span><br/>
-                <span class="text-large pull-left">{{ samples_per_hour }}</span>
-            </div>
-            <div class="col-sm-3">
-                <span class="text-condensed">All {{ category }} Groups:</span><br/>
-                <span class="text-large pull-left">{{ category|samples_per_hour_all }}</span>
-            </div>
-            <div class="col-sm-3 text-right">
-                <span class="text-condensed">Percentile Rank:</span><br/>
-                <span class="text-large">{{ category|samples_per_hour_percentile:object }}</span>
-            </div>
-        </div>
-    {% endfor %}
-    <div id="data-stats" class="col-xs-12"></div>
-
+    <div id="data-stats" class="col-12"></div>
 </div>
-    <div class="col-sm-12">
-        <h3 class="section-title">Sessions in the past year</h3>
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Session</th>
-                    <th>Start</th>
-                    <th>Samples/Hour Used</th>
-                    <th>Shifts</th>
-                    <th>Hours Used</th>
-                    <th>Hours Un-used</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in sessions %}
-                    <tr>
-                        <td>{{ s.name }}</td>
-                        <td>{{ s.start }}</td>
-                        <td>{{ s.samples.count }} / {{ s.total_time }}</td>
-                        <td>{{ s.shift_parts }}</td>
-                        <td>{{ s.total_time }}</td>
-                        <td>{{ s.shift_parts }} * 8 - {{ s.total_time }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+{% endblock %}
 
+{% block extra_js %}
+    <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
+    <script type="text/javascript" src="{% static 'js/d3/d3.timeline.min.js' %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
 
-<link href="{% static "css/reports.css" %}" rel="stylesheet">
-
-<script type="text/javascript" src="{% static "js/d3.v4.min.js" %}"></script>
-<script type="text/javascript" src="{% static "js/d3.legend.js" %}"></script>
-<script type="text/javascript" src="{% static "js/showdown.min.js" %}"></script>
-<script type="text/javascript" src="{% static "js/live-reports.js" %}"></script>
-
-<script>
-    var json = {% get_project_stats object %};
-    build_report('#data-stats', json);
-</script>
+    <script type="text/javascript">
+        var report = {{ report | safe }};
+        $(document).ready(function() {
+            $('#data-stats').liveReport({
+                data: report
+            });
+        });
+    </script>
 {% endblock %}

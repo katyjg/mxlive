@@ -1,59 +1,52 @@
-<nav class="navbar navbar-default navbar-fixed-top">
-    <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header">
-      <a class="navbar-brand" href="{% url "dashboard" %}"> </a>
-
-        <div class="navbar-header-menu navbar-right pull-right">
-            <ul class="nav navbar-nav pull-right">
-                {% if user.is_superuser %}
-                   <li class="hidden-xs"><a href="/admin/" target="_blank"><i class="fa fa-unlock fa-fw"></i><span class="hidden-xs">Admin</span> </a></li>
-                {% endif %}
-                <li><a href="{% url "dashboard" %}"><i class="fa fa-home fa-fw"></i><span class="hidden-xs">Dashboard</span> </a></li>
-
-                <li class="dropdown profile-menu pull-right">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                        <i class="fa fa-user fa-fw"></i> <strong class="hidden-xs">{{ user }}</strong>
-                        <i class="ti ti-angle-down"></i>
-                    </a>
-                     <ul class="dropdown-menu" style="color: #fff;">
-                         <li>
-                             {% include "users/address.html" with user=user %}
-                         </li>
-                         <li role="separator" class="divider"></li>
-                         <li>
-                             <div class="row-fluid">
-                                 <div class="col-xs-12 mini-profile">
-                                    <a class="pull-left" data-url="{% url "edit-profile" user.username %}"><button type="button" class="btn btn-info">
-                                        <i class="ti ti ti-pencil-alt fa-fw"></i>&nbsp;Profile
-                                    </button></a>
-                                    <a class="pull-right" href="{% url 'mxlive-logout' %}"><button type="button" class="btn btn-danger">
-                                        <i class="ti ti ti-power-off fa-fw"></i>&nbsp;Log Out
-                                    </button></a>
-                                 </div>
-                             </div>
-                         </li>
-                     </ul>
-                  </li>
-                <li class="dropdown pull-right">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                        <i class="fa fa-list fa-fw"></i>
-                        <span class="hidden-xs">Search</span>
-                        <i class="ti ti-angle-down"></i></a>
-                    <ul class="dropdown-menu">
-                        <li><a href='{% url "shipment-list" %}'>Shipments</a></li>
-                        <li><a href="{% url "container-list" %}">Containers</a></li>
-                        <li><a href="{% url "group-list" %}">Groups</a></li>
-                        <li><a href="{% url "sample-list" %}">Samples</a></li>
-                        <li role="separator" class="divider"></li>
-                        <li><a href="{% url "data-list" %}">Datasets</a></li>
-                        <li><a href="{% url "result-list" %}">Reports</a></li>
-                        <li role="separator" class="divider"></li>
-                        <li><a href="{% url "session-list" %}">Sessions</a></li>
-                        <li><a href="{% url "activitylog-list" %}">Activity Log</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </div>
-
-</nav>
+<header>
+    <nav class="navbar navbar-expand navbar-dark fixed-top">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <a class="navbar-brand" href="{% url "dashboard" %}">MxLIVE</a>
+        <ul class="navbar-nav ml-auto">
+            {% if user.is_superuser %}
+               <li class="nav-item">
+                   <a  class="nav-link" href="/admin/" target="_blank">
+                       <i class="ti ti-unlock"></i><span class="d-none d-md-inline-block">&nbsp;Admin</span>
+                   </a>
+               </li>
+            {% endif %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url "dashboard" %}">
+                    <i class="ti ti-home"></i><span class="d-none d-md-inline-block">&nbsp;Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link  dropdown-toggle mr-md-2" href="#"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="search-menu">
+                    <i class="ti ti-list"></i><span class="d-none d-md-inline-block">&nbsp;Search</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="search-menu">
+                    <a class="dropdown-item" href='{% url "shipment-list" %}'>Shipments</a>
+                    <a class="dropdown-item" href="{% url "container-list" %}">Containers</a>
+                    <a class="dropdown-item" href="{% url "group-list" %}">Groups</a>
+                    <a class="dropdown-item" href="{% url "sample-list" %}">Samples</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{% url "data-list" %}">Datasets</a>
+                    <a class="dropdown-item" href="{% url "result-list" %}">Reports</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{% url "session-list" %}">Sessions</a>
+                    <a class="dropdown-item" href="{% url "activitylog-list" %}">Activity Log</a>
+                </div>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle mr-md-2" href="#"
+                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="profile-menu">
+                    <i class="ti ti-user"></i><span class="d-none d-md-inline-block">&nbsp;{{user.name.upper}}</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="profile-menu">
+                    <div class="">
+                        {% include "users/address.html" with user=user %}
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#!" data-form-link="{% url "edit-profile" user.username %}">Edit Profile</a>
+                    <a class="dropdown-item" href="{% url 'mxlive-logout' %}">Log Out</a>
+                </div>
+            </li>
+        </ul>
+    </nav>
+</header>

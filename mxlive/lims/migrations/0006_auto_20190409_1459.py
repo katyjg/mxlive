@@ -6,12 +6,12 @@ from django.conf import settings
 from django.db import migrations
 import os
 
-IMAGE_URL = getattr(settings, 'IMAGE_PREPEND', '')
+PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', '')
 
 
 def make_secure_path(path):
     # Generate Download  key on proxy server
-    url = IMAGE_URL + '/data/create/'
+    url = PROXY_URL + '/data/create/'
     r = requests.post(url, data={'path': path})
     if r.status_code == 200:
         key = r.json()['key']

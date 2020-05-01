@@ -1,9 +1,17 @@
 {% extends "users/base.html" %}
+{% load static %}
 {% load humanize %}
+{% load icons %}
+
+
+{% block extra_css %}
+    <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
+    <link href="{% static "css/reports.min.css" %}" rel="stylesheet">
+{% endblock %}
 
 {% block page_heading %}
-    <h3 class="text-condensed narrow-heading overflow ellipsis">
-        <span class="text-muted">{{ object.name }}</span> | <strong>{{ object.first_name }} {{ object.last_name }}</strong>
+    <h3 class="text-condensed">
+        <span class="text-muted">{{ object.name|upper }}</span> | <strong>{{ object.first_name }} {{ object.last_name }}</strong>
     </h3>
     <span class="text-muted">
         Beamline User since {{ object.created|naturalday }}
@@ -11,84 +19,49 @@
 {% endblock %}
 
 {% block object_tools %}
-{% if user.is_superuser %}
-<span class="box-tools pull-right">
-    <a class="pull-right" data-url="{% url "user-delete" object.username %}" title="Delete User">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-remove"></i>
-        </span><br>
-        <span class="tool-label">Delete</span>
+    <a href="{% url "data-list" %}?search={{ object.username }}" title="Go to Data for {{ object.username }}">
+        {% show_icon label="Data" icon="ti ti-md ti-layout-grid3" badge=object.datasets.count %}
     </a>
-    <a class="pull-right" data-url="{% url "edit-profile" object.username %}" title="Edit Profile">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-pencil"></i>
-        </span><br>
-        <span class="tool-label">Edit</span>
+    <a class="pull-right" href="{% url "result-list" %}?search={{ object.username }}" title="Go to Reports for {{ object.username }}">
+        {% show_icon label="Reports" icon="ti ti-md ti-bar-chart-alt" badge=object.reports.count %}
     </a>
-    <a class="pull-right" href="{% url "project-labels" object.username %}" title="Get Shipping Labels">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-tags"></i>
-        </span><br>
-        <span class="tool-label">Labels</span>
+    <a class="pull-right" href="{% url "session-list" %}?search={{ object.username }}" title="Go to Sessions for {{ object.username }}">
+        {% show_icon label="Sessions" icon="ti ti-md ti-calendar" badge=object.sessions.all.count %}
     </a>
-</span>
+    {% if user.is_superuser %}
+    <span class="separator"></span>
+    <a href="{% url "project-labels" object.username %}" title="Get Shipping Labels">
+        {% show_icon label="Labels" icon="ti ti-md ti-tag" %}
+    </a>
+    <a href="#!" data-form-link="{% url "edit-profile" object.username %}" title="Edit Profile">
+        {% show_icon label="Edit" icon="ti ti-md ti-pencil-alt" %}
+    </a>
+    <a href="#!" data-form-link="{% url "project-reset" object.username %}" title="Reset API Key">
+        {% show_icon label="Reset Key" icon="ti ti-md ti-key" %}
+    </a>
 {% endif %}
-<span class="box-tools pull-right hidden-xs">
-    <a class="pull-right" href="{% url "data-list" %}?q={{ object.username }}" title="Go to Data for {{ object.username }}">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-th"></i>
-            {% if object.data_set.count %}
-                <span class="fa-stack-1x superscript">
-                    <span class="badge progress-bar-info">{{ object.data_set.count }}</span>
-                </span>
-            {% endif %}
-        </span><br>
-        <span class="tool-label">Data</span>
-    </a>
-    <a class="pull-right" href="{% url "result-list" %}?q={{ object.username }}" title="Go to Reports for {{ object.username }}">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-            {% if object.analysisreport_set.count %}
-                <span class="fa-stack-1x superscript">
-                    <span class="badge progress-bar-info">{{ object.analysisreport_set.count }}</span>
-                </span>
-            {% endif %}
-        </span><br>
-        <span class="tool-label">Reports</span>
-    </a>
-    <a class="pull-right" href="{% url "session-list" %}?q={{ object.username }}" title="Go to Sessions for {{ object.username }}">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-area-chart"></i>
-            {% if object.sessions.count %}
-                <span class="fa-stack-1x superscript">
-                    <span class="badge progress-bar-info">{{ object.sessions.count }}</span>
-                </span>
-            {% endif %}
-        </span><br>
-        <span class="tool-label">Sessions</span>
-    </a>
-</span>
 {% endblock %}
 
 {% block object_status %}
     <div class="status-bar">
         <div class="row">
-            <div class="col-xs-2">
-                <h3 class="no-vmargin">
-                    <span class="label label-{% if object.active_status == 'Active' %}info{% else %}{% if object.active_status == 'Idle' %}default{% else %}success{% endif %}{% endif %}" title="Last session on {{ object.last_session }}">{{ object.active_status }}</span>
+            <div class="col-2">
+                <h3 class="m-0">
+                    <div class="badge badge-{% if object.active_status == 'Active' %}info{% else %}{% if object.active_status == 'Idle' %}secondary{% else %}success{% endif %}{% endif %}"
+                         title="Last session on {{ object.last_session }}"><span class="text-thin">{{ object.kind }} | </span>{{ object.active_status }}</div>
                 </h3>
             </div>
-            <div class="col-xs-3 pull-right text-right">
+            <div class="col-3 pull-right text-right">
                 <small class="text-muted text-condensed">Groups:</small><br>
-                {{ object.group_set.count }}
+                {{ object.sample_groups.count }}
             </div>
-            <div class="col-xs-2 pull-right text-right">
+            <div class="col-2 pull-right text-right">
                 <small class="text-muted text-condensed">Shipments:</small><br>
-                {{ object.shipment_set.count }}
+                {{ object.shipments.count }}
             </div>
-            <div class="col-xs-2 pull-right text-right">
+            <div class="col-2 pull-right text-right">
                 <small class="text-muted text-condensed">Samples:</small><br>
-                {{ object.sample_set.count }}
+                {{ object.samples.count }}
             </div>
 
         </div>
@@ -98,20 +71,48 @@
 {% block full %}
 
     <div class="row">
-        <div class="col-xs-12 col-sm-9">
-            {% include "users/address.html" with user=object %}
-            <span class="text-info">{{ object.contact_email|default_if_none:"" }}<br/>
-                {{ object.contact_phone|default_if_none:"" }}</span>
-            <br/>
-        </div>
-        <div class="col-xs-12 col-sm-3 text-center">
-            {% if object.carrier %}
-                <img src="/static/img/{{ object.carrier|slugify }}.png" title="{{ object.carrier|default_if_none:'User'|title }}">
-            {% else %}
-                <img src="/static/img/walking.png" title="{{ object.carrier|default_if_none:'User'|title }}">
-            {% endif %}
-            <h5><span class="text-muted">{{ object.account_number|default:"No account number" }}</span></h5>
+        <div class="col-12">
+            <div class="card">
+                <div class="row d-flex flex-row align-items-center">
+                    <div class="col-6">
+                        {% include "users/address.html" with user=object %}
+                        <div class="mini-profile">{{ object.contact_email|default_if_none:"" }}<br/>
+                        <pre>{{ object.contact_phone|default_if_none:"" }}</pre>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center float-right">
+                            <img src="/static/img/{{ object.carrier|default_if_none:'walking'|slugify }}.png"
+                                 height="100px"
+                                 title="{{ object.carrier|default_if_none:'User'|title }}">
+                            <h5>{{ object.account_number|default:"-- --- --- --" }}</h5>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 
+    <div class="row">
+        <div id="data-stats" class="col-12"></div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
+    <script type="text/javascript" src="{% static 'js/d3/d3.timeline.min.js' %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
+
+    <script type="text/javascript">
+        var report = {{ report | safe }};
+        $(document).ready(function() {
+            $('#data-stats').liveReport({
+                data: report
+            });
+        });
+    </script>
 {% endblock %}

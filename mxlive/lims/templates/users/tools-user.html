@@ -1,7 +1,4 @@
-<span class="box-tools pull-right">
-    <a class="pull-right" href="{% url "category-list" %}">
-        <span class="fa-stack">
-            <i class="fa-stack-2x fa fa-2 fa-fw fa-group"></i></span><br>
-        <span class="tool-label">Categories</span>
-    </a>
-</span>
+{% load icons %}
+<a class="pull-right" href="{% url "category-list" %}">
+    {% show_icon label='Categories' icon='ti ti-md ti-layout-list-thumb' badge=object.has_comments %}
+</a>

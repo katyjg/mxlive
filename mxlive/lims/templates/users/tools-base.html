@@ -1,29 +1,11 @@
+{% load icons %}
 {% if object.status == object.STATES.DRAFT or object.comments or object.staff_comments %}
-    <span class="box-tools pull-right">
-        {% if object.status == object.STATES.DRAFT %}
-            <a class="pull-right" data-url="{{ handler }}delete/">
-                <i class="fa fa-2 fa-fw fa-remove"></i><br>
-                <span class="tool-label">Delete</span>
-            </a>
-            <a class="pull-right" data-url="{{ handler }}edit/">
-                <i class="fa fa-2 fa-fw fa-pencil"></i><br>
-                <span class="tool-label">Edit</span>
-            </a>
-        {% endif %}
-        {% if object.comments or object.staff_comments %}
-            <a class="pull-right" data-toggle="collapse" href="#comments-{{ object.pk }}">
-                <span class="fa-stack">
-                    <i class="fa-stack-2x fa fa-fw fa-comments-o"></i>
-                    {% if object.comments or object.staff_comments %}
-                        <span class="fa-stack-1x superscript">
-                            <span class="badge progress-bar-info">
-                                {% if object.comments and object.staff_comments %}2{% else %}1{% endif %}
-                            </span>
-                        </span>
-                    {% endif %}
-                </span><br>
-                <span class="tool-label">Comments</span>
-            </a>
-        {% endif %}
-    </span>
+    {% if object.status == object.STATES.DRAFT %}
+        <a href="#!" data-form-link="{{ handler }}edit/">
+            {% show_icon label='Edit' icon='ti ti-md ti-pencil-alt' %}
+        </a>
+        <a href="#!" data-form-link="{{ handler }}delete/">
+            {% show_icon label='Delete' icon='ti ti-md ti-trash' %}
+        </a>
+    {% endif %}
 {% endif %}
