@@ -1,26 +1,40 @@
-.. MxLIVE documentation master file, created by
-   sphinx-quickstart on Thu Oct  5 15:41:49 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. title:: MxLIVE - MX Laboratory Information Virtual Environment
 
-Welcome to MxLIVE's documentation!
-==================================
+MxLIVE (Macromolecular Crystallography Laboratory Virtual Environment) is a development platform and web application for
+managing synchrotron visits from experiment planning and organisation to shipment tracking to data and analysis access.
+
+MxLIVE relies on MxDC as a source of meta-data from data collection sessions on the beamline, and acts as a resource
+from which MxDC can fetch sample information. While this close-coupling is
+tailored to MxDC, all connections are handled through the use of APIs, so other data collection
+applications could also be modified to complement MxLIVE.
+
+.. note::
+    An earlier version of MxLIVE is described in the following publication:
+
+    * MxDC and MxLIVE: software for data acquisition, information management and remote access to macromolecular
+      crystallography beamlines. M. Fodje, K. Janzen, R. Berg, G. Black, S. Labiuk, J. Gorin and P. Grochulski
+      J. Synchrotron Rad. (2012). 19, 274-280. https://doi.org/10.1107/S0909049511056305
+
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: For Users:
 
    overview
    starting
    shipping
    data
    reports
-   apis
-
 
 .. toctree::
    :maxdepth: 2
-   :caption: Developer Details:
+   :caption: For Staff:
+
+   apis
+
+.. toctree::
+   :maxdepth: 2
+   :caption: For Developers:
 
    modules/models
    modules/views
