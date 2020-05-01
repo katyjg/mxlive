@@ -320,7 +320,7 @@ class AddReport(VerificationMixin, View):
     """
 
     def post(self, request, *args, **kwargs):
-        info = msgpack.loads(request.body)
+        info = msgpack.loads(request.body, raw=False)
 
         from ..lims.models import Project, Data, AnalysisReport
         project_name = kwargs.get('username')
