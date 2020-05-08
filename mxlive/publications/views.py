@@ -3,10 +3,11 @@ from django.views.generic import TemplateView, list
 from django.urls import reverse
 from itemlist.views import ItemListView
 from mxlive.utils import filters
+from mxlive.utils.mixins import AdminRequiredMixin
 from . import models, stats
 
 
-class PubEntryList(ItemListView):
+class PubEntryList(AdminRequiredMixin, ItemListView):
     template_name = 'publications/list.html'
     model = models.Publication
     list_filters = [
@@ -26,7 +27,7 @@ class PubEntryList(ItemListView):
     page_title = 'Publication Entries'
 
 
-class PDBEntryList(ItemListView):
+class PDBEntryList(AdminRequiredMixin, ItemListView):
     template_name = 'publications/list.html'
     model = models.Deposition
     list_filters = [
@@ -65,7 +66,7 @@ class PDBEntryText(list.ListView):
         return context
 
 
-class SubjectAreasList(ItemListView):
+class SubjectAreasList(AdminRequiredMixin, ItemListView):
     template_name = 'publications/list.html'
     model = models.SubjectArea
     list_filters = ['created', 'modified']
@@ -76,7 +77,7 @@ class SubjectAreasList(ItemListView):
     page_title = 'PDB Depositions'
 
 
-class JournalList(ItemListView):
+class JournalList(AdminRequiredMixin, ItemListView):
     template_name = 'publications/list.html'
     model = models.Journal
     list_filters = ['created', 'modified']
@@ -86,7 +87,7 @@ class JournalList(ItemListView):
     page_title = 'Journals'
 
 
-class Statistics(TemplateView):
+class Statistics(AdminRequiredMixin, TemplateView):
     template_name = "publications/statistics.html"
 
     def get_context_data(self, **kwargs):
