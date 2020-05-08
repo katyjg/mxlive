@@ -1,9 +1,0 @@
-Views
-=====
-
-.. automodule:: lims.views
-    :members:
-
-.. automodule:: lims.ajax_views
-    :members:
-
