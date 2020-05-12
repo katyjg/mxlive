@@ -1,0 +1,868 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Models &mdash; MxLIVE v2019.04-233-gaed6fc8
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Views" href="views.html" />
+    <link rel="prev" title="Reports" href="../reports.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> MxLIVE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v2019.04-233-gaed6fc8
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">For MX Users:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../dashboard.html">On the Dashboard</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../shipping.html">Shipments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sessions.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data.html">Datasets &amp; Reports</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../starting.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../staff-dashboard.html">Staff Interface</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Developers:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../apis.html">Application Program Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reports.html">Reports</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">Views</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MxLIVE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Models</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-mxlive.lims.models">
+<span id="models"></span><h1>Models<a class="headerlink" href="#module-mxlive.lims.models" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="mxlive.lims.models.Beamline">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">Beamline</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Beamline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Beamline" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Beamline object should be created for every unique facility that will be uploading data or reports,
+or has its own automounter layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+<li><p><strong>acronym</strong> (<em>CharField</em>) – Acronym</p></li>
+<li><p><strong>energy_lo</strong> (<em>FloatField</em>) – Energy lo</p></li>
+<li><p><strong>energy_hi</strong> (<em>FloatField</em>) – Energy hi</p></li>
+<li><p><strong>contact_phone</strong> (<em>CharField</em>) – Contact phone</p></li>
+<li><p><strong>simulated</strong> (<em>BooleanField</em>) – Simulated</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.Beamline.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.Beamline.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.Beamline.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.Beamline.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.models.Beamline.active_automounter">
+<code class="sig-name descname">active_automounter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Beamline.active_automounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Beamline.active_automounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the container referenced by the active dewar pointing to the beamline.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.models.Beamline.active_dewar">
+<code class="sig-name descname">active_dewar</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Beamline.active_dewar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Beamline.active_dewar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the first active dewar pointing to the beamline. Generally, there should only be one active dewar
+referencing each beamline.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.models.Beamline.active_session">
+<code class="sig-name descname">active_session</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Beamline.active_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Beamline.active_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the session that is currently running on the beamline, if there is one.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.Dewar">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">Dewar</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Dewar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Dewar" title="Permalink to this definition">¶</a></dt>
+<dd><p>A through-model relating a Beamline object to a Container object. The container referenced here should be the
+one that samples or containers can be added to during a Project’s beamtime. If a beamline has multiple containers
+(ie. Dewar objects), only the current one should be marked ‘active’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>beamline_id</strong> (<em>ForeignKey</em>) – Beamline</p></li>
+<li><p><strong>container_id</strong> (<em>ForeignKey</em>) – Container</p></li>
+<li><p><strong>staff_comments</strong> (<em>TextField</em>) – Staff comments</p></li>
+<li><p><strong>modified</strong> (<em>DateTimeField</em>) – Date modified</p></li>
+<li><p><strong>active</strong> (<em>BooleanField</em>) – Active</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.Dewar.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.Dewar.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.Dewar.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.Dewar.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.Project">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">Project</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">password</em>, <em class="sig-param">last_login</em>, <em class="sig-param">is_superuser</em>, <em class="sig-param">username</em>, <em class="sig-param">first_name</em>, <em class="sig-param">last_name</em>, <em class="sig-param">email</em>, <em class="sig-param">is_staff</em>, <em class="sig-param">is_active</em>, <em class="sig-param">date_joined</em>, <em class="sig-param">name</em>, <em class="sig-param">contact_person</em>, <em class="sig-param">contact_email</em>, <em class="sig-param">carrier</em>, <em class="sig-param">account_number</em>, <em class="sig-param">department</em>, <em class="sig-param">address</em>, <em class="sig-param">city</em>, <em class="sig-param">province</em>, <em class="sig-param">postal_code</em>, <em class="sig-param">country</em>, <em class="sig-param">contact_phone</em>, <em class="sig-param">contact_fax</em>, <em class="sig-param">organisation</em>, <em class="sig-param">show_archives</em>, <em class="sig-param">key</em>, <em class="sig-param">kind</em>, <em class="sig-param">alias</em>, <em class="sig-param">created</em>, <em class="sig-param">modified</em>, <em class="sig-param">updated</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Project"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Project" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>password</strong> (<em>CharField</em>) – Password</p></li>
+<li><p><strong>last_login</strong> (<em>DateTimeField</em>) – Last login</p></li>
+<li><p><strong>is_superuser</strong> (<em>BooleanField</em>) – Designates that this user has all permissions without explicitly assigning them.</p></li>
+<li><p><strong>username</strong> (<em>CharField</em>) – Required. 150 characters or fewer. Letters, digits and &#64;/./+/-/_ only.</p></li>
+<li><p><strong>first_name</strong> (<em>CharField</em>) – First name</p></li>
+<li><p><strong>last_name</strong> (<em>CharField</em>) – Last name</p></li>
+<li><p><strong>email</strong> (<em>EmailField</em>) – Email address</p></li>
+<li><p><strong>is_staff</strong> (<em>BooleanField</em>) – Designates whether the user can log into this admin site.</p></li>
+<li><p><strong>is_active</strong> (<em>BooleanField</em>) – Designates whether this user should be treated as active. Unselect this instead of deleting accounts.</p></li>
+<li><p><strong>date_joined</strong> (<em>DateTimeField</em>) – Date joined</p></li>
+<li><p><strong>name</strong> (<em>SlugField</em>) – Name</p></li>
+<li><p><strong>contact_person</strong> (<em>CharField</em>) – Contact person</p></li>
+<li><p><strong>contact_email</strong> (<em>EmailField</em>) – Contact email</p></li>
+<li><p><strong>carrier_id</strong> (<em>ForeignKey</em>) – Carrier</p></li>
+<li><p><strong>account_number</strong> (<em>CharField</em>) – Account number</p></li>
+<li><p><strong>department</strong> (<em>CharField</em>) – Department</p></li>
+<li><p><strong>address</strong> (<em>CharField</em>) – Address</p></li>
+<li><p><strong>city</strong> (<em>CharField</em>) – City</p></li>
+<li><p><strong>province</strong> (<em>CharField</em>) – Province</p></li>
+<li><p><strong>postal_code</strong> (<em>CharField</em>) – Postal code</p></li>
+<li><p><strong>country</strong> (<em>CharField</em>) – Country</p></li>
+<li><p><strong>contact_phone</strong> (<em>CharField</em>) – Contact phone</p></li>
+<li><p><strong>contact_fax</strong> (<em>CharField</em>) – Contact fax</p></li>
+<li><p><strong>organisation</strong> (<em>CharField</em>) – Organisation</p></li>
+<li><p><strong>show_archives</strong> (<em>BooleanField</em>) – Show archives</p></li>
+<li><p><strong>key</strong> (<em>TextField</em>) – Key</p></li>
+<li><p><strong>kind_id</strong> (<em>ForeignKey</em>) – Project type</p></li>
+<li><p><strong>alias</strong> (<em>CharField</em>) – Alias</p></li>
+<li><p><strong>created</strong> (<em>DateTimeField</em>) – Date created</p></li>
+<li><p><strong>modified</strong> (<em>DateTimeField</em>) – Date modified</p></li>
+<li><p><strong>updated</strong> (<em>BooleanField</em>) – Updated</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.Project.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.Project.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.Project.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.Project.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.models.Project.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Project.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Project.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the current instance. Override this in a subclass if you want to
+control the saving process.</p>
+<p>The ‘force_insert’ and ‘force_update’ parameters can be used to insist
+that the “save” must be an SQL insert or update (or equivalent for
+non-SQL backends), respectively. Normally, they should not be set.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.Carrier">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">Carrier</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Carrier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Carrier" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Carrier object should be created for each courier company that may be used for shipping to the beamline.
+To link to shipment tracking, provide a URL that can be completed using a tracking number to link to a
+courier-specific tracking page.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+<li><p><strong>url</strong> (<em>URLField</em>) – Url</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.Carrier.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.Carrier.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.Carrier.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.Carrier.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.Shipment">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">Shipment</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">name</em>, <em class="sig-param">staff_comments</em>, <em class="sig-param">created</em>, <em class="sig-param">modified</em>, <em class="sig-param">status</em>, <em class="sig-param">project</em>, <em class="sig-param">comments</em>, <em class="sig-param">tracking_code</em>, <em class="sig-param">return_code</em>, <em class="sig-param">date_shipped</em>, <em class="sig-param">date_received</em>, <em class="sig-param">date_returned</em>, <em class="sig-param">carrier</em>, <em class="sig-param">storage_location</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Shipment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Shipment" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+<li><p><strong>staff_comments</strong> (<em>TextField</em>) – Staff comments</p></li>
+<li><p><strong>created</strong> (<em>DateTimeField</em>) – Date created</p></li>
+<li><p><strong>modified</strong> (<em>DateTimeField</em>) – Date modified</p></li>
+<li><p><strong>status</strong> (<em>IntegerField</em>) – Status</p></li>
+<li><p><strong>project_id</strong> (<em>ForeignKey</em>) – Project</p></li>
+<li><p><strong>comments</strong> (<em>TextField</em>) – Comments</p></li>
+<li><p><strong>tracking_code</strong> (<em>CharField</em>) – Tracking code</p></li>
+<li><p><strong>return_code</strong> (<em>CharField</em>) – Return code</p></li>
+<li><p><strong>date_shipped</strong> (<em>DateTimeField</em>) – Date shipped</p></li>
+<li><p><strong>date_received</strong> (<em>DateTimeField</em>) – Date received</p></li>
+<li><p><strong>date_returned</strong> (<em>DateTimeField</em>) – Date returned</p></li>
+<li><p><strong>carrier_id</strong> (<em>ForeignKey</em>) – Carrier</p></li>
+<li><p><strong>storage_location</strong> (<em>CharField</em>) – Storage location</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.Shipment.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.Shipment.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.Shipment.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.Shipment.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.models.Shipment.shipping_errors">
+<code class="sig-name descname">shipping_errors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Shipment.shipping_errors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Shipment.shipping_errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of descriptive string error messages indicating the Shipment is not
+in a ‘shippable’ state</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.ContainerType">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">ContainerType</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#ContainerType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.ContainerType" title="Permalink to this definition">¶</a></dt>
+<dd><p>A ContainerType should be defined for each container that has a unique layout. (e.g. Uni-Puck, Adaptor, Autmounter, etc.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>envelope</strong> (<em>CharField</em>) – ‘rect’ or ‘circle’ are supported.
+If ‘rect’, location__name lists are assumed to be [x, y] coordinates relative to width and height.
+If ‘circle’, location__name value lists are assumed to be polar coordinates [r, theta], relative to width.</p></li>
+<li><p><strong>layout</strong> (<em>JSONField</em>) – <p>dictionary with keys:</p>
+<ul>
+<li><p><cite>locations</cite>: dictionary with a key for each location__name mapping to a list with relative coordinates of the center of the location.</p></li>
+<li><p><cite>radius</cite>: radius of the circle (in range(0,100)) to draw for each location.</p></li>
+<li><p><cite>labels</cite> (optional): If present, takes the same form as the locations dictionary. If missing, a label is drawn for each location__name at the center of the location.</p></li>
+<li><p><cite>height</cite> (optional): To adjust dimensions of the envelope, relative to a default width of 1. If missing, height is also assumed to be 1.</p></li>
+</ul>
+</p></li>
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+<li><p><strong>layout</strong> – Layout</p></li>
+<li><p><strong>envelope</strong> – Envelope</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.ContainerType.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.ContainerType.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.ContainerType.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.ContainerType.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.ContainerLocation">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">ContainerLocation</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#ContainerLocation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.ContainerLocation" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.ContainerLocation.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.ContainerLocation.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.ContainerLocation.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.ContainerLocation.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.Container">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">Container</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">name</em>, <em class="sig-param">staff_comments</em>, <em class="sig-param">created</em>, <em class="sig-param">modified</em>, <em class="sig-param">status</em>, <em class="sig-param">project</em>, <em class="sig-param">kind</em>, <em class="sig-param">shipment</em>, <em class="sig-param">comments</em>, <em class="sig-param">priority</em>, <em class="sig-param">parent</em>, <em class="sig-param">location</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Container"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Container" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+<li><p><strong>staff_comments</strong> (<em>TextField</em>) – Staff comments</p></li>
+<li><p><strong>created</strong> (<em>DateTimeField</em>) – Date created</p></li>
+<li><p><strong>modified</strong> (<em>DateTimeField</em>) – Date modified</p></li>
+<li><p><strong>status</strong> (<em>IntegerField</em>) – Status</p></li>
+<li><p><strong>project_id</strong> (<em>ForeignKey</em>) – Project</p></li>
+<li><p><strong>kind_id</strong> (<em>ForeignKey</em>) – Kind</p></li>
+<li><p><strong>shipment_id</strong> (<em>ForeignKey</em>) – Shipment</p></li>
+<li><p><strong>comments</strong> (<em>TextField</em>) – Comments</p></li>
+<li><p><strong>priority</strong> (<em>IntegerField</em>) – Priority</p></li>
+<li><p><strong>parent_id</strong> (<em>ForeignKey</em>) – Parent</p></li>
+<li><p><strong>location_id</strong> (<em>ForeignKey</em>) – Location</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.Container.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.Container.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.Container.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.Container.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.models.Container.get_layout">
+<code class="sig-name descname">get_layout</code><span class="sig-paren">(</span><em class="sig-param">with_samples=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Container.get_layout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Container.get_layout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a nested dictionary of data representing the hierarchy of containers and samples
+:param with_samples: Whether to include sample information or not
+:return: dictionary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.models.Container.placeholders">
+<code class="sig-name descname">placeholders</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Container.placeholders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Container.placeholders" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a list of container locations that can hold samples or samples contained in the container.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.Group">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">Group</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">name</em>, <em class="sig-param">staff_comments</em>, <em class="sig-param">created</em>, <em class="sig-param">modified</em>, <em class="sig-param">project</em>, <em class="sig-param">status</em>, <em class="sig-param">shipment</em>, <em class="sig-param">energy</em>, <em class="sig-param">resolution</em>, <em class="sig-param">kind</em>, <em class="sig-param">absorption_edge</em>, <em class="sig-param">plan</em>, <em class="sig-param">comments</em>, <em class="sig-param">priority</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Group" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+<li><p><strong>staff_comments</strong> (<em>TextField</em>) – Staff comments</p></li>
+<li><p><strong>created</strong> (<em>DateTimeField</em>) – Date created</p></li>
+<li><p><strong>modified</strong> (<em>DateTimeField</em>) – Date modified</p></li>
+<li><p><strong>project_id</strong> (<em>ForeignKey</em>) – Project</p></li>
+<li><p><strong>status</strong> (<em>IntegerField</em>) – Status</p></li>
+<li><p><strong>shipment_id</strong> (<em>ForeignKey</em>) – Shipment</p></li>
+<li><p><strong>energy</strong> (<em>DecimalField</em>) – Energy</p></li>
+<li><p><strong>resolution</strong> (<em>FloatField</em>) – Desired resolution (&amp;#8491;)</p></li>
+<li><p><strong>kind</strong> (<em>IntegerField</em>) – Exp. type</p></li>
+<li><p><strong>absorption_edge</strong> (<em>CharField</em>) – Absorption edge</p></li>
+<li><p><strong>plan</strong> (<em>IntegerField</em>) – Plan</p></li>
+<li><p><strong>comments</strong> (<em>TextField</em>) – Comments</p></li>
+<li><p><strong>priority</strong> (<em>IntegerField</em>) – Priority</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.Group.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.Group.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.Group.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.Group.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.Sample">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">Sample</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">name</em>, <em class="sig-param">staff_comments</em>, <em class="sig-param">created</em>, <em class="sig-param">modified</em>, <em class="sig-param">project</em>, <em class="sig-param">barcode</em>, <em class="sig-param">container</em>, <em class="sig-param">location</em>, <em class="sig-param">comments</em>, <em class="sig-param">collect_status</em>, <em class="sig-param">priority</em>, <em class="sig-param">group</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Sample" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+<li><p><strong>staff_comments</strong> (<em>TextField</em>) – Staff comments</p></li>
+<li><p><strong>created</strong> (<em>DateTimeField</em>) – Date created</p></li>
+<li><p><strong>modified</strong> (<em>DateTimeField</em>) – Date modified</p></li>
+<li><p><strong>project_id</strong> (<em>ForeignKey</em>) – Project</p></li>
+<li><p><strong>barcode</strong> (<em>SlugField</em>) – Barcode</p></li>
+<li><p><strong>container_id</strong> (<em>ForeignKey</em>) – Container</p></li>
+<li><p><strong>location_id</strong> (<em>ForeignKey</em>) – Location</p></li>
+<li><p><strong>comments</strong> (<em>TextField</em>) – Comments</p></li>
+<li><p><strong>collect_status</strong> (<em>BooleanField</em>) – Collect status</p></li>
+<li><p><strong>priority</strong> (<em>IntegerField</em>) – Priority</p></li>
+<li><p><strong>group_id</strong> (<em>ForeignKey</em>) – Group</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.Sample.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.Sample.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.Sample.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.Sample.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.Data">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">Data</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">name</em>, <em class="sig-param">staff_comments</em>, <em class="sig-param">created</em>, <em class="sig-param">modified</em>, <em class="sig-param">status</em>, <em class="sig-param">project</em>, <em class="sig-param">group</em>, <em class="sig-param">sample</em>, <em class="sig-param">session</em>, <em class="sig-param">start_time</em>, <em class="sig-param">end_time</em>, <em class="sig-param">file_name</em>, <em class="sig-param">frames</em>, <em class="sig-param">num_frames</em>, <em class="sig-param">frames_per_file</em>, <em class="sig-param">exposure_time</em>, <em class="sig-param">attenuation</em>, <em class="sig-param">energy</em>, <em class="sig-param">beamline</em>, <em class="sig-param">beam_size</em>, <em class="sig-param">url</em>, <em class="sig-param">kind</em>, <em class="sig-param">download</em>, <em class="sig-param">meta_data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Data" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+<li><p><strong>staff_comments</strong> (<em>TextField</em>) – Staff comments</p></li>
+<li><p><strong>created</strong> (<em>DateTimeField</em>) – Date created</p></li>
+<li><p><strong>modified</strong> (<em>DateTimeField</em>) – Date modified</p></li>
+<li><p><strong>status</strong> (<em>IntegerField</em>) – Status</p></li>
+<li><p><strong>project_id</strong> (<em>ForeignKey</em>) – Project</p></li>
+<li><p><strong>group_id</strong> (<em>ForeignKey</em>) – Group</p></li>
+<li><p><strong>sample_id</strong> (<em>ForeignKey</em>) – Sample</p></li>
+<li><p><strong>session_id</strong> (<em>ForeignKey</em>) – Session</p></li>
+<li><p><strong>start_time</strong> (<em>DateTimeField</em>) – Start time</p></li>
+<li><p><strong>end_time</strong> (<em>DateTimeField</em>) – End time</p></li>
+<li><p><strong>file_name</strong> (<em>CharField</em>) – File name</p></li>
+<li><p><strong>frames</strong> (<em>FrameField</em>) – Frames</p></li>
+<li><p><strong>num_frames</strong> (<em>IntegerField</em>) – Frame count</p></li>
+<li><p><strong>frames_per_file</strong> (<em>IntegerField</em>) – Maximum frames per file</p></li>
+<li><p><strong>exposure_time</strong> (<em>FloatField</em>) – Exposure time</p></li>
+<li><p><strong>attenuation</strong> (<em>FloatField</em>) – Attenuation</p></li>
+<li><p><strong>energy</strong> (<em>DecimalField</em>) – Energy</p></li>
+<li><p><strong>beamline_id</strong> (<em>ForeignKey</em>) – Beamline</p></li>
+<li><p><strong>beam_size</strong> (<em>FloatField</em>) – Beam size</p></li>
+<li><p><strong>url</strong> (<em>CharField</em>) – Url</p></li>
+<li><p><strong>kind_id</strong> (<em>ForeignKey</em>) – Kind</p></li>
+<li><p><strong>download</strong> (<em>BooleanField</em>) – Download</p></li>
+<li><p><strong>meta_data</strong> (<em>JSONField</em>) – Meta data</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.Data.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.Data.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.Data.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.Data.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.AnalysisReport">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">AnalysisReport</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">name</em>, <em class="sig-param">staff_comments</em>, <em class="sig-param">created</em>, <em class="sig-param">modified</em>, <em class="sig-param">status</em>, <em class="sig-param">project</em>, <em class="sig-param">kind</em>, <em class="sig-param">score</em>, <em class="sig-param">url</em>, <em class="sig-param">details</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#AnalysisReport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.AnalysisReport" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+<li><p><strong>staff_comments</strong> (<em>TextField</em>) – Staff comments</p></li>
+<li><p><strong>created</strong> (<em>DateTimeField</em>) – Date created</p></li>
+<li><p><strong>modified</strong> (<em>DateTimeField</em>) – Date modified</p></li>
+<li><p><strong>status</strong> (<em>IntegerField</em>) – Status</p></li>
+<li><p><strong>project_id</strong> (<em>ForeignKey</em>) – Project</p></li>
+<li><p><strong>kind</strong> (<em>CharField</em>) – Kind</p></li>
+<li><p><strong>score</strong> (<em>FloatField</em>) – Analysis report score</p></li>
+<li><p><strong>url</strong> (<em>CharField</em>) – Url</p></li>
+<li><p><strong>details</strong> (<em>JSONField</em>) – Details</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.AnalysisReport.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.AnalysisReport.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.AnalysisReport.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.AnalysisReport.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.ActivityLog">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">ActivityLog</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">created</em>, <em class="sig-param">project</em>, <em class="sig-param">user</em>, <em class="sig-param">user_description</em>, <em class="sig-param">ip_number</em>, <em class="sig-param">object_id</em>, <em class="sig-param">content_type</em>, <em class="sig-param">action_type</em>, <em class="sig-param">object_repr</em>, <em class="sig-param">description</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#ActivityLog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.ActivityLog" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>created</strong> (<em>DateTimeField</em>) – Date/time</p></li>
+<li><p><strong>project_id</strong> (<em>ForeignKey</em>) – Project</p></li>
+<li><p><strong>user_id</strong> (<em>ForeignKey</em>) – User</p></li>
+<li><p><strong>user_description</strong> (<em>CharField</em>) – User name</p></li>
+<li><p><strong>ip_number</strong> (<em>GenericIPAddressField</em>) – Ip address</p></li>
+<li><p><strong>object_id</strong> (<em>PositiveIntegerField</em>) – Object id</p></li>
+<li><p><strong>content_type_id</strong> (<em>ForeignKey</em>) – Content type</p></li>
+<li><p><strong>action_type</strong> (<em>IntegerField</em>) – Action type</p></li>
+<li><p><strong>object_repr</strong> (<em>CharField</em>) – Entity</p></li>
+<li><p><strong>description</strong> (<em>TextField</em>) – Description</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.ActivityLog.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.ActivityLog.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.ActivityLog.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.ActivityLog.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.Session">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">Session</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">created</em>, <em class="sig-param">name</em>, <em class="sig-param">project</em>, <em class="sig-param">beamline</em>, <em class="sig-param">comments</em>, <em class="sig-param">url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Session" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>created</strong> (<em>DateTimeField</em>) – Date created</p></li>
+<li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+<li><p><strong>project_id</strong> (<em>ForeignKey</em>) – Project</p></li>
+<li><p><strong>beamline_id</strong> (<em>ForeignKey</em>) – Beamline</p></li>
+<li><p><strong>comments</strong> (<em>TextField</em>) – Comments</p></li>
+<li><p><strong>url</strong> (<em>CharField</em>) – Url</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.Session.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.Session.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.Session.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.Session.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.models.Session.total_time">
+<code class="sig-name descname">total_time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Session.total_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Session.total_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns total time the session was active, in hours</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.Stretch">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">Stretch</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">start</em>, <em class="sig-param">end</em>, <em class="sig-param">session</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Stretch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Stretch" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>start</strong> (<em>DateTimeField</em>) – Start</p></li>
+<li><p><strong>end</strong> (<em>DateTimeField</em>) – End</p></li>
+<li><p><strong>session_id</strong> (<em>ForeignKey</em>) – Session</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.Stretch.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.Stretch.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.Stretch.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.Stretch.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.models.Guide">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">Guide</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">created</em>, <em class="sig-param">modified</em>, <em class="sig-param">title</em>, <em class="sig-param">description</em>, <em class="sig-param">priority</em>, <em class="sig-param">attachment</em>, <em class="sig-param">staff_only</em>, <em class="sig-param">kind</em>, <em class="sig-param">modal</em>, <em class="sig-param">url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/models.html#Guide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.Guide" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>created</strong> (<em>AutoCreatedField</em>) – Created</p></li>
+<li><p><strong>modified</strong> (<em>AutoLastModifiedField</em>) – Modified</p></li>
+<li><p><strong>title</strong> (<em>CharField</em>) – Title</p></li>
+<li><p><strong>description</strong> (<em>TextField</em>) – Description</p></li>
+<li><p><strong>priority</strong> (<em>IntegerField</em>) – Priority</p></li>
+<li><p><strong>attachment</strong> (<em>FileField</em>) – Attachment</p></li>
+<li><p><strong>staff_only</strong> (<em>BooleanField</em>) – Staff only</p></li>
+<li><p><strong>kind</strong> (<em>CharField</em>) – Content type</p></li>
+<li><p><strong>modal</strong> (<em>BooleanField</em>) – Modal</p></li>
+<li><p><strong>url</strong> (<em>CharField</em>) – Url or resource</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.lims.models.Guide.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.lims.models.Guide.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.lims.models.Guide.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.lims.models.Guide.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-mxlive.staff.models"></span><dl class="class">
+<dt id="mxlive.staff.models.UserList">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.staff.models.</code><code class="sig-name descname">UserList</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">name</em>, <em class="sig-param">description</em>, <em class="sig-param">address</em>, <em class="sig-param">active</em>, <em class="sig-param">created</em>, <em class="sig-param">modified</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/staff/models.html#UserList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.staff.models.UserList" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+<li><p><strong>description</strong> (<em>TextField</em>) – Description</p></li>
+<li><p><strong>address</strong> (<em>GenericIPAddressField</em>) – Address</p></li>
+<li><p><strong>active</strong> (<em>BooleanField</em>) – Active</p></li>
+<li><p><strong>created</strong> (<em>DateTimeField</em>) – Date created</p></li>
+<li><p><strong>modified</strong> (<em>DateTimeField</em>) – Date modified</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.staff.models.UserList.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.staff.models.UserList.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.staff.models.UserList.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.staff.models.UserList.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.staff.models.RemoteConnection">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.staff.models.</code><code class="sig-name descname">RemoteConnection</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">name</em>, <em class="sig-param">user</em>, <em class="sig-param">list</em>, <em class="sig-param">status</em>, <em class="sig-param">created</em>, <em class="sig-param">end</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/staff/models.html#RemoteConnection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.staff.models.RemoteConnection" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+<li><p><strong>user_id</strong> (<em>ForeignKey</em>) – User</p></li>
+<li><p><strong>list_id</strong> (<em>ForeignKey</em>) – List</p></li>
+<li><p><strong>status</strong> (<em>CharField</em>) – Status</p></li>
+<li><p><strong>created</strong> (<em>DateTimeField</em>) – Date created</p></li>
+<li><p><strong>end</strong> (<em>DateTimeField</em>) – Date ended</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="mxlive.staff.models.RemoteConnection.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#mxlive.staff.models.RemoteConnection.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="mxlive.staff.models.RemoteConnection.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#mxlive.staff.models.RemoteConnection.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="views.html" class="btn btn-neutral float-right" title="Views" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../reports.html" class="btn btn-neutral float-left" title="Reports" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2010-2020, Canadian Light Source, Inc
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

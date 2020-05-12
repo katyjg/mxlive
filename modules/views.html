@@ -1,0 +1,1413 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Views &mdash; MxLIVE v2019.04-233-gaed6fc8
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Models" href="models.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> MxLIVE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v2019.04-233-gaed6fc8
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">For MX Users:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../dashboard.html">On the Dashboard</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../shipping.html">Shipments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sessions.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data.html">Datasets &amp; Reports</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../starting.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../staff-dashboard.html">Staff Interface</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Developers:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../apis.html">Application Program Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reports.html">Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Views</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MxLIVE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Views</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-mxlive.lims.views">
+<span id="views"></span><h1>Views<a class="headerlink" href="#module-mxlive.lims.views" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="mxlive.lims.views.ActivityLogList">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ActivityLogList</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ActivityLogList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ActivityLogList" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ActivityLogList.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ActivityLogList.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.ActivityLog" title="mxlive.lims.models.ActivityLog"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.ActivityLog</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ArchiveShipment">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ArchiveShipment</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ArchiveShipment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ArchiveShipment" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ArchiveShipment.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.ArchiveShipment.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.ShipmentArchiveForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ArchiveShipment.form_valid">
+<code class="sig-name descname">form_valid</code><span class="sig-paren">(</span><em class="sig-param">form</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ArchiveShipment.form_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ArchiveShipment.form_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the form is valid, save the associated model.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.BeamlineDetail">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">BeamlineDetail</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#BeamlineDetail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.BeamlineDetail" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.BeamlineDetail.get_context_data">
+<code class="sig-name descname">get_context_data</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#BeamlineDetail.get_context_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.BeamlineDetail.get_context_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert the single object into the context dict.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.BeamlineDetail.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.BeamlineDetail.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Beamline" title="mxlive.lims.models.Beamline"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Beamline</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.BeamlineHistory">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">BeamlineHistory</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#BeamlineHistory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.BeamlineHistory" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.BeamlineHistory.get_queryset">
+<code class="sig-name descname">get_queryset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#BeamlineHistory.get_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.BeamlineHistory.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of items for this view.</p>
+<p>The return value must be an iterable and may be an instance of
+<cite>QuerySet</cite> in which case <cite>QuerySet</cite> specific behavior will be enabled.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.BeamlineHistory.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.BeamlineHistory.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Session" title="mxlive.lims.models.Session"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Session</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ContainerDelete">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ContainerDelete</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ContainerDelete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ContainerDelete" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.ContainerDelete.delete">
+<code class="sig-name descname">delete</code><span class="sig-paren">(</span><em class="sig-param">request</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ContainerDelete.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ContainerDelete.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call the delete() method on the fetched object and then redirect to the
+success URL.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.ContainerDelete.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ContainerDelete.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Container" title="mxlive.lims.models.Container"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Container</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ContainerDetail">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ContainerDetail</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ContainerDetail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ContainerDetail" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ContainerDetail.extra_model">
+<code class="sig-name descname">extra_model</code><a class="headerlink" href="#mxlive.lims.views.ContainerDetail.extra_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Container" title="mxlive.lims.models.Container"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Container</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ContainerEdit">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ContainerEdit</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ContainerEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ContainerEdit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ContainerEdit.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.ContainerEdit.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.ContainerForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ContainerEdit.get_initial">
+<code class="sig-name descname">get_initial</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ContainerEdit.get_initial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ContainerEdit.get_initial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the initial data to use for forms on this view.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ContainerEdit.get_success_url">
+<code class="sig-name descname">get_success_url</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ContainerEdit.get_success_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ContainerEdit.get_success_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the URL to redirect to after processing a valid form.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.ContainerEdit.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ContainerEdit.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Container" title="mxlive.lims.models.Container"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Container</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ContainerList">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ContainerList</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ContainerList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ContainerList" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ContainerList.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ContainerList.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Container" title="mxlive.lims.models.Container"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Container</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ContainerLoad">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ContainerLoad</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ContainerLoad"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ContainerLoad" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ContainerLoad.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.ContainerLoad.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.ContainerLoadForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ContainerLoad.form_valid">
+<code class="sig-name descname">form_valid</code><span class="sig-paren">(</span><em class="sig-param">form</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ContainerLoad.form_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ContainerLoad.form_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the form is valid, save the associated model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ContainerLoad.get_form_kwargs">
+<code class="sig-name descname">get_form_kwargs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ContainerLoad.get_form_kwargs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ContainerLoad.get_form_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the keyword arguments for instantiating the form.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ContainerLoad.get_object">
+<code class="sig-name descname">get_object</code><span class="sig-paren">(</span><em class="sig-param">queryset=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ContainerLoad.get_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ContainerLoad.get_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the object the view is displaying.</p>
+<p>Require <cite>self.queryset</cite> and a <cite>pk</cite> or <cite>slug</cite> argument in the URLconf.
+Subclasses can override this to return any object.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ContainerSpreadsheet">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ContainerSpreadsheet</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ContainerSpreadsheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ContainerSpreadsheet" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ContainerSpreadsheet.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ContainerSpreadsheet.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Container" title="mxlive.lims.models.Container"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Container</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.DataDetail">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">DataDetail</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#DataDetail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.DataDetail" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.DataDetail.get_template_names">
+<code class="sig-name descname">get_template_names</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#DataDetail.get_template_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.DataDetail.get_template_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of template names to be used for the request. May not be
+called if render_to_response() is overridden. Return the following list:</p>
+<ul class="simple">
+<li><p>the value of <code class="docutils literal notranslate"><span class="pre">template_name</span></code> on the view (if provided)</p></li>
+<li><p>the contents of the <code class="docutils literal notranslate"><span class="pre">template_name_field</span></code> field on the
+object instance that the view is operating upon (if available)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;app_label&gt;/&lt;model_name&gt;&lt;template_name_suffix&gt;.html</span></code></p></li>
+</ul>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.DataDetail.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.DataDetail.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Data" title="mxlive.lims.models.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Data</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.DataList">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">DataList</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#DataList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.DataList" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.DataList.get_queryset">
+<code class="sig-name descname">get_queryset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#DataList.get_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.DataList.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of items for this view.</p>
+<p>The return value must be an iterable and may be an instance of
+<cite>QuerySet</cite> in which case <cite>QuerySet</cite> specific behavior will be enabled.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.DataList.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.DataList.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Data" title="mxlive.lims.models.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Data</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.DetailListMixin">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">DetailListMixin</code><a class="reference internal" href="../_modules/mxlive/lims/views.html#DetailListMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.DetailListMixin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.DewarEdit">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">DewarEdit</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#DewarEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.DewarEdit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.DewarEdit.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.DewarEdit.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.DewarForm</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.DewarEdit.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.DewarEdit.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Dewar" title="mxlive.lims.models.Dewar"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Dewar</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.EmptyContainers">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">EmptyContainers</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#EmptyContainers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.EmptyContainers" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.EmptyContainers.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.EmptyContainers.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.EmptyContainers</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.EmptyContainers.form_valid">
+<code class="sig-name descname">form_valid</code><span class="sig-paren">(</span><em class="sig-param">form</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#EmptyContainers.form_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.EmptyContainers.form_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the form is valid, save the associated model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.EmptyContainers.get_form_kwargs">
+<code class="sig-name descname">get_form_kwargs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#EmptyContainers.get_form_kwargs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.EmptyContainers.get_form_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the keyword arguments for instantiating the form.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.EmptyContainers.get_initial">
+<code class="sig-name descname">get_initial</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#EmptyContainers.get_initial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.EmptyContainers.get_initial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the initial data to use for forms on this view.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.EmptyContainers.get_object">
+<code class="sig-name descname">get_object</code><span class="sig-paren">(</span><em class="sig-param">queryset=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#EmptyContainers.get_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.EmptyContainers.get_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the object the view is displaying.</p>
+<p>Require <cite>self.queryset</cite> and a <cite>pk</cite> or <cite>slug</cite> argument in the URLconf.
+Subclasses can override this to return any object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.EmptyContainers.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.EmptyContainers.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Project" title="mxlive.lims.models.Project"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Project</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.GroupDelete">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">GroupDelete</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#GroupDelete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.GroupDelete" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.GroupDelete.delete">
+<code class="sig-name descname">delete</code><span class="sig-paren">(</span><em class="sig-param">request</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#GroupDelete.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.GroupDelete.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call the delete() method on the fetched object and then redirect to the
+success URL.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.GroupDelete.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.GroupDelete.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Group" title="mxlive.lims.models.Group"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Group</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.GroupDetail">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">GroupDetail</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#GroupDetail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.GroupDetail" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.GroupDetail.extra_model">
+<code class="sig-name descname">extra_model</code><a class="headerlink" href="#mxlive.lims.views.GroupDetail.extra_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Group" title="mxlive.lims.models.Group"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Group</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.GroupEdit">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">GroupEdit</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#GroupEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.GroupEdit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.GroupEdit.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.GroupEdit.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.GroupForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.GroupEdit.form_valid">
+<code class="sig-name descname">form_valid</code><span class="sig-paren">(</span><em class="sig-param">form</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#GroupEdit.form_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.GroupEdit.form_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the form is valid, save the associated model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.GroupEdit.get_initial">
+<code class="sig-name descname">get_initial</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#GroupEdit.get_initial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.GroupEdit.get_initial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the initial data to use for forms on this view.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.GroupEdit.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.GroupEdit.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Group" title="mxlive.lims.models.Group"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Group</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.GroupList">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">GroupList</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#GroupList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.GroupList" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.GroupList.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.GroupList.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Group" title="mxlive.lims.models.Group"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Group</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.GuideCreate">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">GuideCreate</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#GuideCreate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.GuideCreate" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.GuideCreate.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.GuideCreate.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.GuideForm</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.GuideCreate.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.GuideCreate.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Guide" title="mxlive.lims.models.Guide"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Guide</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.GuideDelete">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">GuideDelete</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#GuideDelete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.GuideDelete" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.GuideDelete.get_context_data">
+<code class="sig-name descname">get_context_data</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#GuideDelete.get_context_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.GuideDelete.get_context_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert the single object into the context dict.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.GuideDelete.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.GuideDelete.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Guide" title="mxlive.lims.models.Guide"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Guide</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.GuideEdit">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">GuideEdit</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#GuideEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.GuideEdit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.GuideEdit.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.GuideEdit.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.GuideForm</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.GuideEdit.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.GuideEdit.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Guide" title="mxlive.lims.models.Guide"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Guide</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.GuideView">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">GuideView</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#GuideView"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.GuideView" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.GuideView.get_context_data">
+<code class="sig-name descname">get_context_data</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#GuideView.get_context_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.GuideView.get_context_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert the single object into the context dict.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.GuideView.get_object">
+<code class="sig-name descname">get_object</code><span class="sig-paren">(</span><em class="sig-param">queryset=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#GuideView.get_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.GuideView.get_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the object the view is displaying.</p>
+<p>Require <cite>self.queryset</cite> and a <cite>pk</cite> or <cite>slug</cite> argument in the URLconf.
+Subclasses can override this to return any object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.GuideView.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.GuideView.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Guide" title="mxlive.lims.models.Guide"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Guide</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ListViewMixin">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ListViewMixin</code><a class="reference internal" href="../_modules/mxlive/lims/views.html#ListViewMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ListViewMixin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.LocationLoad">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">LocationLoad</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#LocationLoad"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.LocationLoad" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.LocationLoad.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.LocationLoad.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.LocationLoadForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.LocationLoad.form_valid">
+<code class="sig-name descname">form_valid</code><span class="sig-paren">(</span><em class="sig-param">form</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#LocationLoad.form_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.LocationLoad.form_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the form is valid, save the associated model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.LocationLoad.get_form_kwargs">
+<code class="sig-name descname">get_form_kwargs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#LocationLoad.get_form_kwargs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.LocationLoad.get_form_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the keyword arguments for instantiating the form.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.LocationLoad.get_initial">
+<code class="sig-name descname">get_initial</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#LocationLoad.get_initial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.LocationLoad.get_initial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the initial data to use for forms on this view.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.LocationLoad.get_object">
+<code class="sig-name descname">get_object</code><span class="sig-paren">(</span><em class="sig-param">queryset=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#LocationLoad.get_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.LocationLoad.get_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the object the view is displaying.</p>
+<p>Require <cite>self.queryset</cite> and a <cite>pk</cite> or <cite>slug</cite> argument in the URLconf.
+Subclasses can override this to return any object.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.OwnerRequiredMixin">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">OwnerRequiredMixin</code><a class="reference internal" href="../_modules/mxlive/lims/views.html#OwnerRequiredMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.OwnerRequiredMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mixin to limit access to the owner of an object (or superusers).
+Must be used with an object-based View (e.g. DetailView, EditView)</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ParameterStatistics">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ParameterStatistics</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ParameterStatistics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ParameterStatistics" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.ParameterStatistics.get_context_data">
+<code class="sig-name descname">get_context_data</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ParameterStatistics.get_context_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ParameterStatistics.get_context_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert the single object into the context dict.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ProjectDetail">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ProjectDetail</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectDetail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectDetail" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the “Dashboard” view. Basic information about the Project is displayed:</p>
+<dl class="field-list simple">
+<dt class="field-odd">For superusers, direct to staff.html, with context</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p>shipments: Any Shipments that are Sent or On-site</p></li>
+<li><p>automounters: Any active Dewar objects (Beamline/Automounter)</p></li>
+</ul>
+</dd>
+<dt class="field-even">For Users, direct to project.html, with context</dt>
+<dd class="field-even"><ul class="simple">
+<li><p>shipments: All Shipments that are Draft, Sent, or On-site, plus Returned shipments to bring the total displayed up to seven.</p></li>
+<li><p>sessions: Any recent Session from any beamline</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="mxlive.lims.views.ProjectDetail.get_context_data">
+<code class="sig-name descname">get_context_data</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectDetail.get_context_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectDetail.get_context_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert the single object into the context dict.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ProjectDetail.get_object">
+<code class="sig-name descname">get_object</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectDetail.get_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectDetail.get_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the object the view is displaying.</p>
+<p>Require <cite>self.queryset</cite> and a <cite>pk</cite> or <cite>slug</cite> argument in the URLconf.
+Subclasses can override this to return any object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.ProjectDetail.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ProjectDetail.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Project" title="mxlive.lims.models.Project"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Project</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ProjectEdit">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ProjectEdit</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectEdit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ProjectEdit.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.ProjectEdit.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.ProjectForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ProjectEdit.get_form_kwargs">
+<code class="sig-name descname">get_form_kwargs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectEdit.get_form_kwargs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectEdit.get_form_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the keyword arguments for instantiating the form.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ProjectEdit.get_object">
+<code class="sig-name descname">get_object</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectEdit.get_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectEdit.get_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the object the view is displaying.</p>
+<p>Require <cite>self.queryset</cite> and a <cite>pk</cite> or <cite>slug</cite> argument in the URLconf.
+Subclasses can override this to return any object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.ProjectEdit.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ProjectEdit.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Project" title="mxlive.lims.models.Project"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Project</span></code></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ProjectEdit.test_func">
+<code class="sig-name descname">test_func</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectEdit.test_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectEdit.test_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allow access to admin or owner</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ProjectLabels">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ProjectLabels</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectLabels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectLabels" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ProjectLabels.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ProjectLabels.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Project" title="mxlive.lims.models.Project"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Project</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ProjectReset">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ProjectReset</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectReset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectReset" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.ProjectReset.get_context_data">
+<code class="sig-name descname">get_context_data</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectReset.get_context_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectReset.get_context_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert the form into the context dict.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ProjectReset.get_object">
+<code class="sig-name descname">get_object</code><span class="sig-paren">(</span><em class="sig-param">*kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectReset.get_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectReset.get_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the object the view is displaying.</p>
+<p>Require <cite>self.queryset</cite> and a <cite>pk</cite> or <cite>slug</cite> argument in the URLconf.
+Subclasses can override this to return any object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ProjectReset.get_success_url">
+<code class="sig-name descname">get_success_url</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectReset.get_success_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectReset.get_success_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the URL to redirect to after processing a valid form.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.ProjectReset.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ProjectReset.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Project" title="mxlive.lims.models.Project"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Project</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ProjectStatistics">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ProjectStatistics</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectStatistics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectStatistics" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.ProjectStatistics.get_context_data">
+<code class="sig-name descname">get_context_data</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectStatistics.get_context_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectStatistics.get_context_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert the single object into the context dict.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ProjectStatistics.get_object">
+<code class="sig-name descname">get_object</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProjectStatistics.get_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProjectStatistics.get_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the object the view is displaying.</p>
+<p>Require <cite>self.queryset</cite> and a <cite>pk</cite> or <cite>slug</cite> argument in the URLconf.
+Subclasses can override this to return any object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.ProjectStatistics.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ProjectStatistics.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Project" title="mxlive.lims.models.Project"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Project</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ProxyView">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ProxyView</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ProxyView"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ProxyView" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.RecallReturnShipment">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">RecallReturnShipment</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#RecallReturnShipment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.RecallReturnShipment" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.RecallReturnShipment.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.RecallReturnShipment.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.ShipmentRecallReturnForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.RecallReturnShipment.form_valid">
+<code class="sig-name descname">form_valid</code><span class="sig-paren">(</span><em class="sig-param">form</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#RecallReturnShipment.form_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.RecallReturnShipment.form_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the form is valid, save the associated model.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.RecallSendShipment">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">RecallSendShipment</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#RecallSendShipment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.RecallSendShipment" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.RecallSendShipment.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.RecallSendShipment.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.ShipmentRecallSendForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.RecallSendShipment.form_valid">
+<code class="sig-name descname">form_valid</code><span class="sig-paren">(</span><em class="sig-param">form</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#RecallSendShipment.form_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.RecallSendShipment.form_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the form is valid, save the associated model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.RecallSendShipment.get_initial">
+<code class="sig-name descname">get_initial</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#RecallSendShipment.get_initial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.RecallSendShipment.get_initial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the initial data to use for forms on this view.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ReceiveShipment">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ReceiveShipment</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ReceiveShipment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ReceiveShipment" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ReceiveShipment.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.ReceiveShipment.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.ShipmentReceiveForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ReceiveShipment.form_valid">
+<code class="sig-name descname">form_valid</code><span class="sig-paren">(</span><em class="sig-param">form</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ReceiveShipment.form_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ReceiveShipment.form_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the form is valid, save the associated model.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ReportDetail">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ReportDetail</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ReportDetail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ReportDetail" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ReportDetail.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ReportDetail.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.AnalysisReport" title="mxlive.lims.models.AnalysisReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.AnalysisReport</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ReportList">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ReportList</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ReportList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ReportList" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.ReportList.get_queryset">
+<code class="sig-name descname">get_queryset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ReportList.get_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ReportList.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of items for this view.</p>
+<p>The return value must be an iterable and may be an instance of
+<cite>QuerySet</cite> in which case <cite>QuerySet</cite> specific behavior will be enabled.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.ReportList.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ReportList.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.AnalysisReport" title="mxlive.lims.models.AnalysisReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.AnalysisReport</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ReturnShipment">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ReturnShipment</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ReturnShipment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ReturnShipment" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ReturnShipment.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.ReturnShipment.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.ShipmentReturnForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ReturnShipment.form_valid">
+<code class="sig-name descname">form_valid</code><span class="sig-paren">(</span><em class="sig-param">form</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ReturnShipment.form_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ReturnShipment.form_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the form is valid, save the associated model.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.SampleDelete">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">SampleDelete</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SampleDelete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SampleDelete" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.SampleDelete.delete">
+<code class="sig-name descname">delete</code><span class="sig-paren">(</span><em class="sig-param">request</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SampleDelete.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SampleDelete.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call the delete() method on the fetched object and then redirect to the
+success URL.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.SampleDelete.get_context_data">
+<code class="sig-name descname">get_context_data</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SampleDelete.get_context_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SampleDelete.get_context_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert the single object into the context dict.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.SampleDelete.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.SampleDelete.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Sample" title="mxlive.lims.models.Sample"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Sample</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.SampleDetail">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">SampleDetail</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SampleDetail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SampleDetail" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.SampleDetail.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.SampleDetail.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.SampleForm</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.SampleDetail.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.SampleDetail.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Sample" title="mxlive.lims.models.Sample"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Sample</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.SampleEdit">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">SampleEdit</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SampleEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SampleEdit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.SampleEdit.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.SampleEdit.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.SampleForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.SampleEdit.get_success_url">
+<code class="sig-name descname">get_success_url</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SampleEdit.get_success_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SampleEdit.get_success_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the URL to redirect to after processing a valid form.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.SampleEdit.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.SampleEdit.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Sample" title="mxlive.lims.models.Sample"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Sample</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.SampleList">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">SampleList</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SampleList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SampleList" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.SampleList.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.SampleList.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Sample" title="mxlive.lims.models.Sample"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Sample</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.SeatSamples">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">SeatSamples</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SeatSamples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SeatSamples" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.SeatSamples.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.SeatSamples.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Shipment" title="mxlive.lims.models.Shipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Shipment</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.SendShipment">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">SendShipment</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SendShipment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SendShipment" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.SendShipment.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.SendShipment.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.ShipmentSendForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.SendShipment.form_valid">
+<code class="sig-name descname">form_valid</code><span class="sig-paren">(</span><em class="sig-param">form</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SendShipment.form_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SendShipment.form_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the form is valid, save the associated model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.SendShipment.get_initial">
+<code class="sig-name descname">get_initial</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SendShipment.get_initial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SendShipment.get_initial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the initial data to use for forms on this view.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.SessionDataList">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">SessionDataList</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SessionDataList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SessionDataList" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.SessionDataList.detail_model">
+<code class="sig-name descname">detail_model</code><a class="headerlink" href="#mxlive.lims.views.SessionDataList.detail_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Session" title="mxlive.lims.models.Session"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Session</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.SessionDetail">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">SessionDetail</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SessionDetail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SessionDetail" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.SessionDetail.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.SessionDetail.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Session" title="mxlive.lims.models.Session"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Session</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.SessionList">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">SessionList</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SessionList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SessionList" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.SessionList.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.SessionList.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Session" title="mxlive.lims.models.Session"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Session</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.SessionReportList">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">SessionReportList</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SessionReportList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SessionReportList" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.SessionReportList.detail_model">
+<code class="sig-name descname">detail_model</code><a class="headerlink" href="#mxlive.lims.views.SessionReportList.detail_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Session" title="mxlive.lims.models.Session"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Session</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.SessionStatistics">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">SessionStatistics</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SessionStatistics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SessionStatistics" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.SessionStatistics.get_context_data">
+<code class="sig-name descname">get_context_data</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#SessionStatistics.get_context_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.SessionStatistics.get_context_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert the single object into the context dict.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.SessionStatistics.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.SessionStatistics.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Session" title="mxlive.lims.models.Session"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Session</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ShipmentAddContainer">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ShipmentAddContainer</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentAddContainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentAddContainer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ShipmentAddContainer.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.ShipmentAddContainer.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.ShipmentContainerForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ShipmentAddContainer.form_valid">
+<code class="sig-name descname">form_valid</code><span class="sig-paren">(</span><em class="sig-param">form</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentAddContainer.form_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentAddContainer.form_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the form is valid, redirect to the supplied URL.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ShipmentAddContainer.get_initial">
+<code class="sig-name descname">get_initial</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentAddContainer.get_initial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentAddContainer.get_initial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the initial data to use for forms on this view.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ShipmentAddGroup">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ShipmentAddGroup</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentAddGroup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentAddGroup" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ShipmentAddGroup.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.ShipmentAddGroup.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.ShipmentGroupForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ShipmentAddGroup.form_valid">
+<code class="sig-name descname">form_valid</code><span class="sig-paren">(</span><em class="sig-param">form</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentAddGroup.form_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentAddGroup.form_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the form is valid, save the associated model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ShipmentAddGroup.get_initial">
+<code class="sig-name descname">get_initial</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentAddGroup.get_initial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentAddGroup.get_initial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the initial data to use for forms on this view.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.ShipmentAddGroup.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ShipmentAddGroup.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Group" title="mxlive.lims.models.Group"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Group</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ShipmentComments">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ShipmentComments</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentComments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentComments" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ShipmentComments.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.ShipmentComments.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.ShipmentCommentsForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ShipmentComments.form_valid">
+<code class="sig-name descname">form_valid</code><span class="sig-paren">(</span><em class="sig-param">form</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentComments.form_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentComments.form_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the form is valid, save the associated model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ShipmentComments.get_success_url">
+<code class="sig-name descname">get_success_url</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentComments.get_success_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentComments.get_success_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the URL to redirect to after processing a valid form.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.ShipmentComments.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ShipmentComments.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Shipment" title="mxlive.lims.models.Shipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Shipment</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ShipmentCreate">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ShipmentCreate</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentCreate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentCreate" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.ShipmentCreate.done">
+<code class="sig-name descname">done</code><span class="sig-paren">(</span><em class="sig-param">form_list</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentCreate.done"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentCreate.done" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method must be overridden by a subclass to process to form data
+after processing all steps.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ShipmentCreate.get_form_initial">
+<code class="sig-name descname">get_form_initial</code><span class="sig-paren">(</span><em class="sig-param">step</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentCreate.get_form_initial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentCreate.get_form_initial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary which will be passed to the form for <cite>step</cite>
+as <cite>initial</cite>. If no initial data was provided while initializing the
+form wizard, an empty dictionary will be returned.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ShipmentDataList">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ShipmentDataList</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentDataList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentDataList" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ShipmentDataList.detail_model">
+<code class="sig-name descname">detail_model</code><a class="headerlink" href="#mxlive.lims.views.ShipmentDataList.detail_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Shipment" title="mxlive.lims.models.Shipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Shipment</span></code></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ShipmentDataList.get_context_data">
+<code class="sig-name descname">get_context_data</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentDataList.get_context_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentDataList.get_context_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the context for this view.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ShipmentDataList.get_queryset">
+<code class="sig-name descname">get_queryset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentDataList.get_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentDataList.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of items for this view.</p>
+<p>The return value must be an iterable and may be an instance of
+<cite>QuerySet</cite> in which case <cite>QuerySet</cite> specific behavior will be enabled.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ShipmentDelete">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ShipmentDelete</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentDelete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentDelete" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.ShipmentDelete.delete">
+<code class="sig-name descname">delete</code><span class="sig-paren">(</span><em class="sig-param">request</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentDelete.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentDelete.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call the delete() method on the fetched object and then redirect to the
+success URL.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.ShipmentDelete.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ShipmentDelete.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Shipment" title="mxlive.lims.models.Shipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Shipment</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ShipmentDetail">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ShipmentDetail</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentDetail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentDetail" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ShipmentDetail.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ShipmentDetail.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Shipment" title="mxlive.lims.models.Shipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Shipment</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ShipmentEdit">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ShipmentEdit</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentEdit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ShipmentEdit.form_class">
+<code class="sig-name descname">form_class</code><a class="headerlink" href="#mxlive.lims.views.ShipmentEdit.form_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.forms.ShipmentForm</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ShipmentEdit.get_initial">
+<code class="sig-name descname">get_initial</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentEdit.get_initial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentEdit.get_initial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the initial data to use for forms on this view.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ShipmentEdit.get_success_url">
+<code class="sig-name descname">get_success_url</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentEdit.get_success_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentEdit.get_success_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the URL to redirect to after processing a valid form.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.ShipmentEdit.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ShipmentEdit.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Shipment" title="mxlive.lims.models.Shipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Shipment</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ShipmentLabels">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ShipmentLabels</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentLabels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentLabels" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ShipmentList">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ShipmentList</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentList" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.ShipmentList.get_queryset">
+<code class="sig-name descname">get_queryset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentList.get_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentList.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of items for this view.</p>
+<p>The return value must be an iterable and may be an instance of
+<cite>QuerySet</cite> in which case <cite>QuerySet</cite> specific behavior will be enabled.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mxlive.lims.views.ShipmentList.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#mxlive.lims.views.ShipmentList.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Shipment" title="mxlive.lims.models.Shipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Shipment</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.ShipmentReportList">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">ShipmentReportList</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentReportList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentReportList" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mxlive.lims.views.ShipmentReportList.detail_model">
+<code class="sig-name descname">detail_model</code><a class="headerlink" href="#mxlive.lims.views.ShipmentReportList.detail_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="models.html#mxlive.lims.models.Shipment" title="mxlive.lims.models.Shipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">mxlive.lims.models.Shipment</span></code></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ShipmentReportList.get_context_data">
+<code class="sig-name descname">get_context_data</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentReportList.get_context_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentReportList.get_context_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the context for this view.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mxlive.lims.views.ShipmentReportList.get_queryset">
+<code class="sig-name descname">get_queryset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#ShipmentReportList.get_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.ShipmentReportList.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of items for this view.</p>
+<p>The return value must be an iterable and may be an instance of
+<cite>QuerySet</cite> in which case <cite>QuerySet</cite> specific behavior will be enabled.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.views.UsageStatistics">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.views.</code><code class="sig-name descname">UsageStatistics</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#UsageStatistics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.UsageStatistics" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mxlive.lims.views.UsageStatistics.get_context_data">
+<code class="sig-name descname">get_context_data</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/views.html#UsageStatistics.get_context_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.views.UsageStatistics.get_context_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert the single object into the context dict.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-mxlive.lims.ajax_views"></span><dl class="class">
+<dt id="mxlive.lims.ajax_views.BulkSampleEdit">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">BulkSampleEdit</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/ajax_views.html#BulkSampleEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.BulkSampleEdit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.ajax_views.CreateShipmentSamples">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">CreateShipmentSamples</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/ajax_views.html#CreateShipmentSamples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.CreateShipmentSamples" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.ajax_views.FetchContainerLayout">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">FetchContainerLayout</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/ajax_views.html#FetchContainerLayout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.FetchContainerLayout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.ajax_views.FetchReport">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">FetchReport</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/ajax_views.html#FetchReport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.FetchReport" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.ajax_views.SaveContainerSamples">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">SaveContainerSamples</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/ajax_views.html#SaveContainerSamples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.SaveContainerSamples" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.ajax_views.UnloadContainer">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">UnloadContainer</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/ajax_views.html#UnloadContainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.UnloadContainer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.ajax_views.UpdateLocations">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">UpdateLocations</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/ajax_views.html#UpdateLocations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.UpdateLocations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.ajax_views.UpdatePriority">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">UpdatePriority</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mxlive/lims/ajax_views.html#UpdatePriority"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.UpdatePriority" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="models.html" class="btn btn-neutral float-left" title="Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2010-2020, Canadian Light Source, Inc
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

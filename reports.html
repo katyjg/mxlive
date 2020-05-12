@@ -1,0 +1,359 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Reports &mdash; MxLIVE v2019.04-233-gaed6fc8
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Models" href="modules/models.html" />
+    <link rel="prev" title="Application Program Interfaces" href="apis.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> MxLIVE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v2019.04-233-gaed6fc8
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">For MX Users:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dashboard.html">On the Dashboard</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shipping.html">Shipments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sessions.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Datasets &amp; Reports</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html">Staff Interface</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Developers:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="apis.html">Application Program Interfaces</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Reports</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#section-options">Section Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#content-options">Content Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#annotation-options-plots">Annotation Options (Plots)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-options-plots-scatterplot-lineplot">Data Options (Plots - scatterplot, lineplot)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-options-charts-pie-gauge">Data Options (Charts - pie, gauge)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#model">Model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/views.html">Views</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MxLIVE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Reports</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="reports">
+<h1>Reports<a class="headerlink" href="#reports" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="table-of-contents">
+<p class="topic-title first">Table of contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#section-options" id="id1">Section Options</a></p></li>
+<li><p><a class="reference internal" href="#content-options" id="id2">Content Options</a></p></li>
+<li><p><a class="reference internal" href="#annotation-options-plots" id="id3">Annotation Options (Plots)</a></p></li>
+<li><p><a class="reference internal" href="#data-options-plots-scatterplot-lineplot" id="id4">Data Options (Plots - scatterplot, lineplot)</a></p></li>
+<li><p><a class="reference internal" href="#data-options-charts-pie-gauge" id="id5">Data Options (Charts - pie, gauge)</a></p></li>
+<li><p><a class="reference internal" href="#model" id="id6">Model</a></p></li>
+</ul>
+</div>
+<p>Analysis Reports are built dynamically based on information in the <cite>details</cite> JSONField, which is stored as a list of dictionaries.</p>
+<p>Each dictionary in the list is treated as a Section in the report, with optional parameters. Sections are displayed in
+order, and can be provided with a title, description (to go below the title), a list of dictionaries containing the
+content (tables and/or plots) to display in the section, and notes to go after the content.</p>
+<div class="section" id="section-options">
+<h2><a class="toc-backref" href="#id1">Section Options</a><a class="headerlink" href="#section-options" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>&#39;title&#39;: &#39;&#39;,
+&#39;description&#39;: &#39;&#39;,
+&#39;notes&#39;: &#39;&#39;,
+&#39;style&#39;: &#39;&#39;,
+&#39;content&#39;: []
+</pre></div>
+</div>
+<p><strong>content</strong>: list of dictionaries, each one describing a table or plot to display</p>
+<p><strong>style</strong>: CSS class to be applied to the section</p>
+</div>
+<div class="section" id="content-options">
+<h2><a class="toc-backref" href="#id2">Content Options</a><a class="headerlink" href="#content-options" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>&#39;title&#39;: &#39;&#39;,
+&#39;description&#39;: &#39;&#39;,
+&#39;notes&#39;: &#39;&#39;,
+&#39;style&#39;: &#39;&#39;,
+&#39;kind&#39;: ,
+&#39;header&#39;: &#39;row&#39;,
+&#39;annotations&#39;: [],
+&#39;data&#39;: {} (for plots) or [] (for tables)
+</pre></div>
+</div>
+<p><strong>kind</strong>: Supported types are ‘scatterplot’, ‘lineplot’, ‘pie’, ‘gauge’, or ‘table’</p>
+<p><strong>header</strong> (tables): Used if kind=’table’. If ‘row’, the first list in the list of data contains the headers; if ‘column’, the first item in each list is a header.</p>
+<p><strong>annotations</strong> (plots): list of dictionaries used to draw vertical lines and text on a plot.</p>
+<p><strong>data</strong> (tables): list of lists to arrange in rows</p>
+<p><strong>data</strong> (plots): dictionary containing the data to display</p>
+<p><strong>data</strong> (charts): list of dictionaries container information about each wedge in the pie or gauge chart</p>
+<p><strong>style</strong>: CSS class to be applied to the content</p>
+</div>
+<div class="section" id="annotation-options-plots">
+<h2><a class="toc-backref" href="#id3">Annotation Options (Plots)</a><a class="headerlink" href="#annotation-options-plots" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>&#39;x&#39;: ,
+&#39;y-start&#39;: ,
+&#39;y-end&#39;: ,
+&#39;label&#39;: ,
+&#39;color&#39;: ,
+&#39;display&#39;: True
+</pre></div>
+</div>
+</div>
+<div class="section" id="data-options-plots-scatterplot-lineplot">
+<h2><a class="toc-backref" href="#id4">Data Options (Plots - scatterplot, lineplot)</a><a class="headerlink" href="#data-options-plots-scatterplot-lineplot" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>&#39;x&#39;: [],
+&#39;y1&#39;: [],
+&#39;y2&#39;: [],
+&#39;x-label&#39;: &#39;&#39;,
+&#39;y1-label&#39;: &#39;&#39;,
+&#39;y2-label&#39;: &#39;&#39;,
+&#39;x-scale&#39;: &#39;linear&#39;,
+&#39;interpolation&#39;: &#39;linear&#39;,
+&#39;x-limits&#39;: [null, null],
+&#39;y1-limits&#39;: [null, null],
+&#39;y2-limits&#39;: [null, null],
+</pre></div>
+</div>
+<p><strong>x</strong>: List of x-axis data, with a label in the first entry. If <strong>x-label</strong> is not specified, this will be used to label the x-axis.</p>
+<p><strong>y1</strong>: List of lists of data to plot on the left y-axis. Each list should be the same length as the list defined in <cite>x</cite>. The first entry in each list is a label for the data.</p>
+<p><strong>y2</strong>: List of lists of data to plot on the right y-axis. Each list should be the same length as the list defined in <cite>x</cite>. The first entry in each list is a label for the data.</p>
+<p><strong>x-scale</strong>: Supported scaling includes <strong>‘linear’</strong>, ‘pow’, ‘log’, ‘identity’, ‘time’, and ‘inv-square’ (power with exponent -0.5)</p>
+<p><strong>interpolation</strong>: Supported curve interpolation includes <strong>‘linear’</strong>, ‘basis’, ‘cardinal’, ‘step’, ‘step-before’, ‘step-after’.</p>
+<p><strong>x-limits</strong>: Tuple of [min, max] values for the x-axis. If only one value (min or max) is specified, a null value should be provided as a placeholder for the other.</p>
+<p><strong>y1-limits</strong>: Tuple of [min, max] values for the left y-axis. If only one value (min or max) is specified, a null value should be provided as a placeholder for the other.</p>
+<p><strong>y2-limits</strong>: Tuple of [min, max] values for the right y-axis. If only one value (min or max) is specified, a null value should be provided as a placeholder for the other.</p>
+</div>
+<div class="section" id="data-options-charts-pie-gauge">
+<h2><a class="toc-backref" href="#id5">Data Options (Charts - pie, gauge)</a><a class="headerlink" href="#data-options-charts-pie-gauge" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>&#39;start&#39;: ,
+&#39;value&#39;: ,
+&#39;label&#39;: &#39;&#39;,
+&#39;color&#39;: ,
+</pre></div>
+</div>
+<p><strong>start</strong>: (optional) Number in degrees at which to start the wedge.</p>
+<p><strong>value</strong>: Width in degrees to define the size of the wedge.</p>
+<p><strong>label</strong>: Label to be applied to the wedge. If there is only one wedge with a label, the label will be placed in the middle of the chart instead of at the perimeter.</p>
+<p><strong>color</strong>: (required) Color of the wedge.</p>
+</div>
+<div class="section" id="model">
+<h2><a class="toc-backref" href="#id6">Model</a><a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">AnalysisReport</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">name</em>, <em class="sig-param">staff_comments</em>, <em class="sig-param">created</em>, <em class="sig-param">modified</em>, <em class="sig-param">status</em>, <em class="sig-param">project</em>, <em class="sig-param">kind</em>, <em class="sig-param">score</em>, <em class="sig-param">url</em>, <em class="sig-param">details</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/lims/models.html#AnalysisReport"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
+<li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+<li><p><strong>staff_comments</strong> (<em>TextField</em>) – Staff comments</p></li>
+<li><p><strong>created</strong> (<em>DateTimeField</em>) – Date created</p></li>
+<li><p><strong>modified</strong> (<em>DateTimeField</em>) – Date modified</p></li>
+<li><p><strong>status</strong> (<em>IntegerField</em>) – Status</p></li>
+<li><p><strong>project_id</strong> (<em>ForeignKey</em>) – Project</p></li>
+<li><p><strong>kind</strong> (<em>CharField</em>) – Kind</p></li>
+<li><p><strong>score</strong> (<em>FloatField</em>) – Analysis report score</p></li>
+<li><p><strong>url</strong> (<em>CharField</em>) – Url</p></li>
+<li><p><strong>details</strong> (<em>JSONField</em>) – Details</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="modules/models.html" class="btn btn-neutral float-right" title="Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="apis.html" class="btn btn-neutral float-left" title="Application Program Interfaces" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2010-2020, Canadian Light Source, Inc
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

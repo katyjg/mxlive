@@ -1,0 +1,354 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Application Program Interfaces &mdash; MxLIVE v2019.04-233-gaed6fc8
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Reports" href="reports.html" />
+    <link rel="prev" title="Staff Interface" href="staff-dashboard.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> MxLIVE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v2019.04-233-gaed6fc8
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">For MX Users:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dashboard.html">On the Dashboard</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shipping.html">Shipments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sessions.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Datasets &amp; Reports</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html">Staff Interface</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Developers:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Application Program Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reports.html">Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/views.html">Views</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MxLIVE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Application Program Interfaces</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="application-program-interfaces">
+<h1>Application Program Interfaces<a class="headerlink" href="#application-program-interfaces" title="Permalink to this headline">¶</a></h1>
+<p>Several APIs are included for managing Sessions, and adding information like data or reports to MxLIVE.</p>
+<p>All API urls begin with <cite>/api/v2/</cite>.</p>
+<span class="target" id="module-mxlive.remote.views"></span><dl class="class">
+<dt id="mxlive.remote.views.AccessList">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.remote.views.</code><code class="sig-name descname">AccessList</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/remote/views.html#AccessList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.remote.views.AccessList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns list of usernames that should be able to access the remote server referenced by <cite>ipnumber</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Key</dt>
+<dd class="field-odd"><p>r’^accesslist/$’ (IP number inferred from request)</p>
+</dd>
+<dt class="field-even">Key</dt>
+<dd class="field-even"><p>r’^accesslist/(?P&lt;ipnumber&gt;)/$’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.remote.views.AddData">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.remote.views.</code><code class="sig-name descname">AddData</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/remote/views.html#AddData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.remote.views.AddData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add meta-data about Data collected on the Beamline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> – User__username</p></li>
+<li><p><strong>data_id</strong> – If updating an existing Data object</p></li>
+<li><p><strong>directory</strong> – Path to files</p></li>
+<li><p><strong>energy</strong> – float (in keV)</p></li>
+<li><p><strong>type</strong> – str (one of Data.DATA_TYPES)</p></li>
+<li><p><strong>exposure</strong> – float (in seconds)</p></li>
+<li><p><strong>attenuation</strong> – float (in percent)</p></li>
+<li><p><strong>beam_size</strong> – float (in microns)</p></li>
+<li><p><strong>name</strong> – str</p></li>
+<li><p><strong>filename</strong> – filename (if single frame) or formattable template (e.g. “test_{:0&gt;4d}.img”)</p></li>
+<li><p><strong>beamline</strong> – Beamline__acronym</p></li>
+<li><p><strong>sample_id</strong> – If known</p></li>
+<li><p><strong>frames</strong> – frames collected (e.g. “1-4,8,10-99”),</p></li>
+<li><p><strong>start_time</strong> – Starting time for data acquisition. If omitted, will be now - frames * exposure time</p></li>
+<li><p><strong>end_time</strong> – End time for data acquisition. If omitted and start_time, is provided,
+will be start_time + frames * exposure_time, otherwise it will be now</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return</dt>
+<dd class="field-even"><p>{‘id’: &lt; Created Data.pk &gt;}</p>
+</dd>
+<dt class="field-odd">Key</dt>
+<dd class="field-odd"><p>r’^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/data/(?P&lt;beamline&gt;)/$’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.remote.views.AddReport">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.remote.views.</code><code class="sig-name descname">AddReport</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/remote/views.html#AddReport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.remote.views.AddReport" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add meta-data and JSON details about an AnalysisReport.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> – User__username</p></li>
+<li><p><strong>data_id</strong> – Data objects referenced</p></li>
+<li><p><strong>score</strong> – float</p></li>
+<li><p><strong>type</strong> – str</p></li>
+<li><p><strong>details</strong> – JSON dict</p></li>
+<li><p><strong>name</strong> – str</p></li>
+<li><p><strong>beamline</strong> – Beamline__acronym</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return</dt>
+<dd class="field-even"><p>{‘id’: &lt; Created AnalysisReport.pk &gt;}</p>
+</dd>
+<dt class="field-odd">Key</dt>
+<dd class="field-odd"><p>r’^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/report/(?P&lt;beamline&gt;)/$’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.remote.views.CloseSession">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.remote.views.</code><code class="sig-name descname">CloseSession</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/remote/views.html#CloseSession"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.remote.views.CloseSession" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to close an MxLIVE Session from the beamline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Key</dt>
+<dd class="field-odd"><p>r’^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/close/(?P&lt;beamline&gt;)/(?P&lt;session&gt;)/$’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.remote.views.LaunchSession">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.remote.views.</code><code class="sig-name descname">LaunchSession</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/remote/views.html#LaunchSession"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.remote.views.LaunchSession" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to start an MxLIVE Session from the beamline. If a Session with the same name already exists, a new Stretch
+will be added to the Session.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Key</dt>
+<dd class="field-odd"><p>r’^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/launch/(?P&lt;beamline&gt;)/(?P&lt;session&gt;)/$’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.remote.views.ProjectSamples">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.remote.views.</code><code class="sig-name descname">ProjectSamples</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/remote/views.html#ProjectSamples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.remote.views.ProjectSamples" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return</dt>
+<dd class="field-odd"><p>Dictionary for each On-Site sample owned by the User and NOT loaded on another beamline.</p>
+</dd>
+<dt class="field-even">Key</dt>
+<dd class="field-even"><p>r’^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/samples/(?P&lt;beamline&gt;)/$’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.remote.views.UpdateUserKey">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.remote.views.</code><code class="sig-name descname">UpdateUserKey</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/remote/views.html#UpdateUserKey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.remote.views.UpdateUserKey" title="Permalink to this definition">¶</a></dt>
+<dd><p>API for adding a public key to an MxLIVE Project. This method will only be allowed if the signature can be verified,
+and the User object does not already have a public key registered.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Key</dt>
+<dd class="field-odd"><p>r’^(?P&lt;signature&gt;(?P&lt;username&gt;):.+)/project/$’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="mxlive.remote.views.VerificationMixin">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.remote.views.</code><code class="sig-name descname">VerificationMixin</code><a class="reference internal" href="_modules/mxlive/remote/views.html#VerificationMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.remote.views.VerificationMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mixin to verify identity of user.
+Requires URL parameters <cite>username</cite> and <cite>signature</cite> where the signature is a string that has been time-stamped and
+signed using a private key, and can be unsigned using the public key stored with the user’s MxLIVE User object.</p>
+<p>If the signature cannot be successfully unsigned, or the User does not exist,
+the dispatch method will return a HttpResponseNotAllowed.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="reports.html" class="btn btn-neutral float-right" title="Reports" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="staff-dashboard.html" class="btn btn-neutral float-left" title="Staff Interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2010-2020, Canadian Light Source, Inc
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

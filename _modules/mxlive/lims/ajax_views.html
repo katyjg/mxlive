@@ -1,0 +1,427 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mxlive.lims.ajax_views &mdash; MxLIVE v2019.04-233-gaed6fc8
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> MxLIVE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v2019.04-233-gaed6fc8
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">For MX Users:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dashboard.html">On the Dashboard</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../shipping.html">Shipments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sessions.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data.html">Datasets &amp; Reports</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../starting.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../staff-dashboard.html">Staff Interface</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Developers:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../apis.html">Application Program Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reports.html">Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/views.html">Views</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">MxLIVE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>mxlive.lims.ajax_views</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for mxlive.lims.ajax_views</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="kn">from</span> <span class="nn">operator</span> <span class="k">import</span> <span class="n">itemgetter</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+
+<span class="kn">from</span> <span class="nn">django</span> <span class="k">import</span> <span class="n">http</span>
+<span class="kn">from</span> <span class="nn">django.db</span> <span class="k">import</span> <span class="n">transaction</span>
+<span class="kn">from</span> <span class="nn">django.http</span> <span class="k">import</span> <span class="n">JsonResponse</span><span class="p">,</span> <span class="n">HttpResponseNotFound</span>
+<span class="kn">from</span> <span class="nn">django.utils.decorators</span> <span class="k">import</span> <span class="n">method_decorator</span>
+<span class="kn">from</span> <span class="nn">django.views.decorators.csrf</span> <span class="k">import</span> <span class="n">csrf_exempt</span>
+<span class="kn">from</span> <span class="nn">django.utils</span> <span class="k">import</span> <span class="n">timezone</span>
+<span class="kn">from</span> <span class="nn">django.views.generic</span> <span class="k">import</span> <span class="n">View</span>
+
+<span class="kn">from</span> <span class="nn">mxlive.utils.mixins</span> <span class="k">import</span> <span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">AdminRequiredMixin</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">models</span>
+
+<div class="viewcode-block" id="FetchReport"><a class="viewcode-back" href="../../../modules/views.html#mxlive.lims.ajax_views.FetchReport">[docs]</a><span class="nd">@method_decorator</span><span class="p">(</span><span class="n">csrf_exempt</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;dispatch&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">FetchReport</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">View</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">report</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">AnalysisReport</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pk&#39;</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">models</span><span class="o">.</span><span class="n">AnalysisReport</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">http</span><span class="o">.</span><span class="n">Http404</span><span class="p">(</span><span class="s2">&quot;Report does not exist.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">report</span><span class="o">.</span><span class="n">project</span> <span class="o">!=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">http</span><span class="o">.</span><span class="n">Http404</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">({</span><span class="s1">&#39;details&#39;</span><span class="p">:</span> <span class="n">report</span><span class="o">.</span><span class="n">details</span><span class="p">},</span> <span class="n">safe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="UpdatePriority"><a class="viewcode-back" href="../../../modules/views.html#mxlive.lims.ajax_views.UpdatePriority">[docs]</a><span class="nd">@method_decorator</span><span class="p">(</span><span class="n">csrf_exempt</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;dispatch&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">UpdatePriority</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">View</span><span class="p">):</span>
+
+    <span class="nd">@transaction</span><span class="o">.</span><span class="n">atomic</span>
+    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">group</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;group&#39;</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">models</span><span class="o">.</span><span class="n">Group</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">http</span><span class="o">.</span><span class="n">Http404</span><span class="p">(</span><span class="s2">&quot;Group does not exist.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">group</span><span class="o">.</span><span class="n">project</span> <span class="o">!=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">http</span><span class="o">.</span><span class="n">Http404</span><span class="p">()</span>
+
+        <span class="n">pks</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">getlist</span><span class="p">(</span><span class="s1">&#39;samples[]&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">u</span><span class="p">]</span>
+        <span class="n">priorities</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">pk</span><span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pks</span><span class="p">)</span>
+        <span class="p">}</span>
+
+        <span class="n">to_update</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">group</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="n">new_priority</span> <span class="o">=</span> <span class="n">priorities</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span> <span class="n">sample</span><span class="o">.</span><span class="n">priority</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sample</span><span class="o">.</span><span class="n">priority</span> <span class="o">!=</span> <span class="n">new_priority</span><span class="p">:</span>
+                <span class="n">sample</span><span class="o">.</span><span class="n">priority</span> <span class="o">=</span> <span class="n">new_priority</span>
+                <span class="n">to_update</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+
+        <span class="n">group</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">bulk_update</span><span class="p">(</span><span class="n">to_update</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;priority&quot;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">([],</span> <span class="n">safe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BulkSampleEdit"><a class="viewcode-back" href="../../../modules/views.html#mxlive.lims.ajax_views.BulkSampleEdit">[docs]</a><span class="nd">@method_decorator</span><span class="p">(</span><span class="n">csrf_exempt</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;dispatch&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">BulkSampleEdit</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">View</span><span class="p">):</span>
+
+    <span class="nd">@transaction</span><span class="o">.</span><span class="n">atomic</span>
+    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">group</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;group&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">models</span><span class="o">.</span><span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">group</span><span class="p">)</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">username</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;You do not have permission to modify these samples.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">getlist</span><span class="p">(</span><span class="s1">&#39;samples[</span><span class="si">{}</span><span class="s1">][]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)):</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">getlist</span><span class="p">(</span><span class="s1">&#39;samples[</span><span class="si">{}</span><span class="s1">][]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">info</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">info</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;barcode&#39;</span><span class="p">:</span> <span class="n">info</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;comments&#39;</span><span class="p">:</span> <span class="n">info</span><span class="p">[</span><span class="mi">3</span><span class="p">]}</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">([</span><span class="n">v</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()]):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;^[a-zA-Z0-9-_]+$&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: Names cannot contain any spaces or special characters&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)))</span>
+
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="n">models</span><span class="o">.</span><span class="n">Sample</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">group__pk</span><span class="o">=</span><span class="n">group</span><span class="p">)</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">pk__in</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">names</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">v</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+
+        <span class="n">duplicates</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">if</span> <span class="n">names</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">duplicates</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: Each sample in the group must have a unique name&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">errors</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">pk</span><span class="p">,</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">models</span><span class="o">.</span><span class="n">Sample</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">info</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="UpdateLocations"><a class="viewcode-back" href="../../../modules/views.html#mxlive.lims.ajax_views.UpdateLocations">[docs]</a><span class="k">class</span> <span class="nc">UpdateLocations</span><span class="p">(</span><span class="n">AdminRequiredMixin</span><span class="p">,</span> <span class="n">View</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Container</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pk&#39;</span><span class="p">])</span>
+        <span class="n">locations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">container</span><span class="o">.</span><span class="n">kind</span><span class="o">.</span><span class="n">locations</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;pk&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">locations</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FetchContainerLayout"><a class="viewcode-back" href="../../../modules/views.html#mxlive.lims.ajax_views.FetchContainerLayout">[docs]</a><span class="k">class</span> <span class="nc">FetchContainerLayout</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">View</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+            <span class="n">qs</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Container</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">qs</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Container</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">container</span> <span class="o">=</span> <span class="n">qs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pk&#39;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">container</span><span class="o">.</span><span class="n">get_layout</span><span class="p">(),</span> <span class="n">safe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">models</span><span class="o">.</span><span class="n">Container</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">http</span><span class="o">.</span><span class="n">Http404</span><span class="p">(</span><span class="s1">&#39;Container Not Found!&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="UnloadContainer"><a class="viewcode-back" href="../../../modules/views.html#mxlive.lims.ajax_views.UnloadContainer">[docs]</a><span class="k">class</span> <span class="nc">UnloadContainer</span><span class="p">(</span><span class="n">AdminRequiredMixin</span><span class="p">,</span> <span class="n">View</span><span class="p">):</span>
+
+    <span class="nd">@transaction</span><span class="o">.</span><span class="n">atomic</span>
+    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">container</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Container</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pk&#39;</span><span class="p">])</span>
+            <span class="n">root</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Container</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;root&#39;</span><span class="p">])</span>
+        <span class="k">except</span> <span class="n">models</span><span class="o">.</span><span class="n">Group</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">http</span><span class="o">.</span><span class="n">Http404</span><span class="p">(</span><span class="s2">&quot;Can&#39;t unload Container.&quot;</span><span class="p">)</span>
+
+        <span class="n">models</span><span class="o">.</span><span class="n">LoadHistory</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">child</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pk&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">active</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">end</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+        <span class="n">models</span><span class="o">.</span><span class="n">Container</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">container</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">get_layout</span><span class="p">(),</span> <span class="n">safe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CreateShipmentSamples"><a class="viewcode-back" href="../../../modules/views.html#mxlive.lims.ajax_views.CreateShipmentSamples">[docs]</a><span class="k">class</span> <span class="nc">CreateShipmentSamples</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">View</span><span class="p">):</span>
+
+    <span class="nd">@transaction</span><span class="o">.</span><span class="n">atomic</span>
+    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+            <span class="n">qs</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Shipment</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">qs</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Shipment</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">shipment</span> <span class="o">=</span> <span class="n">qs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pk&#39;</span><span class="p">])</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;samples&#39;</span><span class="p">,</span> <span class="s1">&#39;[]&#39;</span><span class="p">))</span>
+            <span class="n">grouped_samples</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+            <span class="n">loc_info</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">ContainerLocation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;pk&#39;</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">itemgetter</span><span class="p">(</span><span class="s1">&#39;container&#39;</span><span class="p">,</span> <span class="s1">&#39;location&#39;</span><span class="p">)):</span>
+                <span class="n">grouped_samples</span><span class="p">[</span><span class="n">sample</span><span class="p">[</span><span class="s1">&#39;group&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">shipment</span><span class="o">.</span><span class="n">project</span><span class="p">,</span>
+                        <span class="s1">&#39;container_id&#39;</span><span class="p">:</span> <span class="n">sample</span><span class="p">[</span><span class="s1">&#39;container&#39;</span><span class="p">],</span>
+                        <span class="s1">&#39;location_id&#39;</span><span class="p">:</span> <span class="n">loc_info</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">sample</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">])]</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+
+            <span class="n">to_create</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">models</span><span class="o">.</span><span class="n">Sample</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">container__shipment</span><span class="o">=</span><span class="n">shipment</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">shipment</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                <span class="c1"># remove existing samples</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">details</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">grouped_samples</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span> <span class="p">[])):</span>
+                    <span class="n">to_create</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Sample</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">group</span><span class="o">=</span><span class="n">group</span><span class="p">,</span> <span class="o">**</span><span class="n">details</span><span class="p">))</span>
+            <span class="n">shipment</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">bulk_create</span><span class="p">(</span><span class="n">to_create</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">({</span><span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="n">shipment</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">()},</span> <span class="n">safe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">models</span><span class="o">.</span><span class="n">Shipment</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">http</span><span class="o">.</span><span class="n">Http404</span><span class="p">(</span><span class="s1">&#39;Shipment Not Found!&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SaveContainerSamples"><a class="viewcode-back" href="../../../modules/views.html#mxlive.lims.ajax_views.SaveContainerSamples">[docs]</a><span class="k">class</span> <span class="nc">SaveContainerSamples</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">View</span><span class="p">):</span>
+
+    <span class="nd">@transaction</span><span class="o">.</span><span class="n">atomic</span>
+    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+            <span class="n">qs</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Container</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">qs</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Container</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">container</span> <span class="o">=</span> <span class="n">qs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pk&#39;</span><span class="p">])</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;samples&#39;</span><span class="p">,</span> <span class="s1">&#39;[]&#39;</span><span class="p">))</span>
+            <span class="n">groups</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">sample</span><span class="p">[</span><span class="s1">&#39;group&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">sample</span><span class="p">[</span><span class="s1">&#39;group&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="n">sample</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>  <span class="c1"># use sample name if group is blank</span>
+                <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">samples</span>
+                <span class="k">if</span> <span class="n">sample</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+            <span class="p">}</span>
+            <span class="n">group_map</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+                <span class="n">group</span><span class="p">,</span> <span class="n">created</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span>
+                    <span class="n">project</span><span class="o">=</span><span class="n">container</span><span class="o">.</span><span class="n">project</span><span class="p">,</span> <span class="n">shipment</span><span class="o">=</span><span class="n">container</span><span class="o">.</span><span class="n">shipment</span><span class="p">,</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">group_map</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">group</span>
+
+            <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">:</span>
+                <span class="n">group_name</span> <span class="o">=</span> <span class="n">sample</span><span class="p">[</span><span class="s1">&#39;group&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">sample</span><span class="p">[</span><span class="s1">&#39;group&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="n">sample</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>  <span class="c1"># use name if group is blank</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">sample</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;group&#39;</span><span class="p">:</span> <span class="n">group_map</span><span class="p">[</span><span class="n">group_name</span><span class="p">],</span>
+                    <span class="s1">&#39;location_id&#39;</span><span class="p">:</span> <span class="n">sample</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;container&#39;</span><span class="p">:</span> <span class="n">container</span><span class="p">,</span>
+                    <span class="s1">&#39;barcode&#39;</span><span class="p">:</span> <span class="n">sample</span><span class="p">[</span><span class="s1">&#39;barcode&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;comments&#39;</span><span class="p">:</span> <span class="n">sample</span><span class="p">[</span><span class="s1">&#39;comments&#39;</span><span class="p">],</span>
+                <span class="p">}</span>
+                <span class="k">if</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sample&#39;</span><span class="p">):</span>  <span class="c1"># update entries</span>
+                    <span class="n">models</span><span class="o">.</span><span class="n">Sample</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="n">container</span><span class="o">.</span><span class="n">project</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sample&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">info</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">):</span>  <span class="c1"># create new entry</span>
+                    <span class="n">models</span><span class="o">.</span><span class="n">Sample</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="n">container</span><span class="o">.</span><span class="n">project</span><span class="p">,</span> <span class="o">**</span><span class="n">info</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>   <span class="c1"># delete existing entry</span>
+                    <span class="n">models</span><span class="o">.</span><span class="n">Sample</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                        <span class="n">project</span><span class="o">=</span><span class="n">container</span><span class="o">.</span><span class="n">project</span><span class="p">,</span> <span class="n">location_id</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">],</span> <span class="n">container</span><span class="o">=</span><span class="n">container</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+
+            <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">({</span><span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="n">container</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">()},</span> <span class="n">safe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">models</span><span class="o">.</span><span class="n">Container</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">http</span><span class="o">.</span><span class="n">Http404</span><span class="p">(</span><span class="s1">&#39;Container Not Found!&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2010-2020, Canadian Light Source, Inc
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

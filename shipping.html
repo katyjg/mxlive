@@ -1,0 +1,379 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Shipments &mdash; MxLIVE v2019.04-233-gaed6fc8
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Sessions" href="sessions.html" />
+    <link rel="prev" title="On the Dashboard" href="dashboard.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> MxLIVE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v2019.04-233-gaed6fc8
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">For MX Users:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="dashboard.html">On the Dashboard</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Shipments</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#create-a-new-shipment">Create a New Shipment</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step-1-of-3-shipment">Step 1 of 3: Shipment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-2-of-3-adding-containers">Step 2 of 3: Adding Containers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3-of-3-adding-groups">Step 3 of 3: Adding Groups</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-samples">Adding Samples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#edit-a-shipment">Edit a Shipment</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#editing-containers-and-groups">Editing Containers and Groups</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prioritizing-samples">Prioritizing Samples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#send-your-shipment">Send Your Shipment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#shipment-statuses">Shipment Statuses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#video-tutorials">Video Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Create a New Shipment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#add-sample-to-a-shipment">Add Sample to a Shipment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#send-a-shipment">Send a Shipment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#add-sample-information-from-a-spreadsheet">Add Sample Information from a Spreadsheet</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sessions.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Datasets &amp; Reports</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html">Staff Interface</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Developers:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="apis.html">Application Program Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reports.html">Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/views.html">Views</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MxLIVE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Shipments</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="shipments">
+<h1>Shipments<a class="headerlink" href="#shipments" title="Permalink to this headline">¶</a></h1>
+<p>A shipment is a set of Containers (Uni-pucks, Cassettes, etc) filled with Samples organised into Groups.</p>
+<p>Before your beamtime, login to MxLIVE and create a shipment representing the samples you will be sending to the
+beamline.
+Some tips for preparing your MxLIVE shipment:
+- enter the labels on the containers (Uni-Pucks or Cassettes) that you will be sending to the beamline
+- add samples once your shipment is created; only fill containers with samples that are physically present,
+- when your samples are shipped, click “Send” in MxLIVE so beamline staff know to expect your shipment.</p>
+<p>You can update your shipment’s tracking number even after you have sent it, using the “Recall” button on your sent
+shipment’s page. If you’ve made a mistake and your shipment hasn’t been received at the beamline yet, you can unsend the
+shipment, make your changes, and send it again.</p>
+<div class="section" id="create-a-new-shipment">
+<h2>Create a New Shipment<a class="headerlink" href="#create-a-new-shipment" title="Permalink to this headline">¶</a></h2>
+<p>A streamlined Shipment Wizard is the main access point for entering information into MxLIVE. The wizard is divided into
+three steps.</p>
+<div class="section" id="step-1-of-3-shipment">
+<h3>Step 1 of 3: Shipment<a class="headerlink" href="#step-1-of-3-shipment" title="Permalink to this headline">¶</a></h3>
+<img alt="Shipment Wizard 1 of 3" class="align-center" src="_images/shipment-1of3.png" />
+<p>A default name is chosen for your shipment. You can modify it as needed for your own future reference. This name, along
+with comments entered here, will be visible to staff at the beamline once your shipment has been sent.</p>
+</div>
+<div class="section" id="step-2-of-3-adding-containers">
+<h3>Step 2 of 3: Adding Containers<a class="headerlink" href="#step-2-of-3-adding-containers" title="Permalink to this headline">¶</a></h3>
+<img alt="Shipment Wizard 2 of 3" class="align-center" src="_images/shipment-2of3.png" />
+<p>Enter the labels that are externally visible on your containers (Uni-Pucks or Cassettes), and be sure to correctly
+identify the type of container. These labels will be used by staff to identify your container on the beamline.</p>
+<p>To add a new container, click the Add Container button. To remove a container, click the “-” button, and click again to
+confirm. It is possible to add and remove containers after your shipment has been created.</p>
+</div>
+<div class="section" id="step-3-of-3-adding-groups">
+<h3>Step 3 of 3: Adding Groups<a class="headerlink" href="#step-3-of-3-adding-groups" title="Permalink to this headline">¶</a></h3>
+<img alt="Shipment Wizard 3 of 3" class="align-center" src="_images/shipment-3of3-expanded.png" />
+<p>Specify groups for similar samples. You will assign samples to the groups and containers after your shipment is created.
+A default Plan and Experiment Type are selected, and can be edited. This information could be used by staff if you are
+using the Mail-In program, or can be referenced as you are collecting data. To add other optional information, expand
+group details with the “&gt;&gt;” button.</p>
+<p>For Mail-In data collection, your groups will be prioritized from the top of the list to the bottom. To adjust your
+group’s priority, click the arrow button and drag the group up or down in the list.</p>
+<p>To add a new group, click the Add Group button. To remove a group, click the “-” button, and click again to
+confirm. It is possible to add and remove groups after your shipment has been created.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The “Fill Containers” button will auto-create one group per container filled with samples, overwriting any
+groups that you have already defined.</p>
+</div>
+</div>
+</div>
+<div class="section" id="adding-samples">
+<h2>Adding Samples<a class="headerlink" href="#adding-samples" title="Permalink to this headline">¶</a></h2>
+<p>Once you have finished the three steps to create your shipment, it should look something like this:</p>
+<img alt="New Shipment" class="align-center" src="_images/shipment-created.png" />
+<p>To add samples, click the Samples icon in the toolbar. Select the group from the right-hand sidebar, and select the
+locations of samples in that group. Click previously selected samples to remove them. Leave an empty spot in a container
+location with no sample.</p>
+<img alt="Add Samples to Shipment" class="align-center" src="_images/shipment-samples-modal.png" />
+<p>Your shipment, with samples, should look something like this:</p>
+<img alt="MxLIVE Shipment" class="align-center" src="_images/shipment-ready.png" />
+</div>
+<div class="section" id="edit-a-shipment">
+<h2>Edit a Shipment<a class="headerlink" href="#edit-a-shipment" title="Permalink to this headline">¶</a></h2>
+<p>Changes can be made to your shipment until it is sent. After that, if your shipment has not yet been received at the
+beamline, you can “Recall” your shipment to Un-send it, make changes, and “Send” it again.</p>
+<div class="section" id="editing-containers-and-groups">
+<h3>Editing Containers and Groups<a class="headerlink" href="#editing-containers-and-groups" title="Permalink to this headline">¶</a></h3>
+<p>Click the “Containers” or “Groups” icon in the toolbar to edit your shipment’s containers or groups. You can also edit
+or delete a specific container or group by clicking on its name to get to its detailed page.</p>
+</div>
+<div class="section" id="prioritizing-samples">
+<h3>Prioritizing Samples<a class="headerlink" href="#prioritizing-samples" title="Permalink to this headline">¶</a></h3>
+<p>To prioritize samples within a group, go to the group’s detailed page. Samples are prioritized from the top to the
+bottom of the list of samples. Click the arrow icon in the “Priority” column of the sample table and drag the sample to
+a higher or lower priority.</p>
+</div>
+</div>
+<div class="section" id="send-your-shipment">
+<h2>Send Your Shipment<a class="headerlink" href="#send-your-shipment" title="Permalink to this headline">¶</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Staff do not have access to your shipment until it is sent.</p>
+</div>
+<p><strong>Click the “Send” button.</strong> The Carrier will be defaulted to the one specified in your Profile. Provide a tracking
+number if you can, so staff can track your shipment as it makes its way to the beamline. Add extra items that you are
+including with your shipment.</p>
+<img alt="Send a Shipment" class="align-center" src="_images/shipment-send.png" />
+</div>
+<div class="section" id="shipment-statuses">
+<h2>Shipment Statuses<a class="headerlink" href="#shipment-statuses" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 89%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Draft</p></td>
+<td><p>Everything is editable. Only accessible from your account.</p></td>
+</tr>
+<tr class="row-even"><td><p>Sent</p></td>
+<td><p>Not editable, but can be recalled. Has not yet been received by beamline staff.</p></td>
+</tr>
+<tr class="row-odd"><td><p>On-site</p></td>
+<td><p>Received by beamline staff and stored on-site.</p></td>
+</tr>
+<tr class="row-even"><td><p>Returned</p></td>
+<td><p>Returned by beamline staff according to details in your profile.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="video-tutorials">
+<h2>Video Tutorials<a class="headerlink" href="#video-tutorials" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>Create a New Shipment<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; height: auto;">
+    <iframe src="https://www.youtube.com/embed/4Muf4kcflBU" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+</div><p>Learn how to create a new shipment from scratch.</p>
+</div>
+<div class="section" id="add-sample-to-a-shipment">
+<h3>Add Sample to a Shipment<a class="headerlink" href="#add-sample-to-a-shipment" title="Permalink to this headline">¶</a></h3>
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; height: auto;">
+    <iframe src="https://www.youtube.com/embed/Eyx9em8nUe4" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+</div><p>Learn how to add samples, containers, or groups to a shipment that already exists.</p>
+</div>
+<div class="section" id="send-a-shipment">
+<h3>Send a Shipment<a class="headerlink" href="#send-a-shipment" title="Permalink to this headline">¶</a></h3>
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; height: auto;">
+    <iframe src="https://www.youtube.com/embed/Z7WcIiQi7X4" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+</div><p>Learn how to send a shipment of containers and groups of samples in MxLIVE.</p>
+</div>
+<div class="section" id="add-sample-information-from-a-spreadsheet">
+<h3>Add Sample Information from a Spreadsheet<a class="headerlink" href="#add-sample-information-from-a-spreadsheet" title="Permalink to this headline">¶</a></h3>
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; height: auto;">
+    <iframe src="https://www.youtube.com/embed/XnOL5GLwE_k" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+</div><p>Learn how to add or change sample information by copying and pasting from a spreadsheet. You can skip typing each sample
+name in MxLIVE, even if you have specific naming requirements.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="sessions.html" class="btn btn-neutral float-right" title="Sessions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="dashboard.html" class="btn btn-neutral float-left" title="On the Dashboard" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2010-2020, Canadian Light Source, Inc
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

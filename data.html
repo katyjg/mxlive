@@ -1,0 +1,280 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Datasets &amp; Reports &mdash; MxLIVE v2019.04-233-gaed6fc8
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting Started" href="starting.html" />
+    <link rel="prev" title="Sessions" href="sessions.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> MxLIVE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v2019.04-233-gaed6fc8
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">For MX Users:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="dashboard.html">On the Dashboard</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shipping.html">Shipments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sessions.html">Sessions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Datasets &amp; Reports</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#datasets">Datasets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#diffraction-data">Diffraction Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mad-scans">MAD Scans</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#xrf-scans">XRF Scans</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#downloads">Downloads</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#reports">Reports</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html">Staff Interface</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Developers:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="apis.html">Application Program Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reports.html">Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/views.html">Views</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MxLIVE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Datasets &amp; Reports</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="datasets-reports">
+<h1>Datasets &amp; Reports<a class="headerlink" href="#datasets-reports" title="Permalink to this headline">¶</a></h1>
+<p>Data objects store meta-data about datasets collected on the beamline, and reference files stored on a file server.</p>
+<p>Data and Reports are uploaded directly from MxDC on the beamline as they are completed. Full lists of your Datasets and Reports
+are available under the Search item in the header navigation menu. Those lists can be filtered by date and the type of
+dataset or report.</p>
+<div class="section" id="datasets">
+<h2>Datasets<a class="headerlink" href="#datasets" title="Permalink to this headline">¶</a></h2>
+<p>Datasets are viewed in a modal data viewer. Each data type has a custom display format. The data type is determined by
+MxDC as it is collected.</p>
+<div class="section" id="diffraction-data">
+<h3>Diffraction Data<a class="headerlink" href="#diffraction-data" title="Permalink to this headline">¶</a></h3>
+<p>MX Screening, MX Datasets, and XRD Datasets (determined by the strategy used to collect data in MxDC) are all displayed
+in the same diffraction viewer, including a diffraction display area, a snapshot of the sample, a complete list of all
+frames in the dataset, and meta-data about the collection conditions.</p>
+<p>To zoom in on the displayed frame, use the middle scroll button of your mouse, or the zoom buttons in the top left
+corner. Zoom in on different parts of the image by clicking and dragging the red box in the small legend box in the
+bottom right corner. Select from three preset contrast levels: dark, normal, or light. Navigate to different frames in
+the dataset by using the arrow buttons, or select a frame from the list in the right-hand sidebar.</p>
+<img alt="MX Dataset" class="align-center" src="_images/data.png" />
+</div>
+<div class="section" id="mad-scans">
+<h3>MAD Scans<a class="headerlink" href="#mad-scans" title="Permalink to this headline">¶</a></h3>
+<p>MAD scans show the raw data from the scan, overlaid with the calculated peak, inflection, and remote energies.</p>
+<img alt="MX Dataset" class="align-center" src="_images/data-mad.png" />
+</div>
+<div class="section" id="xrf-scans">
+<h3>XRF Scans<a class="headerlink" href="#xrf-scans" title="Permalink to this headline">¶</a></h3>
+<p>X-ray Fluorescence scans are displayed showing raw data overlaid with an analysis of elements likely found in the
+sample. The most-likely elements are pre-selected, but any element can be selected or deselected to update the displayed
+analysis.</p>
+<img alt="MX Dataset" class="align-center" src="_images/data-xrf.png" />
+</div>
+<div class="section" id="downloads">
+<h3>Downloads<a class="headerlink" href="#downloads" title="Permalink to this headline">¶</a></h3>
+<p>You can download individual diffraction frames from a dataset by finding the download icon on the right-hand side of
+each frame in the frame list. To download complete datasets, click the download icon in the toolbar of the data viewer.
+An archive of the entire dataset’s directory will be created and streamed to you through your browser.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Depending on storage limitations at the beamline, your dataset may be deleted after some time. Meta-data
+will remain on MxLIVE indefinitely. If you are unable to download your data through MxLIVE, it has likely
+been removed from on-site disks. Please check with beamline staff to confirm.</p>
+</div>
+</div>
+</div>
+<div class="section" id="reports">
+<h2>Reports<a class="headerlink" href="#reports" title="Permalink to this headline">¶</a></h2>
+<p>Reports are displayed in MxLIVE in a similar format to their display in MxDC.</p>
+<img alt="MxLIVE report" class="align-center" src="_images/report.png" />
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="starting.html" class="btn btn-neutral float-right" title="Getting Started" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="sessions.html" class="btn btn-neutral float-left" title="Sessions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2010-2020, Canadian Light Source, Inc
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

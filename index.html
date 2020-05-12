@@ -1,0 +1,287 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>MxLIVE - MX Laboratory Information Virtual Environment &mdash; MxLIVE v2019.04-233-gaed6fc8
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="On the Dashboard" href="dashboard.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="#" class="icon icon-home"> MxLIVE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v2019.04-233-gaed6fc8
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">For MX Users:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dashboard.html">On the Dashboard</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shipping.html">Shipments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sessions.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Datasets &amp; Reports</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html">Staff Interface</a></li>
+</ul>
+<p class="caption"><span class="caption-text">For Developers:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="apis.html">Application Program Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reports.html">Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/views.html">Views</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">MxLIVE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#">Docs</a> &raquo;</li>
+        
+      <li>MxLIVE - MX Laboratory Information Virtual Environment</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <p>MxLIVE (Macromolecular Crystallography Laboratory Virtual Environment) is a development platform and web application for
+managing synchrotron visits from experiment planning and organisation to shipment tracking to data and analysis access.</p>
+<p>MxLIVE relies on MxDC as a source of meta-data from data collection sessions on the beamline, and acts as a resource
+from which MxDC can fetch sample information. While this close-coupling is
+tailored to MxDC, all connections are handled through the use of APIs, so other data collection
+applications could also be modified to complement MxLIVE.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>An earlier version of MxLIVE is described in the following publication:</p>
+<ul class="simple">
+<li><p>MxDC and MxLIVE: software for data acquisition, information management and remote access to macromolecular
+crystallography beamlines. M. Fodje, K. Janzen, R. Berg, G. Black, S. Labiuk, J. Gorin and P. Grochulski
+J. Synchrotron Rad. (2012). 19, 274-280. <a class="reference external" href="https://doi.org/10.1107/S0909049511056305">https://doi.org/10.1107/S0909049511056305</a></p></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">For MX Users:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dashboard.html">On the Dashboard</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dashboard.html#menu">Menu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dashboard.html#toolbar">Toolbar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dashboard.html#beamtime">Beamtime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dashboard.html#shipments">Shipments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dashboard.html#sessions">Sessions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dashboard.html#guide">Guide</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="shipping.html">Shipments</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="shipping.html#create-a-new-shipment">Create a New Shipment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shipping.html#adding-samples">Adding Samples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shipping.html#edit-a-shipment">Edit a Shipment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shipping.html#send-your-shipment">Send Your Shipment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shipping.html#shipment-statuses">Shipment Statuses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shipping.html#video-tutorials">Video Tutorials</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sessions.html">Sessions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sessions.html#history">History</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sessions.html#download">Download</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Datasets &amp; Reports</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.html#datasets">Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#reports">Reports</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html">Staff Interface</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">For Developers:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="apis.html">Application Program Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reports.html">Reports</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reports.html#section-options">Section Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reports.html#content-options">Content Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reports.html#annotation-options-plots">Annotation Options (Plots)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reports.html#data-options-plots-scatterplot-lineplot">Data Options (Plots - scatterplot, lineplot)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reports.html#data-options-charts-pie-gauge">Data Options (Charts - pie, gauge)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reports.html#model">Model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/views.html">Views</a></li>
+</ul>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="dashboard.html" class="btn btn-neutral float-right" title="On the Dashboard" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2010-2020, Canadian Light Source, Inc
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
