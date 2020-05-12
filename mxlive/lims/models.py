@@ -1235,7 +1235,7 @@ class Data(ActiveStatusMixin):
         return self.file_name.format(self.first_frame())
 
     def snapshot_url(self):
-        return "{}/{}.gif".format(self.url, self.name)
+        return "{}/{}.png".format(self.url, self.name)
 
     def get_meta_data(self):
         return OrderedDict([(k, self.meta_data.get(k)) for k in self.kind.metadata if k in self.meta_data])
