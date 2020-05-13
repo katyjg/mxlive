@@ -106,3 +106,11 @@ a publicly visible website, insert the following HTML code::
 
 By default, usernames of scheduled accounts are visible on the public schedule. If extra confidentiality is required,
 the **alias** field in the user's profile should be used. If the alias has a value, only the alias is visible publicly.
+
+Statistics
+^^^^^^^^^^
+Beamtime statistics are displayed side-by-side for multiple beamlines, and can be filtered by year.
+
+.. image:: images/schedule-statistics.png
+   :align: center
+   :alt: Beamline Scheduling Statistics

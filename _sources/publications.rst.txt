@@ -14,6 +14,7 @@ Journal metrics are fetched from https://www.scimagojr.com/journalrank.php and s
    :alt: Publications
 
 Icons in the toolbar give access to:
+
   - detailed list of PDBs, Subject Areas, and Journals, and
   - publications metrics (statistics).
 
