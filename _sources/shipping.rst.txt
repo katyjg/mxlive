@@ -15,6 +15,7 @@ shipment's page. If you've made a mistake and your shipment hasn't been received
 shipment, make your changes, and send it again.
 
 As a shipment is created, sent, received on-site, and returned, it moves through the following statuses.
+
 +------------+---------------------------------------------------------------------------------------------+
 | Draft      | Everything is editable. Only accessible from your account.                                  |
 +------------+---------------------------------------------------------------------------------------------+
