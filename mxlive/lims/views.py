@@ -113,7 +113,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
                 data_count=Count('datasets', distinct=True),
                 report_count=Count('datasets__reports', distinct=True),
                 last_record=Greatest('datasets__end_time', 'datasets__reports__created'),
-            ).order_by('-last_record').with_duration().prefetch_related('project', 'beamline')[:7]
+            ).order_by('last_record').with_duration().prefetch_related('project', 'beamline')[:7]
 
             context.update(shipments=shipments, sessions=sessions)
         return context
