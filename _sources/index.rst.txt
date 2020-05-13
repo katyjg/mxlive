@@ -31,6 +31,8 @@ applications could also be modified to complement MxLIVE.
 
    starting
    staff-dashboard
+   scheduling
+   publications
 
 .. toctree::
    :maxdepth: 2

@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Application Program Interfaces" href="apis.html" />
+    <link rel="next" title="Scheduling" href="scheduling.html" />
     <link rel="prev" title="Getting Started" href="starting.html" /> 
 </head>
 
@@ -98,15 +98,16 @@
 <li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Staff Interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#dashboard">Dashboard</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#remote-connections">Remote Connections</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#accounts">Accounts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#detailed-lists">Detailed Lists</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#sessions">Sessions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#guide">Guide</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#remote-connections">Remote Connections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#accounts">Accounts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#detailed-lists">Detailed Lists</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="scheduling.html">Scheduling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul>
@@ -185,6 +186,10 @@ that there is only one staff account at any one time; however, multiple staff ac
 there are multiple staff, the profile of the account that was created first will be referenced for shipping labels.</p>
 <div class="section" id="dashboard">
 <h2>Dashboard<a class="headerlink" href="#dashboard" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center" id="id1">
+<img alt="MxLIVE Staff Dashboard" src="_images/staff-dashboard.png" />
+<p class="caption"><span class="caption-text">Screenshot of the MxLIVE Staff Dashboard</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
 <p>The staff dashboard has a similar layout to the user dashboard, with some notable differences.</p>
 <ul>
 <li><p><strong>Menu</strong>: Provides access to the Django administration site</p></li>
@@ -192,6 +197,8 @@ there are multiple staff, the profile of the account that was created first will
 <li><p><strong>Beamlines</strong>: Staff have access to beamlines on the left side of the page.</p></li>
 <li><p><strong>Shipments</strong>: All incoming (Sent) and On-site shipments are listed in this area. Sent shipments can be received
 directly from the dashboard with the “Receive” icon.</p></li>
+<li><p><strong>Sessions</strong>: Active sessions are listed in this area. Active sessions are those where the user is currently running
+MxDC on the beamline.</p></li>
 <li><p><strong>Toolbar</strong> provides access to:</p>
 <blockquote>
 <div><ul class="simple">
@@ -205,12 +212,20 @@ directly from the dashboard with the “Receive” icon.</p></li>
 </div></blockquote>
 </li>
 </ul>
-<div class="figure align-center" id="id1">
-<img alt="MxLIVE Staff Dashboard" src="_images/staff-dashboard.png" />
-<p class="caption"><span class="caption-text">Screenshot of the MxLIVE Staff Dashboard</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+<div class="section" id="guide">
+<h3>Guide<a class="headerlink" href="#guide" title="Permalink to this headline">¶</a></h3>
+<p>Create announcements that will be available on every user’s dashboard, in the User Guide area. Assign priorities to your
+announcements to control the order in which they are presented.</p>
+<ul class="simple">
+<li><p>Announcements marked “staff only” will only show up on the staff dashboard.</p></li>
+<li><p>To add a YouTube video, enter “youtube:{video_id}” as the URL or Resource.</p></li>
+<li><p>To add an image from Flickr, enter “flickr:{album}:{photo}” as the URL or Resource.</p></li>
+</ul>
+<img alt="Add User Guide Entry" class="align-center" src="_images/staff-guide.png" />
+</div>
 </div>
 <div class="section" id="remote-connections">
-<h3>Remote Connections<a class="headerlink" href="#remote-connections" title="Permalink to this headline">¶</a></h3>
+<h2>Remote Connections<a class="headerlink" href="#remote-connections" title="Permalink to this headline">¶</a></h2>
 <img alt="Remote Connections" class="align-center" src="_images/staff-remote.png" />
 <p>Remote Connections in MxLIVE are tailored for managing NoMachine Server allowed user lists. Users who should be granted
 access to NoMachine connections are added to the list of a specific remote connection, which they can then connect to
@@ -219,7 +234,7 @@ to fetch the new user list from MxLIVE. A history of connection times and status
 viewed using the “Connections” icon in the toolbar.</p>
 </div>
 <div class="section" id="accounts">
-<h3>Accounts<a class="headerlink" href="#accounts" title="Permalink to this headline">¶</a></h3>
+<h2>Accounts<a class="headerlink" href="#accounts" title="Permalink to this headline">¶</a></h2>
 <p>When creating a new account, enter the <strong>First Name</strong>, <strong>Last Name</strong>, and <strong>Email Address</strong> of the owner of the account
 (ie. the Principal Investigator, Project Leader, etc.). These fields are not editable by the user, but they are used,
 along with the <strong>Contact Email</strong> (which IS editable by the user), for email notifications about upcoming beamtime.</p>
@@ -234,28 +249,12 @@ schedule display.</p>
 <img alt="Account Creation" class="align-center" src="_images/staff-accounts.png" />
 </div>
 <div class="section" id="detailed-lists">
-<h3>Detailed Lists<a class="headerlink" href="#detailed-lists" title="Permalink to this headline">¶</a></h3>
+<h2>Detailed Lists<a class="headerlink" href="#detailed-lists" title="Permalink to this headline">¶</a></h2>
 <p>Staff detailed lists are similar to user detailed lists, but staff lists contain entries from all users. For this reason,
 a column is prepended to staff lists containing the username of the owner of each item.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Staff do not have access to any item in a Draft state (for example, shipments that have not yet been sent).</p>
-</div>
-</div>
-<div class="section" id="sessions">
-<h3>Sessions<a class="headerlink" href="#sessions" title="Permalink to this headline">¶</a></h3>
-<p>Active sessions will be listed here. Active sessions are those where the user is currently running MxDC on the beamline.</p>
-</div>
-<div class="section" id="guide">
-<h3>Guide<a class="headerlink" href="#guide" title="Permalink to this headline">¶</a></h3>
-<p>Create announcements that will be available on every user’s dashboard, in the User Guide area. Assign priorities to your
-announcements to control the order in which they are presented.</p>
-<ul class="simple">
-<li><p>Announcements marked “staff only” will only show up on the staff dashboard.</p></li>
-<li><p>To add a YouTube video, enter “youtube:{video_id}” as the URL or Resource.</p></li>
-<li><p>To add an image from Flickr, enter “flickr:{album}:{photo}” as the URL or Resource.</p></li>
-</ul>
-<img alt="Add User Guide Entry" class="align-center" src="_images/staff-guide.png" />
 </div>
 </div>
 </div>
@@ -268,7 +267,7 @@ announcements to control the order in which they are presented.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="apis.html" class="btn btn-neutral float-right" title="Application Program Interfaces" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="scheduling.html" class="btn btn-neutral float-right" title="Scheduling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="starting.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

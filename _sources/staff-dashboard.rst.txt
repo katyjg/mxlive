@@ -9,6 +9,11 @@ there are multiple staff, the profile of the account that was created first will
 
 Dashboard
 ---------
+.. figure:: images/staff-dashboard.png
+    :align: center
+    :alt: MxLIVE Staff Dashboard
+
+    Screenshot of the MxLIVE Staff Dashboard
 
 The staff dashboard has a similar layout to the user dashboard, with some notable differences.
 
@@ -17,6 +22,8 @@ The staff dashboard has a similar layout to the user dashboard, with some notabl
 - **Beamlines**: Staff have access to beamlines on the left side of the page.
 - **Shipments**: All incoming (Sent) and On-site shipments are listed in this area. Sent shipments can be received
   directly from the dashboard with the "Receive" icon.
+- **Sessions**: Active sessions are listed in this area. Active sessions are those where the user is currently running
+  MxDC on the beamline.
 - **Toolbar** provides access to:
 
     - Remote Connections
@@ -26,15 +33,22 @@ The staff dashboard has a similar layout to the user dashboard, with some notabl
     - Publications
     - Add new User Guide entries
 
+Guide
+^^^^^
+Create announcements that will be available on every user's dashboard, in the User Guide area. Assign priorities to your
+announcements to control the order in which they are presented.
 
-.. figure:: images/staff-dashboard.png
+- Announcements marked "staff only" will only show up on the staff dashboard.
+- To add a YouTube video, enter "youtube:{video_id}" as the URL or Resource.
+- To add an image from Flickr, enter "flickr:{album}:{photo}" as the URL or Resource.
+
+.. image:: images/staff-guide.png
     :align: center
-    :alt: MxLIVE Staff Dashboard
+    :alt: Add User Guide Entry
 
-    Screenshot of the MxLIVE Staff Dashboard
 
 Remote Connections
-^^^^^^^^^^^^^^^^^^
+------------------
 .. image:: images/staff-remote.png
     :align: center
     :alt: Remote Connections
@@ -46,7 +60,7 @@ to fetch the new user list from MxLIVE. A history of connection times and status
 viewed using the "Connections" icon in the toolbar.
 
 Accounts
-^^^^^^^^
+--------
 When creating a new account, enter the **First Name**, **Last Name**, and **Email Address** of the owner of the account
 (ie. the Principal Investigator, Project Leader, etc.). These fields are not editable by the user, but they are used,
 along with the **Contact Email** (which IS editable by the user), for email notifications about upcoming beamtime.
@@ -64,27 +78,9 @@ schedule display.
     :alt: Account Creation
 
 Detailed Lists
-^^^^^^^^^^^^^^
-
+--------------
 Staff detailed lists are similar to user detailed lists, but staff lists contain entries from all users. For this reason,
 a column is prepended to staff lists containing the username of the owner of each item.
 
 .. note:: Staff do not have access to any item in a Draft state (for example, shipments that have not yet been sent).
 
-Sessions
-^^^^^^^^
-
-Active sessions will be listed here. Active sessions are those where the user is currently running MxDC on the beamline.
-
-Guide
-^^^^^
-Create announcements that will be available on every user's dashboard, in the User Guide area. Assign priorities to your
-announcements to control the order in which they are presented.
-
-- Announcements marked "staff only" will only show up on the staff dashboard.
-- To add a YouTube video, enter "youtube:{video_id}" as the URL or Resource.
-- To add an image from Flickr, enter "flickr:{album}:{photo}" as the URL or Resource.
-
-.. image:: images/staff-guide.png
-    :align: center
-    :alt: Add User Guide Entry
