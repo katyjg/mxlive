@@ -94,16 +94,16 @@
 <li class="toctree-l3"><a class="reference internal" href="#step-1-of-3-shipment">Step 1 of 3: Shipment</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#step-2-of-3-adding-containers">Step 2 of 3: Adding Containers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#step-3-of-3-adding-groups">Step 3 of 3: Adding Groups</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-samples">Adding Samples</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#adding-samples">Adding Samples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#edit-a-shipment">Edit a Shipment</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#editing-containers-and-groups">Editing Containers and Groups</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#prioritizing-samples">Prioritizing Samples</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#send-your-shipment">Send Your Shipment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#shipment-statuses">Shipment Statuses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#shipments-on-site">Shipments On-Site</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#video-tutorials">Video Tutorials</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id1">Create a New Shipment</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#add-sample-to-a-shipment">Add Sample to a Shipment</a></li>
@@ -201,6 +201,16 @@ Some tips for preparing your MxLIVE shipment:
 <p>You can update your shipment’s tracking number even after you have sent it, using the “Recall” button on your sent
 shipment’s page. If you’ve made a mistake and your shipment hasn’t been received at the beamline yet, you can unsend the
 shipment, make your changes, and send it again.</p>
+<p>As a shipment is created, sent, received on-site, and returned, it moves through the following statuses.
++————+———————————————————————————————+
+| Draft      | Everything is editable. Only accessible from your account.                                  |
++————+———————————————————————————————+
+| Sent       | Not editable, but can be recalled. Has not yet been received by beamline staff.             |
++————+———————————————————————————————+
+| On-site    | Received by beamline staff and stored on-site.                                              |
++————+———————————————————————————————+
+| Returned   | Returned by beamline staff according to details in your profile.                            |
++————+———————————————————————————————+</p>
 <div class="section" id="create-a-new-shipment">
 <h2>Create a New Shipment<a class="headerlink" href="#create-a-new-shipment" title="Permalink to this headline">¶</a></h2>
 <p>A streamlined Shipment Wizard is the main access point for entering information into MxLIVE. The wizard is divided into
@@ -236,9 +246,8 @@ confirm. It is possible to add and remove groups after your shipment has been cr
 groups that you have already defined.</p>
 </div>
 </div>
-</div>
 <div class="section" id="adding-samples">
-<h2>Adding Samples<a class="headerlink" href="#adding-samples" title="Permalink to this headline">¶</a></h2>
+<h3>Adding Samples<a class="headerlink" href="#adding-samples" title="Permalink to this headline">¶</a></h3>
 <p>Once you have finished the three steps to create your shipment, it should look something like this:</p>
 <img alt="New Shipment" class="align-center" src="_images/shipment-created.png" />
 <p>To add samples, click the Samples icon in the toolbar. Select the group from the right-hand sidebar, and select the
@@ -247,6 +256,7 @@ location with no sample.</p>
 <img alt="Add Samples to Shipment" class="align-center" src="_images/shipment-samples-modal.png" />
 <p>Your shipment, with samples, should look something like this:</p>
 <img alt="MxLIVE Shipment" class="align-center" src="_images/shipment-ready.png" />
+</div>
 </div>
 <div class="section" id="edit-a-shipment">
 <h2>Edit a Shipment<a class="headerlink" href="#edit-a-shipment" title="Permalink to this headline">¶</a></h2>
@@ -270,33 +280,23 @@ a higher or lower priority.</p>
 <p class="admonition-title">Warning</p>
 <p>Staff do not have access to your shipment until it is sent.</p>
 </div>
+<p>Labels can be printed using the “Labels” icon in the shipment page toolbar. These labels should be printed and affixed
+to the outside of dewars or other shipping containers.</p>
+<img alt="Shipment Labels" class="align-center" src="_images/labels.png" />
 <p><strong>Click the “Send” button.</strong> The Carrier will be defaulted to the one specified in your Profile. Provide a tracking
 number if you can, so staff can track your shipment as it makes its way to the beamline. Add extra items that you are
 including with your shipment.</p>
 <img alt="Send a Shipment" class="align-center" src="_images/shipment-send.png" />
 </div>
-<div class="section" id="shipment-statuses">
-<h2>Shipment Statuses<a class="headerlink" href="#shipment-statuses" title="Permalink to this headline">¶</a></h2>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 11%" />
-<col style="width: 89%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p>Draft</p></td>
-<td><p>Everything is editable. Only accessible from your account.</p></td>
-</tr>
-<tr class="row-even"><td><p>Sent</p></td>
-<td><p>Not editable, but can be recalled. Has not yet been received by beamline staff.</p></td>
-</tr>
-<tr class="row-odd"><td><p>On-site</p></td>
-<td><p>Received by beamline staff and stored on-site.</p></td>
-</tr>
-<tr class="row-even"><td><p>Returned</p></td>
-<td><p>Returned by beamline staff according to details in your profile.</p></td>
-</tr>
-</tbody>
-</table>
+<div class="section" id="shipments-on-site">
+<h2>Shipments On-Site<a class="headerlink" href="#shipments-on-site" title="Permalink to this headline">¶</a></h2>
+<p>While your shipment is on-site, you can monitor your containers’ positions in beamline automounters, and see the
+progress of datasets and reports related to samples in that shipment. Samples that have at least one dataset collected
+are represented with a lighter colour than samples that have not been collected yet.</p>
+<img alt="Shipment in Progress" class="align-center" src="_images/shipment-onsite.png" />
+<p>The shipment progress page is formatted in the same way as a session page, but only displays samples that are in the
+shipment.</p>
+<img alt="Progress of On-site Shipment" class="align-center" src="_images/shipment-progress.png" />
 </div>
 <div class="section" id="video-tutorials">
 <h2>Video Tutorials<a class="headerlink" href="#video-tutorials" title="Permalink to this headline">¶</a></h2>

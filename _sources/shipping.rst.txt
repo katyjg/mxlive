@@ -14,6 +14,18 @@ You can update your shipment's tracking number even after you have sent it, usin
 shipment's page. If you've made a mistake and your shipment hasn't been received at the beamline yet, you can unsend the
 shipment, make your changes, and send it again.
 
+As a shipment is created, sent, received on-site, and returned, it moves through the following statuses.
++------------+---------------------------------------------------------------------------------------------+
+| Draft      | Everything is editable. Only accessible from your account.                                  |
++------------+---------------------------------------------------------------------------------------------+
+| Sent       | Not editable, but can be recalled. Has not yet been received by beamline staff.             |
++------------+---------------------------------------------------------------------------------------------+
+| On-site    | Received by beamline staff and stored on-site.                                              |
++------------+---------------------------------------------------------------------------------------------+
+| Returned   | Returned by beamline staff according to details in your profile.                            |
++------------+---------------------------------------------------------------------------------------------+
+
+
 Create a New Shipment
 ---------------------
 
@@ -62,7 +74,7 @@ confirm. It is possible to add and remove groups after your shipment has been cr
              groups that you have already defined.
 
 Adding Samples
---------------
+^^^^^^^^^^^^^^
 Once you have finished the three steps to create your shipment, it should look something like this:
 
 .. image:: images/shipment-created.png
@@ -105,6 +117,13 @@ Send Your Shipment
 
 .. warning:: Staff do not have access to your shipment until it is sent.
 
+Labels can be printed using the "Labels" icon in the shipment page toolbar. These labels should be printed and affixed
+to the outside of dewars or other shipping containers.
+
+.. image:: images/labels.png
+   :align: center
+   :alt: Shipment Labels
+
 **Click the "Send" button.** The Carrier will be defaulted to the one specified in your Profile. Provide a tracking
 number if you can, so staff can track your shipment as it makes its way to the beamline. Add extra items that you are
 including with your shipment.
@@ -113,18 +132,23 @@ including with your shipment.
    :align: center
    :alt: Send a Shipment
 
-Shipment Statuses
+Shipments On-Site
 -----------------
 
-+------------+---------------------------------------------------------------------------------------------+
-| Draft      | Everything is editable. Only accessible from your account.                                  |
-+------------+---------------------------------------------------------------------------------------------+
-| Sent       | Not editable, but can be recalled. Has not yet been received by beamline staff.             |
-+------------+---------------------------------------------------------------------------------------------+
-| On-site    | Received by beamline staff and stored on-site.                                              |
-+------------+---------------------------------------------------------------------------------------------+
-| Returned   | Returned by beamline staff according to details in your profile.                            |
-+------------+---------------------------------------------------------------------------------------------+
+While your shipment is on-site, you can monitor your containers' positions in beamline automounters, and see the
+progress of datasets and reports related to samples in that shipment. Samples that have at least one dataset collected
+are represented with a lighter colour than samples that have not been collected yet.
+
+.. image:: images/shipment-onsite.png
+   :align: center
+   :alt: Shipment in Progress
+
+The shipment progress page is formatted in the same way as a session page, but only displays samples that are in the
+shipment.
+
+.. image:: images/shipment-progress.png
+   :align: center
+   :alt: Progress of On-site Shipment
 
 
 Video Tutorials
