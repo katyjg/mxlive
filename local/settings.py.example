@@ -1,3 +1,6 @@
+# Local Timezone
+TIME_ZONE = 'America/Regina'
+
 # Internal Access Settings
 TRUSTED_IPS = ['127.0.0.1/32']
 TRUSTED_PROXIES = 1
