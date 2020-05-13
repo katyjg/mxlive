@@ -78,11 +78,12 @@ Active sessions will be listed here. Active sessions are those where the user is
 
 Guide
 ^^^^^
-Create user guide entries that will be available on every user's dashboard.
+Create announcements that will be available on every user's dashboard, in the User Guide area. Assign priorities to your
+announcements to control the order in which they are presented.
 
-- Items marked "staff only" will only show up on the staff dashboard
-- To add a YouTube video, enter "youtube:{video_id}" as the URL or Resource
-- To add an image from Flickr, enter "flickr:{album}:{photo}" as the URL or Resource
+- Announcements marked "staff only" will only show up on the staff dashboard.
+- To add a YouTube video, enter "youtube:{video_id}" as the URL or Resource.
+- To add an image from Flickr, enter "flickr:{album}:{photo}" as the URL or Resource.
 
 .. image:: images/staff-guide.png
     :align: center
