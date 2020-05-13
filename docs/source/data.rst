@@ -64,3 +64,11 @@ Reports are displayed in MxLIVE in a similar format to their display in MxDC.
    :align: center
    :alt: MxLIVE report
 
+Downloads
+^^^^^^^^^
+To download the complete analysis directory, including all analysis files, click the download icon in the toolbar of the
+report page. An archive of the directory will be created and streamed to you through your browser.
+
+.. warning:: Depending on storage limitations at the beamline, your analysis files may be deleted after some time.
+             Meta-data will remain on MxLIVE indefinitely. If you are unable to download your report through MxLIVE, it
+             has likely been removed from on-site disks. Please check with beamline staff to confirm.

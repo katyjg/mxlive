@@ -12,6 +12,11 @@ created:
 The toolbar gives access to lists of Datasets and Reports contained within the session, the session history, and a
 download of the entire session directory.
 
+The session page is organized in groups, listing every group that has a sample with a dataset collected during that
+session. Datasets are displayed next to the sample on which they were collected. Analysis reports for those datasets are
+also listed with each sample in a colour-coded display based on assigned scores. Clicking on a dataset will open the
+data viewer, and clicking on the report will bring you to the full report page.
+
 .. image:: images/session-1.png
    :align: center
    :alt: MxLIVE Session

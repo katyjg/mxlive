@@ -87,7 +87,7 @@ information which may also be sent by email around one week before your beamtime
 
 .. image:: images/dashboard-beamtime.png
     :align: center
-    :alt: Video Guide
+    :alt: Beamtime
 
 Shipments
 ---------
