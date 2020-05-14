@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Publications &mdash; MxLIVE v2019.04-235-g9a2b884
+  <title>Publications &mdash; MxLIVE v2019.04-238-g93a9afb
  documentation</title>
   
 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                v2019.04-235-g9a2b884
+                v2019.04-238-g93a9afb
 
               </div>
             
@@ -95,10 +95,11 @@
 </ul>
 <p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html">Staff Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduling.html">Scheduling</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Publications</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#beamline-tags">Beamline Tags</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#statistics">Statistics</a></li>
 </ul>
 </li>
@@ -106,7 +107,6 @@
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="apis.html">Application Program Interfaces</a></li>
-<li class="toctree-l1"><a class="reference internal" href="reports.html">Reports</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/views.html">Views</a></li>
 </ul>
@@ -175,9 +175,8 @@
 <h1>Publications<a class="headerlink" href="#publications" title="Permalink to this headline">¶</a></h1>
 <p>Publications in MxLIVE are fetched automatically. There is no mechanism for manually adding depositions or articles at
 this time.</p>
-<p>PDB depositions are fetched periodically from the RCSB (<a class="reference external" href="https://www.rcsb.org/pdb/rest/search">https://www.rcsb.org/pdb/rest/search</a>, by default). New
-depositions are added to MxLIVE, along with any associated articles.</p>
-<p>Journal metrics are fetched from <a class="reference external" href="https://www.scimagojr.com/journalrank.php">https://www.scimagojr.com/journalrank.php</a> and stored by year.</p>
+<p>PDB depositions are fetched periodically from public online sources. New depositions are added to MxLIVE, along with any
+associated articles.</p>
 <img alt="Publications" class="align-center" src="_images/publications.png" />
 <p>Icons in the toolbar give access to:</p>
 <blockquote>
@@ -186,6 +185,97 @@ depositions are added to MxLIVE, along with any associated articles.</p>
 <li><p>publications metrics (statistics).</p></li>
 </ul>
 </div></blockquote>
+<div class="section" id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
+<p>The following variables can be added to your <code class="docutils literal notranslate"><span class="pre">settings.py</span></code> file to override the default values:</p>
+<table class="docutils align-center" id="id1">
+<caption><span class="caption-text">Publications Settings</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 41%" />
+<col style="width: 41%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Settings</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Usage</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>PDB_FACILITY_ACRONYM</p></td>
+<td><p>‘CLSI’</p></td>
+<td><p>Used to build a search query
+provided to the PDB_SEARCH_URL</p></td>
+</tr>
+<tr class="row-odd"><td><p>CONTACT_EMAIL</p></td>
+<td><p><a class="reference external" href="mailto:'cmcf-support&#37;&#52;&#48;lightsource&#46;ca">‘cmcf-support<span>&#64;</span>lightsource<span>&#46;</span>ca</a>’</p></td>
+<td><p>Contact email provided to CrossRef</p></td>
+</tr>
+<tr class="row-even"><td><p>CROSSREF_API_KEY</p></td>
+<td><p>None</p></td>
+<td><p>API key used for CrossRef calls</p></td>
+</tr>
+<tr class="row-odd"><td><p>CROSSREF_THROTTLE</p></td>
+<td><p>1</p></td>
+<td><p>Time delay (seconds) between CrossRef calls</p></td>
+</tr>
+<tr class="row-even"><td><p>CROSSREF_BATCH_SIZE</p></td>
+<td><p>10</p></td>
+<td><p>Limit the number of publications
+fetched from CrossRef at a time</p></td>
+</tr>
+<tr class="row-odd"><td><p>PDB_SEARCH_URL</p></td>
+<td><p>“<a class="reference external" href="https://www.rcsb.org/pdb/rest/search">https://www.rcsb.org/pdb/rest/search</a>”</p></td>
+<td><p>Fetch all PDB codes related to
+PDB_FACILITY_ACRONYM</p></td>
+</tr>
+<tr class="row-even"><td><p>PDB_REPORT_URL</p></td>
+<td><p>“<a class="reference external" href="https://www.rcsb.org/pdb/rest/customReport">https://www.rcsb.org/pdb/rest/customReport</a>”</p></td>
+<td><p>Fetch detailed report for codes
+fetched from PDB_SEARCH_URL</p></td>
+</tr>
+<tr class="row-odd"><td><p>GOOGLE_API_KEY</p></td>
+<td><p>None</p></td>
+<td><p>API key used for calls to GOOGLE_BOOKS_API</p></td>
+</tr>
+<tr class="row-even"><td><p>GOOGLE_BOOKS_API</p></td>
+<td><p>“<a class="reference external" href="https://www.googleapis.com/books/v1/volumes">https://www.googleapis.com/books/v1/volumes</a>”</p></td>
+<td><p>Fetch information about books related to PDBs</p></td>
+</tr>
+<tr class="row-odd"><td><p>SCIMAGO_URL</p></td>
+<td><p>“<a class="reference external" href="https://www.scimagojr.com/journalrank.php">https://www.scimagojr.com/journalrank.php</a>”</p></td>
+<td><p>Fetch journal metrics which are
+then stored by year</p></td>
+</tr>
+</tbody>
+</table>
+<p>Mentions and citations are fetched from <a class="reference external" href="https://api.eventdata.crossref.org/v1/events/distinct">https://api.eventdata.crossref.org/v1/events/distinct</a> and
+<a class="reference external" href="https://www.crossref.org/openurl/">https://www.crossref.org/openurl/</a>.</p>
+</div>
+<div class="section" id="beamline-tags">
+<h2>Beamline Tags<a class="headerlink" href="#beamline-tags" title="Permalink to this headline">¶</a></h2>
+<p>To tag depositions and articles by beamline, define a <code class="docutils literal notranslate"><span class="pre">PDB_TAG_FUNCTION</span></code> in your <code class="docutils literal notranslate"><span class="pre">settings.py</span></code> file, mapping
+beamline acronyms from the source to the acronyms defined for your beamline(s) in MxLIVE:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">clsi_beamline_tags</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate proper CLSI beamline tags for publications</span>
+<span class="sd">    :param entry: the entry from the PDB report</span>
+<span class="sd">    :return: a list of tag names</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">acronym</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s1">&#39;diffractionSource&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">acronyms</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;08ID-1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;CMCF-ID&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;08ID-2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;CMCF-ID&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;08B1-1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;CMCF-BM&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;CLSI&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;CMCF-ID&#39;</span><span class="p">,</span> <span class="s1">&#39;CMCF-BM&#39;</span><span class="p">,],</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">acronyms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">acronym</span><span class="p">,</span> <span class="p">[])</span>
+
+<span class="n">PDB_TAG_FUNCTION</span> <span class="o">=</span> <span class="n">clsi_beamline_tags</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="statistics">
 <h2>Statistics<a class="headerlink" href="#statistics" title="Permalink to this headline">¶</a></h2>
 <p>Publications metrics can be filtered by year and beamline.</p>

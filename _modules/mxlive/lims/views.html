@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>mxlive.lims.views &mdash; MxLIVE v2019.04-235-g9a2b884
+  <title>mxlive.lims.views &mdash; MxLIVE v2019.04-238-g93a9afb
  documentation</title>
   
 
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                v2019.04-235-g9a2b884
+                v2019.04-238-g93a9afb
 
               </div>
             
@@ -93,7 +93,6 @@
 </ul>
 <p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../starting.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../staff-dashboard.html">Staff Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../publications.html">Publications</a></li>
@@ -101,7 +100,6 @@
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../apis.html">Application Program Interfaces</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../reports.html">Reports</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/views.html">Views</a></li>
 </ul>
@@ -177,7 +175,7 @@
 <span class="kn">from</span> <span class="nn">django.contrib.humanize.templatetags.humanize</span> <span class="k">import</span> <span class="n">naturaltime</span>
 <span class="kn">from</span> <span class="nn">django.contrib.messages.views</span> <span class="k">import</span> <span class="n">SuccessMessageMixin</span>
 <span class="kn">from</span> <span class="nn">django.db</span> <span class="k">import</span> <span class="n">transaction</span>
-<span class="kn">from</span> <span class="nn">django.db.models</span> <span class="k">import</span> <span class="n">Count</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">Case</span><span class="p">,</span> <span class="n">When</span><span class="p">,</span> <span class="n">Value</span><span class="p">,</span> <span class="n">BooleanField</span>
+<span class="kn">from</span> <span class="nn">django.db.models</span> <span class="k">import</span> <span class="n">Count</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">Case</span><span class="p">,</span> <span class="n">When</span><span class="p">,</span> <span class="n">Value</span><span class="p">,</span> <span class="n">BooleanField</span><span class="p">,</span> <span class="n">Max</span>
 <span class="kn">from</span> <span class="nn">django.db.models.functions</span> <span class="k">import</span> <span class="n">Greatest</span>
 <span class="kn">from</span> <span class="nn">django.http</span> <span class="k">import</span> <span class="n">JsonResponse</span><span class="p">,</span> <span class="n">Http404</span><span class="p">,</span> <span class="n">HttpResponseRedirect</span>
 <span class="kn">from</span> <span class="nn">django.urls</span> <span class="k">import</span> <span class="n">reverse</span><span class="p">,</span> <span class="n">reverse_lazy</span>
@@ -281,8 +279,8 @@
             <span class="p">)</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span>
                 <span class="n">data_count</span><span class="o">=</span><span class="n">Count</span><span class="p">(</span><span class="s1">&#39;datasets&#39;</span><span class="p">,</span> <span class="n">distinct</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
                 <span class="n">report_count</span><span class="o">=</span><span class="n">Count</span><span class="p">(</span><span class="s1">&#39;datasets__reports&#39;</span><span class="p">,</span> <span class="n">distinct</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                <span class="n">last_record</span><span class="o">=</span><span class="n">Greatest</span><span class="p">(</span><span class="s1">&#39;datasets__end_time&#39;</span><span class="p">,</span> <span class="s1">&#39;datasets__reports__created&#39;</span><span class="p">),</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;-last_record&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">with_duration</span><span class="p">()</span><span class="o">.</span><span class="n">prefetch_related</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="s1">&#39;beamline&#39;</span><span class="p">)[:</span><span class="mi">7</span><span class="p">]</span>
+                <span class="n">last_record</span><span class="o">=</span><span class="n">Max</span><span class="p">(</span><span class="s1">&#39;datasets__end_time&#39;</span><span class="p">),</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;last_record&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">with_duration</span><span class="p">()</span><span class="o">.</span><span class="n">prefetch_related</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="s1">&#39;beamline&#39;</span><span class="p">)[:</span><span class="mi">7</span><span class="p">]</span>
 
             <span class="n">context</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">shipments</span><span class="o">=</span><span class="n">shipments</span><span class="p">,</span> <span class="n">sessions</span><span class="o">=</span><span class="n">sessions</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">context</span></div></div>
