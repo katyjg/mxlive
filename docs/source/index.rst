@@ -40,6 +40,8 @@ applications could also be modified to complement MxLIVE.
    :caption: For Developers:
 
    apis
-   reports
+   reportsv2
+   data-types
+   layouts
    modules/models
    modules/views

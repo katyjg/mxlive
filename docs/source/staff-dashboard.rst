@@ -1,14 +1,12 @@
-Staff Interface
-===============
-
+Dashboard
+---------
 In this documentation "staff" refers to accounts marked as having superuser status in the Django administration site
 (under Project Accounts). Staff are automatically directed to the staff dashboard upon logging in.  This is the hub
 for all administrative tasks that are typically completed by beamline staff. MxLIVE is developed with the assumption
 that there is only one staff account at any one time; however, multiple staff accounts are allowed. In the case that
 there are multiple staff, the profile of the account that was created first will be referenced for shipping labels.
 
-Dashboard
----------
+
 .. figure:: images/staff-dashboard.png
     :align: center
     :alt: MxLIVE Staff Dashboard
@@ -105,18 +103,23 @@ of containers that are currently on-site and NOT loaded in an automounter.
     :align: center
     :alt: Load a Container
 
-
 To move a container to a different location in the same automounter, select the container from the layout and choose its
 new location.
 
-To unload a container, either select it from the layout and choose "Unload", or use the "Unload" icon in the right-hand
-sidebar. You can also use the "Unload all" icon in the Projects tab to unload all containers belonging to a specific
+.. image:: images/staff-move-container.png
+    :align: center
+    :alt: Move a Container
+
+To unload a container, either select it from the layout and choose "Unload", or use the "Unload" icon next to the
+container in the right-hand sidebar. Loaded containers can be viewed either listed individually, or sorted by project.
+
+.. image:: images/automounter-containers-lists.png
+    :align: center
+    :alt: View loaded containers individually or sorted by project.
+
+You can also use the "Unload all" icon in the Projects tab to unload all containers belonging to a specific
 user.
 
-.. image:: images/staff-loaded-containers.png
-    :align: left
-    :alt: Unload All Containers for a User
-
 .. image:: images/staff-unload-all.png
-    :align: right
+    :align: center
     :alt: Unload All Containers for a User
