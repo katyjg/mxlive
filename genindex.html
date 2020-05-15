@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; MxLIVE 2020.05.238 documentation</title>
+  <title>Index &mdash; MxLIVE 2020.05.243 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                2020.05.238
+                2020.05.243
               </div>
             
           
@@ -92,8 +92,11 @@
 </ul>
 <p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html">Staff Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html">Dashboard</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#remote-connections">Remote Connections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#accounts">Accounts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#detailed-lists">Detailed Lists</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#beamlines-and-automounters">Beamlines and Automounters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-shipments.html">Managing Shipments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
@@ -101,9 +104,8 @@
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="apis.html">Application Program Interfaces</a></li>
-<li class="toctree-l1"><a class="reference internal" href="reports.html">Reports</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules/views.html">Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/views.html">Ajax Views</a></li>
 </ul>
 
             
@@ -174,12 +176,9 @@
  | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
- | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
- | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
- | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
@@ -198,21 +197,17 @@
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.ActivityLog">ActivityLog (class in mxlive.lims.models)</a>
 </li>
-      <li><a href="modules/models.html#mxlive.lims.models.ActivityLog.DoesNotExist">ActivityLog.DoesNotExist</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/models.html#mxlive.lims.models.ActivityLog.MultipleObjectsReturned">ActivityLog.MultipleObjectsReturned</a>
+      <li><a href="modules/models.html#mxlive.lims.models.ActivityLog.DoesNotExist">ActivityLog.DoesNotExist</a>
 </li>
-      <li><a href="modules/views.html#mxlive.lims.views.ActivityLogList">ActivityLogList (class in mxlive.lims.views)</a>
+      <li><a href="modules/models.html#mxlive.lims.models.ActivityLog.MultipleObjectsReturned">ActivityLog.MultipleObjectsReturned</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.AnalysisReport">AnalysisReport (class in mxlive.lims.models)</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.AnalysisReport.DoesNotExist">AnalysisReport.DoesNotExist</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.AnalysisReport.MultipleObjectsReturned">AnalysisReport.MultipleObjectsReturned</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ArchiveShipment">ArchiveShipment (class in mxlive.lims.views)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -224,13 +219,9 @@
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Beamline.DoesNotExist">Beamline.DoesNotExist</a>
 </li>
-      <li><a href="modules/models.html#mxlive.lims.models.Beamline.MultipleObjectsReturned">Beamline.MultipleObjectsReturned</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.BeamlineDetail">BeamlineDetail (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.BeamlineHistory">BeamlineHistory (class in mxlive.lims.views)</a>
+      <li><a href="modules/models.html#mxlive.lims.models.Beamline.MultipleObjectsReturned">Beamline.MultipleObjectsReturned</a>
 </li>
       <li><a href="modules/views.html#mxlive.lims.ajax_views.BulkSampleEdit">BulkSampleEdit (class in mxlive.lims.ajax_views)</a>
 </li>
@@ -252,25 +243,13 @@
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Container.MultipleObjectsReturned">Container.MultipleObjectsReturned</a>
 </li>
-      <li><a href="modules/views.html#mxlive.lims.views.ContainerDelete">ContainerDelete (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ContainerDetail">ContainerDetail (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ContainerEdit">ContainerEdit (class in mxlive.lims.views)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.ContainerList">ContainerList (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ContainerLoad">ContainerLoad (class in mxlive.lims.views)</a>
-</li>
       <li><a href="modules/models.html#mxlive.lims.models.ContainerLocation">ContainerLocation (class in mxlive.lims.models)</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.ContainerLocation.DoesNotExist">ContainerLocation.DoesNotExist</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.ContainerLocation.MultipleObjectsReturned">ContainerLocation.MultipleObjectsReturned</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ContainerSpreadsheet">ContainerSpreadsheet (class in mxlive.lims.views)</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.ContainerType">ContainerType (class in mxlive.lims.models)</a>
 </li>
@@ -292,60 +271,14 @@
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Data.MultipleObjectsReturned">Data.MultipleObjectsReturned</a>
 </li>
-      <li><a href="modules/views.html#mxlive.lims.views.DataDetail">DataDetail (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.DataList">DataList (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ContainerDelete.delete">delete() (mxlive.lims.views.ContainerDelete method)</a>
-
-      <ul>
-        <li><a href="modules/views.html#mxlive.lims.views.GroupDelete.delete">(mxlive.lims.views.GroupDelete method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SampleDelete.delete">(mxlive.lims.views.SampleDelete method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentDelete.delete">(mxlive.lims.views.ShipmentDelete method)</a>
-</li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.SessionDataList.detail_model">detail_model (mxlive.lims.views.SessionDataList attribute)</a>
-
-      <ul>
-        <li><a href="modules/views.html#mxlive.lims.views.SessionReportList.detail_model">(mxlive.lims.views.SessionReportList attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentDataList.detail_model">(mxlive.lims.views.ShipmentDataList attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentReportList.detail_model">(mxlive.lims.views.ShipmentReportList attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="modules/views.html#mxlive.lims.views.DetailListMixin">DetailListMixin (class in mxlive.lims.views)</a>
-</li>
       <li><a href="modules/models.html#mxlive.lims.models.Dewar">Dewar (class in mxlive.lims.models)</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Dewar.DoesNotExist">Dewar.DoesNotExist</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Dewar.MultipleObjectsReturned">Dewar.MultipleObjectsReturned</a>
 </li>
-      <li><a href="modules/views.html#mxlive.lims.views.DewarEdit">DewarEdit (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ShipmentCreate.done">done() (mxlive.lims.views.ShipmentCreate method)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="E">E</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.EmptyContainers">EmptyContainers (class in mxlive.lims.views)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.ContainerDetail.extra_model">extra_model (mxlive.lims.views.ContainerDetail attribute)</a>
-
-      <ul>
-        <li><a href="modules/views.html#mxlive.lims.views.GroupDetail.extra_model">(mxlive.lims.views.GroupDetail attribute)</a>
-</li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -354,209 +287,25 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/views.html#mxlive.lims.ajax_views.FetchContainerLayout">FetchContainerLayout (class in mxlive.lims.ajax_views)</a>
 </li>
-      <li><a href="modules/views.html#mxlive.lims.ajax_views.FetchReport">FetchReport (class in mxlive.lims.ajax_views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ArchiveShipment.form_class">form_class (mxlive.lims.views.ArchiveShipment attribute)</a>
-
-      <ul>
-        <li><a href="modules/views.html#mxlive.lims.views.ContainerEdit.form_class">(mxlive.lims.views.ContainerEdit attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ContainerLoad.form_class">(mxlive.lims.views.ContainerLoad attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.DewarEdit.form_class">(mxlive.lims.views.DewarEdit attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.EmptyContainers.form_class">(mxlive.lims.views.EmptyContainers attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.GroupEdit.form_class">(mxlive.lims.views.GroupEdit attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.GuideCreate.form_class">(mxlive.lims.views.GuideCreate attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.GuideEdit.form_class">(mxlive.lims.views.GuideEdit attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.LocationLoad.form_class">(mxlive.lims.views.LocationLoad attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectEdit.form_class">(mxlive.lims.views.ProjectEdit attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.RecallReturnShipment.form_class">(mxlive.lims.views.RecallReturnShipment attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.RecallSendShipment.form_class">(mxlive.lims.views.RecallSendShipment attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ReceiveShipment.form_class">(mxlive.lims.views.ReceiveShipment attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ReturnShipment.form_class">(mxlive.lims.views.ReturnShipment attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SampleDetail.form_class">(mxlive.lims.views.SampleDetail attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SampleEdit.form_class">(mxlive.lims.views.SampleEdit attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SendShipment.form_class">(mxlive.lims.views.SendShipment attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentAddContainer.form_class">(mxlive.lims.views.ShipmentAddContainer attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentAddGroup.form_class">(mxlive.lims.views.ShipmentAddGroup attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentComments.form_class">(mxlive.lims.views.ShipmentComments attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentEdit.form_class">(mxlive.lims.views.ShipmentEdit attribute)</a>
-</li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.ArchiveShipment.form_valid">form_valid() (mxlive.lims.views.ArchiveShipment method)</a>
-
-      <ul>
-        <li><a href="modules/views.html#mxlive.lims.views.ContainerLoad.form_valid">(mxlive.lims.views.ContainerLoad method)</a>
+      <li><a href="modules/views.html#mxlive.lims.ajax_views.FetchReport">FetchReport (class in mxlive.lims.ajax_views)</a>
 </li>
-        <li><a href="modules/views.html#mxlive.lims.views.EmptyContainers.form_valid">(mxlive.lims.views.EmptyContainers method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.GroupEdit.form_valid">(mxlive.lims.views.GroupEdit method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.LocationLoad.form_valid">(mxlive.lims.views.LocationLoad method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.RecallReturnShipment.form_valid">(mxlive.lims.views.RecallReturnShipment method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.RecallSendShipment.form_valid">(mxlive.lims.views.RecallSendShipment method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ReceiveShipment.form_valid">(mxlive.lims.views.ReceiveShipment method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ReturnShipment.form_valid">(mxlive.lims.views.ReturnShipment method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SendShipment.form_valid">(mxlive.lims.views.SendShipment method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentAddContainer.form_valid">(mxlive.lims.views.ShipmentAddContainer method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentAddGroup.form_valid">(mxlive.lims.views.ShipmentAddGroup method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentComments.form_valid">(mxlive.lims.views.ShipmentComments method)</a>
-</li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.BeamlineDetail.get_context_data">get_context_data() (mxlive.lims.views.BeamlineDetail method)</a>
-
-      <ul>
-        <li><a href="modules/views.html#mxlive.lims.views.GuideDelete.get_context_data">(mxlive.lims.views.GuideDelete method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.GuideView.get_context_data">(mxlive.lims.views.GuideView method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ParameterStatistics.get_context_data">(mxlive.lims.views.ParameterStatistics method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectDetail.get_context_data">(mxlive.lims.views.ProjectDetail method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectReset.get_context_data">(mxlive.lims.views.ProjectReset method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectStatistics.get_context_data">(mxlive.lims.views.ProjectStatistics method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SampleDelete.get_context_data">(mxlive.lims.views.SampleDelete method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SessionStatistics.get_context_data">(mxlive.lims.views.SessionStatistics method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentDataList.get_context_data">(mxlive.lims.views.ShipmentDataList method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentReportList.get_context_data">(mxlive.lims.views.ShipmentReportList method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.UsageStatistics.get_context_data">(mxlive.lims.views.UsageStatistics method)</a>
-</li>
-      </ul></li>
-      <li><a href="modules/views.html#mxlive.lims.views.ShipmentCreate.get_form_initial">get_form_initial() (mxlive.lims.views.ShipmentCreate method)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ContainerLoad.get_form_kwargs">get_form_kwargs() (mxlive.lims.views.ContainerLoad method)</a>
-
-      <ul>
-        <li><a href="modules/views.html#mxlive.lims.views.EmptyContainers.get_form_kwargs">(mxlive.lims.views.EmptyContainers method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.LocationLoad.get_form_kwargs">(mxlive.lims.views.LocationLoad method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectEdit.get_form_kwargs">(mxlive.lims.views.ProjectEdit method)</a>
-</li>
-      </ul></li>
-      <li><a href="modules/views.html#mxlive.lims.views.ContainerEdit.get_initial">get_initial() (mxlive.lims.views.ContainerEdit method)</a>
-
-      <ul>
-        <li><a href="modules/views.html#mxlive.lims.views.EmptyContainers.get_initial">(mxlive.lims.views.EmptyContainers method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.GroupEdit.get_initial">(mxlive.lims.views.GroupEdit method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.LocationLoad.get_initial">(mxlive.lims.views.LocationLoad method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.RecallSendShipment.get_initial">(mxlive.lims.views.RecallSendShipment method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SendShipment.get_initial">(mxlive.lims.views.SendShipment method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentAddContainer.get_initial">(mxlive.lims.views.ShipmentAddContainer method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentAddGroup.get_initial">(mxlive.lims.views.ShipmentAddGroup method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentEdit.get_initial">(mxlive.lims.views.ShipmentEdit method)</a>
-</li>
-      </ul></li>
       <li><a href="modules/models.html#mxlive.lims.models.Container.get_layout">get_layout() (mxlive.lims.models.Container method)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ContainerLoad.get_object">get_object() (mxlive.lims.views.ContainerLoad method)</a>
-
-      <ul>
-        <li><a href="modules/views.html#mxlive.lims.views.EmptyContainers.get_object">(mxlive.lims.views.EmptyContainers method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.GuideView.get_object">(mxlive.lims.views.GuideView method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.LocationLoad.get_object">(mxlive.lims.views.LocationLoad method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectDetail.get_object">(mxlive.lims.views.ProjectDetail method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectEdit.get_object">(mxlive.lims.views.ProjectEdit method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectReset.get_object">(mxlive.lims.views.ProjectReset method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectStatistics.get_object">(mxlive.lims.views.ProjectStatistics method)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.BeamlineHistory.get_queryset">get_queryset() (mxlive.lims.views.BeamlineHistory method)</a>
-
-      <ul>
-        <li><a href="modules/views.html#mxlive.lims.views.DataList.get_queryset">(mxlive.lims.views.DataList method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ReportList.get_queryset">(mxlive.lims.views.ReportList method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentDataList.get_queryset">(mxlive.lims.views.ShipmentDataList method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentList.get_queryset">(mxlive.lims.views.ShipmentList method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentReportList.get_queryset">(mxlive.lims.views.ShipmentReportList method)</a>
-</li>
-      </ul></li>
-      <li><a href="modules/views.html#mxlive.lims.views.ContainerEdit.get_success_url">get_success_url() (mxlive.lims.views.ContainerEdit method)</a>
-
-      <ul>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectReset.get_success_url">(mxlive.lims.views.ProjectReset method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SampleEdit.get_success_url">(mxlive.lims.views.SampleEdit method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentComments.get_success_url">(mxlive.lims.views.ShipmentComments method)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentEdit.get_success_url">(mxlive.lims.views.ShipmentEdit method)</a>
-</li>
-      </ul></li>
-      <li><a href="modules/views.html#mxlive.lims.views.DataDetail.get_template_names">get_template_names() (mxlive.lims.views.DataDetail method)</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Group">Group (class in mxlive.lims.models)</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Group.DoesNotExist">Group.DoesNotExist</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/models.html#mxlive.lims.models.Group.MultipleObjectsReturned">Group.MultipleObjectsReturned</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.GroupDelete">GroupDelete (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.GroupDetail">GroupDetail (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.GroupEdit">GroupEdit (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.GroupList">GroupList (class in mxlive.lims.views)</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Guide">Guide (class in mxlive.lims.models)</a>
 </li>
@@ -564,129 +313,19 @@
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Guide.MultipleObjectsReturned">Guide.MultipleObjectsReturned</a>
 </li>
-      <li><a href="modules/views.html#mxlive.lims.views.GuideCreate">GuideCreate (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.GuideDelete">GuideDelete (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.GuideEdit">GuideEdit (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.GuideView">GuideView (class in mxlive.lims.views)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="L">L</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.ListViewMixin">ListViewMixin (class in mxlive.lims.views)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.LocationLoad">LocationLoad (class in mxlive.lims.views)</a>
-</li>
   </ul></td>
 </tr></table>
 
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.ActivityLogList.model">model (mxlive.lims.views.ActivityLogList attribute)</a>
-
-      <ul>
-        <li><a href="modules/views.html#mxlive.lims.views.BeamlineDetail.model">(mxlive.lims.views.BeamlineDetail attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.BeamlineHistory.model">(mxlive.lims.views.BeamlineHistory attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ContainerDelete.model">(mxlive.lims.views.ContainerDelete attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ContainerEdit.model">(mxlive.lims.views.ContainerEdit attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ContainerList.model">(mxlive.lims.views.ContainerList attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ContainerSpreadsheet.model">(mxlive.lims.views.ContainerSpreadsheet attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.DataDetail.model">(mxlive.lims.views.DataDetail attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.DataList.model">(mxlive.lims.views.DataList attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.DewarEdit.model">(mxlive.lims.views.DewarEdit attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.EmptyContainers.model">(mxlive.lims.views.EmptyContainers attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.GroupDelete.model">(mxlive.lims.views.GroupDelete attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.GroupEdit.model">(mxlive.lims.views.GroupEdit attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.GroupList.model">(mxlive.lims.views.GroupList attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.GuideCreate.model">(mxlive.lims.views.GuideCreate attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.GuideDelete.model">(mxlive.lims.views.GuideDelete attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.GuideEdit.model">(mxlive.lims.views.GuideEdit attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.GuideView.model">(mxlive.lims.views.GuideView attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectDetail.model">(mxlive.lims.views.ProjectDetail attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectEdit.model">(mxlive.lims.views.ProjectEdit attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectLabels.model">(mxlive.lims.views.ProjectLabels attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectReset.model">(mxlive.lims.views.ProjectReset attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ProjectStatistics.model">(mxlive.lims.views.ProjectStatistics attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ReportDetail.model">(mxlive.lims.views.ReportDetail attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ReportList.model">(mxlive.lims.views.ReportList attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SampleDelete.model">(mxlive.lims.views.SampleDelete attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SampleDetail.model">(mxlive.lims.views.SampleDetail attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SampleEdit.model">(mxlive.lims.views.SampleEdit attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SampleList.model">(mxlive.lims.views.SampleList attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SeatSamples.model">(mxlive.lims.views.SeatSamples attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SessionDetail.model">(mxlive.lims.views.SessionDetail attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SessionList.model">(mxlive.lims.views.SessionList attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.SessionStatistics.model">(mxlive.lims.views.SessionStatistics attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentAddGroup.model">(mxlive.lims.views.ShipmentAddGroup attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentComments.model">(mxlive.lims.views.ShipmentComments attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentDelete.model">(mxlive.lims.views.ShipmentDelete attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentDetail.model">(mxlive.lims.views.ShipmentDetail attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentEdit.model">(mxlive.lims.views.ShipmentEdit attribute)</a>
-</li>
-        <li><a href="modules/views.html#mxlive.lims.views.ShipmentList.model">(mxlive.lims.views.ShipmentList attribute)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/views.html#module-mxlive.lims.ajax_views">mxlive.lims.ajax_views (module)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/models.html#module-mxlive.lims.models">mxlive.lims.models (module)</a>
 </li>
-      <li><a href="modules/views.html#module-mxlive.lims.views">mxlive.lims.views (module)</a>
-</li>
       <li><a href="modules/models.html#module-mxlive.staff.models">mxlive.staff.models (module)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="O">O</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.OwnerRequiredMixin">OwnerRequiredMixin (class in mxlive.lims.views)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -694,29 +333,15 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.ParameterStatistics">ParameterStatistics (class in mxlive.lims.views)</a>
-</li>
       <li><a href="modules/models.html#mxlive.lims.models.Container.placeholders">placeholders() (mxlive.lims.models.Container method)</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Project">Project (class in mxlive.lims.models)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/models.html#mxlive.lims.models.Project.DoesNotExist">Project.DoesNotExist</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Project.MultipleObjectsReturned">Project.MultipleObjectsReturned</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.ProjectDetail">ProjectDetail (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ProjectEdit">ProjectEdit (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ProjectLabels">ProjectLabels (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ProjectReset">ProjectReset (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ProjectStatistics">ProjectStatistics (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ProxyView">ProxyView (class in mxlive.lims.views)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -724,12 +349,6 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.RecallReturnShipment">RecallReturnShipment (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.RecallSendShipment">RecallSendShipment (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ReceiveShipment">ReceiveShipment (class in mxlive.lims.views)</a>
-</li>
       <li><a href="modules/models.html#mxlive.staff.models.RemoteConnection">RemoteConnection (class in mxlive.staff.models)</a>
 </li>
   </ul></td>
@@ -737,12 +356,6 @@
       <li><a href="modules/models.html#mxlive.staff.models.RemoteConnection.DoesNotExist">RemoteConnection.DoesNotExist</a>
 </li>
       <li><a href="modules/models.html#mxlive.staff.models.RemoteConnection.MultipleObjectsReturned">RemoteConnection.MultipleObjectsReturned</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ReportDetail">ReportDetail (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ReportList">ReportList (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ReturnShipment">ReturnShipment (class in mxlive.lims.views)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -756,67 +369,23 @@
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Sample.MultipleObjectsReturned">Sample.MultipleObjectsReturned</a>
 </li>
-      <li><a href="modules/views.html#mxlive.lims.views.SampleDelete">SampleDelete (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.SampleDetail">SampleDetail (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.SampleEdit">SampleEdit (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.SampleList">SampleList (class in mxlive.lims.views)</a>
-</li>
       <li><a href="modules/models.html#mxlive.lims.models.Project.save">save() (mxlive.lims.models.Project method)</a>
 </li>
       <li><a href="modules/views.html#mxlive.lims.ajax_views.SaveContainerSamples">SaveContainerSamples (class in mxlive.lims.ajax_views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.SeatSamples">SeatSamples (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.SendShipment">SendShipment (class in mxlive.lims.views)</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Session">Session (class in mxlive.lims.models)</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Session.DoesNotExist">Session.DoesNotExist</a>
 </li>
-      <li><a href="modules/models.html#mxlive.lims.models.Session.MultipleObjectsReturned">Session.MultipleObjectsReturned</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.SessionDataList">SessionDataList (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.SessionDetail">SessionDetail (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.SessionList">SessionList (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.SessionReportList">SessionReportList (class in mxlive.lims.views)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.SessionStatistics">SessionStatistics (class in mxlive.lims.views)</a>
+      <li><a href="modules/models.html#mxlive.lims.models.Session.MultipleObjectsReturned">Session.MultipleObjectsReturned</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Shipment">Shipment (class in mxlive.lims.models)</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Shipment.DoesNotExist">Shipment.DoesNotExist</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Shipment.MultipleObjectsReturned">Shipment.MultipleObjectsReturned</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ShipmentAddContainer">ShipmentAddContainer (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ShipmentAddGroup">ShipmentAddGroup (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ShipmentComments">ShipmentComments (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ShipmentCreate">ShipmentCreate (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ShipmentDataList">ShipmentDataList (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ShipmentDelete">ShipmentDelete (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ShipmentDetail">ShipmentDetail (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ShipmentEdit">ShipmentEdit (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ShipmentLabels">ShipmentLabels (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ShipmentList">ShipmentList (class in mxlive.lims.views)</a>
-</li>
-      <li><a href="modules/views.html#mxlive.lims.views.ShipmentReportList">ShipmentReportList (class in mxlive.lims.views)</a>
 </li>
       <li><a href="modules/models.html#mxlive.lims.models.Shipment.shipping_errors">shipping_errors() (mxlive.lims.models.Shipment method)</a>
 </li>
@@ -831,10 +400,6 @@
 
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.ProjectEdit.test_func">test_func() (mxlive.lims.views.ProjectEdit method)</a>
-</li>
-  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/models.html#mxlive.lims.models.Session.total_time">total_time() (mxlive.lims.models.Session method)</a>
 </li>
@@ -852,8 +417,6 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/views.html#mxlive.lims.views.UsageStatistics">UsageStatistics (class in mxlive.lims.views)</a>
-</li>
       <li><a href="modules/models.html#mxlive.staff.models.UserList">UserList (class in mxlive.staff.models)</a>
 </li>
       <li><a href="modules/models.html#mxlive.staff.models.UserList.DoesNotExist">UserList.DoesNotExist</a>

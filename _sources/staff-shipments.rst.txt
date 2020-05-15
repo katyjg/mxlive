@@ -23,8 +23,3 @@ visible to both staff and the user.
           (assuming no data has already been collected and associated with samples in the shipment), open the comments
           form and select "Unreceive". This will change the shipment's status to "Sent", and will allow the user to
           Recall their shipment, edit it, and Send it again.
-
-Load Containers in an Automounter
----------------------------------
-
-

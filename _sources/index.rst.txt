@@ -29,7 +29,6 @@ applications could also be modified to complement MxLIVE.
    :maxdepth: 2
    :caption: For Beamline Staff:
 
-   starting
    staff-dashboard
    staff-shipments
    scheduling
@@ -40,6 +39,5 @@ applications could also be modified to complement MxLIVE.
    :caption: For Developers:
 
    apis
-   reports
    modules/models
    modules/views

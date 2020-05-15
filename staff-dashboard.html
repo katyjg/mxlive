@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Staff Interface &mdash; MxLIVE 2020.05.238 documentation</title>
+  <title>Dashboard &mdash; MxLIVE 2020.05.243 documentation</title>
   
 
   
@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Managing Shipments" href="staff-shipments.html" />
-    <link rel="prev" title="Getting Started" href="starting.html" /> 
+    <link rel="prev" title="Datasets &amp; Reports" href="data.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2020.05.238
+                2020.05.243
               </div>
             
           
@@ -93,18 +93,14 @@
 </ul>
 <p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Staff Interface</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#dashboard">Dashboard</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#guide">Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Dashboard</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#guide">Guide</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#remote-connections">Remote Connections</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#accounts">Accounts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#detailed-lists">Detailed Lists</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beamlines-and-automounters">Beamlines and Automounters</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="#remote-connections">Remote Connections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#accounts">Accounts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#detailed-lists">Detailed Lists</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#beamlines-and-automounters">Beamlines and Automounters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-shipments.html">Managing Shipments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
@@ -112,9 +108,8 @@
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="apis.html">Application Program Interfaces</a></li>
-<li class="toctree-l1"><a class="reference internal" href="reports.html">Reports</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules/views.html">Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/views.html">Ajax Views</a></li>
 </ul>
 
             
@@ -160,7 +155,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Staff Interface</li>
+      <li>Dashboard</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -177,15 +172,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="staff-interface">
-<h1>Staff Interface<a class="headerlink" href="#staff-interface" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="dashboard">
+<h1>Dashboard<a class="headerlink" href="#dashboard" title="Permalink to this headline">¶</a></h1>
 <p>In this documentation “staff” refers to accounts marked as having superuser status in the Django administration site
 (under Project Accounts). Staff are automatically directed to the staff dashboard upon logging in.  This is the hub
 for all administrative tasks that are typically completed by beamline staff. MxLIVE is developed with the assumption
 that there is only one staff account at any one time; however, multiple staff accounts are allowed. In the case that
 there are multiple staff, the profile of the account that was created first will be referenced for shipping labels.</p>
-<div class="section" id="dashboard">
-<h2>Dashboard<a class="headerlink" href="#dashboard" title="Permalink to this headline">¶</a></h2>
 <div class="figure align-center" id="id1">
 <img alt="MxLIVE Staff Dashboard" src="_images/staff-dashboard.png" />
 <p class="caption"><span class="caption-text">Screenshot of the MxLIVE Staff Dashboard</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
@@ -213,7 +206,7 @@ MxDC on the beamline.</p></li>
 </li>
 </ul>
 <div class="section" id="guide">
-<h3>Guide<a class="headerlink" href="#guide" title="Permalink to this headline">¶</a></h3>
+<h2>Guide<a class="headerlink" href="#guide" title="Permalink to this headline">¶</a></h2>
 <p>Create announcements that will be available on every user’s dashboard, in the User Guide area. Assign priorities to your
 announcements to control the order in which they are presented.</p>
 <ul class="simple">
@@ -225,7 +218,7 @@ announcements to control the order in which they are presented.</p>
 </div>
 </div>
 <div class="section" id="remote-connections">
-<h2>Remote Connections<a class="headerlink" href="#remote-connections" title="Permalink to this headline">¶</a></h2>
+<h1>Remote Connections<a class="headerlink" href="#remote-connections" title="Permalink to this headline">¶</a></h1>
 <img alt="Remote Connections" class="align-center" src="_images/staff-remote.png" />
 <p>Remote Connections in MxLIVE are tailored for managing NoMachine Server allowed user lists. Users who should be granted
 access to NoMachine connections are added to the list of a specific remote connection, which they can then connect to
@@ -234,7 +227,7 @@ to fetch the new user list from MxLIVE. A history of connection times and status
 viewed using the “Connections” icon in the toolbar.</p>
 </div>
 <div class="section" id="accounts">
-<h2>Accounts<a class="headerlink" href="#accounts" title="Permalink to this headline">¶</a></h2>
+<h1>Accounts<a class="headerlink" href="#accounts" title="Permalink to this headline">¶</a></h1>
 <p>When creating a new account, enter the <strong>First Name</strong>, <strong>Last Name</strong>, and <strong>Email Address</strong> of the owner of the account
 (ie. the Principal Investigator, Project Leader, etc.). These fields are not editable by the user, but they are used,
 along with the <strong>Contact Email</strong> (which IS editable by the user), for email notifications about upcoming beamtime.</p>
@@ -253,7 +246,7 @@ schedule display.</p>
 <img alt="Account Creation" class="align-center" src="_images/staff-accounts.png" />
 </div>
 <div class="section" id="detailed-lists">
-<h2>Detailed Lists<a class="headerlink" href="#detailed-lists" title="Permalink to this headline">¶</a></h2>
+<h1>Detailed Lists<a class="headerlink" href="#detailed-lists" title="Permalink to this headline">¶</a></h1>
 <p>Staff detailed lists are similar to user detailed lists, but staff lists contain entries from all users. For this
 reason, a column is prepended to staff lists containing the username of the owner of each item.</p>
 <div class="admonition note">
@@ -262,7 +255,7 @@ reason, a column is prepended to staff lists containing the username of the owne
 </div>
 </div>
 <div class="section" id="beamlines-and-automounters">
-<h2>Beamlines and Automounters<a class="headerlink" href="#beamlines-and-automounters" title="Permalink to this headline">¶</a></h2>
+<h1>Beamlines and Automounters<a class="headerlink" href="#beamlines-and-automounters" title="Permalink to this headline">¶</a></h1>
 <p>Each beamline can be assigned an automounter layout for loading containers. Default autmounters included in MxLIVE are
 SAM, CATS, and ISARA, but additional automounter layouts can be defined through the MxLIVE Django administration site.</p>
 <img alt="Beamline Automounter" class="align-center" src="_images/automounter-loaded.png" />
@@ -271,12 +264,13 @@ of containers that are currently on-site and NOT loaded in an automounter.</p>
 <img alt="Load a Container" class="align-center" src="_images/staff-load-container.png" />
 <p>To move a container to a different location in the same automounter, select the container from the layout and choose its
 new location.</p>
-<p>To unload a container, either select it from the layout and choose “Unload”, or use the “Unload” icon in the right-hand
-sidebar. You can also use the “Unload all” icon in the Projects tab to unload all containers belonging to a specific
+<img alt="Move a Container" class="align-center" src="_images/staff-move-container.png" />
+<p>To unload a container, either select it from the layout and choose “Unload”, or use the “Unload” icon next to the
+container in the right-hand sidebar. Loaded containers can be viewed either listed individually, or sorted by project.</p>
+<img alt="View loaded containers individually or sorted by project." class="align-center" src="_images/automounter-containers-lists.png" />
+<p>You can also use the “Unload all” icon in the Projects tab to unload all containers belonging to a specific
 user.</p>
-<img alt="Unload All Containers for a User" class="align-left" src="_images/staff-loaded-containers.png" />
-<img alt="Unload All Containers for a User" class="align-right" src="_images/staff-unload-all.png" />
-</div>
+<img alt="Unload All Containers for a User" class="align-center" src="_images/staff-unload-all.png" />
 </div>
 
 
@@ -290,7 +284,7 @@ user.</p>
         <a href="staff-shipments.html" class="btn btn-neutral float-right" title="Managing Shipments" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="starting.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="data.html" class="btn btn-neutral float-left" title="Datasets &amp; Reports" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
