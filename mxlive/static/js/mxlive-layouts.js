@@ -263,8 +263,7 @@ var locTemplate = _.template(
     '                   </div>' +
     '               </a>' +
     '           </div>' +
-    '       </h6>' +
-    '</div>'
+    '       </h6>'
 );
 
 
@@ -273,8 +272,9 @@ var projTemplate = _.template(
     '       <h4 class="col-2 text-condensed text-center align-self-center"><span class="badge badge-pill badge-primary py-1"><%= details.length %></span></h4>' +
     '       <div class="col d-flex flex-row justify-content-between">' +
     '           <div class="flex-grow-1"><h5 class="m-0"><%= name %></h5>' +
-    '           <div class="loc-list">' +
-    '<% _.each(details, function(container, i){ %><small class="text-muted d-inline-block list-cnt-<%= container.id %>"><%= container.port %></small><% }); %></div>' +
+    '               <div class="loc-list">' +
+    '<% _.each(details, function(container, i){ %><small class="text-muted d-inline-block list-cnt-<%= container.id %>"><%= container.port %></small><% }); %>' +
+    '               </div>' +
     '           </div>' +
     '           <div class="project-list-tools tools-box">' +
     '               <a data-toggle="collapse" href="#prj-<%= name.toLowerCase() %>-list"> ' +
