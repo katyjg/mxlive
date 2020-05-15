@@ -8,7 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
-from django.db.models import Count, F, Q, Case, When, Value, BooleanField
+from django.db.models import Count, F, Q, Case, When, Value, BooleanField, Max
 from django.db.models.functions import Greatest
 from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
@@ -112,7 +112,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             ).annotate(
                 data_count=Count('datasets', distinct=True),
                 report_count=Count('datasets__reports', distinct=True),
-                last_record=Greatest('datasets__end_time', 'datasets__reports__created'),
+                last_record=Max('datasets__end_time'),
             ).order_by('last_record').with_duration().prefetch_related('project', 'beamline')[:7]
 
             context.update(shipments=shipments, sessions=sessions)
