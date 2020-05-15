@@ -10,12 +10,13 @@ def fix_cassette_coords(apps, schema_editor):
     """
     ContainerType = apps.get_model('lims', 'ContainerType')
     db_alias = schema_editor.connection.alias
-    cassette = ContainerType.objects.using(db_alias).get(name='Cassette')
-    xcoords = cassette.coords.values_list('x', flat=True)
-    ycoords = cassette.coords.values_list('y', flat=True)
-    xoffset = 0.5*(1-max(xcoords) - min(xcoords))
-    yoffset = 0.5*(1-max(ycoords) - min(ycoords))
-    cassette.coords.update(x=(models.F('x') + xoffset), y=(models.F('y') + yoffset))
+    if ContainerType.objects.using(db_alias).filter(name='Cassette').exists():
+        cassette = ContainerType.objects.using(db_alias).get(name='Cassette')
+        xcoords = cassette.coords.values_list('x', flat=True)
+        ycoords = cassette.coords.values_list('y', flat=True)
+        xoffset = 0.5*(1-max(xcoords) - min(xcoords))
+        yoffset = 0.5*(1-max(ycoords) - min(ycoords))
+        cassette.coords.update(x=(models.F('x') + xoffset), y=(models.F('y') + yoffset))
 
 
 class Migration(migrations.Migration):
