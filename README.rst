@@ -12,3 +12,5 @@ applications could also be modified to complement MxLIVE.
     * MxDC and MxLIVE: software for data acquisition, information management and remote access to macromolecular
       crystallography beamlines. M. Fodje, K. Janzen, R. Berg, G. Black, S. Labiuk, J. Gorin and P. Grochulski
       J. Synchrotron Rad. (2012). 19, 274-280. https://doi.org/10.1107/S0909049511056305
+
+Detailed documentation for users, beamline staff, and developers is available at https://katyjg.github.io/mxlive/.
