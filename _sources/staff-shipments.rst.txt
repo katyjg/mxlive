@@ -23,3 +23,21 @@ visible to both staff and the user.
           (assuming no data has already been collected and associated with samples in the shipment), open the comments
           form and select "Unreceive". This will change the shipment's status to "Sent", and will allow the user to
           Recall their shipment, edit it, and Send it again.
+
+Return a Shipment
+-----------------
+After a user's beamtime is complete and they are finished with their samples, print labels using the "Labels" icon in
+the toolbar. Return labels include a label to affix to the outside of the transport container(s), and a shipping form to
+be used by the facility Shipping & Receiving department. This form is customized for CLS Approved Document
+0.11.1.19 Rev.6.
+
+.. image:: images/staff-shipping-print.png
+   :align: center
+   :alt: Shipment Printable Labels
+
+Click "Return" and complete the form to mark the shipment as returned. Returned shipments will not appear on the staff
+dashboard, but are still available through detailed lists.
+
+.. image:: images/staff-shipping-return.png
+   :align: center
+   :alt: Return Shipment

@@ -88,10 +88,8 @@ samples you have sent, data you have collected and analyzed, and time you have s
     :align: center
     :alt: Usage Statistics
 
-
 Beamtime
 --------
-
 Upcoming beamtime is listed here, along with past beamtime completed in the last year. The info icon displays beamtime
 information which may also be sent by email around one week before your beamtime.
 
