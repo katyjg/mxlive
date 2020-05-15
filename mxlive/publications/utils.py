@@ -31,8 +31,8 @@ CROSSREF_EVENTS_URL = "https://api.eventdata.crossref.org/v1/events/distinct"
 CROSSREF_CITATIONS_URL = "https://www.crossref.org/openurl/"
 PDB_SEARCH_URL = getattr(settings, 'PDB_SEARCH_URL', "https://www.rcsb.org/pdb/rest/search")
 PDB_REPORT_URL = getattr(settings, 'PDB_REPORT_URL', "https://www.rcsb.org/pdb/rest/customReport")
-GOOGLE_BOOKS_API = getattr(settings, 'PDB_REPORT_URL', "https://www.googleapis.com/books/v1/volumes")
-SCIMAGO_URL = getattr(settings, 'PDB_REPORT_URL', "https://www.scimagojr.com/journalrank.php")
+GOOGLE_BOOKS_API = getattr(settings, 'GOOGLE_BOOKS_API', "https://www.googleapis.com/books/v1/volumes")
+SCIMAGO_URL = getattr(settings, 'SCIMAGO_URL', "https://www.scimagojr.com/journalrank.php")
 
 SEARCH_QUERY = ("""
     <orgPdbQuery>
