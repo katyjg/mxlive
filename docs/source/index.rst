@@ -31,6 +31,7 @@ applications could also be modified to complement MxLIVE.
 
    starting
    staff-dashboard
+   staff-shipments
    scheduling
    publications
 

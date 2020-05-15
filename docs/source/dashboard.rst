@@ -79,6 +79,16 @@ Tools and links available from the dashboard toolbar:
   - Usage Stats: go to a page of detailed statistics related to your account
   - Schedule: go to the full beamline schedule
 
+Usage Stats
+***********
+View your history at the beamline through numbers. Your usage statistics contain bulk information about shipments and
+samples you have sent, data you have collected and analyzed, and time you have spent using the beamline.
+
+.. image:: images/usage-stats.png
+    :align: center
+    :alt: Usage Statistics
+
+
 Beamtime
 --------
 
