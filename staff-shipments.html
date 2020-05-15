@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Search &mdash; MxLIVE 2020.05.238 documentation</title>
+  <title>Managing Shipments &mdash; MxLIVE 2020.05.238 documentation</title>
   
 
   
@@ -17,7 +17,6 @@
   
 
   
-    
   <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
   
     
@@ -30,13 +29,14 @@
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-    <script type="text/javascript" src="_static/searchtools.js"></script>
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="#" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Scheduling" href="scheduling.html" />
+    <link rel="prev" title="Staff Interface" href="staff-dashboard.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -67,7 +67,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="#" method="get">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -92,10 +92,14 @@
 <li class="toctree-l1"><a class="reference internal" href="data.html">Datasets &amp; Reports</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html">Staff Interface</a></li>
-<li class="toctree-l1"><a class="reference internal" href="staff-shipments.html">Managing Shipments</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Managing Shipments</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#receive-a-shipment">Receive a Shipment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#load-containers-in-an-automounter">Load Containers in an Automounter</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
 </ul>
@@ -150,7 +154,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Search</li>
+      <li>Managing Shipments</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -167,24 +171,45 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <noscript>
-  <div id="fallback" class="admonition warning">
-    <p class="last">
-      Please activate JavaScript to enable the search
-      functionality.
-    </p>
-  </div>
-  </noscript>
+  <div class="section" id="managing-shipments">
+<h1>Managing Shipments<a class="headerlink" href="#managing-shipments" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="receive-a-shipment">
+<h2>Receive a Shipment<a class="headerlink" href="#receive-a-shipment" title="Permalink to this headline">¶</a></h2>
+<p>Once a user sends their shipment, it will be visible on your staff dashboard. When the shipment arrives on-site
+physically, and has been received at the beamline, click the “Receive” icon and submit the form to mark it “On-site”.
+If you notice anything unusual about the shipment, you can leave comments in the form that will be visible to both staff
+and the user.</p>
+<img alt="Receive Shipment" class="align-center" src="_images/staff-shipping-receive.png" />
+<p>Click the “Comments” icon on the shipment page toolbar to add or edit comments about the shipment. These comments are
+visible to both staff and the user.</p>
+<img alt="Shipment Comments" class="align-center" src="_images/staff-shipping-comments.png" />
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you marked a shipment “On-site” in error, or if the user needs to edit some information in the shipment
+(assuming no data has already been collected and associated with samples in the shipment), open the comments
+form and select “Unreceive”. This will change the shipment’s status to “Sent”, and will allow the user to
+Recall their shipment, edit it, and Send it again.</p>
+</div>
+</div>
+<div class="section" id="load-containers-in-an-automounter">
+<h2>Load Containers in an Automounter<a class="headerlink" href="#load-containers-in-an-automounter" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
 
-  
-  <div id="search-results">
-  
-  </div>
 
            </div>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="scheduling.html" class="btn btn-neutral float-right" title="Scheduling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="staff-dashboard.html" class="btn btn-neutral float-left" title="Staff Interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>
@@ -216,14 +241,7 @@
   
   
     
-  
-  <script type="text/javascript">
-    jQuery(function() { Search.loadIndex("searchindex.js"); });
-  </script>
-  
-  <script type="text/javascript" id="searchindexloader"></script>
    
-
 
 </body>
 </html>

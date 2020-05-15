@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Staff Interface &mdash; MxLIVE v2019.04-238-g93a9afb
- documentation</title>
+  <title>Staff Interface &mdash; MxLIVE 2020.05.238 documentation</title>
   
 
   
@@ -36,8 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Scheduling" href="scheduling.html" />
-    <link rel="prev" title="Datasets &amp; Reports" href="data.html" /> 
+    <link rel="next" title="Managing Shipments" href="staff-shipments.html" />
+    <link rel="prev" title="Getting Started" href="starting.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -61,8 +60,7 @@
             
             
               <div class="version">
-                v2019.04-238-g93a9afb
-
+                2020.05.238
               </div>
             
           
@@ -95,6 +93,7 @@
 </ul>
 <p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Staff Interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#dashboard">Dashboard</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#guide">Guide</a></li>
@@ -103,14 +102,17 @@
 <li class="toctree-l2"><a class="reference internal" href="#remote-connections">Remote Connections</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#accounts">Accounts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#detailed-lists">Detailed Lists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#beamlines-and-automounters">Beamlines and Automounters</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="staff-shipments.html">Managing Shipments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="apis.html">Application Program Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reports.html">Reports</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/views.html">Views</a></li>
 </ul>
@@ -237,6 +239,10 @@ viewed using the “Connections” icon in the toolbar.</p>
 (ie. the Principal Investigator, Project Leader, etc.). These fields are not editable by the user, but they are used,
 along with the <strong>Contact Email</strong> (which IS editable by the user), for email notifications about upcoming beamtime.</p>
 <p>The <strong>Project Type</strong> is used for calculating beamline statistics.</p>
+<p><strong>Project Designations</strong> can be used for any designation staff require. Once a Project Designation has been created
+through the Django administration site, it will become available to select when editing a user’s profile. As an example,
+CMCF assigns a CRC designation to Canada Research Chairs, and a BeamTeam designation to Beam team members. Lists of
+Accounts and Sessions can then be filtered by those designations when gathering statistics.</p>
 <p>If a value is entered for the <strong>Alias</strong>, it is used as the display name on publicly visible schedules instead of the
 account’s username. This is to provide extra confidentiality to users for whom it is required, or to customize the
 schedule display.</p>
@@ -248,12 +254,28 @@ schedule display.</p>
 </div>
 <div class="section" id="detailed-lists">
 <h2>Detailed Lists<a class="headerlink" href="#detailed-lists" title="Permalink to this headline">¶</a></h2>
-<p>Staff detailed lists are similar to user detailed lists, but staff lists contain entries from all users. For this reason,
-a column is prepended to staff lists containing the username of the owner of each item.</p>
+<p>Staff detailed lists are similar to user detailed lists, but staff lists contain entries from all users. For this
+reason, a column is prepended to staff lists containing the username of the owner of each item.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Staff do not have access to any item in a Draft state (for example, shipments that have not yet been sent).</p>
 </div>
+</div>
+<div class="section" id="beamlines-and-automounters">
+<h2>Beamlines and Automounters<a class="headerlink" href="#beamlines-and-automounters" title="Permalink to this headline">¶</a></h2>
+<p>Each beamline can be assigned an automounter layout for loading containers. Default autmounters included in MxLIVE are
+SAM, CATS, and ISARA, but additional automounter layouts can be defined through the MxLIVE Django administration site.</p>
+<img alt="Beamline Automounter" class="align-center" src="_images/automounter-loaded.png" />
+<p>To load a container in an automounter, select the location where the container will be loaded and choose from the list
+of containers that are currently on-site and NOT loaded in an automounter.</p>
+<img alt="Load a Container" class="align-center" src="_images/staff-load-container.png" />
+<p>To move a container to a different location in the same automounter, select the container from the layout and choose its
+new location.</p>
+<p>To unload a container, either select it from the layout and choose “Unload”, or use the “Unload” icon in the right-hand
+sidebar. You can also use the “Unload all” icon in the Projects tab to unload all containers belonging to a specific
+user.</p>
+<img alt="Unload All Containers for a User" class="align-left" src="_images/staff-loaded-containers.png" />
+<img alt="Unload All Containers for a User" class="align-right" src="_images/staff-unload-all.png" />
 </div>
 </div>
 
@@ -265,10 +287,10 @@ a column is prepended to staff lists containing the username of the owner of eac
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="scheduling.html" class="btn btn-neutral float-right" title="Scheduling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="staff-shipments.html" class="btn btn-neutral float-right" title="Managing Shipments" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="data.html" class="btn btn-neutral float-left" title="Datasets &amp; Reports" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="starting.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
