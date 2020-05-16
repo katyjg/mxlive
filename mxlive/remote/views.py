@@ -85,13 +85,12 @@ class AccessList(View):
     Returns list of usernames that should be able to access the remote server referenced by `ipnumber`.
 
     :key: r'^accesslist/$' (IP number inferred from request)
-    :key: r'^accesslist/(?P<ipnumber>)/$'
     """
 
     def get(self, request, *args, **kwargs):
 
         from ..staff.models import UserList
-        client_addr = kwargs.get('ipnumber', get_client_address(request))
+        client_addr = get_client_address(request)
 
         list = UserList.objects.filter(address=client_addr, active=True).first()
         if list:
@@ -101,7 +100,7 @@ class AccessList(View):
 
     def post(self, request, *args, **kwargs):
 
-        client_addr = kwargs.get('ipnumber', get_client_address(request))
+        client_addr = get_client_address(request)
         list = UserList.objects.filter(address=client_addr, active=True).first()
 
         tz = timezone.get_current_timezone()

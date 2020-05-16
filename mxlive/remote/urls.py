@@ -9,7 +9,6 @@ def keyed_url(regex, view, kwargs=None, name=None):
 
 urlpatterns = [
     url(r'^accesslist/$', views.AccessList.as_view()),
-    url(r'^accesslist/(?P<ipnumber>[.\d]+)/$', views.AccessList.as_view()),
 
     keyed_url(r'^data/(?P<beamline>[\w_-]+)/$', views.AddData.as_view()),
     keyed_url(r'^report/(?P<beamline>[\w_-]+)/$', views.AddReport.as_view()),
