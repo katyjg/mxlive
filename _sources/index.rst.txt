@@ -30,6 +30,7 @@ applications could also be modified to complement MxLIVE.
    :caption: For Beamline Staff:
 
    staff-dashboard
+   staff-beamlines
    staff-shipments
    scheduling
    publications
@@ -39,5 +40,6 @@ applications could also be modified to complement MxLIVE.
    :caption: For Developers:
 
    apis
+   reportsv2
    modules/models
    modules/views

@@ -41,3 +41,15 @@ dashboard, but are still available through detailed lists.
 .. image:: images/staff-shipping-return.png
    :align: center
    :alt: Return Shipment
+
+Creating an On-site Shipment
+----------------------------
+For effective shipment management, on-site shipments should be as closely represented in MxLIVE as possible. On rare
+occasions where a user is unable to create an MxLIVE shipment for their samples, or for testing purposes, staff can
+create an on-site shipment assigned to a user's account. Click on the "Start Now" icon at the bottom of the list of
+shipments on the staff dashboard and complete the three-stepped form:
+
+- **Step 1**: Choose the project that owns the sample.
+- **Step 2**: Enter the names visible on the outside of the containers in the shipment.
+- **Step 3**: Use the "Fill Containers" button to create groups and samples for the shipment. Since the shipment will
+  automatically be "On-site", there will be no opportunity to add samples to the shipment after it is created.

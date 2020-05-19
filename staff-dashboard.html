@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Dashboard &mdash; MxLIVE 2020.05.243 documentation</title>
+  <title>Dashboard &mdash; MxLIVE 2020.05.246 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Managing Shipments" href="staff-shipments.html" />
+    <link rel="next" title="Beamlines and Automounters" href="staff-beamlines.html" />
     <link rel="prev" title="Datasets &amp; Reports" href="data.html" /> 
 </head>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2020.05.243
+                2020.05.246
               </div>
             
           
@@ -100,7 +100,7 @@
 <li class="toctree-l1"><a class="reference internal" href="#remote-connections">Remote Connections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#accounts">Accounts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#detailed-lists">Detailed Lists</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#beamlines-and-automounters">Beamlines and Automounters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-beamlines.html">Beamlines and Automounters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-shipments.html">Managing Shipments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
@@ -108,6 +108,7 @@
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="apis.html">Application Program Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reportsv2.html">Formatting Reports</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/views.html">Ajax Views</a></li>
 </ul>
@@ -231,6 +232,7 @@ viewed using the “Connections” icon in the toolbar.</p>
 <p>When creating a new account, enter the <strong>First Name</strong>, <strong>Last Name</strong>, and <strong>Email Address</strong> of the owner of the account
 (ie. the Principal Investigator, Project Leader, etc.). These fields are not editable by the user, but they are used,
 along with the <strong>Contact Email</strong> (which IS editable by the user), for email notifications about upcoming beamtime.</p>
+<img alt="Account Creation" class="align-center" src="_images/staff-accounts.png" />
 <p>The <strong>Project Type</strong> is used for calculating beamline statistics.</p>
 <p><strong>Project Designations</strong> can be used for any designation staff require. Once a Project Designation has been created
 through the Django administration site, it will become available to select when editing a user’s profile. As an example,
@@ -243,7 +245,17 @@ schedule display.</p>
 <p class="admonition-title">Note</p>
 <p>Staff are able to see both the alias and the username on the staff schedule.</p>
 </div>
-<img alt="Account Creation" class="align-center" src="_images/staff-accounts.png" />
+<img alt="Account Creation" class="align-center" src="_images/staff-account.png" />
+<p>The toolbar of an account page gives access to:</p>
+<ul class="simple">
+<li><p>filtered lists of datasets, reports, and sessions associated with the account,</p></li>
+<li><p>shipping labels for returning items to the user,</p></li>
+<li><p>reset the user’s API key used for secure integration with MxDC.</p></li>
+</ul>
+<p>If the key stored locally in a user’s directory is somehow altered or deleted, integration with MxDC will result in
+errors. Further, a new key cannot be sent from MxDC because the new key will not match the key in MxLIVE. To remedy this
+problem, the MxLIVE API key should be reset, at which point MxDC can update the account with a new key.</p>
+<img alt="Account Creation" class="align-center" src="_images/account-reset-key.png" />
 </div>
 <div class="section" id="detailed-lists">
 <h1>Detailed Lists<a class="headerlink" href="#detailed-lists" title="Permalink to this headline">¶</a></h1>
@@ -254,24 +266,6 @@ reason, a column is prepended to staff lists containing the username of the owne
 <p>Staff do not have access to any item in a Draft state (for example, shipments that have not yet been sent).</p>
 </div>
 </div>
-<div class="section" id="beamlines-and-automounters">
-<h1>Beamlines and Automounters<a class="headerlink" href="#beamlines-and-automounters" title="Permalink to this headline">¶</a></h1>
-<p>Each beamline can be assigned an automounter layout for loading containers. Default autmounters included in MxLIVE are
-SAM, CATS, and ISARA, but additional automounter layouts can be defined through the MxLIVE Django administration site.</p>
-<img alt="Beamline Automounter" class="align-center" src="_images/automounter-loaded.png" />
-<p>To load a container in an automounter, select the location where the container will be loaded and choose from the list
-of containers that are currently on-site and NOT loaded in an automounter.</p>
-<img alt="Load a Container" class="align-center" src="_images/staff-load-container.png" />
-<p>To move a container to a different location in the same automounter, select the container from the layout and choose its
-new location.</p>
-<img alt="Move a Container" class="align-center" src="_images/staff-move-container.png" />
-<p>To unload a container, either select it from the layout and choose “Unload”, or use the “Unload” icon next to the
-container in the right-hand sidebar. Loaded containers can be viewed either listed individually, or sorted by project.</p>
-<img alt="View loaded containers individually or sorted by project." class="align-center" src="_images/automounter-containers-lists.png" />
-<p>You can also use the “Unload all” icon in the Projects tab to unload all containers belonging to a specific
-user.</p>
-<img alt="Unload All Containers for a User" class="align-center" src="_images/staff-unload-all.png" />
-</div>
 
 
            </div>
@@ -281,7 +275,7 @@ user.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="staff-shipments.html" class="btn btn-neutral float-right" title="Managing Shipments" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="staff-beamlines.html" class="btn btn-neutral float-right" title="Beamlines and Automounters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="data.html" class="btn btn-neutral float-left" title="Datasets &amp; Reports" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

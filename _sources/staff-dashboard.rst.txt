@@ -63,6 +63,10 @@ When creating a new account, enter the **First Name**, **Last Name**, and **Emai
 (ie. the Principal Investigator, Project Leader, etc.). These fields are not editable by the user, but they are used,
 along with the **Contact Email** (which IS editable by the user), for email notifications about upcoming beamtime.
 
+.. image:: images/staff-accounts.png
+    :align: center
+    :alt: Account Creation
+
 The **Project Type** is used for calculating beamline statistics.
 
 **Project Designations** can be used for any designation staff require. Once a Project Designation has been created
@@ -76,9 +80,24 @@ schedule display.
 
 .. note:: Staff are able to see both the alias and the username on the staff schedule.
 
-.. image:: images/staff-accounts.png
+.. image:: images/staff-account.png
     :align: center
     :alt: Account Creation
+
+The toolbar of an account page gives access to:
+
+- filtered lists of datasets, reports, and sessions associated with the account,
+- shipping labels for returning items to the user,
+- reset the user's API key used for secure integration with MxDC.
+
+If the key stored locally in a user's directory is somehow altered or deleted, integration with MxDC will result in
+errors. Further, a new key cannot be sent from MxDC because the new key will not match the key in MxLIVE. To remedy this
+problem, the MxLIVE API key should be reset, at which point MxDC can update the account with a new key.
+
+.. image:: images/account-reset-key.png
+    :align: center
+    :alt: Account Creation
+
 
 Detailed Lists
 --------------
@@ -87,39 +106,3 @@ reason, a column is prepended to staff lists containing the username of the owne
 
 .. note:: Staff do not have access to any item in a Draft state (for example, shipments that have not yet been sent).
 
-Beamlines and Automounters
---------------------------
-Each beamline can be assigned an automounter layout for loading containers. Default autmounters included in MxLIVE are
-SAM, CATS, and ISARA, but additional automounter layouts can be defined through the MxLIVE Django administration site.
-
-.. image:: images/automounter-loaded.png
-    :align: center
-    :alt: Beamline Automounter
-
-To load a container in an automounter, select the location where the container will be loaded and choose from the list
-of containers that are currently on-site and NOT loaded in an automounter.
-
-.. image:: images/staff-load-container.png
-    :align: center
-    :alt: Load a Container
-
-To move a container to a different location in the same automounter, select the container from the layout and choose its
-new location.
-
-.. image:: images/staff-move-container.png
-    :align: center
-    :alt: Move a Container
-
-To unload a container, either select it from the layout and choose "Unload", or use the "Unload" icon next to the
-container in the right-hand sidebar. Loaded containers can be viewed either listed individually, or sorted by project.
-
-.. image:: images/automounter-containers-lists.png
-    :align: center
-    :alt: View loaded containers individually or sorted by project.
-
-You can also use the "Unload all" icon in the Projects tab to unload all containers belonging to a specific
-user.
-
-.. image:: images/staff-unload-all.png
-    :align: center
-    :alt: Unload All Containers for a User

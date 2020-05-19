@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>mxlive.lims.models &mdash; MxLIVE 2020.05.243 documentation</title>
+  <title>mxlive.lims.models &mdash; MxLIVE 2020.05.246 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                2020.05.243
+                2020.05.246
               </div>
             
           
@@ -95,7 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../staff-dashboard.html#remote-connections">Remote Connections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../staff-dashboard.html#accounts">Accounts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../staff-dashboard.html#detailed-lists">Detailed Lists</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../staff-dashboard.html#beamlines-and-automounters">Beamlines and Automounters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../staff-beamlines.html">Beamlines and Automounters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../staff-shipments.html">Managing Shipments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../publications.html">Publications</a></li>
@@ -103,6 +103,7 @@
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../apis.html">Application Program Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reportsv2.html">Formatting Reports</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/views.html">Ajax Views</a></li>
 </ul>
@@ -1429,7 +1430,7 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">Data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">trash</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="AnalysisReport"><a class="viewcode-back" href="../../../reports.html#mxlive.lims.models.AnalysisReport">[docs]</a><span class="k">class</span> <span class="nc">AnalysisReport</span><span class="p">(</span><span class="n">ActiveStatusMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="AnalysisReport"><a class="viewcode-back" href="../../../reportsv1.html#mxlive.lims.models.AnalysisReport">[docs]</a><span class="k">class</span> <span class="nc">AnalysisReport</span><span class="p">(</span><span class="n">ActiveStatusMixin</span><span class="p">):</span>
     <span class="n">project</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Project</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;reports&#39;</span><span class="p">)</span>
     <span class="n">kind</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
     <span class="n">score</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FloatField</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;Analysis Report Score&quot;</span><span class="p">),</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>

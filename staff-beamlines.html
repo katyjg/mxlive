@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Managing Shipments &mdash; MxLIVE 2020.05.246 documentation</title>
+  <title>Beamlines and Automounters &mdash; MxLIVE 2020.05.246 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Scheduling" href="scheduling.html" />
-    <link rel="prev" title="Beamlines and Automounters" href="staff-beamlines.html" /> 
+    <link rel="next" title="Managing Shipments" href="staff-shipments.html" />
+    <link rel="prev" title="Dashboard" href="staff-dashboard.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -97,13 +97,12 @@
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#remote-connections">Remote Connections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#accounts">Accounts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#detailed-lists">Detailed Lists</a></li>
-<li class="toctree-l1"><a class="reference internal" href="staff-beamlines.html">Beamlines and Automounters</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Managing Shipments</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#receive-a-shipment">Receive a Shipment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#return-a-shipment">Return a Shipment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#creating-an-on-site-shipment">Creating an On-site Shipment</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Beamlines and Automounters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#loading-an-automounter">Loading an Automounter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#beamline-statistics">Beamline Statistics</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="staff-shipments.html">Managing Shipments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
 </ul>
@@ -158,7 +157,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Managing Shipments</li>
+      <li>Beamlines and Automounters</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -175,49 +174,44 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="managing-shipments">
-<h1>Managing Shipments<a class="headerlink" href="#managing-shipments" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="receive-a-shipment">
-<h2>Receive a Shipment<a class="headerlink" href="#receive-a-shipment" title="Permalink to this headline">¶</a></h2>
-<p>Once a user sends their shipment, it will be visible on your staff dashboard. When the shipment arrives on-site
-physically, and has been received at the beamline, click the “Receive” icon and submit the form to mark it “On-site”.
-If you notice anything unusual about the shipment, you can leave comments in the form that will be visible to both staff
-and the user.</p>
-<img alt="Receive Shipment" class="align-center" src="_images/staff-shipping-receive.png" />
-<p>Click the “Comments” icon on the shipment page toolbar to add or edit comments about the shipment. These comments are
-visible to both staff and the user.</p>
-<img alt="Shipment Comments" class="align-center" src="_images/staff-shipping-comments.png" />
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If you marked a shipment “On-site” in error, or if the user needs to edit some information in the shipment
-(assuming no data has already been collected and associated with samples in the shipment), open the comments
-form and select “Unreceive”. This will change the shipment’s status to “Sent”, and will allow the user to
-Recall their shipment, edit it, and Send it again.</p>
+  <div class="section" id="beamlines-and-automounters">
+<h1>Beamlines and Automounters<a class="headerlink" href="#beamlines-and-automounters" title="Permalink to this headline">¶</a></h1>
+<p>New beamlines can be created through the Django administration site. The beamline acronym is used for email
+notifications about upcoming beamtime, for tagging publications, and display and filters throughout MxLIVE. The
+<strong>Name</strong>, energy range, and <strong>Contact phone</strong> are for display purposes only. If a beamline is marked as <strong>Simulated</strong>,
+it will not appear on the weekly schedule.</p>
+<p>Each beamline can be assigned an automounter layout for loading containers. Default autmounters included in MxLIVE are
+SAM, CATS, and ISARA, but additional automounter layouts can be defined as a new Container Type through the MxLIVE
+Django administration site.</p>
+<p>To associate an automounter with a beamline, create a new Dewar through the Django administration site. Choose the
+<strong>Beamline</strong> and <strong>Container</strong>, or create the container using the “+” button. The container should have the <strong>Status</strong>
+on-site, and be assigned to a <strong>Project</strong> marked as staff. While a beamline can have multiple Dewars, only one should be
+marked as <strong>Active</strong> at any given time.</p>
+<img alt="Beamline Automounter" class="align-center" src="_images/automounter-loaded.png" />
+<p>Use the “History” icon in the toolbar to see a detailed history of container locations loaded in the automounter.</p>
+<img alt="Beamline Automounter History" class="align-center" src="_images/automounter-history.png" />
+<div class="section" id="loading-an-automounter">
+<h2>Loading an Automounter<a class="headerlink" href="#loading-an-automounter" title="Permalink to this headline">¶</a></h2>
+<p>To load a container in an automounter, select the location where the container will be loaded and choose from the list
+of containers that are currently on-site and NOT loaded in an automounter.</p>
+<img alt="Load a Container" class="align-center" src="_images/staff-load-container.png" />
+<p>To move a container to a different location in the same automounter, select the container from the layout and choose its
+new location.</p>
+<img alt="Move a Container" class="align-center" src="_images/staff-move-container.png" />
+<p>To unload a container, either select it from the layout and choose “Unload”, or use the “Unload” icon next to the
+container in the right-hand sidebar. Loaded containers can be viewed either listed individually, or sorted by project.</p>
+<img alt="View loaded containers individually or sorted by project." class="align-center" src="_images/automounter-containers-lists.png" />
+<p>You can also use the “Unload all” icon in the Projects tab to unload all containers belonging to a specific
+user.</p>
+<img alt="Unload All Containers for a User" class="align-center" src="_images/staff-unload-all.png" />
 </div>
-</div>
-<div class="section" id="return-a-shipment">
-<h2>Return a Shipment<a class="headerlink" href="#return-a-shipment" title="Permalink to this headline">¶</a></h2>
-<p>After a user’s beamtime is complete and they are finished with their samples, print labels using the “Labels” icon in
-the toolbar. Return labels include a label to affix to the outside of the transport container(s), and a shipping form to
-be used by the facility Shipping &amp; Receiving department. This form is customized for CLS Approved Document
-0.11.1.19 Rev.6.</p>
-<img alt="Shipment Printable Labels" class="align-center" src="_images/staff-shipping-print.png" />
-<p>Click “Return” and complete the form to mark the shipment as returned. Returned shipments will not appear on the staff
-dashboard, but are still available through detailed lists.</p>
-<img alt="Return Shipment" class="align-center" src="_images/staff-shipping-return.png" />
-</div>
-<div class="section" id="creating-an-on-site-shipment">
-<h2>Creating an On-site Shipment<a class="headerlink" href="#creating-an-on-site-shipment" title="Permalink to this headline">¶</a></h2>
-<p>For effective shipment management, on-site shipments should be as closely represented in MxLIVE as possible. On rare
-occasions where a user is unable to create an MxLIVE shipment for their samples, or for testing purposes, staff can
-create an on-site shipment assigned to a user’s account. Click on the “Start Now” icon at the bottom of the list of
-shipments on the staff dashboard and complete the three-stepped form:</p>
-<ul class="simple">
-<li><p><strong>Step 1</strong>: Choose the project that owns the sample.</p></li>
-<li><p><strong>Step 2</strong>: Enter the names visible on the outside of the containers in the shipment.</p></li>
-<li><p><strong>Step 3</strong>: Use the “Fill Containers” button to create groups and samples for the shipment. Since the shipment will
-automatically be “On-site”, there will be no opportunity to add samples to the shipment after it is created.</p></li>
-</ul>
+<div class="section" id="beamline-statistics">
+<h2>Beamline Statistics<a class="headerlink" href="#beamline-statistics" title="Permalink to this headline">¶</a></h2>
+<p>The toolbar has icons to access beamline statistics and usage metrics. Statistics include data collection parameters
+that indicate how the beamline is typically used. Usage metrics include many bulk statistics of how beamtime is used,
+including by access type and project type.</p>
+<img alt="Beamline Statistics" class="align-center" src="_images/beamline-statistics.png" />
+<img alt="Beamline Metrics" class="align-center" src="_images/beamline-metrics.png" />
 </div>
 </div>
 
@@ -229,10 +223,10 @@ automatically be “On-site”, there will be no opportunity to add samples to t
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="scheduling.html" class="btn btn-neutral float-right" title="Scheduling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="staff-shipments.html" class="btn btn-neutral float-right" title="Managing Shipments" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="staff-beamlines.html" class="btn btn-neutral float-left" title="Beamlines and Automounters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="staff-dashboard.html" class="btn btn-neutral float-left" title="Dashboard" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

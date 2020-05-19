@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Application Program Interfaces &mdash; MxLIVE 2020.05.243 documentation</title>
+  <title>Application Program Interfaces &mdash; MxLIVE 2020.05.246 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Models" href="modules/models.html" />
+    <link rel="next" title="Formatting Reports" href="reportsv2.html" />
     <link rel="prev" title="Publications" href="publications.html" /> 
 </head>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2020.05.243
+                2020.05.246
               </div>
             
           
@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#remote-connections">Remote Connections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#accounts">Accounts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#detailed-lists">Detailed Lists</a></li>
-<li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#beamlines-and-automounters">Beamlines and Automounters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-beamlines.html">Beamlines and Automounters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-shipments.html">Managing Shipments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
@@ -114,6 +114,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#remote-connection-access-lists">Remote Connection Access Lists</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="reportsv2.html">Formatting Reports</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/views.html">Ajax Views</a></li>
 </ul>
@@ -323,14 +324,15 @@ will be start_time + frames * exposure_time, otherwise it will be now</p></li>
 </dl>
 </dd></dl>
 
+<p>For details regarding the formatting of new MxLIVE reports, submitted as details to <cite>AddReport</cite>, see <a class="reference internal" href="reportsv2.html#formatting-reports"><span class="std std-ref">Formatting Reports</span></a>.</p>
 </div>
 </div>
 <div class="section" id="remote-connection-access-lists">
 <h2>Remote Connection Access Lists<a class="headerlink" href="#remote-connection-access-lists" title="Permalink to this headline">¶</a></h2>
-<p>This is an API to provide a list of users who should have access to a specific remote connection. If an IP address is
-not provided, it is inferred from the request.</p>
+<p>This is an API to provide a list of users who should have access to a specific remote connection.</p>
 <p><code class="docutils literal notranslate"><span class="pre">GET</span></code> provides the list of users defined for the remote connection matching the IP address of the request.</p>
-<p><code class="docutils literal notranslate"><span class="pre">POST</span></code> should include data in the form of a list of dictionary including, at a minimum, the following information:</p>
+<p><code class="docutils literal notranslate"><span class="pre">POST</span></code> is used to create and maintain a history of remote connections. Data provided should be in the form of a list
+of dictionaries including, at a minimum, the following information:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">project</span></code>: Should match a username for a project account in MxLIVE</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">status</span></code>: One of the following strings: “Connected”, “Disconnected”, “Failed”, “Finished”</p></li>
@@ -340,13 +342,11 @@ not provided, it is inferred from the request.</p>
 <dl class="class">
 <dt>
 <em class="property">class </em><code class="sig-prename descclassname">mxlive.remote.views.</code><code class="sig-name descname">AccessList</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/remote/views.html#AccessList"><span class="viewcode-link">[source]</span></a></dt>
-<dd><p>Returns list of usernames that should be able to access the remote server referenced by <cite>ipnumber</cite>.</p>
+<dd><p>Returns list of usernames that should be able to access the remote server referenced by the IP number inferred from
+the request.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Key</dt>
-<dd class="field-odd"><p>r’^accesslist/$’ (IP number inferred from request)</p>
-</dd>
-<dt class="field-even">Key</dt>
-<dd class="field-even"><p>r’^accesslist/(?P&lt;ipnumber&gt;)/$’</p>
+<dd class="field-odd"><p>r’^accesslist/$’</p>
 </dd>
 </dl>
 </dd></dl>
@@ -362,7 +362,7 @@ not provided, it is inferred from the request.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="modules/models.html" class="btn btn-neutral float-right" title="Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="reportsv2.html" class="btn btn-neutral float-right" title="Formatting Reports" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="publications.html" class="btn btn-neutral float-left" title="Publications" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
