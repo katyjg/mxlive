@@ -51,14 +51,17 @@ fetch files and data through the Data Proxy, since MxLIVE has no direct access t
     :noindex: True
     :members: AddData, AddReport
 
+For details regarding the formatting of new MxLIVE reports, submitted as details to `AddReport`, see :ref:`formatting-reports`.
+
+
 Remote Connection Access Lists
 ------------------------------
-This is an API to provide a list of users who should have access to a specific remote connection. If an IP address is
-not provided, it is inferred from the request.
+This is an API to provide a list of users who should have access to a specific remote connection.
 
 ``GET`` provides the list of users defined for the remote connection matching the IP address of the request.
 
-``POST`` should include data in the form of a list of dictionary including, at a minimum, the following information:
+``POST`` is used to create and maintain a history of remote connections. Data provided should be in the form of a list
+of dictionaries including, at a minimum, the following information:
 
 - ``project``: Should match a username for a project account in MxLIVE
 - ``status``: One of the following strings: "Connected", "Disconnected", "Failed", "Finished"
