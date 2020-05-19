@@ -82,9 +82,10 @@ class VerificationMixin(object):
 @method_decorator(csrf_exempt, name='dispatch')
 class AccessList(View):
     """
-    Returns list of usernames that should be able to access the remote server referenced by `ipnumber`.
+    Returns list of usernames that should be able to access the remote server referenced by the IP number inferred from
+    the request.
 
-    :key: r'^accesslist/$' (IP number inferred from request)
+    :key: r'^accesslist/$'
     """
 
     def get(self, request, *args, **kwargs):
