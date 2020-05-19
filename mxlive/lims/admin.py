@@ -4,7 +4,7 @@ from mxlive.lims import models
 
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ('identity', 'project')
-    search_fields = ('identity', 'project')
+    search_fields = ('name', 'project')
 
 
 class UserAdmin(admin.ModelAdmin):
