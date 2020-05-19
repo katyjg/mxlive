@@ -125,7 +125,8 @@ class NewProjectForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ('first_name', 'last_name', 'email', 'contact_person', 'contact_email', 'contact_phone', 'username', 'kind')
+        fields = ('first_name', 'last_name', 'email', 'contact_person', 'contact_email', 'contact_phone', 'username',
+                  'kind', 'alias', 'designation')
 
     def __init__(self, *args, **kwargs):
         super(NewProjectForm, self).__init__(*args, **kwargs)
@@ -148,12 +149,14 @@ class NewProjectForm(forms.ModelForm):
             Div(
                 Div('first_name', css_class='col-6'),
                 Div('last_name', css_class='col-6'),
-                Div('email', css_class='col-12'),
+                Div('email', css_class='col-6'),
+                Div(Field('designation', css_class='select'), css_class='col-6'),
                 css_class="form-row"
             ),
             Div(
                 Div(Field('kind', css_class="select"), css_class='col-6'),
-                Div('contact_person', css_class='col-6'),
+                Div('alias', css_class='col-6'),
+                Div('contact_person', css_class='col-12'),
                 css_class="form-row"
             ),
             Div(
