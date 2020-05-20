@@ -4,9 +4,10 @@ MxLIVE (Macromolecular Crystallography Laboratory Virtual Environment) is a deve
 managing synchrotron visits from experiment planning and organisation to shipment tracking to data and analysis access.
 
 MxLIVE relies on MxDC as a source of meta-data from data collection sessions on the beamline, and acts as a resource
-from which MxDC can fetch sample information. While this close-coupling is
-tailored to MxDC, all connections are handled through the use of APIs, so other data collection
-applications could also be modified to complement MxLIVE.
+from which MxDC can fetch sample information. While this close-coupling is tailored to MxDC, all connections are handled
+through the use of APIs, so other data collection applications could also be modified to complement MxLIVE.
+
+Source code can be found at https://github.com/katyjg/mxlive.
 
 .. note::
     An earlier version of MxLIVE is described in the following publication:
