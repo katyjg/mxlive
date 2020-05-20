@@ -40,8 +40,9 @@ class CalendarView(TemplateView):
         context['today'] = datetime.strftime(timezone.now(), '%Y-%m-%d')
         context['year'] = year
         context['week'] = week
-        context['beamlines'] = Beamline.objects.filter(simulated=False)
+        context['beamlines'] = Beamline.objects.filter(active=True)
         context['access_types'] = models.AccessType.objects.all()
+        context['facility_modes'] = models.FacilityMode.objects.all()
         context['scope_types'] = [(s[1].replace(' ', ''), s[1]) for s in models.Downtime.SCOPE_CHOICES]
         context['next_week'] = (now + timedelta(days=7)).isocalendar()[:2]
         context['last_week'] = (now - timedelta(days=7)).isocalendar()[:2]
@@ -83,7 +84,7 @@ class BeamtimeStatistics(TemplateView):
         context['years'] = stats.get_beamtime_periods(period='year')
 
         filters = {} if yearly else {'created__year': self.kwargs.get('year')}
-        beamlines = Beamline.objects.filter(simulated=False)
+        beamlines = Beamline.objects.filter(active=Truee)
 
         context['report'] = {'details': [{
             'title': '{} Beamtime Summary'.format(bl.acronym),

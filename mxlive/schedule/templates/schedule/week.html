@@ -17,6 +17,11 @@
           top: 0;
         }
     {% endfor %}
+    {% for kind in facility_modes %}
+        {% for css in kind.css_classes %}.{{ css }} {% if not forloop.last %}, {% endif %}{% endfor %} {
+            background-color: {{ kind.color }};
+        }
+    {% endfor %}
 </style>
 
 <div id="beamline-calendar"
@@ -69,7 +74,7 @@
                 <tbody>
                     {% for day, details in info.week.items %}
                         {% for shift, mode in details.modes.items %}
-                            <tr data-shift-id="{{ day }}T{{ shift }}" class="{{ mode.kind }} {% if today == day %}today{% endif %}">
+                            <tr data-shift-id="{{ day }}T{{ shift }}" class="mode {{ mode.kind }} {% if today == day %}today{% endif %}">
                                 {% if forloop.first %}
                                     <td rowspan="{{ info.shifts }}" class="bg-white bcal-day">
                                         <text class="text-uppercase text-condensed">
@@ -96,14 +101,31 @@
     </div>
 
 
-    <div class="legend-box my-3 d-flex">
-        <div class="pr-2"><span class="full legend px-3 mr-1"></span> Reserved</div>
-        {% for scope in scope_types %}
-            <div class="px-2"><span class="{{ scope.0 }} legend px-3 mr-1" style="background-color: {{kind.color}};"></span> {{ scope.1 }}</div>
-        {% endfor %}
-        {% for kind in access_types %}
-            <div class="px-2"><span class="kind.name legend px-3 mr-1" style="background-color: {{kind.color}};"></span> {{ kind.name }}</div>
-        {% endfor %}
+    <div class="row">
+        <div class="legend-box {% if facility_modes %}col-6{% else %}col-12{% endif %} my-3">
+            <div class="row">
+                <div class="col-4 pr-2 py-2 overflow ellipsis" title="Reserved"><span class="full legend px-3 mr-1"></span> Reserved</div>
+                {% for scope in scope_types %}
+                    <div class="col-4 p-2 overflow ellipsis" title="{{ scope.1 }}">
+                        <span class="{{ scope.0 }} legend px-3 mr-1" style="background-color: {{kind.color}};"></span> {{ scope.1 }}
+                    </div>
+                {% endfor %}
+                {% for kind in access_types %}
+                    <div class="col-4 p-2 overflow ellipsis" title="{{ kind.name }}"><span class="kind.name legend px-3 mr-1" style="background-color: {{kind.color}};"></span> {{ kind.name }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% if facility_modes %}
+        <div class="legend-box col-6 my-3">
+            <div class="row">
+                {% for kind in facility_modes %}
+                    <div class="col-4 {% if forloop.first %}pr-2 py-2{% else %}p-2{% endif %} overflow ellipsis" title="{{ kind.description }}">
+                        <span class="legend px-3 mr-1" style="background-color: {{kind.color}};"></span>
+                        {{ kind.description }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 

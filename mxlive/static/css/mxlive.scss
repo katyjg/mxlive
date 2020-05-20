@@ -4,7 +4,7 @@ $spacer: 1rem !default;
 $grid-gutter-width: 1rem !default;
 $half-spacer: 0.5*$spacer;
 $form-grid-gutter-width: .75*$grid-gutter-width !default;
-$primary: #38024D !default;
+$primary: #69156A !default;
 
 //$grid-gutter-width: 1rem !default;
 //$spacer: 0.5 * $grid-gutter-width !default;
@@ -93,7 +93,7 @@ body {
 
 a {
   outline: 0;
-  color: lighten($primary, 10%);
+  color: $primary;
 }
 
 header > nav {
@@ -1678,22 +1678,13 @@ input::placeholder {
   }
 }
 
-/* Calendar Styling */
-@mixin colorize_mode($color) {
+.mode {
   color: #333;
-  background-color: $color;
 
   td:hover, td.hold, td.selected {
-    background-color: lighten($color, 8%);
+    background-color: rgba(255, 255, 255, 0.4);
   }
 }
-
-.N { @include colorize_mode(#e1f0b3); }
-.NS { @include colorize_mode(#d5e1b3); }
-.D { @include colorize_mode(#ffe1b3); }
-.X { @include colorize_mode(#fefeAD); }
-.M, .MV, .M0, .MT { @include colorize_mode(#CCF5FF); }
-.DS, .DST, .DS-CSR { @include colorize_mode(#f0d7b3); }
 
 #beamline-calendar {
   table {

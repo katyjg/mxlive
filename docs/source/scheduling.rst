@@ -5,6 +5,14 @@ To enable the optional scheduling app in MxLIVE, make sure the following line is
 
     LIMS_USE_SCHEDULE = True
 
+By default, ``HOURS_PER_SHIFT`` is 8 (three shifts per day), but can be any factor of 24.
+
+.. image:: images/schedule-staff-labelled.png
+   :align: center
+   :alt: Staff Scheduling View
+
+Facility Modes
+^^^^^^^^^^^^^^
 Facility modes are fetched on-the-fly from an API providing a JSON response. These modes are used for colour-coded
 display on the MxLIVE schedule. Specify the location of the API in your `settings.py` file.::
 
@@ -21,11 +29,16 @@ The response should be formatted in the following way, containing these fields a
     ]
 
 The "kind" value for each mode is used as a CSS class which is used to display background colours on the schedule. The
-colours by default are tailored to the modes provided by the USO at the Canadian Light Source.
+colours by default are tailored to the modes provided by the USO at the Canadian Light Source, but can be tailored to
+any facility by editing Facility Modes through the Django administration site.
 
-.. image:: images/schedule-staff-labelled.png
+.. image:: images/facility-modes.png
    :align: center
-   :alt: Staff Scheduling View
+   :alt: Facility Mode
+
+The **kind** can be an individual value, or a comma-separated list. These are the CSS classes that will be applied to
+shifts on the schedule to set the background color to **Color**. The **description** is used to build a legend at the
+bottom of the schedule.
 
 Access Types
 ^^^^^^^^^^^^
@@ -43,7 +56,6 @@ For custom emails, the **email subject** and **email body** are strings formatte
   - ``{beamline}`` = The scheduled beamline's acronym
   - ``{start_date}`` = The start date of the beamtime
   - ``{start_time}`` = The starting time of the first shift of the beamtime
-
 
 Beamtime
 ^^^^^^^^

@@ -29,6 +29,18 @@ class AccessType(models.Model):
         return self.name
 
 
+class FacilityMode(models.Model):
+    kind = models.CharField(max_length=30)
+    description = models.CharField(blank=True, max_length=60)
+    color = ColorField(default="#000000")
+
+    def __str__(self):
+        return self.kind
+
+    def css_classes(self):
+        return [k.strip() for k in self.kind.split(',')]
+
+
 class BeamlineSupport(models.Model):
     staff = models.ForeignKey(Project, related_name="support", on_delete=models.CASCADE)
     date = models.DateField()
