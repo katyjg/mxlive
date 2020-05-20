@@ -89,7 +89,7 @@ class Beamline(models.Model):
     energy_hi = models.FloatField(default=18.5)
     contact_phone = models.CharField(max_length=60)
     automounters = models.ManyToManyField('Container', through='Dewar', through_fields=('beamline', 'container'))
-    simulated = models.BooleanField(default=False)
+    active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.acronym
@@ -1200,7 +1200,7 @@ class Data(ActiveStatusMixin):
     beamline = models.ForeignKey(Beamline, on_delete=models.PROTECT, related_name='datasets')
     beam_size = models.FloatField(null=True, blank=True)
     url = models.CharField(max_length=200)
-    kind = models.ForeignKey(DataType, on_delete=models.PROTECT, related_name='datasets')
+    kind = models.ForeignKey(DataType, on_delete=models.PROTECT, related_name='datasets', null=True)
     download = models.BooleanField(default=False)
     meta_data = JSONField(default={})
 
