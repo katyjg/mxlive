@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Application Program Interfaces &mdash; MxLIVE 2020.05.246 documentation</title>
+  <title>Application Program Interfaces &mdash; MxLIVE 2020.05.251 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2020.05.246
+                2020.05.251
               </div>
             
           
@@ -106,6 +106,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Application Program Interfaces</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#mxdc-integration">MxDC Integration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#security">Security</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sessions">Sessions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#samples">Samples</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#datasets-and-reports">Datasets and Reports</a></li>
@@ -181,9 +182,14 @@
             
   <div class="section" id="application-program-interfaces">
 <h1>Application Program Interfaces<a class="headerlink" href="#application-program-interfaces" title="Permalink to this headline">¶</a></h1>
+<p>MxLIVE relies on MxDC as a source of meta-data from data collection sessions on the beamline, and acts as a resource
+from which MxDC can fetch sample information. While this close-coupling is tailored to MxDC, all connections are handled
+through the use of APIs, so other data collection applications could also be modified to complement MxLIVE.</p>
 <p>All API urls begin with <cite>/api/v2/</cite>.</p>
 <div class="section" id="mxdc-integration">
 <h2>MxDC Integration<a class="headerlink" href="#mxdc-integration" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="security">
+<h3>Security<a class="headerlink" href="#security" title="Permalink to this headline">¶</a></h3>
 <p>For new project accounts, the UpdateUserKey API can be used to post a new key to the MxLIVE account. If a key already
 exists in MxLIVE, this will fail.</p>
 <dl class="class">
@@ -209,6 +215,7 @@ signed using a private key, and can be unsigned using the public key stored with
 the dispatch method will return a HttpResponseNotAllowed.</p>
 </dd></dl>
 
+</div>
 <div class="section" id="sessions">
 <h3>Sessions<a class="headerlink" href="#sessions" title="Permalink to this headline">¶</a></h3>
 <p>To start an MxLIVE session (when MxDC is opened), use the <code class="docutils literal notranslate"><span class="pre">LaunchSession</span></code> API. This will join an existing session if

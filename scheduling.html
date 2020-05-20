@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Scheduling &mdash; MxLIVE 2020.05.246 documentation</title>
+  <title>Scheduling &mdash; MxLIVE 2020.05.251 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2020.05.246
+                2020.05.251
               </div>
             
           
@@ -100,6 +100,7 @@
 <li class="toctree-l1"><a class="reference internal" href="staff-beamlines.html">Beamlines and Automounters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-shipments.html">Managing Shipments</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Scheduling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#facility-modes">Facility Modes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#access-types">Access Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#beamtime">Beamtime</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#email-notifications">Email Notifications</a></li>
@@ -187,6 +188,10 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">LIMS_USE_SCHEDULE</span> <span class="o">=</span> <span class="kc">True</span>
 </pre></div>
 </div>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">HOURS_PER_SHIFT</span></code> is 8 (three shifts per day), but can be any factor of 24.</p>
+<img alt="Staff Scheduling View" class="align-center" src="_images/schedule-staff-labelled.png" />
+<div class="section" id="facility-modes">
+<h2>Facility Modes<a class="headerlink" href="#facility-modes" title="Permalink to this headline">¶</a></h2>
 <p>Facility modes are fetched on-the-fly from an API providing a JSON response. These modes are used for colour-coded
 display on the MxLIVE schedule. Specify the location of the API in your <cite>settings.py</cite> file.:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">FACILITY_MODES</span> <span class="o">=</span> <span class="s2">&quot;https://external.site.com/api/schedule/modes/&quot;</span>
@@ -203,8 +208,13 @@ display on the MxLIVE schedule. Specify the location of the API in your <cite>se
 </pre></div>
 </div>
 <p>The “kind” value for each mode is used as a CSS class which is used to display background colours on the schedule. The
-colours by default are tailored to the modes provided by the USO at the Canadian Light Source.</p>
-<img alt="Staff Scheduling View" class="align-center" src="_images/schedule-staff-labelled.png" />
+colours by default are tailored to the modes provided by the USO at the Canadian Light Source, but can be tailored to
+any facility by editing Facility Modes through the Django administration site.</p>
+<img alt="Facility Mode" class="align-center" src="_images/facility-modes.png" />
+<p>The <strong>kind</strong> can be an individual value, or a comma-separated list. These are the CSS classes that will be applied to
+shifts on the schedule to set the background color to <strong>Color</strong>. The <strong>description</strong> is used to build a legend at the
+bottom of the schedule.</p>
+</div>
 <div class="section" id="access-types">
 <h2>Access Types<a class="headerlink" href="#access-types" title="Permalink to this headline">¶</a></h2>
 <p>Access Types are defined through the Django administration site. The details provided in the form of Access Types

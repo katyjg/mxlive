@@ -1,9 +1,17 @@
 Application Program Interfaces
 ==============================
+MxLIVE relies on MxDC as a source of meta-data from data collection sessions on the beamline, and acts as a resource
+from which MxDC can fetch sample information. While this close-coupling is tailored to MxDC, all connections are handled
+through the use of APIs, so other data collection applications could also be modified to complement MxLIVE.
+
 All API urls begin with `/api/v2/`.
 
 MxDC Integration
 ----------------
+
+Security
+^^^^^^^^
+
 For new project accounts, the UpdateUserKey API can be used to post a new key to the MxLIVE account. If a key already
 exists in MxLIVE, this will fail.
 
