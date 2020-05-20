@@ -17,7 +17,7 @@ fi
 # if it thinks it is already running.
 rm -rf /run/httpd/* /tmp/httpd*
 
-./wait-for-it.sh database:5432 -t 60 &&
+./wait-for-it.sh mxlive-db:5432 -t 60 &&
 
 if [ ! -f /mxlive/local/.dbinit ]; then
     /usr/bin/python3 /mxlive/manage.py migrate --noinput &&
