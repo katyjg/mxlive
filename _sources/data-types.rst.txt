@@ -3,7 +3,7 @@ New Data Types
 Data types included by default with MxLIVE are **MX Screening**, **MX Dataset**, **XRD Dataset**, **Rastering**,
 **XAS Dataset**, **XRF Dataset**, and **MAD Scan**.
 
-Creating a new data type is a three-pronged process.
+Creating a new data type requires creating the Data Type, and adjusting the HTML template used for data viewing.
 
 1. Create a new Data Type
 -------------------------
@@ -32,6 +32,9 @@ and define a ``data_content`` block.
    :align: center
    :alt: Data Content
 
+Templates already exist for diffraction data (`users/entries/data-frames.html`), MAD scans (`users/entries/data-mad.html`),
+and XRF Scans (`users/entries/data-xrf.html`). MAD scans and XRF scans present data that is fetched from the data proxy,
+including data in .xdi files.
 
 Using the Report Format
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -40,13 +43,16 @@ and add an empty element with an ``id`` that can be referenced in the ``modal_sc
 
 .. code-block:: html
 
+    {% load data_server %}          <!-- Load custom tags from `templatetags/data_server.py` -->
+
     {% block data_content %}
+        {% sample_report as sample %}       <!-- Fetch the report -->
         <div class="row">
             <div class="col-12 pr-0">
                 <div id="data-display" class="w-100 p-0"></div>
                 <script>
                     // create variables for reports
-                    var report{{ data.pk }}={{ mad.report | jsonify }};
+                    var report{{ data.pk }}={{ sample.report | jsonify }};
                 </script>
             </div>
         </div>

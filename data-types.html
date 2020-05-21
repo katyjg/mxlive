@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>New Data Types &mdash; MxLIVE 2020.05.256 documentation</title>
+  <title>New Data Types &mdash; MxLIVE 2020.05.258 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="New Automounter and Container Types" href="layouts.html" />
+    <link rel="next" title="Models" href="modules/models.html" />
     <link rel="prev" title="Formatting Reports" href="reportsv2.html" /> 
 </head>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2020.05.256
+                2020.05.258
               </div>
             
           
@@ -93,7 +93,6 @@
 </ul>
 <p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html">Dashboard</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#remote-connections">Remote Connections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#accounts">Accounts</a></li>
@@ -115,7 +114,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="layouts.html">New Automounter and Container Types</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/views.html">Ajax Views</a></li>
 </ul>
@@ -184,7 +182,7 @@
 <h1>New Data Types<a class="headerlink" href="#new-data-types" title="Permalink to this headline">¶</a></h1>
 <p>Data types included by default with MxLIVE are <strong>MX Screening</strong>, <strong>MX Dataset</strong>, <strong>XRD Dataset</strong>, <strong>Rastering</strong>,
 <strong>XAS Dataset</strong>, <strong>XRF Dataset</strong>, and <strong>MAD Scan</strong>.</p>
-<p>Creating a new data type is a three-pronged process.</p>
+<p>Creating a new data type requires creating the Data Type, and adjusting the HTML template used for data viewing.</p>
 <div class="section" id="create-a-new-data-type">
 <h2>1. Create a new Data Type<a class="headerlink" href="#create-a-new-data-type" title="Permalink to this headline">¶</a></h2>
 <p>Go to the Django administration site and create a new Data Type. The <strong>Name</strong> and <strong>Description</strong> are used for display,
@@ -204,17 +202,23 @@ and define a <code class="docutils literal notranslate"><span class="pre">data_c
 </pre></div>
 </div>
 <img alt="Data Content" class="align-center" src="_images/data-content.png" />
+<p>Templates already exist for diffraction data (<cite>users/entries/data-frames.html</cite>), MAD scans (<cite>users/entries/data-mad.html</cite>),
+and XRF Scans (<cite>users/entries/data-xrf.html</cite>). MAD scans and XRF scans present data that is fetched from the data proxy,
+including data in .xdi files.</p>
 <div class="section" id="using-the-report-format">
 <h3>Using the Report Format<a class="headerlink" href="#using-the-report-format" title="Permalink to this headline">¶</a></h3>
 <p>To use the <a class="reference internal" href="reportsv2.html#formatting-reports"><span class="std std-ref">MxLIVE report format</span></a>, include the following assets in the <code class="docutils literal notranslate"><span class="pre">modal_assets</span></code> block,
 and add an empty element with an <code class="docutils literal notranslate"><span class="pre">id</span></code> that can be referenced in the <code class="docutils literal notranslate"><span class="pre">modal_scripts</span></code> block:</p>
-<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>{% block data_content %}
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>{% load data_server %}          &lt;!-- Load custom tags from `templatetags/data_server.py` --&gt;
+
+{% block data_content %}
+    {% sample_report as sample %}       &lt;!-- Fetch the report --&gt;
     &lt;div class=&quot;row&quot;&gt;
         &lt;div class=&quot;col-12 pr-0&quot;&gt;
             &lt;div id=&quot;data-display&quot; class=&quot;w-100 p-0&quot;&gt;&lt;/div&gt;
             &lt;script&gt;
                 // create variables for reports
-                var report{{ data.pk }}={{ mad.report | jsonify }};
+                var report{{ data.pk }}={{ sample.report | jsonify }};
             &lt;/script&gt;
         &lt;/div&gt;
     &lt;/div&gt;
@@ -278,7 +282,7 @@ functions already exist for fetching JSON or XDI data (<code class="docutils lit
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="layouts.html" class="btn btn-neutral float-right" title="New Automounter and Container Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="modules/models.html" class="btn btn-neutral float-right" title="Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="reportsv2.html" class="btn btn-neutral float-left" title="Formatting Reports" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
