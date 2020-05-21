@@ -46,6 +46,8 @@ the automounter of the active beamline, the location of the samples is also incl
     :noindex: True
     :members: ProjectSamples
 
+.. _adding-data-reports:
+
 Datasets and Reports
 ^^^^^^^^^^^^^^^^^^^^
 Datasets and Analysis Reports can be uploaded to MxLIVE through ``AddData`` and ``AddReport``. A minimum set of

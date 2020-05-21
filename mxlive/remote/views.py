@@ -371,7 +371,7 @@ class AddData(VerificationMixin, View):
     :param data_id: If updating an existing Data object
     :param directory: Path to files
     :param energy: float (in keV)
-    :param type: str (one of Data.DATA_TYPES)
+    :param type: str (one of the acronyms defined for a Data Type)
     :param exposure: float (in seconds)
     :param attenuation: float (in percent)
     :param beam_size: float (in microns)
