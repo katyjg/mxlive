@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Application Program Interfaces &mdash; MxLIVE 2020.05.251 documentation</title>
+  <title>Application Program Interfaces &mdash; MxLIVE 2020.05.256 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2020.05.251
+                2020.05.256
               </div>
             
           
@@ -93,6 +93,7 @@
 </ul>
 <p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html">Dashboard</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#remote-connections">Remote Connections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#accounts">Accounts</a></li>
@@ -116,6 +117,8 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="reportsv2.html">Formatting Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data-types.html">New Data Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">New Automounter and Container Types</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/views.html">Ajax Views</a></li>
 </ul>
@@ -266,7 +269,7 @@ the automounter of the active beamline, the location of the samples is also incl
 
 </div>
 <div class="section" id="datasets-and-reports">
-<h3>Datasets and Reports<a class="headerlink" href="#datasets-and-reports" title="Permalink to this headline">¶</a></h3>
+<span id="adding-data-reports"></span><h3>Datasets and Reports<a class="headerlink" href="#datasets-and-reports" title="Permalink to this headline">¶</a></h3>
 <p>Datasets and Analysis Reports can be uploaded to MxLIVE through <code class="docutils literal notranslate"><span class="pre">AddData</span></code> and <code class="docutils literal notranslate"><span class="pre">AddReport</span></code>. A minimum set of
 information is required for each API, and the ID of the new object in MxLIVE is returned.</p>
 <p>While the directory for the dataset or report is required for these APIs, that information is not stored in MxLIVE.
@@ -283,7 +286,7 @@ fetch files and data through the Data Proxy, since MxLIVE has no direct access t
 <li><p><strong>data_id</strong> – If updating an existing Data object</p></li>
 <li><p><strong>directory</strong> – Path to files</p></li>
 <li><p><strong>energy</strong> – float (in keV)</p></li>
-<li><p><strong>type</strong> – str (one of Data.DATA_TYPES)</p></li>
+<li><p><strong>type</strong> – str (one of the acronyms defined for a Data Type)</p></li>
 <li><p><strong>exposure</strong> – float (in seconds)</p></li>
 <li><p><strong>attenuation</strong> – float (in percent)</p></li>
 <li><p><strong>beam_size</strong> – float (in microns)</p></li>

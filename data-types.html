@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>New Data Types &mdash; MxLIVE 2020.05.251 documentation</title>
+  <title>New Data Types &mdash; MxLIVE 2020.05.256 documentation</title>
   
 
   
@@ -34,7 +34,9 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="New Automounter and Container Types" href="layouts.html" />
+    <link rel="prev" title="Formatting Reports" href="reportsv2.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -58,7 +60,7 @@
             
             
               <div class="version">
-                2020.05.251
+                2020.05.256
               </div>
             
           
@@ -91,6 +93,7 @@
 </ul>
 <p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="starting.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html">Dashboard</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#remote-connections">Remote Connections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#accounts">Accounts</a></li>
@@ -101,9 +104,18 @@
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Developers:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="apis.html">Application Program Interfaces</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reportsv2.html">Formatting Reports</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">New Data Types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#create-a-new-data-type">1. Create a new Data Type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#create-the-html-template">2. Create the HTML Template</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#using-the-report-format">Using the Report Format</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">New Automounter and Container Types</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/views.html">Ajax Views</a></li>
 </ul>
@@ -170,7 +182,92 @@
             
   <div class="section" id="new-data-types">
 <h1>New Data Types<a class="headerlink" href="#new-data-types" title="Permalink to this headline">¶</a></h1>
-<p>Coming soon!</p>
+<p>Data types included by default with MxLIVE are <strong>MX Screening</strong>, <strong>MX Dataset</strong>, <strong>XRD Dataset</strong>, <strong>Rastering</strong>,
+<strong>XAS Dataset</strong>, <strong>XRF Dataset</strong>, and <strong>MAD Scan</strong>.</p>
+<p>Creating a new data type is a three-pronged process.</p>
+<div class="section" id="create-a-new-data-type">
+<h2>1. Create a new Data Type<a class="headerlink" href="#create-a-new-data-type" title="Permalink to this headline">¶</a></h2>
+<p>Go to the Django administration site and create a new Data Type. The <strong>Name</strong> and <strong>Description</strong> are used for display,
+<strong>Acronym</strong> is the <code class="docutils literal notranslate"><span class="pre">type</span></code> referenced when <a class="reference internal" href="apis.html#adding-data-reports"><span class="std std-ref">uploading new datasets</span></a> from the beamline,
+<strong>Template</strong> is the HTML template file in the MxLIVE project that should be used to display datasets of this data type,
+and <strong>Metadata</strong> is a list of fields that are expected to be uploaded along with new datasets of this data type.</p>
+<img alt="Data Type" class="align-center" src="_images/data-type.png" />
+</div>
+<div class="section" id="create-the-html-template">
+<h2>2. Create the HTML Template<a class="headerlink" href="#create-the-html-template" title="Permalink to this headline">¶</a></h2>
+<p>For consistency, template files for new data types should be placed in <cite>mxlive/lims/templates/users/entries/</cite>, and can
+be referenced by the file path under <cite>templates/</cite>. At a minimum, the template should extend <cite>users/entries/data.html</cite>,
+and define a <code class="docutils literal notranslate"><span class="pre">data_content</span></code> block.</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>{% extends &quot;users/entries/data.html&quot; %}
+
+{% block data_content %}{% endblock %}      # Main area for data viewing
+</pre></div>
+</div>
+<img alt="Data Content" class="align-center" src="_images/data-content.png" />
+<div class="section" id="using-the-report-format">
+<h3>Using the Report Format<a class="headerlink" href="#using-the-report-format" title="Permalink to this headline">¶</a></h3>
+<p>To use the <a class="reference internal" href="reportsv2.html#formatting-reports"><span class="std std-ref">MxLIVE report format</span></a>, include the following assets in the <code class="docutils literal notranslate"><span class="pre">modal_assets</span></code> block,
+and add an empty element with an <code class="docutils literal notranslate"><span class="pre">id</span></code> that can be referenced in the <code class="docutils literal notranslate"><span class="pre">modal_scripts</span></code> block:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>{% block data_content %}
+    &lt;div class=&quot;row&quot;&gt;
+        &lt;div class=&quot;col-12 pr-0&quot;&gt;
+            &lt;div id=&quot;data-display&quot; class=&quot;w-100 p-0&quot;&gt;&lt;/div&gt;
+            &lt;script&gt;
+                // create variables for reports
+                var report{{ data.pk }}={{ mad.report | jsonify }};
+            &lt;/script&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+{% endblock %}
+
+{% block modal_assets %}
+    &lt;link href=&quot;{% static &quot;css/c3.min.css&quot; %}&quot; rel=&quot;stylesheet&quot;&gt;
+    &lt;link href=&quot;{% static &quot;css/reports.min.css&quot; %}&quot; rel=&quot;stylesheet&quot;&gt;
+    &lt;script type=&quot;text/javascript&quot; src=&quot;{% static &quot;js/d3/d3.v5.min.js&quot; %}&quot;&gt;&lt;/script&gt;
+    &lt;script type=&quot;text/javascript&quot; src=&quot;{% static &quot;js/d3/d3.legend.js&quot; %}&quot;&gt;&lt;/script&gt;
+    &lt;script type=&quot;text/javascript&quot; src=&quot;{% static &#39;js/d3/d3.timeline.min.js&#39; %}&quot;&gt;&lt;/script&gt;
+    &lt;script type=&quot;text/javascript&quot; src=&quot;{% static &quot;js/misc/showdown.min.js&quot; %}&quot;&gt;&lt;/script&gt;
+    &lt;script type=&quot;text/javascript&quot; src=&quot;{% static &quot;js/misc/c3.min.js&quot; %}&quot;&gt;&lt;/script&gt;
+    &lt;script type=&quot;text/javascript&quot; src=&quot;{% static &quot;js/mxlive-reports.v2.min.js&quot; %}&quot;&gt;&lt;/script&gt;
+{% endblock %}
+
+{% block modal_scripts %}
+    &lt;script type=&quot;text/javascript&quot;&gt;
+        $(&#39;#modal&#39;).on(&#39;shown.bs.modal&#39;, function () {
+            $(&#39;#data-display&#39;).liveReport({
+                data: report{{ data.pk }}
+            });
+        });
+    &lt;/script&gt;
+{% endblock %}
+</pre></div>
+</div>
+<p>You will also need to define a custom tag in <cite>templatetags/data_server.py</cite> to add your formatted report to the context,
+in which you may need to request files from the data proxy to get all the information needed to build the report. Helper
+functions already exist for fetching JSON or XDI data (<code class="docutils literal notranslate"><span class="pre">get_json_info</span></code> and <code class="docutils literal notranslate"><span class="pre">get_xdi_info</span></code>).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@register.simple_tag</span><span class="p">(</span><span class="n">takes_context</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">sample_report</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="o">.</span><span class="n">url</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="n">report</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;details&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;style&#39;</span><span class="p">:</span> <span class="s2">&quot;row&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;content&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="o">...</span>
+                <span class="p">},</span>
+            <span class="p">]</span>
+        <span class="p">},</span>
+    <span class="p">]}</span>
+
+    <span class="k">return</span> <span class="p">{</span> <span class="s1">&#39;report&#39;</span><span class="p">:</span> <span class="n">report</span> <span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
 </div>
 
 
@@ -178,6 +275,15 @@
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="layouts.html" class="btn btn-neutral float-right" title="New Automounter and Container Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="reportsv2.html" class="btn btn-neutral float-left" title="Formatting Reports" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

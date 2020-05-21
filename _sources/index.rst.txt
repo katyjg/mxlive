@@ -3,11 +3,15 @@
 MxLIVE (Macromolecular Crystallography Laboratory Virtual Environment) is a development platform and web application for
 managing synchrotron visits from experiment planning and organisation to shipment tracking to data and analysis access.
 
+Source code can be found at https://github.com/katyjg/mxlive.
+
 MxLIVE relies on MxDC as a source of meta-data from data collection sessions on the beamline, and acts as a resource
 from which MxDC can fetch sample information. While this close-coupling is tailored to MxDC, all connections are handled
 through the use of APIs, so other data collection applications could also be modified to complement MxLIVE.
 
-Source code can be found at https://github.com/katyjg/mxlive.
+The beginnings of MxLIVE were at CMCF, a suite of beamlines at the Canadian Light Source dedicated to Macromolecular
+Crystallography. For that reason, many features have been developed in an MX context, but can easily be extended to new
+samples and data types or techniques at any beamline.
 
 .. note::
     An earlier version of MxLIVE is described in the following publication:
@@ -15,7 +19,6 @@ Source code can be found at https://github.com/katyjg/mxlive.
     * MxDC and MxLIVE: software for data acquisition, information management and remote access to macromolecular
       crystallography beamlines. M. Fodje, K. Janzen, R. Berg, G. Black, S. Labiuk, J. Gorin and P. Grochulski
       J. Synchrotron Rad. (2012). 19, 274-280. https://doi.org/10.1107/S0909049511056305
-
 
 .. toctree::
    :maxdepth: 2
@@ -30,6 +33,7 @@ Source code can be found at https://github.com/katyjg/mxlive.
    :maxdepth: 2
    :caption: For Beamline Staff:
 
+   starting
    staff-dashboard
    staff-beamlines
    staff-shipments
@@ -42,5 +46,7 @@ Source code can be found at https://github.com/katyjg/mxlive.
 
    apis
    reportsv2
+   data-types
+   layouts
    modules/models
    modules/views
