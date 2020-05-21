@@ -84,7 +84,7 @@ class BeamtimeStatistics(TemplateView):
         context['years'] = stats.get_beamtime_periods(period='year')
 
         filters = {} if yearly else {'created__year': self.kwargs.get('year')}
-        beamlines = Beamline.objects.filter(active=Truee)
+        beamlines = Beamline.objects.filter(active=True)
 
         context['report'] = {'details': [{
             'title': '{} Beamtime Summary'.format(bl.acronym),
