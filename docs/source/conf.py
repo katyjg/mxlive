@@ -57,10 +57,6 @@ templates_path = []
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
-# The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
-
-
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -74,6 +70,7 @@ html_show_sphinx = False
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['static']
+html_style = 'styles.css'
 
 import inspect
 from django.utils.html import strip_tags

@@ -10,8 +10,8 @@ from which MxDC can fetch sample information. While this close-coupling is tailo
 through the use of APIs, so other data collection applications could also be modified to complement MxLIVE.
 
 The beginnings of MxLIVE were at CMCF, a suite of beamlines at the Canadian Light Source dedicated to Macromolecular
-Crystallography. For that reason, many features have been developed in an MX context, but can easily be extended to new
-samples and data types or techniques at any beamline.
+Crystallography. For that reason, many features have been developed in an MX context, but can easily be extended to
+:ref:`new sample container layouts<new-layouts>` and :ref:`new data types or techniques<new-data-types>` at any beamline.
 
 .. note::
     An earlier version of MxLIVE is described in the following publication:
@@ -48,5 +48,5 @@ samples and data types or techniques at any beamline.
    reportsv2
    data-types
    layouts
-   modules/models
-   modules/views
+   models
+   views
