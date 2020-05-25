@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Sessions &mdash; MxLIVE 2020.05.259 documentation</title>
+  <title>Ajax Views &mdash; MxLIVE 2020.05.259 documentation</title>
   
 
   
@@ -36,8 +36,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Datasets &amp; Reports" href="data.html" />
-    <link rel="prev" title="Shipments" href="shipping.html" /> 
+    <link rel="prev" title="Models" href="models.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -86,14 +85,10 @@
             
             
               <p class="caption"><span class="caption-text">For MX Users:</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="dashboard.html">On the Dashboard</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shipping.html">Shipments</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Sessions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#history">History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#download">Download</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="sessions.html">Sessions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Datasets &amp; Reports</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
@@ -108,13 +103,13 @@
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Developers:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="apis.html">Application Program Interfaces</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reportsv2.html">Formatting Reports</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data-types.html">Data Types</a></li>
 <li class="toctree-l1"><a class="reference internal" href="layouts.html">Container Types</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="views.html">Ajax Views</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Ajax Views</a></li>
 </ul>
 
             
@@ -160,7 +155,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Sessions</li>
+      <li>Ajax Views</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -177,42 +172,49 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="sessions">
-<h1>Sessions<a class="headerlink" href="#sessions" title="Permalink to this headline">¶</a></h1>
-<p>Sessions are managed automatically when you open MxDC on the beamline to collect data. If you have a session that was
-active in the past seven days, that session is extended. Otherwise, a new session is created. When a new session is
-created:</p>
-<ul class="simple">
-<li><p>a directory is created with a name determined by your session ID</p></li>
-<li><p>MxLIVE begins tracking meta-data for that session, like active time (whenever MxDC is open) and the number of
-datasets and reports created.</p></li>
-</ul>
-<p>The toolbar gives access to lists of Datasets and Reports contained within the session, the session history, and a
-download of the entire session directory.</p>
-<p>The session page is organized in groups, listing every group that has a sample with a dataset collected during that
-session. Datasets are displayed next to the sample on which they were collected. Analysis reports for those datasets are
-also listed with each sample in a colour-coded display based on assigned scores. Clicking on a dataset will open the
-data viewer, and clicking on the report will bring you to the full report page.</p>
-<img alt="MxLIVE Session" class="align-center" src="_images/session-1.png" />
-<div class="section" id="history">
-<h2>History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
-<img alt="Session History" class="align-center" src="_images/session-history.png" />
-<p>There is an entry in the session history for every time MxDC was open. The session’s total time is a sum of the uptime
-for all entries.</p>
-</div>
-<div class="section" id="download">
-<h2>Download<a class="headerlink" href="#download" title="Permalink to this headline">¶</a></h2>
-<p>Clicking the “Download” button will create a tar file of the entire session directory, which is streamed to you
-through your browser. Since the download may begin before the tar file is fully created, the final download size is
-unknown, so you will likely not have an accurate estimated remaining time for the download. Depending on the size of the
-archive, it could take a long time.</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Depending on storage limitations at the beamline, your session may be deleted after some time. Meta-data
-will remain on MxLIVE indefinitely. If you are unable to download your session through MxLIVE, the contents
-of the directory has likely been removed from on-site disks. Please check with beamline staff to confirm.</p>
-</div>
-</div>
+  <div class="section" id="ajax-views">
+<h1>Ajax Views<a class="headerlink" href="#ajax-views" title="Permalink to this headline">¶</a></h1>
+<p>The following functions are using in AJAX calls throughout the MxLIVE interface.</p>
+<span class="target" id="module-mxlive.lims.ajax_views"></span><dl class="class">
+<dt id="mxlive.lims.ajax_views.BulkSampleEdit">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">BulkSampleEdit</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/lims/ajax_views.html#BulkSampleEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.BulkSampleEdit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.ajax_views.CreateShipmentSamples">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">CreateShipmentSamples</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/lims/ajax_views.html#CreateShipmentSamples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.CreateShipmentSamples" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.ajax_views.FetchContainerLayout">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">FetchContainerLayout</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/lims/ajax_views.html#FetchContainerLayout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.FetchContainerLayout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.ajax_views.FetchReport">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">FetchReport</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/lims/ajax_views.html#FetchReport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.FetchReport" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.ajax_views.SaveContainerSamples">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">SaveContainerSamples</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/lims/ajax_views.html#SaveContainerSamples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.SaveContainerSamples" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.ajax_views.UnloadContainer">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">UnloadContainer</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/lims/ajax_views.html#UnloadContainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.UnloadContainer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.ajax_views.UpdateLocations">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">UpdateLocations</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/lims/ajax_views.html#UpdateLocations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.UpdateLocations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mxlive.lims.ajax_views.UpdatePriority">
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.ajax_views.</code><code class="sig-name descname">UpdatePriority</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/lims/ajax_views.html#UpdatePriority"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.ajax_views.UpdatePriority" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 
 
@@ -223,10 +225,8 @@ of the directory has likely been removed from on-site disks. Please check with b
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="data.html" class="btn btn-neutral float-right" title="Datasets &amp; Reports" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-      
-        <a href="shipping.html" class="btn btn-neutral float-left" title="Shipments" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="models.html" class="btn btn-neutral float-left" title="Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

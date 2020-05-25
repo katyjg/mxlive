@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>mxlive.lims.models &mdash; MxLIVE 2020.05.258 documentation</title>
+  <title>mxlive.lims.models &mdash; MxLIVE 2020.05.259 documentation</title>
   
 
   
@@ -25,13 +25,14 @@
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
         <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
     
 
   
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/styles.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -58,7 +59,7 @@
             
             
               <div class="version">
-                2020.05.258
+                2020.05.259
               </div>
             
           
@@ -104,9 +105,10 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../apis.html">Application Program Interfaces</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../reportsv2.html">Formatting Reports</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../data-types.html">New Data Types</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/views.html">Ajax Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data-types.html">Data Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../layouts.html">Container Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../views.html">Ajax Views</a></li>
 </ul>
 
             
@@ -250,7 +252,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">orphaned_reports</span> <span class="o">=</span> <span class="p">[]</span>
 
 
-<div class="viewcode-block" id="Beamline"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Beamline">[docs]</a><span class="k">class</span> <span class="nc">Beamline</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<div class="viewcode-block" id="Beamline"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Beamline">[docs]</a><span class="k">class</span> <span class="nc">Beamline</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Beamline object should be created for every unique facility that will be uploading data or reports,</span>
 <span class="sd">    or has its own automounter layout.</span>
@@ -266,19 +268,19 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">acronym</span>
 
-<div class="viewcode-block" id="Beamline.active_session"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Beamline.active_session">[docs]</a>    <span class="k">def</span> <span class="nf">active_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Beamline.active_session"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Beamline.active_session">[docs]</a>    <span class="k">def</span> <span class="nf">active_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the session that is currently running on the beamline, if there is one.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk__in</span><span class="o">=</span><span class="n">Stretch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">active</span><span class="p">()</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;session__pk&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">first</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Beamline.active_automounter"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Beamline.active_automounter">[docs]</a>    <span class="k">def</span> <span class="nf">active_automounter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Beamline.active_automounter"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Beamline.active_automounter">[docs]</a>    <span class="k">def</span> <span class="nf">active_automounter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the container referenced by the active dewar pointing to the beamline.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_dewar</span><span class="p">()</span><span class="o">.</span><span class="n">container</span></div>
 
-<div class="viewcode-block" id="Beamline.active_dewar"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Beamline.active_dewar">[docs]</a>    <span class="k">def</span> <span class="nf">active_dewar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Beamline.active_dewar"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Beamline.active_dewar">[docs]</a>    <span class="k">def</span> <span class="nf">active_dewar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the first active dewar pointing to the beamline. Generally, there should only be one active dewar</span>
 <span class="sd">        referencing each beamline.</span>
@@ -286,7 +288,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dewars</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">active</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="Carrier"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Carrier">[docs]</a><span class="k">class</span> <span class="nc">Carrier</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<div class="viewcode-block" id="Carrier"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Carrier">[docs]</a><span class="k">class</span> <span class="nc">Carrier</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Carrier object should be created for each courier company that may be used for shipping to the beamline.</span>
 <span class="sd">    To link to shipment tracking, provide a URL that can be completed using a tracking number to link to a</span>
@@ -316,7 +318,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
 
 
-<div class="viewcode-block" id="Project"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Project">[docs]</a><span class="k">class</span> <span class="nc">Project</span><span class="p">(</span><span class="n">AbstractUser</span><span class="p">):</span>
+<div class="viewcode-block" id="Project"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Project">[docs]</a><span class="k">class</span> <span class="nc">Project</span><span class="p">(</span><span class="n">AbstractUser</span><span class="p">):</span>
     <span class="n">HELP</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;contact_person&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Full name of contact person&quot;</span><span class="p">),</span>
     <span class="p">}</span>
@@ -369,7 +371,7 @@
         <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;created&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">last</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">session</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="k">if</span> <span class="n">session</span> <span class="k">else</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="Project.save"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Project.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Project.save"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Project.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">=</span> <span class="n">ProjectType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -427,7 +429,7 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_queryset</span><span class="p">()</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Session"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Session">[docs]</a><span class="k">class</span> <span class="nc">Session</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<div class="viewcode-block" id="Session"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Session">[docs]</a><span class="k">class</span> <span class="nc">Session</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="n">created</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;date created&#39;</span><span class="p">),</span> <span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
     <span class="n">project</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Project</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;sessions&quot;</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
@@ -507,7 +509,7 @@
                 <span class="n">shifts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">st</span><span class="p">)</span>
             <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">shifts</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Session.total_time"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Session.total_time">[docs]</a>    <span class="nd">@memoize</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+<div class="viewcode-block" id="Session.total_time"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Session.total_time">[docs]</a>    <span class="nd">@memoize</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">total_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns total time the session was active, in hours</span>
@@ -545,7 +547,7 @@
 
 
 
-<div class="viewcode-block" id="Stretch"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Stretch">[docs]</a><span class="k">class</span> <span class="nc">Stretch</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<div class="viewcode-block" id="Stretch"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Stretch">[docs]</a><span class="k">class</span> <span class="nc">Stretch</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="n">start</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">end</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">session</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Session</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;stretches&#39;</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
@@ -689,7 +691,7 @@
         <span class="n">abstract</span> <span class="o">=</span> <span class="kc">True</span>
 
 
-<div class="viewcode-block" id="Shipment"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Shipment">[docs]</a><span class="k">class</span> <span class="nc">Shipment</span><span class="p">(</span><span class="n">TransitStatusMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="Shipment"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Shipment">[docs]</a><span class="k">class</span> <span class="nc">Shipment</span><span class="p">(</span><span class="n">TransitStatusMixin</span><span class="p">):</span>
     <span class="n">HELP</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;This should be an externally visible label&quot;</span><span class="p">),</span>
         <span class="s1">&#39;carrier&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Select the company handling this shipment. To change the default option, edit your profile.&quot;</span><span class="p">),</span>
@@ -780,7 +782,7 @@
         <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">h</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Shipment.shipping_errors"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Shipment.shipping_errors">[docs]</a>    <span class="k">def</span> <span class="nf">shipping_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Shipment.shipping_errors"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Shipment.shipping_errors">[docs]</a>    <span class="k">def</span> <span class="nf">shipping_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns a list of descriptive string error messages indicating the Shipment is not</span>
 <span class="sd">            in a &#39;shippable&#39; state</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -863,7 +865,7 @@
     <span class="n">kind</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">ComponentType</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="ContainerType"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.ContainerType">[docs]</a><span class="k">class</span> <span class="nc">ContainerType</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<div class="viewcode-block" id="ContainerType"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.ContainerType">[docs]</a><span class="k">class</span> <span class="nc">ContainerType</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A ContainerType should be defined for each container that has a unique layout. (e.g. Uni-Puck, Adaptor, Autmounter, etc.)</span>
 
@@ -894,7 +896,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span></div>
 
 
-<div class="viewcode-block" id="ContainerLocation"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.ContainerLocation">[docs]</a><span class="k">class</span> <span class="nc">ContainerLocation</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<div class="viewcode-block" id="ContainerLocation"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.ContainerLocation">[docs]</a><span class="k">class</span> <span class="nc">ContainerLocation</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
     <span class="n">accepts</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="n">ContainerType</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;acceptors&quot;</span><span class="p">)</span>
 
@@ -931,7 +933,7 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_queryset</span><span class="p">()</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;kind&#39;</span><span class="p">,</span> <span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="s1">&#39;location&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">with_port</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="Container"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Container">[docs]</a><span class="k">class</span> <span class="nc">Container</span><span class="p">(</span><span class="n">TransitStatusMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="Container"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Container">[docs]</a><span class="k">class</span> <span class="nc">Container</span><span class="p">(</span><span class="n">TransitStatusMixin</span><span class="p">):</span>
     <span class="n">HELP</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;A visible label on the container. If there is a barcode on the container, scan it here&quot;</span><span class="p">),</span>
         <span class="s1">&#39;capacity&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;The maximum number of samples this container can hold&quot;</span><span class="p">),</span>
@@ -1025,7 +1027,7 @@
     <span class="k">def</span> <span class="nf">get_location_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">name</span>
 
-<div class="viewcode-block" id="Container.placeholders"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Container.placeholders">[docs]</a>    <span class="k">def</span> <span class="nf">placeholders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Container.placeholders"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Container.placeholders">[docs]</a>    <span class="k">def</span> <span class="nf">placeholders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate a list of container locations that can hold samples or samples contained in the container.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1037,7 +1039,7 @@
             <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="o">.</span><span class="n">locations</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;pk&#39;</span><span class="p">)</span>
         <span class="p">]</span></div>
 
-<div class="viewcode-block" id="Container.get_layout"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Container.get_layout">[docs]</a>    <span class="k">def</span> <span class="nf">get_layout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_samples</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Container.get_layout"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Container.get_layout">[docs]</a>    <span class="k">def</span> <span class="nf">get_layout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_samples</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate a nested dictionary of data representing the hierarchy of containers and samples</span>
 <span class="sd">        :param with_samples: Whether to include sample information or not</span>
@@ -1120,7 +1122,7 @@
         <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">|</span><span class="si">{}</span><span class="s1">|</span><span class="si">{}</span><span class="s1">|</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">child</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Dewar"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Dewar">[docs]</a><span class="k">class</span> <span class="nc">Dewar</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<div class="viewcode-block" id="Dewar"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Dewar">[docs]</a><span class="k">class</span> <span class="nc">Dewar</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A through-model relating a Beamline object to a Container object. The container referenced here should be the</span>
 <span class="sd">    one that samples or containers can be added to during a Project&#39;s beamtime. If a beamline has multiple containers</span>
@@ -1148,7 +1150,7 @@
         <span class="p">}</span></div>
 
 
-<div class="viewcode-block" id="Group"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Group">[docs]</a><span class="k">class</span> <span class="nc">Group</span><span class="p">(</span><span class="n">ProjectObjectMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="Group"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Group">[docs]</a><span class="k">class</span> <span class="nc">Group</span><span class="p">(</span><span class="n">ProjectObjectMixin</span><span class="p">):</span>
     <span class="n">STATUS_CHOICES</span> <span class="o">=</span> <span class="p">(</span>
         <span class="p">(</span><span class="n">ProjectObjectMixin</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">DRAFT</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Draft&#39;</span><span class="p">)),</span>
         <span class="p">(</span><span class="n">ProjectObjectMixin</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">ACTIVE</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Active&#39;</span><span class="p">)),</span>
@@ -1241,7 +1243,7 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_queryset</span><span class="p">()</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;group&#39;</span><span class="p">,</span> <span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="s1">&#39;container&#39;</span><span class="p">,</span> <span class="s1">&#39;project&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">with_port</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="Sample"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Sample">[docs]</a><span class="k">class</span> <span class="nc">Sample</span><span class="p">(</span><span class="n">ProjectObjectMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="Sample"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Sample">[docs]</a><span class="k">class</span> <span class="nc">Sample</span><span class="p">(</span><span class="n">ProjectObjectMixin</span><span class="p">):</span>
     <span class="n">HELP</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;cascade&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;datasets and results&#39;</span><span class="p">),</span>
         <span class="s1">&#39;cascade_help&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;All associated datasets and results will be left without a sample&#39;</span><span class="p">),</span>
@@ -1355,7 +1357,7 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_queryset</span><span class="p">()</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;kind&#39;</span><span class="p">,</span> <span class="s1">&#39;project&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Data"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Data">[docs]</a><span class="k">class</span> <span class="nc">Data</span><span class="p">(</span><span class="n">ActiveStatusMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="Data"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Data">[docs]</a><span class="k">class</span> <span class="nc">Data</span><span class="p">(</span><span class="n">ActiveStatusMixin</span><span class="p">):</span>
     <span class="n">project</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Project</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;datasets&#39;</span><span class="p">)</span>
     <span class="n">group</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Group</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">SET_NULL</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;datasets&#39;</span><span class="p">)</span>
     <span class="n">sample</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Sample</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">SET_NULL</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;datasets&#39;</span><span class="p">)</span>
@@ -1515,7 +1517,7 @@
             <span class="k">return</span> <span class="kc">None</span>
 
 
-<div class="viewcode-block" id="ActivityLog"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.ActivityLog">[docs]</a><span class="k">class</span> <span class="nc">ActivityLog</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<div class="viewcode-block" id="ActivityLog"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.ActivityLog">[docs]</a><span class="k">class</span> <span class="nc">ActivityLog</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="n">TYPE</span> <span class="o">=</span> <span class="n">Choices</span><span class="p">(</span>
         <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;LOGIN&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Login&#39;</span><span class="p">)),</span>
         <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;LOGOUT&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Logout&#39;</span><span class="p">)),</span>
@@ -1561,7 +1563,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="Guide"><a class="viewcode-back" href="../../../modules/models.html#mxlive.lims.models.Guide">[docs]</a><span class="k">class</span> <span class="nc">Guide</span><span class="p">(</span><span class="n">TimeStampedModel</span><span class="p">):</span>
+<div class="viewcode-block" id="Guide"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Guide">[docs]</a><span class="k">class</span> <span class="nc">Guide</span><span class="p">(</span><span class="n">TimeStampedModel</span><span class="p">):</span>
     <span class="n">TYPE</span> <span class="o">=</span> <span class="n">Choices</span><span class="p">(</span>
         <span class="p">(</span><span class="s1">&#39;snippet&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Text&#39;</span><span class="p">)),</span>
         <span class="p">(</span><span class="s1">&#39;video&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Video&#39;</span><span class="p">)),</span>

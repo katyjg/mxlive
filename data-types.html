@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>New Data Types &mdash; MxLIVE 2020.05.258 documentation</title>
+  <title>Data Types &mdash; MxLIVE 2020.05.259 documentation</title>
   
 
   
@@ -25,17 +25,18 @@
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
         <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
 
   
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/styles.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Models" href="modules/models.html" />
+    <link rel="next" title="Container Types" href="layouts.html" />
     <link rel="prev" title="Formatting Reports" href="reportsv2.html" /> 
 </head>
 
@@ -60,7 +61,7 @@
             
             
               <div class="version">
-                2020.05.258
+                2020.05.259
               </div>
             
           
@@ -106,16 +107,17 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="apis.html">Application Program Interfaces</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reportsv2.html">Formatting Reports</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">New Data Types</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#create-a-new-data-type">1. Create a new Data Type</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#create-the-html-template">2. Create the HTML Template</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#creating-new-data-types">Creating New Data Types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#creating-an-html-template">Creating an HTML Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#using-the-report-format">Using the Report Format</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules/views.html">Ajax Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Container Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">Ajax Views</a></li>
 </ul>
 
             
@@ -161,7 +163,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>New Data Types</li>
+      <li>Data Types</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -178,21 +180,24 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="new-data-types">
-<h1>New Data Types<a class="headerlink" href="#new-data-types" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="data-types">
+<span id="new-data-types"></span><h1>Data Types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h1>
 <p>Data types included by default with MxLIVE are <strong>MX Screening</strong>, <strong>MX Dataset</strong>, <strong>XRD Dataset</strong>, <strong>Rastering</strong>,
 <strong>XAS Dataset</strong>, <strong>XRF Dataset</strong>, and <strong>MAD Scan</strong>.</p>
-<p>Creating a new data type requires creating the Data Type, and adjusting the HTML template used for data viewing.</p>
-<div class="section" id="create-a-new-data-type">
-<h2>1. Create a new Data Type<a class="headerlink" href="#create-a-new-data-type" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="creating-new-data-types">
+<h2>Creating New Data Types<a class="headerlink" href="#creating-new-data-types" title="Permalink to this headline">¶</a></h2>
+<p>Creating a new data type requires creating the Data Type, and adjusting the HTML template used for data viewing if
+necessary.</p>
 <p>Go to the Django administration site and create a new Data Type. The <strong>Name</strong> and <strong>Description</strong> are used for display,
 <strong>Acronym</strong> is the <code class="docutils literal notranslate"><span class="pre">type</span></code> referenced when <a class="reference internal" href="apis.html#adding-data-reports"><span class="std std-ref">uploading new datasets</span></a> from the beamline,
 <strong>Template</strong> is the HTML template file in the MxLIVE project that should be used to display datasets of this data type,
 and <strong>Metadata</strong> is a list of fields that are expected to be uploaded along with new datasets of this data type.</p>
 <img alt="Data Type" class="align-center" src="_images/data-type.png" />
-</div>
-<div class="section" id="create-the-html-template">
-<h2>2. Create the HTML Template<a class="headerlink" href="#create-the-html-template" title="Permalink to this headline">¶</a></h2>
+<p>Templates already exist for diffraction data (<cite>users/entries/data-frames.html</cite>), MAD scans (<cite>users/entries/data-mad.html</cite>),
+and XRF Scans (<cite>users/entries/data-xrf.html</cite>). MAD scans and XRF scans present data that is fetched from the data proxy,
+including data in .xdi files. If an existing template is sufficient for displaying the new kind of data, you can stop here.</p>
+<div class="section" id="creating-an-html-template">
+<h3>Creating an HTML Template<a class="headerlink" href="#creating-an-html-template" title="Permalink to this headline">¶</a></h3>
 <p>For consistency, template files for new data types should be placed in <cite>mxlive/lims/templates/users/entries/</cite>, and can
 be referenced by the file path under <cite>templates/</cite>. At a minimum, the template should extend <cite>users/entries/data.html</cite>,
 and define a <code class="docutils literal notranslate"><span class="pre">data_content</span></code> block.</p>
@@ -202,63 +207,35 @@ and define a <code class="docutils literal notranslate"><span class="pre">data_c
 </pre></div>
 </div>
 <img alt="Data Content" class="align-center" src="_images/data-content.png" />
-<p>Templates already exist for diffraction data (<cite>users/entries/data-frames.html</cite>), MAD scans (<cite>users/entries/data-mad.html</cite>),
-and XRF Scans (<cite>users/entries/data-xrf.html</cite>). MAD scans and XRF scans present data that is fetched from the data proxy,
-including data in .xdi files.</p>
+</div>
 <div class="section" id="using-the-report-format">
 <h3>Using the Report Format<a class="headerlink" href="#using-the-report-format" title="Permalink to this headline">¶</a></h3>
-<p>To use the <a class="reference internal" href="reportsv2.html#formatting-reports"><span class="std std-ref">MxLIVE report format</span></a>, include the following assets in the <code class="docutils literal notranslate"><span class="pre">modal_assets</span></code> block,
-and add an empty element with an <code class="docutils literal notranslate"><span class="pre">id</span></code> that can be referenced in the <code class="docutils literal notranslate"><span class="pre">modal_scripts</span></code> block:</p>
-<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>{% load data_server %}          &lt;!-- Load custom tags from `templatetags/data_server.py` --&gt;
+<p>To use the <a class="reference internal" href="reportsv2.html#formatting-reports"><span class="std std-ref">MxLIVE report format</span></a>, include the following assets in the <code class="docutils literal notranslate"><span class="pre">modal_assets</span></code> block:</p>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">load</span> <span class="nv">static</span> <span class="cp">%}</span><span class="x"></span>
 
-{% block data_content %}
-    {% sample_report as sample %}       &lt;!-- Fetch the report --&gt;
-    &lt;div class=&quot;row&quot;&gt;
-        &lt;div class=&quot;col-12 pr-0&quot;&gt;
-            &lt;div id=&quot;data-display&quot; class=&quot;w-100 p-0&quot;&gt;&lt;/div&gt;
-            &lt;script&gt;
-                // create variables for reports
-                var report{{ data.pk }}={{ sample.report | jsonify }};
-            &lt;/script&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-{% endblock %}
-
-{% block modal_assets %}
-    &lt;link href=&quot;{% static &quot;css/c3.min.css&quot; %}&quot; rel=&quot;stylesheet&quot;&gt;
-    &lt;link href=&quot;{% static &quot;css/reports.min.css&quot; %}&quot; rel=&quot;stylesheet&quot;&gt;
-    &lt;script type=&quot;text/javascript&quot; src=&quot;{% static &quot;js/d3/d3.v5.min.js&quot; %}&quot;&gt;&lt;/script&gt;
-    &lt;script type=&quot;text/javascript&quot; src=&quot;{% static &quot;js/d3/d3.legend.js&quot; %}&quot;&gt;&lt;/script&gt;
-    &lt;script type=&quot;text/javascript&quot; src=&quot;{% static &#39;js/d3/d3.timeline.min.js&#39; %}&quot;&gt;&lt;/script&gt;
-    &lt;script type=&quot;text/javascript&quot; src=&quot;{% static &quot;js/misc/showdown.min.js&quot; %}&quot;&gt;&lt;/script&gt;
-    &lt;script type=&quot;text/javascript&quot; src=&quot;{% static &quot;js/misc/c3.min.js&quot; %}&quot;&gt;&lt;/script&gt;
-    &lt;script type=&quot;text/javascript&quot; src=&quot;{% static &quot;js/mxlive-reports.v2.min.js&quot; %}&quot;&gt;&lt;/script&gt;
-{% endblock %}
-
-{% block modal_scripts %}
-    &lt;script type=&quot;text/javascript&quot;&gt;
-        $(&#39;#modal&#39;).on(&#39;shown.bs.modal&#39;, function () {
-            $(&#39;#data-display&#39;).liveReport({
-                data: report{{ data.pk }}
-            });
-        });
-    &lt;/script&gt;
-{% endblock %}
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">modal_assets</span> <span class="cp">%}</span><span class="x"></span>
+<span class="x">    &lt;link href=&quot;</span><span class="cp">{%</span> <span class="k">static</span> <span class="s2">&quot;css/c3.min.css&quot;</span> <span class="cp">%}</span><span class="x">&quot; rel=&quot;stylesheet&quot;&gt;</span>
+<span class="x">    &lt;link href=&quot;</span><span class="cp">{%</span> <span class="k">static</span> <span class="s2">&quot;css/reports.min.css&quot;</span> <span class="cp">%}</span><span class="x">&quot; rel=&quot;stylesheet&quot;&gt;</span>
+<span class="x">    &lt;script type=&quot;text/javascript&quot; src=&quot;</span><span class="cp">{%</span> <span class="k">static</span> <span class="s2">&quot;js/d3/d3.v5.min.js&quot;</span> <span class="cp">%}</span><span class="x">&quot;&gt;&lt;/script&gt;</span>
+<span class="x">    &lt;script type=&quot;text/javascript&quot; src=&quot;</span><span class="cp">{%</span> <span class="k">static</span> <span class="s2">&quot;js/d3/d3.legend.js&quot;</span> <span class="cp">%}</span><span class="x">&quot;&gt;&lt;/script&gt;</span>
+<span class="x">    &lt;script type=&quot;text/javascript&quot; src=&quot;</span><span class="cp">{%</span> <span class="k">static</span> <span class="s1">&#39;js/d3/d3.timeline.min.js&#39;</span> <span class="cp">%}</span><span class="x">&quot;&gt;&lt;/script&gt;</span>
+<span class="x">    &lt;script type=&quot;text/javascript&quot; src=&quot;</span><span class="cp">{%</span> <span class="k">static</span> <span class="s2">&quot;js/misc/showdown.min.js&quot;</span> <span class="cp">%}</span><span class="x">&quot;&gt;&lt;/script&gt;</span>
+<span class="x">    &lt;script type=&quot;text/javascript&quot; src=&quot;</span><span class="cp">{%</span> <span class="k">static</span> <span class="s2">&quot;js/misc/c3.min.js&quot;</span> <span class="cp">%}</span><span class="x">&quot;&gt;&lt;/script&gt;</span>
+<span class="x">    &lt;script type=&quot;text/javascript&quot; src=&quot;</span><span class="cp">{%</span> <span class="k">static</span> <span class="s2">&quot;js/mxlive-reports.v2.min.js&quot;</span> <span class="cp">%}</span><span class="x">&quot;&gt;&lt;/script&gt;</span>
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span><span class="x"></span>
 </pre></div>
 </div>
-<p>You will also need to define a custom tag in <cite>templatetags/data_server.py</cite> to add your formatted report to the context,
-in which you may need to request files from the data proxy to get all the information needed to build the report. Helper
-functions already exist for fetching JSON or XDI data (<code class="docutils literal notranslate"><span class="pre">get_json_info</span></code> and <code class="docutils literal notranslate"><span class="pre">get_xdi_info</span></code>).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@register.simple_tag</span><span class="p">(</span><span class="n">takes_context</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<p>To create a custom report to display data, you will also need to define a custom tag in <cite>templatetags/data_server.py</cite> to
+add your formatted report to the context, in which you may need to request files from the data proxy to get all the
+information needed to build the report. Helper functions already exist for fetching JSON or XDI data (<code class="docutils literal notranslate"><span class="pre">get_json_info</span></code>
+and <code class="docutils literal notranslate"><span class="pre">get_xdi_info</span></code>).</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="nd">@register</span><span class="o">.</span><span class="n">simple_tag</span><span class="p">(</span><span class="n">takes_context</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">sample_report</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="o">.</span><span class="n">url</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{}</span>
-
+    <span class="o">...</span>
     <span class="n">report</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;details&#39;</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
             <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;style&#39;</span><span class="p">:</span> <span class="s2">&quot;row&quot;</span><span class="p">,</span>
             <span class="s1">&#39;content&#39;</span><span class="p">:</span> <span class="p">[</span>
                 <span class="p">{</span>
                     <span class="o">...</span>
@@ -268,6 +245,42 @@ functions already exist for fetching JSON or XDI data (<code class="docutils lit
     <span class="p">]}</span>
 
     <span class="k">return</span> <span class="p">{</span> <span class="s1">&#39;report&#39;</span><span class="p">:</span> <span class="n">report</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>Load your custom tag into the template, and call it:</p>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="cp">{%</span> <span class="k">load</span> <span class="nv">data_server</span> <span class="cp">%}</span><span class="x"></span>
+</span>
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">data_content</span> <span class="cp">%}</span><span class="x"></span>
+<span class="hll"><span class="x">    </span><span class="cp">{%</span> <span class="k">sample_report</span> <span class="k">as</span> <span class="nv">sample</span> <span class="cp">%}</span><span class="x"></span>
+</span><span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span><span class="x"></span>
+</pre></div>
+</div>
+<p>Add an empty element with an <code class="docutils literal notranslate"><span class="pre">id</span></code>, assign your report to a javascript variable, and initialize the report in the
+<code class="docutils literal notranslate"><span class="pre">modal_scripts</span></code> block:</p>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">load</span> <span class="nv">data_server</span> <span class="cp">%}</span><span class="x"></span>
+<span class="cp">{%</span> <span class="k">load</span> <span class="nv">jsutils</span> <span class="cp">%}</span><span class="x"></span>
+
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">data_content</span> <span class="cp">%}</span><span class="x"></span>
+<span class="x">    </span><span class="cp">{%</span> <span class="k">sample_report</span> <span class="k">as</span> <span class="nv">sample</span> <span class="cp">%}</span><span class="x"></span>
+<span class="x">    &lt;div class=&quot;row&quot;&gt;</span>
+<span class="x">        &lt;div class=&quot;col-12 pr-0&quot;&gt;</span>
+<span class="hll"><span class="x">            &lt;div id=&quot;data-display&quot; class=&quot;w-100 p-0&quot;&gt;&lt;/div&gt;</span>
+</span><span class="x">            &lt;script&gt;</span>
+<span class="hll"><span class="x">                var report</span><span class="cp">{{</span> <span class="nv">data.pk</span> <span class="cp">}}</span><span class="x">=</span><span class="cp">{{</span> <span class="nv">sample.report</span> <span class="o">|</span> <span class="nf">jsonify</span> <span class="cp">}}</span><span class="x">;</span>
+</span><span class="x">            &lt;/script&gt;</span>
+<span class="x">        &lt;/div&gt;</span>
+<span class="x">    &lt;/div&gt;</span>
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span><span class="x"></span>
+
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">modal_scripts</span> <span class="cp">%}</span><span class="x"></span>
+<span class="x">    &lt;script type=&quot;text/javascript&quot;&gt;</span>
+<span class="x">        $(&#39;#modal&#39;).on(&#39;shown.bs.modal&#39;, function () {</span>
+<span class="hll"><span class="x">            $(&#39;#data-display&#39;).liveReport({</span>
+</span><span class="hll"><span class="x">                data: report</span><span class="cp">{{</span> <span class="nv">data.pk</span> <span class="cp">}}</span><span class="x"></span>
+</span><span class="hll"><span class="x">            });</span>
+</span><span class="x">        });</span>
+<span class="x">    &lt;/script&gt;</span>
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span><span class="x"></span>
 </pre></div>
 </div>
 </div>
@@ -282,7 +295,7 @@ functions already exist for fetching JSON or XDI data (<code class="docutils lit
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="modules/models.html" class="btn btn-neutral float-right" title="Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="layouts.html" class="btn btn-neutral float-right" title="Container Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="reportsv2.html" class="btn btn-neutral float-left" title="Formatting Reports" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

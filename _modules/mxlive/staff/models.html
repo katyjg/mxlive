@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>mxlive.staff.models &mdash; MxLIVE 2020.05.258 documentation</title>
+  <title>mxlive.staff.models &mdash; MxLIVE 2020.05.259 documentation</title>
   
 
   
@@ -25,13 +25,14 @@
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
         <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
     
 
   
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/styles.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -58,7 +59,7 @@
             
             
               <div class="version">
-                2020.05.258
+                2020.05.259
               </div>
             
           
@@ -104,9 +105,10 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../apis.html">Application Program Interfaces</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../reportsv2.html">Formatting Reports</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../data-types.html">New Data Types</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/views.html">Ajax Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data-types.html">Data Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../layouts.html">Container Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../views.html">Ajax Views</a></li>
 </ul>
 
             
@@ -196,7 +198,7 @@
         <span class="n">abstract</span> <span class="o">=</span> <span class="kc">True</span>
 
 
-<div class="viewcode-block" id="UserList"><a class="viewcode-back" href="../../../modules/models.html#mxlive.staff.models.UserList">[docs]</a><span class="k">class</span> <span class="nc">UserList</span><span class="p">(</span><span class="n">StaffBaseClass</span><span class="p">):</span>
+<div class="viewcode-block" id="UserList"><a class="viewcode-back" href="../../../models.html#mxlive.staff.models.UserList">[docs]</a><span class="k">class</span> <span class="nc">UserList</span><span class="p">(</span><span class="n">StaffBaseClass</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">description</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">address</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">GenericIPAddressField</span><span class="p">()</span>
@@ -221,7 +223,7 @@
         <span class="n">verbose_name</span> <span class="o">=</span> <span class="s2">&quot;Access List&quot;</span></div>
 
 
-<div class="viewcode-block" id="RemoteConnection"><a class="viewcode-back" href="../../../modules/models.html#mxlive.staff.models.RemoteConnection">[docs]</a><span class="k">class</span> <span class="nc">RemoteConnection</span><span class="p">(</span><span class="n">StaffBaseClass</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteConnection"><a class="viewcode-back" href="../../../models.html#mxlive.staff.models.RemoteConnection">[docs]</a><span class="k">class</span> <span class="nc">RemoteConnection</span><span class="p">(</span><span class="n">StaffBaseClass</span><span class="p">):</span>
     <span class="n">STATES</span> <span class="o">=</span> <span class="n">Choices</span><span class="p">(</span>
         <span class="p">(</span><span class="s1">&#39;CONNECTED&#39;</span><span class="p">,</span> <span class="s1">&#39;Connected&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s1">&#39;DISCONNECTED&#39;</span><span class="p">,</span> <span class="s1">&#39;Disconnected&#39;</span><span class="p">),</span>

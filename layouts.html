@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>New Automounter and Container Types &mdash; MxLIVE 2020.05.258 documentation</title>
+  <title>Container Types &mdash; MxLIVE 2020.05.259 documentation</title>
   
 
   
@@ -25,16 +25,19 @@
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
         <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
 
   
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/styles.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Models" href="models.html" />
+    <link rel="prev" title="Data Types" href="data-types.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -58,7 +61,7 @@
             
             
               <div class="version">
-                2020.05.258
+                2020.05.259
               </div>
             
           
@@ -101,12 +104,16 @@
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Developers:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="apis.html">Application Program Interfaces</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reportsv2.html">Formatting Reports</a></li>
-<li class="toctree-l1"><a class="reference internal" href="data-types.html">New Data Types</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules/models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules/views.html">Ajax Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data-types.html">Data Types</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Container Types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#creating-new-container-types">Creating New Container Types</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">Ajax Views</a></li>
 </ul>
 
             
@@ -152,7 +159,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>New Automounter and Container Types</li>
+      <li>Container Types</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -169,15 +176,43 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="new-automounter-and-container-types">
-<h1>New Automounter and Container Types<a class="headerlink" href="#new-automounter-and-container-types" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="container-types">
+<span id="new-layouts"></span><h1>Container Types<a class="headerlink" href="#container-types" title="Permalink to this headline">¶</a></h1>
 <p>MxLIVE includes, by default, the following automounters and container types:</p>
-<ul class="simple">
-<li><p><strong>Automounters</strong>: CATS, SAM, Isara</p></li>
-<li><p><strong>Container Types</strong>: Uni-Puck, Cane, SSRL Cassette, Puck Adaptor (for SAM)</p></li>
+<ul>
+<li><p><strong>Automounters</strong>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>ISARA</strong> accepts up to 29 Uni-Pucks</p></li>
+<li><p><strong>SAM</strong> accepts up to three Cassettes or Adaptors, which can accept up to four Uni-Pucks</p></li>
+<li><p><strong>CATS</strong> accepts up to nine Spine Pucks in main region and up to eight Plates in bottom row</p></li>
 </ul>
-<p>To add a new Automounter or Container Type, create a new entry from the MxLIVE Django administration site.</p>
-<p>Additional details coming soon!</p>
+</div></blockquote>
+</li>
+</ul>
+<img alt="Automounter Layouts" class="align-center" src="_images/layout-automounters.png" />
+<ul class="simple">
+<li><p><strong>Sample Holders</strong>: Cane, Uni-Puck, SSRL Cassette, Spine Puck, Plate</p></li>
+</ul>
+<img alt="Container Layouts" class="align-center" src="_images/layout-containers.png" />
+<div class="section" id="creating-new-container-types">
+<h2>Creating New Container Types<a class="headerlink" href="#creating-new-container-types" title="Permalink to this headline">¶</a></h2>
+<p>To add a new automounter or sample holder, create a new Container Type entry from the MxLIVE Django administration site.
+The <strong>Envelope</strong> can be <cite>rect</cite> or <cite>circle</cite> and is used to represent the shape of the container layout. The <strong>Layout</strong> is
+a JSON dictionary providing a radius for circles representing locations in the container, and a height to define the
+aspect ratio of rectangular envelopes, assuming a width of 1.</p>
+<img alt="Container Type" class="align-center" src="_images/container-type.png" />
+<p>A Container Location should be created for every location in the new container type. The name should be kept to a few
+characters. If this container type is meant to hold other container types, select the types of containers accepted at
+this location. If this container is a sample holder, do not select any accepted containers.</p>
+<img alt="Container Location" class="align-center" src="_images/container-location.png" />
+<p>To display the container layout, define coordinates for each location by creating a Location Coord. Choose the container
+type and location that have already been defined, and assign <strong>x</strong> and <strong>y</strong> coordinates. For rectangular envelopes, x
+and y should be between 0 and 1, with (0, 0) being the top left corner, and (1, 1) at the bottom right. If the container
+type selected has a circular envelope, treat x and y as polar coordinates, radius r (between 0 and 1) and angle
+<span class="math notranslate nohighlight">\({\theta}\)</span> (between <span class="math notranslate nohighlight">\({\pi}\)</span> and <span class="math notranslate nohighlight">\({-\pi}\)</span>) respectively.</p>
+<img alt="Container Location Coordinates" class="align-center" src="_images/container-location-coord.png" />
+</div>
 </div>
 
 
@@ -185,6 +220,15 @@
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="models.html" class="btn btn-neutral float-right" title="Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="data-types.html" class="btn btn-neutral float-left" title="Data Types" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>
