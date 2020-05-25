@@ -11,6 +11,8 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('name', 'contact_person', 'email')
     search_fields = ('name', 'contact_person')
 
+class LocationAdmin(admin.ModelAdmin):
+    list_filter = ('kind',)
 
 admin.site.register(models.Guide)
 admin.site.register(models.Beamline)
@@ -22,6 +24,7 @@ admin.site.register(models.ComponentType)
 admin.site.register(models.DataType)
 admin.site.register(models.ContainerType)
 admin.site.register(models.ContainerLocation)
+admin.site.register(models.LocationCoord, LocationAdmin)
 
 
 admin.site.register(models.Shipment, ProjectAdmin)
