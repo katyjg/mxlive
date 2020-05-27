@@ -12,7 +12,10 @@ def transfer_announcements(apps, schema_editor):
     Transfer from annoucements to Guides
     """
     Guide = apps.get_model('lims', 'Guide')
-    Announcement= apps.get_model('staff', 'Announcement')
+    try:
+        Announcement= apps.get_model('staff', 'Announcement')
+    except LookupError:
+        return
 
     db_alias = schema_editor.connection.alias
     to_create = []

@@ -1,91 +1,107 @@
 Getting Started
 ===============
-
 Deploying MxLIVE on your beamline requires some initial work setting up basic information in your database.
+
+Some basic requirements for deploying MxLIVE in development or production are:
+
+- LDAP authentication: See the instructions at `minkwe/389ds <https://hub.docker.com/r/minkwe/389ds>`_ to set up your own
+  389 Directory Server.
+- Docker: You will need to build docker images and run them using docker-compose.
 
 Deploying for Development
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-
 **To deploy the test environment do the following:**
 
-1. Copy settings.py.example in the "local/" folder to settings.py and customize it according to your
-environment
+1. Set up your database. Either create a PostGreSQL database on your local machine, or to create a dockerized postgresql
+   database (https://hub.docker.com/_/postgres), extract ``deploy/skel-db.tar.gz`` to a working directory and run::
+
+       sudo docker-compose up -d
 
 .. note:: If you plan to run with Docker and a database other than postgresql, be sure to modify the imports
-     in the Dockerfile (eg. for MySQL, you will need to add python-mysql)
+     in the Dockerfile (eg. for MySQL, you will need to add python-mysql). Sqlite databases are not supported.
 
-2. If using PyCharm, prepare your virtual environment and install all requirements::
+2. Copy ``local/settings.py.example`` to ``local/settings.py`` and customize it according to your environment, being
+   sure to point to the database you set up in the previous step, and to update your LDAP settings.
 
+.. note:: If you are using the ``deploy/db-devel`` to create your database, use the following command to obtain the IP
+     address you should use to update ``DATABASES['default']['HOST']``::
+
+       sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' skel-db_database_1
+
+3. Set up a virtual environment and install all requirements::
+
+    python3 -m venv venv
+    source venv/bin/activate
     pip install requirements.txt
-    sudo dnf -y install sassc
-    sudo npm install babel-minify --global --save-dev
 
-3. To test the server run the following commands in your virtual environment::
+  - If using PyCharm, set a Project Interpreter to prepare your virtual environment, install all requirements, and
+    install minifiers for SCSS and JS files::
+
+        sudo dnf -y install sassc
+        sudo npm install babel-minify --global --save-dev
+
+4. To test the server run the following commands in your virtual environment::
 
     ./manage.py migrate
     ./manage.py runserver 0:8000
 
-4. Connect your browser to http://localhost:8000 and log when prompted. Make sure your LDAP server is running first.
+5. Connect your browser to http://localhost:8000 and login when prompted. Make sure your LDAP server is running first.
+
+.. note:: After you login on a fresh installation, you will notice that you are directed to the user dashboard, even if
+     you are staff. To assign an account as staff, first create a temporary superuser account::
+
+       ./manage.py createsuperuser
+
+     Login to http://localhost:8000/admin with the new superuser account. Select the Project Account that should be
+     marked as staff and check the boxes beside "Superuser status" AND "Staff status". After you have logged out, log
+     back in with your staff account. The temporary superuser account can be deleted.
+
 
 Deploying for Production
 ^^^^^^^^^^^^^^^^^^^^^^^^
-
-**To deploy a full production production environment including docker, mail-relay, ldap, database:**
+**To deploy a full production environment including MxLIVE, the MxLIVE data proxy, a mail server, and databases:**
 
 1. Build the docker image with the command
 
-
     sudo docker build --rm -t mxlive:latest .
 
-
-2. Create a directory called MxLIVE somewhere else, preferably where you place your other persistent docker files
+2. Create a directory called MxLIVE somewhere, preferably where you place your other persistent docker files
    (e.g. /apps/docker/mxlive), then create the following directory structure within it::
 
-    ├── docker-compose.yml       # The docker compose configuration file for the deployment copy from deploy/ and customize
-    ├── app-local/               # The top local directory level directory for MxLIVE Container
-    │   ├── settings.py          # MxLIVE local settings file copy from local/ and customize it
-    │   ├── cache/               # Cache directory for MxLIVE
-    │   ├── logs/                # Log files for MxLIVE Web Server will be placed here
-    │   └── media/               # Media files for MxLIVE
-    ├── db-backups/              # Data directory for database container (Omit this if you are using and external database server)
-    ├── certs/                   # Server certificates for the MxLIVE Web Server
-    ├── data-local/              # The top local directory for the mxlive-dataproxy container
-    │   ├── settings_local.py    # mxlive-dataproxy local settings file
-    │   └── logs/                # Logs directory for mxlive-dataproxy
-    ├── data-cache/              # Cache directory for mxlive-dataproxy
-    └── ldap/                    # Data directory for 389ds Container (Omit this if you are using and external directory server)
-        ├── certs/               # Server certificates for the 389ds Server
-        ├── config/              # Config directory for 389ds
-        ├── data/                # Data directory for 389ds
-        └── logs/                # Logs directory for 389ds
+    ├── docker-compose.yml     # Docker compose configuration file
+    ├── app-local/             # Local directory for MxLIVE Container
+    │   ├── settings.py        # MxLIVE local settings file
+    │   ├── logs/              # Log directory for MxLIVE Web Server
+    │   └── media/             # Media files for MxLIVE
+    ├── certs/                 # Server certificates for the MxLIVE Web Server
+    ├── data-local/            # Local directory for mxlive-dataproxy
+    │   ├── settings_local.py  # mxlive-dataproxy local settings file
+    │   └── logs/              # Logs directory for mxlive-dataproxy
+    └── data-cache/            # Cache directory for mxlive-dataproxy
 
+.. note:: - You can find more information about the MxLIVE data proxy at https://github.com/katyjg/mxlive-dataproxy
+          - You can find more information about PostGreSQL at https://hub.docker.com/_/postgres/
+          - You can find more information about Memcached at https://hub.docker.com/_/memcached
+          - A tar archive containing an empty directory structure like this can be found in ``deploy/skel.tar.gz``
 
-.. note:: - You can find more information about MySQL at https://hub.docker.com/_/mariadb/
-          - You can find more information about 389ds at https://hub.docker.com/r/minkwe/389ds/
-          - A tar archive containing an empty directory structure like this can be found in "deploy/skel.tar.gz"
+3. Self-signed certificates will be generated in the /certs directory if certificates do not already exist, using the
+following command::
 
-3. Generate self-signed certificates in the /certs directory by running the following command inside your mxlive
-container (update accordingly)::
+   openssl req -x509 -nodes -newkey rsa:2048 -keyout ${CERT_KEY} -out ${CERT_PATH}/fullchain.pem -subj '/CN=${SERVER_NAME}'
 
-   certbot certonly --agree-tos --webroot -w /mxlive/local -d 'example.com'
-
-4. Customize docker-compose.yml according to your environment. If using external database, mail and directory servers,
+4. Customize docker-compose.yml according to your environment. If using external database, mail, or directory servers,
    remove the corresponding entries, and also delete the corresponding links within the app entry.
 
 5. Update app-local/settings.py according to your environment.
 
 6. Change to the top level directory which contains docker-compose.yml. Launch the services using the following
-command::
+   command::
 
-   sudo docker-compose up -d
-
-   To monitor the logs use the command:
-
-        docker-compose logs -f
+       sudo docker-compose up -d
 
 7. Done! After a few seconds all your services should be up and ready. You can then connect to mxlive on
 
    https://localhost/
 
-   Your local host will also be serving as an ldap server for authentication by other hosts at this time if you configured
-   the local LDAP option above.
+.. note:: - To monitor logs, use ``sudo docker-compose logs -f``
+          - To open a bash console inside the MxLIVE container, use ``sudo docker-compose exec app /bin/bash``

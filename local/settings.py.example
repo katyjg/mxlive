@@ -51,7 +51,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'mxlive',
         'USER': 'mxlive',
-        'PASSWORD': '4dafa320isd93kjdls1829dd',
+        'PASSWORD': 'iSY67mb0oVYg64wkKKZ7YLvPISGmhLkT',
         'HOST': 'mxlive-db',
         'PORT': '5432'
     }
