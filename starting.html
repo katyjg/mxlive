@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started &mdash; MxLIVE 2020.05.259 documentation</title>
+  <title>Getting Started &mdash; MxLIVE 2020.05.262 documentation</title>
   
 
   
@@ -35,7 +35,9 @@
   <link rel="stylesheet" href="_static/styles.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Dashboard" href="staff-dashboard.html" />
+    <link rel="prev" title="Datasets &amp; Reports" href="data.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -59,7 +61,7 @@
             
             
               <div class="version">
-                2020.05.259
+                2020.05.262
               </div>
             
           
@@ -91,7 +93,12 @@
 <li class="toctree-l1"><a class="reference internal" href="data.html">Datasets &amp; Reports</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Beamline Staff:</span></p>
-<ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#deploying-for-development">Deploying for Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deploying-for-production">Deploying for Production</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html">Dashboard</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#remote-connections">Remote Connections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#accounts">Accounts</a></li>
@@ -174,61 +181,102 @@
   <div class="section" id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <p>Deploying MxLIVE on your beamline requires some initial work setting up basic information in your database.</p>
+<p>Some basic requirements for deploying MxLIVE in development or production are:</p>
+<ul class="simple">
+<li><p>LDAP authentication: See the instructions at <a class="reference external" href="https://hub.docker.com/r/minkwe/389ds">minkwe/389ds</a> to set up your own
+389 Directory Server.</p></li>
+<li><p>Docker: You will need to build docker images and run them using docker-compose.</p></li>
+</ul>
 <div class="section" id="deploying-for-development">
 <h2>Deploying for Development<a class="headerlink" href="#deploying-for-development" title="Permalink to this headline">¶</a></h2>
 <p><strong>To deploy the test environment do the following:</strong></p>
-<p>1. Copy settings.py.example in the “local/” folder to settings.py and customize it according to your
-environment</p>
+<ol class="arabic">
+<li><p>Set up your database. Either create a PostGreSQL database on your local machine, or to create a dockerized postgresql
+database (<a class="reference external" href="https://hub.docker.com/_/postgres">https://hub.docker.com/_/postgres</a>), extract <code class="docutils literal notranslate"><span class="pre">deploy/skel-db.tar.gz</span></code> to a working directory and run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">docker</span><span class="o">-</span><span class="n">compose</span> <span class="n">up</span> <span class="o">-</span><span class="n">d</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you plan to run with Docker and a database other than postgresql, be sure to modify the imports
+in the Dockerfile (eg. for MySQL, you will need to add python-mysql). Sqlite databases are not supported.</p>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Copy <code class="docutils literal notranslate"><span class="pre">local/settings.py.example</span></code> to <code class="docutils literal notranslate"><span class="pre">local/settings.py</span></code> and customize it according to your environment, being
+sure to point to the database you set up in the previous step, and to update your LDAP settings.</p></li>
+</ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you plan to run with Docker and a database other than postgresql, be sure to modify the imports
-in the Dockerfile (eg. for MySQL, you will need to add python-mysql)</p>
+<p>If you are using the included postgresql docker setup to create your database, use the following command to
+obtain the IP address you should use to update <code class="docutils literal notranslate"><span class="pre">DATABASES['default']['HOST']</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">docker</span> <span class="n">inspect</span> <span class="o">-</span><span class="n">f</span> <span class="s1">&#39;{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}&#39;</span> <span class="n">skel</span><span class="o">-</span><span class="n">db_database_1</span>
+</pre></div>
 </div>
-<ol class="arabic" start="2">
-<li><p>If using PyCharm, prepare your virtual environment and install all requirements:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
-<span class="n">sudo</span> <span class="n">dnf</span> <span class="o">-</span><span class="n">y</span> <span class="n">install</span> <span class="n">sassc</span>
+</div>
+<ol class="arabic" start="3">
+<li><p>Set up a virtual environment and install all requirements:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">venv</span> <span class="n">venv</span>
+<span class="n">source</span> <span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<blockquote>
+<div><ul>
+<li><p>If using PyCharm, set a Project Interpreter to prepare your virtual environment, install all requirements, and
+install minifiers for SCSS and JS files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">dnf</span> <span class="o">-</span><span class="n">y</span> <span class="n">install</span> <span class="n">sassc</span>
 <span class="n">sudo</span> <span class="n">npm</span> <span class="n">install</span> <span class="n">babel</span><span class="o">-</span><span class="n">minify</span> <span class="o">--</span><span class="k">global</span> <span class="o">--</span><span class="n">save</span><span class="o">-</span><span class="n">dev</span>
 </pre></div>
 </div>
 </li>
+</ul>
+</div></blockquote>
+<ol class="arabic" start="4">
 <li><p>To test the server run the following commands in your virtual environment:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">manage</span><span class="o">.</span><span class="n">py</span> <span class="n">migrate</span>
 <span class="o">./</span><span class="n">manage</span><span class="o">.</span><span class="n">py</span> <span class="n">runserver</span> <span class="mi">0</span><span class="p">:</span><span class="mi">8000</span>
 </pre></div>
 </div>
 </li>
-<li><p>Connect your browser to <a class="reference external" href="http://localhost:8000">http://localhost:8000</a> and log when prompted. Make sure your LDAP server is running first.</p></li>
+<li><p>Connect your browser to <a class="reference external" href="http://localhost:8000">http://localhost:8000</a> and login when prompted. Make sure your LDAP server is running first.</p></li>
 </ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>After you login on a fresh installation, you will notice that you are directed to the user dashboard, even if
+you are staff. To assign an account as staff, first create a temporary superuser account:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">manage</span><span class="o">.</span><span class="n">py</span> <span class="n">createsuperuser</span>
+</pre></div>
+</div>
+<p>Login to <a class="reference external" href="http://localhost:8000/admin">http://localhost:8000/admin</a> with the new superuser account. Select the Project Account that should be
+marked as staff and check the boxes beside “Superuser status” AND “Staff status”. After you have logged out, log
+back in with your staff account. The temporary superuser account can be deleted.</p>
+</div>
 </div>
 <div class="section" id="deploying-for-production">
 <h2>Deploying for Production<a class="headerlink" href="#deploying-for-production" title="Permalink to this headline">¶</a></h2>
-<p><strong>To deploy a full production production environment including docker, mail-relay, ldap, database:</strong></p>
+<p><strong>To deploy a full production environment including MxLIVE, the MxLIVE data proxy, a mail server, and databases:</strong></p>
 <ol class="arabic">
-<li><p>Build the docker image with the command</p>
-<blockquote>
-<div><p>sudo docker build –rm -t mxlive:latest .</p>
-</div></blockquote>
+<li><p>Build the docker image with the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">docker</span> <span class="n">build</span> <span class="o">--</span><span class="n">rm</span> <span class="o">-</span><span class="n">t</span> <span class="n">mxlive</span><span class="p">:</span><span class="n">latest</span> <span class="o">.</span>
+</pre></div>
+</div>
 </li>
-<li><p>Create a directory called MxLIVE somewhere else, preferably where you place your other persistent docker files
+<li><p>Create a directory called MxLIVE somewhere, preferably where you place your other persistent docker files
 (e.g. /apps/docker/mxlive), then create the following directory structure within it:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>├── docker-compose.yml       # The docker compose configuration file for the deployment copy from deploy/ and customize
-├── app-local/               # The top local directory level directory for MxLIVE Container
-│   ├── settings.py          # MxLIVE local settings file copy from local/ and customize it
-│   ├── cache/               # Cache directory for MxLIVE
-│   ├── logs/                # Log files for MxLIVE Web Server will be placed here
-│   └── media/               # Media files for MxLIVE
-├── db-backups/              # Data directory for database container (Omit this if you are using and external database server)
-├── certs/                   # Server certificates for the MxLIVE Web Server
-├── data-local/              # The top local directory for the mxlive-dataproxy container
-│   ├── settings_local.py    # mxlive-dataproxy local settings file
-│   └── logs/                # Logs directory for mxlive-dataproxy
-├── data-cache/              # Cache directory for mxlive-dataproxy
-└── ldap/                    # Data directory for 389ds Container (Omit this if you are using and external directory server)
-    ├── certs/               # Server certificates for the 389ds Server
-    ├── config/              # Config directory for 389ds
-    ├── data/                # Data directory for 389ds
-    └── logs/                # Logs directory for 389ds
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>├── docker-compose.yml     # Docker compose configuration file
+├── app-local/             # Local directory for MxLIVE Container
+│   ├── settings.py        # MxLIVE local settings file
+│   ├── logs/              # Log directory for MxLIVE Web Server
+│   └── media/             # Media files for MxLIVE
+├── certs/                 # Server certificates for the MxLIVE Web Server
+├── data-local/            # Local directory for mxlive-dataproxy
+│   ├── settings_local.py  # mxlive-dataproxy local settings file
+│   └── logs/              # Logs directory for mxlive-dataproxy
+└── data-cache/            # Cache directory for mxlive-dataproxy
 </pre></div>
 </div>
 </li>
@@ -236,37 +284,37 @@ in the Dockerfile (eg. for MySQL, you will need to add python-mysql)</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <ul class="simple">
-<li><p>You can find more information about MySQL at <a class="reference external" href="https://hub.docker.com/_/mariadb/">https://hub.docker.com/_/mariadb/</a></p></li>
-<li><p>You can find more information about 389ds at <a class="reference external" href="https://hub.docker.com/r/minkwe/389ds/">https://hub.docker.com/r/minkwe/389ds/</a></p></li>
-<li><p>A tar archive containing an empty directory structure like this can be found in “deploy/skel.tar.gz”</p></li>
+<li><p>You can find more information about the MxLIVE data proxy at <a class="reference external" href="https://github.com/katyjg/mxlive-dataproxy">https://github.com/katyjg/mxlive-dataproxy</a></p></li>
+<li><p>You can find more information about PostGreSQL at <a class="reference external" href="https://hub.docker.com/_/postgres/">https://hub.docker.com/_/postgres/</a></p></li>
+<li><p>You can find more information about Memcached at <a class="reference external" href="https://hub.docker.com/_/memcached">https://hub.docker.com/_/memcached</a></p></li>
+<li><p>A tar archive containing an empty directory structure like this can be found in <code class="docutils literal notranslate"><span class="pre">deploy/skel.tar.gz</span></code></p></li>
 </ul>
 </div>
-<p>3. Generate self-signed certificates in the /certs directory by running the following command inside your mxlive
-container (update accordingly):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">certbot</span> <span class="n">certonly</span> <span class="o">--</span><span class="n">agree</span><span class="o">-</span><span class="n">tos</span> <span class="o">--</span><span class="n">webroot</span> <span class="o">-</span><span class="n">w</span> <span class="o">/</span><span class="n">mxlive</span><span class="o">/</span><span class="n">local</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;example.com&#39;</span>
+<p>3. Self-signed certificates will be generated in the /certs directory if certificates do not already exist, using the
+following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>openssl req -x509 -nodes -newkey rsa:2048 -keyout ${CERT_KEY} -out ${CERT_PATH}/fullchain.pem -subj &#39;/CN=${SERVER_NAME}&#39;
 </pre></div>
 </div>
-<ol class="arabic simple" start="4">
-<li><p>Customize docker-compose.yml according to your environment. If using external database, mail and directory servers,
+<ol class="arabic" start="4">
+<li><p>Customize docker-compose.yml according to your environment. If using external database, mail, or directory servers,
 remove the corresponding entries, and also delete the corresponding links within the app entry.</p></li>
 <li><p>Update app-local/settings.py according to your environment.</p></li>
-</ol>
-<p>6. Change to the top level directory which contains docker-compose.yml. Launch the services using the following
+<li><p>Change to the top level directory which contains docker-compose.yml. Launch the services using the following
 command:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">docker</span><span class="o">-</span><span class="n">compose</span> <span class="n">up</span> <span class="o">-</span><span class="n">d</span>
-
-<span class="n">To</span> <span class="n">monitor</span> <span class="n">the</span> <span class="n">logs</span> <span class="n">use</span> <span class="n">the</span> <span class="n">command</span><span class="p">:</span>
-
-     <span class="n">docker</span><span class="o">-</span><span class="n">compose</span> <span class="n">logs</span> <span class="o">-</span><span class="n">f</span>
 </pre></div>
 </div>
-<ol class="arabic" start="7">
-<li><p>Done! After a few seconds all your services should be up and ready. You can then connect to mxlive on</p>
-<p><a class="reference external" href="https://localhost/">https://localhost/</a></p>
-<p>Your local host will also be serving as an ldap server for authentication by other hosts at this time if you configured
-the local LDAP option above.</p>
 </li>
+<li><p>Done! After a few seconds all your services should be up and ready. You can then connect to mxlive on
+<a class="reference external" href="https://localhost/">https://localhost/</a></p></li>
 </ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>To monitor logs, use <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">docker-compose</span> <span class="pre">logs</span> <span class="pre">-f</span></code></p></li>
+<li><p>To open a bash console inside the MxLIVE container, use <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">docker-compose</span> <span class="pre">exec</span> <span class="pre">app</span> <span class="pre">/bin/bash</span></code></p></li>
+</ul>
+</div>
 </div>
 </div>
 
@@ -275,6 +323,15 @@ the local LDAP option above.</p>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="staff-dashboard.html" class="btn btn-neutral float-right" title="Dashboard" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="data.html" class="btn btn-neutral float-left" title="Datasets &amp; Reports" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

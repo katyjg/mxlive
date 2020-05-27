@@ -33,6 +33,7 @@ Crystallography. For that reason, many features have been developed in an MX con
    :maxdepth: 2
    :caption: For Beamline Staff:
 
+   starting
    staff-dashboard
    staff-beamlines
    staff-shipments
