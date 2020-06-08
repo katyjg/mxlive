@@ -698,12 +698,8 @@ class ContainerType(models.Model):
     :param envelope: 'rect' or 'circle' are supported.
         If 'rect', location__name lists are assumed to be [x, y] coordinates relative to width and height.
         If 'circle', location__name value lists are assumed to be polar coordinates [r, theta], relative to width.
-    :param layout: dictionary with keys:
-
-        - `locations`: dictionary with a key for each location__name mapping to a list with relative coordinates of the center of the location.
-        - `radius`: radius of the circle (in range(0,100)) to draw for each location.
-        - `labels` (optional): If present, takes the same form as the locations dictionary. If missing, a label is drawn for each location__name at the center of the location.
-        - `height` (optional): To adjust dimensions of the envelope, relative to a default width of 1. If missing, height is also assumed to be 1.
+    :param radius: radius of the circle (in range(0,100)) to draw for each location.
+    :param height: provides the aspect ratio of the envelope, relative to a default width of 1.
     """
     STATES = Choices(
         (0, 'PENDING', _('Pending')),
@@ -714,8 +710,10 @@ class ContainerType(models.Model):
         STATES.LOADED: [STATES.PENDING],
     }
     name = models.CharField(max_length=20)
-    locations = models.ManyToManyField("ContainerLocation", through="LocationCoord", blank=True, related_name="types")
+    #locations = models.ManyToManyField("ContainerLocation", through="LocationCoord", blank=True, related_name="types")
     layout = JSONField(null=True, blank=True)
+    height = models.FloatField(default=1.0)
+    radius = models.FloatField(default=8.0)
     envelope = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
@@ -725,28 +723,12 @@ class ContainerType(models.Model):
 class ContainerLocation(models.Model):
     name = models.CharField(max_length=5)
     accepts = models.ManyToManyField(ContainerType, blank=True, related_name="acceptors")
-
-    def __str__(self):
-        return self.name
-
-
-class LocationCoord(models.Model):
-    """
-    A Container Location Coordinate intermediate is defined for each container<->ContainerLocation type.
-    This model stores (x,y) coordinates used to build the layout (e.g. Uni-Puck, Adaptor, Autmounter, etc.). the
-    meaning of the coordinates depends on the envelope of the parent ContainerType.
-
-    Parent envelopes 'rect' or 'circle' are supported.
-        If 'rect', [x, y] coordinates are relative to width and height.
-        If 'circle', [x, y] coordinates are actually polar coordinates [r, theta], relative to width.
-    """
-    kind = models.ForeignKey(ContainerType, on_delete=models.CASCADE, related_name='coords')
-    location = models.ForeignKey(ContainerLocation, on_delete=models.CASCADE, related_name='coords')
+    kind = models.ForeignKey(ContainerType, on_delete=models.CASCADE, null=True, related_name="locations")
     x = models.FloatField(default=0.0)
     y = models.FloatField(default=0.0)
 
     def __str__(self):
-        return "{}:{}".format(self.kind.name, self.location.name)
+        return self.kind and "{}:{}".format(self.kind.name, self.name) or self.name
 
 
 class ContainerQuerySet(models.QuerySet):
@@ -872,10 +854,9 @@ class Container(TransitStatusMixin):
         :return: dictionary
         """
 
-        info = self.kind.layout
         locations = list(
-            self.kind.coords.select_related('location').values(
-                'x', 'y', loc=F('location__name'), accepts=Count('location__accepts'),
+            self.kind.locations.values(
+                'x', 'y', loc=F('name'), num_accepts=Count('accepts')
             )
         )
         layout = {
@@ -884,7 +865,7 @@ class Container(TransitStatusMixin):
             'name': self.name,
             'parent': None if not self.parent else self.parent.pk,
             'owner': self.project.name.upper(),
-            'height': info.get('height'),
+            'height': self.kind.height,
             'url': self.get_absolute_url(),
             'loc': self.get_location_name(),
             'envelope': self.kind.envelope,
@@ -921,8 +902,8 @@ class Container(TransitStatusMixin):
         # compile data
         for loc in locations:
             key = loc['loc']
-            loc['radius'] = info.get('radius', 100)
-            loc['accepts'] = bool(loc.get('accepts'))
+            loc['radius'] = self.kind.radius
+            loc['accepts'] = bool(loc.pop('num_accepts'))
             loc['parent'] = self.pk
             loc.update(contents.get(key, {}))
         layout['children'] = list(locations)

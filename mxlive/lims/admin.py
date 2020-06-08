@@ -23,8 +23,8 @@ admin.site.register(models.Project, UserAdmin)
 admin.site.register(models.ComponentType)
 admin.site.register(models.DataType)
 admin.site.register(models.ContainerType)
-admin.site.register(models.ContainerLocation)
-admin.site.register(models.LocationCoord, LocationAdmin)
+admin.site.register(models.ContainerLocation, LocationAdmin)
+#admin.site.register(models.LocationCoord, LocationAdmin)
 
 
 admin.site.register(models.Shipment, ProjectAdmin)

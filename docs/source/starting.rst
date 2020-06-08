@@ -17,14 +17,14 @@ Deploying for Development
 
        sudo docker-compose up -d
 
-.. note:: If you plan to run with Docker and a database other than postgresql, be sure to modify the imports
+.. warning:: If you plan to run with Docker and a database other than postgresql, be sure to modify the imports
      in the Dockerfile (eg. for MySQL, you will need to add python-mysql). Sqlite databases are not supported.
 
 2. Copy ``local/settings.py.example`` to ``local/settings.py`` and customize it according to your environment, being
    sure to point to the database you set up in the previous step, and to update your LDAP settings.
 
-.. note:: If you are using the ``deploy/db-devel`` to create your database, use the following command to obtain the IP
-     address you should use to update ``DATABASES['default']['HOST']``::
+.. note:: If you are using the included postgresql docker setup to create your database, use the following command to
+     obtain the IP address you should use to update ``DATABASES['default']['HOST']``::
 
        sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' skel-db_database_1
 
@@ -45,6 +45,9 @@ Deploying for Development
     ./manage.py migrate
     ./manage.py runserver 0:8000
 
+   If you are starting with an empty database, it will be pre-populated with a standard sets of ``Container Type``,
+   ``Project Type``, ``Data Type``, and if you are using the optional scheduling app, ``Access Type`` and ``Facility Mode``.
+
 5. Connect your browser to http://localhost:8000 and login when prompted. Make sure your LDAP server is running first.
 
 .. note:: After you login on a fresh installation, you will notice that you are directed to the user dashboard, even if
@@ -61,7 +64,7 @@ Deploying for Production
 ^^^^^^^^^^^^^^^^^^^^^^^^
 **To deploy a full production environment including MxLIVE, the MxLIVE data proxy, a mail server, and databases:**
 
-1. Build the docker image with the command
+1. Build the docker image with the command::
 
     sudo docker build --rm -t mxlive:latest .
 
@@ -79,10 +82,11 @@ Deploying for Production
     │   └── logs/              # Logs directory for mxlive-dataproxy
     └── data-cache/            # Cache directory for mxlive-dataproxy
 
-.. note:: - You can find more information about the MxLIVE data proxy at https://github.com/katyjg/mxlive-dataproxy
-          - You can find more information about PostGreSQL at https://hub.docker.com/_/postgres/
-          - You can find more information about Memcached at https://hub.docker.com/_/memcached
-          - A tar archive containing an empty directory structure like this can be found in ``deploy/skel.tar.gz``
+.. note:: A tar archive containing an empty directory structure like this can be found in ``deploy/skel.tar.gz``. Find
+          more information about:
+          - MxLIVE data proxy - https://github.com/katyjg/mxlive-dataproxy
+          - PostGreSQL - https://hub.docker.com/_/postgres/
+          - Memcached - https://hub.docker.com/_/memcached
 
 3. Self-signed certificates will be generated in the /certs directory if certificates do not already exist, using the
 following command::
@@ -100,7 +104,6 @@ following command::
        sudo docker-compose up -d
 
 7. Done! After a few seconds all your services should be up and ready. You can then connect to mxlive on
-
    https://localhost/
 
 .. note:: - To monitor logs, use ``sudo docker-compose logs -f``
