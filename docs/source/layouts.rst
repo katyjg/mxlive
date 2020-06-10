@@ -23,7 +23,7 @@ MxLIVE includes, by default, the following automounters and container types:
 Creating New Container Types
 ----------------------------
 To add a new automounter or sample holder, create a new Container Type entry from the MxLIVE Django administration site.
-The **Envelope** can be `rect` or `circle` and is used to represent the shape of the container layout. The **Layout** is
+The **Envelope** can be ``rect`` or ``circle`` and is used to represent the shape of the container layout. The **Layout** is
 a JSON dictionary providing a radius for circles representing locations in the container, and a height to define the
 aspect ratio of rectangular envelopes, assuming a width of 1.
 
@@ -39,13 +39,7 @@ this location. If this container is a sample holder, do not select any accepted 
    :align: center
    :alt: Container Location
 
-To display the container layout, define coordinates for each location by creating a Location Coord. Choose the container
-type and location that have already been defined, and assign **x** and **y** coordinates. For rectangular envelopes, x
-and y should be between 0 and 1, with (0, 0) being the top left corner, and (1, 1) at the bottom right. If the container
-type selected has a circular envelope, treat x and y as polar coordinates, radius r (between 0 and 1) and angle
+To display the container layout, choose the container type, and assign **x** and **y** coordinates. For rectangular
+envelopes, x and y should be between 0 and 1, with (0, 0) being the top left corner, and (1, 1) the bottom right. If the
+container type has a circular envelope, treat x and y as polar coordinates, radius r (between 0 and 1) and angle
 :math:`{\theta}` (between :math:`{\pi}` and :math:`{-\pi}`) respectively.
-
-.. image:: images/container-location-coord.png
-   :align: center
-   :alt: Container Location Coordinates
-
