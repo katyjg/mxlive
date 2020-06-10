@@ -710,7 +710,6 @@ class ContainerType(models.Model):
         STATES.LOADED: [STATES.PENDING],
     }
     name = models.CharField(max_length=20)
-    #locations = models.ManyToManyField("ContainerLocation", through="LocationCoord", blank=True, related_name="types")
     layout = JSONField(null=True, blank=True)
     height = models.FloatField(default=1.0)
     radius = models.FloatField(default=8.0)
@@ -728,7 +727,7 @@ class ContainerLocation(models.Model):
     y = models.FloatField(default=0.0)
 
     def __str__(self):
-        return self.kind and "{}:{}".format(self.kind.name, self.name) or self.name
+        return self.name
 
 
 class ContainerQuerySet(models.QuerySet):
