@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started &mdash; MxLIVE 2020.05.262 documentation</title>
+  <title>Getting Started &mdash; MxLIVE 2020.05.264 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                2020.05.262
+                2020.05.264
               </div>
             
           
@@ -241,6 +241,8 @@ install minifiers for SCSS and JS files:</p>
 <span class="o">./</span><span class="n">manage</span><span class="o">.</span><span class="n">py</span> <span class="n">runserver</span> <span class="mi">0</span><span class="p">:</span><span class="mi">8000</span>
 </pre></div>
 </div>
+<p>If you are starting with an empty database, it will be pre-populated with a standard sets of <code class="docutils literal notranslate"><span class="pre">Container</span> <span class="pre">Type</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Project</span> <span class="pre">Type</span></code>, <code class="docutils literal notranslate"><span class="pre">Data</span> <span class="pre">Type</span></code>, and if you are using the optional scheduling app, <code class="docutils literal notranslate"><span class="pre">Access</span> <span class="pre">Type</span></code> and <code class="docutils literal notranslate"><span class="pre">Facility</span> <span class="pre">Mode</span></code>.</p>
 </li>
 <li><p>Connect your browser to <a class="reference external" href="http://localhost:8000">http://localhost:8000</a> and login when prompted. Make sure your LDAP server is running first.</p></li>
 </ol>
@@ -283,12 +285,11 @@ back in with your staff account. The temporary superuser account can be deleted.
 </ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<ul class="simple">
-<li><p>You can find more information about the MxLIVE data proxy at <a class="reference external" href="https://github.com/katyjg/mxlive-dataproxy">https://github.com/katyjg/mxlive-dataproxy</a></p></li>
-<li><p>You can find more information about PostGreSQL at <a class="reference external" href="https://hub.docker.com/_/postgres/">https://hub.docker.com/_/postgres/</a></p></li>
-<li><p>You can find more information about Memcached at <a class="reference external" href="https://hub.docker.com/_/memcached">https://hub.docker.com/_/memcached</a></p></li>
-<li><p>A tar archive containing an empty directory structure like this can be found in <code class="docutils literal notranslate"><span class="pre">deploy/skel.tar.gz</span></code></p></li>
-</ul>
+<p>A tar archive containing an empty directory structure like this can be found in <code class="docutils literal notranslate"><span class="pre">deploy/skel.tar.gz</span></code>. Find
+more information about:
+- MxLIVE data proxy - <a class="reference external" href="https://github.com/katyjg/mxlive-dataproxy">https://github.com/katyjg/mxlive-dataproxy</a>
+- PostGreSQL - <a class="reference external" href="https://hub.docker.com/_/postgres/">https://hub.docker.com/_/postgres/</a>
+- Memcached - <a class="reference external" href="https://hub.docker.com/_/memcached">https://hub.docker.com/_/memcached</a></p>
 </div>
 <p>3. Self-signed certificates will be generated in the /certs directory if certificates do not already exist, using the
 following command:</p>

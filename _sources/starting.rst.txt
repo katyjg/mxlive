@@ -45,6 +45,9 @@ Deploying for Development
     ./manage.py migrate
     ./manage.py runserver 0:8000
 
+   If you are starting with an empty database, it will be pre-populated with a standard sets of ``Container Type``,
+   ``Project Type``, ``Data Type``, and if you are using the optional scheduling app, ``Access Type`` and ``Facility Mode``.
+
 5. Connect your browser to http://localhost:8000 and login when prompted. Make sure your LDAP server is running first.
 
 .. note:: After you login on a fresh installation, you will notice that you are directed to the user dashboard, even if
@@ -79,10 +82,11 @@ Deploying for Production
     │   └── logs/              # Logs directory for mxlive-dataproxy
     └── data-cache/            # Cache directory for mxlive-dataproxy
 
-.. note:: - You can find more information about the MxLIVE data proxy at https://github.com/katyjg/mxlive-dataproxy
-          - You can find more information about PostGreSQL at https://hub.docker.com/_/postgres/
-          - You can find more information about Memcached at https://hub.docker.com/_/memcached
-          - A tar archive containing an empty directory structure like this can be found in ``deploy/skel.tar.gz``
+.. note:: A tar archive containing an empty directory structure like this can be found in ``deploy/skel.tar.gz``. Find
+          more information about:
+          - MxLIVE data proxy - https://github.com/katyjg/mxlive-dataproxy
+          - PostGreSQL - https://hub.docker.com/_/postgres/
+          - Memcached - https://hub.docker.com/_/memcached
 
 3. Self-signed certificates will be generated in the /certs directory if certificates do not already exist, using the
 following command::

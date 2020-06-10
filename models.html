@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Models &mdash; MxLIVE 2020.05.262 documentation</title>
+  <title>Models &mdash; MxLIVE 2020.05.264 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                2020.05.262
+                2020.05.264
               </div>
             
           
@@ -398,17 +398,13 @@ in a ‘shippable’ state</p>
 <li><p><strong>envelope</strong> (<em>CharField</em>) – ‘rect’ or ‘circle’ are supported.
 If ‘rect’, location__name lists are assumed to be [x, y] coordinates relative to width and height.
 If ‘circle’, location__name value lists are assumed to be polar coordinates [r, theta], relative to width.</p></li>
-<li><p><strong>layout</strong> (<em>JSONField</em>) – <p>dictionary with keys:</p>
-<ul>
-<li><p><cite>locations</cite>: dictionary with a key for each location__name mapping to a list with relative coordinates of the center of the location.</p></li>
-<li><p><cite>radius</cite>: radius of the circle (in range(0,100)) to draw for each location.</p></li>
-<li><p><cite>labels</cite> (optional): If present, takes the same form as the locations dictionary. If missing, a label is drawn for each location__name at the center of the location.</p></li>
-<li><p><cite>height</cite> (optional): To adjust dimensions of the envelope, relative to a default width of 1. If missing, height is also assumed to be 1.</p></li>
-</ul>
-</p></li>
+<li><p><strong>radius</strong> (<em>FloatField</em>) – radius of the circle (in range(0,100)) to draw for each location.</p></li>
+<li><p><strong>height</strong> (<em>FloatField</em>) – provides the aspect ratio of the envelope, relative to a default width of 1.</p></li>
 <li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
 <li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
-<li><p><strong>layout</strong> – Layout</p></li>
+<li><p><strong>layout</strong> (<em>JSONField</em>) – Layout</p></li>
+<li><p><strong>height</strong> – Height</p></li>
+<li><p><strong>radius</strong> – Radius</p></li>
 <li><p><strong>envelope</strong> – Envelope</p></li>
 </ul>
 </dd>
@@ -427,12 +423,15 @@ If ‘circle’, location__name value lists are assumed to be polar coordinates 
 
 <dl class="class">
 <dt id="mxlive.lims.models.ContainerLocation">
-<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">ContainerLocation</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/lims/models.html#ContainerLocation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.ContainerLocation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.lims.models.</code><code class="sig-name descname">ContainerLocation</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">name</em>, <em class="sig-param">kind</em>, <em class="sig-param">x</em>, <em class="sig-param">y</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/lims/models.html#ContainerLocation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.lims.models.ContainerLocation" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
 <li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
+<li><p><strong>kind_id</strong> (<em>ForeignKey</em>) – Kind</p></li>
+<li><p><strong>x</strong> (<em>FloatField</em>) – X</p></li>
+<li><p><strong>y</strong> (<em>FloatField</em>) – Y</p></li>
 </ul>
 </dd>
 </dl>
