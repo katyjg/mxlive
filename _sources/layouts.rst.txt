@@ -23,7 +23,7 @@ MxLIVE includes, by default, the following automounters and container types:
 Creating New Container Types
 ----------------------------
 To add a new automounter or sample holder, create a new Container Type entry from the MxLIVE Django administration site.
-The **Envelope** can be `rect` or `circle` and is used to represent the shape of the container layout. The **Layout** is
+The **Envelope** can be ``rect`` or ``circle`` and is used to represent the shape of the container layout. The **Layout** is
 a JSON dictionary providing a radius for circles representing locations in the container, and a height to define the
 aspect ratio of rectangular envelopes, assuming a width of 1.
 
