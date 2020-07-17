@@ -24,8 +24,6 @@ admin.site.register(models.ComponentType)
 admin.site.register(models.DataType)
 admin.site.register(models.ContainerType)
 admin.site.register(models.ContainerLocation, LocationAdmin)
-#admin.site.register(models.LocationCoord, LocationAdmin)
-
 
 admin.site.register(models.Shipment, ProjectAdmin)
 admin.site.register(models.Container, ProjectAdmin)

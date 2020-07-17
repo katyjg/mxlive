@@ -780,7 +780,7 @@ class Container(TransitStatusMixin):
         return self.samples.count()
 
     def aspect_ratio(self):
-        return 100.0 * self.kind.layout.get('height', 1.0)
+        return 100.0 * (self.kind.height or 1.0)
 
     def capacity(self):
         return self.kind.locations.count()
@@ -1404,6 +1404,14 @@ class Guide(TimeStampedModel):
 
     class Meta:
         ordering = ("-staff_only", "priority",)
+
+
+# class SupportRecord(TimeStampedModel):
+#     TYPE = Choices(
+#         ('problem', _('Problem')),
+#         ('info', _('Info')),
+#     )
+#     kind = models.CharField(_("Kind"), max_length=20, default=TYPE.snippet, choices=TYPE)
 
 
 @receiver(post_delete, sender=Project)
