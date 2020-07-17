@@ -8,16 +8,17 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
-from django.db.models import Count, F, Q, Case, When, Value, BooleanField, Max
+from django.db.models import Count, F, Q, Case, When, Value, BooleanField, Max, Subquery, OuterRef
 from django.db.models.functions import Greatest
 from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
-from django.views.generic import edit, detail, View
+from django.views.generic import edit, detail, View, TemplateView
 from formtools.wizard.views import SessionWizardView
 from itemlist.views import ItemListView
 from proxy.views import proxy_view
 
+from mxlive.staff.models import RemoteConnection
 from mxlive.utils import filters
 from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, HTML2PdfMixin
 from . import forms, models, stats
@@ -29,9 +30,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
     """
     This is the "Dashboard" view. Basic information about the Project is displayed:
 
-    :For superusers, direct to staff.html, with context:
-       - shipments: Any Shipments that are Sent or On-site
-       - automounters: Any active Dewar objects (Beamline/Automounter)
+    :For superusers, direct to StaffDashboard
 
     :For Users, direct to project.html, with context:
        - shipments: All Shipments that are Draft, Sent, or On-site, plus Returned shipments to bring the total displayed up to seven.
@@ -50,72 +49,142 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
         # inject username in to kwargs if not already present
         if not self.kwargs.get('username'):
             self.kwargs['username'] = self.request.user.username
-        if self.request.user.is_superuser:
-            self.template_name = "users/staff.html"
         return super(ProjectDetail, self).get_object(*args, **kwargs)
+
+    def dispatch(self, request, *args, **kwargs):
+        if self.request.user.is_superuser:
+            return HttpResponseRedirect(reverse_lazy('staff-dashboard'))
+
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(ProjectDetail, self).get_context_data(**kwargs)
-        if self.request.user.is_superuser:
-            shipments = models.Shipment.objects.filter(
-                status__in=(models.Shipment.STATES.SENT, models.Shipment.STATES.ON_SITE)
+        now = timezone.now()
+        one_year_ago = now - timedelta(days=365)
+        project = self.request.user
+        shipments = project.shipments.filter(
+            Q(status__lt=models.Shipment.STATES.RETURNED)
+            | Q(status=models.Shipment.STATES.RETURNED, date_returned__gt=one_year_ago)
+        ).annotate(
+            data_count=Count('containers__samples__datasets', distinct=True),
+            report_count=Count('containers__samples__datasets__reports', distinct=True),
+            sample_count=Count('containers__samples', distinct=True),
+            group_count=Count('groups', distinct=True),
+            container_count=Count('containers', distinct=True),
+        ).order_by('status', '-date_shipped', '-created').prefetch_related('project')
+
+        if settings.LIMS_USE_SCHEDULE:
+            from mxlive.schedule.models import AccessType
+            access_types = AccessType.objects.all()
+            beamtimes = project.beamtime.filter(start__gte=one_year_ago, cancelled=False).with_duration().annotate(
+                upcoming=Case(When(end__gte=now, then=Value(True)), default=Value(False), output_field=BooleanField())
             ).annotate(
-                data_count=Count('containers__samples__datasets', distinct=True),
-                report_count=Count('containers__samples__datasets__reports', distinct=True),
-                sample_count=Count('containers__samples', distinct=True),
-                group_count=Count('groups', distinct=True),
-                container_count=Count('containers', distinct=True),
-            ).order_by('status', 'project__username', '-date_shipped').prefetch_related('project')
+                distance=Case(When(upcoming=True, then=F('start') - now), default=now - F('start'))
+            ).order_by('-upcoming', 'distance')
+            context.update(beamtimes=beamtimes, access_types=access_types)
 
-            sessions = models.Session.objects.filter(
-                stretches__end__isnull=True
-            ).annotate(
-                data_count=Count('datasets', distinct=True),
-                report_count=Count('datasets__reports', distinct=True),
-            ).with_duration()
-            adaptors = models.Container.objects.filter(
-                kind__locations__accepts__isnull=False, dewars__isnull=True, status__gt=models.Container.STATES.DRAFT
-            ).distinct().order_by('name').select_related('parent')
-            automounters = models.Dewar.objects.filter(active=True).select_related(
-                'container','beamline'
-            ).order_by('beamline__name')
+        sessions = project.sessions.filter(
+            created__gt=one_year_ago
+        ).annotate(
+            data_count=Count('datasets', distinct=True),
+            report_count=Count('datasets__reports', distinct=True),
+            last_record=Max('datasets__end_time'),
+        ).order_by('last_record').with_duration().prefetch_related('project', 'beamline')[:7]
 
-            context.update(adaptors=adaptors, automounters=automounters, shipments=shipments, sessions=sessions)
+        context.update(shipments=shipments, sessions=sessions)
+        return context
 
-        else:
-            now = timezone.now()
-            one_year_ago = now - timedelta(days=365)
-            project = self.request.user
-            shipments = project.shipments.filter(
-                Q(status__lt=models.Shipment.STATES.RETURNED)
-                | Q(status=models.Shipment.STATES.RETURNED, date_returned__gt=one_year_ago)
-            ).annotate(
-                data_count=Count('containers__samples__datasets', distinct=True),
-                report_count=Count('containers__samples__datasets__reports', distinct=True),
-                sample_count=Count('containers__samples', distinct=True),
-                group_count=Count('groups', distinct=True),
-                container_count=Count('containers', distinct=True),
-            ).order_by('status', '-date_shipped', '-created').prefetch_related('project')
 
-            if settings.LIMS_USE_SCHEDULE:
-                from mxlive.schedule.models import AccessType
-                access_types = AccessType.objects.all()
-                beamtimes = project.beamtime.filter(start__gte=one_year_ago, cancelled=False).with_duration().annotate(
-                    upcoming=Case(When(start__gte=now, then=Value(True)), default=Value(False), output_field=BooleanField())
-                ).annotate(
-                    distance=Case(When(upcoming=True, then=F('start') - now), default=now - F('start'))
-                ).order_by('-upcoming', 'distance')
-                context.update(beamtimes=beamtimes, access_types=access_types)
+class StaffDashboard(AdminRequiredMixin, detail.DetailView):
+    """
+    This is the "Dashboard" view for superusers only. Basic information is displayed:
+       - shipments: Any Shipments that are Sent or On-site
+       - automounters: Any active Dewar objects (Beamline/Automounter)
+       - adaptors: Any adaptors for loading Containers into a Dewar
+       - connections: Any project currently scheduled, connected to a remote access list, or with an active session
+       - local contact: Displayed if there is a local contact scheduled
+       - user guide: All items, for users and marked staff only
+    """
 
-            sessions = project.sessions.filter(
-                created__gt=one_year_ago
-            ).annotate(
-                data_count=Count('datasets', distinct=True),
-                report_count=Count('datasets__reports', distinct=True),
-                last_record=Max('datasets__end_time'),
-            ).order_by('last_record').with_duration().prefetch_related('project', 'beamline')[:7]
+    #template_name = "users/staff.html"
+    model = models.Project
+    template_name = "users/staff-dashboard.html"
+    slug_field = 'username'
+    slug_url_kwarg = 'username'
 
-            context.update(shipments=shipments, sessions=sessions)
+    def get_object(self, *args, **kwargs):
+        # inject username in to kwargs if not already present
+        if not self.kwargs.get('username'):
+            self.kwargs['username'] = self.request.user.username
+        return super().get_object(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        now = timezone.now()
+
+        shipments = models.Shipment.objects.filter(
+            status__in=(models.Shipment.STATES.SENT, models.Shipment.STATES.ON_SITE)
+        ).annotate(
+            data_count=Count('containers__samples__datasets', distinct=True),
+            report_count=Count('containers__samples__datasets__reports', distinct=True),
+            sample_count=Count('containers__samples', distinct=True),
+            group_count=Count('groups', distinct=True),
+            container_count=Count('containers', distinct=True),
+        ).order_by('status', 'project__username', '-date_shipped').prefetch_related('project')
+
+        adaptors = models.Container.objects.filter(
+            kind__locations__accepts__isnull=False, dewars__isnull=True, status__gt=models.Container.STATES.DRAFT
+        ).distinct().order_by('name').select_related('parent')
+
+        automounters = models.Dewar.objects.filter(active=True).select_related('container', 'beamline').order_by(
+            'beamline__name')
+
+        active_sessions = models.Session.objects.filter(stretches__end__isnull=True).annotate(
+            data_count=Count('datasets', distinct=True),
+            report_count=Count('datasets__reports', distinct=True)).with_duration()
+        active_connections = RemoteConnection.objects.filter(status__iexact=RemoteConnection.STATES.CONNECTED)
+
+        conn_info = []
+        connections = []
+        sessions = []
+        if settings.LIMS_USE_SCHEDULE:
+            from mxlive.schedule.models import BeamlineSupport, AccessType, Beamtime
+            context.update(access_types=AccessType.objects.all(), support=BeamlineSupport.objects.filter(date=now.date()).first())
+
+            for bt in Beamtime.objects.filter(start__lte=now, end__gte=now).with_duration():
+                bt_sessions = models.Session.objects.filter(project=bt.project, beamline=bt.beamline).filter(Q(stretches__end__isnull=True) | Q(stretches__end__gte=bt.start))
+                sessions += bt_sessions
+                bt_connections = active_connections.filter(user=bt.project, userlist__pk__in=bt.beamline.access_lists.values_list('pk', flat=True))
+                connections += bt_connections
+
+                conn_info.append({
+                    'user': bt.project,
+                    'beamline': bt.beamline.acronym,
+                    'beamtime': bt,
+                    'sessions': bt_sessions,
+                    'connections': bt_connections
+                })
+        for session in active_sessions.exclude(pk__in=[s.pk for s in sessions]):
+            ss_connections = active_connections.filter(user=session.project, userlist__pk__in=session.beamline.access_lists.values_list('pk', flat=True))
+            connections += ss_connections
+            conn_info.append({
+                'user': session.project,
+                'beamline': session.beamline.acronym,
+                'sessions': [session],
+                'connections': ss_connections
+            })
+        for user in active_connections.exclude(pk__in=[c.pk for c in connections]).values_list('user', flat=True).distinct():
+            user_connections = active_connections.exclude(pk__in=[c.pk for c in connections]).filter(user__pk=user)
+            conn_info.append({
+                'user': models.Project.objects.get(pk=user),
+                'beamline': '/'.join([bl for bl in user_connections.values_list('userlist__beamline__acronym', flat=True).distinct() if bl]),
+                'connections': user_connections
+            })
+
+        for i, conn in enumerate(conn_info):
+            conn_info[i]['shipments'] = shipments.filter(project=conn['user']).count()
+
+        context.update(connections=conn_info, adaptors=adaptors, automounters=automounters, shipments=shipments)
         return context
 
 

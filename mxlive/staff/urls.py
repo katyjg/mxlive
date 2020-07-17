@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^access/connection/(?P<pk>\d+)/$', views.RemoteConnectionDetail.as_view(), name='connection-detail'),
     url(r'^users/$', views.ProjectList.as_view(), name='user-list'),
     url(r'^users/new/$', views.ProjectCreate.as_view(), name='new-project'),
-    url(r'^users/(?P<username>[-\w]+)/$', views.UserDetail.as_view(), name='user-detail'),
+    url(r'^users/(?P<username>[-\w]+)/$', views.UserStats.as_view(), name='user-detail'),
+    url(r'^users/(?P<username>[-\w]+)/info/$', views.UserDetail.as_view(), name='user-info'),
     url(r'^users/(?P<username>[-\w]+)/delete/$', views.ProjectDelete.as_view(), name='user-delete'),
 ]

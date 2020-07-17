@@ -4,6 +4,8 @@ from django.views.generic import TemplateView
 from . import views, ajax_views, forms
 
 urlpatterns = [
+    path('', views.StaffDashboard.as_view(), name='staff-dashboard'),
+
     path('profile/<slug:username>/edit', views.ProjectEdit.as_view(), name='edit-profile'),
     path('profile/<slug:username>/labels', views.ProjectLabels.as_view(), name='project-labels'),
     path('profile/<slug:username>/reset', views.ProjectReset.as_view(), name='project-reset'),

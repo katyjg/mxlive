@@ -1,9 +1,12 @@
-# define models here
+from django.conf import settings
 from django.db import models
-from mxlive.lims.models import ActivityLog, Beamline, Container, Sample, Group
+from django.utils import timezone
+from mxlive.lims.models import ActivityLog
 from model_utils import Choices
-import imghdr
 import os
+
+if settings.LIMS_USE_SCHEDULE:
+    from ..schedule.models import Beamtime
 
 
 def get_storage_path(instance, filename):
@@ -32,12 +35,23 @@ class UserList(StaffBaseClass):
     active = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True, editable=False)
     modified = models.DateTimeField('date modified', auto_now_add=True, editable=False)
+    beamline = models.ManyToManyField("lims.Beamline", blank=True, related_name="access_lists")
 
     def allowed_users(self):
         return ' | '.join(self.users.values_list('username', flat=True))
 
     def current_users(self):
         return ' | '.join(self.connections.filter(status__in=['Connected', 'Disconnected']).values_list('user__username', flat=True).distinct())
+
+    def scheduled_users(self):
+        return ' | '.join(self.scheduled())
+
+    def scheduled(self):
+        if settings.LIMS_USE_SCHEDULE:
+            now = timezone.now()
+            return list(Beamtime.objects.filter(access__remote=True, beamline__in=self.beamline.all(), start__lte=now, end__gte=now).values_list(
+                'project__username', flat=True))
+        return []
 
     def identity(self):
         return self.name
@@ -58,7 +72,7 @@ class RemoteConnection(StaffBaseClass):
     )
     name = models.CharField(max_length=48)
     user = models.ForeignKey("lims.Project", on_delete=models.CASCADE)
-    list = models.ForeignKey(UserList, related_name="connections", on_delete=models.CASCADE)
+    userlist = models.ForeignKey(UserList, related_name="connections", on_delete=models.CASCADE)
     status = models.CharField(choices=STATES, default=STATES.CONNECTED, max_length=20)
     created = models.DateTimeField('date created', auto_now_add=True, editable=True)
     end = models.DateTimeField('date ended', null=True, blank=True)
@@ -67,5 +81,6 @@ class RemoteConnection(StaffBaseClass):
         return self.status in ['Connected', 'Disconnected']
 
     def total_time(self):
-        return (self.end - self.created).total_seconds()/3600.
+        end = self.end or timezone.now()
+        return (end - self.created).total_seconds()/3600.
     total_time.short_description = "Duration"

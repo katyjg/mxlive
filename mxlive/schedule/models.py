@@ -24,6 +24,7 @@ class AccessType(models.Model):
     color = ColorField(default="#000000")
     email_subject = models.CharField(max_length=100, verbose_name=_('Email Subject'))
     email_body = models.TextField(blank=True)
+    remote = models.BooleanField(_("Remote Access"), default=False)
 
     def __str__(self):
         return self.name

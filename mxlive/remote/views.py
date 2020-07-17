@@ -93,21 +93,25 @@ class AccessList(View):
         from ..staff.models import UserList
         client_addr = get_client_address(request)
 
-        list = UserList.objects.filter(address=client_addr, active=True).first()
-        if list:
-            return JsonResponse([p.username for p in list.users.all()], safe=False)
+        userlist = UserList.objects.filter(address=client_addr, active=True).first()
+        users = list(userlist.users.values_list('username', flat=True))
+        if settings.LIMS_USE_SCHEDULE:
+            users += userlist.scheduled()
+
+        if userlist:
+            return JsonResponse(users, safe=False)
         else:
             return JsonResponse([], safe=False)
 
     def post(self, request, *args, **kwargs):
 
         client_addr = get_client_address(request)
-        list = UserList.objects.filter(address=client_addr, active=True).first()
+        userlist = UserList.objects.filter(address=client_addr, active=True).first()
 
         tz = timezone.get_current_timezone()
         errors = []
 
-        if list:
+        if userlist:
             data = msgpack.loads(request.body)
             for conn in data:
                 try:
@@ -116,7 +120,7 @@ class AccessList(View):
                     errors.append("User '{}' not found.".format(conn['project']))
                 status = conn['status']
                 dt = tz.localize(datetime.strptime(conn['date'], "%Y-%m-%d %H:%M:%S"))
-                r, created = RemoteConnection.objects.get_or_create(name=conn['name'], list=list, user=project)
+                r, created = RemoteConnection.objects.get_or_create(name=conn['name'], userlist=userlist, user=project)
                 r.status = status
                 if created:
                     r.created = dt
@@ -124,7 +128,7 @@ class AccessList(View):
                     r.end = dt
                 r.save()
 
-            return JsonResponse([p.username for p in list.users.all()], safe=False)
+            return JsonResponse([p.username for p in userlist.users.all()], safe=False)
         else:
             return JsonResponse([], safe=False)
 

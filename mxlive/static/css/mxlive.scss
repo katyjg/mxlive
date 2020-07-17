@@ -336,6 +336,11 @@ a.navbar-brand {
 .list-group-item .tools-box + .tools-box, .panel-heading .tools-box + .tools-box {
   margin-right: 0;
 }
+.list-group-item .box-status {
+  line-height: 1;
+  margin: 0.5em 0;
+
+}
 
 .tools-box {
   display: flex;
@@ -1340,6 +1345,12 @@ a:hover {
 
 
 .modal-body {
+  .status-bar {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    margin-top: -1rem;
+    border-bottom: 1px solid $gray-barely;
+  }
   .form-group {
     margin-bottom: 0.25rem;
 

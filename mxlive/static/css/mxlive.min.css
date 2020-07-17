@@ -7360,6 +7360,10 @@ a.navbar-brand {
 .list-group-item .tools-box + .tools-box, .panel-heading .tools-box + .tools-box {
   margin-right: 0; }
 
+.list-group-item .box-status {
+  line-height: 1;
+  margin: 0.5em 0; }
+
 .tools-box {
   display: flex;
   flex-direction: row;
@@ -8084,6 +8088,12 @@ a:hover {
     top: -30%;
     font-size: 0.8rem;
     padding: 0.2em 0.4em; }
+
+.modal-body .status-bar {
+  margin-left: -1rem;
+  margin-right: -1rem;
+  margin-top: -1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
 
 .modal-body .form-group {
   margin-bottom: 0.25rem; }

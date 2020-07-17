@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.signals import user_logged_in, user_logged_out
@@ -20,8 +21,8 @@ User = get_user_model()
 
 class AccessList(AdminRequiredMixin, ItemListView):
     model = models.UserList
-    list_filters = []
-    list_columns = ['name', 'description', 'current_users', 'allowed_users', 'address', 'active']
+    list_filters = ['beamline', 'active']
+    list_columns = ['name', 'description', 'current_users', 'allowed_users', 'address', 'beamline__acronym', 'active']
     list_search = ['name', 'description']
     tool_template = "users/tools-access.html"
     link_url = 'access-edit'
@@ -30,6 +31,11 @@ class AccessList(AdminRequiredMixin, ItemListView):
     ordering = ['name']
     template_name = "users/list.html"
     page_title = 'Remote Access'
+
+    def get_list_columns(self):
+        if settings.LIMS_USE_SCHEDULE:
+            self.list_columns = ['name', 'description', 'scheduled_users', 'allowed_users', 'address', 'beamline__acronym', 'active']
+        return self.list_columns
 
 
 class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
@@ -47,9 +53,9 @@ class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.U
 
 class RemoteConnectionList(AdminRequiredMixin, ItemListView):
     model = models.RemoteConnection
-    list_columns = ['user', 'name', 'list', 'status', 'created', 'end']
-    list_filters = ['created', 'list']
-    list_search = ['user__username', 'name', 'status', 'list__name', 'created']
+    list_columns = ['user', 'name', 'userlist', 'status', 'created', 'end']
+    list_filters = ['created', 'userlist']
+    list_search = ['user__username', 'name', 'status', 'userlist__name', 'created']
     ordering = ['-created']
     template_name = "users/list.html"
     link_url = 'connection-detail'
@@ -81,17 +87,20 @@ class ProjectList(AdminRequiredMixin, ItemListView):
 
 class UserDetail(AdminRequiredMixin, detail.DetailView):
     model = Project
-    template_name = "users/entries/user.html"
-    page_title = "User Profile"
+    template_name = "users/entries/user-info.html"
 
     def get_object(self, **kwargs):
         return Project.objects.get(username=self.kwargs.get('username'))
+
+
+class UserStats(UserDetail):
+    template_name = "users/entries/user.html"
+    page_title = "User Profile"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['report'] = stats.project_stats(self.object)
         return context
-
 
 
 class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
