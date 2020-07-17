@@ -114,7 +114,7 @@ def beamtime_stats(beamline, period='year', **filters):
     for i, per in enumerate(periods):
         series = {period.title(): period_names[i]}
         series.update(period_data[per])
-        access_type_data.append(series)
+        if period_data[per]: access_type_data.append(series)
 
     for i, per in enumerate(periods):
         series = {period.title(): period_names[i]}

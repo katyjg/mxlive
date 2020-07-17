@@ -3,7 +3,7 @@
     <div class="d-flex flex-row">
         <div class="box-status text-center">
             {% if shipment.status == shipment.STATES.DRAFT %}
-                {% show_icon label='DRAFT' icon='ti ti-md ti-clipboard' tooltip='On-site' %}
+                {% show_icon label='DRAFT' icon='ti ti-md ti-clipboard' tooltip='Draft' %}
             {% elif shipment.status == shipment.STATES.SENT %}
                 {% show_icon label=shipment.date_shipped|date:"M j"|upper icon='ti ti-md ti-truck text-dark' tooltip='Sent' %}
             {% elif shipment.status == shipment.STATES.ON_SITE %}
