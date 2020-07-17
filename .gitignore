@@ -120,6 +120,7 @@ local/*
 !local/__init__.py
 !local/settings.py.example
 .idea/workspace.xml
+.idea/*
 
 /mxlive/static/bootstrap/scss/
 /docs/_build/

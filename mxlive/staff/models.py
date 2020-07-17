@@ -4,9 +4,11 @@ from django.utils import timezone
 from mxlive.lims.models import ActivityLog
 from model_utils import Choices
 import os
+from datetime import timedelta
 
 if settings.LIMS_USE_SCHEDULE:
     from ..schedule.models import Beamtime
+    HOURS_PER_SHIFT = getattr(settings, 'HOURS_PER_SHIFT', 8)
 
 
 def get_storage_path(instance, filename):
@@ -49,7 +51,8 @@ class UserList(StaffBaseClass):
     def scheduled(self):
         if settings.LIMS_USE_SCHEDULE:
             now = timezone.now()
-            return list(Beamtime.objects.filter(access__remote=True, beamline__in=self.beamline.all(), start__lte=now, end__gte=now).values_list(
+            return list(Beamtime.objects.filter(access__remote=True, beamline__in=self.beamline.all(), start__lte=now,
+                                                end__gte=now - timedelta(hours=int(HOURS_PER_SHIFT/2))).values_list(
                 'project__username', flat=True))
         return []
 
