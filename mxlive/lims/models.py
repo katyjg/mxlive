@@ -1406,12 +1406,25 @@ class Guide(TimeStampedModel):
         ordering = ("-staff_only", "priority",)
 
 
-# class SupportRecord(TimeStampedModel):
-#     TYPE = Choices(
-#         ('problem', _('Problem')),
-#         ('info', _('Info')),
-#     )
-#     kind = models.CharField(_("Kind"), max_length=20, default=TYPE.snippet, choices=TYPE)
+class SupportArea(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+
+class SupportRecord(TimeStampedModel):
+    TYPE = Choices(
+        ('problem', _('Problem')),
+        ('info', _('Info')),
+    )
+    kind = models.CharField(_("Kind"), max_length=20, default=TYPE.info, choices=TYPE)
+    areas = models.ManyToManyField(SupportArea, blank=True)
+    staff = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True)
+    project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, related_name='help')
+    beamline = models.ForeignKey(Beamline, on_delete=models.SET_NULL, null=True, related_name='help')
+    comments = models.TextField(blank=True, null=True)
+    staff_comments = models.TextField(blank=True, null=True)
 
 
 @receiver(post_delete, sender=Project)

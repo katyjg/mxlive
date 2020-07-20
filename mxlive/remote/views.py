@@ -29,6 +29,9 @@ from ..lims.models import Project, Session
 from ..lims.templatetags.converter import humanize_duration
 from ..staff.models import UserList, RemoteConnection
 
+if settings.LIMS_USE_SCHEDULE:
+    HALF_SHIFT = int(getattr(settings, 'HOURS_PER_SHIFT', 8)/2)
+
 PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', '')
 MAX_CONTAINER_DEPTH = getattr(settings, 'MAX_CONTAINER_DEPTH', 2)
 
@@ -119,14 +122,17 @@ class AccessList(View):
                 except:
                     errors.append("User '{}' not found.".format(conn['project']))
                 status = conn['status']
-                dt = tz.localize(datetime.strptime(conn['date'], "%Y-%m-%d %H:%M:%S"))
-                r, created = RemoteConnection.objects.get_or_create(name=conn['name'], userlist=userlist, user=project)
-                r.status = status
-                if created:
-                    r.created = dt
-                else:
-                    r.end = dt
-                r.save()
+                try:
+                    dt = tz.localize(datetime.strptime(conn['date'], "%Y-%m-%d %H:%M:%S"))
+                    r, created = RemoteConnection.objects.get_or_create(name=conn['name'], userlist=userlist, user=project)
+                    r.status = status
+                    if created:
+                        r.created = dt
+                    else:
+                        r.end = dt
+                    r.save()
+                except:
+                    pass
 
             return JsonResponse([p.username for p in userlist.users.all()], safe=False)
         else:
@@ -188,6 +194,14 @@ class LaunchSession(VerificationMixin, View):
         except Beamline.DoesNotExist:
             raise http.Http404("Beamline does not exist.")
 
+        end_time = None
+        if settings.LIMS_USE_SCHEDULE:
+            now = timezone.now()
+            beamtime = project.beamtime.filter(beamline=beamline, start__lte=now + timedelta(hours=HALF_SHIFT),
+                                               end__gte=now - timedelta(hours=HALF_SHIFT))
+            if beamtime.exists():
+                end_time = datetime.strftime(max(beamtime.values_list('end', flat=True)), '%c')
+
         session, created = Session.objects.get_or_create(project=project, beamline=beamline, name=session_name)
         if created:
             # Download  key
@@ -202,7 +216,8 @@ class LaunchSession(VerificationMixin, View):
             ActivityLog.objects.log_activity(request, session, ActivityLog.TYPE.CREATE, 'Session launched')
 
         session_info = {'session': session.name,
-                        'duration': humanize_duration(session.total_time())}
+                        'duration': humanize_duration(session.total_time()),
+                        'end_time': end_time}
         return JsonResponse(session_info)
 
 

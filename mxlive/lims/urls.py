@@ -94,4 +94,7 @@ urlpatterns = [
     path('guides/<int:pk>/edit/', views.GuideEdit.as_view(), name='guide-edit'),
     path('guides/<int:pk>/delete/', views.GuideDelete.as_view(), name='guide-delete'),
 
+    path('support/', views.SupportRecordList.as_view(), name='supportrecord-list'),
+    path('support/new/', views.SupportRecordCreate.as_view(), name='new-supportrecord'),
+    path('support/<int:pk>/edit/', views.SupportRecordEdit.as_view(), name='supportrecord-edit'),
 ]

@@ -58,6 +58,9 @@
             {% show_icon label="Publications" icon="ti ti-md ti-layout-list-post" %}
         </a>
     {% endif %}
+    <a href="{% url "supportrecord-list" %}" title="User Support">
+        {% show_icon label="Support" icon="ti ti-md ti-headphone-alt" %}
+    </a>
     <div class="separator"></div>
     <a href="#!" data-form-link="{% url "new-guide" %}" title="Create Guide">
         {% show_icon label="Add Guide" icon="ti ti-md ti-agenda" %}
@@ -142,15 +145,17 @@
                         <div class="d-flex flex-row">
                             <div class="pl-3 overflow-ellipsis align-self-center">
                                 <h5 class="m-0 text-condensed text-muted">
-                                    <strong>{{ support|upper }}</strong>
+                                    <a href="mailto:{{ support.staff.contact_email|urlencode }}" title="Email {{ support }}" class="text-muted">
+                                        <strong>{{ support|upper }}</strong>
+                                    </a>
                                 </h5>
                                 <span class="text-muted overflow ellipsis">
                                     <a href="tel:{{ support.staff.contact_phone }}">{{ support.staff.contact_phone }}</a>
                                 </span>
                             </div>
                             <div class="tools-box ml-auto">
-                                <a href="mailto:{{ support.staff.contact_email|urlencode }}" title="Email {{ support }}">
-                                    {% show_icon label='Email' icon='ti ti-md ti-email' color='info' %}
+                                <a href="#!" data-form-link="{% url "new-supportrecord" %}" title="Record User Support">
+                                    {% show_icon label='Support' icon='ti ti-md ti-headphone-alt' badge='+' color='primary' %}
                                 </a>
                             </div>
                         </div>

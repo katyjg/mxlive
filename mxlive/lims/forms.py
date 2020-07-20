@@ -9,7 +9,7 @@ from django.conf import settings
 from django.urls import reverse_lazy
 
 from .models import Project, Shipment, Dewar, Sample, ComponentType, Container
-from .models import Group, ContainerLocation, ContainerType, Guide, ProjectType
+from .models import Group, ContainerLocation, ContainerType, Guide, ProjectType, SupportRecord, SupportArea
 from ..staff.models import UserList
 
 
@@ -1094,6 +1094,62 @@ class GuideForm(forms.ModelForm):
                     ),
                     css_class="col-6"
                 ),
+                css_class="row"
+            ),
+        )
+        self.footer.layout = Layout(
+            StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
+            StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+        )
+
+
+class SupportAreaForm(forms.ModelForm):
+
+    class Meta:
+        model = SupportArea
+        fields = ['name',]
+
+        def __init__(self, *args, **kwargs):
+
+class SupportRecordForm(forms.ModelForm):
+
+    class Meta:
+        model = SupportRecord
+        fields = ['kind', 'areas', 'staff', 'project', 'beamline', 'comments', 'staff_comments']
+        widgets = {
+            'comments': forms.Textarea(attrs={
+                "cols": 40, "rows": 7, "placeholder": 'Question/Concern from User:\nMy Response/Action Taken:'}),
+            'staff_comments': forms.Textarea(attrs={'cols': 40, 'rows': 7})
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.body = BodyHelper(self)
+        self.footer = FooterHelper(self)
+        if self.instance.pk:
+            self.body.title = u"Edit Record of User Support"
+            self.body.form_action = reverse_lazy('supportrecord-edit', kwargs={'pk': self.instance.pk})
+        else:
+            self.body.title = u"New Record of User Support"
+            self.body.form_action = reverse_lazy('new-supportrecord')
+            self.fields['staff_comments'].widget = forms.HiddenInput()
+
+        self.body.layout = Layout(
+            Div(
+                Div('kind', css_class="col-6"),
+                Div('beamline', css_class="col-6"),
+                css_class="row"
+            ),
+            Div(
+                Div('staff', css_class='col-6'),
+                Div('project', css_class='col-6'),
+                Div(Field('areas', css_class="select"), css_class="col-12"),
+                css_class="row"
+            ),
+            Div(
+                Div('comments', css_class="col-12"),
+                Div('staff_comments', css_class="col-12"),
                 css_class="row"
             ),
         )

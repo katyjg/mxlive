@@ -6,14 +6,15 @@ from django.conf import settings
 
 from mxlive.schedule.models import EmailNotification
 
+
 class Command(BaseCommand):
     help = 'Notifies users of upcoming beamtime'
 
     def handle(self, *args, **options):
         self.from_email = getattr(settings, 'FROM_EMAIL', "sender@no-reply.ca")
-        now = timezone.now() - timedelta(minutes=30)
+        now = timezone.now() - timedelta(minutes=40)
 
-        for notification in EmailNotification.objects.filter(sent=False).filter(send_time__range=[now, now + timedelta(hours=1)]):
+        for notification in EmailNotification.objects.filter(sent=False).filter(send_time__range=[now, now + timedelta(hours=1, minutes=20)]):
             self.save(notification)
 
     def get_message_dict(self, notification):

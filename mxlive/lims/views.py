@@ -1301,6 +1301,44 @@ class GuideDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.
         return context
 
 
+class SupportRecordList(ListViewMixin, ItemListView):
+    model = models.SupportRecord
+    list_filters = [
+        'beamline',
+        filters.YearFilterFactory('created', reverse=True),
+        filters.MonthFilterFactory('created'),
+        filters.QuarterFilterFactory('created'),
+        'project__designation',
+        'project__kind',
+        'kind',
+        'areas'
+    ]
+    list_columns = ['staff', 'beamline', 'created', 'comments']
+    list_search = ['beamline__acronym', 'project__username', 'comments']
+    link_field = 'beamline'
+    ordering = ['-created']
+    tool_template = 'users/tools-support.html'
+    link_url = 'supportrecord-edit'
+    link_field = 'staff'
+    link_attr = 'data-form-link'
+
+
+class SupportRecordCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
+    form_class = forms.SupportRecordForm
+    template_name = "modal/form.html"
+    model = models.Guide
+    success_url = reverse_lazy('dashboard')
+    success_message = "Support record has been created"
+
+
+class SupportRecordEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    form_class = forms.SupportRecordForm
+    template_name = "modal/form.html"
+    model = models.Guide
+    success_url = reverse_lazy('dashboard')
+    success_message = "Support record has been updated"
+
+
 class ProxyView(View):
     def get(self, request, *args, **kwargs):
         remote_url = DOWNLOAD_PROXY_URL + request.path
