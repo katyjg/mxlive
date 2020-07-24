@@ -35,8 +35,8 @@
     {% if beamtimes %}
     <div class="col-12 col-md-3">
         <div class="card mb-4">
-            <div class="card-header p-1 text-center text-wide text-muted"><small class="">BEAMTIME</small></div>
-            <div class="list-group list-group-flush list-group-hover">
+            <div class="card-header p-1 text-center text-wide text-muted"><small class="">UPCOMING BEAMTIME</small></div>
+            <div class="list-group list-group-flush">
             {% for beamtime in beamtimes %}
                 {% include "schedule/beamtime-list-item.html" %}
             {% endfor %}

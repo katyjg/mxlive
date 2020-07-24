@@ -93,6 +93,10 @@ class Beamtime(models.Model):
 
         return start_times
 
+    @property
+    def local_contact(self):
+        return BeamlineSupport.objects.filter(date=self.start.date()).first()
+
     def display(self, detailed=False):
         return render_to_string('schedule/beamtime.html', {'bt': self, 'detailed': detailed})
 

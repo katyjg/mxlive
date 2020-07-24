@@ -208,6 +208,11 @@ class BeamtimeDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
         return JsonResponse({'url': success_url})
 
 
+class SupportDetail(LoginRequiredMixin, detail.DetailView):
+    model = models.BeamlineSupport
+    template_name = "schedule/support-info.html"
+
+
 class SupportCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
     form_class = forms.BeamlineSupportForm
     template_name = "modal/form.html"

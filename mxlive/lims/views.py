@@ -76,13 +76,11 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
         ).order_by('status', '-date_shipped', '-created').prefetch_related('project')
 
         if settings.LIMS_USE_SCHEDULE:
-            from mxlive.schedule.models import AccessType
+            from mxlive.schedule.models import AccessType, BeamlineSupport
             access_types = AccessType.objects.all()
-            beamtimes = project.beamtime.filter(start__gte=one_year_ago, cancelled=False).with_duration().annotate(
-                upcoming=Case(When(end__gte=now, then=Value(True)), default=Value(False), output_field=BooleanField())
-            ).annotate(
-                distance=Case(When(upcoming=True, then=F('start') - now), default=now - F('start'))
-            ).order_by('-upcoming', 'distance')
+            beamtimes = project.beamtime.filter(end__gte=now, cancelled=False).with_duration().annotate(
+                current=Case(When(start__lte=now, then=Value(True)), default=Value(False), output_field=BooleanField())
+            ).order_by('-current', 'start')
             context.update(beamtimes=beamtimes, access_types=access_types)
 
         sessions = project.sessions.filter(
@@ -91,7 +89,7 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             data_count=Count('datasets', distinct=True),
             report_count=Count('datasets__reports', distinct=True),
             last_record=Max('datasets__end_time'),
-        ).order_by('last_record').with_duration().prefetch_related('project', 'beamline')[:7]
+        ).order_by('last_record', '-created').with_duration().prefetch_related('project', 'beamline')[:7]
 
         context.update(shipments=shipments, sessions=sessions)
         return context

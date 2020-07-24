@@ -1,0 +1,50 @@
+{% extends "modal/content.html" %}
+
+{% load humanize %}
+
+{% block modal_title %}
+    <h3 class="text-condensed">
+        <span class="text-muted">
+            <strong>{{ object.staff.first_name|upper }}</strong>
+            {{ object.staff.last_name }}
+        </span>
+    </h3>
+{% endblock %}
+
+{% block modal_subtitle %}
+    Beamline Support for {{ object.date }}
+{% endblock %}
+
+{% block modal_body %}
+    <div class="row status-bar pb-1 overflow-ellipsis">
+        <div class="col">
+            <strong class="text-sm">Email:</strong><br/>
+            <span>
+                <a href="mailto:{{ object.staff.contact_email|urlencode }}" title="Email {{ object }}">
+                    {{ object.staff.contact_email }}
+                </a>
+            </span>
+        </div>
+        {% now "Y-m-d" as now %}
+        {% if object.date|date:"Y-m-d" == now %}
+            <div class="col pull-right text-right">
+                <strong class="text-sm">Phone:</strong><br>
+                <span>{{ object.staff.contact_phone }}</span>
+            </div>
+        {% endif %}
+    </div>
+    {% if object.date|date:"Y-m-d" == now %}
+        <hr class="mt-0 mb-0"/>
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-warning mt-3">
+                    <h4 class="alert-heading">
+                        Current Local Time: <strong>{% now "h:i A" %}</strong>
+                    </h4>
+                    Beamline Support is offered between 8am and 10pm local time.
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+

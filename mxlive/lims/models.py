@@ -320,6 +320,10 @@ class Session(models.Model):
     def is_active(self):
         return self.stretches.active().exists()
 
+    @memoize(60)
+    def is_recent(self):
+        return self.end() >= (timezone.now() - timedelta(days=7))
+
     def shifts(self):
         total = self.stretches.with_duration().aggregate(time=Sum('shift_duration'))
         return total['time'].total_seconds() / SHIFT_SECONDS
