@@ -9,6 +9,15 @@
     <script src="{% static "js/misc/jquery.form.min.js" %}"></script>
     <script src="{% static "js/misc/select2.full.min.js" %}"></script>
     <script src="{% static "js/jquery/jquery-ui.min.js" %}"></script>
+
+    {% if not request.user.username %}
+        <style>
+            main {
+                margin-top: 0;
+                padding-bottom: 0;
+            }
+        </style>
+    {% endif %}
 {% endblock %}
 
 {% block body_class %}survey{% endblock %}

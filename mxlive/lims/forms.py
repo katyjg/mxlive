@@ -1172,7 +1172,7 @@ class UserFeedbackForm(forms.ModelForm):
         likert_table = LikertTable(css_class="row", options=UserAreaFeedback.RATINGS)
         for area in SupportArea.objects.filter(user_feedback=True):
             name = slugify(area.name)
-            self.fields[name] = forms.MultipleChoiceField(choices=UserAreaFeedback.RATINGS, label=area.name, initial=5)
+            self.fields[name] = forms.MultipleChoiceField(choices=UserAreaFeedback.RATINGS, label=area.name, initial=0)
             likert_table.append(LikertEntry(slugify(name)))
 
         self.body.layout = Layout(

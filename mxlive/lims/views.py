@@ -1371,7 +1371,6 @@ class UserFeedbackCreate(SuccessMessageMixin, edit.CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-
         try:
             username, name = decrypt(self.kwargs.get('key')).split(':')
             initial['session'] = models.Session.objects.get(project__username=username, name=name)

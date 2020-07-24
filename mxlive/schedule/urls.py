@@ -18,7 +18,7 @@ urlpatterns = [
     path('support/new/', views.SupportCreate.as_view(), name='new-support'),
     path('support/<int:pk>/edit/', views.SupportEdit.as_view(), name='support-edit'),
     path('support/<int:pk>/delete/', views.SupportDelete.as_view(), name='support-delete'),
-    path('support/<int:pk>/info/$', views.SupportDetail.as_view(template_name='schedule/support-info.html'), name='support-info'),
+    path('support/<int:pk>/info/', views.SupportDetail.as_view(template_name='schedule/support-info.html'), name='support-info'),
     path('notification/<int:pk>/edit/', views.EmailNotificationEdit.as_view(), name='email-edit'),
     path('notifications/', views.EmailNotificationList.as_view(), name='email-list'),
 
