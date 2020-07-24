@@ -25,7 +25,7 @@
                 <tr><td></td><td>c/o Shipping and Receiving</td></tr>
                 <tr><td></td><td>{{ admin_project.organisation|default:"" }}</td></tr>
                 <tr><td></td><td>{{ admin_project.address|default:"" }}</td></tr>
-                <tr><td></td><td>{{ admin_project.city|default:"" }}</td></tr>
+                <tr><td></td><td>{{ admin_project.city|default:"" }}, {{ admin_project.province|default:"" }}  {{ admin_project.postal_code|default:"" }}</td></tr>
                 <tr><td></td><td>{{ admin_project.country|default:"" }}</td></tr>
                 <tr><td></td><td>Phone: {{admin_project.contact_phone|default:""}}</td></tr>
                 {% if admin_project.contact_fax %}

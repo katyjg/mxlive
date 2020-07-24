@@ -15,7 +15,7 @@
         </span>
     </h3>
     <span class="text-muted">
-        {{ object.identity }} |
+       {{ object.identity }} |
        Started {{ object.created|naturalday }}
     </span>
 {% endblock %}
@@ -41,6 +41,9 @@
             {% show_icon label='Download' icon='ti ti-md ti-download' %}
         </a>
     {% endif %}
+    <a href="{% url "session-feedback" key=object.feedback_key %}" title="Add Feedback about this Session">
+        {% show_icon label='Feedback' icon='ti ti-md ti-star' %}
+    </a>
 {% endblock %}
 
 {% block object_status %}

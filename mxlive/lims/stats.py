@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.utils.timesince import timesince
 from memoize import memoize
 
-from mxlive.lims.models import Data, Sample, Session, Project, AnalysisReport, Container, Shipment, ProjectType
+from mxlive.lims.models import Data, Sample, Session, Project, AnalysisReport, Container, Shipment, ProjectType, SupportArea, UserFeedback, UserAreaFeedback
 from mxlive.utils.functions import ShiftEnd, ShiftStart, ShiftIndex
 from mxlive.utils.misc import humanize_duration, natural_duration
 
@@ -376,7 +376,7 @@ def usage_stats(beamline, period='year', **filters):
                     'data': {
                         "colors": "Live16",
                         "data": [
-                            {'label': entry['kind__name'], 'value': entry['count']} for entry in data_types
+                            {'label': entry['kind__name'] or 'Unknown', 'value': entry['count']} for entry in data_types
                         ],
                     },
                     'style': 'col-12 col-md-6'
@@ -976,3 +976,47 @@ def project_stats(project, **filters):
         }
     ]}
     return stats
+
+
+def support_stats():
+    area_feedback = UserAreaFeedback.objects.all()
+    choices = list(UserAreaFeedback.RATINGS)[:-1]
+    choices = [choices[1], choices[0]] + choices[2:]
+    colors = ['#66ffd5', '#00E6E2', '#ffdd33', '#ffa333']
+    choice_colors = dict(zip([c[1] for c in choices], colors))
+
+    likert_data = [
+        {
+            'Area': area.name,
+            'data': {
+                c[1]: area_feedback.filter(area=area, rating=c[0]).count() * (c[0] < 0 and -1 or 1)
+            for c in choices }
+         } for area in SupportArea.objects.filter(user_feedback=True)
+    ]
+    for i, d in enumerate(likert_data):
+        likert_data[i].update(d['data'])
+        likert_data[i].pop('data')
+
+    stats = {'details': [
+        {
+            'title': 'User Experience Surveys',
+            'description': 'Summary of impressions from user experience surveys',
+            'style': "row",
+            'content': [
+                           {
+                               'title': 'Ratings',
+                               'kind': 'barchart',
+                               'data': {
+                                   'stack': [[c[1] for c in choices]],
+                                   'x-label': 'Area',
+                                   'aspect-ratio': 1.25,
+                                   'colors': choice_colors,
+                                   'data': likert_data,
+                               },
+                               'style': 'col-12'
+                           },
+                       ]
+        },
+    ]}
+    return stats
+

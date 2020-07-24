@@ -13,8 +13,10 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 
 from django.http import JsonResponse
+from django.urls import reverse_lazy
 from django.utils import timezone, dateparse
 from django.utils.decorators import method_decorator
+from django.utils.encoding import force_str
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 
@@ -215,8 +217,11 @@ class LaunchSession(VerificationMixin, View):
         if created:
             ActivityLog.objects.log_activity(request, session, ActivityLog.TYPE.CREATE, 'Session launched')
 
+        feedback_url = force_str(reverse_lazy('session-feedback', kwargs={'key': session.feedback_key()}))
+
         session_info = {'session': session.name,
                         'duration': humanize_duration(session.total_time()),
+                        'survey': request.build_absolute_uri(feedback_url),
                         'end_time': end_time}
         return JsonResponse(session_info)
 

@@ -7,9 +7,10 @@ from django.utils.translation import ugettext as _
 from django import forms
 from django.conf import settings
 from django.urls import reverse_lazy
+from django.utils.text import slugify
 
-from .models import Project, Shipment, Dewar, Sample, ComponentType, Container
-from .models import Group, ContainerLocation, ContainerType, Guide, ProjectType, SupportRecord, SupportArea
+from .models import Project, Shipment, Dewar, Sample, ComponentType, Container, Group, ContainerLocation, ContainerType
+from .models import Guide, ProjectType, SupportRecord, SupportArea, UserFeedback, UserAreaFeedback
 from ..staff.models import UserList
 
 
@@ -1107,15 +1108,97 @@ class SupportAreaForm(forms.ModelForm):
 
     class Meta:
         model = SupportArea
-        fields = ['name',]
+        fields = ['name', 'user_feedback']
 
-        def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.body = BodyHelper(self)
+        self.footer = FooterHelper(self)
+        if self.instance.pk:
+            self.body.title = u"Edit Support Area"
+            self.body.form_action = reverse_lazy('supportarea-edit', kwargs={'pk': self.instance.pk})
+        else:
+            self.body.title = u"New Support Area"
+            self.body.form_action = reverse_lazy('new-supportarea')
+
+        self.body.layout = Layout(
+            Div(
+                Div('name', css_class="col-12"),
+                Div('user_feedback', css_class="mx-3 px-1 col-12"),
+                css_class="row"
+            ),
+        )
+        self.footer.layout = Layout(
+            StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
+            StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+        )
+
+
+class LikertTable(Div):
+    template = "users/forms/likert-table.html"
+
+    def __init__(self, *fields, **kwargs):
+        super().__init__(*fields, **kwargs)
+        self.options = kwargs.get('options')
+
+
+class LikertEntry(Field):
+    template = "users/forms/likert-entry.html"
+
+
+class UserFeedbackForm(forms.ModelForm):
+
+    class Meta:
+        model = UserFeedback
+        fields = ['comments', 'contact', 'session']
+        widgets = {
+            'session': forms.HiddenInput(),
+            'comments': forms.Textarea(attrs={"cols": 40, "rows": 7})
+        }
+        labels = {
+            'contact': 'I would like to be contacted about my recent experience.',
+            'comments': 'Provide comments to explain or give context to the ratings you selected.',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.body = BodyHelper(self)
+        self.footer = FooterHelper(self)
+        self.body.title = u"User Experience Survey"
+        self.body.form_action = reverse_lazy('session-feedback', kwargs={'key': self.initial['session'].feedback_key()})
+
+        likert_table = LikertTable(css_class="row", options=UserAreaFeedback.RATINGS)
+        for area in SupportArea.objects.filter(user_feedback=True):
+            name = slugify(area.name)
+            self.fields[name] = forms.MultipleChoiceField(choices=UserAreaFeedback.RATINGS, label=area.name, initial=5)
+            likert_table.append(LikertEntry(slugify(name)))
+
+        self.body.layout = Layout(
+            'session',
+            HTML("""<p class="text-large text-condensed">Help us improve your next visit or session by letting us know how we did this time.</p>"""),
+            HTML("""Please evaluate the following aspects of your recent beamline experience. """),
+            likert_table,
+            HTML("""<hr/>"""),
+            Div(
+                Div('comments', css_class="col-12"),
+                Div('contact', css_class="mx-3 px-1 col-12"),
+                css_class="row"
+            ),
+        )
+        self.footer.layout = Layout(
+            StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
+            StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+        )
+
 
 class SupportRecordForm(forms.ModelForm):
+    staff = forms.ModelChoiceField(queryset=Project.objects.filter(kind__name="Staff"))
 
     class Meta:
         model = SupportRecord
-        fields = ['kind', 'areas', 'staff', 'project', 'beamline', 'comments', 'staff_comments']
+        fields = ['kind', 'areas', 'staff', 'project', 'beamline', 'comments', 'staff_comments', 'lost_time']
         widgets = {
             'comments': forms.Textarea(attrs={
                 "cols": 40, "rows": 7, "placeholder": 'Question/Concern from User:\nMy Response/Action Taken:'}),
@@ -1137,13 +1220,14 @@ class SupportRecordForm(forms.ModelForm):
 
         self.body.layout = Layout(
             Div(
-                Div('kind', css_class="col-6"),
-                Div('beamline', css_class="col-6"),
+                Div('staff', css_class='col-4'),
+                Div('beamline', css_class="col-4"),
+                Div('project', css_class='col-4'),
                 css_class="row"
             ),
             Div(
-                Div('staff', css_class='col-6'),
-                Div('project', css_class='col-6'),
+                Div('kind', css_class="col-6"),
+                Div('lost_time', css_class="col-6"),
                 Div(Field('areas', css_class="select"), css_class="col-12"),
                 css_class="row"
             ),

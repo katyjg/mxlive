@@ -1,0 +1,49 @@
+{% extends "users/base.html" %}
+{% load icons %}
+{% load static %}
+{% load jsutils %}
+{% load converter %}
+{% load tz %}
+
+{% block page_heading %}
+    <h3>
+        <span class="text-thin">Support Statistics</span>
+    </h3>
+    <span class="text-muted">
+       Summary of User Support Records and User Experience Feedback
+    </span>
+{% endblock %}
+
+{% block object_tools %}
+    {% include "users/tools-support.html" %}
+{% endblock %}
+
+{% block extra_css %}
+    <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
+    <link href="{% static "css/reports.min.css" %}" rel="stylesheet">
+{% endblock %}
+
+{% block full %}
+<div class="row">
+    <div id="data-stats" class="col-12"></div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+    <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
+    <script type="text/javascript" src="{% static 'js/d3/d3.timeline.min.js' %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
+
+    <script type="text/javascript">
+        var report = {{ report | safe }};
+        $(document).ready(function() {
+            $('#data-stats').liveReport({
+                data: report
+            });
+        });
+    </script>
+{% endblock %}

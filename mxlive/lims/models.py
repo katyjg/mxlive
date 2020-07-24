@@ -4,7 +4,6 @@ import json
 import os
 import mimetypes
 
-
 from collections import OrderedDict, defaultdict
 from datetime import timedelta
 
@@ -27,6 +26,7 @@ from memoize import memoize
 
 from mxlive.utils import slap
 from mxlive.utils.data import parse_frames, frame_ranges
+from mxlive.utils.encrypt import encrypt
 from mxlive.utils.functions import Hours, Minutes, Shifts, ShiftEnd, ShiftStart
 
 IDENTITY_FORMAT = '-%y%m'
@@ -276,6 +276,9 @@ class Session(models.Model):
 
     def download_url(self):
         return '{}/{}.tar.gz'.format(self.url, self.name)
+
+    def feedback_key(self):
+        return encrypt("{user}:{name}".format(user=self.project.username, name=self.name))
 
     def launch(self):
         Stretch.objects.active(extras={'session__beamline': self.beamline}).exclude(session=self).update(
@@ -1408,9 +1411,30 @@ class Guide(TimeStampedModel):
 
 class SupportArea(models.Model):
     name = models.CharField(max_length=50)
+    user_feedback = models.BooleanField(_('Add to User Experience Survey'), default=False)
 
     def __str__(self):
         return self.name
+
+
+class UserFeedback(TimeStampedModel):
+    session = models.ForeignKey(Session, blank=True, null=True, on_delete=models.SET_NULL)
+    comments = models.TextField(blank=True, null=True)
+    contact = models.BooleanField(_('Contact User'), default=False)
+
+
+class UserAreaFeedback(models.Model):
+    RATINGS = Choices(
+        (-2, 'IMPRESSED', _('Impressed')),
+        (-1, 'SATISFIED', _('Satisfied')),
+        (1, 'NEEDS_IMPROVEMENT', _('Needs Improvement')),
+        (2, 'NEEDS_ATTENTION', _('Needs Urgent Attention')),
+        (0, 'NOT_APPLICABLE', _('N/A')),
+    )
+
+    feedback = models.ForeignKey(UserFeedback, on_delete=models.CASCADE, related_name='areas')
+    area = models.ForeignKey(SupportArea, on_delete=models.CASCADE, related_name='impressions')
+    rating = models.IntegerField(choices=RATINGS, default=RATINGS.NOT_APPLICABLE)
 
 
 class SupportRecord(TimeStampedModel):
@@ -1424,6 +1448,7 @@ class SupportRecord(TimeStampedModel):
     project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, related_name='help')
     beamline = models.ForeignKey(Beamline, on_delete=models.SET_NULL, null=True, related_name='help')
     comments = models.TextField(blank=True, null=True)
+    lost_time = models.FloatField(_('Time Lost (hours)'), default=0.0)
     staff_comments = models.TextField(blank=True, null=True)
 
 

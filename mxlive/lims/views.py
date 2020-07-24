@@ -13,6 +13,7 @@ from django.db.models.functions import Greatest
 from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.text import slugify
 from django.views.generic import edit, detail, View, TemplateView
 from formtools.wizard.views import SessionWizardView
 from itemlist.views import ItemListView
@@ -20,6 +21,7 @@ from proxy.views import proxy_view
 
 from mxlive.staff.models import RemoteConnection
 from mxlive.utils import filters
+from mxlive.utils.encrypt import decrypt
 from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, HTML2PdfMixin
 from . import forms, models, stats
 
@@ -1094,10 +1096,10 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                         group = self.shipment.groups.create(name=container.name, project=project, priority=(i+1))
                         group_samples = [
                             models.Sample(
-                                name='{}_{}'.format(group.name, j+1), group=group, project=project, container=container,
+                                name='{}_{}'.format(group.name, location.name), group=group, project=project, container=container,
                                 location=location
                             )
-                            for j, location in enumerate(container.kind.locations.all())
+                            for location in container.kind.locations.all()
                         ]
                         models.Sample.objects.bulk_create(group_samples)
                 else:
@@ -1301,6 +1303,96 @@ class GuideDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.
         return context
 
 
+class SupportMetrics(AdminRequiredMixin, TemplateView):
+    template_name = "users/entries/support-statistics.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['report'] = stats.support_stats()
+        return context
+
+
+class SupportAreaList(ListViewMixin, ItemListView):
+    model = models.SupportArea
+    list_filters = ['user_feedback']
+    list_columns = ['name', 'user_feedback']
+    list_search = ['name']
+    link_field = 'name'
+    show_project = False
+    ordering = ['name']
+    tool_template = 'users/tools-support.html'
+    link_url = 'supportarea-edit'
+    link_attr = 'data-form-link'
+
+
+class SupportAreaCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
+    form_class = forms.SupportAreaForm
+    template_name = "modal/form.html"
+    model = models.SupportArea
+    success_url = reverse_lazy('supportarea-list')
+    success_message = "Support area has been created"
+
+
+class SupportAreaEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    form_class = forms.SupportAreaForm
+    template_name = "modal/form.html"
+    model = models.SupportArea
+    success_url = reverse_lazy('supportarea-list')
+    success_message = "Support area has been updated"
+
+
+class UserFeedbackList(ListViewMixin, ItemListView):
+    model = models.UserFeedback
+    list_filters = [
+        filters.YearFilterFactory('created', reverse=True),
+        filters.MonthFilterFactory('created'),
+        filters.QuarterFilterFactory('created'),
+        'session__project__designation',
+        'session__project__kind',
+    ]
+    list_columns = ['created', 'session', 'comments', 'contact']
+    list_search = ['session__project__username', 'comments']
+    ordering = ['-created']
+    tool_template = 'users/tools-support.html'
+    show_project = False
+    link_url = 'user-feedback-detail'
+    link_attr = 'data-link'
+
+
+class UserFeedbackDetail(AdminRequiredMixin, detail.DetailView):
+    model = models.UserFeedback
+    template_name = "users/entries/feedback.html"
+
+
+class UserFeedbackCreate(SuccessMessageMixin, edit.CreateView):
+    form_class = forms.UserFeedbackForm
+    template_name = "users/forms/survey.html"
+    model = models.UserFeedback
+    success_url = reverse_lazy('dashboard')
+    success_message = "User Feedback has been submitted"
+
+    def get_initial(self):
+        initial = super().get_initial()
+
+        try:
+            username, name = decrypt(self.kwargs.get('key')).split(':')
+            initial['session'] = models.Session.objects.get(project__username=username, name=name)
+        except:
+            pass
+
+        return initial
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        to_create = []
+        for area in models.SupportArea.objects.filter(user_feedback=True):
+            to_create.append(models.UserAreaFeedback(feedback=self.object, area=area, rating=form.cleaned_data.get(slugify(area.name))[0]))
+
+        models.UserAreaFeedback.objects.bulk_create(to_create)
+        return response
+
+
 class SupportRecordList(ListViewMixin, ItemListView):
     model = models.SupportRecord
     list_filters = [
@@ -1315,7 +1407,6 @@ class SupportRecordList(ListViewMixin, ItemListView):
     ]
     list_columns = ['staff', 'beamline', 'created', 'comments']
     list_search = ['beamline__acronym', 'project__username', 'comments']
-    link_field = 'beamline'
     ordering = ['-created']
     tool_template = 'users/tools-support.html'
     link_url = 'supportrecord-edit'
@@ -1326,16 +1417,26 @@ class SupportRecordList(ListViewMixin, ItemListView):
 class SupportRecordCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
     form_class = forms.SupportRecordForm
     template_name = "modal/form.html"
-    model = models.Guide
-    success_url = reverse_lazy('dashboard')
+    model = models.SupportRecord
+    success_url = reverse_lazy('supportrecord-list')
     success_message = "Support record has been created"
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['project'] = models.Project.objects.filter(username=self.request.GET.get('project')).first()
+        initial['beamline'] = models.Beamline.objects.filter(acronym=self.request.GET.get('beamline')).first()
+        if settings.LIMS_USE_SCHEDULE:
+            from mxlive.schedule.models import BeamlineSupport
+            support = BeamlineSupport.objects.filter(date=timezone.now().date()).first()
+            initial['staff'] = support and support.staff or None
+        return initial
 
 
 class SupportRecordEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
     form_class = forms.SupportRecordForm
     template_name = "modal/form.html"
-    model = models.Guide
-    success_url = reverse_lazy('dashboard')
+    model = models.SupportRecord
+    success_url = reverse_lazy('supportrecord-list')
     success_message = "Support record has been updated"
 
 

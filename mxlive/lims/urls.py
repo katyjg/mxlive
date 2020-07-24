@@ -96,5 +96,14 @@ urlpatterns = [
 
     path('support/', views.SupportRecordList.as_view(), name='supportrecord-list'),
     path('support/new/', views.SupportRecordCreate.as_view(), name='new-supportrecord'),
+    path('support/<int:pk>/metrics/', views.SupportMetrics.as_view(), name='support-stats'),
     path('support/<int:pk>/edit/', views.SupportRecordEdit.as_view(), name='supportrecord-edit'),
+    path('area/', views.SupportAreaList.as_view(), name='supportarea-list'),
+    path('area/new/', views.SupportAreaCreate.as_view(), name='new-supportarea'),
+    path('area/<int:pk>/edit/', views.SupportAreaEdit.as_view(), name='supportarea-edit'),
+
+    path('feedback/', views.UserFeedbackList.as_view(), name='user-feedback-list'),
+    path('feedback/<int:pk>/', views.UserFeedbackDetail.as_view(), name='user-feedback-detail'),
+    path('feedback/<str:key>/new/', views.UserFeedbackCreate.as_view(), name='session-feedback'),
+
 ]

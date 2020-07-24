@@ -1867,3 +1867,14 @@ input::placeholder {
     display: none !important;
   }
 }
+.survey {
+  .folio-body {
+    overflow: unset;
+  }
+  td label {
+    display: block;
+    height: 4rem;
+    padding: 0.75rem;
+    margin-bottom: 0;
+  }
+}

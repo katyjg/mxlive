@@ -343,6 +343,7 @@ function drawBarChart(figure, chart, options) {
                 value: series
             },
             groups: chart.data.stack || [],
+            order: null
         },
         grid: {y: {show: true}},
         axis: {

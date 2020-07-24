@@ -8531,3 +8531,12 @@ input::placeholder {
 
 .datepicker:after, .datepicker:before {
   display: none !important; }
+
+.survey .folio-body {
+  overflow: unset; }
+
+.survey td label {
+  display: block;
+  height: 4rem;
+  padding: 0.75rem;
+  margin-bottom: 0; }
