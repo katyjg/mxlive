@@ -41,11 +41,13 @@
                     {% show_icon label='Info' icon='ti ti-md ti-info-alt' color='info' %}
                 </a>
             {% endif %}
-            {% if beamtime.local_contact %}
-                <a href="#!" data-link="{% url "support-info" beamtime.local_contact.pk %}" title="Get support from your local contact">
-                    {% show_icon label='Support' icon='ti ti-md ti-headphone-alt' %}
-                </a>
-            {% endif %}
+            {% with beamtime.local_contact as local_contact %}
+                {% if local_contact %}
+                    <a href="#!" data-link="{% url "support-info" local_contact.pk %}?current={{ beamtime.current }}" title="Get support from your local contact">
+                        {% show_icon label='Support' icon='ti ti-md ti-headphone-alt' %}
+                    </a>
+                {% endif %}
+            {% endwith %}
         </div>
     </div>
 </div>

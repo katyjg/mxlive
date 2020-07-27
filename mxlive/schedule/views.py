@@ -18,6 +18,9 @@ from mxlive.lims.views import ListViewMixin
 
 from datetime import datetime, timedelta
 
+MIN_SUPPORT_HOUR = getattr(settings, 'MIN_SUPPORT_HOUR', 0)
+MAX_SUPPORT_HOUR = getattr(settings, 'MAX_SUPPORT_HOUR', 24)
+
 
 class CalendarView(TemplateView):
     template_name = 'schedule/public-schedule.html'
@@ -40,6 +43,7 @@ class CalendarView(TemplateView):
         context['today'] = datetime.strftime(timezone.localtime(), '%Y-%m-%d')
         context['year'] = year
         context['week'] = week
+        context['support'] = "{:02d}:00 - {:02d}:00".format(MIN_SUPPORT_HOUR, MAX_SUPPORT_HOUR)
         context['beamlines'] = Beamline.objects.filter(active=True)
         context['access_types'] = models.AccessType.objects.all()
         context['facility_modes'] = models.FacilityMode.objects.all()
@@ -211,6 +215,11 @@ class BeamtimeDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
 class SupportDetail(LoginRequiredMixin, detail.DetailView):
     model = models.BeamlineSupport
     template_name = "schedule/support-info.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['current'] = self.request.GET.get('current') == 'True'
+        return ctx
 
 
 class SupportCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):

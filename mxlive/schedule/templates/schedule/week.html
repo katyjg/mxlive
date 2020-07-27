@@ -65,10 +65,13 @@
                    class="table table-sm mb-0 item-list bcal-week">
                 <thead class="card-header">
                     <tr>
-                        <th class="text-uppercase bcal-sm-col"></th>
-                        <th class="text-uppercase bcal-sm-col">Time</th>
-                        {% for bl in beamlines %}<th class="text-uppercase">{{ bl.acronym }}</th>{% endfor %}
-                        <th class="text-uppercase bcal-md-col">Staff</th>
+                        <th class="text-uppercase bcal-sm-col align-middle"></th>
+                        <th class="text-uppercase bcal-sm-col align-middle">Time</th>
+                        {% for bl in beamlines %}<th class="text-uppercase align-middle">{{ bl.acronym }}</th>{% endfor %}
+                        <th class="text-uppercase bcal-md-col py-1 align-middle" {% if support %}style="line-height: 1;"{% endif %}>
+                            Staff
+                            {% if support %}<br/><small>{{ support }}</small>{% endif %}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>

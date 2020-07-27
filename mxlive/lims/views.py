@@ -8,8 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
-from django.db.models import Count, F, Q, Case, When, Value, BooleanField, Max, Subquery, OuterRef
-from django.db.models.functions import Greatest
+from django.db.models import Count, Q, Case, When, Value, BooleanField, Max
 from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.template.defaultfilters import linebreaksbr
 from django.urls import reverse, reverse_lazy
@@ -27,6 +26,12 @@ from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, HTML2PdfMixi
 from . import forms, models, stats
 
 DOWNLOAD_PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', "http://mxlive-data/download")
+
+if settings.LIMS_USE_SCHEDULE:
+    from mxlive.schedule.models import AccessType, BeamlineSupport, Beamtime
+
+    MIN_SUPPORT_HOUR = getattr(settings, 'MIN_SUPPORT_HOUR', 0)
+    MAX_SUPPORT_HOUR = getattr(settings, 'MAX_SUPPORT_HOUR', 24)
 
 
 class ProjectDetail(UserPassesTestMixin, detail.DetailView):
@@ -77,7 +82,6 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
         ).order_by('status', '-date_shipped', '-created').prefetch_related('project')
 
         if settings.LIMS_USE_SCHEDULE:
-            from mxlive.schedule.models import AccessType, BeamlineSupport
             access_types = AccessType.objects.all()
             beamtimes = project.beamtime.filter(end__gte=now, cancelled=False).with_duration().annotate(
                 current=Case(When(start__lte=now, then=Value(True)), default=Value(False), output_field=BooleanField())
@@ -149,7 +153,6 @@ class StaffDashboard(AdminRequiredMixin, detail.DetailView):
         connections = []
         sessions = []
         if settings.LIMS_USE_SCHEDULE:
-            from mxlive.schedule.models import BeamlineSupport, AccessType, Beamtime
             context.update(access_types=AccessType.objects.all(), support=BeamlineSupport.objects.filter(date=timezone.localtime().date()).first())
 
             for bt in Beamtime.objects.filter(start__lte=now, end__gte=now).with_duration():
@@ -1441,7 +1444,6 @@ class SupportRecordCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixi
         initial['project'] = models.Project.objects.filter(username=self.request.GET.get('project')).first()
         initial['beamline'] = models.Beamline.objects.filter(acronym=self.request.GET.get('beamline')).first()
         if settings.LIMS_USE_SCHEDULE:
-            from mxlive.schedule.models import BeamlineSupport
             support = BeamlineSupport.objects.filter(date=timezone.now().date()).first()
             initial['staff'] = support and support.staff or None
         return initial

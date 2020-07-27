@@ -18,6 +18,9 @@ import timezonefinder, pytz
 
 tf = timezonefinder.TimezoneFinder()
 
+MIN_SUPPORT_HOUR = getattr(settings, 'MIN_SUPPORT_HOUR', 0)
+MAX_SUPPORT_HOUR = getattr(settings, 'MAX_SUPPORT_HOUR', 24)
+
 
 class AccessType(models.Model):
     name = models.CharField(blank=True, max_length=30)
@@ -48,6 +51,10 @@ class BeamlineSupport(models.Model):
 
     def __str__(self):
         return "{} {}".format(self.staff.first_name, self.staff.last_name)
+
+    def active(self):
+        now = timezone.localtime()
+        return now.date() == self.date and MIN_SUPPORT_HOUR <= now.hour < MAX_SUPPORT_HOUR
 
 
 class BeamtimeQuerySet(models.QuerySet):
@@ -95,7 +102,8 @@ class Beamtime(models.Model):
 
     @property
     def local_contact(self):
-        return BeamlineSupport.objects.filter(date=self.start.date()).first()
+        dt = max(self.start.date(), timezone.localtime().date())
+        return BeamlineSupport.objects.filter(date=dt).first()
 
     def display(self, detailed=False):
         return render_to_string('schedule/beamtime.html', {'bt': self, 'detailed': detailed})

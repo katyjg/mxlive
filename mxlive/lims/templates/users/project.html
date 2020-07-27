@@ -33,28 +33,16 @@
 {% block full %}
   <div class="row">
     {% if beamtimes %}
-    <div class="col-12 col-md-3">
-        <div class="card mb-4">
-            <div class="card-header p-1 text-center text-wide text-muted"><small class="">UPCOMING BEAMTIME</small></div>
-            <div class="list-group list-group-flush">
-            {% for beamtime in beamtimes %}
-                {% include "schedule/beamtime-list-item.html" %}
-            {% endfor %}
+        <div class="col-12 col-md-3">
+            <div class="card mb-4">
+                <div class="card-header p-1 text-center text-wide text-muted"><small class="">UPCOMING BEAMTIME</small></div>
+                <div class="list-group list-group-flush">
+                {% for beamtime in beamtimes %}
+                    {% include "schedule/beamtime-list-item.html" %}
+                {% endfor %}
+                </div>
             </div>
-            {% for automounter in automounters %}
-                <a href="{% url "beamline-detail" pk=automounter.beamline.pk %}" class="text-center list-group-item p-2">
-                        <div id="layout-{{ automounter.container.pk }}" class="layout-lg">
-                            <h5 class="text-condensed">
-                                <strong><span class="text-muted">{{ automounter.beamline.acronym }}</span></strong> | {{ automounter.container.kind }}
-                            </h5>
-                            <hr/>
-                        </div>
-                        {% include "users/entries/container-layout.html" with container=automounter.container details=False %}
-                </a>
-            {% endfor %}
-
         </div>
-    </div>
     {% endif %}
     <div class="col-12 {% if beamtimes %}col-md-6{% else %}col-sm-8{% endif %}">
         <div class="card mb-4">
