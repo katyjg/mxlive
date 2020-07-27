@@ -1422,7 +1422,7 @@ class SupportArea(models.Model):
 
 
 class UserFeedback(TimeStampedModel):
-    session = models.ForeignKey(Session, blank=True, null=True, on_delete=models.SET_NULL)
+    session = models.ForeignKey(Session, blank=True, null=True, on_delete=models.SET_NULL, related_name='feedback')
     comments = models.TextField(blank=True, null=True)
     contact = models.BooleanField(_('Contact User'), default=False)
 

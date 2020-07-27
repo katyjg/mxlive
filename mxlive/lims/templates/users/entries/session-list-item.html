@@ -5,7 +5,13 @@
 <div class="list-group-item p-2">
     <div class="d-flex flex-row">
         <div class="box-status text-center text-muted">
-            {% show_icon label=session.start.date|date:"M j"|upper icon='ti ti-md ti-time' %}
+            {% if session.is_recent and not session.feedback.exists %}
+                <a href="{% url "session-feedback" key=session.feedback_key %}" title="Give feedback about this session">
+                    {% show_icon label='Feedback' icon='ti ti-md ti-star' %}
+                </a>
+            {% else %}
+                {% show_icon label=session.start.date|date:"M j"|upper icon='ti ti-md ti-time' %}
+            {% endif %}
         </div>
         <div class="pl-3 overflow-ellipsis align-self-center">
             <h5 class="m-0 text-condensed">
