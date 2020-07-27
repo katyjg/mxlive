@@ -29,7 +29,7 @@ class CalendarView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         detailed = self.request.GET.get('detailed', False)
-        now = self.request.GET.get('start') and datetime.strptime(self.request.GET['start'], '%Y-%m-%dT%H') or timezone.now()
+        now = self.request.GET.get('start') and datetime.strptime(self.request.GET['start'], '%Y-%m-%dT%H') or timezone.localtime()
         try:
             d = '{}-W{}-1'.format(kwargs.get('year', ''), kwargs.get('week', ''))
             now = datetime.strptime(d, '%G-W%V-%w')
@@ -37,7 +37,7 @@ class CalendarView(TemplateView):
             pass
 
         (year, week, _) = now.isocalendar()
-        context['today'] = datetime.strftime(timezone.now(), '%Y-%m-%d')
+        context['today'] = datetime.strftime(timezone.localtime(), '%Y-%m-%d')
         context['year'] = year
         context['week'] = week
         context['beamlines'] = Beamline.objects.filter(active=True)

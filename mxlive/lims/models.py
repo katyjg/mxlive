@@ -1429,10 +1429,10 @@ class UserFeedback(TimeStampedModel):
 
 class UserAreaFeedback(models.Model):
     RATINGS = Choices(
-        (-2, 'IMPRESSED', _('Impressed')),
-        (-1, 'SATISFIED', _('Satisfied')),
-        (1, 'NEEDS_IMPROVEMENT', _('Needs Improvement')),
-        (2, 'NEEDS_ATTENTION', _('Needs Urgent Attention')),
+        (-2, 'NEEDS_ATTENTION', _('Needs Urgent Attention')),
+        (-1, 'NEEDS_IMPROVEMENT', _('Needs Improvement')),
+        (1, 'SATISFIED', _('Satisfied')),
+        (2, 'IMPRESSED', _('Impressed')),
         (0, 'NOT_APPLICABLE', _('N/A')),
     )
 
@@ -1447,7 +1447,7 @@ class SupportRecord(TimeStampedModel):
         ('info', _('Info')),
     )
     kind = models.CharField(_("Kind"), max_length=20, default=TYPE.info, choices=TYPE)
-    areas = models.ManyToManyField(SupportArea, blank=True)
+    areas = models.ManyToManyField(SupportArea, blank=True, related_name='help')
     staff = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True)
     project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, related_name='help')
     beamline = models.ForeignKey(Beamline, on_delete=models.SET_NULL, null=True, related_name='help')

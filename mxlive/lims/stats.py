@@ -5,13 +5,14 @@ from math import ceil
 
 import numpy
 from django.conf import settings
-from django.db.models import Count, Sum, F, Avg, FloatField
+from django.db.models import Count, Sum, F, Avg, FloatField, Case, When, IntegerField
 from django.db.models.functions import Coalesce
+from django.template.defaultfilters import linebreaksbr
 from django.utils import timezone
 from django.utils.timesince import timesince
 from memoize import memoize
 
-from mxlive.lims.models import Data, Sample, Session, Project, AnalysisReport, Container, Shipment, ProjectType, SupportArea, UserFeedback, UserAreaFeedback
+from mxlive.lims.models import Data, Sample, Session, Project, AnalysisReport, Container, Shipment, ProjectType, SupportArea, UserFeedback, UserAreaFeedback, SupportRecord
 from mxlive.utils.functions import ShiftEnd, ShiftStart, ShiftIndex
 from mxlive.utils.misc import humanize_duration, natural_duration
 
@@ -980,9 +981,10 @@ def project_stats(project, **filters):
 
 def support_stats():
     area_feedback = UserAreaFeedback.objects.all()
+    feedback = UserFeedback.objects.all()
     choices = list(UserAreaFeedback.RATINGS)[:-1]
     choices = [choices[1], choices[0]] + choices[2:]
-    colors = ['#66ffd5', '#00E6E2', '#ffdd33', '#ffa333']
+    colors = ['#ffdd33', '#ffa333', '#66ffd5', '#00E6E2']
     choice_colors = dict(zip([c[1] for c in choices], colors))
 
     likert_data = [
@@ -991,31 +993,58 @@ def support_stats():
             'data': {
                 c[1]: area_feedback.filter(area=area, rating=c[0]).count() * (c[0] < 0 and -1 or 1)
             for c in choices }
-         } for area in SupportArea.objects.filter(user_feedback=True)
+         } for area in SupportArea.objects.filter(user_feedback=True).order_by('pk')
     ]
     for i, d in enumerate(likert_data):
         likert_data[i].update(d['data'])
         likert_data[i].pop('data')
 
+    support_areas = SupportArea.objects.annotate(
+        info=Count(Case(When(help__kind='info', then=1), output_field=IntegerField())),
+        problem=Count(Case(When(help__kind='problem', then=1), output_field=IntegerField())),
+        time_lost=Sum('help__lost_time')
+    ).order_by('pk')
+
     stats = {'details': [
         {
-            'title': 'User Experience Surveys',
+            'title': 'User Experience and Support',
             'description': 'Summary of impressions from user experience surveys',
             'style': "row",
             'content': [
-                           {
-                               'title': 'Ratings',
-                               'kind': 'barchart',
-                               'data': {
-                                   'stack': [[c[1] for c in choices]],
-                                   'x-label': 'Area',
-                                   'aspect-ratio': 1.25,
-                                   'colors': choice_colors,
-                                   'data': likert_data,
-                               },
-                               'style': 'col-12'
-                           },
-                       ]
+                {
+                   'title': 'User Experience Surveys',
+                   'kind': 'barchart',
+                   'data': {
+                       'stack': [[c[1] for c in choices]],
+                       'x-label': 'Area',
+                       'aspect-ratio': 1,
+                       'colors': choice_colors,
+                       'data': likert_data,
+                   },
+                   'notes': linebreaksbr('\n\n'.join(feedback.values_list('comments', flat=True).distinct())),
+                   'style': 'col-12 col-md-6'
+                },
+                {
+                    'title': 'User Support Interactions and Lost Time',
+                    'kind': 'barchart',
+                    'data': {
+                        'aspect-ratio': 1,
+                        'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33'},
+                        'x-label': "Area",
+                        'data': [
+                            {
+                                "Area": area.name,
+                                "Info": area.info,
+                                "Problem": area.problem,
+                                "Lost Time (hours)": area.time_lost or 0,
+                            } for area in support_areas
+                        ]
+                    },
+                    'notes': 'Staff Comments:\n\n' + linebreaksbr(
+                        '\n\n'.join(SupportRecord.objects.values_list('staff_comments', flat=True).distinct())),
+                    'style': 'col-12 col-md-6'
+                },
+            ]
         },
     ]}
     return stats

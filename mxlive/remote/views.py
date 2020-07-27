@@ -203,6 +203,8 @@ class LaunchSession(VerificationMixin, View):
                                                end__gte=now - timedelta(hours=HALF_SHIFT))
             if beamtime.exists():
                 end_time = max(beamtime.values_list('end', flat=True)).isoformat()
+            elif not beamline.active:
+                end_time = (timezone.now() + timedelta(hours=2)).isoformat()
 
         session, created = Session.objects.get_or_create(project=project, beamline=beamline, name=session_name)
         if created:

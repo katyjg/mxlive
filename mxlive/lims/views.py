@@ -11,6 +11,7 @@ from django.db import transaction
 from django.db.models import Count, F, Q, Case, When, Value, BooleanField, Max, Subquery, OuterRef
 from django.db.models.functions import Greatest
 from django.http import JsonResponse, Http404, HttpResponseRedirect
+from django.template.defaultfilters import linebreaksbr
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.text import slugify
@@ -149,7 +150,7 @@ class StaffDashboard(AdminRequiredMixin, detail.DetailView):
         sessions = []
         if settings.LIMS_USE_SCHEDULE:
             from mxlive.schedule.models import BeamlineSupport, AccessType, Beamtime
-            context.update(access_types=AccessType.objects.all(), support=BeamlineSupport.objects.filter(date=now.date()).first())
+            context.update(access_types=AccessType.objects.all(), support=BeamlineSupport.objects.filter(date=timezone.localtime().date()).first())
 
             for bt in Beamtime.objects.filter(start__lte=now, end__gte=now).with_duration():
                 bt_sessions = models.Session.objects.filter(project=bt.project, beamline=bt.beamline).filter(Q(stretches__end__isnull=True) | Q(stretches__end__gte=bt.start))
@@ -1390,6 +1391,10 @@ class UserFeedbackCreate(SuccessMessageMixin, edit.CreateView):
         return response
 
 
+def format_comments(val, record):
+    return linebreaksbr(val)
+
+
 class SupportRecordList(ListViewMixin, ItemListView):
     model = models.SupportRecord
     list_filters = [
@@ -1403,6 +1408,7 @@ class SupportRecordList(ListViewMixin, ItemListView):
         'areas'
     ]
     list_columns = ['staff', 'beamline', 'created', 'comments']
+    list_transforms = {'comments': format_comments}
     list_search = ['beamline__acronym', 'project__username', 'comments']
     ordering = ['-created']
     tool_template = 'users/tools-support.html'

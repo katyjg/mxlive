@@ -1180,7 +1180,7 @@ class UserFeedbackForm(forms.ModelForm):
             HTML("""<p class="text-large text-condensed">Help us improve your next visit or session by letting us know how we did this time.</p>"""),
             HTML("""Please evaluate the following aspects of your recent beamline experience. """),
             likert_table,
-            HTML("""<hr/>"""),
+            HTML("""<br/>"""),
             Div(
                 Div('comments', css_class="col-12"),
                 Div('contact', css_class="mx-3 px-1 col-12"),
