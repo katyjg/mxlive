@@ -1307,7 +1307,19 @@ class SupportMetrics(AdminRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['report'] = stats.support_stats()
+        context['beamlines'] = models.Beamline.objects.filter(active=True)
+        filters = {}
+        if self.kwargs.get('beamline'):
+            try:
+                beamline = models.Beamline.objects.get(pk=self.kwargs['beamline'])
+            except:
+                raise http.Http404("Beamline does not exist")
+        else:
+            filters.update({'beamline__in': context['beamlines']})
+            beamline = None
+
+        context['beamline'] = beamline
+        context['report'] = stats.support_stats(beamline=beamline, **filters)
         return context
 
 
@@ -1407,7 +1419,7 @@ class SupportRecordList(ListViewMixin, ItemListView):
         'kind',
         'areas'
     ]
-    list_columns = ['staff', 'beamline', 'created', 'comments']
+    list_columns = ['staff', 'beamline', 'created', 'comments', 'area_names']
     list_transforms = {'comments': format_comments}
     list_search = ['beamline__acronym', 'project__username', 'comments']
     ordering = ['-created']

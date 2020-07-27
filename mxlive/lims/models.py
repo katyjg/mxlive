@@ -1426,6 +1426,9 @@ class UserFeedback(TimeStampedModel):
     comments = models.TextField(blank=True, null=True)
     contact = models.BooleanField(_('Contact User'), default=False)
 
+    def __str__(self):
+        return self.session and self.session.name or "No Session"
+
 
 class UserAreaFeedback(models.Model):
     RATINGS = Choices(
@@ -1454,6 +1457,13 @@ class SupportRecord(TimeStampedModel):
     comments = models.TextField(blank=True, null=True)
     lost_time = models.FloatField(_('Time Lost (hours)'), default=0.0)
     staff_comments = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return "{} | {} | {}".format(self.staff, self.beamline, self.project)
+
+    @property
+    def area_names(self):
+        return ' | '.join(self.areas.values_list("name", flat=True))
 
 
 @receiver(post_delete, sender=Project)

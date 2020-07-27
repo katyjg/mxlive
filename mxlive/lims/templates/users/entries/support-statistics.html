@@ -7,15 +7,35 @@
 
 {% block page_heading %}
     <h3>
-        <span class="text-thin">Support Statistics</span>
+        <span class="text-thin">Support Statistics</span>{% if beamline %} | <strong>{{ beamline.acronym }}</strong>{% endif %}
     </h3>
     <span class="text-muted">
-       Summary of User Support Records and User Experience Feedback
+       Summary of User Support Records and User Experience Feedback {% if beamline %}from {{ beamline.name }}{% endif %}
     </span>
 {% endblock %}
 
 {% block object_tools %}
     {% include "users/tools-support.html" %}
+{% endblock %}
+
+{% block object_status %}
+    <div class="status-bar">
+        <div class="row">
+            <div class="col">
+
+                <small class="text-muted text-condensed">Beamline:</small><br>
+                <h5>
+                <a href="{% url "support-stats" %}">
+                    <span class="badge badge-{% if beamline %}info{% else %}primary{% endif %}">&emsp;All&emsp;</span>
+                </a>&nbsp;
+                {% for bl in beamlines %}
+                    <a href="{% url "support-beamline-stats" bl.pk %}">
+                        <span class="badge badge-{% if bl == beamline %}primary{% else %}info{% endif %}">{{ bl }}</span></a>
+                {% endfor %}
+                </h5>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block extra_css %}

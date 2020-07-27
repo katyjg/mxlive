@@ -96,7 +96,8 @@ urlpatterns = [
 
     path('support/', views.SupportRecordList.as_view(), name='supportrecord-list'),
     path('support/new/', views.SupportRecordCreate.as_view(), name='new-supportrecord'),
-    path('support/<int:pk>/metrics/', views.SupportMetrics.as_view(), name='support-stats'),
+    path('support/metrics/', views.SupportMetrics.as_view(), name='support-stats'),
+    path('support/<int:beamline>/metrics/', views.SupportMetrics.as_view(), name='support-beamline-stats'),
     path('support/<int:pk>/edit/', views.SupportRecordEdit.as_view(), name='supportrecord-edit'),
     path('area/', views.SupportAreaList.as_view(), name='supportarea-list'),
     path('area/new/', views.SupportAreaCreate.as_view(), name='new-supportarea'),

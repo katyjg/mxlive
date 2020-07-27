@@ -5,7 +5,7 @@ from math import ceil
 
 import numpy
 from django.conf import settings
-from django.db.models import Count, Sum, F, Avg, FloatField, Case, When, IntegerField
+from django.db.models import Count, Sum, F, Avg, FloatField, Case, When, IntegerField, Q
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import linebreaksbr
 from django.utils import timezone
@@ -979,9 +979,23 @@ def project_stats(project, **filters):
     return stats
 
 
-def support_stats():
-    area_feedback = UserAreaFeedback.objects.all()
-    feedback = UserFeedback.objects.all()
+def support_stats(beamline, **filters):
+    if beamline:
+        filters.update({'beamline': beamline})
+
+    area_filters = { "{}{}".format(k.startswith('beamline') and 'feedback__session__' or '', k): v for k, v in filters.items() }
+    area_feedback = UserAreaFeedback.objects.filter(**area_filters)
+
+    fbk_filters = {"{}{}".format(k.startswith('beamline') and 'session__' or '', k): v for k, v in filters.items()}
+    feedback = UserFeedback.objects.filter(**fbk_filters)
+
+    support_filters = {"{}{}".format(k.startswith('beamline') and 'help__' or '', k): v for k, v in filters.items()}
+    support_areas = SupportArea.objects.filter(**support_filters).annotate(
+        info=Count(Case(When(help__kind='info', then=1), output_field=IntegerField()), filter=Q(**support_filters)),
+        problem=Count(Case(When(help__kind='problem', then=1), output_field=IntegerField()), filter=Q(**support_filters)),
+        time_lost=Sum('help__lost_time', filter=Q(**support_filters))
+    ).order_by('pk').values('name', 'info', 'problem', 'time_lost')
+
     choices = list(UserAreaFeedback.RATINGS)[:-1]
     choices = [choices[1], choices[0]] + choices[2:]
     colors = ['#ffdd33', '#ffa333', '#66ffd5', '#00E6E2']
@@ -999,12 +1013,6 @@ def support_stats():
         likert_data[i].update(d['data'])
         likert_data[i].pop('data')
 
-    support_areas = SupportArea.objects.annotate(
-        info=Count(Case(When(help__kind='info', then=1), output_field=IntegerField())),
-        problem=Count(Case(When(help__kind='problem', then=1), output_field=IntegerField())),
-        time_lost=Sum('help__lost_time')
-    ).order_by('pk')
-
     stats = {'details': [
         {
             'title': 'User Experience and Support',
@@ -1021,7 +1029,8 @@ def support_stats():
                        'colors': choice_colors,
                        'data': likert_data,
                    },
-                   'notes': linebreaksbr('\n\n'.join(feedback.values_list('comments', flat=True).distinct())),
+                    'notes': '<strong>User Feedback:</strong>\n\n' + linebreaksbr(
+                        '\n\n'.join(feedback.values_list('comments', flat=True).distinct())),
                    'style': 'col-12 col-md-6'
                 },
                 {
@@ -1033,14 +1042,14 @@ def support_stats():
                         'x-label': "Area",
                         'data': [
                             {
-                                "Area": area.name,
-                                "Info": area.info,
-                                "Problem": area.problem,
-                                "Lost Time (hours)": area.time_lost or 0,
+                                "Area": area['name'],
+                                "Info": area['info'],
+                                "Problem": area['problem'],
+                                "Lost Time (hours)": area['time_lost'] or 0,
                             } for area in support_areas
                         ]
                     },
-                    'notes': 'Staff Comments:\n\n' + linebreaksbr(
+                    'notes': '<strong>Staff Comments:</strong>\n\n' + linebreaksbr(
                         '\n\n'.join(SupportRecord.objects.values_list('staff_comments', flat=True).distinct())),
                     'style': 'col-12 col-md-6'
                 },

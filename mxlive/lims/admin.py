@@ -33,3 +33,6 @@ admin.site.register(models.Data, ProjectAdmin)
 admin.site.register(models.AnalysisReport, ProjectAdmin)
 admin.site.register(models.Session, ProjectAdmin)
 
+admin.site.register(models.SupportArea)
+admin.site.register(models.UserFeedback)
+admin.site.register(models.SupportRecord)
