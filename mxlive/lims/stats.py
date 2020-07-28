@@ -1053,6 +1053,38 @@ def support_stats(beamline, **filters):
                         '\n\n'.join(SupportRecord.objects.values_list('staff_comments', flat=True).distinct())),
                     'style': 'col-12 col-md-6'
                 },
+                {
+                    'title': 'User Support Areas by Interaction',
+                    'kind': 'pareto',
+                    'data': {
+                        'aspect-ratio': 2,
+                        'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33'},
+                        'x-label': "Area",
+                        'data': sorted([
+                            {
+                                "Area": area['name'],
+                                "Interactions": area['info'] + area['problem'],
+                            } for area in support_areas
+                        ], key=lambda i: -i['Interactions'])
+                    },
+                    'style': 'col-12'
+                },
+                {
+                    'title': 'User Support Areas by Lost Time',
+                    'kind': 'pareto',
+                    'data': {
+                        'aspect-ratio': 2,
+                        'colors': {"Lost Time (hours)": '#ffa333'},
+                        'x-label': "Area",
+                        'data': sorted([
+                            {
+                                "Area": area['name'],
+                                "Lost Time (hours)": area['time_lost'] or 0,
+                            } for area in support_areas
+                        ], key=lambda i: -i['Lost Time (hours)'])
+                    },
+                    'style': 'col-12'
+                },
             ]
         },
     ]}

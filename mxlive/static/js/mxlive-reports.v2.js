@@ -12,7 +12,7 @@ function renderMarkdown(text) {
 }
 
 const figureTypes = [
-    "histogram", "lineplot", "barchart", "scatterplot", "pie", "gauge", "timeline", "columnchart",
+    "histogram", "lineplot", "barchart", "scatterplot", "pie", "gauge", "timeline", "columnchart", "pareto"
 ];
 
 let ColorSchemes = {
@@ -350,6 +350,105 @@ function drawBarChart(figure, chart, options) {
             x: {
                 type: 'category', label: chart.data['x-label']
             },
+            rotated: (options.horizontal || false)
+        },
+        legend: {hide: (series.length === 1)},
+        bar: {width: {ratio: .6}},
+        onresize: function () {
+            this.api.resize({
+                width: figure.width(),
+                height: figure.width() * options.height / options.width
+            });
+        }
+    });
+    figure.data('c3-chart', c3chart);
+}
+
+
+function drawParetoChart(figure, chart, options) {
+    let series = [];
+    let flavors = [];
+    let hidden = [];
+    let group_colors = (typeof chart.data.colors === 'object') ? chart.data.colors : {};
+
+    let colorfunc = function (color, d) {
+        return color;
+    };
+
+    // remove raw data from dom
+    figure.removeData('chart');
+    figure.removeAttr('data-chart');
+
+    // series names and alternate groupings
+
+    $.each(chart.data["data"][0], function (key, value) {
+        if (key === chart.data["color-by"]) {
+            // hide series since it will be used for coloring
+            hidden.push(key);
+        } else if (key === chart.data["x-label"]) {
+            // ignore x-axis series
+        } else {
+            // new series
+            series.push(key);
+        }
+    });
+
+    let index = 0;
+    let total = chart.data["data"].reduce( function(cnt,o){ return cnt + o[series[0]]; }, 0);
+    $.each(chart.data["data"], function(pt, value) {
+        index += value[series[0]];
+        chart.data["data"][pt]["Percentage"] = Math.round(100 * index / total, 1);
+    });
+    series.push("Percentage");
+
+    // names for coloring using "color-by" field
+    if (chart.data["color-by"]) {
+        let key = chart.data["color-by"];
+        $.each(chart.data["data"], function (i, item) {
+            if (!(flavors.includes(item[key]))) {
+                flavors.push(item[key])
+            }
+        });
+
+        // update color function for color-by
+        colorfunc = function (color, d) {
+            if (typeof d === "object") {
+                let flavor = chart.data['data'][d.index][key];
+                return options.colors[flavor];
+            } else {
+                return color;
+            }
+        }
+    }
+    // update color dictionary
+    let color_scale = d3.scaleOrdinal().domain(flavors.concat(series)).range(options.scheme);
+    $.each(series, function (i, key) {
+        if (!(key in options.colors)) {
+            options.colors[key] = color_scale(key);
+        }
+    });
+
+    let c3chart = c3.generate({
+        bindto: `#${figure.attr('id')}`,
+        size: {width: options.width, height: options.height},
+        data: {
+            json: chart.data["data"],
+            keys: {
+                x: chart.data["x-label"],
+                value: series
+            },
+            type: 'bar',
+            axes: {
+                Percentage: 'y2',
+            },
+            types: {
+                Percentage: 'line',
+            },
+        },
+        grid: {y: {show: true}},
+        axis: {
+            x: { type: 'category', label: chart.data['x-label'] },
+            y2: { show: true, label: '%', min: 0, max: 100, padding: {top:0, bottom:0} },
             rotated: (options.horizontal || false)
         },
         legend: {hide: (series.length === 1)},
@@ -712,6 +811,9 @@ function drawTimeline(figure, chart, options) {
                     break;
                 case 'columnchart':
                     drawBarChart(figure, chart, options);
+                    break;
+                case 'pareto':
+                    drawParetoChart(figure, chart, options);
                     break;
                 case 'lineplot':
                     drawLineChart(figure, chart, options);
