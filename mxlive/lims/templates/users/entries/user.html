@@ -26,7 +26,7 @@
         {% show_icon label="Reports" icon="ti ti-md ti-bar-chart-alt" badge=object.reports.count %}
     </a>
     <a class="pull-right" href="{% url "session-list" %}?search={{ object.username }}" title="Go to Sessions for {{ object.username }}">
-        {% show_icon label="Sessions" icon="ti ti-md ti-calendar" badge=object.sessions.all.count %}
+        {% show_icon label="Sessions" icon="ti ti-md ti-calendar" badge=object.sessions.count %}
     </a>
     {% if user.is_superuser %}
     <span class="separator"></span>

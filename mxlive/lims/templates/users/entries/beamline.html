@@ -32,7 +32,7 @@
     <a href="{% url "yearly-usage" object.pk %}">
         {% show_icon label='Usage' icon='ti ti-md ti-pie-chart' %}
     </a>
-    <a href="{% url "beamline-history" pk=object.pk %}">
+    <a href="{% url "session-list" %}?beamline__id__exact={{ object.pk }}">
         {% show_icon label='Sessions' icon='ti ti-md ti-calendar' %}
     </a>
     <a href="#!" data-form-link="{% url "dewar-edit" pk=object.active_dewar.pk %}">

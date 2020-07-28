@@ -5,7 +5,6 @@ import requests
 from django import http
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
 from django.db.models import Count, Q, Case, When, Value, BooleanField, Max
@@ -41,7 +40,8 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
     :For superusers, direct to StaffDashboard
 
     :For Users, direct to project.html, with context:
-       - shipments: All Shipments that are Draft, Sent, or On-site, plus Returned shipments to bring the total displayed up to seven.
+       - shipments: All Shipments that are Draft, Sent, or On-site, plus Returned shipments to bring the
+                    total displayed up to seven.
        - sessions: Any recent Session from any beamline
     """
     model = models.Project
@@ -94,7 +94,8 @@ class ProjectDetail(UserPassesTestMixin, detail.DetailView):
             data_count=Count('datasets', distinct=True),
             report_count=Count('datasets__reports', distinct=True),
             last_record=Max('datasets__end_time'),
-        ).order_by('last_record', '-created').with_duration().prefetch_related('project', 'beamline')[:7]
+            end=Max('stretches__end')
+        ).order_by('-end', 'last_record', '-created').with_duration().prefetch_related('project', 'beamline')[:7]
 
         context.update(shipments=shipments, sessions=sessions)
         return context
@@ -111,7 +112,6 @@ class StaffDashboard(AdminRequiredMixin, detail.DetailView):
        - user guide: All items, for users and marked staff only
     """
 
-    #template_name = "users/staff.html"
     model = models.Project
     template_name = "users/staff-dashboard.html"
     slug_field = 'username'
@@ -147,42 +147,48 @@ class StaffDashboard(AdminRequiredMixin, detail.DetailView):
         active_sessions = models.Session.objects.filter(stretches__end__isnull=True).annotate(
             data_count=Count('datasets', distinct=True),
             report_count=Count('datasets__reports', distinct=True)).with_duration()
-        active_connections = RemoteConnection.objects.filter(status__iexact=RemoteConnection.STATES.CONNECTED)
+        active_conns = RemoteConnection.objects.filter(status__iexact=RemoteConnection.STATES.CONNECTED)
 
         conn_info = []
         connections = []
         sessions = []
         if settings.LIMS_USE_SCHEDULE:
-            context.update(access_types=AccessType.objects.all(), support=BeamlineSupport.objects.filter(date=timezone.localtime().date()).first())
+            context.update(access_types=AccessType.objects.all(),
+                           support=BeamlineSupport.objects.filter(date=timezone.localtime().date()).first())
 
             for bt in Beamtime.objects.filter(start__lte=now, end__gte=now).with_duration():
-                bt_sessions = models.Session.objects.filter(project=bt.project, beamline=bt.beamline).filter(Q(stretches__end__isnull=True) | Q(stretches__end__gte=bt.start))
+                bt_sessions = models.Session.objects.filter(project=bt.project, beamline=bt.beamline).filter(
+                    Q(stretches__end__isnull=True) | Q(stretches__end__gte=bt.start))
                 sessions += bt_sessions
-                bt_connections = active_connections.filter(user=bt.project, userlist__pk__in=bt.beamline.access_lists.values_list('pk', flat=True))
-                connections += bt_connections
+                bt_conns = active_conns.filter(user=bt.project,
+                                               userlist__pk__in=bt.beamline.access_lists.values_list('pk', flat=True))
+                connections += bt_conns
 
                 conn_info.append({
                     'user': bt.project,
                     'beamline': bt.beamline.acronym,
                     'beamtime': bt,
                     'sessions': bt_sessions,
-                    'connections': bt_connections
+                    'connections': bt_conns
                 })
         for session in active_sessions.exclude(pk__in=[s.pk for s in sessions]):
-            ss_connections = active_connections.filter(user=session.project, userlist__pk__in=session.beamline.access_lists.values_list('pk', flat=True))
-            connections += ss_connections
+            ss_conns = active_conns.filter(user=session.project,
+                                           userlist__pk__in=session.beamline.access_lists.values_list('pk', flat=True))
+            connections += ss_conns
             conn_info.append({
                 'user': session.project,
                 'beamline': session.beamline.acronym,
                 'sessions': [session],
-                'connections': ss_connections
+                'connections': ss_conns
             })
-        for user in active_connections.exclude(pk__in=[c.pk for c in connections]).values_list('user', flat=True).distinct():
-            user_connections = active_connections.exclude(pk__in=[c.pk for c in connections]).filter(user__pk=user)
+        for user in active_conns.exclude(pk__in=[c.pk for c in connections]).values_list('user', flat=True).distinct():
+            user_conns = active_conns.exclude(pk__in=[c.pk for c in connections]).filter(user__pk=user)
             conn_info.append({
                 'user': models.Project.objects.get(pk=user),
-                'beamline': '/'.join([bl for bl in user_connections.values_list('userlist__beamline__acronym', flat=True).distinct() if bl]),
-                'connections': user_connections
+                'beamline': '/'.join(
+                    [bl for bl in user_conns.values_list('userlist__beamline__acronym', flat=True).distinct() if bl]
+                ),
+                'connections': user_conns
             })
 
         for i, conn in enumerate(conn_info):
@@ -309,6 +315,7 @@ class ListViewMixin(LoginRequiredMixin):
 
 
 class DetailListMixin(OwnerRequiredMixin):
+    extra_model = None
     add_url = None
     list_filters = []
     paginate_by = 25
@@ -323,7 +330,7 @@ class DetailListMixin(OwnerRequiredMixin):
         return self.extra_model.objects.get(pk=self.kwargs['pk'])
 
     def get_queryset(self):
-        qs = super(DetailListMixin, self).get_queryset()
+        super(DetailListMixin, self).get_queryset()
         return self.get_object().samples.all()
 
 
@@ -572,8 +579,8 @@ class ContainerDetail(DetailListMixin, SampleList):
     show_project = False
 
     def page_title(self):
-        object = self.get_object()
-        return 'Samples in {}'.format(object.name)
+        obj = self.get_object()
+        return 'Samples in {}'.format(obj.name)
 
     def get_link_attr(self, obj):
         if obj.container.status == obj.container.STATES.DRAFT:
@@ -734,10 +741,10 @@ class GroupDetail(DetailListMixin, SampleList):
     detail_target = '#modal-target'
 
     def page_title(self):
-        object = self.get_object()
+        obj = self.get_object()
         if 'project' in self.list_columns:
             self.list_columns.pop(0)
-        return 'Samples in {}'.format(object.name)
+        return 'Samples in {}'.format(obj.name)
 
     def get_object(self):
         obj = super(GroupDetail, self).get_object()
@@ -764,7 +771,7 @@ class GroupEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.Up
         return super(GroupEdit, self).get_initial()
 
     def form_valid(self, form):
-        resp = super(GroupEdit, self).form_valid(form)
+        super(GroupEdit, self).form_valid(form)
         for s in self.object.samples.all():
             if self.original_name in s.name:
                 models.Sample.objects.filter(pk=s.pk).update(name=s.name.replace(self.original_name, self.object.name))
@@ -814,7 +821,7 @@ def format_score(val, record):
 
 class ReportList(ListViewMixin, ItemListView):
     model = models.AnalysisReport
-    list_filters = ['modified', 'kind' ]
+    list_filters = ['modified', 'kind']
     list_columns = ['id', 'name', 'kind', 'score', 'modified']
     list_search = ['project__username', 'name', 'data__name']
     link_field = 'name'
@@ -925,7 +932,7 @@ class SessionList(ListViewMixin, ItemListView):
     link_field = 'name'
     ordering = ['-created']
     list_transforms = {
-        'total_time': format_total_time
+        'total_time': lambda x, y: '{:0.1f} h'.format(x)
     }
     link_url = 'session-detail'
 
@@ -963,45 +970,18 @@ class BeamlineDetail(AdminRequiredMixin, detail.DetailView):
         return context
 
 
-def format_time(val, record):
-    return naturaltime(val) or ""
-
-
-class BeamlineHistory(AdminRequiredMixin, ListViewMixin, ItemListView):
-    model = models.Session
-    list_filters = ['project', ]
-    list_columns = ['created', 'name', 'total_time', 'num_datasets', 'num_reports']
-    list_transforms = {
-        'start': format_time,
-        'end': format_time,
-        'total_time': lambda x,y: '{:0.2g} hrs'.format(x),
-    }
-    list_search = ['beamline', 'project', 'name']
-    ordering = ['pk']
-    detail_url_kwarg = 'pk'
-    link_url = 'session-detail'
-
-    def get_queryset(self):
-        qs = super(BeamlineHistory, self).get_queryset()
-        return qs.filter(beamline__pk=self.kwargs['pk'])
-
-    def page_title(self):
-        beamline = models.Beamline.objects.get(pk=self.kwargs['pk'])
-        return "Sessions on {}".format(beamline)
-
-
 class ParameterStatistics(BeamlineDetail):
     template_name = "users/entries/beamline-statistics.html"
 
     def get_context_data(self, **kwargs):
         context = super(ParameterStatistics, self).get_context_data(**kwargs)
         yearly = 'year' not in self.kwargs
-        filters = {} if yearly else {'created__year': self.kwargs.get('year')}
+        fltrs = {} if yearly else {'created__year': self.kwargs.get('year')}
 
         context['year'] = self.kwargs.get('year')
         context['years'] = stats.get_data_periods(period='year')
 
-        context['report'] = stats.parameter_stats(self.object, **filters)
+        context['report'] = stats.parameter_stats(self.object, **fltrs)
         return context
 
     def page_title(self):
@@ -1022,8 +1002,8 @@ class UsageStatistics(BeamlineDetail):
         context['year'] = self.kwargs.get('year')
         context['years'] = stats.get_data_periods(period='year')
 
-        filters = {} if yearly else {'created__year': self.kwargs.get('year')}
-        context['report'] = stats.usage_stats(self.object, period=period, **filters)
+        fltrs = {} if yearly else {'created__year': self.kwargs.get('year')}
+        context['report'] = stats.usage_stats(self.object, period=period, **fltrs)
         return context
 
     def page_title(self):
@@ -1091,15 +1071,15 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                         'shipment': self.shipment,
                         'project': project
                     }
-                    container, created = models.Container.objects.get_or_create(**data)
+                    models.Container.objects.get_or_create(**data)
             elif label == 'groups':
                 if self.request.POST.get('submit') == 'Fill':
                     for i, container in enumerate(self.shipment.containers.all()):
                         group = self.shipment.groups.create(name=container.name, project=project, priority=(i+1))
                         group_samples = [
                             models.Sample(
-                                name='{}_{}'.format(group.name, location.name), group=group, project=project, container=container,
-                                location=location
+                                name='{}_{}'.format(group.name, location.name), group=group, project=project,
+                                container=container, location=location
                             )
                             for location in container.kind.locations.all()
                         ]
@@ -1125,7 +1105,7 @@ class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
                                 'project': project,
                                 'priority': i + 1
                             })
-                            group, created = models.Group.objects.get_or_create(**data)
+                            models.Group.objects.get_or_create(**data)
 
         # Staff created shipments should be sent and received automatically.
         if self.request.user.is_superuser:
@@ -1158,7 +1138,7 @@ class ShipmentAddContainer(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMix
                     'shipment': data['shipment'],
                     'project': self.request.user
                 }
-                container, created = models.Container.objects.get_or_create(**info)
+                models.Container.objects.get_or_create(**info)
         return HttpResponseRedirect(reverse('shipment-add-groups', kwargs={'pk': self.kwargs.get('pk')}))
 
 
@@ -1198,9 +1178,8 @@ class ShipmentAddGroup(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMixin, 
             })
             if data['id_set'][i]:
                 models.Group.objects.filter(pk=int(data['id_set'][i])).update(**info)
-                group = models.Group.objects.get(pk=int(data['id_set'][i]))
             else:
-                group, created = models.Group.objects.get_or_create(**info)
+                models.Group.objects.get_or_create(**info)
 
         return JsonResponse({})
 
@@ -1311,18 +1290,18 @@ class SupportMetrics(AdminRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['beamlines'] = models.Beamline.objects.filter(active=True)
-        filters = {}
+        fltrs = {}
         if self.kwargs.get('beamline'):
             try:
                 beamline = models.Beamline.objects.get(pk=self.kwargs['beamline'])
-            except:
-                raise http.Http404("Beamline does not exist")
+            except models.Beamline.DoesNotExist:
+                raise Http404("Beamline does not exist")
         else:
-            filters.update({'beamline__in': context['beamlines']})
+            fltrs.update({'beamline__in': context['beamlines']})
             beamline = None
 
         context['beamline'] = beamline
-        context['report'] = stats.support_stats(beamline=beamline, **filters)
+        context['report'] = stats.support_stats(beamline=beamline, **fltrs)
         return context
 
 
@@ -1355,6 +1334,10 @@ class SupportAreaEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, e
     success_message = "Support area has been updated"
 
 
+def format_contact(val, record):
+    return val and record.session.project or ""
+
+
 class UserFeedbackList(ListViewMixin, ItemListView):
     model = models.UserFeedback
     list_filters = [
@@ -1364,7 +1347,8 @@ class UserFeedbackList(ListViewMixin, ItemListView):
         'session__project__designation',
         'session__project__kind',
     ]
-    list_columns = ['created', 'session', 'comments', 'contact']
+    list_columns = ['created', 'session__beamline__acronym', 'comments', 'contact']
+    list_transforms = {'contact': format_contact}
     list_search = ['session__project__username', 'comments']
     ordering = ['-created']
     tool_template = 'users/tools-support.html'
@@ -1390,8 +1374,8 @@ class UserFeedbackCreate(SuccessMessageMixin, edit.CreateView):
         try:
             username, name = decrypt(self.kwargs.get('key')).split(':')
             initial['session'] = models.Session.objects.get(project__username=username, name=name)
-        except:
-            pass
+        except models.Session.DoesNotExist:
+            raise Http404
 
         return initial
 
@@ -1400,7 +1384,8 @@ class UserFeedbackCreate(SuccessMessageMixin, edit.CreateView):
 
         to_create = []
         for area in models.SupportArea.objects.filter(user_feedback=True):
-            to_create.append(models.UserAreaFeedback(feedback=self.object, area=area, rating=form.cleaned_data.get(slugify(area.name))[0]))
+            to_create.append(models.UserAreaFeedback(feedback=self.object, area=area,
+                                                     rating=form.cleaned_data.get(slugify(area.name))[0]))
 
         models.UserAreaFeedback.objects.bulk_create(to_create)
         return response
@@ -1408,6 +1393,10 @@ class UserFeedbackCreate(SuccessMessageMixin, edit.CreateView):
 
 def format_comments(val, record):
     return linebreaksbr(val)
+
+
+def format_areas(val, record):
+    return '<br/>'.join(["<span class='badge badge-info'>{}</span>".format(a.name) for a in record.areas.all()])
 
 
 class SupportRecordList(ListViewMixin, ItemListView):
@@ -1422,8 +1411,8 @@ class SupportRecordList(ListViewMixin, ItemListView):
         'kind',
         'areas'
     ]
-    list_columns = ['staff', 'beamline', 'created', 'comments', 'area_names']
-    list_transforms = {'comments': format_comments}
+    list_columns = ['staff', 'beamline', 'created', 'comments', 'area']
+    list_transforms = {'comments': format_comments, 'area': format_areas}
     list_search = ['beamline__acronym', 'project__username', 'comments']
     ordering = ['-created']
     tool_template = 'users/tools-support.html'
@@ -1473,5 +1462,3 @@ def fetch_archive(request, url):
         return resp
     else:
         return http.HttpResponseNotFound()
-
-

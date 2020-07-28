@@ -12,7 +12,6 @@ urlpatterns = [
     path('profile/<slug:username>/statistics/', views.ProjectStatistics.as_view(), name='project-statistics'),
 
     path('beamline/<int:pk>/', views.BeamlineDetail.as_view(), name='beamline-detail'),
-    path('beamline/<int:pk>/history/', views.BeamlineHistory.as_view(), name='beamline-history'),
     path('beamline/<int:pk>/stats/', views.ParameterStatistics.as_view(), name='yearly-statistics'),
     path('beamline/<int:pk>/stats/<int:year>/', views.ParameterStatistics.as_view(), name='monthly-statistics'),
     path('beamline/<int:pk>/usage/', views.UsageStatistics.as_view(), name='yearly-usage'),

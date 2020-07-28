@@ -5,7 +5,7 @@
 <div class="list-group-item p-2">
     <div class="d-flex flex-row">
         <div class="box-status text-center text-muted">
-            {% if session.is_recent and not session.feedback.exists %}
+            {% if session.is_recent and not session.feedback.all %}
                 <a href="{% url "session-feedback" key=session.feedback_key %}" title="Give feedback about this session">
                     {% show_icon label='Feedback' icon='ti ti-md ti-star' %}
                 </a>

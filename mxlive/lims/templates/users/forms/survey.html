@@ -4,12 +4,6 @@
 {% load crispy_forms_tags %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static "css/select2.min.css" %}" media="screen"/>
-    <link rel="stylesheet" href="{% static "css/select2-bootstrap4.min.css" %}" media="screen"/>
-    <script src="{% static "js/misc/jquery.form.min.js" %}"></script>
-    <script src="{% static "js/misc/select2.full.min.js" %}"></script>
-    <script src="{% static "js/jquery/jquery-ui.min.js" %}"></script>
-
     {% if not request.user.username %}
         <style>
             main {
@@ -31,16 +25,16 @@
 {% endblock %}
 
 {% block full %}
-<form action="{{ form.body.form_action }}" method="post">
-    {% if form.errors %}
-        <div id="form-errors" class="alert alert-warning">
-            <strong>It looks like there's a problem!</strong> Please correct the errors below.
-            <hr class="my-2"/>
-            <small>{{ form.errors }}</small>
-        </div>
-    {% endif %}
-    {% crispy form form.body %}
-    <hr/>
-    {% crispy form form.footer %}
-</form>
+    <form action="{{ form.body.form_action }}" method="post">
+        {% if form.errors %}
+            <div id="form-errors" class="alert alert-warning">
+                <strong>It looks like there's a problem!</strong> Please correct the errors below.
+                <hr class="my-2"/>
+                <small>{{ form.errors }}</small>
+            </div>
+        {% endif %}
+        {% crispy form form.body %}
+        <hr/>
+        {% crispy form form.footer %}
+    </form>
 {% endblock %}

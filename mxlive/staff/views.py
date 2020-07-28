@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db.models import Count, Value, CharField
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.utils import dateformat, timezone
@@ -34,7 +35,8 @@ class AccessList(AdminRequiredMixin, ItemListView):
 
     def get_list_columns(self):
         if settings.LIMS_USE_SCHEDULE:
-            self.list_columns = ['name', 'description', 'scheduled_users', 'allowed_users', 'address', 'beamline__acronym', 'active']
+            self.list_columns = ['name', 'description', 'scheduled_users', 'allowed_users', 'address',
+                                 'beamline__acronym', 'active']
         return self.list_columns
 
 
@@ -97,6 +99,9 @@ class UserStats(UserDetail):
     template_name = "users/entries/user.html"
     page_title = "User Profile"
 
+    def get_object(self, **kwargs):
+        return Project.objects.get(username=self.kwargs.get('username'))
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['report'] = stats.project_stats(self.object)
@@ -128,8 +133,6 @@ class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edi
 
         # create local user
         response = super().form_valid(form)
-        #proj = Project.objects.create(**info)
-
         info_msg = 'New Account {} added'.format(self.object)
 
         ActivityLog.objects.log_activity(
@@ -157,12 +160,10 @@ class ProjectDelete(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edi
     def delete(self, *args, **kwargs):
         obj = self.get_object()
         ldap = slap.Directory()
-        info = ldap.delete_user(obj.username)
+        ldap.delete_user(obj.username)
         obj.delete()
         self.success_message = "{} account has been deleted".format(kwargs.get('username'))
         return JsonResponse({'url': self.success_url}, safe=False)
-
-
 
 
 def record_logout(sender, user, request, **kwargs):

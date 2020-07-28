@@ -187,15 +187,15 @@ class Project(AbstractUser):
         try:
             if not self.sessions.count():
                 return 'New'
-            if self.last_session() >= (timezone.now() - timedelta(days=365)):
+            if self.last_session() >= (timezone.localtime() - timedelta(days=365)):
                 return 'Active'
         except TypeError:
             return 'Active'
         return 'Idle'
 
     def last_session(self):
-        session = self.sessions.order_by('created').last()
-        return session.start() if session else None
+        session = self.sessions.first()
+        return session.created if session else None
 
     def save(self, *args, **kwargs):
         if not self.kind:
@@ -358,7 +358,7 @@ class Session(models.Model):
 
     @memoize(60)
     def end(self):
-        return timezone.localtime(self.stretches.latest('start').end or timezone.now())
+        return timezone.localtime(self.stretches.latest('start').end or timezone.localtime())
 
     @memoize(60)
     def last_record_time(self):
