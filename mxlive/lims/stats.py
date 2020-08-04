@@ -12,7 +12,7 @@ from django.utils import timezone
 from django.utils.timesince import timesince
 from memoize import memoize
 
-from mxlive.lims.models import Data, Sample, Session, Project, AnalysisReport, Container, Shipment, ProjectType, SupportArea, UserFeedback, UserAreaFeedback, SupportRecord
+from mxlive.lims.models import Data, Sample, Session, Project, AnalysisReport, Container, Shipment, ProjectType, SupportArea, UserFeedback, UserAreaFeedback, SupportRecord, FeedbackScale
 from mxlive.utils.functions import ShiftEnd, ShiftStart, ShiftIndex
 from mxlive.utils.misc import humanize_duration, natural_duration
 
@@ -996,22 +996,44 @@ def support_stats(beamline, **filters):
         time_lost=Sum('help__lost_time', filter=Q(**support_filters))
     ).order_by('pk').values('name', 'info', 'problem', 'time_lost')
 
-    choices = list(UserAreaFeedback.RATINGS)[:-1]
-    choices = [choices[1], choices[0]] + choices[2:]
     colors = ['#ffdd33', '#ffa333', '#66ffd5', '#00E6E2']
-    choice_colors = dict(zip([c[1] for c in choices], colors))
 
-    likert_data = [
+    likerts = []
+    for scale in FeedbackScale.objects.filter(pk__in=SupportArea.objects.filter(user_feedback=True).values_list('scale__pk', flat=True)):
+        choices = list(scale.choices())[:-1]
+        choices = [choices[1], choices[0]] + choices[2:]
+        choice_colors = dict(zip([c[1] for c in choices], colors))
+
+        likert_data = [
+            {
+                'Area': area.name,
+                'data': {
+                    c[1]: area_feedback.filter(area=area, rating=c[0]).count() * (c[0] < 0 and -1 or 1)
+                for c in choices }
+             } for area in SupportArea.objects.filter(user_feedback=True, scale=scale).order_by('pk')
+        ]
+        for i, d in enumerate(likert_data):
+            likert_data[i].update(d['data'])
+            likert_data[i].pop('data')
+
+        scale_feedback = area_feedback.exclude(rating=0).filter(area__scale=scale)
+        likerts.append({
+            'data': likert_data,
+            'colors': choice_colors,
+            'choices': choices,
+            'average': scale_feedback and sum([a.rating for a in scale_feedback])/scale_feedback.count() or 0
+        })
+
+    total_interactions = sum([a['info'] + a['problem'] for a in support_areas])
+    support_areas = sorted(support_areas, key=lambda x: -(x['info'] + x['problem']))
+    area_interactions = [
         {
-            'Area': area.name,
-            'data': {
-                c[1]: area_feedback.filter(area=area, rating=c[0]).count() * (c[0] < 0 and -1 or 1)
-            for c in choices }
-         } for area in SupportArea.objects.filter(user_feedback=True).order_by('pk')
+            "Area": area['name'],
+            "Info": area['info'],
+            "Problem": area['problem'],
+            "Interactions (%)": 100 * sum(a['info'] + a['problem'] for a in support_areas[:i+1]) / total_interactions
+        } for i, area in enumerate(support_areas)
     ]
-    for i, d in enumerate(likert_data):
-        likert_data[i].update(d['data'])
-        likert_data[i].pop('data')
 
     stats = {'details': [
         {
@@ -1023,21 +1045,30 @@ def support_stats(beamline, **filters):
                    'title': 'User Experience Surveys',
                    'kind': 'barchart',
                    'data': {
-                       'stack': [[c[1] for c in choices]],
+                       'stack': [[c[1] for c in lt['choices']]],
                        'x-label': 'Area',
                        'aspect-ratio': 1,
-                       'colors': choice_colors,
-                       'data': likert_data,
+                       'colors': lt['colors'],
+                       'data': lt['data'],
+                       "annotations": [
+                           {"value": lt['average'], "text": "AVERAGE"}
+                       ]
                    },
+                   'notes': "<strong>Overall Average:</strong> {:.2f}".format(lt['average']),
+                   'style': 'col-12 col-md-6'
+                } for lt in likerts
+            ] + [
+                {
+                    'title': 'User Experience Survey Comments',
                     'notes': '<strong>User Feedback:</strong>\n\n' + linebreaksbr(
                         '\n\n'.join(feedback.values_list('comments', flat=True).distinct())),
-                   'style': 'col-12 col-md-6'
+                    'style': 'col-12'
                 },
                 {
                     'title': 'User Support Interactions and Lost Time',
-                    'kind': 'barchart',
+                    'kind': 'columnchart',
                     'data': {
-                        'aspect-ratio': 1,
+                        'aspect-ratio': 4,
                         'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33'},
                         'x-label': "Area",
                         'data': [
@@ -1049,40 +1080,45 @@ def support_stats(beamline, **filters):
                             } for area in support_areas
                         ]
                     },
-                    'notes': '<strong>Staff Comments:</strong>\n\n' + linebreaksbr(
-                        '\n\n'.join(SupportRecord.objects.values_list('staff_comments', flat=True).distinct())),
-                    'style': 'col-12 col-md-6'
-                },
-                {
-                    'title': 'User Support Areas by Interaction',
-                    'kind': 'pareto',
-                    'data': {
-                        'aspect-ratio': 2,
-                        'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33'},
-                        'x-label': "Area",
-                        'data': sorted([
-                            {
-                                "Area": area['name'],
-                                "Interactions": area['info'] + area['problem'],
-                            } for area in support_areas
-                        ], key=lambda i: -i['Interactions'])
-                    },
                     'style': 'col-12'
                 },
                 {
-                    'title': 'User Support Areas by Lost Time',
-                    'kind': 'pareto',
+                    'title': 'User Support Areas by Interaction',
+                    'kind': 'columnchart',
                     'data': {
                         'aspect-ratio': 2,
-                        'colors': {"Lost Time (hours)": '#ffa333'},
+                        'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33', "Interactions (%)": '#777777'},
                         'x-label': "Area",
-                        'data': sorted([
+                        'line-limits': [0, 100],
+                        'line': "Interactions (%)",
+                        'stack': [["Info", "Problem"]],
+                        'data': area_interactions
+                    },
+                    'style': 'col-12 col-xl-6'
+                },
+                {
+                    'title': 'User Support Areas by Lost Time',
+                    'kind': 'columnchart',
+                    'data': {
+                        'aspect-ratio': 2,
+                        'colors': {"Lost Time (hours)": '#ffa333', "Percentage (%)": '#777777'},
+                        'x-label': "Area",
+                        'line': "Percentage (%)",
+                        'y2-limits': [0, 100],
+                        'data': [
                             {
                                 "Area": area['name'],
                                 "Lost Time (hours)": area['time_lost'] or 0,
-                            } for area in support_areas
-                        ], key=lambda i: -i['Lost Time (hours)'])
+                                "Percentage (%)": 100 * sum([a['time_lost'] for a in sorted(support_areas, key=lambda i: -i['time_lost'])[:j+1]]) / sum([a['time_lost'] for a in support_areas])
+                            } for j, area in enumerate(sorted(support_areas, key=lambda i: -i['time_lost']))
+                        ]
                     },
+                    'style': 'col-12 col-xl-6'
+                },
+                {
+                    'title': 'User Support Interactions Staff Comments',
+                    'notes': '<strong>Staff Comments:</strong>\n\n' + linebreaksbr(
+                        '\n\n'.join(SupportRecord.objects.values_list('staff_comments', flat=True).distinct())),
                     'style': 'col-12'
                 },
             ]

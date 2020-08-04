@@ -1,5 +1,5 @@
 import json
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 import requests
 from django import http
@@ -158,7 +158,7 @@ class StaffDashboard(AdminRequiredMixin, detail.DetailView):
 
             for bt in Beamtime.objects.filter(start__lte=now, end__gte=now).with_duration():
                 bt_sessions = models.Session.objects.filter(project=bt.project, beamline=bt.beamline).filter(
-                    Q(stretches__end__isnull=True) | Q(stretches__end__gte=bt.start))
+                    Q(stretches__end__isnull=True) | Q(stretches__end__gte=bt.start)).distinct()
                 sessions += bt_sessions
                 bt_conns = active_conns.filter(user=bt.project,
                                                userlist__pk__in=bt.beamline.access_lists.values_list('pk', flat=True))
@@ -1289,8 +1289,13 @@ class SupportMetrics(AdminRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        year = self.kwargs.get('year')
+        period = 'month' if year else 'year'
+
+        #context['years'] = list(models.SupportRecord.objects.values_list('created__year', flat=True).distinct())
         context['beamlines'] = models.Beamline.objects.filter(active=True)
-        fltrs = {}
+        fltrs = year and {'created__year': year} or {}
         if self.kwargs.get('beamline'):
             try:
                 beamline = models.Beamline.objects.get(pk=self.kwargs['beamline'])
@@ -1383,9 +1388,11 @@ class UserFeedbackCreate(SuccessMessageMixin, edit.CreateView):
         response = super().form_valid(form)
 
         to_create = []
+
         for area in models.SupportArea.objects.filter(user_feedback=True):
-            to_create.append(models.UserAreaFeedback(feedback=self.object, area=area,
-                                                     rating=form.cleaned_data.get(slugify(area.name))[0]))
+            if form.cleaned_data.get(slugify(area.name)):
+                to_create.append(models.UserAreaFeedback(feedback=self.object, area=area,
+                                                         rating=form.cleaned_data.get(slugify(area.name))[0]))
 
         models.UserAreaFeedback.objects.bulk_create(to_create)
         return response
@@ -1397,6 +1404,10 @@ def format_comments(val, record):
 
 def format_areas(val, record):
     return '<br/>'.join(["<span class='badge badge-info'>{}</span>".format(a.name) for a in record.areas.all()])
+
+
+def format_created(val, record):
+    return datetime.strftime(val, '%b %d, %Y %H:%M ')
 
 
 class SupportRecordList(ListViewMixin, ItemListView):
@@ -1411,13 +1422,13 @@ class SupportRecordList(ListViewMixin, ItemListView):
         'kind',
         'areas'
     ]
-    list_columns = ['staff', 'beamline', 'created', 'comments', 'area']
-    list_transforms = {'comments': format_comments, 'area': format_areas}
+    list_columns = ['beamline', 'kind', 'staff', 'created', 'comments', 'area', 'lost_time']
+    list_transforms = {'comments': format_comments, 'area': format_areas, 'created': format_created}
     list_search = ['beamline__acronym', 'project__username', 'comments']
     ordering = ['-created']
     tool_template = 'users/tools-support.html'
     link_url = 'supportrecord-edit'
-    link_field = 'staff'
+    link_field = 'beamline'
     link_attr = 'data-form-link'
 
 

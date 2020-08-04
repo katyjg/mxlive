@@ -1413,9 +1413,33 @@ class Guide(TimeStampedModel):
         ordering = ("-staff_only", "priority",)
 
 
+class FeedbackScale(models.Model):
+    statement = models.CharField(max_length=250, null=True)
+    worst = models.CharField("-2", max_length=25)
+    worse = models.CharField("-1", max_length=25)
+    better = models.CharField("1", max_length=25)
+    best = models.CharField("2", max_length=25)
+
+    class Meta:
+        verbose_name = "User feedback scale"
+
+    def __str__(self):
+        return ' | '.join([self.worst, self.worse, self.better, self.best])
+
+    def choices(self):
+        return Choices(
+            (-2, 'WORST', self.worst),
+            (-1, 'WORSE', self.worse),
+            (1, 'BETTER', self.better),
+            (2, 'BEST', self.best),
+            (0, 'NOT_APPLICABLE', _('N/A')),
+        )
+
+
 class SupportArea(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=200)
     user_feedback = models.BooleanField(_('Add to User Experience Survey'), default=False)
+    scale = models.ForeignKey(FeedbackScale, on_delete=models.SET_NULL, null=True, blank=True, related_name='areas')
 
     def __str__(self):
         return self.name
@@ -1431,17 +1455,12 @@ class UserFeedback(TimeStampedModel):
 
 
 class UserAreaFeedback(models.Model):
-    RATINGS = Choices(
-        (-2, 'NEEDS_ATTENTION', _('Needs Urgent Attention')),
-        (-1, 'NEEDS_IMPROVEMENT', _('Needs Improvement')),
-        (1, 'SATISFIED', _('Satisfied')),
-        (2, 'IMPRESSED', _('Impressed')),
-        (0, 'NOT_APPLICABLE', _('N/A')),
-    )
-
     feedback = models.ForeignKey(UserFeedback, on_delete=models.CASCADE, related_name='areas')
     area = models.ForeignKey(SupportArea, on_delete=models.CASCADE, related_name='impressions')
-    rating = models.IntegerField(choices=RATINGS, default=RATINGS.NOT_APPLICABLE)
+    rating = models.IntegerField(default=0)
+
+    def get_rating_display(self):
+        return self.area.scale.choices()[self.rating]
 
 
 class SupportRecord(TimeStampedModel):

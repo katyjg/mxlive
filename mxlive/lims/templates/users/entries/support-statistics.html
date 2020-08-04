@@ -19,21 +19,18 @@
 {% endblock %}
 
 {% block object_status %}
-    <div class="status-bar">
+    <div class="status-bar hidden-print">
         <div class="row">
-            <div class="col">
 
-                <small class="text-muted text-condensed">Beamline:</small><br>
-                <h5>
+            <h5 class="my-0 ml-auto p-2">
                 <a href="{% url "support-stats" %}">
-                    <span class="badge badge-{% if beamline %}info{% else %}primary{% endif %}">&emsp;All&emsp;</span>
-                </a>&nbsp;
+                    <span class="badge badge-{% if beamline %}warning{% else %}success{% endif %}">&emsp;All&emsp;</span>&nbsp;
+                </a>
                 {% for bl in beamlines %}
                     <a href="{% url "support-beamline-stats" bl.pk %}">
-                        <span class="badge badge-{% if bl == beamline %}primary{% else %}info{% endif %}">{{ bl }}</span></a>
+                        <span class="badge badge-{% if bl == beamline %}success{% else %}warning{% endif %}">{{ bl }}</span></a>
                 {% endfor %}
-                </h5>
-            </div>
+            </h5>
         </div>
     </div>
 {% endblock %}
