@@ -76,9 +76,10 @@
                 <div class="row d-flex flex-row align-items-center">
                     <div class="col-6">
                         {% include "users/address.html" with user=object %}
-                        <div class="mini-profile">{{ object.contact_email|default_if_none:"" }}<br/>
-                        <pre>{{ object.contact_phone|default_if_none:"" }}</pre>
-                        </div>
+                        <div class="mini-profile">
+                            {% if user.contact_phone %}Phone:&nbsp;<span class="text-monospace">{{ user.contact_phone|default_if_none:"" }}</span><br/>{% endif %}
+                            {% if user.contact_fax %}Fax:&nbsp;<span class="text-monospace">{{ user.contact_fax|default_if_none:"" }}</span><br/>{% endif %}
+                            Email:&nbsp;{{ object.contact_email|default_if_none:"" }}</div>
                     </div>
                     <div class="col-6">
                         <div class="text-center float-right">

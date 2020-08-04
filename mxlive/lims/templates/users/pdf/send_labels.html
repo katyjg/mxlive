@@ -8,41 +8,27 @@
 <div class="container">
     <div class="row">
         <h2 class="heading text-condensed">
-            <img src="{% get_setting 'BASE_DIR' %}{% static "img/bl_logo.svg" %}" style="width: 300px;"/>
+            <img src="{% get_setting 'PROJECT_DIR' %}{% static "img/bl_logo.svg" %}" style="width: 300px;"/>
             <span class="pull-right">SHIPPING LABEL</span>
         </h2>
         <p>Print this document and cut out the label to affix to the outside of your transport container (dewar) for shipment.</p>
         <div class="panel panel-main">
             <div class="label-sidebar">
-                <img src="{% get_setting 'BASE_DIR' %}{% static "img/bl_logo-min.svg" %}"/>
-                <br><br>
-                <img src="{% get_setting 'BASE_DIR' %}{% static "img/fragile_sign.svg" %}"/>
+                <img src="{% get_setting 'PROJECT_DIR' %}{% static "img/fragile_sign.svg" %}"/>
                 <br><br>
                 <strong class="emphasize">Non-Hazardous Frozen Samples In Dry-Shipper</strong>
             </div>
             <table class="table table-sm">
-                <tr><td>To:</td><td>{{ admin_project.contact_person|default:"" }}</td></tr>
-                <tr><td></td><td>c/o Shipping and Receiving</td></tr>
-                <tr><td></td><td>{{ admin_project.organisation|default:"" }}</td></tr>
-                <tr><td></td><td>{{ admin_project.address|default:"" }}</td></tr>
-                <tr><td></td><td>{{ admin_project.city|default:"" }}, {{ admin_project.province|default:"" }}  {{ admin_project.postal_code|default:"" }}</td></tr>
-                <tr><td></td><td>{{ admin_project.country|default:"" }}</td></tr>
-                <tr><td></td><td>Phone: {{admin_project.contact_phone|default:""}}</td></tr>
-                {% if admin_project.contact_fax %}
-                    <tr><td></td><td>Fax: {{admin_project.contact_fax|default:""}}</td></tr>
-                {% endif %}
+                <tr><td>To:</td><td>{{ admin_project.organisation|upper|default:"" }}</td></tr>
+                <tr><td></td><td>ATTN: {{ admin_project.contact_person|upper|default:"" }}{% if admin_project.department %} / {{ admin_project.department|upper }}{% endif %}</td></tr>
+                {% include "users/pdf/address_base.html" with project=admin_project %}
             </table>
             <div class="panel panel-default">
                 <table class="table table-sm">
                     <tr class="border-bottom"><td>ID:</td><td>{{project.first_name}} {{project.last_name}} ({{shipment.name}})</td></tr>
-                    <tr><td>From:</td><td>{{ project.contact_person|default:"" }}</td></tr>
-                    {% if project.department %}<tr><td></td><td>{{ project.department|default:"" }}</td></tr>{% endif %}
-                    <tr><td></td><td>{{ project.organisation|default:"" }}</td></tr>
-                    <tr><td></td><td>{{ project.address|default:"" }}</td></tr>
-                    <tr><td></td><td>{{ project.city|default:"" }}, {{ project.province|default:"" }}  {{project.postal_code|default:"" }}</td></tr>
-                    <tr><td></td><td>{{ project.country|default:"" }}</td></tr>
-                    <tr><td></td><td>Phone: {{ project.contact_phone|default:"" }}</td></tr>
-                    {% if project.contact_fax %}<tr><td></td><td>Fax: {{ project.contact_fax|default:"" }}</td></tr>{% endif %}
+                    <tr><td>From:</td><td>{{ project.contact_person|upper|default:"" }}{% if project.department %} / {{ project.department|upper }}{% endif %}</td></tr>
+                    <tr><td></td><td>{{ project.organisation|upper|default:"" }}</td></tr>
+                    {% include "users/pdf/address_base.html" %}
                 </table>
             </div>
         <span class="emphasize">Not restricted, as per Special Provision A152</span>

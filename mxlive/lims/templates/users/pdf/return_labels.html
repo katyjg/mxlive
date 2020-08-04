@@ -20,29 +20,16 @@
                 <div class="p-2 emphasize text-center"><strong>Non-Hazardous Frozen Samples In Dry-Shipper</strong></div>
             </div>
             <table class="table table-sm">
-                <tr><td>To:</td><td>{{ project.contact_person|default:"" }}</td></tr>
-                {% if project.department %}<tr><td></td><td>{{ project.department|default:"" }}</td></tr>{% endif %}
-                <tr><td></td><td>{{ project.organisation|default:"" }}</td></tr>
-                <tr><td></td><td>{{ project.address|default:"" }}</td></tr>
-                <tr><td></td><td>{{ project.city|default:"" }}, {{ project.province|default:"" }}  {{project.postal_code|default:"" }}</td></tr>
-                <tr><td></td><td>{{ project.country|default:"" }}</td></tr>
-                <tr><td></td><td>Phone: {{ project.contact_phone|default:"" }}</td></tr>
-                {% if project.contact_fax %}<tr><td></td><td>Fax: {{ project.contact_fax|default:"" }}</td></tr>{% endif %}
-
+                <tr><td>To:</td><td>{{ project.organisation|upper|default:"" }}</td></tr>
+                <tr><td></td><td>ATTN: {{ project.contact_person|upper|default:"" }}{% if project.department %} / {{ project.department|upper }}{% endif %}</td></tr>
+                {% include "users/pdf/address_base.html" %}
             </table>
             <div class="panel panel-default">
                 <table class="table table-sm">
                     <tr class="border-bottom"><td>ID:</td><td>{{project.first_name}} {{project.last_name}} ({{shipment.name}})</td></tr>
-                    <tr><td>From:</td><td>{{ admin_project.contact_person|default:"" }}</td></tr>
-                    <tr><td></td><td>c/o Shipping and Receiving</td></tr>
-                    <tr><td></td><td>{{ admin_project.organisation|default:"" }}</td></tr>
-                    <tr><td></td><td>{{ admin_project.address|default:"" }}</td></tr>
-                    <tr><td></td><td>{{ admin_project.city|default:"" }}</td></tr>
-                    <tr><td></td><td>{{ admin_project.country|default:"" }}</td></tr>
-                    <tr><td></td><td>Phone: {{admin_project.contact_phone|default:""}}</td></tr>
-                    {% if admin_project.contact_fax %}
-                        <tr><td></td><td>Fax: {{admin_project.contact_fax|default:""}}</td></tr>
-                    {% endif %}
+                    <tr><td>From:</td><td>{{ admin_project.contact_person|upper|default:"" }}{% if admin_project.department %} / {{ admin_project.department|upper }}{% endif %}</td></tr>
+                    <tr><td></td><td>{{ admin_project.organisation|upper|default:"" }}</td></tr>
+                    {% include "users/pdf/address_base.html" with project=admin_project %}
                 </table>
             </div>
         <span class="emphasize">Not restricted, as per Special Provision A152</span>
