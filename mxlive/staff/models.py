@@ -50,11 +50,17 @@ class UserList(StaffBaseClass):
 
     def scheduled(self):
         if settings.LIMS_USE_SCHEDULE:
-            now = timezone.now()
+            now = timezone.localtime()
             return list(Beamtime.objects.filter(access__remote=True, beamline__in=self.beamline.all(), start__lte=now,
                                                 end__gte=now - timedelta(hours=int(HOURS_PER_SHIFT/2))).values_list(
                 'project__username', flat=True))
         return []
+
+    def access_users(self):
+        users = list(self.users.values_list('username', flat=True))
+        if settings.LIMS_USE_SCHEDULE:
+            users += self.scheduled()
+        return users
 
     def identity(self):
         return self.name
