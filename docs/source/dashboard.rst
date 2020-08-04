@@ -97,6 +97,12 @@ information which may also be sent by email around one week before your beamtime
     :align: center
     :alt: Beamtime
 
+Once the local contact for your beamtime has been assigned, you can click the support icon to find contact information.
+
+.. image:: images/dashboard-support.png
+    :align: center
+    :alt: Beamtime Support
+
 Shipments
 ---------
 
@@ -106,7 +112,23 @@ last year.
 Sessions
 --------
 
-Up to seven of your most recent sessions (started within the last year) are listed here.
+Up to seven of your most recent sessions (started within the last year) are listed here. For sessions less than a week
+old, you can provide feedback to help improve the beamline experience. If you have not yet submitted feedback for a
+session, a link to the feedback form appears to the left of the session on your dashboard.
+
+.. image:: images/dashboard-sessions.png
+    :align: center
+    :alt: Video Guide
+
+Feedback
+--------
+
+Feedback can be provided for sessions less than one week old by accessing the User Experience Survey through the
+feedback icon located either on the dashboard or the session page.
+
+.. image:: images/feedback.png
+    :align: center
+    :alt: User Experience Survey
 
 Guide
 -----

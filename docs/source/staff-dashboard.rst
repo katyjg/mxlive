@@ -57,6 +57,11 @@ through the NoMachine Client. A python script `deploy/nxupdate.py` is set to run
 to fetch the new user list from MxLIVE. A history of connection times and statuses is sent back to MxLIVE, and can be
 viewed using the "Connections" icon in the toolbar.
 
+For MxLIVE instances taking advantage of the scheduling app, users who are assigned beamtime with an access mode marked
+as 'Remote' are automatically added to the remote access lists for the appropriate beamline. Their access begins at the
+start of their beamtime and ends half of a shift after the end of their beamtime. This provides a buffer for users to
+complete data analysis and transfer, if necessary.
+
 Accounts
 --------
 When creating a new account, enter the **First Name**, **Last Name**, and **Email Address** of the owner of the account

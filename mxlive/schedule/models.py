@@ -184,7 +184,7 @@ class EmailNotification(models.Model):
     sent = models.BooleanField(default=False)
 
     def recipient_list(self):
-        return [e for e in [self.beamtime.project.email, self.beamtime.project.contact_email] if e]
+        return list(set([e for e in [self.beamtime.project.email, self.beamtime.project.contact_email] if e]))
 
     def unsendable(self):
         late = timezone.now() > (self.send_time - timedelta(minutes=30))

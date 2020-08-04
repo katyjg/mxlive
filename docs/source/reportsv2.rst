@@ -75,32 +75,6 @@ Tables
     :align: center
     :alt: Table
 
-Bar Charts
-^^^^^^^^^^
-.. code-block:: html
-
-    {
-        "title": "Datasets",
-        "kind": "barchart",
-        "data": {
-            "x-label": "User",
-            "aspect-ratio": 0.7,
-            "color-by": "Type",
-            "colors": {"Student": "#073B4C", "Staff": "#06D6A0", "Industry": "#FFD166", "Commissioning": "#EF476F", "Academic": "#118AB2"},
-            "data": [
-                {"User": "someone", "Datasets": 10303, "Type": "Academic"},
-                ...
-                {"User": "someone else", "Datasets": 553, "Type": "Staff"}
-            ]
-        },
-        "notes": "Dataset counts include all types of datasets. Only the top 30 users by number of datasets are shown",
-        "style": "col-12 col-md-4"
-    }
-
-.. image:: images/report-barchart.png
-    :align: center
-    :alt: Bar Chart
-
 Column Charts
 ^^^^^^^^^^^^^
 .. code-block:: html
@@ -126,6 +100,35 @@ Column Charts
 .. image:: images/report-columnchart.png
     :align: center
     :alt: Column Chart
+
+Bar Charts
+^^^^^^^^^^
+A bar chart is essentially a Column Chart with horizontal bars. All options available for Column Charts are also
+available for Bar Charts.
+
+.. code-block:: html
+
+    {
+        "title": "Datasets",
+        "kind": "barchart",
+        "data": {
+            "x-label": "User",
+            "aspect-ratio": 0.7,
+            "color-by": "Type",
+            "colors": {"Student": "#073B4C", "Staff": "#06D6A0", "Industry": "#FFD166", "Commissioning": "#EF476F", "Academic": "#118AB2"},
+            "data": [
+                {"User": "someone", "Datasets": 10303, "Type": "Academic"},
+                ...
+                {"User": "someone else", "Datasets": 553, "Type": "Staff"}
+            ]
+        },
+        "notes": "Dataset counts include all types of datasets. Only the top 30 users by number of datasets are shown",
+        "style": "col-12 col-md-4"
+    }
+
+.. image:: images/report-barchart.png
+    :align: center
+    :alt: Bar Chart
 
 Histograms
 ^^^^^^^^^^

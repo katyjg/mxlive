@@ -1422,7 +1422,7 @@ class SupportRecordList(ListViewMixin, ItemListView):
         'kind',
         'areas'
     ]
-    list_columns = ['beamline', 'kind', 'staff', 'created', 'comments', 'area', 'lost_time']
+    list_columns = ['beamline', 'staff', 'created', 'kind', 'comments', 'area', 'lost_time']
     list_transforms = {'comments': format_comments, 'area': format_areas, 'created': format_created}
     list_search = ['beamline__acronym', 'project__username', 'comments']
     ordering = ['-created']
