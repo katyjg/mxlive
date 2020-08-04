@@ -10,7 +10,7 @@ from django.urls import reverse_lazy
 from django.utils.text import slugify
 
 from .models import Project, Shipment, Dewar, Sample, ComponentType, Container, Group, ContainerLocation, ContainerType
-from .models import Guide, ProjectType, SupportRecord, SupportArea, UserFeedback, UserAreaFeedback
+from .models import Guide, ProjectType, SupportRecord, SupportArea, UserFeedback, FeedbackScale
 from ..staff.models import UserList
 
 
@@ -1108,7 +1108,7 @@ class SupportAreaForm(forms.ModelForm):
 
     class Meta:
         model = SupportArea
-        fields = ['name', 'user_feedback']
+        fields = ['name', 'user_feedback', 'scale']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1125,7 +1125,8 @@ class SupportAreaForm(forms.ModelForm):
         self.body.layout = Layout(
             Div(
                 Div('name', css_class="col-12"),
-                Div('user_feedback', css_class="mx-3 px-1 col-12"),
+                Div(Div('user_feedback', css_class="mt-3 ml-3 pl-1"), css_class="col-6"),
+                Div('scale', css_class="col-6"),
                 css_class="row"
             ),
         )
@@ -1169,18 +1170,21 @@ class UserFeedbackForm(forms.ModelForm):
         self.body.title = u"User Experience Survey"
         self.body.form_action = reverse_lazy('session-feedback', kwargs={'key': self.initial['session'].feedback_key()})
 
-        likert_table = LikertTable(css_class="row", options=UserAreaFeedback.RATINGS)
-        for area in SupportArea.objects.filter(user_feedback=True):
-            name = slugify(area.name)
-            self.fields[name] = forms.MultipleChoiceField(choices=UserAreaFeedback.RATINGS, label=area.name, initial=0)
-            likert_table.append(LikertEntry(slugify(name)))
+        likert_tables = []
+        for scale in FeedbackScale.objects.filter(pk__in=SupportArea.objects.filter(user_feedback=True).values_list('scale__pk', flat=True)):
+            likert_tables.append(HTML(scale.statement))
+            likert_table = LikertTable(options=scale.choices())
+            for area in SupportArea.objects.filter(user_feedback=True, scale=scale):
+                name = slugify(area.name)
+                self.fields[name] = forms.MultipleChoiceField(choices=scale.choices(), label=area.name, initial=0)
+                likert_table.append(LikertEntry(slugify(name)))
+            likert_tables.append(likert_table)
+            likert_tables.append(HTML("""<br/>"""))
 
         self.body.layout = Layout(
             'session',
             HTML("""<p class="text-large text-condensed">Help us improve your next visit or session by letting us know how we did this time.</p>"""),
-            HTML("""Please evaluate the following aspects of your recent beamline experience. """),
-            likert_table,
-            HTML("""<br/>"""),
+            *likert_tables,
             Div(
                 Div('comments', css_class="col-12"),
                 Div('contact', css_class="mx-3 px-1 col-12"),
