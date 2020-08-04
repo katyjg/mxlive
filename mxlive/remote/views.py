@@ -99,12 +99,9 @@ class AccessList(View):
         client_addr = get_client_address(request)
 
         userlist = UserList.objects.filter(address=client_addr, active=True).first()
-        users = list(userlist.users.values_list('username', flat=True))
-        if settings.LIMS_USE_SCHEDULE:
-            users += userlist.scheduled()
 
         if userlist:
-            return JsonResponse(users, safe=False)
+            return JsonResponse(userlist.access_users(), safe=False)
         else:
             return JsonResponse([], safe=False)
 
@@ -136,7 +133,7 @@ class AccessList(View):
                 except:
                     pass
 
-            return JsonResponse([p.username for p in userlist.users.all()], safe=False)
+            return JsonResponse(userlist.access_users(), safe=False)
         else:
             return JsonResponse([], safe=False)
 
