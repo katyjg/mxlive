@@ -38,7 +38,7 @@ def js_epoch(dt):
 @memoize(timeout=HOUR_SECONDS)
 def get_data_periods(period='year'):
     field = 'created__{}'.format(period)
-    return sorted(Data.objects.values_list(field, flat=True).distinct())
+    return sorted(Data.objects.values_list(field, flat=True).order_by(field).distinct())
 
 
 def usage_stats(beamline, period='year', **filters):

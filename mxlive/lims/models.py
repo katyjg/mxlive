@@ -1195,6 +1195,7 @@ class Data(ActiveStatusMixin):
 
     class Meta:
         verbose_name = _('Dataset')
+        ordering = ['created',]
 
     def __str__(self):
         return '%s (%d)' % (self.name, self.num_frames)
