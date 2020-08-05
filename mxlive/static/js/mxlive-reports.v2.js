@@ -374,6 +374,7 @@ function drawBarChart(figure, chart, options) {
         },
         legend: {hide: (series.length === 1)},
         bar: {width: {ratio: .6}},
+        padding: { bottom: 20 },
         onresize: function () {
             this.api.resize({
                 width: figure.width(),
@@ -382,7 +383,11 @@ function drawBarChart(figure, chart, options) {
         }
     });
     if (chart.data.annotations) {
-        c3chart.ygrids(chart.data.annotations)
+        if ( options.horizontal ) {
+            c3chart.ygrids(chart.data.annotations)
+        } else {
+            c3chart.xgrids(chart.data.annotations)
+        }
     }
     figure.data('c3-chart', c3chart);
 }
