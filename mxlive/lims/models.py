@@ -1082,7 +1082,7 @@ class Sample(ProjectObjectMixin):
         unique_together = (
             ("container", "location"),
         )
-        ordering = ['priority', 'container__name', 'location', 'name']
+        ordering = ['priority', 'container__name', 'location__name', 'name']
 
     def get_absolute_url(self):
         return reverse('sample-detail', kwargs={'pk': self.id})
@@ -1257,7 +1257,7 @@ class AnalysisReport(ActiveStatusMixin):
     objects = ProjectObjectManager()
 
     class Meta:
-        ordering = ['-score']
+        ordering = ['created', '-score']
 
     def download_url(self):
         dataset = self.data.first()
