@@ -6,6 +6,7 @@ from . import views, ajax_views, forms
 urlpatterns = [
     path('', views.StaffDashboard.as_view(), name='staff-dashboard'),
 
+    path('profile/<slug:username>', views.ProjectProfile.as_view(), name='project-profile'),
     path('profile/<slug:username>/edit', views.ProjectEdit.as_view(), name='edit-profile'),
     path('profile/<slug:username>/labels', views.ProjectLabels.as_view(), name='project-labels'),
     path('profile/<slug:username>/reset', views.ProjectReset.as_view(), name='project-reset'),
@@ -83,6 +84,10 @@ urlpatterns = [
     path('ajax/report/<int:pk>/', ajax_views.FetchReport.as_view(), name='fetch-report'),
     path('ajax/bulk_edit/', ajax_views.BulkSampleEdit.as_view(), name='bulk-edit'),
     path('ajax/layout/<int:pk>/', ajax_views.FetchContainerLayout.as_view(), name='fetch-layout'),
+
+    path('sshkey/<slug:username>/new/', views.SSHKeyCreate.as_view(), name='new-sshkey'),
+    path('sshkey/<int:pk>/edit/', views.SSHKeyEdit.as_view(), name='sshkey-edit'),
+    path('sshkey/<int:pk>/delete/', views.SSHKeyDelete.as_view(), name='sshkey-delete'),
 
     path('quick-guide/', TemplateView.as_view(template_name='users/help.html'), name='user-guide'),
     path('guides/<int:pk>/youtube/<slug:video>/', views.GuideView.as_view(template_name="users/components/guide-youtube.html"), name='guide-youtube'),

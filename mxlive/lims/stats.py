@@ -164,7 +164,7 @@ def usage_stats(beamline, period='year', **filters):
         count=Count('id'))
 
     period_data = defaultdict(lambda: defaultdict(int))
-    for summary in beamline.datasets.filter(**filters).values(field, 'kind__name').annotate(count=Count('pk')):
+    for summary in beamline.datasets.filter(**filters).values(field, 'kind__name').order_by(field).annotate(count=Count('pk')):
         period_data[summary[field]][summary['kind__name']] = summary['count']
     datatype_table = []
     for item in data_types:

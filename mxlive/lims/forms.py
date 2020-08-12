@@ -10,7 +10,7 @@ from django.urls import reverse_lazy
 from django.utils.text import slugify
 
 from .models import Project, Shipment, Dewar, Sample, ComponentType, Container, Group, ContainerLocation, ContainerType
-from .models import Guide, ProjectType, SupportRecord, SupportArea, UserFeedback, FeedbackScale
+from .models import Guide, ProjectType, SupportRecord, SupportArea, UserFeedback, FeedbackScale, SSHKey
 from ..staff.models import UserList
 
 
@@ -1036,6 +1036,44 @@ class ShipmentSamplesForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['containers'].queryset = self.initial.get('containers')
+
+
+class SSHKeyForm(forms.ModelForm):
+
+    class Meta:
+        model = SSHKey
+        fields = ['name', 'key', 'project']
+        widgets = {
+            'key': forms.Textarea(attrs={"placeholder": "Begins with 'ssh-rsa' or 'ssh-dsa'"}),
+            'project': forms.HiddenInput()
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.body = BodyHelper(self)
+        self.footer = FooterHelper(self)
+        if self.instance.pk:
+            self.body.title = u"Edit SSH key"
+            self.body.form_action = reverse_lazy('sshkey-edit', kwargs={'pk': self.instance.pk})
+        else:
+            self.body.title = u"New SSH key"
+            self.body.form_action = reverse_lazy('new-sshkey', kwargs={'username': self.initial['project'].username})
+        self.body.layout = Layout(
+            Div(
+                'project',
+                Div('name', css_class="col-12"),
+                css_class="row"
+            ),
+            Div(
+                Div('key', css_class="col-12"),
+                css_class="row"
+            ),
+        )
+        self.footer.layout = Layout(
+            StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
+            StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
+        )
 
 
 class GuideForm(forms.ModelForm):

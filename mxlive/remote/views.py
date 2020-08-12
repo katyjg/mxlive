@@ -12,7 +12,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.urls import reverse_lazy
 from django.utils import timezone, dateparse
 from django.utils.decorators import method_decorator
@@ -136,6 +136,28 @@ class AccessList(View):
             return JsonResponse(userlist.access_users(), safe=False)
         else:
             return JsonResponse([], safe=False)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SSHKeys(View):
+    """
+    Returns SSH keys for specified user  if the remote server referenced by the IP number inferred from
+    the request exists.
+
+    :key: r'^keys/<username>$'
+    """
+
+    def get(self, request, *args, **kwargs):
+
+        client_addr = get_client_address(request)
+        userlist = UserList.objects.filter(address=client_addr, active=True).first()
+        user = Project.objects.filter(username=self.kwargs.get('username')).first()
+
+        msg = ''
+        if user:
+            msg = '\n'.join(user.sshkeys.values_list('key', flat=True)).encode()
+
+        return HttpResponse(msg, content_type='text/plain')
 
 
 @method_decorator(csrf_exempt, name='dispatch')

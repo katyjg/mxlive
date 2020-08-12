@@ -71,28 +71,32 @@
 {% block full %}
 
     <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="row d-flex flex-row align-items-center">
-                    <div class="col-6">
-                        {% include "users/address.html" with user=object %}
-                        <div class="mini-profile">
-                            {% if user.contact_phone %}Phone:&nbsp;<span class="text-monospace">{{ user.contact_phone|default_if_none:"" }}</span><br/>{% endif %}
-                            {% if user.contact_fax %}Fax:&nbsp;<span class="text-monospace">{{ user.contact_fax|default_if_none:"" }}</span><br/>{% endif %}
-                            Email:&nbsp;{{ object.contact_email|default_if_none:"" }}</div>
-                    </div>
-                    <div class="col-6">
-                        <div class="text-center float-right">
-                            <img src="/static/img/{{ object.carrier|default_if_none:'walking'|slugify }}.png"
-                                 height="100px"
-                                 title="{{ object.carrier|default_if_none:'User'|title }}">
-                            <h5>{{ object.account_number|default:"-- --- --- --" }}</h5>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+         <div class="{% if object.sshkeys.all %}col-md-8{% endif %} col-12">
+            {% include "users/entries/address-card.html" %}
         </div>
+        {% if object.sshkeys.all %}
+            <div class="col-md-4 col-12">
+                <div class="card mb-4">
+                    <div class="card-header p-1 text-wide text-muted text-center">
+                        <small>SSH KEYS</small>
+                    </div>
+                    {% for key in object.sshkeys.all %}
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item p-2">
+                                <div class="d-flex flex-row">
+                                    <div class="pl-3  overflow-ellipsis align-self-center">
+                                        <h5 class="mt-2 text-condensed text-muted">
+                                            <strong><i class="ti ti-key ti-sm"></i> {{ key.name }}</strong> | {{ key.created }}
+                                        </h5>
+                                        <p class="d-block mt-2 text-wrap text-sm text-monospace" style="word-wrap: break-word;">{{ key.fingerprint }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
     </div>
 
     <div class="row">

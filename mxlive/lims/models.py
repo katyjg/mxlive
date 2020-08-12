@@ -207,6 +207,20 @@ class Project(AbstractUser):
         verbose_name = _("Project Account")
 
 
+class SSHKey(TimeStampedModel):
+    name = models.CharField(max_length=60)
+    key = models.TextField()
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="sshkeys")
+
+    class Meta:
+        verbose_name = "SSH Key"
+
+    def fingerprint(self):
+        import hashlib
+        fp = hashlib.md5(self.key.encode()).hexdigest()
+        return ':'.join(a+b for a,b in zip(fp[::2], fp[1::2]))
+
+
 class StretchQuerySet(models.QuerySet):
 
     def active(self, extras={}):

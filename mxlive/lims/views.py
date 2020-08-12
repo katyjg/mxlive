@@ -217,9 +217,9 @@ class ProjectReset(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit
         return context
 
 
-class ProjectStatistics(UserPassesTestMixin, detail.DetailView):
+class ProjectProfile(UserPassesTestMixin, detail.DetailView):
     model = models.Project
-    template_name = "users/entries/project-statistics.html"
+    template_name = "users/entries/project-profile.html"
     slug_field = 'username'
     slug_url_kwarg = 'username'
 
@@ -233,13 +233,14 @@ class ProjectStatistics(UserPassesTestMixin, detail.DetailView):
             self.kwargs['username'] = self.request.user
         return super().get_object(*args, **kwargs)
 
+
+class ProjectStatistics(ProjectProfile):
+    template_name = "users/entries/project-statistics.html"
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['report'] = stats.project_stats(self.object)
         return context
-
-    def page_title(self):
-        return 'Project Statistics'
 
 
 class OwnerRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -1237,6 +1238,50 @@ class ContainerSpreadsheet(LoginRequiredMixin, AsyncFormMixin, detail.DetailView
             return JsonResponse({'url': container.get_absolute_url()}, safe=False)
         except models.Container.DoesNotExist:
             raise http.Http404('Container Not Found!')
+
+
+class SSHKeyCreate(UserPassesTestMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
+    form_class = forms.SSHKeyForm
+    template_name = "modal/form.html"
+    model = models.SSHKey
+    success_url = reverse_lazy('dashboard')
+    success_message = "SSH key has been created"
+
+    def test_func(self):
+        # Allow access to admin or owner
+        return self.request.user.is_superuser or self.kwargs['username'] == self.request.user.username
+
+    def get_success_url(self):
+        return reverse_lazy('project-profile', kwargs={'username': self.kwargs['username']})
+
+    def get_initial(self):
+        initial = super().get_initial()
+        try:
+            initial['project'] = models.Project.objects.get(username=self.kwargs['username'])
+        except models.Project.DoesNotExist:
+            return http.Http404
+
+        return initial
+
+
+class SSHKeyEdit(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    form_class = forms.SSHKeyForm
+    template_name = "modal/form.html"
+    model = models.SSHKey
+    success_url = reverse_lazy('dashboard')
+    success_message = "SSH key has been updated"
+
+
+class SSHKeyDelete(LoginRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
+    template_name = "modal/delete.html"
+    model = models.SSHKey
+    success_url = reverse_lazy('dashboard')
+    success_message = "SSH key has been deleted"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_action'] = reverse_lazy('sshkey-delete', kwargs={'pk': self.object.pk})
+        return context
 
 
 class GuideView(detail.DetailView):
