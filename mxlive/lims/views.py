@@ -1452,7 +1452,7 @@ def format_areas(val, record):
 
 
 def format_created(val, record):
-    return datetime.strftime(val, '%b %d, %Y %H:%M ')
+    return datetime.strftime(timezone.localtime(val), '%b %d, %Y %H:%M ')
 
 
 class SupportRecordList(ListViewMixin, ItemListView):
