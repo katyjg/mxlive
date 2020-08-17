@@ -39,6 +39,7 @@ Crystallography. For that reason, many features have been developed in an MX con
    staff-shipments
    scheduling
    publications
+   staff-support
 
 .. toctree::
    :maxdepth: 2

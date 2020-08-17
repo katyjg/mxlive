@@ -70,7 +70,7 @@ def beamtime_stats(beamline, period='year', **filters):
 
     downtime_info = beamline.downtime.with_duration().filter(**filters)
     cancelled_time = beamline.beamtime.with_duration().filter(**filters).filter(cancelled=True).values(field).annotate(shifts=Sum('shifts'))
-    cancelled_info = {c['start__year']: c['shifts'] for c in cancelled_time}
+    cancelled_info = {c[field]: c['shifts'] for c in cancelled_time}
 
     downtime_scopes = [str(Downtime.SCOPE_CHOICES[i]) for i in range(len(Downtime.SCOPE_CHOICES))] + ['Cancelled Shifts']
     downtime_data = defaultdict(lambda: defaultdict(int))

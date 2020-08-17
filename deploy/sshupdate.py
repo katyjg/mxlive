@@ -14,6 +14,7 @@ import requests
 import socket
 import subprocess
 import msgpack
+from datetime import datetime
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -29,11 +30,9 @@ def update_userlist():
 
     connections = [{
         'project': conn[0],
-        'name': '-'.join(conn[:3]),
-        'date': 'still' in conn[3] and '{} {}'.format(
-            conn[2].split('T')[0], conn[2].split('T')[1].split('-')[0]) or '{} {}'.format(
-            conn[4].split('T')[0], conn[4].split('T')[1].split('-')[0]),
-        'status': 'still' in conn[3] and 'Connected' or 'Finished'
+        'name': '-'.join(conn[:7]),
+        'date': len(conn) > 12 and '{}-{}-{} {}'.format(conn[12], datetime.strftime(datetime.strptime(conn[9], '%b'), '%m'), conn[10], conn[11]) or '{}-{}-{} {}'.format(conn[6], datetime.strftime(datetime.strptime(conn[3], '%b'), '%m'), conn[4], conn[5]),
+        'status': 'still' in conn[7] and 'Connected' or 'Finished'
     } for conn in info if 'pts' in conn[1] and 'root' not in conn]
     data = msgpack.dumps(connections)
 
@@ -46,17 +45,17 @@ def update_userlist():
         authorized_users = r.json()
 
         for u in authorized_users:
-            cmd = "usermod -a -G {} {}".format(SSH_GROUP, u)
+            cmd = "/sbin/usermod -a -G {} {}".format(SSH_GROUP, u)
             subprocess.check_call(cmd.split())
 
         # Get list of currently allowed users
-        cmd = "groupmems -g {} -l".format(SSH_GROUP)
+        cmd = "/sbin/groupmems -g {} -l".format(SSH_GROUP)
         outp = subprocess.check_output(cmd.split())
         current_users = [o.strip() for o in outp.decode().split()]
 
         to_remove = set(current_users) - set(authorized_users)
         for u in to_remove:
-            cmd = "gpasswd -d {} {}".format(u, SSH_GROUP)
+            cmd = "/bin/gpasswd -d {} {}".format(u, SSH_GROUP)
             subprocess.check_call(cmd.split())
 
     return ""

@@ -5,7 +5,12 @@ To enable the optional scheduling app in MxLIVE, make sure the following line is
 
     LIMS_USE_SCHEDULE = True
 
-By default, ``HOURS_PER_SHIFT`` is 8 (three shifts per day), but can be any factor of 24.
+Additional options can be set as well::
+
+    HOURS_PER_SHIFT  # default is 8 (three shifts per day), but can be any factor of 24
+    MIN_SUPPORT_HOUR # default if unset is 0 (midnight)
+    MAX_SUPPORT_HOUR # default if unset is 24 (midnight)
+    SUPPORT_EMAIL    # email to be used outside of regular user support hours
 
 .. image:: images/schedule-staff-labelled.png
    :align: center

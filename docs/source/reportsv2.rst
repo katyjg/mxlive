@@ -77,6 +77,8 @@ Tables
 
 Column Charts
 ^^^^^^^^^^^^^
+Example 1: Stacked Column Chart
+
 .. code-block:: html
 
     {
@@ -98,6 +100,33 @@ Column Charts
     }
 
 .. image:: images/report-columnchart.png
+    :align: center
+    :alt: Column Chart
+
+Example 2: Pareto Chart
+
+.. code-block:: html
+
+    {
+        'title': 'User Support Areas by Interaction',
+        'kind': 'columnchart',
+        'data': {
+            'aspect-ratio': 2,
+            'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33', "Interactions (%)": '#777777'},
+            'x-label': "Area",
+            'line-limits': [0, 100],
+            'line': "Interactions (%)",
+            'stack': [["Info", "Problem"]],
+            'data': [
+                {'Area': 'SAM Automounter', 'Info': 2, 'Problem': 5, 'Interactions (%)': 20.0},
+                ...,
+                {'Area': 'MxLIVE', 'Info': 1, 'Problem': 0, 'Interactions (%)': 100.0}
+            ]
+        },
+        'style': 'col-12 col-xl-6'
+    }
+
+.. image:: images/report-columnchart-2.png
     :align: center
     :alt: Column Chart
 

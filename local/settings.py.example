@@ -12,6 +12,11 @@ DOWNLOAD_PROXY_URL = "http://mxlive-data/download"
 # Shift parameters
 HOURS_PER_SHIFT = 8
 
+# User Support Parameters
+MIN_SUPPORT_HOUR = 8
+MAX_SUPPORT_HOUR = 22
+SUPPORT_EMAIL = 'cmcf-support@lightsource.ca'
+
 # Schedule App settings
 LIMS_USE_SCHEDULE = True
 FACILITY_MODES = "https://external.beam.mode.src"

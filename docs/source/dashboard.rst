@@ -15,8 +15,12 @@ The menu bar is available throughout the MxLIVE interface, providing quick acces
   - to detailed lists of all Shipments, Containers, Groups, Samples, Datasets, Reports, Sessions, and Activity in your account,
   - to view or edit your profile information.
 
-Profile
-*******
+My Profile
+**********
+
+The "My Profile" page displays the contact information we have for your account. You can edit your profile to update
+this information at any time. For beamlines providing SSH access for file transfer, you can also add your public SSH key
+from the profile page to simplify and secure access to data servers.
 
 .. figure:: images/profile-labelled.png
     :align: center
@@ -43,6 +47,14 @@ Indicate your preferences for communication and shipping by keeping your profile
     - **Alias**: An alternate display name to be used where the beamline schedule is made public. Primarily used for
       industrial clients or other users who require extra confidentiality.
 
+My Stats
+********
+View your history at the beamline through numbers. Your usage statistics contain bulk information about shipments and
+samples you have sent, data you have collected and analyzed, and time you have spent using the beamline.
+
+.. image:: images/usage-stats.png
+    :align: center
+    :alt: Usage Statistics
 
 Detailed Lists
 **************
@@ -79,14 +91,6 @@ Tools and links available from the dashboard toolbar:
   - Usage Stats: go to a page of detailed statistics related to your account
   - Schedule: go to the full beamline schedule
 
-Usage Stats
-***********
-View your history at the beamline through numbers. Your usage statistics contain bulk information about shipments and
-samples you have sent, data you have collected and analyzed, and time you have spent using the beamline.
-
-.. image:: images/usage-stats.png
-    :align: center
-    :alt: Usage Statistics
 
 Beamtime
 --------
