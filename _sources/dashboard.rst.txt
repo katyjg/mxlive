@@ -15,8 +15,12 @@ The menu bar is available throughout the MxLIVE interface, providing quick acces
   - to detailed lists of all Shipments, Containers, Groups, Samples, Datasets, Reports, Sessions, and Activity in your account,
   - to view or edit your profile information.
 
-Profile
-*******
+My Profile
+**********
+
+The "My Profile" page displays the contact information we have for your account. You can edit your profile to update
+this information at any time. For beamlines providing SSH access for file transfer, you can also add your public SSH key
+from the profile page to simplify and secure access to data servers.
 
 .. figure:: images/profile-labelled.png
     :align: center
@@ -43,6 +47,14 @@ Indicate your preferences for communication and shipping by keeping your profile
     - **Alias**: An alternate display name to be used where the beamline schedule is made public. Primarily used for
       industrial clients or other users who require extra confidentiality.
 
+My Stats
+********
+View your history at the beamline through numbers. Your usage statistics contain bulk information about shipments and
+samples you have sent, data you have collected and analyzed, and time you have spent using the beamline.
+
+.. image:: images/usage-stats.png
+    :align: center
+    :alt: Usage Statistics
 
 Detailed Lists
 **************
@@ -79,14 +91,6 @@ Tools and links available from the dashboard toolbar:
   - Usage Stats: go to a page of detailed statistics related to your account
   - Schedule: go to the full beamline schedule
 
-Usage Stats
-***********
-View your history at the beamline through numbers. Your usage statistics contain bulk information about shipments and
-samples you have sent, data you have collected and analyzed, and time you have spent using the beamline.
-
-.. image:: images/usage-stats.png
-    :align: center
-    :alt: Usage Statistics
 
 Beamtime
 --------
@@ -97,6 +101,12 @@ information which may also be sent by email around one week before your beamtime
     :align: center
     :alt: Beamtime
 
+Once the local contact for your beamtime has been assigned, you can click the support icon to find contact information.
+
+.. image:: images/dashboard-support.png
+    :align: center
+    :alt: Beamtime Support
+
 Shipments
 ---------
 
@@ -106,7 +116,23 @@ last year.
 Sessions
 --------
 
-Up to seven of your most recent sessions (started within the last year) are listed here.
+Up to seven of your most recent sessions (started within the last year) are listed here. For sessions less than a week
+old, you can provide feedback to help improve the beamline experience. If you have not yet submitted feedback for a
+session, a link to the feedback form appears to the left of the session on your dashboard.
+
+.. image:: images/dashboard-sessions.png
+    :align: center
+    :alt: Video Guide
+
+Feedback
+--------
+
+Feedback can be provided for sessions less than one week old by accessing the User Experience Survey through the
+feedback icon located either on the dashboard or the session page.
+
+.. image:: images/feedback.png
+    :align: center
+    :alt: User Experience Survey
 
 Guide
 -----

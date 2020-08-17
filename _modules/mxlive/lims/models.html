@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>mxlive.lims.models &mdash; MxLIVE 2020.05.264 documentation</title>
+  <title>mxlive.lims.models &mdash; MxLIVE 2020.05.295 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                2020.05.264
+                2020.05.295
               </div>
             
           
@@ -101,6 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../staff-shipments.html">Managing Shipments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../publications.html">Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../staff-support.html">User Support and Feedback</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul>
@@ -179,7 +180,6 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">mimetypes</span>
 
-
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">timedelta</span>
 
@@ -202,6 +202,7 @@
 
 <span class="kn">from</span> <span class="nn">mxlive.utils</span> <span class="k">import</span> <span class="n">slap</span>
 <span class="kn">from</span> <span class="nn">mxlive.utils.data</span> <span class="k">import</span> <span class="n">parse_frames</span><span class="p">,</span> <span class="n">frame_ranges</span>
+<span class="kn">from</span> <span class="nn">mxlive.utils.encrypt</span> <span class="k">import</span> <span class="n">encrypt</span>
 <span class="kn">from</span> <span class="nn">mxlive.utils.functions</span> <span class="k">import</span> <span class="n">Hours</span><span class="p">,</span> <span class="n">Minutes</span><span class="p">,</span> <span class="n">Shifts</span><span class="p">,</span> <span class="n">ShiftEnd</span><span class="p">,</span> <span class="n">ShiftStart</span>
 
 <span class="n">IDENTITY_FORMAT</span> <span class="o">=</span> <span class="s1">&#39;-%y%m&#39;</span>
@@ -362,15 +363,15 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="o">.</span><span class="n">count</span><span class="p">():</span>
                 <span class="k">return</span> <span class="s1">&#39;New&#39;</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_session</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">365</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_session</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">localtime</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">365</span><span class="p">)):</span>
                 <span class="k">return</span> <span class="s1">&#39;Active&#39;</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;Active&#39;</span>
         <span class="k">return</span> <span class="s1">&#39;Idle&#39;</span>
 
     <span class="k">def</span> <span class="nf">last_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;created&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">last</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">session</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="k">if</span> <span class="n">session</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">session</span><span class="o">.</span><span class="n">created</span> <span class="k">if</span> <span class="n">session</span> <span class="k">else</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Project.save"><a class="viewcode-back" href="../../../models.html#mxlive.lims.models.Project.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="p">:</span>
@@ -380,6 +381,20 @@
 
     <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
         <span class="n">verbose_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Project Account&quot;</span><span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">SSHKey</span><span class="p">(</span><span class="n">TimeStampedModel</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">()</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Project</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;sshkeys&quot;</span><span class="p">)</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">verbose_name</span> <span class="o">=</span> <span class="s2">&quot;SSH Key&quot;</span>
+
+    <span class="k">def</span> <span class="nf">fingerprint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">hashlib</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fp</span><span class="p">[::</span><span class="mi">2</span><span class="p">],</span> <span class="n">fp</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]))</span>
 
 
 <span class="k">class</span> <span class="nc">StretchQuerySet</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">QuerySet</span><span class="p">):</span>
@@ -452,6 +467,9 @@
     <span class="k">def</span> <span class="nf">download_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">.tar.gz&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">feedback_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">encrypt</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{user}</span><span class="s2">:</span><span class="si">{name}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
     <span class="k">def</span> <span class="nf">launch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">Stretch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">active</span><span class="p">(</span><span class="n">extras</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;session__beamline&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">beamline</span><span class="p">})</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
             <span class="n">end</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
@@ -492,6 +510,10 @@
     <span class="k">def</span> <span class="nf">is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretches</span><span class="o">.</span><span class="n">active</span><span class="p">()</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
 
+    <span class="nd">@memoize</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">is_recent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">7</span><span class="p">))</span>
+
     <span class="k">def</span> <span class="nf">shifts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">total</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretches</span><span class="o">.</span><span class="n">with_duration</span><span class="p">()</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s1">&#39;shift_duration&#39;</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">total</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="n">SHIFT_SECONDS</span>
@@ -526,7 +548,7 @@
 
     <span class="nd">@memoize</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">timezone</span><span class="o">.</span><span class="n">localtime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stretches</span><span class="o">.</span><span class="n">latest</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">end</span> <span class="ow">or</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">timezone</span><span class="o">.</span><span class="n">localtime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stretches</span><span class="o">.</span><span class="n">latest</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">end</span> <span class="ow">or</span> <span class="n">timezone</span><span class="o">.</span><span class="n">localtime</span><span class="p">())</span>
 
     <span class="nd">@memoize</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">last_record_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -955,7 +977,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">aspect_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="o">.</span><span class="n">height</span> <span class="ow">or</span> <span class="mf">1.0</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">capacity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="o">.</span><span class="n">locations</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
@@ -1250,7 +1272,7 @@
         <span class="n">unique_together</span> <span class="o">=</span> <span class="p">(</span>
             <span class="p">(</span><span class="s2">&quot;container&quot;</span><span class="p">,</span> <span class="s2">&quot;location&quot;</span><span class="p">),</span>
         <span class="p">)</span>
-        <span class="n">ordering</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;priority&#39;</span><span class="p">,</span> <span class="s1">&#39;container__name&#39;</span><span class="p">,</span> <span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">]</span>
+        <span class="n">ordering</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;priority&#39;</span><span class="p">,</span> <span class="s1">&#39;container__name&#39;</span><span class="p">,</span> <span class="s1">&#39;location__name&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">get_absolute_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;sample-detail&#39;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;pk&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">})</span>
@@ -1363,6 +1385,7 @@
 
     <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
         <span class="n">verbose_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Dataset&#39;</span><span class="p">)</span>
+        <span class="n">ordering</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;created&#39;</span><span class="p">,]</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (</span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_frames</span><span class="p">)</span>
@@ -1425,7 +1448,7 @@
     <span class="n">objects</span> <span class="o">=</span> <span class="n">ProjectObjectManager</span><span class="p">()</span>
 
     <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
-        <span class="n">ordering</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;-score&#39;</span><span class="p">]</span>
+        <span class="n">ordering</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;created&#39;</span><span class="p">,</span> <span class="s1">&#39;-score&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">download_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
@@ -1579,6 +1602,78 @@
 
     <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
         <span class="n">ordering</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;-staff_only&quot;</span><span class="p">,</span> <span class="s2">&quot;priority&quot;</span><span class="p">,)</span></div>
+
+
+<span class="k">class</span> <span class="nc">FeedbackScale</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">statement</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">worst</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s2">&quot;-2&quot;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+    <span class="n">worse</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s2">&quot;-1&quot;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+    <span class="n">better</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+    <span class="n">best</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">verbose_name</span> <span class="o">=</span> <span class="s2">&quot;User feedback scale&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39; | &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">worst</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">worse</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">better</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">best</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">choices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Choices</span><span class="p">(</span>
+            <span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;WORST&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">worst</span><span class="p">),</span>
+            <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;WORSE&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">worse</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;BETTER&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">better</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;BEST&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">best</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NOT_APPLICABLE&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;N/A&#39;</span><span class="p">)),</span>
+        <span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">SupportArea</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+    <span class="n">user_feedback</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;Add to User Experience Survey&#39;</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">FeedbackScale</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">SET_NULL</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;areas&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+
+
+<span class="k">class</span> <span class="nc">UserFeedback</span><span class="p">(</span><span class="n">TimeStampedModel</span><span class="p">):</span>
+    <span class="n">session</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Session</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">SET_NULL</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;feedback&#39;</span><span class="p">)</span>
+    <span class="n">comments</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">contact</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;Contact User&#39;</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="s2">&quot;No Session&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">UserAreaFeedback</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">feedback</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">UserFeedback</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;areas&#39;</span><span class="p">)</span>
+    <span class="n">area</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">SupportArea</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;impressions&#39;</span><span class="p">)</span>
+    <span class="n">rating</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_rating_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">area</span><span class="o">.</span><span class="n">scale</span><span class="o">.</span><span class="n">choices</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">rating</span><span class="p">]</span>
+
+
+<span class="k">class</span> <span class="nc">SupportRecord</span><span class="p">(</span><span class="n">TimeStampedModel</span><span class="p">):</span>
+    <span class="n">TYPE</span> <span class="o">=</span> <span class="n">Choices</span><span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;problem&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Problem&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;info&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Info&#39;</span><span class="p">)),</span>
+    <span class="p">)</span>
+    <span class="n">kind</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;Kind&quot;</span><span class="p">),</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">TYPE</span><span class="o">.</span><span class="n">info</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">TYPE</span><span class="p">)</span>
+    <span class="n">areas</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="n">SupportArea</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;help&#39;</span><span class="p">)</span>
+    <span class="n">staff</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Project</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">SET_NULL</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Project</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">SET_NULL</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;help&#39;</span><span class="p">)</span>
+    <span class="n">beamline</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Beamline</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">SET_NULL</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;help&#39;</span><span class="p">)</span>
+    <span class="n">comments</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">lost_time</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FloatField</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;Time Lost (hours)&#39;</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">staff_comments</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> | </span><span class="si">{}</span><span class="s2"> | </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">staff</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beamline</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">area_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39; | &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">areas</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
 
 <span class="nd">@receiver</span><span class="p">(</span><span class="n">post_delete</span><span class="p">,</span> <span class="n">sender</span><span class="o">=</span><span class="n">Project</span><span class="p">)</span>

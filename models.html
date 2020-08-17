@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Models &mdash; MxLIVE 2020.05.264 documentation</title>
+  <title>Models &mdash; MxLIVE 2020.05.295 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                2020.05.264
+                2020.05.295
               </div>
             
           
@@ -103,6 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="staff-shipments.html">Managing Shipments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-support.html">User Support and Feedback</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul class="current">
@@ -796,14 +797,14 @@ If ‘circle’, location__name value lists are assumed to be polar coordinates 
 
 <dl class="class">
 <dt id="mxlive.staff.models.RemoteConnection">
-<em class="property">class </em><code class="sig-prename descclassname">mxlive.staff.models.</code><code class="sig-name descname">RemoteConnection</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">name</em>, <em class="sig-param">user</em>, <em class="sig-param">list</em>, <em class="sig-param">status</em>, <em class="sig-param">created</em>, <em class="sig-param">end</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/staff/models.html#RemoteConnection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.staff.models.RemoteConnection" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">mxlive.staff.models.</code><code class="sig-name descname">RemoteConnection</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">name</em>, <em class="sig-param">user</em>, <em class="sig-param">userlist</em>, <em class="sig-param">status</em>, <em class="sig-param">created</em>, <em class="sig-param">end</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mxlive/staff/models.html#RemoteConnection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mxlive.staff.models.RemoteConnection" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>id</strong> (<em>AutoField</em>) – Id</p></li>
 <li><p><strong>name</strong> (<em>CharField</em>) – Name</p></li>
 <li><p><strong>user_id</strong> (<em>ForeignKey</em>) – User</p></li>
-<li><p><strong>list_id</strong> (<em>ForeignKey</em>) – List</p></li>
+<li><p><strong>userlist_id</strong> (<em>ForeignKey</em>) – Userlist</p></li>
 <li><p><strong>status</strong> (<em>CharField</em>) – Status</p></li>
 <li><p><strong>created</strong> (<em>DateTimeField</em>) – Date created</p></li>
 <li><p><strong>end</strong> (<em>DateTimeField</em>) – Date ended</p></li>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Beamlines and Automounters &mdash; MxLIVE 2020.05.295 documentation</title>
+  <title>User Support and Feedback &mdash; MxLIVE 2020.05.295 documentation</title>
   
 
   
@@ -36,8 +36,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Managing Shipments" href="staff-shipments.html" />
-    <link rel="prev" title="Dashboard" href="staff-dashboard.html" /> 
+    <link rel="next" title="Application Program Interfaces" href="apis.html" />
+    <link rel="prev" title="Publications" href="publications.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -99,15 +99,11 @@
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#remote-connections">Remote Connections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#accounts">Accounts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-dashboard.html#detailed-lists">Detailed Lists</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Beamlines and Automounters</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#loading-an-automounter">Loading an Automounter</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beamline-statistics">Beamline Statistics</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="staff-beamlines.html">Beamlines and Automounters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-shipments.html">Managing Shipments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="staff-support.html">User Support and Feedback</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">User Support and Feedback</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul>
@@ -162,7 +158,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Beamlines and Automounters</li>
+      <li>User Support and Feedback</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -179,45 +175,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="beamlines-and-automounters">
-<h1>Beamlines and Automounters<a class="headerlink" href="#beamlines-and-automounters" title="Permalink to this headline">¶</a></h1>
-<p>New beamlines can be created through the Django administration site. The beamline acronym is used for email
-notifications about upcoming beamtime, for tagging publications, and display and filters throughout MxLIVE. The
-<strong>Name</strong>, energy range, and <strong>Contact phone</strong> are for display purposes only. If a beamline is marked as <strong>Simulated</strong>,
-it will not appear on the weekly schedule.</p>
-<p>Each beamline can be assigned an automounter layout for loading containers. Default autmounters included in MxLIVE are
-SAM, CATS, and ISARA, but additional automounter layouts can be defined as a new Container Type through the MxLIVE
-Django administration site.</p>
-<p>To associate an automounter with a beamline, create a new Dewar through the Django administration site. Choose the
-<strong>Beamline</strong> and <strong>Container</strong>, or create the container using the “+” button. The container should have the <strong>Status</strong>
-on-site, and be assigned to a <strong>Project</strong> marked as staff. While a beamline can have multiple Dewars, only one should be
-marked as <strong>Active</strong> at any given time.</p>
-<img alt="Beamline Automounter" class="align-center" src="_images/automounter-loaded.png" />
-<p>Use the “History” icon in the toolbar to see a detailed history of container locations loaded in the automounter.</p>
-<img alt="Beamline Automounter History" class="align-center" src="_images/automounter-history.png" />
-<div class="section" id="loading-an-automounter">
-<h2>Loading an Automounter<a class="headerlink" href="#loading-an-automounter" title="Permalink to this headline">¶</a></h2>
-<p>To load a container in an automounter, select the location where the container will be loaded and choose from the list
-of containers that are currently on-site and NOT loaded in an automounter.</p>
-<img alt="Load a Container" class="align-center" src="_images/staff-load-container.png" />
-<p>To move a container to a different location in the same automounter, select the container from the layout and choose its
-new location.</p>
-<img alt="Move a Container" class="align-center" src="_images/staff-move-container.png" />
-<p>To unload a container, either select it from the layout and choose “Unload”, or use the “Unload” icon next to the
-container in the right-hand sidebar. Loaded containers can be viewed either listed individually, or sorted by project.</p>
-<img alt="View loaded containers individually or sorted by project." class="align-center" src="_images/automounter-containers-lists.png" />
-<p>You can also use the “Unload all” icon in the Projects tab to unload all containers belonging to a specific
-user.</p>
-<img alt="Unload All Containers for a User" class="align-center" src="_images/staff-unload-all.png" />
-</div>
-<div class="section" id="beamline-statistics">
-<h2>Beamline Statistics<a class="headerlink" href="#beamline-statistics" title="Permalink to this headline">¶</a></h2>
-<p>The toolbar has icons to access beamline statistics and usage metrics. Statistics include data collection parameters
-that indicate how the beamline is typically used. Usage metrics include many bulk statistics of how beamtime is used,
-including by access type and project type.</p>
-<img alt="Beamline Statistics" class="align-center" src="_images/beamline-statistics.png" />
-<img alt="Beamline Metrics" class="align-center" src="_images/beamline-metrics.png" />
-</div>
+  <div class="section" id="user-support-and-feedback">
+<h1>User Support and Feedback<a class="headerlink" href="#user-support-and-feedback" title="Permalink to this headline">¶</a></h1>
+<p>User support interactions can be tracked through MxLIVE. Tools on the staff dashboard assist by pre-filling the support
+record form based on the local contact assigned.</p>
+<img alt="Support Record" class="align-center" src="_images/support-record.png" />
+<p>Metrics are compiled automatically to show results of submitted user experience surveys, and user support trends.</p>
+<img alt="Support Metrics" class="align-center" src="_images/support-metrics.png" />
 </div>
 
 
@@ -228,10 +192,10 @@ including by access type and project type.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="staff-shipments.html" class="btn btn-neutral float-right" title="Managing Shipments" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="apis.html" class="btn btn-neutral float-right" title="Application Program Interfaces" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="staff-dashboard.html" class="btn btn-neutral float-left" title="Dashboard" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="publications.html" class="btn btn-neutral float-left" title="Publications" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

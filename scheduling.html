@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Scheduling &mdash; MxLIVE 2020.05.264 documentation</title>
+  <title>Scheduling &mdash; MxLIVE 2020.05.295 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                2020.05.264
+                2020.05.295
               </div>
             
           
@@ -115,6 +115,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-support.html">User Support and Feedback</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul>
@@ -192,7 +193,13 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">LIMS_USE_SCHEDULE</span> <span class="o">=</span> <span class="kc">True</span>
 </pre></div>
 </div>
-<p>By default, <code class="docutils literal notranslate"><span class="pre">HOURS_PER_SHIFT</span></code> is 8 (three shifts per day), but can be any factor of 24.</p>
+<p>Additional options can be set as well:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">HOURS_PER_SHIFT</span>  <span class="c1"># default is 8 (three shifts per day), but can be any factor of 24</span>
+<span class="n">MIN_SUPPORT_HOUR</span> <span class="c1"># default if unset is 0 (midnight)</span>
+<span class="n">MAX_SUPPORT_HOUR</span> <span class="c1"># default if unset is 24 (midnight)</span>
+<span class="n">SUPPORT_EMAIL</span>    <span class="c1"># email to be used outside of regular user support hours</span>
+</pre></div>
+</div>
 <img alt="Staff Scheduling View" class="align-center" src="_images/schedule-staff-labelled.png" />
 <div class="section" id="facility-modes">
 <h2>Facility Modes<a class="headerlink" href="#facility-modes" title="Permalink to this headline">¶</a></h2>

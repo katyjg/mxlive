@@ -51,11 +51,27 @@ Remote Connections
     :align: center
     :alt: Remote Connections
 
-Remote Connections in MxLIVE are tailored for managing NoMachine Server allowed user lists. Users who should be granted
-access to NoMachine connections are added to the list of a specific remote connection, which they can then connect to
-through the NoMachine Client. A python script `deploy/nxupdate.py` is set to run on each NoMachine Server periodically
-to fetch the new user list from MxLIVE. A history of connection times and statuses is sent back to MxLIVE, and can be
-viewed using the "Connections" icon in the toolbar.
+Remote Connections in MxLIVE are tailored to provide a list of allowed users to a remote service through an API. Scripts
+for accessing the API for NoMachine Servers and SSH Servers are provided. A history of remote connections can be viewed
+using the "Connections" icon in the toolbar.
+
+Users who should be granted access to a remote server are added to the list of a specific remote connection, which they
+can then connect to through the NoMachine Client or SSH, depending on the configuration of the server.
+
+For MxLIVE instances taking advantage of the scheduling app, users who are assigned beamtime with an access mode marked
+as 'Remote' are automatically added to the remote access lists for the appropriate beamline. Their access begins at the
+start of their beamtime and ends half of a shift after the end of their beamtime. This provides a buffer for users to
+complete data analysis and transfer, if necessary.
+
+NoMachine Server
+^^^^^^^^^^^^^^^^
+A python script `deploy/nxupdate.py` is set to run on each NoMachine Server periodically to fetch the new user list from
+MxLIVE. A history of connection times and statuses as reported by `nxserver --history` is sent back to MxLIVE.
+
+SSH Server
+^^^^^^^^^^
+A python script `deploy/sshupdate.py` is set to run on each SSH server periodically to fetch the new user list from
+MxLIVE. A history of connection times and statuses as reported by `last -Rw --time-format iso` is sent back to MxLIVE.
 
 Accounts
 --------

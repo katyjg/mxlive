@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>On the Dashboard &mdash; MxLIVE 2020.05.264 documentation</title>
+  <title>On the Dashboard &mdash; MxLIVE 2020.05.295 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                2020.05.264
+                2020.05.295
               </div>
             
           
@@ -89,17 +89,16 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">On the Dashboard</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#menu">Menu</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#profile">Profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#my-profile">My Profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#my-stats">My Stats</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#detailed-lists">Detailed Lists</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#toolbar">Toolbar</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#usage-stats">Usage Stats</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#toolbar">Toolbar</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#beamtime">Beamtime</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#shipments">Shipments</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#sessions">Sessions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#feedback">Feedback</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#guide">Guide</a></li>
 </ul>
 </li>
@@ -118,6 +117,7 @@
 <li class="toctree-l1"><a class="reference internal" href="staff-shipments.html">Managing Shipments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-support.html">User Support and Feedback</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul>
@@ -205,8 +205,11 @@
 <li><p>to view or edit your profile information.</p></li>
 </ul>
 </div></blockquote>
-<div class="section" id="profile">
-<h3>Profile<a class="headerlink" href="#profile" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="my-profile">
+<h3>My Profile<a class="headerlink" href="#my-profile" title="Permalink to this headline">¶</a></h3>
+<p>The “My Profile” page displays the contact information we have for your account. You can edit your profile to update
+this information at any time. For beamlines providing SSH access for file transfer, you can also add your public SSH key
+from the profile page to simplify and secure access to data servers.</p>
 <div class="figure align-center" id="id2">
 <img alt="Edit Your Profile" src="_images/profile-labelled.png" />
 <p class="caption"><span class="caption-text">View or Edit Your Profile Information</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
@@ -236,6 +239,12 @@ used for returning samples to your group following your completed beamtime.</p><
 industrial clients or other users who require extra confidentiality.</p></li>
 </ul>
 </div>
+</div>
+<div class="section" id="my-stats">
+<h3>My Stats<a class="headerlink" href="#my-stats" title="Permalink to this headline">¶</a></h3>
+<p>View your history at the beamline through numbers. Your usage statistics contain bulk information about shipments and
+samples you have sent, data you have collected and analyzed, and time you have spent using the beamline.</p>
+<img alt="Usage Statistics" class="align-center" src="_images/usage-stats.png" />
 </div>
 <div class="section" id="detailed-lists">
 <h3>Detailed Lists<a class="headerlink" href="#detailed-lists" title="Permalink to this headline">¶</a></h3>
@@ -270,18 +279,14 @@ is draft shipments, which are only accessible by you, and become visible to staf
 <li><p>Schedule: go to the full beamline schedule</p></li>
 </ul>
 </div></blockquote>
-<div class="section" id="usage-stats">
-<h3>Usage Stats<a class="headerlink" href="#usage-stats" title="Permalink to this headline">¶</a></h3>
-<p>View your history at the beamline through numbers. Your usage statistics contain bulk information about shipments and
-samples you have sent, data you have collected and analyzed, and time you have spent using the beamline.</p>
-<img alt="Usage Statistics" class="align-center" src="_images/usage-stats.png" />
-</div>
 </div>
 <div class="section" id="beamtime">
 <h2>Beamtime<a class="headerlink" href="#beamtime" title="Permalink to this headline">¶</a></h2>
 <p>Upcoming beamtime is listed here, along with past beamtime completed in the last year. The info icon displays beamtime
 information which may also be sent by email around one week before your beamtime.</p>
 <img alt="Beamtime" class="align-center" src="_images/dashboard-beamtime.png" />
+<p>Once the local contact for your beamtime has been assigned, you can click the support icon to find contact information.</p>
+<img alt="Beamtime Support" class="align-center" src="_images/dashboard-support.png" />
 </div>
 <div class="section" id="shipments">
 <h2>Shipments<a class="headerlink" href="#shipments" title="Permalink to this headline">¶</a></h2>
@@ -290,7 +295,16 @@ last year.</p>
 </div>
 <div class="section" id="sessions">
 <h2>Sessions<a class="headerlink" href="#sessions" title="Permalink to this headline">¶</a></h2>
-<p>Up to seven of your most recent sessions (started within the last year) are listed here.</p>
+<p>Up to seven of your most recent sessions (started within the last year) are listed here. For sessions less than a week
+old, you can provide feedback to help improve the beamline experience. If you have not yet submitted feedback for a
+session, a link to the feedback form appears to the left of the session on your dashboard.</p>
+<img alt="Video Guide" class="align-center" src="_images/dashboard-sessions.png" />
+</div>
+<div class="section" id="feedback">
+<h2>Feedback<a class="headerlink" href="#feedback" title="Permalink to this headline">¶</a></h2>
+<p>Feedback can be provided for sessions less than one week old by accessing the User Experience Survey through the
+feedback icon located either on the dashboard or the session page.</p>
+<img alt="User Experience Survey" class="align-center" src="_images/feedback.png" />
 </div>
 <div class="section" id="guide">
 <h2>Guide<a class="headerlink" href="#guide" title="Permalink to this headline">¶</a></h2>

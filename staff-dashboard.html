@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Dashboard &mdash; MxLIVE 2020.05.264 documentation</title>
+  <title>Dashboard &mdash; MxLIVE 2020.05.295 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                2020.05.264
+                2020.05.295
               </div>
             
           
@@ -99,13 +99,18 @@
 <li class="toctree-l2"><a class="reference internal" href="#guide">Guide</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="#remote-connections">Remote Connections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#remote-connections">Remote Connections</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#nomachine-server">NoMachine Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ssh-server">SSH Server</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="#accounts">Accounts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#detailed-lists">Detailed Lists</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-beamlines.html">Beamlines and Automounters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="staff-shipments.html">Managing Shipments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="staff-support.html">User Support and Feedback</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul>
@@ -225,11 +230,25 @@ announcements to control the order in which they are presented.</p>
 <div class="section" id="remote-connections">
 <h1>Remote Connections<a class="headerlink" href="#remote-connections" title="Permalink to this headline">¶</a></h1>
 <img alt="Remote Connections" class="align-center" src="_images/staff-remote.png" />
-<p>Remote Connections in MxLIVE are tailored for managing NoMachine Server allowed user lists. Users who should be granted
-access to NoMachine connections are added to the list of a specific remote connection, which they can then connect to
-through the NoMachine Client. A python script <cite>deploy/nxupdate.py</cite> is set to run on each NoMachine Server periodically
-to fetch the new user list from MxLIVE. A history of connection times and statuses is sent back to MxLIVE, and can be
-viewed using the “Connections” icon in the toolbar.</p>
+<p>Remote Connections in MxLIVE are tailored to provide a list of allowed users to a remote service through an API. Scripts
+for accessing the API for NoMachine Servers and SSH Servers are provided. A history of remote connections can be viewed
+using the “Connections” icon in the toolbar.</p>
+<p>Users who should be granted access to a remote server are added to the list of a specific remote connection, which they
+can then connect to through the NoMachine Client or SSH, depending on the configuration of the server.</p>
+<p>For MxLIVE instances taking advantage of the scheduling app, users who are assigned beamtime with an access mode marked
+as ‘Remote’ are automatically added to the remote access lists for the appropriate beamline. Their access begins at the
+start of their beamtime and ends half of a shift after the end of their beamtime. This provides a buffer for users to
+complete data analysis and transfer, if necessary.</p>
+<div class="section" id="nomachine-server">
+<h2>NoMachine Server<a class="headerlink" href="#nomachine-server" title="Permalink to this headline">¶</a></h2>
+<p>A python script <cite>deploy/nxupdate.py</cite> is set to run on each NoMachine Server periodically to fetch the new user list from
+MxLIVE. A history of connection times and statuses as reported by <cite>nxserver –history</cite> is sent back to MxLIVE.</p>
+</div>
+<div class="section" id="ssh-server">
+<h2>SSH Server<a class="headerlink" href="#ssh-server" title="Permalink to this headline">¶</a></h2>
+<p>A python script <cite>deploy/sshupdate.py</cite> is set to run on each SSH server periodically to fetch the new user list from
+MxLIVE. A history of connection times and statuses as reported by <cite>last -Rw –time-format iso</cite> is sent back to MxLIVE.</p>
+</div>
 </div>
 <div class="section" id="accounts">
 <h1>Accounts<a class="headerlink" href="#accounts" title="Permalink to this headline">¶</a></h1>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>mxlive.staff.models &mdash; MxLIVE 2020.05.264 documentation</title>
+  <title>mxlive.staff.models &mdash; MxLIVE 2020.05.295 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                2020.05.264
+                2020.05.295
               </div>
             
           
@@ -101,6 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../staff-shipments.html">Managing Shipments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../scheduling.html">Scheduling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../publications.html">Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../staff-support.html">User Support and Feedback</a></li>
 </ul>
 <p class="caption"><span class="caption-text">For Developers:</span></p>
 <ul>
@@ -173,12 +174,17 @@
            <div itemprop="articleBody">
             
   <h1>Source code for mxlive.staff.models</h1><div class="highlight"><pre>
-<span></span><span class="c1"># define models here</span>
+<span></span><span class="kn">from</span> <span class="nn">django.conf</span> <span class="k">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">django.db</span> <span class="k">import</span> <span class="n">models</span>
-<span class="kn">from</span> <span class="nn">mxlive.lims.models</span> <span class="k">import</span> <span class="n">ActivityLog</span><span class="p">,</span> <span class="n">Beamline</span><span class="p">,</span> <span class="n">Container</span><span class="p">,</span> <span class="n">Sample</span><span class="p">,</span> <span class="n">Group</span>
+<span class="kn">from</span> <span class="nn">django.utils</span> <span class="k">import</span> <span class="n">timezone</span>
+<span class="kn">from</span> <span class="nn">mxlive.lims.models</span> <span class="k">import</span> <span class="n">ActivityLog</span>
 <span class="kn">from</span> <span class="nn">model_utils</span> <span class="k">import</span> <span class="n">Choices</span>
-<span class="kn">import</span> <span class="nn">imghdr</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">timedelta</span>
+
+<span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">LIMS_USE_SCHEDULE</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">..schedule.models</span> <span class="k">import</span> <span class="n">Beamtime</span>
+    <span class="n">HOURS_PER_SHIFT</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="s1">&#39;HOURS_PER_SHIFT&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">get_storage_path</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
@@ -207,12 +213,31 @@
     <span class="n">active</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">created</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="s1">&#39;date created&#39;</span><span class="p">,</span> <span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">modified</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="s1">&#39;date modified&#39;</span><span class="p">,</span> <span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">beamline</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="s2">&quot;lims.Beamline&quot;</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;access_lists&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">allowed_users</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39; | &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">current_users</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39; | &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connections</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">status__in</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Connected&#39;</span><span class="p">,</span> <span class="s1">&#39;Disconnected&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;user__username&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">distinct</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">scheduled_users</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39; | &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scheduled</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">scheduled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">LIMS_USE_SCHEDULE</span><span class="p">:</span>
+            <span class="n">now</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">localtime</span><span class="p">()</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">Beamtime</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">cancelled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">access__remote</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">beamline__in</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">beamline</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
+                                                <span class="n">start__lte</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
+                                                <span class="n">end__gte</span><span class="o">=</span><span class="n">now</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">HOURS_PER_SHIFT</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)))</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span>
+                <span class="s1">&#39;project__username&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">access_users</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">users</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">LIMS_USE_SCHEDULE</span><span class="p">:</span>
+            <span class="n">users</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduled</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">users</span>
 
     <span class="k">def</span> <span class="nf">identity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
@@ -233,7 +258,7 @@
     <span class="p">)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">48</span><span class="p">)</span>
     <span class="n">user</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;lims.Project&quot;</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
-    <span class="nb">list</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">UserList</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;connections&quot;</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
+    <span class="n">userlist</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">UserList</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;connections&quot;</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
     <span class="n">status</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">STATES</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">STATES</span><span class="o">.</span><span class="n">CONNECTED</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
     <span class="n">created</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="s1">&#39;date created&#39;</span><span class="p">,</span> <span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">end</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="s1">&#39;date ended&#39;</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -242,7 +267,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Connected&#39;</span><span class="p">,</span> <span class="s1">&#39;Disconnected&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">total_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">created</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span><span class="o">/</span><span class="mf">3600.</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="ow">or</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">created</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span><span class="o">/</span><span class="mf">3600.</span>
     <span class="n">total_time</span><span class="o">.</span><span class="n">short_description</span> <span class="o">=</span> <span class="s2">&quot;Duration&quot;</span></div>
 </pre></div>
 

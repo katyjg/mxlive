@@ -75,34 +75,10 @@ Tables
     :align: center
     :alt: Table
 
-Bar Charts
-^^^^^^^^^^
-.. code-block:: html
-
-    {
-        "title": "Datasets",
-        "kind": "barchart",
-        "data": {
-            "x-label": "User",
-            "aspect-ratio": 0.7,
-            "color-by": "Type",
-            "colors": {"Student": "#073B4C", "Staff": "#06D6A0", "Industry": "#FFD166", "Commissioning": "#EF476F", "Academic": "#118AB2"},
-            "data": [
-                {"User": "someone", "Datasets": 10303, "Type": "Academic"},
-                ...
-                {"User": "someone else", "Datasets": 553, "Type": "Staff"}
-            ]
-        },
-        "notes": "Dataset counts include all types of datasets. Only the top 30 users by number of datasets are shown",
-        "style": "col-12 col-md-4"
-    }
-
-.. image:: images/report-barchart.png
-    :align: center
-    :alt: Bar Chart
-
 Column Charts
 ^^^^^^^^^^^^^
+Example 1: Stacked Column Chart
+
 .. code-block:: html
 
     {
@@ -126,6 +102,62 @@ Column Charts
 .. image:: images/report-columnchart.png
     :align: center
     :alt: Column Chart
+
+Example 2: Pareto Chart
+
+.. code-block:: html
+
+    {
+        'title': 'User Support Areas by Interaction',
+        'kind': 'columnchart',
+        'data': {
+            'aspect-ratio': 2,
+            'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33', "Interactions (%)": '#777777'},
+            'x-label': "Area",
+            'line-limits': [0, 100],
+            'line': "Interactions (%)",
+            'stack': [["Info", "Problem"]],
+            'data': [
+                {'Area': 'SAM Automounter', 'Info': 2, 'Problem': 5, 'Interactions (%)': 20.0},
+                ...,
+                {'Area': 'MxLIVE', 'Info': 1, 'Problem': 0, 'Interactions (%)': 100.0}
+            ]
+        },
+        'style': 'col-12 col-xl-6'
+    }
+
+.. image:: images/report-columnchart-2.png
+    :align: center
+    :alt: Column Chart
+
+Bar Charts
+^^^^^^^^^^
+A bar chart is essentially a Column Chart with horizontal bars. All options available for Column Charts are also
+available for Bar Charts.
+
+.. code-block:: html
+
+    {
+        "title": "Datasets",
+        "kind": "barchart",
+        "data": {
+            "x-label": "User",
+            "aspect-ratio": 0.7,
+            "color-by": "Type",
+            "colors": {"Student": "#073B4C", "Staff": "#06D6A0", "Industry": "#FFD166", "Commissioning": "#EF476F", "Academic": "#118AB2"},
+            "data": [
+                {"User": "someone", "Datasets": 10303, "Type": "Academic"},
+                ...
+                {"User": "someone else", "Datasets": 553, "Type": "Staff"}
+            ]
+        },
+        "notes": "Dataset counts include all types of datasets. Only the top 30 users by number of datasets are shown",
+        "style": "col-12 col-md-4"
+    }
+
+.. image:: images/report-barchart.png
+    :align: center
+    :alt: Bar Chart
 
 Histograms
 ^^^^^^^^^^
