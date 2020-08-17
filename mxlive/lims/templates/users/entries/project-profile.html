@@ -21,12 +21,14 @@
 
 
 {% block object_tools %}
-    {% include "users/tools-user.html" %}
-    <a  href="#!" data-form-link="{% url "edit-profile" username=user.username %}">
-        {% show_icon label='Edit Profile' icon='ti ti-md ti-pencil' %}
+    <a  href="{% url "project-statistics" username=object.username %}">
+        {% show_icon label='My Stats' icon='ti ti-md ti-pulse' %}
     </a>
-    <a  href="#!" data-form-link="{% url "new-sshkey" username=user.username %}">
+    <a  href="#!" data-form-link="{% url "new-sshkey" username=object.username %}">
         {% show_icon label='Add SSH Key' icon='ti ti-md ti-key' %}
+    </a>
+    <a  href="#!" data-form-link="{% url "edit-profile" username=object.username %}">
+        {% show_icon label='Edit Profile' icon='ti ti-md ti-pencil' %}
     </a>
 {% endblock %}
 

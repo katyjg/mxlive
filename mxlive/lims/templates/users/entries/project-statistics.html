@@ -3,6 +3,7 @@
 {% load static %}
 {% load jsutils %}
 {% load stats %}
+{% load icons %}
 
 {% block extra_css %}
     <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
@@ -19,7 +20,9 @@
 {% endblock %}
 
 {% block object_tools %}
-    {% include "users/tools-user.html" %}
+    <a  href="{% url "project-profile" username=object.username %}">
+        {% show_icon label='My Profile' icon='ti ti-md ti-user' %}
+    </a>
 {% endblock %}
 
 {% block object_status %}
