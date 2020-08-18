@@ -394,6 +394,6 @@ class EmailNotificationEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMi
         initial = super().get_initial()
         initial['recipients'] = '; '.join(self.object.recipient_list())
         if self.object.unsendable():
-            initial['warning'] = "This email cannot be sent. Either the send time has already passed, or there are no recipients."
+            initial['warning'] = "This email cannot be sent. Either the send time has already passed, the beamtime has been cancelled, or there are no recipients."
 
         return initial

@@ -189,7 +189,7 @@ class EmailNotification(models.Model):
     def unsendable(self):
         late = timezone.now() > (self.send_time - timedelta(minutes=30))
         empty = not self.recipient_list()
-        return not self.sent and any([late, empty])
+        return not self.sent and any([late, empty, self.beamtime.cancelled])
 
     def save(self, *args, **kwargs):
         # Get user's local timezone
