@@ -41,7 +41,7 @@
             {% show_icon label='Download' icon='ti ti-md ti-download' %}
         </a>
     {% endif %}
-    {% if object.is_recent and request.user == object.project %}
+    {% if request.user == object.project %}
         <a href="{% url "session-feedback" key=object.feedback_key %}" title="Give feedback about this session">
             {% show_icon label='Feedback' icon='ti ti-md ti-star' %}
         </a>
