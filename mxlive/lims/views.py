@@ -18,7 +18,7 @@ from formtools.wizard.views import SessionWizardView
 from itemlist.views import ItemListView
 from proxy.views import proxy_view
 
-from mxlive.staff.models import RemoteConnection
+from mxlive.staff.models import RemoteConnection, UserList
 from mxlive.utils import filters
 from mxlive.utils.encrypt import decrypt
 from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, HTML2PdfMixin
@@ -193,6 +193,10 @@ class StaffDashboard(AdminRequiredMixin, detail.DetailView):
 
         for i, conn in enumerate(conn_info):
             conn_info[i]['shipments'] = shipments.filter(project=conn['user']).count()
+            conn_info[i]['connections'] = {
+                access.name: conn_info[i]['connections'].filter(userlist=access)
+                for access in UserList.objects.filter(pk__in=conn_info[i]['connections'].values_list('userlist__pk', flat=True)).distinct()
+            }
 
         context.update(connections=conn_info, adaptors=adaptors, automounters=automounters, shipments=shipments)
         return context

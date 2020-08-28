@@ -41,9 +41,14 @@
             </span>
         </div>
         <div class="tools-box ml-auto">
-            {% for conn in connection.connections %}
-                <a href="#!" data-link="{% url "connection-detail" conn.pk %}" title='View Connection "{{ conn.name }}"'>
-                    {% show_icon label=conn.userlist.name|upper icon='ti ti-md ti-rss-alt' %}
+            {% for access, conn in connection.connections.items %}
+                <a href="{% url "connection-list" %}?search={{ connection.user.username }}&status__exact=CONNECTED&userlist__id__exact={{ conn.0.userlist.pk }}"
+                   title='View {{ connection.user.username|upper }} Connections to {{ access }}'>
+                    {% if conn|length is 1 %}
+                        {% show_icon label=access|upper icon='ti ti-md ti-rss-alt' %}
+                    {% else %}
+                        {% show_icon label=access|upper badge=conn|length icon='ti ti-md ti-rss-alt' %}
+                    {% endif %}
                 </a>
             {% endfor %}
             {% for session in connection.sessions %}
