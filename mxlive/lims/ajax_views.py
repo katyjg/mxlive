@@ -149,13 +149,16 @@ class CreateShipmentSamples(LoginRequiredMixin, View):
             shipment = qs.get(pk=self.kwargs['pk'])
             samples = json.loads(request.POST.get('samples', '[]'))
             grouped_samples = defaultdict(list)
-            loc_info = dict(models.ContainerLocation.objects.values_list('name', 'pk'))
+            loc_info = {
+                container.pk: dict(container.kind.locations.values_list('name', 'pk'))
+                for container in shipment.containers.all()
+            }
             for sample in sorted(samples, key=itemgetter('container', 'location')):
                 grouped_samples[sample['group']].append(
                     {
                         'project': shipment.project,
                         'container_id': sample['container'],
-                        'location_id': loc_info[str(sample['location'])]
+                        'location_id': loc_info[sample['container']][str(sample['location'])]
                     }
                 )
 
