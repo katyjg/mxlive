@@ -83,7 +83,7 @@ class RemoteConnection(StaffBaseClass):
     name = models.CharField(max_length=48)
     user = models.ForeignKey("lims.Project", on_delete=models.CASCADE)
     userlist = models.ForeignKey(UserList, related_name="connections", on_delete=models.CASCADE)
-    status = models.CharField(choices=STATES, default=STATES.CONNECTED, max_length=20)
+    status = models.CharField(max_length=20)
     created = models.DateTimeField('date created', auto_now_add=True, editable=True)
     end = models.DateTimeField('date ended', null=True, blank=True)
 
