@@ -11,7 +11,6 @@ SSH_GROUP = 'mxlive'
 # --------------    DO NOT EDIT BELOW HERE   ------------------ #
 
 import requests
-import socket
 import subprocess
 import msgpack
 from datetime import datetime
@@ -24,7 +23,7 @@ def update_userlist():
     url = "%s/api/v2/accesslist/" % SERVER_URL
 
     # Get list of current and past connections
-    cmd = "/usr/bin/last -Rw --time-format iso"
+    cmd = "/usr/bin/last -RwF -n 1000"
     outp = subprocess.check_output(cmd.split())
     info = [o.split() for o in outp.decode().split('\n') if o]
 
@@ -35,6 +34,16 @@ def update_userlist():
         'status': 'still' in conn[7] and 'Connected' or 'Finished'
     } for conn in info if 'pts' in conn[1] and 'root' not in conn]
     data = msgpack.dumps(connections)
+
+    # Get current list of connections
+    cmd = "/usr/bin/w -hs"
+    outp = subprocess.check_output(cmd.split())
+    info = [o.split() for o in outp.decode().split('\n') if o]
+    who = [{
+        'name': w[0],
+        'proc': "{}@{}".format(w[0], w[1]),
+        'idle': "days" in w[3] and int(w[3].replace("days", "")) > 2 or False
+    } for w in info]
 
     if not SSL_VERIFY:
         r = requests.post(url, data=data, verify=SSL_VERIFY)
@@ -57,6 +66,19 @@ def update_userlist():
         for u in to_remove:
             cmd = "/bin/gpasswd -d {} {}".format(u, SSH_GROUP)
             subprocess.check_call(cmd.split())
+
+        to_disconnect = set([w['name'] for w in who]) - set(authorized_users)
+        for w in who:
+            if w['name'] in to_disconnect or w['idle']:
+                cmd1 = "/bin/ps -ef"
+                cmd2 = "/bin/grep {}".format(w['proc'])
+                ps = subprocess.Popen(cmd1.split(), stdout=subprocess.PIPE)
+                outp = subprocess.check_output(cmd2.split(), stdin=ps.stdout)
+                info = [o.split() for o in outp.decode().split('\n') if o]
+                procs = [e[1] for e in info if e[0] == w['name']]
+                for proc in procs:
+                    cmd = "/bin/kill -TERM {}".format(proc)
+                    subprocess.call(cmd.split())
 
     return ""
 
