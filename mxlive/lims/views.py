@@ -135,7 +135,7 @@ class StaffDashboard(AdminRequiredMixin, detail.DetailView):
             sample_count=Count('containers__samples', distinct=True),
             group_count=Count('groups', distinct=True),
             container_count=Count('containers', distinct=True),
-        ).order_by('status', 'project__username', '-date_shipped').prefetch_related('project')
+        ).order_by('status', 'project__kind__name', 'project__username', '-date_shipped').prefetch_related('project')
 
         adaptors = models.Container.objects.filter(
             kind__locations__accepts__isnull=False, dewars__isnull=True, status__gt=models.Container.STATES.DRAFT
@@ -453,6 +453,9 @@ class SendShipment(ShipmentEdit):
 class ReturnShipment(ShipmentEdit):
     form_class = forms.ShipmentReturnForm
     success_url = reverse_lazy('dashboard')
+
+    def get_success_url(self):
+        return self.success_url
 
     def form_valid(self, form):
         obj = form.instance.returned()
@@ -1463,6 +1466,7 @@ class SupportRecordList(ListViewMixin, ItemListView):
     model = models.SupportRecord
     list_filters = [
         'beamline',
+        'created',
         filters.YearFilterFactory('created', reverse=True),
         filters.MonthFilterFactory('created'),
         filters.QuarterFilterFactory('created'),
