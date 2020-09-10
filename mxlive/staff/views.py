@@ -3,7 +3,6 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Count, Value, CharField
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.utils import dateformat, timezone
@@ -20,10 +19,15 @@ from ..lims import forms, stats
 User = get_user_model()
 
 
+def format_beamlines(value, record):
+    return ', '.join(record.beamline.values_list('acronym', flat=True))
+
+
 class AccessList(AdminRequiredMixin, ItemListView):
     model = models.UserList
     list_filters = ['beamline', 'active']
-    list_columns = ['name', 'description', 'current_users', 'allowed_users', 'address', 'beamline__acronym', 'active']
+    list_columns = ['name', 'description', 'current_users', 'allowed_users', 'address', 'beamlines', 'active']
+    list_transforms = {'beamlines': format_beamlines}
     list_search = ['name', 'description']
     tool_template = "users/tools-access.html"
     link_url = 'access-edit'
@@ -34,9 +38,8 @@ class AccessList(AdminRequiredMixin, ItemListView):
     page_title = 'Remote Access'
 
     def get_list_columns(self):
-        if settings.LIMS_USE_SCHEDULE:
-            self.list_columns = ['name', 'description', 'scheduled_users', 'allowed_users', 'address',
-                                 'beamline__acronym', 'active']
+        if settings.LIMS_USE_SCHEDULE and 'current_users' in self.list_columns:
+            self.list_columns[self.list_columns.index('current_users')] = 'scheduled_users'
         return self.list_columns
 
 
