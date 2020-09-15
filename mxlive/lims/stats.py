@@ -1126,3 +1126,159 @@ def support_stats(beamline, **filters):
     ]}
     return stats
 
+
+def supportrecord_stats(objlist, filters):
+    support_filters = {"{}{}".format('help__', k): v for k, v in filters.items()}
+    support_areas = SupportArea.objects.filter(pk__in=objlist.values_list('areas__pk', flat=True)).annotate(
+        info=Count(Case(When(help__kind='info', then=1), output_field=IntegerField()), filter=Q(**support_filters)),
+        problem=Count(Case(When(help__kind='problem', then=1), output_field=IntegerField()), filter=Q(**support_filters)),
+        time_lost=Sum('help__lost_time', filter=Q(**support_filters))
+    ).order_by('pk').values('name', 'info', 'problem', 'time_lost')
+
+    total_interactions = sum([a['info'] + a['problem'] for a in support_areas])
+    support_areas = sorted(support_areas, key=lambda x: -(x['info'] + x['problem']))
+    area_interactions = [
+        {
+            "Area": area['name'],
+            "Info": area['info'],
+            "Problem": area['problem'],
+            "Interactions (%)": 100 * sum(a['info'] + a['problem'] for a in support_areas[:i+1]) / total_interactions
+        } for i, area in enumerate(support_areas)
+    ]
+    lost_time = sum([a['time_lost'] for a in support_areas])
+    stats = {'details': [
+        {
+            'title': 'User Experience and Support',
+            'description': 'Summary of impressions from user experience surveys',
+            'style': "row",
+            'content': [
+                {
+                    'title': 'User Support Interactions and Lost Time',
+                    'kind': 'columnchart',
+                    'data': {
+                        'aspect-ratio': 4,
+                        'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33'},
+                        'x-label': "Area",
+                        'data': [
+                            {
+                                "Area": area['name'],
+                                "Info": area['info'],
+                                "Problem": area['problem'],
+                                "Lost Time (hours)": area['time_lost'] or 0,
+                            } for area in support_areas
+                        ]
+                    },
+                    'style': 'col-12'
+                },
+                {
+                    'title': 'User Support Areas by Interaction',
+                    'kind': 'columnchart',
+                    'data': {
+                        'aspect-ratio': 2,
+                        'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33', "Interactions (%)": '#777777'},
+                        'x-label': "Area",
+                        'line-limits': [0, 100],
+                        'line': "Interactions (%)",
+                        'stack': [["Info", "Problem"]],
+                        'data': area_interactions
+                    },
+                    'style': 'col-12 col-xl-6'
+                },
+                {
+                    'title': 'User Support Areas by Lost Time',
+                    'kind': 'columnchart',
+                    'data': {
+                        'aspect-ratio': 2,
+                        'colors': {"Lost Time (hours)": '#ffa333', "Percentage (%)": '#777777'},
+                        'x-label': "Area",
+                        'line': "Percentage (%)",
+                        'y2-limits': [0, 100],
+                        'data': [
+                            {
+                                "Area": area['name'],
+                                "Lost Time (hours)": area['time_lost'] or 0,
+                                "Percentage (%)": lost_time and 100 * sum([a['time_lost'] for a in sorted(support_areas, key=lambda i: -i['time_lost'])[:j + 1]]) / lost_time or 0
+                            } for j, area in enumerate(sorted(support_areas, key=lambda i: -i['time_lost']))
+                        ]
+                    },
+                    'style': 'col-12 col-xl-6'
+                },
+                {
+                    'title': 'User Support Interactions Staff Comments',
+                    'notes': '<strong>Staff Comments:</strong>\n\n' + linebreaksbr(
+                        '\n\n'.join(SupportRecord.objects.values_list('staff_comments', flat=True).distinct())),
+                    'style': 'col-12'
+                },
+            ]
+        },
+    ]}
+    return stats
+
+
+def userfeedback_stats(objlist, filters):
+    area_filters = { "{}{}".format(k.startswith('beamline') and 'feedback__session__' or 'feedback__', k): v for k, v in filters.items() }
+    area_feedback = UserAreaFeedback.objects.filter(**area_filters)
+
+    feedback = objlist
+
+    colors = ['#ffdd33', '#ffa333', '#66ffd5', '#00E6E2']
+
+    likerts = []
+    for scale in FeedbackScale.objects.filter(pk__in=SupportArea.objects.filter(user_feedback=True).values_list('scale__pk', flat=True)):
+        choices = list(scale.choices())[:-1]
+        choices = [choices[1], choices[0]] + choices[2:]
+        choice_colors = dict(zip([c[1] for c in choices], colors))
+
+        likert_data = [
+            {
+                'Area': area.name,
+                'data': {
+                    c[1]: area_feedback.filter(area=area, rating=c[0]).count() * (c[0] < 0 and -1 or 1)
+                for c in choices }
+             } for area in SupportArea.objects.filter(user_feedback=True, scale=scale).order_by('pk')
+        ]
+        for i, d in enumerate(likert_data):
+            likert_data[i].update(d['data'])
+            likert_data[i].pop('data')
+
+        scale_feedback = area_feedback.exclude(rating=0).filter(area__scale=scale)
+        likerts.append({
+            'data': likert_data,
+            'colors': choice_colors,
+            'choices': choices,
+            'average': scale_feedback and sum([a.rating for a in scale_feedback])/scale_feedback.count() or 0
+        })
+
+    stats = {'details': [
+        {
+            'title': 'User Experience',
+            'description': 'Summary of impressions from user experience surveys',
+            'style': "row",
+            'content': [
+                {
+                   'title': 'User Experience Surveys',
+                   'kind': 'barchart',
+                   'data': {
+                       'stack': [[c[1] for c in lt['choices']]],
+                       'x-label': 'Area',
+                       'aspect-ratio': 1,
+                       'colors': lt['colors'],
+                       'data': lt['data'],
+                       "annotations": [
+                           {"value": lt['average'], "text": "AVERAGE"}
+                       ]
+                   },
+                   'notes': "<strong>Overall Average:</strong> {:.2f}".format(lt['average']),
+                   'style': 'col-12 col-md-6'
+                } for lt in likerts
+            ] + [
+                {
+                    'title': 'User Experience Survey Comments',
+                    'notes': '<strong>User Feedback:</strong>\n\n' + linebreaksbr(
+                        '\n\n'.join([c for c in feedback.values_list('comments', flat=True).distinct() if c])),
+                    'style': 'col-12'
+                }
+            ]
+        },
+    ]}
+    return stats

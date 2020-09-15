@@ -17,6 +17,7 @@ from django.views.generic import edit, detail, View, TemplateView
 from formtools.wizard.views import SessionWizardView
 from itemlist.views import ItemListView
 from proxy.views import proxy_view
+from urllib import parse
 
 from mxlive.staff.models import RemoteConnection, UserList
 from mxlive.utils import filters
@@ -1469,7 +1470,6 @@ class SupportRecordList(ListViewMixin, ItemListView):
         'created',
         filters.YearFilterFactory('created', reverse=True),
         filters.MonthFilterFactory('created'),
-        filters.QuarterFilterFactory('created'),
         'project__designation',
         'project__kind',
         'kind',
@@ -1483,6 +1483,32 @@ class SupportRecordList(ListViewMixin, ItemListView):
     link_url = 'supportrecord-edit'
     link_field = 'beamline'
     link_attr = 'data-form-link'
+
+
+class SupportRecordStats(SupportRecordList):
+    template_name = "users/entries/supportrecord-stats.html"
+    paginate_by = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        qsl = context['query_string']
+        for part in ['year', 'month', 'quarter']:
+            qsl = qsl.replace('created_{}'.format(part), 'created__{}'.format(part))
+        context['stats_filters'] = dict(parse.parse_qsl(qsl.strip('?')))
+        return context
+
+
+class UserFeedbackStats(UserFeedbackList):
+    template_name = "users/entries/user-feedback-stats.html"
+    paginate_by = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        qsl = context['query_string']
+        for part in ['year', 'month', 'quarter']:
+            qsl = qsl.replace('created_{}'.format(part), 'created__{}'.format(part))
+        context['stats_filters'] = dict(parse.parse_qsl(qsl.strip('?')))
+        return context
 
 
 class SupportRecordCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
