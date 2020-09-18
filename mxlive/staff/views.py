@@ -10,7 +10,8 @@ from django.views.generic import edit, detail
 from itemlist.views import ItemListView
 
 from mxlive.utils import slap
-from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin
+from mxlive.utils import filters
+from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, PlotViewMixin
 from . import models
 from ..lims.models import Project, ActivityLog
 from ..lims import forms, stats
@@ -59,13 +60,21 @@ class AccessEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.U
 class RemoteConnectionList(AdminRequiredMixin, ItemListView):
     model = models.RemoteConnection
     list_columns = ['user', 'name', 'userlist', 'status', 'created', 'end']
-    list_filters = ['created', 'userlist', 'status']
+    list_filters = ['created', filters.YearFilterFactory('created', reverse=True), 'userlist', 'status']
     list_search = ['user__username', 'name', 'status', 'userlist__name', 'created']
     ordering = ['-created']
     template_name = "users/list.html"
     link_url = 'connection-detail'
     link_attr = 'data-link'
     page_title = 'Remote Connections'
+    plot_url = reverse_lazy("connection-stats")
+    paginate_by = 100
+
+
+class RemoteConnectionStats(PlotViewMixin, RemoteConnectionList):
+    plot_filters = ['user__kind__name', 'userlist__name', 'status']
+    date_field = 'created'
+    list_url = reverse_lazy("connection-list")
 
 
 class RemoteConnectionDetail(AdminRequiredMixin, detail.DetailView):

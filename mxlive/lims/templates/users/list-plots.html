@@ -1,13 +1,14 @@
 {% extends "users/base.html" %}
 {% load static %}
 {% load stats %}
+{% load icons %}
 
 {% block page_heading %}
     <h3>
-        <span class="text-thin">{{ view.page_title }} Statistics</span>{% if beamline %}{% endif %}
+        {{ view.page_title }} Statistics
     </h3>
     <span class="text-muted">
-       {% if stats_filters %}
+       {% if active_filters %}
            {% for title, spec, selected in filters %}
                {% if not spec.0.selected %}
                    {{ title|capfirst }}: <strong>{{ selected }}</strong>&emsp;
@@ -19,24 +20,17 @@
     </span>
 {% endblock %}
 
-{% block object_status %}
-    <div class="status-bar hidden-print">
-        <div class="row">
-            <h5 class="my-0 ml-auto p-2">
-                {% url "supportrecord-stats" as sr_url %}
-                {% url "user-feedback-stats" as uf_url %}
-                <a href="{{ sr_url }}">
-                    <span class="badge badge-{% if request.path == sr_url %}warning{% else %}success{% endif %}">Support Records</span>&nbsp;
-                </a>
-                <a href="{{ uf_url}}">
-                    <span class="badge badge-{% if request.path == uf_url %}warning{% else %}success{% endif %}">User Feedback</span>&nbsp;
-                </a>
-            </h5>
-        </div>
-    </div>
+{% block object_tools %}
+    {% if view.list_url %}
+        <a href="{{ view.list_url }}" title="Support Areas">
+            {% show_icon label='List' icon='ti ti-md ti-list' %}
+        </a>
+        {% if view.tool_template %}
+            <a class="separator"></a>
+        {% endif %}
+    {% endif %}
+    {% if view.tool_template %}{% include view.tool_template %}{% endif %}
 {% endblock %}
-
-{% block object_tools %}{% if view.tool_template %}{% include view.tool_template %}{% endif %}{% endblock %}
 
 {% block extra_css %}
     <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
@@ -60,7 +54,6 @@
     <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
 
-    {% get_supportrecord_stats as report %}
     <script type="text/javascript">
         var report = {{ report | safe }};
         $(document).ready(function() {

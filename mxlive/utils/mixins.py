@@ -5,10 +5,14 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.utils.text import slugify
 
-from tempfile import mkdtemp
-import subprocess
 import os
 import shutil
+import subprocess
+from tempfile import mkdtemp
+from urllib import parse
+
+from ..utils.stats import generic_stats
+
 
 TEMP_PREFIX = getattr(settings, 'PDF_TEMP_PREFIX', 'render_pdf-')
 CACHE_PREFIX = getattr(settings, 'PDF_CACHE_PREFIX', 'render-pdf')
@@ -82,3 +86,29 @@ class HTML2PdfMixin(object):
         res['Content-Length'] = pdf_file.size
         res['Content-Disposition'] = 'attachment; filename="{}"'.format(os.path.basename(pdf_filename))
         return res
+
+
+class PlotViewMixin():
+    template_name = "users/list-plots.html"
+    plot_filters = []
+    date_field = None
+    paginate_by = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['report'] = self.get_metrics()
+        context['active_filters'] = self.get_active_filters()
+        return context
+
+    def get_plot_filters(self):
+        return self.plot_filters
+
+    def get_active_filters(self):
+        qsl = self.get_query_string()
+        if self.date_field:
+            for part in ['year', 'month', 'day', 'quarter']:
+                qsl = qsl.replace('{}_{}'.format(self.date_field, part), '{}__{}'.format(self.date_field, part))
+        return dict(parse.parse_qsl(qsl.strip('?')))
+
+    def get_metrics(self):
+        return generic_stats(self.get_queryset(), self.get_plot_filters(), self.date_field)

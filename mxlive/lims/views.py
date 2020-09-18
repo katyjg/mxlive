@@ -17,12 +17,11 @@ from django.views.generic import edit, detail, View, TemplateView
 from formtools.wizard.views import SessionWizardView
 from itemlist.views import ItemListView
 from proxy.views import proxy_view
-from urllib import parse
 
 from mxlive.staff.models import RemoteConnection, UserList
 from mxlive.utils import filters
 from mxlive.utils.encrypt import decrypt
-from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, HTML2PdfMixin
+from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, HTML2PdfMixin, PlotViewMixin
 from . import forms, models, stats
 
 DOWNLOAD_PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', "http://mxlive-data/download")
@@ -1413,6 +1412,7 @@ class UserFeedbackList(ListViewMixin, ItemListView):
     show_project = False
     link_url = 'user-feedback-detail'
     link_attr = 'data-link'
+    plot_url = reverse_lazy("user-feedback-stats")
 
 
 class UserFeedbackDetail(AdminRequiredMixin, detail.DetailView):
@@ -1483,32 +1483,25 @@ class SupportRecordList(ListViewMixin, ItemListView):
     link_url = 'supportrecord-edit'
     link_field = 'beamline'
     link_attr = 'data-form-link'
+    plot_url = reverse_lazy("supportrecord-stats")
 
 
-class SupportRecordStats(SupportRecordList):
-    template_name = "users/entries/supportrecord-stats.html"
-    paginate_by = None
+class SupportRecordStats(PlotViewMixin, SupportRecordList):
+    plot_filters = ['beamline__acronym', 'created__year', 'project__kind__name', 'kind', 'areas__name']
+    date_field = 'created'
+    list_url = reverse_lazy("supportrecord-list")
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        qsl = context['query_string']
-        for part in ['year', 'month', 'quarter']:
-            qsl = qsl.replace('created_{}'.format(part), 'created__{}'.format(part))
-        context['stats_filters'] = dict(parse.parse_qsl(qsl.strip('?')))
-        return context
+    def get_metrics(self):
+        return stats.supportrecord_stats(self.get_queryset(), self.get_active_filters())
 
 
-class UserFeedbackStats(UserFeedbackList):
-    template_name = "users/entries/user-feedback-stats.html"
-    paginate_by = None
+class UserFeedbackStats(PlotViewMixin, UserFeedbackList):
+    plot_filters = ['created__year', 'created__month', 'session__project__kind']
+    date_field = 'created'
+    list_url = reverse_lazy("user-feedback-list")
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        qsl = context['query_string']
-        for part in ['year', 'month', 'quarter']:
-            qsl = qsl.replace('created_{}'.format(part), 'created__{}'.format(part))
-        context['stats_filters'] = dict(parse.parse_qsl(qsl.strip('?')))
-        return context
+    def get_metrics(self):
+        return stats.userfeedback_stats(self.get_queryset(), self.get_active_filters())
 
 
 class SupportRecordCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
