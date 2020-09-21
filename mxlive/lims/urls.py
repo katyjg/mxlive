@@ -52,6 +52,7 @@ urlpatterns = [
     path('containers/<int:root>/<int:pk>/unload/<slug:username>/', views.EmptyContainers.as_view(), name='empty-containers'),
 
     path('samples/', views.SampleList.as_view(), name='sample-list'),
+    path('samples/stats/', views.SampleStats.as_view(), name='sample-stats'),
     path('samples/<int:pk>/', views.SampleDetail.as_view(), name='sample-detail'),
     path('samples/<int:pk>/edit/', views.SampleEdit.as_view(), name='sample-edit'),
     path('samples/<int:pk>/delete/', views.SampleDelete.as_view(), name='sample-delete'),

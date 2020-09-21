@@ -528,6 +528,13 @@ class SampleList(ListViewMixin, ItemListView):
     ordering = ['-created', '-priority']
     ordering_proxies = {}
     list_transforms = {}
+    plot_url = reverse_lazy("sample-stats")
+
+
+class SampleStats(AdminRequiredMixin, PlotViewMixin, SampleList):
+    plot_fields = ['container__kind__name',]
+    date_field = 'created'
+    list_url = reverse_lazy("sample-list")
 
 
 class SampleDetail(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
@@ -1487,7 +1494,7 @@ class SupportRecordList(ListViewMixin, ItemListView):
 
 
 class SupportRecordStats(PlotViewMixin, SupportRecordList):
-    plot_filters = ['beamline__acronym', 'created__year', 'project__kind__name', 'kind', 'areas__name']
+    plot_fields = ['beamline__acronym', 'created__year', 'project__kind__name', 'kind', 'areas__name']
     date_field = 'created'
     list_url = reverse_lazy("supportrecord-list")
 
@@ -1496,7 +1503,7 @@ class SupportRecordStats(PlotViewMixin, SupportRecordList):
 
 
 class UserFeedbackStats(PlotViewMixin, UserFeedbackList):
-    plot_filters = ['created__year', 'created__month', 'session__project__kind']
+    plot_fields = ['created__year', 'created__month', 'session__project__kind']
     date_field = 'created'
     list_url = reverse_lazy("user-feedback-list")
 

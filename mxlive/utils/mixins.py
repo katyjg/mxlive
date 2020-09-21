@@ -90,7 +90,7 @@ class HTML2PdfMixin(object):
 
 class PlotViewMixin():
     template_name = "users/list-plots.html"
-    plot_filters = []
+    plot_fields = []
     date_field = None
     paginate_by = None
 
@@ -100,8 +100,8 @@ class PlotViewMixin():
         context['active_filters'] = self.get_active_filters()
         return context
 
-    def get_plot_filters(self):
-        return self.plot_filters
+    def get_plot_fields(self):
+        return self.plot_fields
 
     def get_active_filters(self):
         qsl = self.get_query_string()
@@ -111,4 +111,4 @@ class PlotViewMixin():
         return dict(parse.parse_qsl(qsl.strip('?')))
 
     def get_metrics(self):
-        return generic_stats(self.get_queryset(), self.get_plot_filters(), self.date_field)
+        return generic_stats(self.get_queryset(), self.get_plot_fields(), self.date_field)
