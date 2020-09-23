@@ -1138,9 +1138,12 @@ def supportrecord_stats(objlist, filters):
         info=Count(Case(When(help__kind='info', then=1), output_field=IntegerField()), filter=Q(**support_filters)),
         problem=Count(Case(When(help__kind='problem', then=1), output_field=IntegerField()), filter=Q(**support_filters)),
         time_lost=Sum('help__lost_time', filter=Q(**support_filters))
-    ).order_by('pk').values('name', 'info', 'problem', 'time_lost')
+    ).order_by('pk').values('name', 'info', 'problem', 'time_lost', 'external')
 
-    total_lost_time = sum([a['time_lost'] for a in support_areas])
+    lost_time = {
+        'Overall': sum([a['time_lost'] for a in support_areas]),
+        'Beamline Overall': sum([a['time_lost'] for a in support_areas if not a['external']])
+    }
     total_interactions = sum([a['info'] + a['problem'] for a in support_areas])
     support_areas = sorted(support_areas, key=lambda x: -(x['info'] + x['problem']))
     area_interactions = [
@@ -1156,7 +1159,8 @@ def supportrecord_stats(objlist, filters):
     failures = objlist.filter(kind__iexact='problem').annotate(end=ExpressionWrapper(F('created') + timedelta(hours=1) * F('lost_time'), output_field=DateTimeField()))
     mtbf = {
         **{
-            'total': average_difference(list(failures.order_by('created').values('created', 'end')))
+            'Overall': average_difference(list(failures.order_by('created').values('created', 'end'))),
+            'Beamline Overall': average_difference(list(failures.exclude(areas__external=True).order_by('created').values('created', 'end'))),
         }, **{
             area['name']: average_difference(list(failures.filter(areas__name=area['name']).order_by('created').values('created', 'end')))
             for area in support_areas
@@ -1171,7 +1175,16 @@ def supportrecord_stats(objlist, filters):
         }
         for data in objlist.values('created', 'lost_time', 'kind')
     ]
-
+    total_rows = []
+    for name, sa in [('Overall', support_areas), ('Beamline Overall', [s for s in support_areas if not s['external']])]:
+        total_rows.append([
+            name,
+            sum([a['info'] for a in sa]),
+            sum([a['problem'] for a in sa]),
+            mtbf[name] is not None and round(mtbf[name], 2) or '-',
+            round(lost_time[name] / max(sum([a['problem'] for a in sa]), 1), 2),
+            round(sum([a['time_lost'] for a in sa]), 2)
+        ])
     stats = {'details': [
         {
             'title': 'User Support Interactions and Problem Recovery',
@@ -1182,25 +1195,26 @@ def supportrecord_stats(objlist, filters):
                     'title': 'Support Records by Area',
                     'kind': 'table',
                     'header': 'row column',
-                    'data': [['', 'Info', 'Problem', 'MTBF (h)', 'MRT (h)', 'Time Lost (h)']] +
-                            [[area['name'], area['info'], area['problem'],
+                    'data': [['', 'Info', 'Problem', 'MTBF<sup>[1]</sup> (h)', 'MRT<sup>[2]</sup> (h)', 'Time Lost (h)']] +
+                            [['{}{}'.format(area['external'] and '[*] ' or '', area['name']),
+                              area['info'], area['problem'],
                               mtbf[area['name']] is not None and round(mtbf[area['name']], 2) or '-',
                               area['problem'] and round(area['time_lost'] / area['problem'], 2) or '-', area['time_lost']] for
                              area in sorted(support_areas, key=lambda i: -i['time_lost'])
                              ] +
-                            [['Total',
-                              sum([a['info'] for a in support_areas]),
-                              sum([a['problem'] for a in support_areas]),
-                              mtbf['total'] is not None and round(mtbf['total'], 2) or '-',
-                              round(total_lost_time / max(sum([a['problem'] for a in support_areas]), 1), 2),
-                              round(sum([a['time_lost'] for a in support_areas]), 2)]],
+                            total_rows,
+                    'notes': """<dl>
+                            <dd><strong>[*] External Area:</strong> External factor out of the beamline's control; excluded from <strong>Beamline Overall</strong> calculations</dd>
+                            <dd><strong>[1] MTBF:</strong> Mean Time Between Failures</dd>
+                            <dd><strong>[2] MRT:</strong> Mean Recovery Time</dd>
+                        </dl>""",
                     'style': 'col-12'
                 },
                 {
                     'title': 'User Support Interactions and Lost Time',
                     'kind': 'columnchart',
                     'data': {
-                        'aspect-ratio': 4,
+                        'aspect-ratio': 2,
                         'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33'},
                         'x-label': "Area",
                         'data': [
@@ -1226,7 +1240,7 @@ def supportrecord_stats(objlist, filters):
                         'stack': [["Info", "Problem"]],
                         'data': area_interactions
                     },
-                    'style': 'col-12 col-xl-6'
+                    'style': 'col-12'
                 },
                 {
                     'title': 'User Support Areas by Lost Time',
@@ -1241,13 +1255,13 @@ def supportrecord_stats(objlist, filters):
                             {
                                 "Area": area['name'],
                                 "Lost Time (hours)": area['time_lost'] or 0,
-                                "Percentage (%)": total_lost_time and 100 * sum([
+                                "Percentage (%)": lost_time['Overall'] and 100 * sum([
                                     a['time_lost'] for a in sorted(support_areas, key=lambda i: -i['time_lost'])[:j + 1]
-                                ]) / total_lost_time or 0
+                                ]) / lost_time['Overall'] or 0
                             } for j, area in enumerate(sorted(support_areas, key=lambda i: -i['time_lost']))
                         ]
                     },
-                    'style': 'col-12 col-xl-6'
+                    'style': 'col-12'
                 },
                 {
                     'title': 'User Support Interactions Staff Comments',
@@ -1255,14 +1269,14 @@ def supportrecord_stats(objlist, filters):
                         '\n\n'.join(SupportRecord.objects.values_list('staff_comments', flat=True).distinct())),
                     'style': 'col-12'
                 },
-                {
+                objlist and {
                     'title': 'Support Record Timeline',
                     'kind': 'timeline',
                     'start': js_epoch(objlist.last().created),
                     'end': js_epoch(objlist.first().created + timedelta(hours=objlist.first().lost_time)),
                     'data': timeline_data,
                     'style': 'col-12'
-                }
+                } or {}
             ]
         },
     ]}

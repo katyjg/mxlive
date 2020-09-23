@@ -129,7 +129,7 @@ def beamtime_stats(beamline, period='year', **filters):
     project_type_table = [[p['project__kind__name']] + [0]*len(project_type_data) + [0] for p in project_types]
     total_row = ['Total'] + [0]*len(project_type_data) + [0]
     for row in project_type_table:
-        for i, item in enumerate(sorted(project_type_data, key=lambda x: x[period.title()])):
+        for i, item in enumerate(project_type_data):
             row[i+1] = item.get(row[0], 0)
             total_row[i+1] += row[i+1]
         row[-1] = sum(row[1:-1])

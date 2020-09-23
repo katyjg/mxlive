@@ -1454,6 +1454,7 @@ class FeedbackScale(models.Model):
 class SupportArea(models.Model):
     name = models.CharField(max_length=200)
     user_feedback = models.BooleanField(_('Add to User Experience Survey'), default=False)
+    external = models.BooleanField(_("External (out of the beamline's control)"), default=False)
     scale = models.ForeignKey(FeedbackScale, on_delete=models.SET_NULL, null=True, blank=True, related_name='areas')
 
     def __str__(self):

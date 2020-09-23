@@ -832,6 +832,7 @@ class DataStats(PlotViewMixin, DataList):
                     'attenuation': {'kind': 'histogram'},
                     'num_frames': {'kind': 'histogram'},
                     }
+    date_field = 'modified'
     list_url = reverse_lazy("data-list")
 
 
@@ -1509,6 +1510,7 @@ class SupportRecordList(ListViewMixin, ItemListView):
 
 
 class SupportRecordStats(PlotViewMixin, SupportRecordList):
+    date_field = 'created'
     list_url = reverse_lazy("supportrecord-list")
 
     def get_metrics(self):
@@ -1516,6 +1518,7 @@ class SupportRecordStats(PlotViewMixin, SupportRecordList):
 
 
 class UserFeedbackStats(PlotViewMixin, UserFeedbackList):
+    date_field = 'created'
     list_url = reverse_lazy("user-feedback-list")
 
     def get_metrics(self):

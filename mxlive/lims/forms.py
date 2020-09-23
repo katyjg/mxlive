@@ -1146,7 +1146,7 @@ class SupportAreaForm(forms.ModelForm):
 
     class Meta:
         model = SupportArea
-        fields = ['name', 'user_feedback', 'scale']
+        fields = ['name', 'user_feedback', 'external', 'scale']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1165,6 +1165,7 @@ class SupportAreaForm(forms.ModelForm):
                 Div('name', css_class="col-12"),
                 Div(Div('user_feedback', css_class="mt-3 ml-3 pl-1"), css_class="col-6"),
                 Div('scale', css_class="col-6"),
+                Div(Div('external', css_class="mt-3 ml-3 pl-1"), css_class="col-12"),
                 css_class="row"
             ),
         )
