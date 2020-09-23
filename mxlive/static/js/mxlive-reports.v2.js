@@ -670,7 +670,7 @@ function drawTimeline(figure, chart, options) {
         })
         .on('touchmove mousemove', function () {
             const mouse = d3.mouse(this);
-            const info = d3.timeFormat('%a %H:%M')(x_scale.invert(mouse[0]));
+            const info = d3.timeFormat('%H:%M %b %d, %Y')(x_scale.invert(mouse[0]));
             if (mouse[1] < 165) {
                 d3.select('.mouse-line')
                     .style("opacity", 1)

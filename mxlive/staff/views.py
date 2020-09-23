@@ -72,7 +72,7 @@ class RemoteConnectionList(AdminRequiredMixin, ItemListView):
 
 
 class RemoteConnectionStats(PlotViewMixin, RemoteConnectionList):
-    plot_fields = ['user__kind__name', 'userlist__name', 'status']
+    plot_fields = {'user__kind__name': {}, 'userlist__name': {}, 'status': {}}
     date_field = 'created'
     list_url = reverse_lazy("connection-list")
 

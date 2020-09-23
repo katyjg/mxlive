@@ -64,6 +64,7 @@ urlpatterns = [
     path('groups/<int:pk>/delete/', views.GroupDelete.as_view(), name='group-delete'),
 
     path('data/', views.DataList.as_view(), name='data-list'),
+    path('data/stats/', views.DataStats.as_view(), name='data-stats'),
     path('data/<int:pk>/', views.DataDetail.as_view(), name='data-detail'),
 
     path('reports/', views.ReportList.as_view(), name='result-list'),

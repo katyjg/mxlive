@@ -532,7 +532,7 @@ class SampleList(ListViewMixin, ItemListView):
 
 
 class SampleStats(AdminRequiredMixin, PlotViewMixin, SampleList):
-    plot_fields = ['container__kind__name',]
+    plot_fields = {'container__kind__name': {}, }
     date_field = 'created'
     list_url = reverse_lazy("sample-list")
 
@@ -809,7 +809,7 @@ class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.
 
 class DataList(ListViewMixin, ItemListView):
     model = models.Data
-    list_filters = ['modified', 'kind', 'beamline']
+    list_filters = ['modified', filters.YearFilterFactory('modified'), 'kind', 'beamline']
     list_columns = ['id', 'name', 'sample', 'frame_sets', 'session__name', 'energy', 'beamline', 'kind', 'modified']
     list_search = ['id', 'name', 'beamline__name', 'sample__name', 'frames', 'project__name', 'modified']
     link_url = 'data-detail'
@@ -817,9 +817,22 @@ class DataList(ListViewMixin, ItemListView):
     link_attr = 'data-link'
     ordering = ['-modified']
     list_transforms = {}
+    plot_url = reverse_lazy("data-stats")
 
     def get_queryset(self):
         return super(DataList, self).get_queryset().defer('meta_data', 'url')
+
+
+class DataStats(PlotViewMixin, DataList):
+    plot_fields = { 'beam_size': {'kind': 'pie'},
+                    'kind__name': {'kind': 'columnchart'},
+                    'reports__score': {'kind': 'histogram', 'range': (0.01, 1)},
+                    'energy': {'kind': 'histogram', 'range': (4., 18.), 'bins': 8},
+                    'exposure_time': {'kind': 'histogram', 'range': (0.01, 20)},
+                    'attenuation': {'kind': 'histogram'},
+                    'num_frames': {'kind': 'histogram'},
+                    }
+    list_url = reverse_lazy("data-list")
 
 
 class DataDetail(OwnerRequiredMixin, detail.DetailView):
@@ -1405,6 +1418,8 @@ def format_contact(val, record):
 class UserFeedbackList(ListViewMixin, ItemListView):
     model = models.UserFeedback
     list_filters = [
+        'session__beamline',
+        'created',
         filters.YearFilterFactory('created', reverse=True),
         filters.MonthFilterFactory('created'),
         filters.QuarterFilterFactory('created'),
@@ -1494,8 +1509,6 @@ class SupportRecordList(ListViewMixin, ItemListView):
 
 
 class SupportRecordStats(PlotViewMixin, SupportRecordList):
-    plot_fields = ['beamline__acronym', 'created__year', 'project__kind__name', 'kind', 'areas__name']
-    date_field = 'created'
     list_url = reverse_lazy("supportrecord-list")
 
     def get_metrics(self):
@@ -1503,8 +1516,6 @@ class SupportRecordStats(PlotViewMixin, SupportRecordList):
 
 
 class UserFeedbackStats(PlotViewMixin, UserFeedbackList):
-    plot_fields = ['created__year', 'created__month', 'session__project__kind']
-    date_field = 'created'
     list_url = reverse_lazy("user-feedback-list")
 
     def get_metrics(self):
