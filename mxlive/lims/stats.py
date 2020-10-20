@@ -44,6 +44,10 @@ def get_data_periods(period='year'):
 def usage_stats(beamline, period='year', **filters):
     periods = get_data_periods(period=period)
     field = 'created__{}'.format(period)
+    period_names = periods
+    if period == 'month':
+        period_names = [calendar.month_abbr[per].title() for per in periods]
+
     sample_counts = {
         entry[field]: entry['count']
         for entry in
@@ -68,6 +72,49 @@ def usage_stats(beamline, period='year', **filters):
         if info['count'] > 0:
             new_project_counts[info[field]] += 1
             new_project_names[info[field]].append(info['name'])
+
+    session_info = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(
+        num_datasets=Count(Case(When(datasets__kind__name="MX Dataset", then=1), output_field=IntegerField())),
+        num_samples=Count('datasets__sample', distinct=True),
+        time=Sum(Coalesce('stretches__end', timezone.now()) - F('stretches__start'), distinct=True)
+    )
+    sample_throughput = {
+        entry[field]: 3600. * entry['num_samples']/entry['time'].total_seconds()
+        for entry in session_info if entry['time'] and entry['num_samples']
+    }
+    data_throughput = {
+        entry[field]: 3600. * entry['num_datasets'] / entry['time'].total_seconds()
+        for entry in session_info if entry['time'] and entry['num_datasets']
+    }
+    throughput_data = [
+        {
+            period.title(): period_names[i],
+            "Samples": sample_throughput.get(per, 0),
+            "MX Datasets": data_throughput.get(per, 0)
+        } for i, per in enumerate(periods)
+    ]
+
+    session_info = beamline.sessions.filter(**filters).values(field, 'project__kind__name').order_by(field).annotate(
+        num_datasets=Count(Case(When(datasets__kind__name="MX Dataset", then=1), output_field=IntegerField())),
+        num_samples=Count('datasets__sample', distinct=True),
+        time=Sum(Coalesce('stretches__end', timezone.now()) - F('stretches__start'), distinct=True)
+    )
+    sample_throughput_types = []
+    for i, per in enumerate(periods):
+        series = {
+            **{ period.title(): period_names[i] },
+            **{ entry['project__kind__name']: 3600. * entry['num_samples']/entry['time'].total_seconds()
+                 for entry in session_info if entry[field] == per }
+        }
+        sample_throughput_types.append(series)
+    data_throughput_types = []
+    for i, per in enumerate(periods):
+        series = {
+            **{ period.title(): period_names[i] },
+            **{ entry['project__kind__name']: 3600. * entry['num_datasets']/entry['time'].total_seconds()
+                 for entry in session_info if entry[field] == per }
+        }
+        data_throughput_types.append(series)
 
     session_counts_info = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(count=Count('id'))
     session_params = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(
@@ -287,7 +334,8 @@ def usage_stats(beamline, period='year', **filters):
                         ['Datasets³/Hour'] + ['{:0.1f}'.format(dataset_per_hour.get(p, 0)) for p in periods],
                         ['Average Exposure (sec)'] + ['{:0.2f}'.format(dataset_exposure.get(p, 0)) for p in periods],
                         ['Samples/Dataset³'] + ['{:0.1f}'.format(samples_per_dataset.get(p, 0)) for p in periods],
-
+                        ['Sample Throughput (/h)'] + ['{:0.2f}'.format(sample_throughput.get(p, 0)) for p in periods],
+                        ['MX Dataset Throughput (/h)'] + ['{:0.2f}'.format(data_throughput.get(p, 0)) for p in periods],
                     ],
                     'style': 'col-12',
                     'header': 'column row',
@@ -297,6 +345,35 @@ def usage_stats(beamline, period='year', **filters):
                         ' 2. Usage efficiency is the percentage of used shifts during which a session was active.  \n'
                         ' 3. All datasets are considered for this statistic irrespective of dataset type.'
                     )
+                },
+                {
+                    'title': 'Throughput by {} (/h)'.format(period),
+                    'kind': 'columnchart',
+                    'data': {
+                        'x-label': period.title(),
+                        'data': throughput_data,
+                    },
+                    'style': 'col-12 col-md-6'
+                },
+                {
+                    'title': 'Sample Throughput by {} (/h)'.format(period),
+                    'kind': 'columnchart',
+                    'data': {
+                        'x-label': period.title(),
+                        'data': sample_throughput_types,
+                        'colors': project_type_colors
+                    },
+                    'style': 'col-12 col-md-6'
+                },
+                {
+                    'title': 'MX Dataset Throughput by {} (/h)'.format(period),
+                    'kind': 'columnchart',
+                    'data': {
+                        'x-label': period.title(),
+                        'data': data_throughput_types,
+                        'colors': project_type_colors
+                    },
+                    'style': 'col-12 col-md-6'
                 },
                 {
                     'title': 'Usage Statistics',
@@ -1250,7 +1327,7 @@ def supportrecord_stats(objlist, filters):
                         'colors': {"Lost Time (hours)": '#ffa333', "Percentage (%)": '#777777'},
                         'x-label': "Area",
                         'line': "Percentage (%)",
-                        'y2-limits': [0, 100],
+                        'line-limits': [0, 100],
                         'data': [
                             {
                                 "Area": area['name'],
@@ -1284,12 +1361,40 @@ def supportrecord_stats(objlist, filters):
 
 
 def userfeedback_stats(objlist, filters):
+    feedback = objlist
+
     area_filters = { "{}{}".format(k.startswith('beamline') and 'feedback__session__' or 'feedback__', k): v for k, v in filters.items() }
     area_feedback = UserAreaFeedback.objects.filter(**area_filters)
 
-    feedback = objlist
+    session_filters = {"{}".format('session__' in k and k.split('session__')[1] or k): v for k, v in filters.items()}
+    sessions = Session.objects.filter(**session_filters)
 
     colors = ['#ffdd33', '#ffa333', '#66ffd5', '#00E6E2']
+    period, year = ('year', None)
+    field = "created__year"
+    periods = sorted(objlist.values_list(field, flat=True).order_by(field).distinct())
+    if len(periods) == 1:
+        year = periods[0]
+        sessions = sessions.filter(created__year=year)
+        period = 'month'
+        field = "created__month"
+        periods = sorted(objlist.values_list(field, flat=True).order_by(field).distinct())
+        if len(periods) == 1:
+            year = "{} {}".format(calendar.month_name[periods[0]].title(), year)
+            period = 'week'
+            field = "created__week"
+            periods = sorted(objlist.values_list(field, flat=True).order_by(field).distinct())
+        else:
+            periods = [i for i in range(1, 13)]
+        field = "created__{}".format(period)
+
+    period_dict = {per: period == 'month' and calendar.month_abbr[per].title() or per for per in periods}
+    response_rate = [{
+        period.title(): name,
+        "Response Rate (%)": round(100. * sessions.filter(**{field: per}).filter(feedback__isnull=False).count() / max(1, sessions.filter(**{field: per}).count()), 2),
+        "Sessions": sessions.filter(**{field: per}).count(),
+        "Responses": sessions.filter(**{field: per}).filter(feedback__isnull=False).count()
+    } for per, name in period_dict.items()]
 
     likerts = []
     for scale in FeedbackScale.objects.filter(pk__in=SupportArea.objects.filter(user_feedback=True).values_list('scale__pk', flat=True)):
@@ -1299,22 +1404,23 @@ def userfeedback_stats(objlist, filters):
 
         likert_data = [
             {
-                'Area': area.name,
-                'data': {
+                **{'Area': area.name},
+                **{
                     c[1]: area_feedback.filter(area=area, rating=c[0]).count() * (c[0] < 0 and -1 or 1)
                 for c in choices }
              } for area in SupportArea.objects.filter(user_feedback=True, scale=scale).order_by('pk')
         ]
-        for i, d in enumerate(likert_data):
-            likert_data[i].update(d['data'])
-            likert_data[i].pop('data')
 
         scale_feedback = area_feedback.exclude(rating=0).filter(area__scale=scale)
         likerts.append({
             'data': likert_data,
             'colors': choice_colors,
             'choices': choices,
-            'average': scale_feedback and sum([a.rating for a in scale_feedback])/scale_feedback.count() or 0
+            'average': scale_feedback and sum([a.rating for a in scale_feedback])/scale_feedback.count() or 0,
+            'averages': {
+                e['Area']: sum([rating * abs(e[ch]) for rating, ch in choices]) / max(sum([abs(e[ch]) for _, ch in choices]), 1)
+                for e in likert_data
+            }
         })
 
     stats = {'details': [
@@ -1336,7 +1442,8 @@ def userfeedback_stats(objlist, filters):
                            {"value": lt['average'], "text": "AVERAGE"}
                        ]
                    },
-                   'notes': "<strong>Overall Average:</strong> {:.2f}".format(lt['average']),
+                   'notes': "<br>".join("<strong>{}</strong>: {:0.2f}".format(k, v) for k, v in lt['averages'].items()) +
+                            "<hr><strong>Overall Average:</strong> {:.2f}".format(lt['average']),
                    'style': 'col-12 col-md-6'
                 } for lt in likerts
             ] + [
@@ -1345,7 +1452,18 @@ def userfeedback_stats(objlist, filters):
                     'notes': '<strong>User Feedback:</strong>\n\n' + linebreaksbr(
                         '\n\n'.join([c for c in feedback.values_list('comments', flat=True).distinct() if c])),
                     'style': 'col-12'
-                }
+                },
+                {
+                    'title': 'Response Rate (%){}{}'.format(year and " in " or '', year or ''),
+                    'kind': 'columnchart',
+                    'data': {
+                        'line': "Response Rate (%)",
+                        'line-limits': [0, 100],
+                        'x-label': period.title(),
+                        'data': response_rate
+                    },
+                    'style': 'col-12'
+                },
             ]
         },
     ]}

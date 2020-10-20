@@ -47,6 +47,9 @@ def beamtime_stats(beamline, period='year', **filters):
     period_data = defaultdict(lambda: defaultdict(int))
     for summary in beamtime_info.values(field, 'access__name').annotate(shifts=Sum('shifts')):
         period_data[summary[field]][summary['access__name']] = summary['shifts']
+    for per in periods:
+        if per not in period_data.keys():
+            period_data[per] = {}
     for access in access_types:
         for value in period_data.values():
             if access['access__name'] not in value.keys():
@@ -156,14 +159,14 @@ def beamtime_stats(beamline, period='year', **filters):
         'style': 'row',
         'content': [
             {
-                'title': 'Delivered beamtime shifts by {}'.format(period),
+                'title': 'Delivered shifts by {}'.format(period),
                 'kind': 'table',
                 'data': [[''] + period_names + ['All']] + access_type_table,
                 'header': 'column row',
                 'style': 'col-12'
             },
             {
-                'title': 'Beamtime access type shifts by {}'.format(period),
+                'title': 'Delivered shifts by {}'.format(period),
                 'kind': 'columnchart',
                 'data': {
                     'x-label': period.title(),
@@ -186,14 +189,14 @@ def beamtime_stats(beamline, period='year', **filters):
                 'style': 'col-12 col-md-6'
             },
             {
-                'title': 'Delivered beamtime shifts by {}'.format(period),
+                'title': 'Delivered shifts by {}'.format(period),
                 'kind': 'table',
                 'data': [[''] + period_names + ['All']] + project_type_table,
                 'header': 'column row',
                 'style': 'col-12'
             },
             {
-                'title': 'Beamtime project type shifts by {}'.format(period),
+                'title': 'Delivered shifts by {}'.format(period),
                 'kind': 'columnchart',
                 'data': {
                     'x-label': period.title(),
