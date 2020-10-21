@@ -28,6 +28,7 @@ pip-chill
 psycopg2-binary
 pyasn1
 pycparser
+python-dateutil
 python-memcached
 pytz
 requests

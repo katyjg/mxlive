@@ -7,8 +7,10 @@ from xml.dom import minidom
 from pprint import pprint as print
 import re
 import itertools
+from functools import reduce
 import codecs
 from datetime import date, datetime
+from dateutil import parser
 from collections import defaultdict
 from django.conf import settings
 from django.utils import dateparse, timezone
@@ -29,31 +31,55 @@ GOOGLE_API_KEY = getattr(settings, 'GOOGLE_API_KEY', None)
 
 CROSSREF_EVENTS_URL = "https://api.eventdata.crossref.org/v1/events/distinct"
 CROSSREF_CITATIONS_URL = "https://www.crossref.org/openurl/"
-PDB_SEARCH_URL = getattr(settings, 'PDB_SEARCH_URL', "https://www.rcsb.org/pdb/rest/search")
-PDB_REPORT_URL = getattr(settings, 'PDB_REPORT_URL', "https://www.rcsb.org/pdb/rest/customReport")
+PDB_SEARCH_URL = getattr(settings, 'PDB_SEARCH_URL', "https://search.rcsb.org/rcsbsearch/v1/query")
+PDB_REPORT_URL = getattr(settings, 'PDB_REPORT_URL', "https://data.rcsb.org/graphql")
 GOOGLE_BOOKS_API = getattr(settings, 'GOOGLE_BOOKS_API', "https://www.googleapis.com/books/v1/volumes")
 SCIMAGO_URL = getattr(settings, 'SCIMAGO_URL', "https://www.scimagojr.com/journalrank.php")
 
-SEARCH_QUERY = ("""
-    <orgPdbQuery>
-        <queryType>org.pdb.query.simple.XrayDiffrnSourceQuery</queryType>
-        <description>{acronym} Facility Deposition Search</description>
-        <diffrn_source.pdbx_synchrotron_site.comparator>contains</diffrn_source.pdbx_synchrotron_site.comparator>
-        <diffrn_source.pdbx_synchrotron_site.value>{acronym}</diffrn_source.pdbx_synchrotron_site.value>
-    </orgPdbQuery>
-    """).format(acronym=PDB_FACILITY_ACRONYM)
-
-REPORT_QUERY = {
-    "pdbids" : "",
-    "customReportColumns": (
-        "structureTitle,depositionDate,releaseDate,resolution,collectionDate,"
-        "diffractionSource,citationAuthor,publicationYear,pdbDoi,doi"
-    ),
-    "format": "csv",
-    "ssa": "null",
-    "service": "wsfile",
-    "primaryOnly": 1,
+SEARCH_JSON = {
+  "query": {
+    "type": "terminal",
+    "service": "text",
+    "parameters": {
+      "operator": "exact_match",
+      "negation": False,
+      "value": "{}".format(PDB_FACILITY_ACRONYM),
+      "attribute": "diffrn_source.pdbx_synchrotron_site"
+    }
+  },
+  "return_type": "entry",
+  "request_options": {
+    "return_all_hits": True
+  }
 }
+
+REPORT_QUERY = """{{
+  entries(entry_ids: [{0}]) {{
+    rcsb_id
+    struct {{
+      title
+    }}
+    rcsb_accession_info {{
+      initial_release_date
+    }}
+    pdbx_vrpt_summary {{
+      PDB_deposition_date
+      PDB_resolution
+    }}
+    diffrn_detector {{
+      pdbx_collection_date
+    }}
+    diffrn_source {{
+      pdbx_synchrotron_beamline
+      pdbx_synchrotron_site
+    }}
+    rcsb_primary_citation {{
+      rcsb_authors
+      pdbx_database_id_DOI
+      year
+    }}
+  }}
+}}"""
 
 
 def tag_function(entry):
@@ -65,10 +91,15 @@ def tag_function(entry):
     :param entry:
     :return:
     """
-    return [entry['diffractionSource'].split()[-1],]
-
+    return [entry['diffrn_source.pdbx_synchrotron_beamline'].split()[-1],]
 
 TAG_FUNCTION = getattr(settings, 'PDB_TAG_FUNCTION', tag_function)
+
+def flatten(d, key=''):
+    prefix = f'{key}.' if key else ''
+    return (reduce(
+        lambda new_d, kv: isinstance(kv[1], dict) and {**new_d, **flatten(kv[1], f'{prefix}{kv[0]}')} or {**new_d, f'{prefix}{kv[0]}': kv[1]},
+            d.items(), {}))
 
 
 class CrossRef(Crossref):
@@ -158,25 +189,32 @@ class PDBParser(ObjectParser):
         'released', 'deposited', 'collected', 'citation'
     ]
     KEY_MAPS = {
-        'code': 'structureId',
-        'title': 'structureTitle',
-        'authors': 'citationAuthor',
-        'doi': 'pdbDoi',
-        'resolution': 'resolution',
+        'code': 'rcsb_id',
+        'title': 'struct.title',
+        'authors': 'rcsb_primary_citation.rcsb_authors',
+        'resolution': 'pdbx_vrpt_summary.PDB_resolution',
+        'collected': 'diffrn_detector.pdbx_collection_date'
     }
 
+    def get_authors(self):
+        return ', '.join(self._entry.get('rcsb_primary_citation.rcsb_authors', []))
+
     def get_released(self):
-        return dateparse.parse_date(self._entry['releaseDate'])
+        return parser.isoparse(self._entry['rcsb_accession_info.initial_release_date'])
 
     def get_deposited(self):
-        return dateparse.parse_date(self._entry['depositionDate'])
+        return parser.isoparse(self._entry['pdbx_vrpt_summary.PDB_deposition_date'])
 
     def get_collected(self):
-        return dateparse.parse_date(self._entry['collectionDate'])
+        if self._entry.get('diffrn_detector.pdbx_collection_date'):
+            return parser.isoparse(self._entry['diffrn_detector.pdbx_collection_date'])
+
+    def get_doi(self):
+        return "10.2210/pdb{}/pdb".format(self._entry['rcsb_id'].upper())
 
     def get_citation(self):
-        if self._entry.get('doi'):
-            return 'DOI:{}'.format(self._entry['doi'])
+        if self._entry.get('rcsb_primary_citation.pdbx_database_id_DOI'):
+            return 'DOI:{}'.format(self._entry['rcsb_primary_citation.pdbx_database_id_DOI'])
 
     def get_tags(self):
         return TAG_FUNCTION(self._entry)
@@ -397,11 +435,10 @@ def fetch_deposition_codes():
     """
     Retrieve all PDB Codes for the facility as a list of strings
     """
-    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    response = requests.post(PDB_SEARCH_URL, data=SEARCH_QUERY, headers=headers)
+    response = requests.post(PDB_SEARCH_URL, json=SEARCH_JSON)
 
     if response.status_code == 200:
-        return response.text.split()
+        return [entry['identifier'] for entry in response.json()['result_set']]
     else:
         response.raise_for_status()
 
@@ -413,15 +450,13 @@ def fetch_depositions(codes):
     :return: a list of dictionaries one for each entry containing the report rows
     """
 
-    rows = []
-    params = REPORT_QUERY.copy()
-    params.update(pdbids=','.join(codes))
-    response = requests.get(PDB_REPORT_URL, params=params)
+    params = REPORT_QUERY
+    params = params.format(', '.join(['"{}"'.format(pdb) for pdb in codes]))
+
+    response = requests.post(PDB_REPORT_URL, json={'query': params})
 
     if response.status_code == 200:
-        text = codecs.iterdecode(response.iter_lines(), 'utf-8')
-        reader = csv.DictReader(text, delimiter=',', quotechar='"')
-        return [row for row in reader if PDB_FACILITY_ACRONYM in row['diffractionSource']]  # avoid extra entries
+        return response.json()['data']['entries']
     else:
         response.raise_for_status()
 
@@ -444,6 +479,12 @@ def create_depositions(entries):
     entry_tags = defaultdict(list)  # a list of tag names for each pdb code
 
     for entry in entries:
+        for i, src in enumerate(entry['diffrn_source']):
+            if src['pdbx_synchrotron_site'] == PDB_FACILITY_ACRONYM:
+                break
+        for k in ['diffrn_source', 'diffrn_detector']:
+            entry[k] = entry.get(k) and entry.get(k, [])[i] or None
+        entry = flatten(entry)
         record = PDBParser(entry)
         info = record.dict()
         if info['code'] in old_entries:
