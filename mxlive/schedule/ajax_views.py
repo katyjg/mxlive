@@ -25,6 +25,7 @@ class FetchBeamtime(View):
         queryset = Beamtime.objects.filter()
         if start and end:
             queryset = queryset.filter((
+                Q(start__lte=start) & Q(end__gte=end)) | (
                 Q(start__gte=start) & Q(start__lt=end)) | (
                 Q(end__lte=end) & Q(end__gt=start)) | (
                 Q(start__gte=start) & Q(end__lte=end)))
