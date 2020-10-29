@@ -19,6 +19,11 @@ class PubEntryList(AdminRequiredMixin, ItemListView):
     ]
     list_columns = ['id', 'published', 'cite', 'metrics__citations', 'metrics__mentions', 'journal__metrics__impact_factor']
     list_search = ['title', 'main_title', 'authors', 'code', 'comments', 'journal__title', 'funders__name']
+    list_headers = {
+        'journal__metrics__impact_factor': "Journal Impact Factor",
+        'metrics__mentions': "Mentions",
+        'metrics__citations': "Citations",
+    }
     list_styles = {
         'cite': 'w-75',
     }

@@ -12,7 +12,7 @@ django-crispy-forms
 django-debug-toolbar
 django-debug-toolbar-request-history
 django-formtools
-django-itemlist
+django-itemlist==0.2.10
 django-memoize
 django-model-utils
 django-proxy

@@ -76,6 +76,7 @@ class BeamtimeInfo(LoginRequiredMixin, UserPassesTestMixin, detail.DetailView):
         # Allow access to admin or owner
         return self.request.user.is_superuser or self.get_object().project == self.request.user
 
+
 class BeamtimeStatistics(TemplateView):
     template_name = "schedule/beamtime-usage.html"
 
@@ -126,7 +127,8 @@ class BeamtimeCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
                 Q(start__gte=start) & Q(start__lt=end)) | (
                 Q(end__lte=end) & Q(end__gt=start)) | (
                 Q(start__gte=start) & Q(end__lte=end))).exists():
-                    info['warning'] = "Another project is scheduled in this time. Proceeding to schedule this beamtime will remove the existing beamtime."
+                    info['warning'] = """Another project is scheduled in this time. Proceeding to schedule this beamtime 
+                                         will remove the existing beamtime."""
 
             initial.update(**info)
         except:

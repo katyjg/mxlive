@@ -83,7 +83,7 @@ def clsi_beamline_tags(entry):
     :return: a list of tag names
     """
 
-    acronym = entry['diffractionSource'].split()[-1]
+    acronym = entry['diffrn_source.pdbx_synchrotron_beamline'].split()[-1]
     acronyms = {
         '08ID-1': ['CMCF-ID'],
         '08ID-2': ['CMCF-ID'],
