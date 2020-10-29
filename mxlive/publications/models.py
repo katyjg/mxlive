@@ -101,7 +101,7 @@ class Publication(TimeStampedModel):
         return self.code
 
     def cite(self):
-        return f"{self.authors} ({self.published.year}) {self.title}. {self.journal.short_name}. {self.code}"
+        return f"{self.authors} ({self.published.year}) {self.title}. {self.journal and self.journal.short_name or ''}. {self.code}"
 
 
 class Metric(temporal.TemporalProfile):

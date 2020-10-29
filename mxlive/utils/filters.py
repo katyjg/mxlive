@@ -88,6 +88,23 @@ def QuarterFilterFactory(field_name='created'):
     return QuarterFilter
 
 
+def CycleFilterFactory(field_name='created'):
+
+    class CycleFilter(admin.SimpleListFilter):
+        parameter_name = '{}_cycle'.format(field_name)
+        title = parameter_name.replace('_', ' ').title()
+
+        def lookups(self, request, model_admin):
+            return (([1, 2], 'Jan-June'),
+                    ([3, 4], 'July-Dec'))
+
+        def queryset(self, request, queryset):
+            flt = {} if not self.value() else {'{}__quarter__in'.format(field_name): self.value()}
+            return queryset.filter(**flt)
+
+    return CycleFilter
+
+
 from django.db.models import Min, ExpressionWrapper, F, fields
 
 def NewEntryFilterFactory(field_label='New Entry', field_name='created', distinct='project__sessions'):

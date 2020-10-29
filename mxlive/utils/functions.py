@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import fields
+from django.db.models import fields, FloatField, Aggregate
 from django.conf import settings
 from django.utils import timezone
 from datetime import datetime
@@ -139,3 +139,10 @@ class ShiftIndex(models.Func):
                 ")::int"
             ).format(shift=SHIFT, offset=-OFFSET)
         )
+
+
+class Median(Aggregate):
+    function = 'PERCENTILE_CONT'
+    name = 'median'
+    output_field = FloatField()
+    template = '%(function)s(0.5) WITHIN GROUP (ORDER BY %(expressions)s)'
