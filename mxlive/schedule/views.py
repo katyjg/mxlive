@@ -9,7 +9,8 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.clickjacking import xframe_options_exempt, xframe_options_sameorigin
 
-from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, LoginRequiredMixin
+from mxlive.utils import filters
+from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, LoginRequiredMixin, PlotViewMixin
 
 from . import models, forms, stats
 from itemlist.views import ItemListView
@@ -77,36 +78,16 @@ class BeamtimeInfo(LoginRequiredMixin, UserPassesTestMixin, detail.DetailView):
         return self.request.user.is_superuser or self.get_object().project == self.request.user
 
 
-class BeamtimeStatistics(TemplateView):
-    template_name = "schedule/beamtime-usage.html"
+class BeamtimeStats(PlotViewMixin, ListViewMixin, ItemListView):
+    model = models.Beamtime
+    list_filters = ['beamline', filters.YearFilterFactory('start'),
+                    filters.MonthFilterFactory('start'),
+                    'access', 'project__kind']
+    list_search = ['id', 'project__username', 'project__first_name', 'project__last_name']
+    date_field = 'start'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        yearly = 'year' not in self.kwargs
-        period = 'year' if yearly else 'month'
-
-        context['year'] = self.kwargs.get('year')
-        context['years'] = stats.get_beamtime_periods(period='year')
-
-        filters = {} if yearly else {'created__year': self.kwargs.get('year')}
-        beamlines = Beamline.objects.filter(active=True)
-
-        context['report'] = {'details': [{
-            'title': '{} Beamtime Summary'.format(bl.acronym),
-            'style': 'col-{}'.format(int(12 / beamlines.count())),
-            'content': stats.beamtime_stats(bl, period=period, **filters)['content']
-        } for bl in beamlines]}
-        if beamlines.count() > 1:
-            for i in range(beamlines.count()):
-                for j, fig in enumerate(context['report']['details'][i]['content']):
-                    fig['style'] = 'col-12'
-        return context
-
-    def page_title(self):
-        if self.kwargs.get('year'):
-            return '{} Beamtime Usage Metrics'.format(self.kwargs['year'])
-        else:
-            return 'Beamtime Usage Metrics'
+    def get_metrics(self):
+        return stats.beamtime_stats(self.get_queryset(), self.get_active_filters())
 
 
 class BeamtimeCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):

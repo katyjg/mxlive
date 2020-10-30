@@ -104,7 +104,7 @@ class Statistics(AdminRequiredMixin, TemplateView):
         context['year'] = year
         context['tag'] = tag
         context['tags'] = models.Tag.objects.values_list('name', flat=True)
-        context['years'] = stats.get_periods(period='year')
+        context['years'] = stats.get_publications_periods(period='year')
         context['report'] = stats.publication_stats(period=period, year=year, tag=tag)
         return context
 

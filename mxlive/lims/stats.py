@@ -308,9 +308,9 @@ def usage_stats(beamline, period='year', **filters):
 
     beamtime = {}
     if settings.LIMS_USE_SCHEDULE:
-        from mxlive.schedule.stats import beamtime_stats
+        from mxlive.schedule.stats import beamtime_summary
 
-        beamtime = beamtime_stats(beamline, period, **filters)
+        beamtime = beamtime_summary(beamline, period, **filters)
 
     stats = {'details': [
         {
@@ -933,7 +933,7 @@ def project_stats(project, **filters):
     visits = []
     stat_table = []
     if settings.LIMS_USE_SCHEDULE:
-        from mxlive.schedule.stats import beamtime_stats
+        from mxlive.schedule.stats import beamtime_summary
 
         sched_field = field.replace('created', 'start')
         beamtime_counts = {

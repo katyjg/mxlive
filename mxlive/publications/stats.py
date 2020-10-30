@@ -26,14 +26,14 @@ def get_entry(field, entry):
     return {k: v for k, v in entry.items() if k != field}
 
 
-def get_periods(period='year'):
+def get_publications_periods(period='year'):
     field = 'published__{}'.format(period)
     return sorted(Publication.objects.values_list(field, flat=True).distinct())
 
 
 def publication_stats(period='year', year=None, tag=None):
     field = 'published__{}'.format(period)
-    periods = get_periods(period=period)
+    periods = get_publications_periods(period=period)
 
     period_names = periods
     period_xvalues = periods
@@ -209,3 +209,12 @@ def publication_stats(period='year', year=None, tag=None):
     ]
     }
     return stats
+
+
+def h_indices(users):
+    h_indices = {}
+    for user in users:
+        publications = Publication.objects.filter(metrics__citations__isnull=False, authors__icontains=user.last_name)
+        citations = publications.order_by('-metrics__citations').values_list('metrics__citations', flat=True)
+        h_indices[user.username] = len([c for i, c in enumerate(citations) if c >= (i + 1)])
+    return h_indices
