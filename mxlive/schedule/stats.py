@@ -450,10 +450,10 @@ def beamtime_project_stats(objlist, field, period, periods, period_names):
     for entry in project_info:
         project_shift_data[entry[field]][str(entry['project__kind__name'])] = entry['shifts']
 
-    project_shift_data = sorted([{
-        **{period.title(): key},
-        **{kind: data.get(kind, 0) for kind in project_names}
-    } for key, data in project_shift_data.items()], key=lambda x: x[period.title()])
+    project_shift_data = [{
+        **{period.title(): period_names[i]},
+        **{kind: project_shift_data.get(per, {}).get(kind, 0) for kind in project_names}
+    } for i, per in enumerate(periods)]
     project_shift_pie = [
         {'label': kind, 'value': sum([a[kind] for a in project_shift_data]), 'color': color}
         for kind, color in project_colors.items()]
@@ -601,7 +601,7 @@ def beamtime_community_stats(objlist, field, period, periods, period_names):
             })
 
     return {
-        'title': 'Beamtime by Access Type',
+        'title': 'User Community',
         'style': 'row',
         'content': [
             {
