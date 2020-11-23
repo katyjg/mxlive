@@ -26,10 +26,10 @@
         {% show_icon label='History' icon='ti ti-md ti-timer' %}
     </a>
     {% endif %}
-    <a href="{% url "yearly-statistics" object.pk  %}">
+    <a href="{% url "data-stats" %}?beamline__id__exact={{ object.pk }}">
         {% show_icon label='Stats' icon='ti ti-md ti-pulse' %}
     </a>
-    <a href="{% url "yearly-usage" object.pk %}">
+    <a href="{% url "beamline-usage" %}?beamline__id__exact={{ object.pk }}">
         {% show_icon label='Usage' icon='ti ti-md ti-pie-chart' %}
     </a>
     <a href="{% url "session-list" %}?beamline__id__exact={{ object.pk }}">

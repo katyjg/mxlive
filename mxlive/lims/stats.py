@@ -12,7 +12,7 @@ from django.utils import timezone
 from django.utils.timesince import timesince
 from memoize import memoize
 
-from mxlive.lims.models import Data, Sample, Session, Project, AnalysisReport, Container, Shipment, ProjectType, SupportArea, UserFeedback, UserAreaFeedback, SupportRecord, FeedbackScale
+from mxlive.lims.models import Data, Sample, Session, Project, AnalysisReport, Container, Shipment, ProjectType, SupportArea, UserFeedback, UserAreaFeedback, SupportRecord, FeedbackScale, DataType
 from mxlive.utils.functions import ShiftEnd, ShiftStart, ShiftIndex
 from mxlive.utils.misc import humanize_duration, natural_duration
 
@@ -41,51 +41,137 @@ def get_data_periods(period='year'):
     return sorted(Data.objects.values_list(field, flat=True).order_by(field).distinct())
 
 
-def usage_stats(beamline, period='year', **filters):
-    periods = get_data_periods(period=period)
-    field = 'created__{}'.format(period)
-    period_names = periods
+def make_table(data, columns, rows, total_col=True, total_row=True):
+    ''' Converts a list of dictionaries into a list of lists ready for displaying as a table
+        data: list of dictionaries (one dictionary per column header)
+        columns: list of column headers to display in table, ordered the same as data
+        rows: list of row headers to display in table
+    '''
+    header_row = [''] + columns
+    if total_col: header_row += ['All']
+    table_data = [[str(r)] + [0] * (len(header_row) - 1) for r in rows]
+    for row in table_data:
+        for i, val in enumerate(data):
+            row[i+1] = val.get(row[0], 0)
+        if total_col:
+            row[-1] = sum(row[1:-1])
+    if total_row:
+        footer_row = ['Total'] + [0] * (len(header_row) - 1)
+        for i in range(len(footer_row)-1):
+            footer_row[i+1] = sum([d[i+1] for d in table_data])
+    return [header_row] + table_data + [footer_row]
+
+
+def get_time_scale(filters):
+    period = filters.get('time_scale', 'year')
     if period == 'month':
+        periods = [i for i in range(1, 13)]
         period_names = [calendar.month_abbr[per].title() for per in periods]
+    elif period == 'quarter':
+        periods = [1, 2, 3, 4]
+        period_names = [f'Q{per}' for per in periods]
+    elif period == 'cycle':
+        periods = [1, 2]
+        period_names = ['Jan-June', 'July-Dec']
+    else:
+        periods = get_data_periods('year')
+        period_names = periods
+    return (period, periods, period_names)
 
-    sample_counts = {
-        entry[field]: entry['count']
-        for entry in
-        Sample.objects.filter(datasets__beamline=beamline, **filters).values(field).order_by(field).annotate(
-            count=Count('id'))
-    }
 
-    project_info = Session.objects.filter(beamline=beamline, **filters).values(field,
-                                                                               'project__name').distinct().order_by(
-        field, 'project__name').annotate(count=Count('project__name'))
-    project_counts = defaultdict(int)
-    project_names = defaultdict(list)
-    for info in project_info:
-        project_counts[info[field]] += 1
-        project_names[info[field]].append(info['project__name'])
+def usage_summary(period='year', **all_filters):
+    period, periods, period_names = get_time_scale(all_filters)
+    filters = {f: val for f, val in all_filters.items() if f != 'time_scale'}
 
-    new_project_info = Project.objects.filter(sessions__beamline=beamline, **filters).values(field, 'name').order_by(
-        field, 'name').annotate(count=Count('name'))
-    new_project_counts = defaultdict(int)
-    new_project_names = defaultdict(list)
-    for info in new_project_info:
-        if info['count'] > 0:
-            new_project_counts[info[field]] += 1
-            new_project_names[info[field]].append(info['name'])
+    field = 'created__{}'.format(period)
+    created_filters = {f.replace('modified', 'created'): val for f, val in filters.items()}
 
-    session_info = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(
+    ### Sample Stats
+    sample_filters = {f.replace('beamline', 'datasets__beamline'): val for f, val in created_filters.items()}
+    samples = Sample.objects.filter(**sample_filters)
+    sample_counts_info = samples.values(field).order_by(field).annotate(count=Count('id'))
+
+    ### Session Stats
+    sessions = Session.objects.filter(**created_filters)
+    session_counts_info = sessions.values(field).order_by(field).annotate(count=Count('id'))
+    throughput_info = sessions.values(field).order_by(field).annotate(
         num_datasets=Count(Case(When(datasets__kind__name="MX Dataset", then=1), output_field=IntegerField())),
         num_samples=Count('datasets__sample', distinct=True),
         time=Sum(Coalesce('stretches__end', timezone.now()) - F('stretches__start'), distinct=True)
     )
-    sample_throughput = {
-        entry[field]: 3600. * entry['num_samples']/entry['time'].total_seconds()
-        for entry in session_info if entry['time'] and entry['num_samples']
+    throughput_types_info = sessions.values(field, 'project__kind__name').order_by(field).annotate(
+        num_datasets=Count(Case(When(datasets__kind__name="MX Dataset", then=1), output_field=IntegerField())),
+        num_samples=Count('datasets__sample', distinct=True),
+        time=Sum(Coalesce('stretches__end', timezone.now()) - F('stretches__start'), distinct=True)
+    )
+    session_params = sessions.values(field).order_by(field).annotate(
+        hours=Sum(Coalesce('stretches__end', timezone.now()) - F('stretches__start')),
+        shifts=Sum(ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')),
+    )
+
+    ### Project Stats
+    project_filters = {f.replace('beamline', 'sessions__beamline'): val for f, val in filters.items()}
+    project_info = sessions.values(field, 'project__name').distinct().order_by(
+        field, 'project__name').annotate(count=Count('project__name'))
+    new_project_info = Project.objects.filter(**project_filters).values(field, 'name').order_by(
+        field, 'name').annotate(count=Count('name'))
+    project_type_colors = {
+        kind: ColorScheme.Live8[i]
+        for i, kind in enumerate(ProjectType.objects.values_list('name', flat=True).order_by('-name'))
     }
+
+    ### Data Stats
+    datasets = Data.objects.filter(**filters)
+    dataset_info = datasets.values(field).order_by(field).annotate(
+        count=Count('id'), exposure=Avg('exposure_time'),
+        duration=Sum(F('end_time') - F('start_time'))
+    )
+    dataset_durations = {entry[field]: entry['duration'].total_seconds() / HOUR_SECONDS for entry in dataset_info}
+    data_time_info = datasets.annotate(shift=ShiftIndex('end_time')).values('shift', 'end_time__week_day').order_by(
+        'end_time__week_day', 'shift').annotate(count=Count('id'))
+    data_project_kind_info = datasets.values('project__kind__name').order_by('project__kind__name').annotate(
+        count=Count('id'))
+    data_types_info = datasets.values(field, 'kind__name').order_by(field).annotate(count=Count('id'))
+    data_types_names = list(DataType.objects.values_list('name', flat=True))
+
+    ### Metrics Overview
+    # Distinct Users
+    distinct_users = {key: len([entry for entry in project_info if entry[field] == key]) for key in periods}
+    # New Users
+    new_users = {key: len([e for e in new_project_info if e[field] == key and e['count']]) for key in periods}
+    # Samples Measured
+    samples_measured = {entry[field]: entry['count'] for entry in sample_counts_info}
+    # Sessions
+    session_counts = {entry[field]: entry['count'] for entry in session_counts_info}
+    # Shifts Used
+    shifts_used = {entry[field]: ceil(entry['shifts'].total_seconds() / SHIFT_SECONDS) for entry in session_params}
+    # Time Used (hr)
+    time_used = {entry[field]: entry['hours'].total_seconds() / HOUR_SECONDS for entry in session_params}
+    # Usage Efficiency (%)
+    usage_efficiency = {key: time_used.get(key, 0) / (SHIFT * shifts_used.get(key, 1)) for key in periods}
+    # Datasets Collected
+    dataset_counts = {entry[field]: entry['count'] for entry in dataset_info}
+    # Minutes/Dataset
+    minutes_per_dataset = {key: dataset_durations.get(key, 0) * 60 / dataset_counts.get(key, 1) for key in periods}
+    # Datasets/Hour
+    dataset_per_hour = {key: dataset_counts.get(key, 0) / dataset_durations.get(key, 1) for key in periods}
+    # Average Exposure (sec)
+    dataset_exposure = {entry[field]: round(entry['exposure'], 3) for entry in dataset_info}
+    # Samples/Dataset
+    samples_per_dataset = {key: samples_measured.get(key, 0) / dataset_counts.get(key, 1) for key in periods}
+    # Sample Throughput (/h)
+    sample_throughput = {
+        entry[field]: 3600. * entry['num_samples'] / entry['time'].total_seconds()
+        for entry in throughput_info if entry['time'] and entry['num_samples']
+    }
+    # MX Dataset Throughput (/h)
     data_throughput = {
         entry[field]: 3600. * entry['num_datasets'] / entry['time'].total_seconds()
-        for entry in session_info if entry['time'] and entry['num_datasets']
+        for entry in throughput_info if entry['time'] and entry['num_datasets']
     }
+
+    ### Plots
+    # Throughput Plot
     throughput_data = [
         {
             period.title(): period_names[i],
@@ -93,139 +179,58 @@ def usage_stats(beamline, period='year', **filters):
             "MX Datasets": data_throughput.get(per, 0)
         } for i, per in enumerate(periods)
     ]
-
-    session_info = beamline.sessions.filter(**filters).values(field, 'project__kind__name').order_by(field).annotate(
-        num_datasets=Count(Case(When(datasets__kind__name="MX Dataset", then=1), output_field=IntegerField())),
-        num_samples=Count('datasets__sample', distinct=True),
-        time=Sum(Coalesce('stretches__end', timezone.now()) - F('stretches__start'), distinct=True)
-    )
-    sample_throughput_types = []
-    for i, per in enumerate(periods):
-        series = {
-            **{ period.title(): period_names[i] },
-            **{ entry['project__kind__name']: 3600. * entry['num_samples']/entry['time'].total_seconds()
-                 for entry in session_info if entry[field] == per }
-        }
-        sample_throughput_types.append(series)
-    data_throughput_types = []
-    for i, per in enumerate(periods):
-        series = {
-            **{ period.title(): period_names[i] },
-            **{ entry['project__kind__name']: 3600. * entry['num_datasets']/entry['time'].total_seconds()
-                 for entry in session_info if entry[field] == per }
-        }
-        data_throughput_types.append(series)
-
-    session_counts_info = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(count=Count('id'))
-    session_params = beamline.sessions.filter(**filters).values(field).order_by(field).annotate(
-        duration=Sum(
-            Coalesce('stretches__end', timezone.now()) - F('stretches__start'),
-        ),
-        shift_duration=Sum(
-            ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')
-        ),
-    )
-
-    session_counts = {
-        entry[field]: entry['count']
-        for entry in session_counts_info
-    }
-    session_shifts = {
-        entry[field]: ceil(entry['shift_duration'].total_seconds() / SHIFT_SECONDS)
-        for entry in session_params
-    }
-    session_hours = {
-        entry[field]: entry['duration'].total_seconds() / HOUR_SECONDS
-        for entry in session_params
-    }
-
-    session_efficiency = {
-        key: session_hours.get(key, 0) / (SHIFT * session_shifts.get(key, 1))
-        for key in periods
-    }
-
-    data_params = beamline.datasets.filter(**filters).values(field).order_by(field).annotate(
-        count=Count('id'), exposure=Avg('exposure_time'),
-        duration=Sum(F('end_time') - F('start_time'))
-    )
-
-    shift_params = beamline.datasets.filter(**filters).annotate(shift=ShiftIndex('end_time')).values(
-        'shift', 'end_time__week_day').order_by('end_time__week_day', 'shift').annotate(count=Count('id'))
-
-    day_shift_counts = defaultdict(dict)
+    # Sample Throughput Plot by Project Kind
+    sample_throughput_types = [
+        {
+            **{period.title(): period_names[i]},
+            **{entry['project__kind__name']: 3600. * entry['num_samples'] / entry['time'].total_seconds()
+               for entry in throughput_types_info if entry[field] == per}
+        } for i, per in enumerate(periods)
+    ]
+    # MX Dataset Throughput Plot by Project Kind
+    data_throughput_types = [
+        {
+            **{period.title(): period_names[i]},
+            **{entry['project__kind__name']: 3600. * entry['num_datasets'] / entry['time'].total_seconds()
+               for entry in throughput_types_info if entry[field] == per}
+        } for i, per in enumerate(periods)
+    ]
+    # Productivity Plot
+    dataset_per_shift = {key: dataset_counts.get(key, 0) / shifts_used.get(key, 1) for key in periods}
+    # Datasets by time of week Plot
     day_names = list(calendar.day_abbr)
-    for entry in shift_params:
-        day = calendar.day_abbr[(entry['end_time__week_day'] - 2) % 7]
-        day_part = '{:02d}:00 Shift'.format(entry['shift'] * SHIFT)
-        day_shift_counts[day][day_part] = entry['count']
-        day_shift_counts[day]['Day'] = day
+    dataset_per_day = [
+        {
+          'Day': day,
+          **{
+              '{:02d}:00 Shift'.format(entry['shift'] * SHIFT): entry['count']
+              for entry in data_time_info if (entry['end_time__week_day'] - 2) % 7 == i
+          }
+        } for i, day in enumerate(day_names)
+    ]
+    # Datasets by Project Type Chart
+    category_counts = {entry['project__kind__name']: entry['count'] for entry in data_project_kind_info}
 
-    category_params = beamline.datasets.filter(**filters).values('project__kind__name').order_by(
-        'project__kind__name').annotate(count=Count('id'))
-    category_counts = {
-        entry['project__kind__name']: entry['count']
-        for entry in category_params
-    }
+    # Data Summary Table and Plot
+    data_counts_by_type = {k: {e['kind__name']: e['count'] for e in data_types_info if e[field] == k} for k in periods}
+    data_types_data = [
+        {
+            period.title(): period_names[i],
+            **{
+                kind: data_counts_by_type.get(key, {}).get(kind, 0) for kind in data_types_names
+            }
+        } for i, key in enumerate(periods)
+    ]
+    data_type_table = make_table(data_types_data, period_names, data_types_names)
+    # Dataset Type Chart
+    data_type_chart = [
+        {'label': kind, 'value': sum([e[kind] for e in data_types_data]) } for kind in data_types_names
+    ]
 
-    dataset_counts = {
-        entry[field]: entry['count']
-        for entry in data_params
-    }
-    dataset_exposure = {
-        entry[field]: round(entry['exposure'], 3)
-        for entry in data_params
-    }
-
-    dataset_durations = {
-        entry[field]: entry['duration'].total_seconds() / HOUR_SECONDS
-        for entry in data_params
-    }
-
-    dataset_efficiency = {
-        key: dataset_durations.get(key, 0) / (session_hours.get(key, 1))
-        for key in periods
-    }
-
-    dataset_per_shift = {
-        key: dataset_counts.get(key, 0) / session_shifts.get(key, 1)
-        for key in periods
-    }
-
-    dataset_per_hour = {
-        key: dataset_counts.get(key, 0) / dataset_durations.get(key, 1)
-        for key in periods
-    }
-
-    minutes_per_dataset = {
-        key: dataset_durations.get(key, 0) * 60 / dataset_counts.get(key, 1)
-        for key in periods
-    }
-
-    samples_per_dataset = {
-        key: sample_counts.get(key, 0) / dataset_counts.get(key, 1)
-        for key in periods
-    }
-
-    # Dataset statistics
-    data_types = beamline.datasets.filter(**filters).values('kind__name').order_by('kind__name').annotate(
-        count=Count('id'))
-
-    period_data = defaultdict(lambda: defaultdict(int))
-    for summary in beamline.datasets.filter(**filters).values(field, 'kind__name').order_by(field).annotate(count=Count('pk')):
-        period_data[summary[field]][summary['kind__name']] = summary['count']
-    datatype_table = []
-    for item in data_types:
-        kind_counts = [period_data[per][item['kind__name']] for per in periods]
-        datatype_table.append([item['kind__name']] + kind_counts + [sum(kind_counts)])
-    period_counts = [sum(period_data[per].values()) for per in periods]
-    datatype_table.append(['Total'] + period_counts + [sum(period_counts)])
-    chart_data = []
-
-    period_names = periods
+    ### Formatting
     period_xvalues = periods
     x_scale = 'linear'
     time_format = ''
-
     if period == 'month':
         yr = timezone.now().year
         period_names = [calendar.month_abbr[per].title() for per in periods]
@@ -237,80 +242,67 @@ def usage_stats(beamline, period='year', **filters):
         time_format = '%Y'
         x_scale = 'time'
 
-    # data histogram
-    for i, per in enumerate(periods):
-        series = {period.title(): period_names[i]}
-        series.update(period_data[per])
-        chart_data.append(series)
+    # Dataset Summary Plot
+    period_data = defaultdict(lambda: defaultdict(int))
+    for summary in datasets.values(field, 'kind__name').order_by(field).annotate(count=Count('pk')):
+        period_data[summary[field]][summary['kind__name']] = summary['count']
 
-    # user statistics
-    user_data_info = beamline.datasets.filter(**filters).values(user=F('project__name')).order_by('user').annotate(
-        count=Count('id'),
+    ### User Statistics
+    user_session_info = sessions.values(user=F('project__name'), kind=F('project__kind__name')).order_by('user').annotate(
+        duration=Sum(Coalesce('stretches__end', timezone.now()) - F('stretches__start'),),
+        shift_duration=Sum(ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')),
+    )
+    user_data_info = datasets.values(user=F('project__name')).order_by('user').annotate(count=Count('id'),
         shutters=Sum(F('end_time') - F('start_time'))
     )
-    user_session_info = beamline.sessions.filter(**filters).values(user=F('project__name'),
-                                                                   kind=F('project__kind__name')).order_by(
-        'user').annotate(
-        duration=Sum(
-            Coalesce('stretches__end', timezone.now()) - F('stretches__start'),
-        ),
-        shift_duration=Sum(
-            ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')
-        ),
-    )
-
-    user_sample_info = Sample.objects.filter(
-        datasets__beamline=beamline, **filters
-    ).values(user=F('project__name')).order_by('user').annotate(
-        count=Count('id'),
-    )
-
-    project_type_colors = {
-        kind: ColorScheme.Live8[i]
-        for i, kind in enumerate(ProjectType.objects.values_list('name', flat=True).order_by('-name'))
-    }
-
-    user_datasets = {
-        info['user']: info["count"]
-        for info in user_data_info
-    }
-
-    user_types = {
-        info['user']: info["kind"]
-        for info in user_session_info
-    }
-    user_shift_duration = {
-        info['user']: info["shift_duration"].total_seconds() / HOUR_SECONDS
-        for info in user_session_info
-    }
-    user_samples = {
-        info['user']: info["count"]
-        for info in user_sample_info
-    }
-    user_duration = {
-        info['user']: info["duration"].total_seconds() / HOUR_SECONDS
-        for info in user_session_info
-    }
+    user_sample_info = samples.values(user=F('project__name')).order_by('user').annotate(count=Count('id'))
+    user_types = {info['user']: info["kind"] for info in user_session_info}
+    user_stats = {}
+    # Datasets
+    user_stats['datasets'] = [
+        {'User': info['user'], 'Datasets': info['count'], 'Type': user_types.get(info['user'], 'Unknown')}
+        for info in sorted(user_data_info, key=lambda v: v['count'], reverse=True)[:MAX_COLUMN_USERS]
+    ]
+    # Samples
+    user_stats['samples'] = [
+        {'User': info['user'], 'Samples': info['count'], 'Type': user_types.get(info['user'], 'Unknown')}
+        for info in sorted(user_sample_info, key=lambda v: v['count'], reverse=True)[:MAX_COLUMN_USERS]
+    ]
+    # Time Used
+    user_stats['time_used'] = [
+        {'User': info['user'], 'Hours': round(info["duration"].total_seconds() / HOUR_SECONDS, 1), 'Type': user_types.get(info['user'], 'Unknown')}
+        for info in sorted(user_session_info, key=lambda v: v['duration'], reverse=True)[:MAX_COLUMN_USERS]
+    ]
+    # Efficiency
     user_shutters = {
-        info['user']: info["shutters"].total_seconds() / HOUR_SECONDS
+        info['user']: info["shutters"].total_seconds()
         for info in user_data_info
     }
-
-    user_efficiency = {
-        user: min(100, 100*user_shutters.get(user, 0) / (hours or 1))
-        for user, hours in user_duration.items()
-    }
-
-    user_schedule_efficiency = {
-        user: min(100, 100*user_duration.get(user, 0) / (hours or 1))
-        for user, hours in user_shift_duration.items()
-    }
+    user_stats['efficiency'] = [
+        {'User': info['user'], 'Percent': min(100, 100*user_shutters.get(info['user'], 0)/info["duration"].total_seconds()),
+         'Type': user_types.get(info['user'], 'Unknown')}
+        for info in sorted(user_session_info, key=lambda v: user_shutters.get(v['user'], 0)/v['duration'].total_seconds(), reverse=True)[:MAX_COLUMN_USERS]
+    ]
+    # Schedule Efficiency
+    user_stats['schedule_efficiency'] = [
+        {'User': info['user'], 'Percent': round(100*info["duration"] / info["shift_duration"], 1),
+         'Type': user_types.get(info['user'], 'Unknown')}
+        for info in sorted(user_session_info, key=lambda v: v['duration']/v['shift_duration'], reverse=True)[:MAX_COLUMN_USERS]
+    ]
+    for key, data in user_stats.items():
+        user_stats[key] = {
+            'x-label': 'User',
+            'aspect-ratio': .7,
+            'color-by': 'Type',
+            'colors': project_type_colors,
+            'data': data
+        }
 
     beamtime = {}
     if settings.LIMS_USE_SCHEDULE:
         from mxlive.schedule.stats import beamtime_summary
 
-        beamtime = beamtime_summary(beamline, period, **filters)
+        beamtime = beamtime_summary(**{f.replace('modified', 'start'): val for f, val in all_filters.items()})
 
     stats = {'details': [
         {
@@ -322,13 +314,13 @@ def usage_stats(beamline, period='year', **filters):
                     'kind': 'table',
                     'data': [
                         [period.title()] + period_names,
-                        ['Users'] + [project_counts.get(p, 0) for p in periods],
-                        ['New Users'] + [new_project_counts.get(p, 0) for p in periods],
-                        ['Samples Measured'] + [sample_counts.get(p, 0) for p in periods],
+                        ['Distinct Users'] + [distinct_users.get(p, 0) for p in periods],
+                        ['New Users'] + [new_users.get(p, 0) for p in periods],
+                        ['Samples Measured'] + [samples_measured.get(p, 0) for p in periods],
                         ['Sessions'] + [session_counts.get(p, 0) for p in periods],
-                        ['Shifts Used'] + [session_shifts.get(p, 0) for p in periods],
-                        ['Time Used¹ (hr)'] + ['{:0.1f}'.format(session_hours.get(p, 0)) for p in periods],
-                        ['Usage Efficiency² (%)'] + ['{:.0%}'.format(session_efficiency.get(p, 0)) for p in periods],
+                        ['Shifts Used'] + [shifts_used.get(p, 0) for p in periods],
+                        ['Time Used¹ (hr)'] + ['{:0.1f}'.format(time_used.get(p, 0)) for p in periods],
+                        ['Usage Efficiency² (%)'] + ['{:.0%}'.format(usage_efficiency.get(p, 0)) for p in periods],
                         ['Datasets³ Collected'] + [dataset_counts.get(p, 0) for p in periods],
                         ['Minutes/Dataset³'] + ['{:0.1f}'.format(minutes_per_dataset.get(p, 0)) for p in periods],
                         ['Datasets³/Hour'] + ['{:0.1f}'.format(dataset_per_hour.get(p, 0)) for p in periods],
@@ -383,9 +375,9 @@ def usage_stats(beamline, period='year', **filters):
                         'data': [
                             {
                                 period.title(): period_names[i],
-                                'Samples': sample_counts.get(per, 0),
+                                'Samples': samples_measured.get(per, 0),
                                 'Datasets': dataset_counts.get(per, 0),
-                                'Total Time': round(session_hours.get(per, 0), 1),
+                                'Total Time': round(time_used.get(per, 0), 1),
                             } for i, per in enumerate(periods)
                         ]
                     },
@@ -409,9 +401,7 @@ def usage_stats(beamline, period='year', **filters):
                     'kind': 'columnchart',
                     'data': {
                         'x-label': 'Day',
-                        'data': [
-                            dict(day_shift_counts[day]) for day in day_names
-                        ]
+                        'data': dataset_per_day
                     },
                     'style': 'col-12 col-md-6'
                 },
@@ -434,7 +424,7 @@ def usage_stats(beamline, period='year', **filters):
                 {
                     'title': 'Dataset summary by {}'.format(period),
                     'kind': 'table',
-                    'data': [[''] + period_names + ['All']] + datatype_table,
+                    'data': data_type_table,
                     'header': 'column row',
                     'style': 'col-12'
                 },
@@ -443,8 +433,8 @@ def usage_stats(beamline, period='year', **filters):
                     'kind': 'columnchart',
                     'data': {
                         'x-label': period.title(),
-                        'stack': [[d['kind__name'] for d in data_types]],
-                        'data': chart_data,
+                        'stack': [data_types_names],
+                        'data': data_types_data,
                     },
                     'style': 'col-12 col-md-6'
                 },
@@ -453,15 +443,12 @@ def usage_stats(beamline, period='year', **filters):
                     'kind': 'pie',
                     'data': {
                         "colors": "Live16",
-                        "data": [
-                            {'label': entry['kind__name'] or 'Unknown', 'value': entry['count']} for entry in data_types
-                        ],
+                        "data": data_type_chart,
                     },
                     'style': 'col-12 col-md-6'
                 }
             ]
         },
-        beamtime,
         {
             'title': 'User Statistics',
             'style': "row",
@@ -469,16 +456,7 @@ def usage_stats(beamline, period='year', **filters):
                 {
                     'title': 'Datasets',
                     'kind': 'barchart',
-                    'data': {
-                        'x-label': 'User',
-                        'aspect-ratio': .7,
-                        'color-by': 'Type',
-                        'colors': project_type_colors,
-                        'data': [
-                            {'User': user, 'Datasets': count, 'Type': user_types.get(user, 'Unknown')}
-                            for user, count in sorted(user_datasets.items(), key=lambda v: v[1], reverse=True)[:MAX_COLUMN_USERS]
-                        ],
-                    },
+                    'data': user_stats['datasets'],
                     'notes': (
                         "Dataset counts include all types of datasets. "
                         "Only the top {} users by number of datasets are shown"
@@ -488,17 +466,7 @@ def usage_stats(beamline, period='year', **filters):
                 {
                     'title': 'Samples',
                     'kind': 'barchart',
-                    'data': {
-                        'x-label': 'User',
-                        'aspect-ratio': .7,
-                        'color-by': 'Type',
-                        'colors': project_type_colors,
-                        'data': [
-                            {'User': user, 'Samples': count, 'Type': user_types.get(user, 'Unknown')}
-                            for user, count in
-                            sorted(user_samples.items(), key=lambda v: v[1], reverse=True)[:MAX_COLUMN_USERS]
-                        ],
-                    },
+                    'data': user_stats['samples'],
                     'notes': (
                         "Sample counts include only samples measured on the beamline. "
                         "Only the top {} users sample count shown"
@@ -508,16 +476,7 @@ def usage_stats(beamline, period='year', **filters):
                 {
                     'title': 'Time Used',
                     'kind': 'barchart',
-                    'data': {
-                        'x-label': 'User',
-                        'aspect-ratio': .7,
-                        'color-by': 'Type',
-                        'colors': project_type_colors,
-                        'data': [
-                            {'User': user, 'Hours': round(hours, 1), 'Type': user_types.get(user, 'Unknown')}
-                            for user, hours in sorted(user_duration.items(), key=lambda v: v[1], reverse=True)[:MAX_COLUMN_USERS]
-                        ],
-                    },
+                    'data': user_stats['time_used'],
                     "notes": (
                         "Total time is sum of active session durations for each user. Only the top {} "
                         "users are shown."
@@ -527,17 +486,7 @@ def usage_stats(beamline, period='year', **filters):
                 {
                     'title': 'Efficiency',
                     'kind': 'barchart',
-                    'data': {
-                        'x-label': 'User',
-                        'aspect-ratio': .7,
-                        'color-by': 'Type',
-                        'colors': project_type_colors,
-                        'data': [
-                            {'User': user, 'Percent': round(percent, 1), 'Type': user_types.get(user, 'Unknown')}
-                            for user, percent in
-                            sorted(user_efficiency.items(), key=lambda v: v[1], reverse=True)[:MAX_COLUMN_USERS]
-                        ],
-                    },
+                    'data': user_stats['efficiency'],
                     "notes": (
                         "Efficiency is the percentage of Time Used during which shutters were open. This measures how "
                         "effectively users are using their active session for data collection. "
@@ -548,17 +497,7 @@ def usage_stats(beamline, period='year', **filters):
                 {
                     'title': 'Schedule Efficiency',
                     'kind': 'barchart',
-                    'data': {
-                        'x-label': 'User',
-                        'aspect-ratio': .7,
-                        'color-by': 'Type',
-                        'colors': project_type_colors,
-                        'data': [
-                            {'User': user, 'Percent': round(percent, 1), 'Type': user_types.get(user, 'Unknown')}
-                            for user, percent in
-                            sorted(user_schedule_efficiency.items(), key=lambda v: v[1], reverse=True)[:MAX_COLUMN_USERS]
-                        ],
-                    },
+                    'data': user_stats['schedule_efficiency'],
                     "notes": (
                         "Schedule Efficiency is the percentage of shift time during which a session "
                         "was active. This measures how effectively users are using full scheduled shifts for "
@@ -568,7 +507,7 @@ def usage_stats(beamline, period='year', **filters):
                 },
             ],
         },
-    ]
+    ] + beamtime
     }
     return stats
 
@@ -623,14 +562,15 @@ def make_parameter_histogram(data_info, report_info):
     return histograms
 
 
-def parameter_stats(beamline, **filters):
-    beam_sizes = Data.objects.filter(beamline=beamline, beam_size__isnull=False, **filters).values(
+def parameter_summary(**filters):
+    beam_sizes = Data.objects.filter(beam_size__isnull=False, **filters).values(
         'beam_size').order_by('beam_size').annotate(
         count=Count('id')
     )
+    report_filters = {f.replace('beamline', 'data__beamline'): val for f, val in filters.items()}
 
-    report_info = AnalysisReport.objects.filter(data__beamline=beamline, **filters).values('score')
-    data_info = Data.objects.filter(beamline=beamline, **filters).values('exposure_time', 'attenuation', 'energy',
+    report_info = AnalysisReport.objects.filter(**report_filters).values('score')
+    data_info = Data.objects.filter(**filters).values('exposure_time', 'attenuation', 'energy',
                                                                          'num_frames')
     param_histograms = make_parameter_histogram(data_info, report_info)
 
@@ -933,7 +873,6 @@ def project_stats(project, **filters):
     visits = []
     stat_table = []
     if settings.LIMS_USE_SCHEDULE:
-        from mxlive.schedule.stats import beamtime_summary
 
         sched_field = field.replace('created', 'start')
         beamtime_counts = {

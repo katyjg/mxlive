@@ -835,6 +835,25 @@ class DataStats(PlotViewMixin, DataList):
     date_field = 'modified'
     list_url = reverse_lazy("data-list")
 
+    def get_metrics(self):
+        return stats.parameter_summary(**self.get_active_filters())
+
+
+class UsageSummary(PlotViewMixin, DataList):
+    date_field = 'modified'
+    list_url = reverse_lazy("data-list")
+    list_filters = ['beamline', 'kind', filters.YearFilterFactory('modified'), filters.MonthFilterFactory('modified'),
+                    filters.QuarterFilterFactory('modified'), filters.TimeScaleFilterFactory()]
+
+    def get_metrics(self):
+        return stats.usage_summary(period='year', **self.get_active_filters())
+
+    def page_title(self):
+        if self.kwargs.get('year'):
+            return '{} Usage Metrics'.format(self.kwargs['year'])
+        else:
+            return 'Usage Metrics'
+
 
 class DataDetail(OwnerRequiredMixin, detail.DetailView):
     model = models.Data
@@ -987,59 +1006,6 @@ class SessionStatistics(AdminRequiredMixin, detail.DetailView):
 class BeamlineDetail(AdminRequiredMixin, detail.DetailView):
     model = models.Beamline
     template_name = "users/entries/beamline.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(BeamlineDetail, self).get_context_data(**kwargs)
-        context['projects'] = {}
-        # }
-        #     project: self.object.active_automounter().children.filter(project=project)
-        #     for project in models.Project.objects.filter(
-        #         pk__in=self.object.active_automounter().children.values_list('project', flat=True)).distinct()
-        # }
-        return context
-
-
-class ParameterStatistics(BeamlineDetail):
-    template_name = "users/entries/beamline-statistics.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(ParameterStatistics, self).get_context_data(**kwargs)
-        yearly = 'year' not in self.kwargs
-        fltrs = {} if yearly else {'created__year': self.kwargs.get('year')}
-
-        context['year'] = self.kwargs.get('year')
-        context['years'] = stats.get_data_periods(period='year')
-
-        context['report'] = stats.parameter_stats(self.object, **fltrs)
-        return context
-
-    def page_title(self):
-        if self.kwargs.get('year'):
-            return '{} Statistics'.format(self.kwargs['year'])
-        else:
-            return 'Statistics'
-
-
-class UsageStatistics(BeamlineDetail):
-    template_name = "users/entries/beamline-usage.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(UsageStatistics, self).get_context_data(**kwargs)
-        yearly = 'year' not in self.kwargs
-        period = 'year' if yearly else 'month'
-
-        context['year'] = self.kwargs.get('year')
-        context['years'] = stats.get_data_periods(period='year')
-
-        fltrs = {} if yearly else {'created__year': self.kwargs.get('year')}
-        context['report'] = stats.usage_stats(self.object, period=period, **fltrs)
-        return context
-
-    def page_title(self):
-        if self.kwargs.get('year'):
-            return '{} Usage Metrics'.format(self.kwargs['year'])
-        else:
-            return 'Usage Metrics'
 
 
 class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):

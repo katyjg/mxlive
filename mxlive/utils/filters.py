@@ -88,21 +88,23 @@ def QuarterFilterFactory(field_name='created'):
     return QuarterFilter
 
 
-def CycleFilterFactory(field_name='created'):
+def TimeScaleFilterFactory():
 
-    class CycleFilter(admin.SimpleListFilter):
-        parameter_name = '{}_cycle'.format(field_name)
+    class TimeScaleFilter(admin.SimpleListFilter):
+        parameter_name = 'time_scale'
         title = parameter_name.replace('_', ' ').title()
 
         def lookups(self, request, model_admin):
-            return (([1, 2], 'Jan-June'),
-                    ([3, 4], 'July-Dec'))
+            return (('month', 'Month'),
+                    ('quarter', 'Quarter'),
+                    ('cycle', 'Cycle'),
+                    ('year', 'Year'))
 
         def queryset(self, request, queryset):
-            flt = {} if not self.value() else {'{}__quarter__in'.format(field_name): self.value()}
+            flt = {}
             return queryset.filter(**flt)
 
-    return CycleFilter
+    return TimeScaleFilter
 
 
 from django.db.models import Min, ExpressionWrapper, F, fields

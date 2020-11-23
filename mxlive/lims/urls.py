@@ -13,10 +13,7 @@ urlpatterns = [
     path('profile/<slug:username>/statistics/', views.ProjectStatistics.as_view(), name='project-statistics'),
 
     path('beamline/<int:pk>/', views.BeamlineDetail.as_view(), name='beamline-detail'),
-    path('beamline/<int:pk>/stats/', views.ParameterStatistics.as_view(), name='yearly-statistics'),
-    path('beamline/<int:pk>/stats/<int:year>/', views.ParameterStatistics.as_view(), name='monthly-statistics'),
-    path('beamline/<int:pk>/usage/', views.UsageStatistics.as_view(), name='yearly-usage'),
-    path('beamline/<int:pk>/usage/<int:year>/', views.UsageStatistics.as_view(), name='monthly-usage'),
+    path('beamline/usage/', views.UsageSummary.as_view(), name='beamline-usage'),
     path('dewar/<int:pk>/edit/', views.DewarEdit.as_view(), name='dewar-edit'),
 
     path('shipments/', views.ShipmentList.as_view(), name='shipment-list'),

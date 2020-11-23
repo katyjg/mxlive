@@ -194,8 +194,8 @@ class EmailNotification(models.Model):
     def save(self, *args, **kwargs):
         # Get user's local timezone
         if not self.pk:
-            locator = geocoders.Nominatim()
             try:
+                locator = geocoders.Nominatim(user_agent="mxlive")
                 address = "{user.city}, {user.province}, {user.country}".format(user=self.beamtime.project)
                 _, (latitude, longitude) = locator.geocode(address)
                 usertz = tf.certain_timezone_at(lat=latitude, lng=longitude) or settings.TIME_ZONE
