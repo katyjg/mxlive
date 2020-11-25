@@ -110,7 +110,7 @@ def usage_summary(period='year', **all_filters):
     )
 
     ### Project Stats
-    project_filters = {f.replace('beamline', 'sessions__beamline'): val for f, val in filters.items()}
+    project_filters = {f.replace('beamline', 'sessions__beamline'): val for f, val in created_filters.items()}
     project_info = sessions.values(field, 'project__name').distinct().order_by(
         field, 'project__name').annotate(count=Count('project__name'))
     new_project_info = Project.objects.filter(**project_filters).values(field, 'name').order_by(
@@ -183,7 +183,7 @@ def usage_summary(period='year', **all_filters):
     sample_throughput_types = [
         {
             **{period.title(): period_names[i]},
-            **{entry['project__kind__name']: 3600. * entry['num_samples'] / entry['time'].total_seconds()
+            **{entry['project__kind__name']: entry['time'] and 3600. * entry['num_samples'] / entry['time'].total_seconds() or 0
                for entry in throughput_types_info if entry[field] == per}
         } for i, per in enumerate(periods)
     ]
@@ -191,7 +191,7 @@ def usage_summary(period='year', **all_filters):
     data_throughput_types = [
         {
             **{period.title(): period_names[i]},
-            **{entry['project__kind__name']: 3600. * entry['num_datasets'] / entry['time'].total_seconds()
+            **{entry['project__kind__name']: entry['time'] and 3600. * entry['num_datasets'] / entry['time'].total_seconds() or 0
                for entry in throughput_types_info if entry[field] == per}
         } for i, per in enumerate(periods)
     ]
@@ -279,9 +279,12 @@ def usage_summary(period='year', **all_filters):
         for info in user_data_info
     }
     user_stats['efficiency'] = [
-        {'User': info['user'], 'Percent': min(100, 100*user_shutters.get(info['user'], 0)/info["duration"].total_seconds()),
+        {'User': info['user'],
+         'Percent': min(100, 100 * user_shutters.get(info['user'], 0) / info["duration"].total_seconds()),
          'Type': user_types.get(info['user'], 'Unknown')}
-        for info in sorted(user_session_info, key=lambda v: user_shutters.get(v['user'], 0)/v['duration'].total_seconds(), reverse=True)[:MAX_COLUMN_USERS]
+        for info in sorted(user_session_info,
+                           key=lambda v: v['duration'] and user_shutters.get(v['user'], 0) / v['duration'].total_seconds() or 0,
+                           reverse=True)[:MAX_COLUMN_USERS]
     ]
     # Schedule Efficiency
     user_stats['schedule_efficiency'] = [
