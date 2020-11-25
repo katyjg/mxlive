@@ -20,7 +20,7 @@ tf = timezonefinder.TimezoneFinder()
 
 MIN_SUPPORT_HOUR = getattr(settings, 'MIN_SUPPORT_HOUR', 0)
 MAX_SUPPORT_HOUR = getattr(settings, 'MAX_SUPPORT_HOUR', 24)
-
+APP_NAME = getattr(settings, 'APP_NAME', 'mxlive')
 
 class AccessType(models.Model):
     name = models.CharField(blank=True, max_length=30)
@@ -195,7 +195,7 @@ class EmailNotification(models.Model):
         # Get user's local timezone
         if not self.pk:
             try:
-                locator = geocoders.Nominatim(user_agent="mxlive")
+                locator = geocoders.Nominatim(user_agent=APP_NAME)
                 address = "{user.city}, {user.province}, {user.country}".format(user=self.beamtime.project)
                 _, (latitude, longitude) = locator.geocode(address)
                 usertz = tf.certain_timezone_at(lat=latitude, lng=longitude) or settings.TIME_ZONE

@@ -25,7 +25,7 @@ try:
 except FileNotFoundError:
     APP_VERSION = 'unknown'
 
-
+APP_NAME = 'mxlive'
 
 
 # Quick-start development settings - unsuitable for production
@@ -208,7 +208,6 @@ TRUSTED_URLS = ['^/json', '^/api']
 
 # Shift parameters
 HOURS_PER_SHIFT = 8
-FACILITY_NAME = "CMCF"
 
 # Downloads
 RESTRICT_DOWNLOADS = False
