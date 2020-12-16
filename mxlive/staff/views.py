@@ -140,11 +140,10 @@ class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edi
         ldap = slap.Directory()
         info = ldap.add_user(user_info)
         info['name'] = info.get('username')
-        for k in ['contact_email', 'contact_person', 'contact_phone']:
-            info[k] = data.get(k, '')
 
         # create local user
         response = super().form_valid(form)
+        User.objects.filter(username=info.get('username')).update(**info)
         info_msg = 'New Account {} added'.format(self.object)
 
         ActivityLog.objects.log_activity(

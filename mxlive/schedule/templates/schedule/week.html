@@ -133,6 +133,17 @@
 </div>
 
 <script>
+    function ISO8601_week_no(dt) {
+        var tdt = new Date(dt.valueOf());
+        var dayn = (dt.getDay() + 6) % 7;
+        tdt.setDate(tdt.getDate() - dayn + 3);
+        var firstThursday = tdt.valueOf();
+        tdt.setMonth(0, 1);
+        if (tdt.getDay() !== 4) {
+            tdt.setMonth(0, 1 + ((4 - tdt.getDay()) + 7) % 7);
+        }
+        return 1 + Math.ceil((firstThursday - tdt) / 604800000);
+    }
     $(document).ready(function() {
         $("#beamline-calendar table.bcal-week").displayBeamtime({
             detailed: {% if editable %}true{% else %}false{% endif %},
@@ -159,9 +170,13 @@
             todayHighlight: true,
             calendarWeeks: true,
         }).on('changeDate', function(e) {
+            let weekday = e.date.getDay();
+            if (weekday == 0) {
+                weekday = 7;
+            }
+            e.date.setDate(e.date.getDate() - weekday + 1);
             let year = e.date.getFullYear();
-            let dayone = new Date(year, 0, 1);
-            let week = Math.ceil( (((e.date - dayone) / 86400000) + dayone.getDay() + 1) / 7);
+            let week = ISO8601_week_no(e.date);
             let url = "{% url 'this-week' %}" + year + '-W' + week + '/{% if editable %}?detailed={{ editable }}{% endif %}';
             $.ajax({
                 url: url,

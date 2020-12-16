@@ -212,13 +212,16 @@ class SSHKey(TimeStampedModel):
     key = models.TextField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="sshkeys")
 
-    class Meta:
-        verbose_name = "SSH Key"
+    def __str__(self):
+        return self.name.upper()
 
     def fingerprint(self):
         import hashlib
         fp = hashlib.md5(self.key.encode()).hexdigest()
         return ':'.join(a+b for a,b in zip(fp[::2], fp[1::2]))
+
+    class Meta:
+        verbose_name = "SSH Key"
 
 
 class StretchQuerySet(models.QuerySet):

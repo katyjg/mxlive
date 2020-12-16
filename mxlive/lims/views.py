@@ -262,7 +262,6 @@ class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AsyncFormMixin, edit
     form_class = forms.ProjectForm
     template_name = "modal/form.html"
     model = models.Project
-    success_url = "."
     success_message = "Profile has been updated."
 
     def get_object(self):
@@ -271,6 +270,9 @@ class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AsyncFormMixin, edit
     def test_func(self):
         """Allow access to admin or owner"""
         return self.request.user.is_superuser or self.get_object() == self.request.user
+
+    def get_success_url(self):
+        return reverse_lazy('project-profile', kwargs={'username': self.kwargs['username']})
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -1015,6 +1017,9 @@ class DewarEdit(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.Up
     success_url = reverse_lazy('dashboard')
     success_message = "Comments have been updated."
 
+    def get_success_url(self):
+        return reverse_lazy('beamline-detail', kwargs={'pk': self.object.beamline.pk})
+
 
 class ShipmentCreate(LoginRequiredMixin, SessionWizardView):
     form_list = [('shipment', forms.AddShipmentForm),
@@ -1330,9 +1335,6 @@ class SupportMetrics(AdminRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         year = self.kwargs.get('year')
-        period = 'month' if year else 'year'
-
-        #context['years'] = list(models.SupportRecord.objects.values_list('created__year', flat=True).distinct())
         context['beamlines'] = models.Beamline.objects.filter(active=True)
         fltrs = year and {'created__year': year} or {}
         if self.kwargs.get('beamline'):
