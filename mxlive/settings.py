@@ -181,7 +181,6 @@ def clean_user(user, data):
     names = data['gecos'][0].split(' ', 1)
     first_name = names[0].strip()
     last_name = "" if len(names) < 2 else names[1].strip()
-    email = data.get('mail', [''])[0]
     user_uids = set(map(int, data['gidnumber']))
     admin_uids = set(map(int, LDAP_ADMIN_UIDS))
 
@@ -192,10 +191,9 @@ def clean_user(user, data):
     if not user.name:
         user.name = user.username
 
-    if (first_name, last_name, email) != (user.first_name, user.last_name, user.email):
+    if (first_name, last_name) != (user.first_name, user.last_name):
         user.first_name = first_name
         user.last_name = last_name
-        user.email = email
     user.save()
 
 

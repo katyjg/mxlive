@@ -18,7 +18,7 @@ USER_SHELL = getattr(settings, 'LDAP_USER_SHELL', '/bin/bash')
 EMAIL_NEW_ACCOUNTS = getattr(settings, 'LDAP_SEND_EMAILS', False)
 
 USER_ATTRIBUTES = ['cn', 'uid', 'uidNumber', 'gidNumber', 'homeDirectory', 'loginShell', 'description', 'gecos',
-                   'objectclass']
+                   'objectclass', 'mail']
 PAGE_SIZE = 1000
 
 
@@ -242,7 +242,7 @@ class Directory(object):
             search_filter = '(objectclass=posixAccount)'
         else:
             uid_filter = ''.join(['(uid={})'.format(name) for name in user_names])
-            search_filter = '(&(objectclass=posixAccount)(|{})'.format(uid_filter)
+            search_filter = '(&(objectclass=posixAccount)(|{}))'.format(uid_filter)
         search_attrs = ['uid', 'uidNumber', 'objectclass'] if not full else USER_ATTRIBUTES
         with Connection(self.server, user=self.admin_user, password=self.admin_secret, auto_bind=True) as connection:
             connection.extend.standard.paged_search(search_dn, search_filter, attributes=search_attrs,
