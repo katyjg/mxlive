@@ -63,8 +63,8 @@ class ProjectForm(forms.ModelForm):
             Div(
                 Div('first_name', css_class='col-6'),
                 Div('last_name', css_class='col-6'),
-                Div('email', css_class='col-6'),
-                Div(Field('designation', css_class='select'), css_class='col-{}'.format(self.user.is_superuser and '6' or '12')),
+                Div('email', css_class='col-{}'.format(self.user.is_superuser and '6' or '12')),
+                self.user.is_superuser and Div(Field('designation', css_class='select'), css_class='col-6') or 'designation',
                 css_class='form-row'
             ),
             Div(
