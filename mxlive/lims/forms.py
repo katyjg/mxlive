@@ -55,7 +55,7 @@ class ProjectForm(forms.ModelForm):
             self.body.form_action = reverse_lazy('new-project')
 
         if not self.user.is_superuser:
-            for f in ['kind', 'alias', 'first_name', 'last_name', 'email', 'designation']:
+            for f in ['kind', 'alias', 'first_name', 'last_name', 'email']:
                 self.fields[f].widget.attrs['readonly'] = True
             self.fields['designation'].widget = forms.HiddenInput()
 
