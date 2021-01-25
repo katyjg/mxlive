@@ -55,16 +55,16 @@ class ProjectForm(forms.ModelForm):
             self.body.form_action = reverse_lazy('new-project')
 
         if not self.user.is_superuser:
-            for f in ['kind', 'alias', 'first_name', 'last_name', 'email']:
+            for f in ['kind', 'alias', 'first_name', 'last_name', 'email', 'designation']:
                 self.fields[f].widget.attrs['readonly'] = True
-            self.fields['designation'].widget = forms.HiddenInput()
+            self.fields['designation'].widget = forms.MultipleHiddenInput()
 
         self.body.layout = Layout(
             Div(
                 Div('first_name', css_class='col-6'),
                 Div('last_name', css_class='col-6'),
                 Div('email', css_class='col-{}'.format(self.user.is_superuser and '6' or '12')),
-                self.user.is_superuser and Div(Field('designation', css_class='select'), css_class='col-6') or 'designation',
+                self.user.is_superuser and Div(Field('designation', css_class='select'), css_class='col-6') or Div('designation'),
                 css_class='form-row'
             ),
             Div(
