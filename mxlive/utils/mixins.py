@@ -74,7 +74,7 @@ class HTML2PdfMixin(object):
         f.close()
         pdf_filename = "{}/{}.pdf".format(tmp, name)
         try:
-            cmd = 'xvfb-run wkhtmltopdf -L 25mm -R 25mm -T 20mm -B 20mm -s Letter {0}.html {0}.pdf'.format(name)
+            cmd = 'xvfb-run wkhtmltopdf --enable-local-file-access -L 13mm -R 13mm -T 10mm -B 10mm -s Letter {0}.html {0}.pdf'.format(name)
             subprocess.call(cmd.split(), cwd=tmp)
             pdf = open(pdf_filename, 'rb').read()
 
