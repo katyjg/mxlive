@@ -291,10 +291,14 @@ class ProjectLabels(AdminRequiredMixin, HTML2PdfMixin, detail.DetailView):
 
     def get_template_context(self):
         object = self.get_object()
+        sender = None
+        if settings.LIMS_USE_SCHEDULE:
+            sender = BeamlineSupport.objects.filter(date=timezone.localtime().date()).first()
         context = {
             'project': object,
-            'shipment': object,
-            'admin_project': models.Project.objects.filter(is_superuser=True).first()
+            'shipment': None,
+            'admin_project': models.Project.objects.filter(is_superuser=True).first(),
+            'sender': sender
         }
         return context
 
@@ -375,10 +379,14 @@ class ShipmentLabels(HTML2PdfMixin, ShipmentDetail):
 
     def get_template_context(self):
         object = self.get_object()
+        sender = None
+        if settings.LIMS_USE_SCHEDULE:
+            sender = BeamlineSupport.objects.filter(date=timezone.localtime().date()).first()
         context = {
             'project': object.project,
             'shipment': object,
-            'admin_project': models.Project.objects.filter(is_superuser=True).first()
+            'admin_project': models.Project.objects.filter(is_superuser=True).first(),
+            'sender': sender
         }
         return context
 

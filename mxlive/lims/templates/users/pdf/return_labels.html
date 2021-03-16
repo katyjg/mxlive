@@ -26,7 +26,7 @@
             </table>
             <div class="panel panel-default">
                 <table class="table table-sm">
-                    <tr class="border-bottom"><td>ID:</td><td>{{project.first_name}} {{project.last_name}} ({{shipment.name}})</td></tr>
+                    <tr class="border-bottom"><td>ID:</td><td>{{project.first_name}} {{project.last_name}} {% if shipment %}({{shipment.name}}){% endif %}</td></tr>
                     <tr><td>From:</td><td>{{ admin_project.contact_person|upper|default:"" }}{% if admin_project.department %} / {{ admin_project.department|upper }}{% endif %}</td></tr>
                     <tr><td></td><td>{{ admin_project.organisation|upper|default:"" }}</td></tr>
                     {% include "users/pdf/address_base.html" with project=admin_project %}

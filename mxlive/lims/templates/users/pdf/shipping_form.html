@@ -14,41 +14,45 @@
     <br>
 
     <table class="table table-sm text-right mb-1" style="width: 100%; margin-right: 2rem; line-height: 105%;">
-        <tr><td style="width: 150px;">Shipper's Name:</td><td colspan="3" class="input" style="width: 400px;"></td><td colspan="2" style="width: 75px;"></td><td>DATE</td><td colspan="2" class="input">{% now "F d, Y" %}</td></tr>
-        <tr><td>CLSI Department:</td><td colspan="3" class="input text-center">{{admin_project.department|cut:"None"|default:""}}</td><td colspan="5"></td></tr>
-        <tr><td>Phone:</td><td style="width: 250px;" class="input"></td><td class="border-top border-white" colspan="7"><small>(If this is a project GL Account complete Code Code, WP, & Job ID information)</small></td></tr>
+        <tr><td style="width: 150px;">Shipper's Name:</td><td colspan="3" class="input text-left" style="width: 400px;">{{ sender.staff.first_name }} {{ sender.staff.last_name }}</td>
+            <td colspan="2" style="width: 75px;"></td>
+            <td>DATE</td><td colspan="2" class="input">{% now "F d, Y" %}</td></tr>
+        <tr><td>CLSI Department:</td><td colspan="3" class="input text-left">{{admin_project.department|cut:"None"|default:""}}</td>
+            <td colspan="5"></td></tr>
+        <tr><td>Phone:</td><td style="width: 250px;" class="input text-left">{{ sender.staff.contact_phone }}</td>
+            <td class="border-top border-white" colspan="7"><small>(If this is a project GL Account complete Code Code, WP, & Job ID information)</small></td></tr>
         <tr><td>GL Account #:</td><td class="input"></td>
             <td style="width: 100px;">Cost Code:</td><td colspan="2" style="width: 150px;" class="input"></td>
             <td>WP:</td><td class="input"></td>
             <td>Job ID:</td><td class="input" style="width: 100px;"></td></tr>
     </table>
 
-    <table class="table table-sm text-right border-black-top mb-0 pb-0" style="width: 100%; margin-right: 2rem; border-left: 1px solid black; border-right: 1px solid black; line-height: 105%;">
+    <table class="table table-sm text-right border-black-top border-black-right mb-0 pb-0" style="width: 100%; margin-right: 2rem; border-left: 1px solid black; border-right: 1px solid black; line-height: 105%;">
         <tr class="bg-light"><td colspan="4" style="width: 100%;" class="text-left font-weight-bold">Shipping Information: (Consignee)</td></tr>
         <tr><td style="width: 200px;">Company Name:</td>
-            <td colspan="3" class="input text-center" style="border-right: 1px solid black !important;">{{ project.department|cut:"None"|default:"" }}, {{ project.organisation|cut:"None"|default:"" }}</td></tr>
+            <td colspan="3" class="input text-left" style="border-right: 1px solid black !important;">{{ project.department|cut:"None"|default:"" }}, {{ project.organisation|cut:"None"|default:"" }}</td></tr>
         <tr><td style="width: 200px;">Street Address:</td>
-            <td colspan="3" class="input text-center" style="border-right: 1px solid black !important;">{{ project.address|cut:"None"|default:"" }}</td></tr>
+            <td colspan="3" class="input text-left" style="border-right: 1px solid black !important;">{{ project.address|cut:"None"|default:"" }}</td></tr>
         <tr><td>City:</td>
-            <td style="width: 300px;" class="input text-center">{{ project.city|cut:"None"|default:"" }}</td>
+            <td style="width: 300px;" class="input text-left">{{ project.city|cut:"None"|default:"" }}</td>
             <td>Province / State:</td>
-            <td style="width: 300px; border-right: 1px solid black !important;" class="input text-center">{{ project.province|cut:"None"|default:"" }}</td></tr>
+            <td style="width: 250px; border-right: 1px solid black !important;" class="input text-left">{{ project.province|cut:"None"|default:"" }}</td></tr>
         <tr><td>Country:</td>
-            <td class="input text-center">{{ project.country|cut:"None"|default:"" }}</td>
+            <td class="input text-left">{{ project.country|cut:"None"|default:"" }}</td>
             <td>Postal Code:</td>
-            <td class="input text-center" style="border-right: 1px solid black !important;">{{ project.postal_code|cut:"None"|default:"" }}</td></tr>
+            <td class="input text-left" style="border-right: 1px solid black !important;">{{ project.postal_code|cut:"None"|default:"" }}</td></tr>
         <tr><td>Att: (Contact Person):</td>
-            <td class="input text-center">{{ project.contact_person|cut:"None"|default:"" }}</td>
+            <td class="input text-left">{{ project.contact_person|cut:"None"|default:"" }}</td>
             <td>Phone Number</td>
-            <td class="input text-center" style="border-right: 1px solid black !important;">{{ project.contact_phone|cut:"None"|default:"" }}</td></tr>
+            <td class="input text-left" style="border-right: 1px solid black !important;">{{ project.contact_phone|cut:"None"|default:"" }}</td></tr>
         <tr><td>Contact Person Email:</td>
-            <td class="input text-center">{{ project.contact_email|cut:"None"|default:"" }}</td>
+            <td class="input text-left">{{ project.contact_email|cut:"None"|default:"" }}</td>
             <td>VAT Tax Number</td>
-            <td class="input text-center" style="border-right: 1px solid black !important;"></td></tr>
+            <td class="input" style="border-right: 1px solid black !important;"></td></tr>
         <tr><td>CLSI Proposal Number:</td>
             <td class="input"></td>
             <td class="small">EIN Tax Number (USA):</td>
-            <td class="input text-center" style="border-right: 1px solid black !important;"></td></tr>
+            <td class="input" style="border-right: 1px solid black !important;"></td></tr>
         <tr><td colspan="4"></td></tr>
         <tr><td>Consignee's Courier:</td>
             <td class="input font-weight-bold text-center">{{ project.carrier.name|cut:"None"|default:"" }}</td>
@@ -56,19 +60,19 @@
             <td class="input text-center font-weight-bold" style="border-right: 1px solid black !important;">{{ project.account_number|cut:"None"|default:"" }}</td></tr>
         <tr><td colspan="4"></td></tr>
 
-        <tr class="bg-light"><td class="py-1">On Loan &#9633;</td>
-            <td class="py-1">Chargeable Repair &#9633;</td>
-            <td class="py-1">Return to Owner &#9632;</td>
+        <tr class="bg-light"><td class="py-1">On Loan <span class="text-large">&#9633;</span></td>
+            <td class="py-1">Chargeable Repair <span class="text-large">&#9633;</span></td>
+            <td class="py-1">Return to Owner <span class="text-large">&#9632;</span></td>
             <td class="py-1 border-left border-top text-left" style="border-right: 1px solid black !important;">Other:</td>
         </tr>
-        <tr class="bg-light"><td class="py-1">Return of Loan &#9633;</td>
-            <td class="py-1">Warranty Repair &#9633;</td>
-            <td class="py-1">US Goods Returned &#9633;</td>
+        <tr class="bg-light"><td class="py-1">Return of Loan <span class="text-large">&#9633;</span></td>
+            <td class="py-1">Warranty Repair <span class="text-large">&#9633;</span></td>
+            <td class="py-1">US Goods Returned <span class="text-large">&#9633;</span></td>
             <td class="py-1 border-left"></td>
         </tr>
-        <tr class="bg-light"><td class="py-1">Return to Vendor &#9633;</td>
+        <tr class="bg-light"><td class="py-1">Return to Vendor <span class="text-large">&#9633;</span></td>
             <td class="py-1">RMA# <input style="border-radius: 0; border-style: solid;" class="w-25 border-secondary border"/></td>
-            <td class="py-1">Other (explain) &#9633;</td>
+            <td class="py-1">Other (explain) <span class="text-large">&#9633;</span></td>
             <td class="py-1 border-left"></td>
         </tr>
     </table>
@@ -78,26 +82,31 @@
             <td class="text-center align-middle" colspan="2">Model # / Serial # / Description</td>
             <td style="width: 100px; line-height: 90%;" class="text-center small"><small>Country of Manufacture</small></td>
             <td style="width: 100px; border-right: 1px solid black !important;" class="text-center align-middle">Value</td></tr>
-        <tr><td class="input text-center" style="border-left: 1px solid black !important;">{{ num_packages|default:"1" }}</td>
+        {% if shipment %}<tr><td class="input text-center" style="border-left: 1px solid black !important;">{{ num_packages|default:"1" }}</td>
             <td class="input text-center" style="border-left: 1px solid black !important;">Each</td>
-            <td colspan="2" class="input text-center">Non-Hazardous Frozen Protein Samples in Dry Shipping Dewar</td>
+            <td colspan="2" class="input text-left">Non-Hazardous Frozen Protein Samples in Dry Shipping Dewar</td>
             <td class="input text-center">{{ project.country|cut:"None"|default:"" }}</td>
-            <td class="input text-center" style="border-right: 1px solid black !important;">$200</td></tr>
+            <td class="input text-right" style="border-right: 1px solid black !important;">$200</td></tr>
+        {% endif %}
         {% for component in shipment.components.all %}
             <tr><td class="input text-center" style="border-left: 1px solid black !important;">1</td>
                 <td class="input text-center" style="border-left: 1px solid black !important;">Each</td>
-                <td colspan="2" class="input text-center">{{ component.kind }}</td>
+                <td colspan="2" class="input text-left">{{ component.kind }}</td>
                 <td class="input text-center">{{ project.country|cut:"None"|default:"" }}</td>
-                <td class="input text-center" style="border-right: 1px solid black !important;">$100</td></tr>
+                <td class="input text-right" style="border-right: 1px solid black !important;">$100</td></tr>
         {% endfor %}
-        {% with ''|center:6 as range %}
+        {% if shipment %}{% widthratio shipment.components.count|add:"1" 1 -1 as filled_lines %}
+        {% else %}{% widthratio 0 1 -1 as filled_lines %}{% endif %}
+        {% with filled_lines|add:"9" as empty_lines %}
+        {% with ''|center:empty_lines as range %}
             {% for _ in range %}
                 <tr><td class="input" style="border-left: 1px solid black !important;">&nbsp;</td>
                     <td class="input" style="border-left: 1px solid black !important;"></td><td colspan="2" class="input"></td><td class="input"></td>
                     <td class="input" style="border-right: 1px solid black !important;"></td></tr>
             {% endfor %}
         {% endwith %}
-        <tr><td class="input" style="border-left: 1px solid black !important;">&nbsp;</td>
+        {% endwith %}
+        <tr><td class="input text-center" style="border-left: 1px solid black !important;">{% if shipment %}{{ shipment.components.count|add:"1" }}{% endif %}</td>
             <td class="input text-center font-weight-normal">Qty Total</td>
             <td></td>
             <td class="input text-left font-weight-normal">H.S. Code</td>
@@ -109,11 +118,14 @@
         <tr><td colspan="8" class="font-weight-bold text-left" style="height: 33px !important;">
             Any Hazards? &emsp; No &#9632; Yes &#9633;  &emsp; If Yes indicate below:</td>
             <td class="bg-white border-black-right" style="width: 100px; border-left: 1px solid #ddd !important;">Total</td>
-            <td class="text-left bg-white border-black-bottom border-black-right" style="width: 100px; border-top: 1px solid #dddddd !important;"></td></tr>
+            <td class="input text-right bg-white" style="width: 100px; border-bottom: 1px solid black !important; border-right: 1px solid black !important">
+                {% widthratio shipment.components.count 1 100 as component_cost %}
+                {% if shipment %}${{ component_cost|add:"200" }}{% endif %}
+            </td></tr>
         <tr><td class="text-right small" style="width: 180px;"><small>Explosives</small></td><td>&#9633;</td>
             <td class="text-right small" style="width: 150px;"><small>Flammable Liquid</small></td><td>&#9633;</td>
-            <td class="text-right small" style="width: 150px;"><small>Poisonous Material</small></td><td>&#9633;</td>
-            <td class="text-right small" style="width: 220px;"><small>Spontaneous Combustible</small></td><td>&#9633;</td>
+            <td class="text-right small" style="width: 130px;"><small>Poisonous Material</small></td><td>&#9633;</td>
+            <td class="text-right small" style="width: 200px;"><small>Spontaneous Combustible</small></td><td>&#9633;</td>
             <td class="bg-white text-right small" style="border-left: 1px solid #ddd !important;">CAD$ &#9632;</td>
             <td class="bg-white text-right small border-black-right">Euro&euro; &#9633;</td>
         </tr>
