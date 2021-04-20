@@ -105,7 +105,10 @@ RdYlGn = numpy.array([
 
 
 def colormap(value, palette=RdYlGn):
-    index = min(99, max(0, round(value*100)))
+    try:
+        index = value and min(99, max(0, round(value*100))) or 0
+    except ValueError:
+        index = 0
     rgba = (palette[index]*256).astype(int)
     rgba[-1] = palette[index][-1]
     return rgba
