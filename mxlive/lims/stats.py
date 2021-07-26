@@ -305,7 +305,7 @@ def usage_summary(period='year', **all_filters):
     if settings.LIMS_USE_SCHEDULE:
         from mxlive.schedule.stats import beamtime_summary
 
-        beamtime = beamtime_summary(**{f.replace('modified', 'start'): val for f, val in all_filters.items()})
+        beamtime = beamtime_summary(**{f.replace('modified', 'start'): val for f, val in all_filters.items() if not f.startswith('kind')})
 
     stats = {'details': [
         {
