@@ -819,7 +819,7 @@ class GroupDelete(OwnerRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.
 
 class DataList(ListViewMixin, ItemListView):
     model = models.Data
-    list_filters = ['modified', filters.YearFilterFactory('modified'), 'kind', 'beamline']
+    list_filters = ['modified', filters.YearFilterFactory('modified'), 'kind__name', 'beamline', 'project__kind']
     list_columns = ['id', 'name', 'sample', 'frame_sets', 'session__name', 'energy', 'beamline', 'kind', 'modified']
     list_search = ['id', 'name', 'beamline__name', 'sample__name', 'frames', 'project__name', 'modified']
     link_url = 'data-detail'
