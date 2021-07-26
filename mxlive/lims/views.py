@@ -852,8 +852,8 @@ class DataStats(PlotViewMixin, DataList):
 class UsageSummary(PlotViewMixin, DataList):
     date_field = 'modified'
     list_url = reverse_lazy("data-list")
-    list_filters = ['beamline', 'kind', filters.YearFilterFactory('modified'), filters.MonthFilterFactory('modified'),
-                    filters.QuarterFilterFactory('modified'), filters.TimeScaleFilterFactory()]
+    list_filters = ['beamline', 'kind__name', filters.YearFilterFactory('modified'), filters.MonthFilterFactory('modified'),
+                    filters.QuarterFilterFactory('modified'), filters.TimeScaleFilterFactory(), 'project__kind']
 
     def get_metrics(self):
         return stats.usage_summary(period='year', **self.get_active_filters())
