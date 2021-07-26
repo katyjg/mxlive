@@ -84,7 +84,7 @@ def usage_summary(period='year', **all_filters):
     filters = {f: val for f, val in all_filters.items() if f != 'time_scale'}
 
     field = 'created__{}'.format(period)
-    created_filters = {f.replace('modified', 'created'): val for f, val in filters.items()}
+    created_filters = {f.replace('modified', 'created').replace('kind', 'datasets__kind'): val for f, val in filters.items()}
 
     ### Sample Stats
     sample_filters = {f.replace('beamline', 'datasets__beamline'): val for f, val in created_filters.items()}
