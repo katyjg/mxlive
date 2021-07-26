@@ -77,7 +77,7 @@ class ProjectForm(forms.ModelForm):
                 Div('contact_email', css_class='col-6'),
                 Div(
                     Field(
-                        'contact_phone', pattern="(\+\d{1,3}-)?\d{3}-\d{3}-\d{4}( x\d+)?$",
+                        'contact_phone',
                         placeholder="[+9-]999-999-9999[ x9999]"
                     ),
                     css_class='col-6'
