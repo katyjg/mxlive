@@ -16,8 +16,10 @@
         <tr>
             <td>
                 {% if user.is_superuser %}
+                    {% if sample.pk %}
                 <a href="#!" data-form-link="{% url "sample-admin-edit" sample.pk %}"
                    title="Mark Complete/Edit Notes">
+                        {% endif %}
                 {% endif %}
                 {% if sample.collect_status %}
                     <i class="ti ti-check-box"></i>
