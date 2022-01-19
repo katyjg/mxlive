@@ -89,11 +89,11 @@ def usage_summary(period='year', **all_filters):
     ### Sample Stats
     sample_filters = {f.replace('beamline', 'datasets__beamline'): val for f, val in created_filters.items()}
     samples = Sample.objects.filter(**sample_filters)
-    sample_counts_info = samples.values(field).order_by(field).annotate(count=Count('id'))
+    sample_counts_info = samples.values(field).order_by(field).annotate(count=Count('id', distinct=True))
 
     ### Session Stats
     sessions = Session.objects.filter(**created_filters)
-    session_counts_info = sessions.values(field).order_by(field).annotate(count=Count('id'))
+    session_counts_info = sessions.values(field).order_by(field).annotate(count=Count('id', distinct=True))
     throughput_info = sessions.values(field).order_by(field).annotate(
         num_datasets=Count(Case(When(datasets__kind__name="MX Dataset", then=1), output_field=IntegerField())),
         num_samples=Count('datasets__sample', distinct=True),
@@ -112,9 +112,9 @@ def usage_summary(period='year', **all_filters):
     ### Project Stats
     project_filters = {f.replace('beamline', 'sessions__beamline'): val for f, val in created_filters.items()}
     project_info = sessions.values(field, 'project__name').distinct().order_by(
-        field, 'project__name').annotate(count=Count('project__name'))
+        field, 'project__name').annotate(count=Count('project__name', distinct=True))
     new_project_info = Project.objects.filter(**project_filters).values(field, 'name').order_by(
-        field, 'name').annotate(count=Count('name'))
+        field, 'name').annotate(count=Count('name', distinct=True))
     project_type_colors = {
         kind: ColorScheme.Live8[i]
         for i, kind in enumerate(ProjectType.objects.values_list('name', flat=True).order_by('-name'))
@@ -123,7 +123,7 @@ def usage_summary(period='year', **all_filters):
     ### Data Stats
     datasets = Data.objects.filter(**filters)
     dataset_info = datasets.values(field).order_by(field).annotate(
-        count=Count('id'), exposure=Avg('exposure_time'),
+        count=Count('id', distinct=True), exposure=Avg('exposure_time'),
         duration=Sum(F('end_time') - F('start_time'))
     )
     dataset_durations = {entry[field]: entry['duration'].total_seconds() / HOUR_SECONDS for entry in dataset_info}
@@ -131,7 +131,7 @@ def usage_summary(period='year', **all_filters):
         'end_time__week_day', 'shift').annotate(count=Count('id'))
     data_project_kind_info = datasets.values('project__kind__name').order_by('project__kind__name').annotate(
         count=Count('id'))
-    data_types_info = datasets.values(field, 'kind__name').order_by(field).annotate(count=Count('id'))
+    data_types_info = datasets.values(field, 'kind__name').order_by(field).annotate(count=Count('id', distinct=True))
     data_types_names = list(DataType.objects.values_list('name', flat=True))
 
     ### Metrics Overview

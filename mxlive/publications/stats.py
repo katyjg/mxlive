@@ -60,13 +60,13 @@ def publication_stats(period='year', year=None, tag=None):
     full_metrics = Publication.objects.filter(**filters).aggregate(
         total=Count('id'),
         num_cites=Coalesce(Sum('metrics__citations'), 0),
-        avg_cites=Coalesce(Avg('metrics__citations'), 0),
+        avg_cites=Coalesce(Avg('metrics__citations'), 0, output_field=FloatField()),
         num_mentions=Coalesce(Sum('metrics__mentions'), 0),
-        avg_mentions=Coalesce(Avg('metrics__mentions'), 0),
-        avg_impact=Coalesce(Avg('journal__metrics__impact_factor'), 0),
-        avg_hindex=Coalesce(Avg('journal__metrics__h_index'), 0),
-        avg_sjr=Coalesce(Avg('journal__metrics__sjr_rank'), 0),
-        avg_quartile=Coalesce(Avg('journal__metrics__sjr_quartile'), 0)
+        avg_mentions=Coalesce(Avg('metrics__mentions'), 0, output_field=FloatField()),
+        avg_impact=Coalesce(Avg('journal__metrics__impact_factor'), 0, output_field=FloatField()),
+        avg_hindex=Coalesce(Avg('journal__metrics__h_index'), 0, output_field=FloatField()),
+        avg_sjr=Coalesce(Avg('journal__metrics__sjr_rank'), 0, output_field=FloatField()),
+        avg_quartile=Coalesce(Avg('journal__metrics__sjr_quartile'), 0, output_field=FloatField())
     )
 
     top_ten_cited = Publication.objects.filter(metrics__isnull=False, **filters).order_by('-metrics__citations')[:10]
@@ -79,13 +79,13 @@ def publication_stats(period='year', year=None, tag=None):
         Publication.objects.filter(**filters).values(field).order_by(field).annotate(
             total=Count('id'),
             num_cites=Coalesce(Sum('metrics__citations'), 0),
-            avg_cites=Coalesce(Avg('metrics__citations'), 0),
+            avg_cites=Coalesce(Avg('metrics__citations'), 0, output_field=FloatField()),
             num_mentions=Coalesce(Sum('metrics__mentions'), 0),
-            avg_mentions=Coalesce(Avg('metrics__mentions'), 0),
-            avg_impact=Coalesce(Avg('journal__metrics__impact_factor'), 0),
-            avg_hindex=Coalesce(Avg('journal__metrics__h_index'), 0),
-            avg_sjr=Coalesce(Avg('journal__metrics__sjr_rank'), 0),
-            avg_quartile=Coalesce(Avg('journal__metrics__sjr_quartile'), 0)
+            avg_mentions=Coalesce(Avg('metrics__mentions'), 0, output_field=FloatField()),
+            avg_impact=Coalesce(Avg('journal__metrics__impact_factor'), 0, output_field=FloatField()),
+            avg_hindex=Coalesce(Avg('journal__metrics__h_index'), 0, output_field=FloatField()),
+            avg_sjr=Coalesce(Avg('journal__metrics__sjr_rank'), 0, output_field=FloatField()),
+            avg_quartile=Coalesce(Avg('journal__metrics__sjr_quartile'), 0, output_field=FloatField())
         )
     }
 
