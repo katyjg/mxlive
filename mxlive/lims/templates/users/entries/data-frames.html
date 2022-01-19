@@ -73,10 +73,6 @@
                             {% get_frame_name object frame_id as frame_name %}
                             <li data-frame-id="{{ frame_id }}" data-frame-name="{{ frame_name }}">
                                 <a onclick="toFrame('{{ frame_name }}', {{ frame_id }});">{{ frame_name }}</a>&nbsp;
-                                <a class="float-right download-tool" download="{{ frame_name }}"
-                                   href="{% url 'files-proxy' section='raw' path=frame_url %}"
-                                   title="Download this image">
-                                   {% show_icon icon='ti ti-sm ti-download' color='info' %}</a>
                             </li>
                         {% endfor %}
                     </ul>
