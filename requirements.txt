@@ -1,5 +1,5 @@
 Click
-Django
+Django<4
 Markdown
 asgiref
 asn1crypto
@@ -12,7 +12,7 @@ django-crispy-forms
 django-debug-toolbar
 django-debug-toolbar-request-history
 django-formtools
-django-itemlist==0.2.10
+django-itemlist==0.2.12
 django-memoize
 django-model-utils
 django-proxy
@@ -31,6 +31,7 @@ pycparser
 python-dateutil
 python-memcached
 pytz
+tzdata
 requests
 setuptools
 six

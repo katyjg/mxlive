@@ -1513,7 +1513,7 @@ class SupportRecordCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixi
         initial['project'] = models.Project.objects.filter(username=self.request.GET.get('project')).first()
         initial['beamline'] = models.Beamline.objects.filter(acronym=self.request.GET.get('beamline')).first()
         if settings.LIMS_USE_SCHEDULE:
-            support = BeamlineSupport.objects.filter(date=timezone.now().date()).first()
+            support = BeamlineSupport.objects.filter(date=timezone.localtime().date()).first()
             initial['staff'] = support and support.staff or None
         return initial
 

@@ -18,7 +18,7 @@ from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from jsonfield.fields import JSONField
 from model_utils import Choices
 from model_utils.models import TimeStampedModel
