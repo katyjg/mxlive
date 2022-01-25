@@ -60,19 +60,19 @@
             <td class="input text-center font-weight-bold" style="border-right: 1px solid black !important;">{{ project.account_number|cut:"None"|default:"" }}</td></tr>
         <tr><td colspan="4"></td></tr>
 
-        <tr class="bg-light"><td class="py-1">On Loan <span class="text-large">&#9633;</span></td>
-            <td class="py-1">Chargeable Repair <span class="text-large">&#9633;</span></td>
+        <tr class="bg-light"><td class="py-1">On Loan <span class="text-large">&#x25A1;</span></td>
+            <td class="py-1">Chargeable Repair <span class="text-large">&#x25A1;</span></td>
             <td class="py-1">Return to Owner <span class="text-large">&#9632;</span></td>
             <td class="py-1 border-left border-top text-left" style="border-right: 1px solid black !important;">Other:</td>
         </tr>
-        <tr class="bg-light"><td class="py-1">Return of Loan <span class="text-large">&#9633;</span></td>
-            <td class="py-1">Warranty Repair <span class="text-large">&#9633;</span></td>
-            <td class="py-1">US Goods Returned <span class="text-large">&#9633;</span></td>
+        <tr class="bg-light"><td class="py-1">Return of Loan <span class="text-large">&#x25A1;</span></td>
+            <td class="py-1">Warranty Repair <span class="text-large">&#x25A1;</span></td>
+            <td class="py-1">US Goods Returned <span class="text-large">&#x25A1;</span></td>
             <td class="py-1 border-left"></td>
         </tr>
-        <tr class="bg-light"><td class="py-1">Return to Vendor <span class="text-large">&#9633;</span></td>
+        <tr class="bg-light"><td class="py-1">Return to Vendor <span class="text-large">&#x25A1;</span></td>
             <td class="py-1">RMA# <input style="border-radius: 0; border-style: solid;" class="w-25 border-secondary border"/></td>
-            <td class="py-1">Other (explain) <span class="text-large">&#9633;</span></td>
+            <td class="py-1">Other (explain) <span class="text-large">&#x25A1;</span></td>
             <td class="py-1 border-left"></td>
         </tr>
     </table>
@@ -116,46 +116,46 @@
 
     <table class="table table-xsm bg-light mb-1" style="border: 1px solid black;">
         <tr><td colspan="8" class="font-weight-bold text-left" style="height: 33px !important;">
-            Any Hazards? &emsp; No &#9632; Yes &#9633;  &emsp; If Yes indicate below:</td>
+            Any Hazards? &emsp; No &#9632; Yes &#x25A1;  &emsp; If Yes indicate below:</td>
             <td class="bg-white border-black-right" style="width: 100px; border-left: 1px solid #ddd !important;">Total</td>
             <td class="input text-right bg-white" style="width: 100px; border-bottom: 1px solid black !important; border-right: 1px solid black !important">
                 {% widthratio shipment.components.count 1 100 as component_cost %}
                 {% if shipment %}${{ component_cost|add:"200" }}{% endif %}
             </td></tr>
-        <tr><td class="text-right small" style="width: 180px;"><small>Explosives</small></td><td>&#9633;</td>
-            <td class="text-right small" style="width: 150px;"><small>Flammable Liquid</small></td><td>&#9633;</td>
-            <td class="text-right small" style="width: 130px;"><small>Poisonous Material</small></td><td>&#9633;</td>
-            <td class="text-right small" style="width: 200px;"><small>Spontaneous Combustible</small></td><td>&#9633;</td>
+        <tr><td class="text-right small" style="width: 180px;"><small>Explosives</small></td><td>&#x25A1;</td>
+            <td class="text-right small" style="width: 150px;"><small>Flammable Liquid</small></td><td>&#x25A1;</td>
+            <td class="text-right small" style="width: 130px;"><small>Poisonous Material</small></td><td>&#x25A1;</td>
+            <td class="text-right small" style="width: 200px;"><small>Spontaneous Combustible</small></td><td>&#x25A1;</td>
             <td class="bg-white text-right small" style="border-left: 1px solid #ddd !important;">CAD$ &#9632;</td>
-            <td class="bg-white text-right small border-black-right">Euro&euro; &#9633;</td>
+            <td class="bg-white text-right small border-black-right">Euro&euro; &#x25A1;</td>
         </tr>
-        <tr><td class="text-right small"><small>Dangerous-When-Wet</small></td><td>&#9633;</td>
-            <td class="text-right small"><small>Flammable Solids</small></td><td>&#9633;</td>
-            <td class="text-right small"><small>Poisonous Gas</small></td><td>&#9633;</td>
-            <td class="text-right small"><small>Non-flammable Compressed Gas</small></td><td>&#9633;</td>
-            <td class="bg-white text-right small" style="border-left: 1px solid #ddd !important;">USA$ &#9633;</td>
-            <td class="bg-white text-right small border-black-right">GBP &pound; &#9633;</td>
+        <tr><td class="text-right small"><small>Dangerous-When-Wet</small></td><td>&#x25A1;</td>
+            <td class="text-right small"><small>Flammable Solids</small></td><td>&#x25A1;</td>
+            <td class="text-right small"><small>Poisonous Gas</small></td><td>&#x25A1;</td>
+            <td class="text-right small"><small>Non-flammable Compressed Gas</small></td><td>&#x25A1;</td>
+            <td class="bg-white text-right small" style="border-left: 1px solid #ddd !important;">USA$ &#x25A1;</td>
+            <td class="bg-white text-right small border-black-right">GBP &pound; &#x25A1;</td>
         </tr>
-        <tr><td class="text-right small"><small>Corrosive Material</small></td><td>&#9633;</td>
-            <td class="text-right small"><small>Combustible Liquid</small></td><td>&#9633;</td>
-            <td class="text-right small"><small>Oxidizer</small></td><td>&#9633;</td>
-            <td class="text-right small"><small>Flammable Compressed Gas</small></td><td>&#9633;</td>
-            <td class="bg-white text-right small" style="border-left: 1px solid #ddd !important;">Yen&yen; &#9633;</td>
-            <td class="bg-white text-right small border-black-right">CHF&#8355; &#9633;</td>
+        <tr><td class="text-right small"><small>Corrosive Material</small></td><td>&#x25A1;</td>
+            <td class="text-right small"><small>Combustible Liquid</small></td><td>&#x25A1;</td>
+            <td class="text-right small"><small>Oxidizer</small></td><td>&#x25A1;</td>
+            <td class="text-right small"><small>Flammable Compressed Gas</small></td><td>&#x25A1;</td>
+            <td class="bg-white text-right small" style="border-left: 1px solid #ddd !important;">Yen&yen; &#x25A1;</td>
+            <td class="bg-white text-right small border-black-right">CHF&#8355; &#x25A1;</td>
         </tr>
-        <tr><td class="text-right small"><small>Organic Peroxides</small></td><td>&#9633;</td>
-            <td class="text-right small"><small>Infectious Substance</small></td><td>&#9633;</td>
+        <tr><td class="text-right small"><small>Organic Peroxides</small></td><td>&#x25A1;</td>
+            <td class="text-right small"><small>Infectious Substance</small></td><td>&#x25A1;</td>
             <td class="text-right"></td><td></td>
-            <td class="text-right small"><small>Radioactive Material</small></td><td>&#9633;</td>
-            <td class="bg-white text-right small" style="border-left: 1px solid #ddd !important; border-bottom: 1px solid #ddd !important;">Other &#9633;</td>
+            <td class="text-right small"><small>Radioactive Material</small></td><td>&#x25A1;</td>
+            <td class="bg-white text-right small" style="border-left: 1px solid #ddd !important; border-bottom: 1px solid #ddd !important;">Other &#x25A1;</td>
             <td class="bg-white border-black-right" style="border-bottom: 1px solid #ddd !important;"></td>
         </tr>
         <tr><td colspan="4" class="text-center text-condensed small" style="color: red;"><small><strong>** Supply Electronic PDF or SDS Sheet For Each Element Shipped **</strong></small></td>
-            <td class="text-right small"><small>Other Hazard</small></td><td colspan="2" style="border: 1px solid #ddd !important;"></td><td>&#9633;</td>
+            <td class="text-right small"><small>Other Hazard</small></td><td colspan="2" style="border: 1px solid #ddd !important;"></td><td>&#x25A1;</td>
             <td colspan="2" class="text-center border-black-right"></td>
         </tr>
         <tr><td class="border-black-right py-0" colspan="10"><hr/></td></tr>
-        <tr><td class="text-right"><strong>Batteries</strong></td><td>&#9633;</td><td colspan="3">Enter type of battery below</td><td></td>
+        <tr><td class="text-right"><strong>Batteries</strong></td><td>&#x25A1;</td><td colspan="3">Enter type of battery below</td><td></td>
             <td class="text-center border-black-right small" colspan="4"><small>The Watt-hour (Wh) of a cell or batttery is required to ship<br><br>Enter Voltage (V) & Amp-Hours (Ah) to calculate Watt-hours (Wh)<br><br>(Wh) may also be indicated on Cell or Battery</small></td>
         </tr>
         <tr><td></td><td colspan="4"><span style="border: 1px solid #ddd !important;">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</span></td><td></td>
@@ -166,14 +166,14 @@
     <table class="table table-xsm text-right border-dark border-bottom" style="line-height: 105%;">
         <tr><td></td><td class="font-weight-bold text-sm text-center">Package size L x W x H</td><td class="font-weight-bold text-sm text-center">Weight</td><td colspan="3"></td></tr>
         <tr><td class="border border-dark border-bottom-0">Package 1</td><td class="border border-dark"></td><td class="border border-dark"></td>
-            <td class="border border-dark border-right-0"><small>Measurement&emsp;</small>Inch &#9633;</td><td class="border border-dark border-left-0">Cm &#9633;</td>
+            <td class="border border-dark border-right-0"><small>Measurement&emsp;</small>Inch &#x25A1;</td><td class="border border-dark border-left-0">Cm &#x25A1;</td>
             <td style="width: 200px;" rowspan="4" class="border border-dark"></td></tr>
         <tr><td class="border border-dark border-bottom-0 border-top-0">Package 2</td><td class="border border-dark"></td><td class="border border-dark"></td>
             <td colspan="2" class="border-secondary border-bottom text-left">Total Shipment Weight</td></tr>
         <tr><td class="border border-dark border-bottom-0 border-top-0">Package 3</td><td class="border border-dark"></td><td class="border border-dark"></td>
-            <td class="border-secondary border-right"></td><td class="">KGS &#9633;</td></tr>
+            <td class="border-secondary border-right"></td><td class="">KGS &#x25A1;</td></tr>
         <tr><td class="border border-dark border-top-0">Package 4</td><td class="border border-dark"></td><td class="border border-dark"></td>
-            <td class="border-secondary border-right"></td><td>LBS &#9633;</td></tr>
+            <td class="border-secondary border-right"></td><td>LBS &#x25A1;</td></tr>
     </table>
 
     <h5 class="text-center">Canadian Light Source &middot; 44 Innovation Boulevard &middot; University of Saskatchewan, Saskatoon, SK Canada &middot; S7N 2V3</h5>
