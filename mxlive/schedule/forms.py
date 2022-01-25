@@ -1,6 +1,6 @@
 from django import forms
 from django.urls import reverse_lazy
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from crispy_forms.bootstrap import StrictButton
 from crispy_forms.helper import FormHelper
@@ -89,7 +89,7 @@ class BeamtimeForm(forms.ModelForm):
 
 class BeamlineSupportForm(forms.ModelForm):
 
-    staff = forms.ModelChoiceField(queryset=Project.objects.filter(kind__name="Staff"))
+    staff = forms.ModelChoiceField(queryset=Project.objects.filter(is_staff=True))
 
     class Meta:
         model = BeamlineSupport
