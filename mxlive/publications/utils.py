@@ -31,7 +31,7 @@ GOOGLE_API_KEY = getattr(settings, 'GOOGLE_API_KEY', None)
 
 CROSSREF_EVENTS_URL = "https://api.eventdata.crossref.org/v1/events/distinct"
 CROSSREF_CITATIONS_URL = "https://www.crossref.org/openurl/"
-PDB_SEARCH_URL = getattr(settings, 'PDB_SEARCH_URL', "https://search.rcsb.org/rcsbsearch/v1/query")
+PDB_SEARCH_URL = getattr(settings, 'PDB_SEARCH_URL', "https://search.rcsb.org/rcsbsearch/v2/query")
 PDB_REPORT_URL = getattr(settings, 'PDB_REPORT_URL', "https://data.rcsb.org/graphql")
 GOOGLE_BOOKS_API = getattr(settings, 'GOOGLE_BOOKS_API', "https://www.googleapis.com/books/v1/volumes")
 SCIMAGO_URL = getattr(settings, 'SCIMAGO_URL', "https://www.scimagojr.com/journalrank.php")
