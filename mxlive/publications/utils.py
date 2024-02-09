@@ -61,10 +61,13 @@ REPORT_QUERY = """{{
     }}
     rcsb_accession_info {{
       initial_release_date
+      deposit_date
     }}
-    pdbx_vrpt_summary {{
-      PDB_deposition_date
-      PDB_resolution
+    rcsb_entry_info {{
+      diffrn_resolution_high {{
+        provenance_source
+        value
+      }}
     }}
     diffrn_detector {{
       pdbx_collection_date
@@ -192,7 +195,7 @@ class PDBParser(ObjectParser):
         'code': 'rcsb_id',
         'title': 'struct.title',
         'authors': 'rcsb_primary_citation.rcsb_authors',
-        'resolution': 'pdbx_vrpt_summary.PDB_resolution',
+        'resolution': 'rcsb_entry_info.diffrn_resolution_high.value',
         'collected': 'diffrn_detector.pdbx_collection_date'
     }
 
@@ -203,7 +206,7 @@ class PDBParser(ObjectParser):
         return parser.isoparse(self._entry['rcsb_accession_info.initial_release_date'])
 
     def get_deposited(self):
-        return parser.isoparse(self._entry['pdbx_vrpt_summary.PDB_deposition_date'])
+        return parser.isoparse(self._entry['rcsb_accession_info.deposit_date'])
 
     def get_collected(self):
         if self._entry.get('diffrn_detector.pdbx_collection_date'):
