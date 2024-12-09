@@ -7,7 +7,7 @@ from django.core.files.storage import FileSystemStorage
 from django import forms
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import gettext_lazy as _
-from collections import Sequence
+from collections.abc import Sequence
 
 
 class LocalStorage(FileSystemStorage):

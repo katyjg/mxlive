@@ -1,14 +1,14 @@
-FROM python:3.9-alpine
+FROM python:3.8-alpine
 
 MAINTAINER Kathryn Janzen <kathryn.janzen@lightsource.ca>
 
 COPY requirements.txt /
-COPY deploy/run-server.sh /
-COPY deploy/wait-for-it.sh /
+COPY deploy/run-server.sh /run-server.sh
+COPY deploy/wait-for-it.sh /wait-for-it.sh
 ADD . /mxlive
 
 RUN set -ex && \
-    apk add --no-cache --virtual libpq apache2-ssl apache2-mod-wsgi certbot-apache openssl sed py3-pip  && \
+    apk add --no-cache --virtual libpq apache2-ssl apache2-mod-wsgi certbot-apache openssl sed bash py3-pip  && \
     /usr/bin/python3 -m venv /venv && source /venv/bin/activate && \
     /venv/bin/pip3 install --no-cache-dir --upgrade pip && \
     /venv/bin/pip3 install --no-cache-dir -r /requirements.txt  && \
