@@ -17,7 +17,24 @@ fi
 # if it thinks it is already running.
 rm -rf /run/httpd/* /tmp/httpd*
 
+# Configure Apache
+if [ -f /usonline/local/certs/server.key ] && [ -f /usonline/local/certs/server.crt ]; then
+    # Disable chain cert if no ca.crt file available
+    if [ -f /usonline/local/certs/ca.crt ]; then
+        /bin/cp /usonline/deploy/usonline-ssl-chain.conf /etc/apache2/conf.d/99-usonline.conf
+    else
+        /bin/cp /usonline/deploy/usonline-ssl.conf /etc/apache2/conf.d/99-usonline.conf
+    fi
+else
+    /bin/cp /usonline/deploy/usonline.conf /etc/apache2/conf.d/99-usonline.conf
+fi
+
 ./wait-for-it.sh mxlive-db:5432 -t 60 &&
+
+# Make sure the local directory is a Python package
+if [ ! -f /mxlive/local/__init__.py ]; then
+    touch /mxlive/local/__init__.py
+fi
 
 if [ ! -f /mxlive/local/.dbinit ]; then
     /usr/bin/python3 /mxlive/manage.py migrate --noinput &&

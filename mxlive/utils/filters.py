@@ -14,13 +14,17 @@ class DATE_LIMIT(object):
 def DateLimitFilterFactory(model, field_name='date', filter_title='Start date', limit=0):
     class DateLimitListFilter(admin.SimpleListFilter):
         title = filter_title
-        parameter_name = '{0}{1}'.format(field_name,
-                                         {DATE_LIMIT.LEFT: '_gte',
-                                          DATE_LIMIT.RIGHT: '_lte'}.get(limit, ''))
+        parameter_name = '{0}{1}'.format(
+            field_name, {
+                DATE_LIMIT.LEFT: '_gte', DATE_LIMIT.RIGHT: '_lte'
+            }.get(limit, '')
+        )
 
         def lookups(self, request, model_admin):
-            choices = sorted({v[field_name].year for v in model.objects.values(field_name).order_by(field_name).distinct()},
-                             reverse=True)
+            choices = sorted(
+                {v[field_name].year for v in model.objects.values(field_name).order_by(field_name).distinct()},
+                reverse=True
+            )
             return ((yr, '{0}'.format(yr)) for yr in choices)
 
         def queryset(self, request, queryset):
