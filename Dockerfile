@@ -12,7 +12,6 @@ RUN set -ex && \
     python3 -m venv /venv && source /venv/bin/activate && \
     /venv/bin/pip3 install --no-cache-dir --upgrade pip && \
     /venv/bin/pip3 install --no-cache-dir -r /requirements.txt  && \
-    apk del gcc && \
     mkdir -p /mxlive/local && \
     chmod -v +x /run-server.sh /wait-for-it.sh && \
     /bin/cp -v /mxlive/deploy/mxlive.conf /etc/apache2/conf.d/99-mxlive.conf && \
