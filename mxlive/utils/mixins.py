@@ -1,5 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpRequest
 from django.template.loader import get_template
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -17,6 +17,16 @@ from ..utils.stats import generic_stats
 TEMP_PREFIX = getattr(settings, 'PDF_TEMP_PREFIX', 'render_pdf-')
 CACHE_PREFIX = getattr(settings, 'PDF_CACHE_PREFIX', 'render-pdf')
 CACHE_TIMEOUT = getattr(settings, 'PDF_CACHE_TIMEOUT', 30), # 86400)  # 1 day
+
+
+def is_ajax(request: HttpRequest) -> bool:
+    """
+    https://stackoverflow.com/questions/63629935
+    """
+    return (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or request.accepts("application/json")
+    )
 
 
 class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -40,7 +50,7 @@ class AsyncFormMixin(object):
         # it might do some processing (in the case of CreateView, it will
         # call form.save() for example).
         response = super().form_valid(form)
-        if self.request.is_ajax():
+        if is_ajax(self.request):
             data = {
                 'modal': self.modal_response,
                 'url': self.get_success_url(),

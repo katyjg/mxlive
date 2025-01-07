@@ -50,25 +50,26 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'debug_toolbar',
     'memoize',
     'itemlist',
     'mxlive.staff',
     'mxlive.lims',
     'mxlive.remote',
     'crispy_forms',
+    'crispy_bootstrap4',
+    # 'debug_toolbar',
 ]
 
 LIMS_USE_SCHEDULE = False
 LIMS_USE_PUBLICATIONS = False
 
 MIDDLEWARE = [
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    #'mxlive.remote.middleware.TrustedAccessMiddleware',
+    # 'mxlive.remote.middleware.TrustedAccessMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
