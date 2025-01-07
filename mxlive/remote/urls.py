@@ -1,15 +1,14 @@
-from django.conf.urls import url
-from django.urls import path
+from django.urls import re_path, path
 from . import views
 
 
 def keyed_url(regex, view, kwargs=None, name=None):
-    regex = (r'(?P<signature>(?P<username>[\w_-]+):.+)/') + regex[1:]
-    return url(regex, view, kwargs, name)
+    regex = r'(?P<signature>(?P<username>[\w_-]+):.+)/' + regex[1:]
+    return re_path(regex, view, kwargs, name)
 
 
 urlpatterns = [
-    url(r'^accesslist/$', views.AccessList.as_view()),
+    re_path(r'^accesslist/$', views.AccessList.as_view()),
     path('keys/<slug:username>', views.SSHKeys.as_view(), name='project-sshkeys'),
 
     keyed_url(r'^data/(?P<beamline>[\w_-]+)/$', views.AddData.as_view()),
