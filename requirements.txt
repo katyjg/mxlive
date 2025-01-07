@@ -30,7 +30,7 @@ psycopg2-binary
 pyasn1
 pycparser
 python-dateutil
-python-memcached==1.59
+pymemcache~=4.0.0
 pytz
 tzdata
 requests
