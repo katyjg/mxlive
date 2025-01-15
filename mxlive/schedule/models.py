@@ -62,7 +62,7 @@ class BeamtimeQuerySet(models.QuerySet):
         return self.annotate(
             duration=Sum(F('end') - F('start')),
             shift_duration=ShiftEnd('end') - ShiftStart('start'),
-            shifts=Shifts(F('end') - F('start'))
+            shifts=Shifts(F('end') - F('start'), output_field=models.IntegerField())
         )
 
 
