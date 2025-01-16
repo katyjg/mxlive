@@ -20,7 +20,7 @@ TRUSTED_IPS = getattr(settings, 'TRUSTED_IPS', ['127.0.0.1/32'])
 class IPAddressList(list):
     def __init__(self, *ips):
         super().__init__()
-        self.extend([ip_network(ip) for ip in ips])
+        self.extend([ip_network(ip, False) for ip in ips])
 
     def __contains__(self, address):
         ip = ip_address(address)
