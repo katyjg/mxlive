@@ -12,7 +12,7 @@ urlpatterns = [
     path('admin/', admin.site.urls, name='admin'),
     path('staff/', include('mxlive.staff.urls')),
     path('users/', include('mxlive.lims.urls')),
-    path('files/<str:section>/<path:path>/', ProxyView.as_view(), name='files-proxy'),
+    path('files/<str:section>/<path:path>', ProxyView.as_view(), name='files-proxy'),
 
     path('accounts/login/', LoginView.as_view(template_name='login.html'), name="mxlive-login"),
     path('accounts/logout/', LogoutView.as_view(), name="mxlive-logout"),
