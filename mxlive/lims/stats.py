@@ -579,7 +579,7 @@ def parameter_summary(**filters):
                                'kind': 'histogram',
                                'data': {
                                    'data': [
-                                       {"x": row[0], "y": row[1]} for row in param_histograms[param]
+                                       {"x": float(row[0]), "y": float(row[1])} for row in param_histograms[param]
                                    ],
                                },
                                'style': 'col-12 col-md-6'
