@@ -19,17 +19,18 @@ from django.utils.decorators import method_decorator
 from django.utils.encoding import force_str
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from mxlive.utils.signing import Signer, InvalidSignature
 from mxlive.utils.data import parse_frames
 
 from .middleware import get_client_address
-from ..lims.models import ActivityLog
-from ..lims.models import Beamline, Dewar
-from ..lims.models import Data, DataType
-from ..lims.models import Project, Session
-from ..lims.templatetags.converter import humanize_duration
-from ..staff.models import UserList, RemoteConnection
+from mxlive.lims.models import ActivityLog
+from mxlive.lims.models import Beamline, Dewar
+from mxlive.lims.models import Data, DataType
+from mxlive.lims.models import Project, Session
+from mxlive.lims.templatetags.converter import humanize_duration
+from mxlive.staff.models import UserList, RemoteConnection
 
 if settings.LIMS_USE_SCHEDULE:
     HALF_SHIFT = int(getattr(settings, 'HOURS_PER_SHIFT', 8)/2)
@@ -50,38 +51,17 @@ def make_secure_path(path):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class VerificationMixin(object):
+class AuthenticationRequiredMixin(object):
     """
-    Mixin to verify identity of user.
-    Requires URL parameters `username` and `signature` where the signature is a string that has been time-stamped and
-    signed using a private key, and can be unsigned using the public key stored with the user's MxLIVE User object.
-
-    If the signature cannot be successfully unsigned, or the User does not exist,
-    the dispatch method will return a HttpResponseNotAllowed.
+    Mixin to verify that the user is logged-in without any redirects
     """
 
     def dispatch(self, request, *args, **kwargs):
-        if not (kwargs.get('username') and kwargs.get('signature')):
-            return http.HttpResponseForbidden()
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
         else:
-            User = get_user_model()
-            try:
-                user = User.objects.get(username=kwargs.get('username'))
-            except User.DoesNotExist:
-                return http.HttpResponseNotFound()
-            if not user.key:
-                return http.HttpResponseBadRequest()
-            else:
-                try:
-                    signer = Signer(public=user.key)
-                    value = signer.unsign(kwargs.get('signature'))
-                except InvalidSignature:
-                    return http.HttpResponseForbidden()
+            return http.HttpResponseForbidden()
 
-                if value != kwargs.get('username'):
-                    return http.HttpResponseForbidden()
-
-        return super().dispatch(request, *args, **kwargs)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -95,7 +75,7 @@ class AccessList(View):
 
     def get(self, request, *args, **kwargs):
 
-        from ..staff.models import UserList
+        from mxlive.staff.models import UserList
         client_addr = get_client_address(request)
 
         userlist = UserList.objects.filter(address=client_addr, active=True).first()
@@ -108,12 +88,12 @@ class AccessList(View):
     def post(self, request, *args, **kwargs):
 
         client_addr = get_client_address(request)
-        userlist = UserList.objects.filter(address=client_addr, active=True).first()
+        user_list = UserList.objects.filter(address=client_addr, active=True).first()
 
         tz = timezone.get_current_timezone()
         errors = []
 
-        if userlist:
+        if user_list:
             data = msgpack.loads(request.body)
             for conn in data:
                 try:
@@ -123,7 +103,7 @@ class AccessList(View):
                 status = conn['status']
                 try:
                     dt = tz.localize(datetime.strptime(conn['date'], "%Y-%m-%d %H:%M:%S"))
-                    r, created = RemoteConnection.objects.get_or_create(name=conn['name'], userlist=userlist, user=project)
+                    r, created = RemoteConnection.objects.get_or_create(name=conn['name'], userlist=user_list, user=project)
                     r.status = status
                     if created:
                         r.created = dt
@@ -133,7 +113,7 @@ class AccessList(View):
                 except:
                     pass
 
-            return JsonResponse(userlist.access_users(), safe=False)
+            return JsonResponse(user_list.access_users(), safe=False)
         else:
             return JsonResponse([], safe=False)
 
@@ -150,7 +130,7 @@ class SSHKeys(View):
     def get(self, request, *args, **kwargs):
 
         client_addr = get_client_address(request)
-        userlist = UserList.objects.filter(address=client_addr, active=True).first()
+        user_list = UserList.objects.filter(address=client_addr, active=True).first()
         user = Project.objects.filter(username=self.kwargs.get('username')).first()
 
         msg = ''
@@ -163,10 +143,7 @@ class SSHKeys(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class UpdateUserKey(View):
     """
-    API for adding a public key to an MxLIVE Project. This method will only be allowed if the signature can be verified,
-    and the User object does not already have a public key registered.
-
-    :key: r'^(?P<signature>(?P<username>):.+)/project/$'
+    API for adding a public key to an MxLIVE Project.
     """
 
     def post(self, request, *args, **kwargs):
@@ -192,23 +169,16 @@ class UpdateUserKey(View):
         return JsonResponse({})
 
 
-class LaunchSession(VerificationMixin, View):
+class LaunchSession(AuthenticationRequiredMixin, View):
     """
     Method to start an MxLIVE Session from the beamline. If a Session with the same name already exists, a new Stretch
     will be added to the Session.
-
-    :key: r'^(?P<signature>(?P<username>):.+)/launch/(?P<beamline>)/(?P<session>)/$'
     """
 
     def post(self, request, *args, **kwargs):
-
-        project_name = kwargs.get('username')
         beamline_name = kwargs.get('beamline')
         session_name = kwargs.get('session')
-        try:
-            project = Project.objects.get(username__exact=project_name)
-        except Project.DoesNotExist:
-            raise http.Http404("Project does not exist.")
+        project = request.user
 
         try:
             beamline = Beamline.objects.get(acronym__exact=beamline_name)
@@ -247,22 +217,16 @@ class LaunchSession(VerificationMixin, View):
         return JsonResponse(session_info)
 
 
-class CloseSession(VerificationMixin, View):
+class CloseSession(AuthenticationRequiredMixin, View):
     """
     Method to close an MxLIVE Session from the beamline.
 
-    :key: r'^(?P<signature>(?P<username>):.+)/close/(?P<beamline>)/(?P<session>)/$'
     """
 
     def post(self, request, *args, **kwargs):
-
-        project_name = kwargs.get('username')
         beamline_name = kwargs.get('beamline')
         session_name = kwargs.get('session')
-        try:
-            project = Project.objects.get(username__exact=project_name)
-        except Project.DoesNotExist:
-            raise http.Http404("Project does not exist.")
+        project = request.user
 
         try:
             beamline = Beamline.objects.get(acronym__exact=beamline_name)
@@ -302,22 +266,16 @@ def prep_sample(info, **kwargs):
     return sample
 
 
-class ProjectSamples(VerificationMixin, View):
+class ProjectSamples(AuthenticationRequiredMixin, View):
     """
     :Return: Dictionary for each On-Site sample owned by the User and NOT loaded on another beamline.
-
-    :key: r'^(?P<signature>(?P<username>):.+)/samples/(?P<beamline>)/$'
     """
 
     def get(self, request, *args, **kwargs):
-        from ..lims.models import Project, Beamline, Container
-        project_name = kwargs.get('username')
+        from mxlive.lims.models import Project, Beamline, Container
         beamline_name = kwargs.get('beamline')
 
-        try:
-            project = Project.objects.get(username__exact=project_name)
-        except Project.DoesNotExist:
-            raise http.Http404("Project does not exist.")
+        project = request.user
 
         try:
             beamline = Beamline.objects.get(acronym=beamline_name)
@@ -346,8 +304,7 @@ TRANSFORMS = {
 }
 
 
-
-class AddReport(VerificationMixin, View):
+class AddReport(AuthenticationRequiredMixin, View):
     """
     Method to add meta-data and JSON details about an AnalysisReport.
 
@@ -360,20 +317,13 @@ class AddReport(VerificationMixin, View):
     :param beamline: Beamline__acronym
 
     :Return: {'id': < Created AnalysisReport.pk >}
-
-    :key: r'^(?P<signature>(?P<username>):.+)/report/(?P<beamline>)/$'
     """
 
     def post(self, request, *args, **kwargs):
         info = msgpack.loads(request.body, raw=False)
 
-        from ..lims.models import Project, Data, AnalysisReport
-        project_name = kwargs.get('username')
-        try:
-            project = Project.objects.get(username__exact=project_name)
-        except Project.DoesNotExist:
-            raise http.Http404("Project does not exist.")
-
+        from mxlive.lims.models import Data, AnalysisReport
+        project = request.user
         try:
             data = Data.objects.filter(pk__in=info.get('data_id'))
         except:
@@ -408,7 +358,7 @@ class AddReport(VerificationMixin, View):
         return JsonResponse({'id': report.pk})
 
 
-class AddData(VerificationMixin, View):
+class AddData(AuthenticationRequiredMixin, View):
     """
     Method to add meta-data about Data collected on the Beamline.
 
@@ -430,19 +380,12 @@ class AddData(VerificationMixin, View):
                      will be start_time + frames * exposure_time, otherwise it will be now
 
     :Return: {'id': < Created Data.pk >}
-
-    :key: r'^(?P<signature>(?P<username>):.+)/data/(?P<beamline>)/$'
     """
 
     def post(self, request, *args, **kwargs):
         info = msgpack.loads(request.body, raw=False)
-
-        project_name = kwargs.get('username')
         beamline_name = kwargs.get('beamline')
-        try:
-            project = Project.objects.get(username__exact=project_name)
-        except Project.DoesNotExist:
-            raise http.Http404("Project does not exist.")
+        project = request.user
 
         try:
             beamline = Beamline.objects.get(acronym=beamline_name)

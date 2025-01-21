@@ -15,6 +15,7 @@ from memoize import memoize
 from mxlive.lims.models import Data, Sample, Session, Project, AnalysisReport, Container, Shipment, ProjectType, SupportArea, UserFeedback, UserAreaFeedback, SupportRecord, FeedbackScale, DataType
 from mxlive.utils.functions import ShiftEnd, ShiftStart, ShiftIndex
 from mxlive.utils.misc import humanize_duration, natural_duration
+from mxlive.utils.stats import make_table
 
 HOUR_SECONDS = 3600
 SHIFT = getattr(settings, "HOURS_PER_SHIFT", 8)
@@ -39,27 +40,6 @@ def js_epoch(dt):
 def get_data_periods(period='year'):
     field = 'created__{}'.format(period)
     return sorted(Data.objects.values_list(field, flat=True).order_by(field).distinct())
-
-
-def make_table(data, columns, rows, total_col=True, total_row=True):
-    ''' Converts a list of dictionaries into a list of lists ready for displaying as a table
-        data: list of dictionaries (one dictionary per column header)
-        columns: list of column headers to display in table, ordered the same as data
-        rows: list of row headers to display in table
-    '''
-    header_row = [''] + columns
-    if total_col: header_row += ['All']
-    table_data = [[str(r)] + [0] * (len(header_row) - 1) for r in rows]
-    for row in table_data:
-        for i, val in enumerate(data):
-            row[i+1] = val.get(row[0], 0)
-        if total_col:
-            row[-1] = sum(row[1:-1])
-    if total_row:
-        footer_row = ['Total'] + [0] * (len(header_row) - 1)
-        for i in range(len(footer_row)-1):
-            footer_row[i+1] = sum([d[i+1] for d in table_data])
-    return [header_row] + table_data + [footer_row]
 
 
 def get_time_scale(filters):
@@ -599,7 +579,7 @@ def parameter_summary(**filters):
                                'kind': 'histogram',
                                'data': {
                                    'data': [
-                                       {"x": row[0], "y": row[1]} for row in param_histograms[param]
+                                       {"x": float(row[0]), "y": float(row[1])} for row in param_histograms[param]
                                    ],
                                },
                                'style': 'col-12 col-md-6'
