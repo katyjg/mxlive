@@ -12,12 +12,14 @@ urlpatterns = [
     path('admin/', admin.site.urls, name='admin'),
     path('staff/', include('mxlive.staff.urls')),
     path('users/', include('mxlive.lims.urls')),
+
     path('files/<str:section>/<path:path>', ProxyView.as_view(), name='files-proxy'),
 
     path('accounts/login/', LoginView.as_view(template_name='login.html'), name="mxlive-login"),
     path('accounts/logout/', LogoutView.as_view(), name="mxlive-logout"),
     path('api/v2/', include('mxlive.remote.urls_v2')),
     path('api/v3/', include('mxlive.remote.urls')),
+    path('reports/', include('mxlive.reporter.urls')),
 ]
 
 if settings.LIMS_USE_SCHEDULE:

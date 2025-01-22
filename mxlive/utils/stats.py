@@ -114,6 +114,9 @@ def make_table(data, columns: list, rows: list, total_col=True, total_row=True, 
     :return: list of lists
     """
 
+    import pprint
+    pprint.pprint(data)
+
     headers = [''] + columns
     table_data = [headers] + [
         [key] + [item.get(key, 0) for item in data]

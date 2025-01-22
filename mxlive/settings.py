@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'mxlive.staff',
     'mxlive.lims',
     'mxlive.remote',
+    'mxlive.reporter',
     'crispy_forms',
     'crispy_bootstrap4',
     'rest_framework',

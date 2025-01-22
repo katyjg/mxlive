@@ -1,0 +1,33 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% load jsutils %}
+
+{% block page_heading %}<h3>{{ view.page_title }}</h3>{% endblock %}
+
+{% block extra_css %}
+    <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
+    <link href="{% static "css/reports.min.css" %}" rel="stylesheet">
+{% endblock %}
+
+{% block full %}
+    <div class="row">
+        <div id="report-entry" class="col-12"></div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $.getJSON("{% url 'publication-data' %}", function(data) {
+                $('#report-entry').liveReport({
+                    data: data
+                })
+            });
+        });
+    </script>
+{% endblock %}

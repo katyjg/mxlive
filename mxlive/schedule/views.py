@@ -379,3 +379,5 @@ class EmailNotificationEdit(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMi
             initial['warning'] = "This email cannot be sent. Either the send time has already passed, the beamtime has been cancelled, or there are no recipients."
 
         return initial
+
+
