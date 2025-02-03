@@ -69,9 +69,8 @@ def publication_stats(period='year', year=None, tag=None):
         avg_quartile=Coalesce(Avg('journal__metrics__sjr_quartile'), 0, output_field=FloatField())
     )
 
-    top_ten_cited = Publication.objects.filter(metrics__isnull=False, **filters).order_by('-metrics__citations')[:10]
-    top_ten_mentioned = Publication.objects.filter(metrics__isnull=False, **filters).order_by('-metrics__mentions')[:10]
-
+    top_ten_cited = Publication.objects.filter(metrics__isnull=False, **filters).order_by('-cites')[:10]
+    top_ten_mentioned = Publication.objects.filter(metrics__isnull=False, **filters).order_by('-mentions')[:10]
 
     metrics = {
         entry[field]: get_entry(field, entry)
@@ -186,7 +185,7 @@ def publication_stats(period='year', year=None, tag=None):
                     'data': [
                         ['Citations', 'Article']
                     ] + [
-                        [pub.metrics.citations, pub.cite()]
+                        [pub.cites, pub.citation]
                         for pub in top_ten_cited
                     ],
                     'style': 'col-12',
@@ -198,7 +197,7 @@ def publication_stats(period='year', year=None, tag=None):
                     'data': [
                         ['Mentions', 'Article']
                     ] + [
-                        [pub.metrics.mentions, pub.cite()]
+                        [pub.mentions, pub.citation]
                         for pub in top_ten_mentioned
                     ],
                     'style': 'col-12',

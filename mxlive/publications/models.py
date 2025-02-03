@@ -1,10 +1,13 @@
 from django.db import models
+from django.db.models import F, Value as V
+from django.db.models.functions import Concat, Coalesce
 from django.utils.translation import gettext as _
 from model_utils.models import TimeStampedModel
 from model_utils import Choices
 from mxlive.utils import temporal, fields
 
 from mxlive.lims.models import Project
+
 
 class SubjectArea(TimeStampedModel):
     name = models.CharField(max_length=255, unique=True)
@@ -64,6 +67,19 @@ class Funder(TimeStampedModel):
         return self.name
 
 
+class PublicationManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().annotate(
+            cites=Coalesce('metrics__citations', 0),
+            mentions=Coalesce('metrics__mentions', 0),
+            citation=Concat(
+                'authors', V(" ("), 'published__year', V(") "), 'title', V(". "), "code",
+                output_field=models.TextField()
+            ),
+            impact_factor=Coalesce('journal__metrics__impact_factor', 0.0),
+        )
+
+
 class Publication(TimeStampedModel):
     TYPES = Choices(
         ('article', _('Peer-Reviewed Article')),
@@ -77,7 +93,6 @@ class Publication(TimeStampedModel):
 
     published = models.DateField(_('Published'))
     authors = models.TextField()
-    #projects = models.ManyToManyField(Project, related_name="publications", blank=True)
     code = models.CharField(max_length=255, null=True, unique=True)
     keywords = fields.StringListField(blank=True)
     abstract = models.TextField(null=True, blank=True)
@@ -97,11 +112,10 @@ class Publication(TimeStampedModel):
     pages = models.CharField(max_length=20, blank=True, null=True)
     metrics = models.ForeignKey("Metric", null=True, on_delete=models.SET_NULL, related_name='publication')
 
+    objects = PublicationManager()
+
     def __str__(self):
         return self.code
-
-    def cite(self):
-        return f"{self.authors} ({self.published.year}) {self.title}. {self.journal and self.journal.short_name or ''}. {self.code}"
 
 
 class Metric(temporal.TemporalProfile):

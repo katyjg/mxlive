@@ -317,6 +317,10 @@ a.navbar-brand {
   padding-bottom: 0.15em;
 }
 
+.no-wrap {
+  white-space: nowrap;
+}
+
 .absolute-right {
   position: absolute;
   top: 0;
@@ -507,6 +511,10 @@ table {
 table.shallow-table td {
   padding-top: 4px !important;
   padding-bottom: 2px !important;
+}
+
+.first-col-left table tr > td:first-child {
+  text-align: left;
 }
 
 .scroll-sidebar {
@@ -1389,7 +1397,7 @@ a:hover {
 
 .report-viewer table.table tbody td {
   font-family: $mono-font, sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 svg * {

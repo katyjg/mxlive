@@ -3,7 +3,7 @@
 function getPrecision(row, steps) {
     steps = steps || 8;
     let diff = (row[row.length - 1] - row[0]) / steps;
-    return Math.abs(Math.floor(Math.log10(diff.toPrecision(1))||2))
+    return Math.abs(Math.floor(Math.log10(diff.toPrecision(1)) || 2))
 }
 
 function renderMarkdown(text) {
@@ -96,7 +96,7 @@ let tableTemplate = _.template(
 
 let NUM_TICKS = 10;
 
-function drawXYChart(figure, chart, options, type='spline') {
+function drawXYChart(figure, chart, options, type = 'spline') {
     let series = [];
     let columns = [];
     let axes = {};
@@ -105,32 +105,43 @@ function drawXYChart(figure, chart, options, type='spline') {
     let axis_opts = {x: {}, y: {}, y2: {}};
     let xdata = [];
     let xmin = chart.data.x[1];
-    let xmax = chart.data.x[chart.data.x.length -1];
+    let xmax = chart.data.x[chart.data.x.length - 1];
     let xscale = d3.scaleLinear().domain([xmin, xmax]);
     let tick_values = xscale.ticks(NUM_TICKS);
+    let prec = chart.data['x-tick-precision'];
+
+    if (prec == null) {
+        prec = getPrecision(tick_values);
+    }
 
     // conversion functions,
-    let xfwd = function(x) { return x};
-    let xbwd = function(x) { return x};
-    let prec = 2;
+    let xfwd = function (x) {
+        return x
+    };
+    let xbwd = function (x) {
+        return x
+    };
 
-    switch(chart.data['x-scale']) {
+
+    switch (chart.data['x-scale']) {
         case 'time':
-            xfwd = function(x){ return Date.parse(x) };
+            xfwd = function (x) {
+                return Date.parse(x)
+            };
             axis_opts.x = $.extend(axis_opts.x, {
                 type: 'timeseries',
-                tick: { format: chart.data['time-format'], culling: { max: 13} }
+                tick: {format: chart.data['time-format'], culling: {max: 13}}
             });
             break;
         case 'pow':
         case 'inv-square':
-            let mult = (chart.data['x-scale'] === 'pow')? 1 : -1;
-            xfwd = d3.scalePow().exponent(mult*2).domain([xmin, xmax]);
+            let mult = (chart.data['x-scale'] === 'pow') ? 1 : -1;
+            xfwd = d3.scalePow().exponent(mult * 2).domain([xmin, xmax]);
             xbwd = xfwd.invert;
 
             xscale.domain([xfwd(xmin), xfwd(xmax)]);
             tick_values = xscale.ticks(NUM_TICKS);
-            
+
             prec = getPrecision(tick_values);
             axis_opts.x = $.extend(axis_opts.x, {
                 tick: {
@@ -332,7 +343,11 @@ function drawBarChart(figure, chart, options) {
 
     let line_axes = {};
     let line_types = {};
-    let axis_y2 = { show: chart.data.line && true || false, label: chart.data.line }
+    let axis_y2 = {show: chart.data.line && true || false, label: chart.data.line};
+    let x_ticks = {
+        culling: {'max': chart.data["x-culling"] || false},
+        multiline: chart.data["wrap-x-labels"] || false,
+    };
 
     if (chart.data['line']) {
         line_types[chart.data.line] = "line";
@@ -367,14 +382,16 @@ function drawBarChart(figure, chart, options) {
         grid: {y: {show: true}},
         axis: {
             x: {
-                type: 'category', label: chart.data['x-label']
+                type: 'category',
+                label: chart.data['x-label'],
+                tick: x_ticks,
             },
             y2: axis_y2,
             rotated: (options.horizontal || false)
         },
         legend: {hide: (series.length === 1)},
         bar: {width: {ratio: .6}},
-        padding: { bottom: 20 },
+        padding: {bottom: 20},
         onresize: function () {
             this.api.resize({
                 width: figure.width(),
@@ -383,7 +400,7 @@ function drawBarChart(figure, chart, options) {
         }
     });
     if (chart.data.annotations) {
-        if ( options.horizontal ) {
+        if (options.horizontal) {
             c3chart.ygrids(chart.data.annotations)
         } else {
             c3chart.xgrids(chart.data.annotations)

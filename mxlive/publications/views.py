@@ -1,6 +1,6 @@
+from django.utils.safestring import mark_safe
 from django.views.generic import TemplateView, list
 
-from django.urls import reverse
 from itemlist.views import ItemListView
 from mxlive.utils import filters
 from mxlive.utils.mixins import AdminRequiredMixin
@@ -17,15 +17,20 @@ class PubEntryList(AdminRequiredMixin, ItemListView):
         filters.QuarterFilterFactory('published'),
         'tags'
     ]
-    list_columns = ['id', 'published', 'cite', 'metrics__citations', 'metrics__mentions', 'journal__metrics__impact_factor']
+    list_columns = ['published', 'citation', 'cites', 'mentions', 'impact_factor']
     list_search = ['title', 'main_title', 'authors', 'code', 'comments', 'journal__title', 'funders__name']
     list_headers = {
-        'journal__metrics__impact_factor': "Journal Impact Factor",
+        'impact_factor': mark_safe("<span class='no-wrap'>Impact Factor</span>"),
         'metrics__mentions': "Mentions",
         'metrics__citations': "Citations",
     }
+    list_transforms = {
+        'citation': lambda x, y: mark_safe(x),
+        'published': lambda x, y: x.strftime('%Y/%b')
+    }
     list_styles = {
-        'cite': 'w-75',
+        'citation': 'w-70',
+
     }
     ordering = ['-published']
     paginate_by = 25

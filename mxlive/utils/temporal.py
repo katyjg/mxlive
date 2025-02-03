@@ -189,5 +189,7 @@ def unique_for_time(*args):
 def unique_for_profile(*args):
     return args + ('effective',)
 
+
 def unique_for_temporal(*args):
     return unique_for_time(*args) + ('effective',)
+
