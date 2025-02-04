@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-from collections import defaultdict
 
 from typing import Any
-
+from django.apps import apps
 from django.db.models import QuerySet
 
 
 class DataField:
-    def __init__(self, name, source, label=None, default=None):
+    model: None
+
+    def __init__(self, name, source=None, label=None, default=None):
         self.name = name
         self.source = source
         self.label = label or name
@@ -16,14 +17,12 @@ class DataField:
 
 
 class Annotation:
-    def __init__(self, name, expression):
-        self.name = name
+    def __init__(self, expression):
         self.expression = expression
 
 
 class Aggregation:
-    def __init__(self, name, expression):
-        self.name = name
+    def __init__(self, expression):
         self.expression = expression
 
 
@@ -36,6 +35,8 @@ class DataSource:
     groupable = []  # Define which fields can be used for user-defined grouping
     filterable = {}  # Define dynamic filters allowed for this report
     sortable = []  # Define dynamic sorting allowed for this report
+    limit = None    # Limit the number of results
+    order_by = []   # Default sorting order
 
     @classmethod
     def get_labels(cls) -> dict[str, str]:
@@ -52,7 +53,8 @@ class DataSource:
         :param group_by: group by fields
         :param order_by: order by fields
         """
-        queryset = cls.model.objects.all()
+        model = apps.get_model(cls.model) if isinstance(cls.model, str) else cls.model
+        queryset = model.objects.all()
 
         # Apply static filters
         if cls.filters:
@@ -64,7 +66,7 @@ class DataSource:
 
         # Add annotations
         annotations = {
-            field.source.name: field.source.expression
+            field.name: field.source.expression
             for field in cls.fields
             if isinstance(field.source, Annotation)
         }
@@ -75,15 +77,20 @@ class DataSource:
         group_fields = group_by or cls.group_by
         if group_fields:
             aggregations = {
-                field.source.name: field.source.expression
+                field.name: field.source.expression
                 for field in cls.fields
                 if isinstance(field.source, Aggregation)
             }
             queryset = queryset.values(*group_fields).annotate(**aggregations)
 
         # Apply sorting
+        order_by = order_by or cls.order_by
         if order_by:
             queryset = queryset.order_by(*order_by)
+
+        # Apply limit
+        if cls.limit:
+            queryset = queryset[:cls.limit]
 
         return queryset
 
@@ -140,92 +147,45 @@ class DataSource:
         return valid_sorting
 
 
-class Table:
-    title: str = ""
-    description: str = ""
-    notes: list[str] = []
-    style: str = ""
+def regroup_data(
+        data: list[dict],
+        x_axis: str = '',
+        y_axis: list[str] | str = '',
+        y_value: str = '',
+        labels: dict = None,
+        default: Any = None
+) -> list[dict]:
+    """
+    Regroup data into neat key-value pairs translating keys to labels according to labels dictionary
 
-    source: DataSource = None
+    :param data: list of dictionaries
+    :param x_axis: Name of the x-axis field
+    :param y_axis: List of y-axis field names or a single field name to group by
+    :param y_value: Field name for y-axis if a single field is used for y-axis
+    :param labels: Field labels
+    :param default: Default value for missing fields
+    """
 
-    labels: dict[str, str] = {}
-    columns: list[str] | str = ""   # Name of the column field, must be present in every item
-    rows: list[str] | str = []      # List of row field names or a single field name to group by
-    values: str | callable = ""     # Field name for values or a function which takes
-    total_column: bool = False      # Include a total column
-    total_row: bool = False         # Include a total row
-    force_strings: bool = False     # Force all cells to be strings
-    transpose: bool = False         # Transpose the table so rows become columns
+    labels = labels or {}
+    x_label = labels.get(x_axis, x_axis)
+    all_x_values = set(item[x_axis] for item in data)
+    x_values = sorted(filter(None, all_x_values))
+    raw_data = {value: {x_label: value} for value in x_values}
 
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-        assert self.source is not None, "Table must have a data source."
-        assert not all((isinstance(self.columns, list), isinstance(self.rows, list))), "Only one of `rows` or `columns` can be a list."
-        if isinstance(self.rows, str) and isinstance(self.columns, list):
-            self.rows, self.columns = self.columns, self.rows
-            self.transpose = True
-
-    def generate(self, *args, **kwargs) -> dict:
-        """
-        Generate table from a list of dictionaries
-        """
-        data = self.source.generate(*args, **kwargs)
-        column_headers = sorted(set(item[self.columns] for item in data))
-        first_row_name = self.labels.get(self.columns, self.columns)
-
-        if isinstance(self.rows, str):
-            row_names = [first_row_name] + list(sorted(set(item[self.rows] for item in data)))
-        else:
-            row_names = [first_row_name] + [self.labels.get(y, y) for y in self.rows]
-
-        # reorganize data into dictionary of dictionaries with appropriate fields
-        raw_data = {
-            value: defaultdict(int)
-            for value in column_headers
-        }
-        for value in column_headers:
-            raw_data[value][first_row_name] = value
-
-        for item in data:
-            if isinstance(self.rows, str):
-                raw_data[item[self.columns]][item[self.rows]] += item.get(self.values, 0)
-            elif isinstance(self.rows, list):
-                for x in self.rows:
-                    raw_data[item[self.columns]][self.labels.get(x, x)] = item.get(x, 0)
-
-        # Now build table based on the reorganized data
-        table_data: list[list[Any]] = [
-            [key] + [item.get(key, 0) for item in raw_data.values()]
-            for key in row_names
-        ]
-
-        if self.total_row:
-            table_data.append(
-                ['Total'] + [sum([row[i] for row in table_data[1:]]) for i in range(1, len(column_headers))]
-            )
-
-        if self.total_column:
-            table_data[0].append('All')
-            for row in table_data[1:]:
-                row.append(sum(row[1:]))
-
-        if self.force_strings:
-            table_data = [
-                [f'{item}' for item in row] for row in table_data
-            ]
-
-        if self.transpose:
-            table_data = list(map(list, zip(*table_data)))
-
-        return {
-            'title': self.title,
-            'kind': 'table',
-            'data': table_data,
-            'style': 'col-12',
-            'header': "column row",
-            'description': self.description,
-            'notes': '\n'.join(self.notes)
-        }
-
+    # reorganize data into dictionary of dictionaries with appropriate fields
+    for item in data:
+        x_value = item[x_axis]
+        if x_value not in x_values:
+            continue
+        if isinstance(y_axis, str):
+            raw_data[x_value][item[y_axis]] = item.get(y_value, 0)
+        elif isinstance(y_axis, list):
+            for y_field in y_axis:
+                y_label = labels.get(y_field, y_field)
+                if y_field in item:
+                    raw_data[x_value][y_label] = item.get(y_field, 0)
+                elif y_label not in raw_data[x_value]:
+                    raw_data[x_value][y_label] = default
+    return list(raw_data.values())
 
 

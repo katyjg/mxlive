@@ -2,7 +2,7 @@
 {% load static %}
 {% load jsutils %}
 
-{% block page_heading %}<h3>{{ view.page_title }}</h3>{% endblock %}
+{% block page_heading %}<h3>{{ report.title }}</h3>{% endblock %}
 
 {% block extra_css %}
     <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
     <script type="text/javascript">
         $(document).ready(function(){
-            $.getJSON("{% url 'publication-data' %}", function(data) {
+            $.getJSON("{{ data_url }}", function(data) {
                 $('#report-entry').liveReport({
                     data: data
                 })
