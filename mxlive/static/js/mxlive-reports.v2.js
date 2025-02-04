@@ -15,7 +15,7 @@ const figureTypes = [
     "histogram", "lineplot", "barchart", "scatterplot", "pie", "gauge", "timeline", "columnchart"
 ];
 
-let ColorSchemes = {
+const ColorSchemes = {
     Live4: ["#8f9f9a", "#c56052", "#9f6dbf", "#a0b552"],
     Live8: ["#073B4C", "#06D6A0", "#FFD166", "#EF476F", "#118AB2", "#7F7EFF", "#afc765", "#78C5E7"],
     Live16: [
@@ -29,7 +29,7 @@ let ColorSchemes = {
     Tableau10: d3.schemeTableau10,
 };
 
-let styleTemplate = _.template('<%= selector %> { <%= rules %> }');
+const styleTemplate = _.template('<%= selector %> { <%= rules %> }');
 
 let contentTemplate = _.template(
     '<div id="entry-<%= id %>" <% let style = entry.style || ""; %> class="section-entry <%= style %>" >' +
@@ -51,7 +51,7 @@ let contentTemplate = _.template(
     '</div>'
 );
 
-let sectionTemplate = _.template(
+const sectionTemplate = _.template(
     '<section id="section-<%= id %>" <% let style = section.style || "col-12"; %>' +
     '       class="<%= style %>">' +
     '       <%  if (section.title)  {%>' +
@@ -64,7 +64,7 @@ let sectionTemplate = _.template(
     '</section>'
 );
 
-let tableTemplate = _.template(
+const tableTemplate = _.template(
     '<table id="table-<%= id %>" class="table table-sm table-hover">' +
     '<% if (entry.title) { %>' +
     '   <caption class="text-center"><%= entry.title %></caption>' +

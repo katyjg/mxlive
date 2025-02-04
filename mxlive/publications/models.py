@@ -131,7 +131,6 @@ class Deposition(TimeStampedModel):
     code = models.CharField(max_length=20, unique=True)
     title = models.TextField()
     authors = models.TextField()
-    #projects = models.ManyToManyField(Project, related_name="publications", blank=True)
     doi = models.CharField(max_length=255, unique=True)
     resolution = models.FloatField(default=0.0)
     released = models.DateField()
