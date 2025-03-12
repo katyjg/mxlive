@@ -2,19 +2,19 @@
   <library name="Generated files" type="javaScript">
     <properties>
       <sourceFilesUrls>
-        <item url="file://$PROJECT_DIR$/mxlive/reporter/static/reporter/report.min.js" />
-        <item url="file://$PROJECT_DIR$/mxlive/reporter/static/reporter/reporter.min.js" />
+        <item url="file://$PROJECT_DIR$/mxlive/reporter/static/reporter/builder.min.js" />
+        <item url="file://$PROJECT_DIR$/mxlive/reporter/static/reporter/reports.min.js" />
         <item url="file://$PROJECT_DIR$/mxlive/static/bootstrap/js/bootstrap.bundle.min.js" />
         <item url="file://$PROJECT_DIR$/mxlive/static/bootstrap/js/bootstrap.min.js" />
         <item url="file://$PROJECT_DIR$/mxlive/static/js/mxlive-reports.v2.min.js" />
       </sourceFilesUrls>
     </properties>
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/mxlive/reporter/static/reporter/reporter.min.js" />
+      <root url="file://$PROJECT_DIR$/mxlive/reporter/static/reporter/builder.min.js" />
+      <root url="file://$PROJECT_DIR$/mxlive/reporter/static/reporter/reports.min.js" />
       <root url="file://$PROJECT_DIR$/mxlive/static/bootstrap/js/bootstrap.bundle.min.js" />
       <root url="file://$PROJECT_DIR$/mxlive/static/bootstrap/js/bootstrap.min.js" />
       <root url="file://$PROJECT_DIR$/mxlive/static/js/mxlive-reports.v2.min.js" />
-      <root url="file://$PROJECT_DIR$/mxlive/reporter/static/reporter/reports.min.js" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

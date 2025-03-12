@@ -1,0 +1,112 @@
+{% extends "reporter/base.html" %}
+{% load humanize %}
+{% load markup %}
+{% load reporter %}
+{% load static %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
+          integrity="sha512-dPXYcDub/aeb08c63jRq/k6GaKccl256JQy/AnOq7CAnEZ9FzSL9wSbcZkMp4R26vBsMLFYH4kQ67/bbV8XaCQ=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link href="{% static 'reporter/builder.min.css' %}" rel="stylesheet" media="screen"/>
+    <style>
+        {% pigments_css "friendly" %}
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    <h3 class="text-condensed">
+        <strong class="text-muted">Data Source - {{ object.name }}</strong>
+    </h3>
+{% endblock %}
+
+{% block object_tools %}
+    <a href="{% url "report-list" %}">
+        {% tool_icon label='Reports' icon='icon-md bi-list-task' %}
+    </a>
+    <a href="{% url "data-source-list" %}">
+        {% tool_icon label='Data Sources' icon='icon-md bi-database' %}
+    </a>
+    <a href="#!" data-form-link="{% url "edit-data-source" source.pk %}">
+        {% tool_icon label='Edit' icon='icon-md bi-pencil' %}
+    </a>
+    <a href="#!" data-form-link="{% url "delete-data-source" source.pk %}">
+        {% tool_icon label='Delete' icon='icon-md bi-trash3' %}
+    </a>
+    <a href="#!" data-form-link="{% url "add-source-field" source=source.pk %}">
+        {% tool_icon label='Add Field' icon='icon-md bi-plus-square-dotted' %}
+    </a>
+{% endblock %}
+
+{% block full %}
+    <div class="row report-editor ">
+        <div class="col-12">
+        <div class="row">
+                <div class="col-12">
+                    <div class="card alert-info mb-4">
+                        <div class="card-header py-2 d-flex align-items-center">
+                            HELP
+                        </div>
+                        <div class="card-body">
+                            For each model in the data source, you can define fields that will be used to build reports.
+                            Grouped fields are used to group data in reports and must be defined for each model to be valid.
+                            Grouped fields should be annotations. All other fields for grouped sources must be aggregations.
+                            Multiple grouped fields can be defined for each model but every model in the source must define the same
+                            set of grouped fields.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    {% for model, model_fields in fields.items %}
+                        <div class="card mb-3">
+                            <div class="card-header py-2 d-flex align-items-center">
+                                <h4 class="my-0"><span class="text-muted">Model &mdash; </span><span class="text-monospace">{{ model }}</span></h4>
+                            </div>
+                            <table class="table table-sm table-ruled">
+                                <thead>
+                                <tr>
+                                    <th class="col-1">Group</th>
+                                    <th class="col-2">Field</th>
+                                    <th class="col-1">Type</th>
+                                    <th class="col-2">Label</th>
+                                    <th>Expression</th>
+                                    <th class="col-1">Edit</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for field in model_fields %}
+                                    <tr>
+                                        <td>{{ field.grouped | boolean_check }}</td>
+                                        <td>{{ field.name }}</td>
+                                        <td>{{ field.get_kind_display }}</td>
+                                        <td>{{ field.label }}</td>
+                                        <td class="text-monospace text-md">{{ field.expression }}</td>
+                                        <td>
+                                            <div class="tools-box ml-auto pr-0">
+                                                <a href="#!"
+                                                   data-form-link="{% url 'edit-source-field' source=source.pk pk=field.pk %}"
+                                                   title="Edit">
+                                                    {% tool_icon icon='bi-pencil' %}
+                                                </a>
+                                                <a href="#!"
+                                                   data-form-link="{% url 'delete-source-field' source=source.pk pk=field.pk %}"
+                                                   title="Delete">
+                                                    {% tool_icon icon='bi-x-lg' %}
+                                                </a>
+                                            </div>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}

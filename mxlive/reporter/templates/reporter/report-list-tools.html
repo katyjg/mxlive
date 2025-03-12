@@ -1,0 +1,7 @@
+{% load reporter %}
+<a href="{% url "data-source-list" %}">
+    {% tool_icon label='Data Sources' icon='icon-md bi-database' %}
+</a>
+<a href="#!" data-form-link="{% url "new-report" %}">
+    {% tool_icon label='Add Report' icon='icon-md bi-file-earmark-plus' %}
+</a>
