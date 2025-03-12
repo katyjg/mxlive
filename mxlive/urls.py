@@ -19,7 +19,7 @@ urlpatterns = [
     path('accounts/logout/', LogoutView.as_view(), name="mxlive-logout"),
     path('api/v2/', include('mxlive.remote.urls_v2')),
     path('api/v3/', include('mxlive.remote.urls')),
-    path('reports/', include('mxlive.reporter.urls')),
+    path('reporting/', include('mxlive.reporter.urls')),
 ]
 
 if settings.LIMS_USE_SCHEDULE:

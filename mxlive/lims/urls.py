@@ -68,7 +68,7 @@ urlpatterns = [
     path('analyses/<int:pk>/', views.ReportDetail.as_view(), name='result-detail'),
 
     path('activity/', views.ActivityLogList.as_view(), name='activity-log-list'),
-    path('activity/<int:pk>/', views.ActivityLogList.as_view(), name='activity-log-detail'),
+    # path('activity/<int:pk>/', views.ActivityLogList.as_view(), name='activity-log-detail'),
 
     path('sessions/', views.SessionList.as_view(), name='session-list'),
     path('sessions/<int:pk>/', views.SessionDetail.as_view(), name='session-detail'),

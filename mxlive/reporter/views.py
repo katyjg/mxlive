@@ -1,16 +1,27 @@
+from collections import defaultdict
+from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.messages.views import SuccessMessageMixin
 from django.http import JsonResponse, Http404
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.views import View
-from django.views.generic import DetailView
+from django.views.generic import DetailView, edit
+from itemlist.views import ItemListView
 
-from . import models
-from .sources import DataField, Aggregation, Annotation, DataSource
-from .components import Table, Bars, XYPlot, List
-from django.db.models import Count, F, Sum, Avg, Value
-from django.db.models.functions import Round
+from . import models, forms
+from mxlive.utils.mixins import AsyncFormMixin
 
 
-class ReportView(DetailView):
+class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    """
+    Mixin to allow access through a view only if the user is a superuser.
+    Can be used with any View.
+    """
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+
+class ReportView(LoginRequiredMixin, DetailView):
     template_name = 'reporter/report.html'
     model = models.Report
 
@@ -21,7 +32,7 @@ class ReportView(DetailView):
         return context
 
 
-class ReportData(View):
+class ReportData(LoginRequiredMixin, View):
     @staticmethod
     def get_report(*args, slug='', **kwargs):
 
@@ -32,8 +43,8 @@ class ReportData(View):
         return {
             'title': report.title,
             'description': report.description,
-            'style': report.style,
-            'content': [block.generate(*args, **kwargs) for block in report.entries.order_by('order')],
+            'style': f"row {report.style}",
+            'content': [block.generate(*args, **kwargs) for block in report.entries.all()],
             'notes': report.notes
         }
 
@@ -42,154 +53,233 @@ class ReportData(View):
         return JsonResponse({'details': [info]}, safe=False)
 
 
-class PublicationReport(DataSource):
-    model = "publications.Publication"
-    fields = [
-        DataField(name='citations', source=Aggregation(Sum("metrics__citations")), label='Citations'),
-        DataField(name='mentions', source=Aggregation(Sum("metrics__mentions")), label='Media Mentions¹'),
-        DataField(name="year", source=Annotation(F("published__year")), label='Year'),
-        DataField(name="publications", source=Aggregation(Count("id")), label="Publications"),
-        DataField(name="journals", source=Aggregation(Count("journal__id")), label="Journals"),
-        DataField(
-            name="impact_factor",
-            source=Aggregation(Round(Avg("journal__metrics__impact_factor", default=0.0), 1)),
-            label="Impact Factor²"
-        ),
-        DataField(
-            name="sjr",
-            source=Aggregation(Round(Avg("journal__metrics__sjr_rank", default=0.0), 1)),
-            label="SJR³"
-        ),
-        DataField(
-            name="quartile",
-            source=Aggregation(Round(Avg("journal__metrics__sjr_quartile", default=0.0), 1)),
-            label="SJR³ Quartile"
-        ),
-        DataField(
-            name="h_index",
-            source=Aggregation(Round(Avg("journal__metrics__h_index", default=0.0), 1)),
-            label="H-Index"
-        ),
-        DataField(
-            name="cites_per_pub",
-            source=Aggregation(Round(Avg("metrics__citations"), 1)),
-            label="Citations/Article"
-        ),
-        DataField(
-            name="mentions_per_pub",
-            source=Aggregation(Round(Avg("metrics__mentions"), 1)),
-            label="Mentions/Article"
-        ),
-    ]
-    group_by = ["year"]
+class ReportList(LoginRequiredMixin, ItemListView):
+    model = models.Report
+    list_filters = ['created', 'modified']
+    list_columns = ['title', 'slug', 'description']
+    list_search = ['slug', 'title', 'description', 'entries__title', 'notes']
+    ordering = ['-created']
+    paginate_by = 25
+    template_name = 'reporter/index.html'
+    link_url = 'report-view'
+    link_kwarg = 'slug'
+    page_title = 'Reports'
 
 
-class TopTenCited(DataSource):
-    model = "publications.Publication"
-    fields = [
-        DataField(name="article", source=Annotation(F('citation')), label="Article"),
-        DataField(name="cites", label="Citations"),
-    ]
-    order_by = ["-cites"]
-    limit = 10
+class DataSourceList(AdminRequiredMixin, ItemListView):
+    model = models.DataSource
+    list_filters = ['created', 'modified']
+    list_columns = ['name', 'limit']
+    list_search = ['fields__name', 'entries__title']
+    ordering = ['-created']
+    paginate_by = 25
+    template_name = 'reporter/list.html'
+    tool_template = 'reporter/source-list-tools.html'
+    link_url = 'source-editor'
+    page_title = 'Data Sources'
 
 
-class TopTenMentioned(DataSource):
-    model = "publications.Publication"
-    fields = [
-        DataField(name="article", source=Annotation(F('citation')), label="Article"),
-        DataField(name="mentions", label="Mentions"),
-    ]
-    order_by = ["-mentions"]
-    limit = 10
+class SourceEditor(AdminRequiredMixin, DetailView):
+    template_name = 'reporter/source-editor.html'
+    model = models.DataSource
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        field_info = defaultdict(list)
+        for field in self.object.fields.all().order_by('-grouped', 'position'):
+            field_info[field.model].append(field)
+        context['source'] = self.object
+        context['fields'] = dict(field_info)
+        return context
 
 
-class PDBReleases(DataSource):
-    model = "publications.Deposition"
-    fields = [
-        DataField(name="year", source=Annotation(F("released__year")), label="Year"),
-        DataField(name="depositions", source=Aggregation(Count("id")), label="PDB Releases"),
-        DataField(
-            name="pdb_res",
-            source=Aggregation(Round(Avg("resolution", default=0), Value(1))),
-            label="Avg Resolution"
+class ReportEditor(AdminRequiredMixin, DetailView):
+    template_name = 'reporter/report-editor.html'
+    model = models.Report
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['report'] = self.object
+        context['entries'] = self.object.entries.all()
+        context['sources'] = models.DataSource.objects.all()
+        context['used_sources'] = models.DataSource.objects.filter(entries__report=self.object).distinct()
+        return context
+
+
+class EditReport(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    form_class = forms.ReportForm
+    template_name = "modal/form.html"
+    model = models.Report
+    success_message = "Report has been updated"
+
+    def get_success_url(self):
+        return reverse('report-editor', kwargs={'pk': self.object.pk})
+
+
+class CreateReport(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
+    form_class = forms.ReportForm
+    template_name = "modal/form.html"
+    model = models.Report
+    success_message = "Report has been added"
+
+    def get_success_url(self):
+        return reverse('report-editor', kwargs={'pk': self.object.pk})
+
+
+class CreateDataSource(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
+    form_class = forms.DataSourceForm
+    template_name = "modal/form.html"
+    model = models.DataSource
+    success_message = "Data source has been added"
+
+    def get_success_url(self):
+        return reverse('source-editor', kwargs={'pk': self.object.pk})
+
+
+class EditDataSource(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    form_class = forms.DataSourceForm
+    template_name = "modal/form.html"
+    model = models.DataSource
+    success_message = "Data source has been updated"
+
+    def get_success_url(self):
+        return reverse('source-editor', kwargs={'pk': self.object.pk})
+
+
+class EditSourceField(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    form_class = forms.DataFieldForm
+    template_name = "modal/form.html"
+    model = models.DataField
+    success_message = "Field has been updated"
+
+    def get_success_url(self):
+        return reverse('source-editor', kwargs={'pk': self.object.source.pk})
+
+
+class AddSourceField(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
+    form_class = forms.DataFieldForm
+    template_name = "modal/form.html"
+    model = models.DataField
+    success_message = "Field has been added"
+
+    def get_success_url(self):
+        return reverse('source-editor', kwargs={'pk': self.object.source.pk})
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['source'] = self.kwargs.get('source')
+        return initial
+
+
+class EditEntry(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    form_class = forms.EntryForm
+    template_name = "modal/form.html"
+    model = models.Entry
+    success_message = "Entry has been updated"
+
+    def get_success_url(self):
+        return reverse('report-editor', kwargs={'pk': self.object.report.pk})
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['report'] = self.kwargs.get('report')
+        return initial
+
+
+class DeleteReport(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
+    model = models.Report
+    template_name = "modal/delete.html"
+    success_message = "Report has been deleted"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_action'] = reverse_lazy('delete-report', kwargs={'pk': self.object.pk})
+        return context
+
+    def get_success_url(self):
+        return reverse('report-list')
+
+
+class DeleteDataSource(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
+    model = models.DataSource
+    template_name = "modal/delete.html"
+    success_message = "Data source has been deleted"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_action'] = reverse_lazy('delete-data-source', kwargs={'pk': self.object.pk})
+        return context
+
+    def get_success_url(self):
+        return reverse('data-source-list')
+
+
+class DeleteEntry(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
+    model = models.Entry
+    template_name = "modal/delete.html"
+    success_message = "Entry has been deleted"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_action'] = reverse_lazy(
+            'delete-report-entry', kwargs={'pk': self.object.pk, 'report': self.object.report.pk}
         )
-    ]
-    group_by = ["year"]
+        return context
+
+    def get_success_url(self):
+        return reverse('report-editor', kwargs={'pk': self.object.report.pk})
 
 
-class PDBData(DataSource):
-    model = "publications.Deposition"
-    fields = [
-        DataField(name="year", source=Annotation(F("collected__year")), label="Year"),
-        DataField(name="collections", source=Aggregation(Count("id")), label="PDB Collection"),
-    ]
-    group_by = ["year"]
+class DeleteSourceField(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
+    model = models.DataField
+    template_name = "modal/delete.html"
+    success_message = "Field has been deleted"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_action'] = reverse_lazy(
+            'delete-source-field', kwargs={'pk': self.object.pk, 'source': self.object.source.pk}
+        )
+        return context
+
+    def get_success_url(self):
+        return reverse('source-editor', kwargs={'pk': self.object.source.pk})
 
 
-class ReportViews(View):
-    title = 'Publication Metrics',
-    description = 'Summary of publication and PDB deposition statistics'
-    style = 'row'
-    notes = []
+class ConfigureEntry(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    template_name = "modal/form.html"
+    model = models.Entry
+    success_message = "Entry has been updated"
 
-    content = [
-        Table(
-            sources=(PublicationReport, PDBReleases),
-            title='Metrics Summary',
-            rows=[
-                'publications', 'depositions', 'pdb_res', 'citations', 'cites_per_pub', 'mentions', 'mentions_per_pub', 'journals',
-                'impact_factor', 'sjr', 'quartile', 'h_index'
-            ],
-            columns='year', values='publications',
-            notes=[
-                "1. Mentions represent the number of news stories, and social media mentions the reference the publication.",
-                "2. The Average Impact Factor is the ratio of citations to the number of citable documents for the journal "
-                "over the previous two years. This value is calculated based on citations in the SCOPUS database and may be "
-                "different from the Web Of Science values from the Thomson Reuters database",
-                "3. SCIMAGO Quartile https://www.scimagojr.com/. A Journal with an SJR quartile of 1 is in the top 25% of "
-                "journals in the field when ranked by SJR, and a quartile of 2 is ranked higher than 50% but lower than 25% "
-                "of journals in the field."
-            ]
-        ),
-        Bars(
-            sources=(PublicationReport, PDBReleases),
-            title='Research Output',
-            x_axis='year', y_axis=['publications', 'depositions'],
-            wrap_x_labels=False, x_culling=15,
-            style='col-md-6 col-12'
-        ),
-        XYPlot(
-            sources=(PDBReleases, PDBData),
-            title='Data Collection vs PDB Release', scatter=False,
-            y1_label='Entries', tick_precision=0,
-            x_axis='year', y_axis=[['collections', 'depositions']],
-            style='col-md-6 col-12'
-        ),
-        List(
-            sources=(TopTenCited,),
-            title='Top Ten Most Cited Articles',
-            columns=['article', 'cites'],
-            style='col-12 first-col-left'
-        ),
-        List(
-            sources=(TopTenMentioned,),
-            title='Top Ten Most Mentioned Articles',
-            columns=['article', 'mentions'],
-            style='col-12 first-col-left'
-        ),
-    ]
-
-    def get_report(self, *args, **kwargs):
-        r = models.Report.objects.get(pk=1)
+    def get_form_class(self):
         return {
-            'title': self.title,
-            'description': self.description,
-            'style': self.style,
-            'content': [block.generate(*args, **kwargs) for block in r.entries.all()],
-            'notes': '\n'.join(self.notes)
-        }
+            models.Entry.Types.TABLE: forms.TableForm,
+            models.Entry.Types.BARS: forms.BarsForm,
+            models.Entry.Types.PIE: forms.PieForm,
+            models.Entry.Types.PLOT: forms.PlotForm,
+            models.Entry.Types.LIST: forms.ListForm,
+            models.Entry.Types.TIMELINE: forms.TimelineForm,
+            models.Entry.Types.TEXT: forms.RichTextForm,
+        }.get(self.object.kind, forms.EntryForm)
 
-    def get(self, request):
-        report = self.get_report()
-        return JsonResponse({'details': [report]}, safe=False)
+    def get_success_url(self):
+        return reverse('report-editor', kwargs={'pk': self.object.report.pk})
+
+
+class CreateEntry(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
+    form_class = forms.EntryForm
+    template_name = "modal/form.html"
+    model = models.Entry
+    success_message = "Entry has been added"
+
+    def get_success_url(self):
+        return reverse('report-editor', kwargs={'pk': self.object.report.pk})
+
+    def get_initial(self):
+        report = models.Report.objects.filter(pk=self.kwargs.get('report')).first()
+        if not report:
+            raise Http404('Report not found')
+        initial = super().get_initial()
+        initial['report'] = self.kwargs.get('report')
+        initial['position'] = report.entries.count()
+        return initial
