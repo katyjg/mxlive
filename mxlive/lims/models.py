@@ -361,7 +361,8 @@ class Session(models.Model):
         Returns total time the session was active, in hours
         """
         total = self.stretches.with_duration().aggregate(time=Sum('duration'))
-
+        if not total['time']:
+            return 0
         return total['time'].total_seconds()/3600
     total_time.short_description = _("Duration")
 

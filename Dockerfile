@@ -10,7 +10,7 @@ ADD . /mxlive
 RUN set -ex && \
     apk add --no-cache --virtual libpq apache2-ssl apache2-mod-wsgi certbot-apache openssl sed bash  && \
     python3 -m venv /venv && source /venv/bin/activate && \
-    /venv/bin/pip3 install --no-cache-dir --upgrade pip && \
+    /venv/bin/pip3 install --no-cache-dir --upgrade pip ipython && \
     /venv/bin/pip3 install --no-cache-dir -r /requirements.txt  && \
     mkdir -p /mxlive/local && \
     chmod -v +x /run-server.sh /wait-for-it.sh && \

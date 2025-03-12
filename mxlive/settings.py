@@ -56,7 +56,6 @@ INSTALLED_APPS = [
     'mxlive.staff',
     'mxlive.lims',
     'mxlive.remote',
-    'mxlive.reporter',
     'crispy_forms',
     'crispy_bootstrap4',
     'rest_framework',
@@ -66,6 +65,7 @@ INSTALLED_APPS = [
 
 LIMS_USE_SCHEDULE = False
 LIMS_USE_PUBLICATIONS = False
+LIMS_USE_REPORTER = False
 
 MIDDLEWARE = [
     # 'debug_toolbar.middleware.DebugToolbarMiddleware',
@@ -288,3 +288,6 @@ if LIMS_USE_SCHEDULE:
 
 if LIMS_USE_PUBLICATIONS:
     INSTALLED_APPS.extend(['mxlive.publications'])
+
+if LIMS_USE_REPORTER:
+    INSTALLED_APPS.extend(['mxlive.reporter'])
