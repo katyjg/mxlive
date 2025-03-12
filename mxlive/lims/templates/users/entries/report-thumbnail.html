@@ -1,7 +1,7 @@
 {% load badges %}
 
 <div class="col-12 col-sm-6 col-md-4 col-lg-3 mini-thumbnail pull-right">
-    <a href="{% url 'report-detail' report.pk %}">
+    <a href="{% url 'result-detail' report.pk %}">
     <div class="list-group-item list-group-item-info text-condensed">
         {% score_badge report.score %}
         <span class="overflow ellipsis"><strong>{{ report.name }} </strong> | {{ report.kind }} Report</span>

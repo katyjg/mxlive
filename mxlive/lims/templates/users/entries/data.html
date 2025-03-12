@@ -63,7 +63,7 @@
             <strong>Reports:</strong><br/>
             <span class="text-muted">
             {% for report in object.reports.all %}
-                <a href="{% url "report-detail" report.pk %}" title="View {{ report.name }} Report">
+                <a href="{% url "result-detail" report.pk %}" title="View {{ report.name }} Report">
                     {% score_badge report.score %}
                 </a>
             {% endfor %}

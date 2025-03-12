@@ -1,17 +1,24 @@
-{% extends "users/base.html" %}
+{% extends "reporter/base.html" %}
 {% load static %}
 {% load jsutils %}
-
-{% block page_heading %}<h3>{{ report.title }}</h3>{% endblock %}
-
+{% load reporter %}
 {% block extra_css %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.20/c3.min.css" integrity="sha512-cznfNokevSG7QPA5dZepud8taylLdvgr0lDqw/FEZIhluFsSwyvS81CMnRdrNSKwbsmc43LtRd2/WMQV+Z85AQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="{% static "reporter/reports.min.css" %}" rel="stylesheet">
 {% endblock %}
+{% block folio-header %}
+    <nav class="d-print-none" aria-label="breadcrumb">
+      <ol class="breadcrumb bg-light my-3 mx-5">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url "report-list" %}">Reports</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ report.title }}</li>
+      </ol>
+    </nav>
+{% endblock %}
 
 {% block full %}
     <div class="row">
-        <div id="report-entry" class="col-12"></div>
+        <div id="report-entry" class="col-12 p-5 "></div>
     </div>
 {% endblock %}
 

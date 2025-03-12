@@ -40,10 +40,12 @@
         </div>
         <div class="container-fluid">
             <div class="folio mt-3">
+                {% block folio-header %}
                 <div class="folio-header d-flex flex-row justify-content-between overflow-ellipsis">
                     <div class="heading-box">{% block page_heading %}{% endblock %}</div>
                     <div class="no-overflow tools-box">{% block object_tools %}{% endblock %}</div>
                 </div>
+                {% endblock %}
                 {% block object_status %}{% endblock %}
                 {% if maintenance %}
                 <div class="alert alert-warning">
@@ -61,11 +63,11 @@
 {% endblock %}
 <div id="modal-target"></div>
 {% if user.is_authenticated %}
-    <div class="footer text-muted">
+    <div class="footer text-muted d-print-none">
         <div class="footer-wrapper overflow-ellipsis">
             <div class="footer-item"> {{ version }}</div>
             <div class="footer-item">&#9400; 2010&ndash;{% now "Y" %}</div>
-            <div class="footer-item"><a class="text-muted" href="/">Dashboard</a></div>
+            <div class="footer-item"><a class="text-muted" href="/mxlive/static">Dashboard</a></div>
         </div>
     </div>
 {% endif %}

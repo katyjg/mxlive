@@ -1,4 +1,4 @@
-{% extends "users/base.html" %}
+{% extends "base.html" %}
 
 {% load humanize static %}
 {% load badges %}
@@ -79,6 +79,7 @@
     <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
+
     <script type="text/javascript">
         let report = {
             details: {{ object.details | jsonify }}
