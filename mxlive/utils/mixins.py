@@ -66,7 +66,7 @@ class HTML2PdfMixin(object):
     """
 
     def get_template_name(self):
-        return "users/base.html"
+        return "base.html"
 
     def get(self, request, *args, **kwargs):
         object = self.get_object()

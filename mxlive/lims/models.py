@@ -244,10 +244,6 @@ class StretchQuerySet(models.QuerySet):
         )
 
 
-class StretchManager(models.Manager.from_queryset(StretchQuerySet)):
-    use_for_related_fields = True
-
-
 class ProjectObjectManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().select_related('project')
@@ -396,12 +392,11 @@ class Session(models.Model):
         ]
 
 
-
 class Stretch(models.Model):
     start = models.DateTimeField(null=False, blank=False)
     end = models.DateTimeField(null=True, blank=True)
     session = models.ForeignKey(Session, related_name='stretches', on_delete=models.CASCADE)
-    objects = StretchManager()
+    objects = StretchQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("Beamline Usage")
@@ -847,7 +842,7 @@ class Container(TransitStatusMixin):
         if hasattr(self, 'port_name'):  # fetch from default annotation
             return self.port_name
         elif self.parent and self.location:
-            return "{}{}".format(self.parent.port(), self.location.name)
+            return f"{self.parent.port()}{self.location.name}"
         return ""
 
     def get_project(self):
@@ -943,13 +938,13 @@ class LoadHistory(models.Model):
                                on_delete=models.CASCADE)
     location = models.ForeignKey(ContainerLocation, blank=True, null=True, on_delete=models.SET_NULL)
 
-    objects = StretchManager()
+    objects = StretchQuerySet.as_manager()
 
     class Meta:
         ordering = ['-start', ]
 
     def __str__(self):
-        return '{}|{}|{}|{}'.format(self.child, self.parent, self.start, self.end)
+        return f'{self.child}|{self.parent}|{self.start}|{self.end}'
 
 
 class Dewar(models.Model):
@@ -1299,7 +1294,7 @@ class AnalysisReport(ActiveStatusMixin):
         return self.kind[:3].upper()
 
     def get_absolute_url(self):
-        return reverse('report-detail', kwargs={'pk': self.id})
+        return reverse('result-detail', kwargs={'pk': self.id})
 
     def sessions(self):
         return self.project.sessions.filter(pk__in=self.data.values_list('session__pk', flat=True)).distinct()

@@ -80,6 +80,7 @@ $max_font: 14px;
 body, .tooltip, .popover {
   font-family: $base-font, sans-serif !important;
   font-weight: 400;
+  margin: 0.5rem;
 }
 
 pre {
@@ -101,7 +102,7 @@ header > nav {
   max-height: 51px !important;
 }
 
-main {
+header + main {
   margin-top: calc(51px + 1rem);
   padding-bottom: 51px;
 }
@@ -333,11 +334,15 @@ a.navbar-brand {
   float: left;
 }
 
-.list-group-item .tools-box, .panel-heading .tools-box {
+.list-group-item .tools-box,
+.panel-heading .tools-box,
+.card-header .tools-box {
   margin-right: -0.5rem;
 }
 
-.list-group-item .tools-box + .tools-box, .panel-heading .tools-box + .tools-box {
+.list-group-item .tools-box + .tools-box,
+.panel-heading .tools-box + .tools-box,
+.card-header .tools-box + .tools-box {
   margin-right: 0;
 }
 .list-group-item .box-status {
@@ -351,9 +356,7 @@ a.navbar-brand {
   flex-direction: row;
   align-items: center;
   justify-content: space-evenly;
-  padding: 0 0.5em;
-  margin: 0.5em 0;
-  padding-right: 0.25em !important;
+  //padding-right: 0.25em !important;
   line-height: 1;
   text-align: center;
   //border-left: 1px solid var(--gray-alpha);
@@ -414,13 +417,13 @@ a.text-muted:hover {
   color: var(--gray-dark);
 }
 
-.tool-label, .btn-label, .icon-label {
+.tool-label, .btn-label, .icon-stack + .icon-label {
   display: inline-block;
   font-size: 0.85rem;
   color: inherit;
   line-height: 0.75;
-  padding-top: 0.35rem;
   min-width: 3rem;
+  padding-top: 0.35rem;
   margin: 0 0.5rem;
 }
 
@@ -511,10 +514,6 @@ table {
 table.shallow-table td {
   padding-top: 4px !important;
   padding-bottom: 2px !important;
-}
-
-.first-col-left table tr > td:first-child {
-  text-align: left;
 }
 
 .scroll-sidebar {
@@ -736,14 +735,8 @@ form {
   }
 
   .custom-control {
-    padding: .25rem .75rem;
-    line-height: 1.5;
-
-    &.custom-switch  {
-      padding-left: 1.5rem;
-    }
-    &.custom-radio, &.custom-checkbox {
-      padding-left: 0.75rem;
+    &.custom-radio, &.custom-checkbox, &.custom-switch {
+      padding-top: 0.5em;
     }
   }
 }

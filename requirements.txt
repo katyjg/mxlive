@@ -42,3 +42,6 @@ sqlparse
 timezonefinder==6.5.7
 urllib3
 wkhtmltopdf
+pyparsing==3.2.1
+PyYAML==6.0.2
+Pygments==2.19.1
