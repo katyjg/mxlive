@@ -19,6 +19,9 @@ caption, figcaption {
 .report-viewer .table caption:before {
 	content: 'Table ' counter(tables)	' - ';
 }
+.first-col-left table tr > td:first-child {
+  text-align: left;
+}
 
 #report-builder {
 	max-width: 60em;

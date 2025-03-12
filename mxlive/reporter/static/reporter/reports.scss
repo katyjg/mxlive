@@ -1,11 +1,80 @@
-body, .tooltip, .popover {
-  font-family: "Fira Sans", sans-serif !important;
-  font-weight: 400;
-  font-size: 14px;
+
+:root {
+  --max-font-size: 13px;
+  --min-font-size: 7px;
 }
 
-pre {
-  font-family: "Fira Code", monospace;
+
+@function strip-unit($value) {
+  @return $value / ($value * 0 + 1);
+}
+
+@mixin fluid-type($min-vw, $max-vw, $min-font-size, $max-font-size) {
+  $u1: unit($min-vw);
+  $u2: unit($max-vw);
+  $u3: unit($min-font-size);
+  $u4: unit($max-font-size);
+
+  @if $u1 == $u2 and $u1 == $u3 and $u1 == $u4 {
+    & {
+      font-size: $min-font-size;
+      @media screen and (min-width: $min-vw) {
+        font-size: calc(#{$min-font-size} + #{strip-unit($max-font-size - $min-font-size)} * ((100vw - #{$min-vw}) / #{strip-unit($max-vw - $min-vw)}));
+      }
+      @media screen and (min-width: $max-vw) {
+        font-size: $max-font-size;
+      }
+    }
+  }
+}
+
+$min_width: 300px;
+$max_width: 1200px;
+$min_font: 7px;
+$max_font: 13px;
+$main-font: "Fira Sans";
+$mono-font: "Fira Code";
+
+:root {
+  @include fluid-type($min_width, $max_width, $min_font, $max_font);
+}
+
+.c3 svg {
+	font-family: $main-font, sans-serif;
+}
+
+body, .tooltip, .popover {
+  font-family: $main-font, sans-serif !important;
+  font-weight: 400;
+}
+
+pre, code, kbd, samp {
+  font-family: $mono-font, monospace;
+  font-weight: 300;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 200;
+}
+
+pre:has(code) {
+    background: var(--light);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--info);
+    color: var(--bs-dark);
+    page-break-inside: avoid;
+    font-family: monospace;
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 1.6em;
+    max-width: 100%;
+    overflow: auto;
+    padding: 1em 1.5em;
+    display: block;
+    word-wrap: break-word;
+}
+
+h1 {
+  border-bottom: 1px solid var(--gray-alpha);
 }
 
 caption, figcaption {
@@ -30,25 +99,29 @@ caption, figcaption {
   content: 'Table ' counter(tables) ' - ';
 }
 
+.report-viewer svg * {
+  font-family: $main-font, sans-serif !important;
+}
+
 #report-builder {
-  max-width: 60em;
+  max-width: 60rem;
   margin: 1rem auto;
 }
 
+.first-col-left table tr > td:first-child {
+  text-align: left;
+}
+
 .report-viewer {
-  padding: 1rem;
   counter-reset: figures tables;
 
-  h3 {
+  .section-title {
     font-weight: 200;
-    border-left: 0.25rem solid rgba(0, 0, 0, 0.2);
-    margin-left: 0.25rem;
-    margin-bottom: 1rem;
+    font-size: 2rem;
   }
 
   .description {
     display: block;
-    width: 100%
   }
 
   .table {
@@ -162,6 +235,20 @@ table {
 }
 
 .report-viewer table.table tbody td {
-  font-family: "Fira Code", sans-serif;
+  font-family: $mono-font, sans-serif;
   font-size: 0.85rem;
+}
+
+/* override styles when printing */
+@media print {
+
+  body {
+    margin: 0;
+    color: #000;
+    background-color: #fff;
+  }
+  :root {
+    @include fluid-type($min_width, $max_width, $max_font, $max_font * 1.5);
+  }
+
 }
