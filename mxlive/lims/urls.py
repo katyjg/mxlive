@@ -64,11 +64,11 @@ urlpatterns = [
     path('data/stats/', views.DataStats.as_view(), name='data-stats'),
     path('data/<int:pk>/', views.DataDetail.as_view(), name='data-detail'),
 
-    path('reports/', views.ReportList.as_view(), name='result-list'),
-    path('reports/<int:pk>/', views.ReportDetail.as_view(), name='report-detail'),
+    path('analyses/', views.ReportList.as_view(), name='result-list'),
+    path('analyses/<int:pk>/', views.ReportDetail.as_view(), name='result-detail'),
 
-    path('activity/', views.ActivityLogList.as_view(), name='activitylog-list'),
-    path('activity/<int:pk>/', views.ActivityLogList.as_view(), name='activitylog-detail'),
+    path('activity/', views.ActivityLogList.as_view(), name='activity-log-list'),
+    path('activity/<int:pk>/', views.ActivityLogList.as_view(), name='activity-log-detail'),
 
     path('sessions/', views.SessionList.as_view(), name='session-list'),
     path('sessions/<int:pk>/', views.SessionDetail.as_view(), name='session-detail'),
