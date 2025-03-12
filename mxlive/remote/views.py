@@ -179,6 +179,7 @@ class LaunchSession(AuthenticationRequiredMixin, View):
         beamline_name = kwargs.get('beamline')
         session_name = kwargs.get('session')
         project = request.user
+        project_name = project.username
 
         try:
             beamline = Beamline.objects.get(acronym__exact=beamline_name)
