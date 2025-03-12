@@ -226,10 +226,10 @@ class SSHKey(TimeStampedModel):
 
 class StretchQuerySet(models.QuerySet):
 
-    def active(self, extras={}):
+    def active(self, **extras):
         return self.filter(end__isnull=True, **extras)
 
-    def recent(self, extras={}):
+    def recent(self, **extras):
         recently = timezone.now() - timedelta(minutes=5)
         return self.filter(end__gte=recently, **extras)
 
@@ -294,7 +294,7 @@ class Session(models.Model):
         return encrypt("{user}:{name}".format(user=self.project.username, name=self.name))
 
     def launch(self):
-        Stretch.objects.active(extras={'session__beamline': self.beamline}).exclude(session=self).update(
+        Stretch.objects.active(session__beamline=self.beamline).exclude(session=self).update(
             end=timezone.now())
         self.stretches.recent().update(end=None)
         stretch = self.stretches.active().last() or Stretch.objects.create(session=self, start=timezone.now())
