@@ -883,7 +883,7 @@ class ReportList(ListViewMixin, ItemListView):
     list_columns = ['id', 'name', 'kind', 'score', 'modified']
     list_search = ['project__username', 'name', 'data__name']
     link_field = 'name'
-    link_url = 'report-detail'
+    link_url = 'result-detail'
     ordering = ['-modified']
     ordering_proxies = {}
     list_transforms = {
