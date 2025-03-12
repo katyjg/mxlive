@@ -1,0 +1,37 @@
+.report-editor {
+  .entry .card-body{
+    min-height: 15em;
+    max-height: 15em;
+    overflow: auto;
+    pre {
+      overflow: unset;
+    }
+  }
+  .entry .card-header {
+    &::before {
+      font-family: "bootstrap-icons";
+      padding-right: 0.5em;
+    }
+    &.entry-table::before {
+      content: "\F5AA";
+    }
+    &.entry-plot::before {
+      content: "\F3F1";
+    }
+    &.entry-bars::before {
+      content: "\F17E";
+    }
+    &.entry-pie::before {
+      content: "\F4E8";
+    }
+    &.entry-list::before {
+      content: "\F6A0";
+    }
+    &.entry-histogram::before {
+      content: "\F17B";
+    }
+    &.entry-timeline::before {
+      content: "\F602";
+    }
+  }
+}
