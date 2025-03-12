@@ -965,8 +965,8 @@ class ActivityLogList(ListViewMixin, ItemListView):
     ordering = ['-created']
     ordering_proxies = {}
     list_transforms = {}
-    link_url = 'activitylog-detail'
-    link_attr = 'data-link'
+    # link_url = 'activity-log-detail'
+    # link_attr = 'data-link'
     detail_target = '#modal-target'
 
 
