@@ -1,16 +1,15 @@
 import re
-
 from crispy_forms.bootstrap import StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Field, Layout
-from django.utils.translation import gettext as _
 from django import forms
 from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.text import slugify
+from django.utils.translation import gettext as _
 
-from .models import Project, Shipment, Dewar, Sample, ComponentType, Container, Group, ContainerLocation, ContainerType
 from .models import Guide, ProjectType, SupportRecord, SupportArea, UserFeedback, FeedbackScale, SSHKey
+from .models import Project, Shipment, Dewar, Sample, ComponentType, Container, Group, ContainerLocation, ContainerType
 from ..staff.models import UserList
 
 
@@ -64,7 +63,9 @@ class ProjectForm(forms.ModelForm):
                 Div('first_name', css_class='col-6'),
                 Div('last_name', css_class='col-6'),
                 Div('email', css_class='col-{}'.format(self.user.is_superuser and '6' or '12')),
-                self.user.is_superuser and Div(Field('designation', css_class='select'), css_class='col-6') or Div('designation'),
+                self.user.is_superuser and Div(Field('designation', css_class='select'), css_class='col-6') or Div(
+                    'designation'
+                ),
                 css_class='form-row'
             ),
             Div(
@@ -198,8 +199,10 @@ class ShipmentForm(forms.ModelForm):
     class Meta:
         model = Shipment
         fields = ('project', 'name', 'comments',)
-        widgets = {'project': disabled_widget,
-                   'comments': forms.Textarea(attrs={'rows': "2"})}
+        widgets = {
+            'project': disabled_widget,
+            'comments': forms.Textarea(attrs={'rows': "2"})
+        }
 
 
 class ShipmentCommentsForm(forms.ModelForm):
@@ -290,10 +293,9 @@ class SampleForm(forms.ModelForm):
 
 
 class SampleAdminForm(forms.ModelForm):
-
     class Meta:
         model = Sample
-        fields = ('staff_comments','collect_status')
+        fields = ('staff_comments', 'collect_status')
         widgets = {
             'staff_comments': forms.Textarea(attrs={'rows': "4"}),
             'collect_status': forms.HiddenInput,
@@ -308,9 +310,13 @@ class SampleAdminForm(forms.ModelForm):
         self.body.title = u"Update Sample"
         self.body.form_action = reverse_lazy('sample-admin-edit', kwargs={'pk': pk})
         if not self.instance.collect_status:
-            mark_btn = StrictButton("Mark Complete", type='submit', name="submit", value='done', css_class='btn btn-success')
+            mark_btn = StrictButton(
+                "Mark Complete", type='submit', name="submit", value='done', css_class='btn btn-success'
+            )
         else:
-            mark_btn = StrictButton("Mark Incomplete", type='submit', name="submit", value='done', css_class='btn btn-warning')
+            mark_btn = StrictButton(
+                "Mark Incomplete", type='submit', name="submit", value='done', css_class='btn btn-warning'
+            )
 
         self.body.layout = Layout(
             Div(
@@ -335,9 +341,11 @@ class SampleAdminForm(forms.ModelForm):
 
 
 class ShipmentSendForm(forms.ModelForm):
-    components = forms.ModelMultipleChoiceField(label='Items included in shipment',
-                                                queryset=ComponentType.objects.all(),
-                                                required=False)
+    components = forms.ModelMultipleChoiceField(
+        label='Items included in shipment',
+        queryset=ComponentType.objects.all(),
+        required=False
+    )
 
     class Meta:
         model = Shipment
@@ -387,7 +395,8 @@ class ShipmentReturnForm(forms.ModelForm):
         super(ShipmentReturnForm, self).__init__(*args, **kwargs)
         if self.instance.containers.filter(parent__isnull=False):
             self.fields['loaded'].label += ": {}".format(
-                ','.join(self.instance.containers.filter(parent__isnull=False).values_list('name', flat=True)))
+                ','.join(self.instance.containers.filter(parent__isnull=False).values_list('name', flat=True))
+            )
         else:
             self.fields['loaded'].initial = True
             self.fields['loaded'].widget = forms.HiddenInput()
@@ -413,9 +422,11 @@ class ShipmentReturnForm(forms.ModelForm):
 
 
 class ShipmentRecallSendForm(forms.ModelForm):
-    components = forms.ModelMultipleChoiceField(label='Items included in shipment',
-                                                queryset=ComponentType.objects.all(),
-                                                required=False)
+    components = forms.ModelMultipleChoiceField(
+        label='Items included in shipment',
+        queryset=ComponentType.objects.all(),
+        required=False
+    )
 
     class Meta:
         model = Shipment
@@ -544,7 +555,7 @@ class GroupForm(forms.ModelForm):
         fields = ('project', 'name', 'kind', 'plan', 'resolution', 'absorption_edge', 'comments')
         widgets = {
             'project': disabled_widget,
-            'resolution': forms.TextInput(attrs={'pattern': '\d+\.?\d*'}),
+            'resolution': forms.TextInput(attrs={'pattern': r'\d+\.?\d*'}),
             'comments': forms.Textarea(attrs={'rows': 5}),
         }
 
@@ -637,7 +648,8 @@ class ContainerLoadForm(forms.ModelForm):
         else:
             if self.cleaned_data['location']:
                 loc_filled = self.cleaned_data['parent'].children.exclude(pk=self.instance.pk).filter(
-                    location=self.cleaned_data['location']).exists()
+                    location=self.cleaned_data['location']
+                ).exists()
                 if loc_filled:
                     self.add_error(None, forms.ValidationError("Container is already loaded in that location"))
 
@@ -660,9 +672,13 @@ class EmptyContainers(forms.ModelForm):
         self.body.title = u"Remove containers"
         self.body.form_action = form_action
         self.body.layout = Layout(
-            Div(HTML(
-                """Any containers owned by <strong>{}</strong> will be removed from the automounter.""".format(
-                    self.instance.username.upper()))),
+            Div(
+                HTML(
+                    """Any containers owned by <strong>{}</strong> will be removed from the automounter.""".format(
+                        self.instance.username.upper()
+                    )
+                )
+            ),
             'parent',
         )
         self.footer.layout = Layout(
@@ -673,7 +689,8 @@ class EmptyContainers(forms.ModelForm):
 class LocationLoadForm(forms.ModelForm):
     child = forms.ModelChoiceField(
         label="Container",
-        queryset=Container.objects.filter(status=Container.STATES.ON_SITE))
+        queryset=Container.objects.filter(status=Container.STATES.ON_SITE)
+    )
     location = forms.ModelChoiceField(queryset=ContainerLocation.objects.all())
 
     class Meta:
@@ -701,7 +718,8 @@ class LocationLoadForm(forms.ModelForm):
                     css_class="col-12"
                 ),
                 css_class="form-row"
-            ))
+            )
+        )
         self.footer.layout = Layout(
             StrictButton('Load', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
         )
@@ -773,7 +791,8 @@ class ShipmentContainerForm(forms.ModelForm):
         self.fields['kind'].initial = ContainerType.objects.get(pk=1)
 
         self.fields['kind'].queryset = self.fields['kind'].queryset.filter(
-            locations__in=ContainerLocation.objects.filter(accepts__isnull=True)).distinct()
+            locations__in=ContainerLocation.objects.filter(accepts__isnull=True)
+        ).distinct()
 
         self.repeated_fields = ['name', 'kind', 'id']
         self.repeated_data = {}
@@ -789,8 +808,10 @@ class ShipmentContainerForm(forms.ModelForm):
             self.repeated_data['id_set'] = [c.pk for c in self.initial['shipment'].containers.all()]
             self.repeated_data['kind_set'] = [c.kind.pk for c in self.initial['shipment'].containers.all()]
             self.fields['kind'].widget.attrs['readonly'] = True
-            self.body.form_action = reverse_lazy('shipment-add-containers',
-                                                 kwargs={'pk': self.initial['shipment'].pk})
+            self.body.form_action = reverse_lazy(
+                'shipment-add-containers',
+                kwargs={'pk': self.initial['shipment'].pk}
+            )
             self.body.title = 'Add Containers to Shipment'
             self.footer.layout.append(
                 StrictButton('Save', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
@@ -807,7 +828,7 @@ class ShipmentContainerForm(forms.ModelForm):
                     Div(
                         Div(
                             Div(Field('name'), css_class="col-5"),
-                            Div(Field('kind', css_class="select-alt",  data_repeat_enable="true"), css_class="col-5"),
+                            Div(Field('kind', css_class="select-alt", data_repeat_enable="true"), css_class="col-5"),
                             Div(
                                 Div(
                                     HTML("<label>&nbsp;</label>"),
@@ -916,12 +937,13 @@ class ShipmentGroupForm(forms.ModelForm):
             self.body.form_action = reverse_lazy('shipment-add-groups', kwargs={'pk': self.initial['shipment'].pk})
         else:
             self.footer.layout.append(
-                StrictButton('Fill Containers', type='submit', name="submit", value='Fill', css_class='mr-auto btn btn-warning'),
+                StrictButton(
+                    'Fill Containers', type='submit', name="submit", value='Fill', css_class='mr-auto btn btn-warning'
+                ),
             )
             self.footer.layout.append(
                 StrictButton('Finish', type='submit', name="submit", value='Finish', css_class='btn btn-primary'),
             )
-
 
         self.body.layout = Layout(
             self.help_text(),
@@ -1036,7 +1058,6 @@ class ShipmentSamplesForm(forms.ModelForm):
 
 
 class SSHKeyForm(forms.ModelForm):
-
     class Meta:
         model = SSHKey
         fields = ['name', 'key', 'project']
@@ -1074,7 +1095,6 @@ class SSHKeyForm(forms.ModelForm):
 
 
 class GuideForm(forms.ModelForm):
-
     class Meta:
         model = Guide
         fields = ['title', 'description', 'kind', 'staff_only', 'modal', 'attachment', 'url', 'priority']
@@ -1105,7 +1125,9 @@ class GuideForm(forms.ModelForm):
             ),
             Div(
                 Div('kind', css_class="col-6"),
-                Div('url', css_class="col-6", title="Resource examples:\n'youtube:<vid>' or \n'flickr:<album>:<photo>'"),
+                Div(
+                    'url', css_class="col-6", title="Resource examples:\n'youtube:<vid>' or \n'flickr:<album>:<photo>'"
+                ),
                 css_class="row"
             ),
             Div(
@@ -1140,7 +1162,6 @@ class GuideForm(forms.ModelForm):
 
 
 class SupportAreaForm(forms.ModelForm):
-
     class Meta:
         model = SupportArea
         fields = ['name', 'user_feedback', 'external', 'scale']
@@ -1159,10 +1180,10 @@ class SupportAreaForm(forms.ModelForm):
 
         self.body.layout = Layout(
             Div(
-                Div('name', css_class="col-12"),
-                Div(Div('user_feedback', css_class="mt-3 ml-3 pl-1"), css_class="col-6"),
+                Div('name', css_class="col-6"),
                 Div('scale', css_class="col-6"),
-                Div(Div('external', css_class="mt-3 ml-3 pl-1"), css_class="col-12"),
+                Div('user_feedback', css_class="col-12"),
+                Div('external', css_class="col-12"),
                 css_class="row"
             ),
         )
@@ -1185,7 +1206,6 @@ class LikertEntry(Field):
 
 
 class UserFeedbackForm(forms.ModelForm):
-
     class Meta:
         model = UserFeedback
         fields = ['comments', 'contact', 'session']
@@ -1207,7 +1227,9 @@ class UserFeedbackForm(forms.ModelForm):
         self.body.form_action = reverse_lazy('session-feedback', kwargs={'key': self.initial['session'].feedback_key()})
 
         likert_tables = []
-        for scale in FeedbackScale.objects.filter(pk__in=SupportArea.objects.filter(user_feedback=True).values_list('scale__pk', flat=True)):
+        for scale in FeedbackScale.objects.filter(
+                pk__in=SupportArea.objects.filter(user_feedback=True).values_list('scale__pk', flat=True)
+        ):
             likert_tables.append(HTML(scale.statement))
             likert_table = LikertTable(options=scale.choices())
             for area in SupportArea.objects.filter(user_feedback=True, scale=scale):
@@ -1219,11 +1241,13 @@ class UserFeedbackForm(forms.ModelForm):
 
         self.body.layout = Layout(
             'session',
-            HTML("""<p class="text-large text-condensed">Help us improve your next visit or session by letting us know how we did this time.</p>"""),
+            HTML(
+                """<p class="text-large text-condensed">Help us improve your next visit or session by letting us know how we did this time.</p>"""
+            ),
             *likert_tables,
             Div(
                 Div('comments', css_class="col-12"),
-                Div('contact', css_class="mx-3 px-1 col-12"),
+                Div('contact', css_class="col-12"),
                 css_class="row"
             ),
         )
@@ -1240,8 +1264,11 @@ class SupportRecordForm(forms.ModelForm):
         model = SupportRecord
         fields = ['kind', 'areas', 'staff', 'project', 'beamline', 'comments', 'staff_comments', 'lost_time']
         widgets = {
-            'comments': forms.Textarea(attrs={
-                "cols": 40, "rows": 7, "placeholder": 'Question/Concern from User:\nMy Response/Action Taken:'}),
+            'comments': forms.Textarea(
+                attrs={
+                    "cols": 40, "rows": 7, "placeholder": 'Question/Concern from User:\nMy Response/Action Taken:'
+                }
+            ),
             'staff_comments': forms.Textarea(attrs={'cols': 40, 'rows': 7})
         }
 
@@ -1284,7 +1311,6 @@ class SupportRecordForm(forms.ModelForm):
 
 
 class AccessForm(forms.ModelForm):
-
     class Meta:
         model = UserList
         fields = ('users',)

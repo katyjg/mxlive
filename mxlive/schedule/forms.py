@@ -73,7 +73,7 @@ class BeamtimeForm(forms.ModelForm):
             ),
             Div(
                 Div(Field('access', css_class="select"), css_class="col-6"),
-                Div(Field('notify'), css_class="col-6 px-4 pt-4"),
+                Div(Field('notify'), css_class="col-6"),
                 css_class="row"
             ),
             Div(
