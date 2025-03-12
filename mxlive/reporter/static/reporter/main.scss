@@ -1,0 +1,92 @@
+// Variables
+$web-font-path: "https://fonts.googleapis.com/css?family=Fira+Code|Fira+Sans+Condensed:400,800|Fira+Sans:200,400,800&display=swap" !default;
+
+
+:root {
+  --bs-border-radius: 0.1875rem;
+  --bs-border-radius-sm: 0.125rem;
+  --bs-border-radius-lg: 0.25rem;
+  --bs-border-radius-xl: 0.5rem;
+  --bs-border-radius-xxl: 1rem;
+  --bs-border-radius-2xl: var(--bs-border-radius-xxl);
+  --bs-border-radius-pill: 50rem;
+  --bs-font-sans-serif: "Fira Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --bs-font-monospace: "Fira Code", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --bs-body-font-weight: 400;
+  --gray-alpha: var(--bs-border-color);
+}
+
+@import url($web-font-path);
+
+.icon-xs {
+  font-size: 1em;
+}
+
+.icon-sm {
+  font-size: 1.25em;
+}
+.icon-md {
+    font-size: 1.5em;
+}
+.icon-lg {
+    font-size: 2em;
+}
+.icon-xl {
+    font-size: 3em;
+}
+
+.toolbox {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-evenly;
+  line-height: 1;
+  text-align: center;
+
+  > * {
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    padding: 0 0.125em;
+    &:first-child {
+      border-left: 1px solid var(--gray-alpha);
+      padding-left: 0.5em;
+    }
+    &:last-child {
+      padding-right: 0!important;
+      margin-right: 0 !important;
+    }
+  }
+  &:empty, &:blank, &:-moz-only-whitespace {
+    display: none;
+  }
+  > .separator {
+    display: inline-block;
+    align-self: stretch;
+    width: 1px;
+    border-left: 1px solid var(--gray-alpha);
+    margin: 0 0.25em;
+    & + .separator, &:last-child {
+      display: none !important;
+    }
+  }
+}
+.tool-icon {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  margin: 0.25em 0;
+  > .icon-label {
+    font-size: 0.85rem;
+    color: inherit;
+    //line-height: 0.75;
+    min-width: 3rem;
+    padding-top: 0.5rem;
+  }
+}
+
+.custom-control {
+  &.custom-radio, &.custom-checkbox, &.custom-switch {
+    padding-top: 0.5em;
+  }
+}
