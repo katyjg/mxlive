@@ -1,18 +1,20 @@
-import calendar
 from collections import defaultdict
-from datetime import datetime, timedelta
-from math import ceil
 
+import calendar
 import numpy
+from datetime import datetime, timedelta
 from django.conf import settings
-from django.db.models import Count, Sum, F, Avg, FloatField, Case, When, IntegerField, Q, DateTimeField, ExpressionWrapper
+from django.db.models import Count, Sum, F, Avg, FloatField, Case, When, IntegerField, Q, DateTimeField, \
+    ExpressionWrapper
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import linebreaksbr
 from django.utils import timezone
 from django.utils.timesince import timesince
+from math import ceil
 from memoize import memoize
 
-from mxlive.lims.models import Data, Sample, Session, Project, AnalysisReport, Container, Shipment, ProjectType, SupportArea, UserFeedback, UserAreaFeedback, SupportRecord, FeedbackScale, DataType
+from mxlive.lims.models import (Data, Sample, Session, Project, AnalysisReport, Container, Shipment, ProjectType,
+                                SupportArea, UserFeedback, UserAreaFeedback, SupportRecord, FeedbackScale, DataType)
 from mxlive.utils.functions import ShiftEnd, ShiftStart, ShiftIndex
 from mxlive.utils.misc import humanize_duration, natural_duration
 from mxlive.utils.stats import make_table
@@ -56,7 +58,7 @@ def get_time_scale(filters):
     else:
         periods = get_data_periods('year')
         period_names = periods
-    return (period, periods, period_names)
+    return period, periods, period_names
 
 
 def usage_summary(period='year', **all_filters):
@@ -64,14 +66,15 @@ def usage_summary(period='year', **all_filters):
     filters = {f: val for f, val in all_filters.items() if f != 'time_scale'}
 
     field = 'created__{}'.format(period)
-    created_filters = {f.replace('modified', 'created').replace('kind', 'datasets__kind'): val for f, val in filters.items()}
+    created_filters = {f.replace('modified', 'created').replace('kind', 'datasets__kind'): val for f, val in
+                       filters.items()}
 
-    ### Sample Stats
+    # Sample Stats
     sample_filters = {f.replace('beamline', 'datasets__beamline'): val for f, val in created_filters.items()}
     samples = Sample.objects.filter(**sample_filters)
     sample_counts_info = samples.values(field).order_by(field).annotate(count=Count('id', distinct=True))
 
-    ### Session Stats
+    # Session Stats
     sessions = Session.objects.filter(**created_filters)
     session_counts_info = sessions.values(field).order_by(field).annotate(count=Count('id', distinct=True))
     throughput_info = sessions.values(field).order_by(field).annotate(
@@ -89,18 +92,20 @@ def usage_summary(period='year', **all_filters):
         shifts=Sum(ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')),
     )
 
-    ### Project Stats
+    # Project Stats
     project_filters = {f.replace('beamline', 'sessions__beamline'): val for f, val in created_filters.items()}
     project_info = sessions.values(field, 'project__name').distinct().order_by(
-        field, 'project__name').annotate(count=Count('project__name', distinct=True))
+        field, 'project__name'
+    ).annotate(count=Count('project__name', distinct=True))
     new_project_info = Project.objects.filter(**project_filters).values(field, 'name').order_by(
-        field, 'name').annotate(count=Count('name', distinct=True))
+        field, 'name'
+    ).annotate(count=Count('name', distinct=True))
     project_type_colors = {
         kind: ColorScheme.Live8[i]
         for i, kind in enumerate(ProjectType.objects.values_list('name', flat=True).order_by('-name'))
     }
 
-    ### Data Stats
+    # Data Stats
     datasets = Data.objects.filter(**filters)
     dataset_info = datasets.values(field).order_by(field).annotate(
         count=Count('id', distinct=True), exposure=Avg('exposure_time'),
@@ -108,13 +113,15 @@ def usage_summary(period='year', **all_filters):
     )
     dataset_durations = {entry[field]: entry['duration'].total_seconds() / HOUR_SECONDS for entry in dataset_info}
     data_time_info = datasets.annotate(shift=ShiftIndex('end_time')).values('shift', 'end_time__week_day').order_by(
-        'end_time__week_day', 'shift').annotate(count=Count('id'))
+        'end_time__week_day', 'shift'
+    ).annotate(count=Count('id'))
     data_project_kind_info = datasets.values('project__kind__name').order_by('project__kind__name').annotate(
-        count=Count('id'))
+        count=Count('id')
+    )
     data_types_info = datasets.values(field, 'kind__name').order_by(field).annotate(count=Count('id', distinct=True))
     data_types_names = list(DataType.objects.values_list('name', flat=True))
 
-    ### Metrics Overview
+    # Metrics Overview
     # Distinct Users
     distinct_users = {key: len([entry for entry in project_info if entry[field] == key]) for key in periods}
     # New Users
@@ -150,7 +157,7 @@ def usage_summary(period='year', **all_filters):
         for entry in throughput_info if entry['time'] and entry['num_datasets']
     }
 
-    ### Plots
+    # Plots
     # Throughput Plot
     throughput_data = [
         {
@@ -163,7 +170,8 @@ def usage_summary(period='year', **all_filters):
     sample_throughput_types = [
         {
             **{period.title(): period_names[i]},
-            **{entry['project__kind__name']: entry['time'] and 3600. * entry['num_samples'] / entry['time'].total_seconds() or 0
+            **{entry['project__kind__name']: entry['time'] and 3600. * entry['num_samples'] / entry[
+                'time'].total_seconds() or 0
                for entry in throughput_types_info if entry[field] == per}
         } for i, per in enumerate(periods)
     ]
@@ -171,7 +179,8 @@ def usage_summary(period='year', **all_filters):
     data_throughput_types = [
         {
             **{period.title(): period_names[i]},
-            **{entry['project__kind__name']: entry['time'] and 3600. * entry['num_datasets'] / entry['time'].total_seconds() or 0
+            **{entry['project__kind__name']: entry['time'] and 3600. * entry['num_datasets'] / entry[
+                'time'].total_seconds() or 0
                for entry in throughput_types_info if entry[field] == per}
         } for i, per in enumerate(periods)
     ]
@@ -181,11 +190,11 @@ def usage_summary(period='year', **all_filters):
     day_names = list(calendar.day_abbr)
     dataset_per_day = [
         {
-          'Day': day,
-          **{
-              '{:02d}:00 Shift'.format(entry['shift'] * SHIFT): entry['count']
-              for entry in data_time_info if (entry['end_time__week_day'] - 2) % 7 == i
-          }
+            'Day': day,
+            **{
+                '{:02d}:00 Shift'.format(entry['shift'] * SHIFT): entry['count']
+                for entry in data_time_info if (entry['end_time__week_day'] - 2) % 7 == i
+            }
         } for i, day in enumerate(day_names)
     ]
     # Datasets by Project Type Chart
@@ -204,10 +213,10 @@ def usage_summary(period='year', **all_filters):
     data_type_table = make_table(data_types_data, period_names, data_types_names)
     # Dataset Type Chart
     data_type_chart = [
-        {'label': kind, 'value': sum([e[kind] for e in data_types_data]) } for kind in data_types_names
+        {'label': kind, 'value': sum([e[kind] for e in data_types_data])} for kind in data_types_names
     ]
 
-    ### Formatting
+    # Formatting
     period_xvalues = periods
     x_scale = 'linear'
     time_format = ''
@@ -227,12 +236,15 @@ def usage_summary(period='year', **all_filters):
     for summary in datasets.values(field, 'kind__name').order_by(field).annotate(count=Count('pk')):
         period_data[summary[field]][summary['kind__name']] = summary['count']
 
-    ### User Statistics
-    user_session_info = sessions.values(user=F('project__name'), kind=F('project__kind__name')).order_by('user').annotate(
-        duration=Sum(Coalesce('stretches__end', timezone.now()) - F('stretches__start'),),
+    # User Statistics
+    user_session_info = sessions.values(user=F('project__name'), kind=F('project__kind__name')).order_by(
+        'user'
+    ).annotate(
+        duration=Sum(Coalesce('stretches__end', timezone.now()) - F('stretches__start'), ),
         shift_duration=Sum(ShiftEnd(Coalesce('stretches__end', timezone.now())) - ShiftStart('stretches__start')),
     )
-    user_data_info = datasets.values(user=F('project__name')).order_by('user').annotate(count=Count('id'),
+    user_data_info = datasets.values(user=F('project__name')).order_by('user').annotate(
+        count=Count('id'),
         shutters=Sum(F('end_time') - F('start_time'))
     )
     user_sample_info = samples.values(user=F('project__name')).order_by('user').annotate(count=Count('id'))
@@ -250,7 +262,10 @@ def usage_summary(period='year', **all_filters):
     ]
     # Time Used
     user_stats['time_used'] = [
-        {'User': info['user'], 'Hours': round(info["duration"].total_seconds() / HOUR_SECONDS, 1), 'Type': user_types.get(info['user'], 'Unknown')}
+        {
+            'User': info['user'], 'Hours': round(info["duration"].total_seconds() / HOUR_SECONDS, 1),
+            'Type': user_types.get(info['user'], 'Unknown')
+        }
         for info in sorted(user_session_info, key=lambda v: v['duration'], reverse=True)[:MAX_COLUMN_USERS]
     ]
     # Efficiency
@@ -259,18 +274,25 @@ def usage_summary(period='year', **all_filters):
         for info in user_data_info
     }
     user_stats['efficiency'] = [
-        {'User': info['user'],
-         'Percent': min(100, 100 * user_shutters.get(info['user'], 0) / info["duration"].total_seconds()),
-         'Type': user_types.get(info['user'], 'Unknown')}
-        for info in sorted(user_session_info,
-                           key=lambda v: v['duration'] and user_shutters.get(v['user'], 0) / v['duration'].total_seconds() or 0,
-                           reverse=True)[:MAX_COLUMN_USERS]
+        {
+            'User': info['user'],
+            'Percent': min(100, 100 * user_shutters.get(info['user'], 0) / info["duration"].total_seconds()),
+            'Type': user_types.get(info['user'], 'Unknown')
+        }
+        for info in sorted(
+            user_session_info,
+            key=lambda v: v['duration'] and user_shutters.get(v['user'], 0) / v['duration'].total_seconds() or 0,
+            reverse=True
+        )[:MAX_COLUMN_USERS]
     ]
     # Schedule Efficiency
     user_stats['schedule_efficiency'] = [
-        {'User': info['user'], 'Percent': round(100*info["duration"] / info["shift_duration"], 1),
-         'Type': user_types.get(info['user'], 'Unknown')}
-        for info in sorted(user_session_info, key=lambda v: v['duration']/v['shift_duration'], reverse=True)[:MAX_COLUMN_USERS]
+        {
+            'User': info['user'], 'Percent': round(100 * info["duration"] / info["shift_duration"], 1),
+            'Type': user_types.get(info['user'], 'Unknown')
+        }
+        for info in
+        sorted(user_session_info, key=lambda v: v['duration'] / v['shift_duration'], reverse=True)[:MAX_COLUMN_USERS]
     ]
     for key, data in user_stats.items():
         user_stats[key] = {
@@ -285,212 +307,227 @@ def usage_summary(period='year', **all_filters):
     if settings.LIMS_USE_SCHEDULE:
         from mxlive.schedule.stats import beamtime_summary
 
-        beamtime = beamtime_summary(**{f.replace('modified', 'start'): val for f, val in all_filters.items() if not f.startswith('kind')})
+        beamtime = beamtime_summary(
+            **{f.replace('modified', 'start'): val for f, val in all_filters.items() if not f.startswith('kind')}
+        )
 
-    stats = {'details': [
-        {
-            'title': 'Metrics Overview',
-            'style': 'row',
-            'content': [
-                {
-                    'title': 'Usage Statistics',
-                    'kind': 'table',
-                    'data': [
-                        [period.title()] + period_names,
-                        ['Distinct Users'] + [distinct_users.get(p, 0) for p in periods],
-                        ['New Users'] + [new_users.get(p, 0) for p in periods],
-                        ['Samples Measured'] + [samples_measured.get(p, 0) for p in periods],
-                        ['Sessions'] + [session_counts.get(p, 0) for p in periods],
-                        ['Shifts Used'] + [shifts_used.get(p, 0) for p in periods],
-                        ['Time Used¹ (hr)'] + ['{:0.1f}'.format(time_used.get(p, 0)) for p in periods],
-                        ['Usage Efficiency² (%)'] + ['{:.0%}'.format(usage_efficiency.get(p, 0)) for p in periods],
-                        ['Datasets³ Collected'] + [dataset_counts.get(p, 0) for p in periods],
-                        ['Minutes/Dataset³'] + ['{:0.1f}'.format(minutes_per_dataset.get(p, 0)) for p in periods],
-                        ['Datasets³/Hour'] + ['{:0.1f}'.format(dataset_per_hour.get(p, 0)) for p in periods],
-                        ['Average Exposure (sec)'] + ['{:0.2f}'.format(dataset_exposure.get(p, 0)) for p in periods],
-                        ['Samples/Dataset³'] + ['{:0.1f}'.format(samples_per_dataset.get(p, 0)) for p in periods],
-                        ['Sample Throughput (/h)'] + ['{:0.2f}'.format(sample_throughput.get(p, 0)) for p in periods],
-                        ['MX Dataset Throughput (/h)'] + ['{:0.2f}'.format(data_throughput.get(p, 0)) for p in periods],
-                    ],
-                    'style': 'col-12',
-                    'header': 'column row',
-                    'description': 'Summary of time, datasets and usage statistics',
-                    'notes': (
-                        ' 1. Time Used is the number of hours an active session was running on the beamline.  \n'
-                        ' 2. Usage efficiency is the percentage of used shifts during which a session was active.  \n'
-                        ' 3. All datasets are considered for this statistic irrespective of dataset type.'
-                    )
-                },
-                {
-                    'title': 'Throughput by {} (/h)'.format(period),
-                    'kind': 'columnchart',
-                    'data': {
-                        'x-label': period.title(),
-                        'data': throughput_data,
-                    },
-                    'style': 'col-12 col-md-6'
-                },
-                {
-                    'title': 'Sample Throughput by {} (/h)'.format(period),
-                    'kind': 'columnchart',
-                    'data': {
-                        'x-label': period.title(),
-                        'data': sample_throughput_types,
-                        'colors': project_type_colors
-                    },
-                    'style': 'col-12 col-md-6'
-                },
-                {
-                    'title': 'MX Dataset Throughput by {} (/h)'.format(period),
-                    'kind': 'columnchart',
-                    'data': {
-                        'x-label': period.title(),
-                        'data': data_throughput_types,
-                        'colors': project_type_colors
-                    },
-                    'style': 'col-12 col-md-6'
-                },
-                {
-                    'title': 'Usage Statistics',
-                    'kind': 'columnchart',
-                    'data': {
-                        'x-label': period.title(),
-                        'data': [
-                            {
-                                period.title(): period_names[i],
-                                'Samples': samples_measured.get(per, 0),
-                                'Datasets': dataset_counts.get(per, 0),
-                                'Total Time': round(time_used.get(per, 0), 1),
-                            } for i, per in enumerate(periods)
-                        ]
-                    },
-                    'style': 'col-12 col-md-6'
-                },
-                {
-                    'title': 'Productivity',
-                    'kind': 'lineplot',
-                    'data':
-                        {
-                            'x': [period.title()] + period_xvalues,
-                            'y1': [['Datasets/Shift'] + [round(dataset_per_shift.get(per, 0), 2) for per in periods]],
-                            'y2': [['Average Exposure'] + [round(dataset_exposure.get(per, 0), 2) for per in periods]],
-                            'x-scale': x_scale,
-                            'time-format': time_format
-                        },
-                    'style': 'col-12 col-md-6',
-                },
-                {
-                    'title': 'Datasets by time of week',
-                    'kind': 'columnchart',
-                    'data': {
-                        'x-label': 'Day',
-                        'data': dataset_per_day
-                    },
-                    'style': 'col-12 col-md-6'
-                },
-                {
-                    'title': 'Datasets by Project Type',
-                    'kind': 'pie',
-                    'data': {
-                        'data': [
-                            {'label': key or 'Unknown', 'value': count} for key, count in category_counts.items()
-                        ],
-                    },
-                    'style': 'col-12 col-md-6'
-                },
-            ]
-        },
-        {
-            'title': 'Data Summary',
-            'style': "row",
-            'content': [
-                {
-                    'title': 'Dataset summary by {}'.format(period),
-                    'kind': 'table',
-                    'data': data_type_table,
-                    'header': 'column row',
-                    'style': 'col-12'
-                },
-                {
-                    'title': 'Dataset summary by {}'.format(period),
-                    'kind': 'columnchart',
-                    'data': {
-                        'x-label': period.title(),
-                        'stack': [data_types_names],
-                        'data': data_types_data,
-                    },
-                    'style': 'col-12 col-md-6'
-                },
-                {
-                    'title': 'Dataset Types',
-                    'kind': 'pie',
-                    'data': {
-                        "colors": "Live16",
-                        "data": data_type_chart,
-                    },
-                    'style': 'col-12 col-md-6'
-                }
-            ]
-        },
-        {
-            'title': 'User Statistics',
-            'style': "row",
-            'content': [
-                {
-                    'title': 'Datasets',
-                    'kind': 'barchart',
-                    'data': user_stats['datasets'],
-                    'notes': (
-                        "Dataset counts include all types of datasets. "
-                        "Only the top {} users by number of datasets are shown"
-                    ).format(MAX_COLUMN_USERS),
-                    'style': 'col-12 col-md-4'
-                },
-                {
-                    'title': 'Samples',
-                    'kind': 'barchart',
-                    'data': user_stats['samples'],
-                    'notes': (
-                        "Sample counts include only samples measured on the beamline. "
-                        "Only the top {} users sample count shown"
-                    ).format(MAX_COLUMN_USERS),
-                    'style': 'col-12 col-md-4'
-                },
-                {
-                    'title': 'Time Used',
-                    'kind': 'barchart',
-                    'data': user_stats['time_used'],
-                    "notes": (
-                        "Total time is sum of active session durations for each user. Only the top {} "
-                        "users are shown."
-                    ).format(MAX_COLUMN_USERS),
-                    'style': 'col-12 col-md-4'
-                },
-                {
-                    'title': 'Efficiency',
-                    'kind': 'barchart',
-                    'data': user_stats['efficiency'],
-                    "notes": (
-                        "Efficiency is the percentage of Time Used during which shutters were open. This measures how "
-                        "effectively users are using their active session for data collection. "
-                        "Only the top {} users are shown."
-                    ).format(MAX_COLUMN_USERS),
-                    'style': 'col-12 col-md-4'
-                },
-                {
-                    'title': 'Schedule Efficiency',
-                    'kind': 'barchart',
-                    'data': user_stats['schedule_efficiency'],
-                    "notes": (
-                        "Schedule Efficiency is the percentage of shift time during which a session "
-                        "was active. This measures how effectively users are using full scheduled shifts for "
-                        "data collection. Only the top {} users are shown."
-                    ).format(MAX_COLUMN_USERS),
-                    'style': 'col-12 col-md-4'
-                },
-            ],
-        },
-    ] + beamtime
+    stats = {
+        'details': [
+                       {
+                           'title': 'Metrics Overview',
+                           'style': 'row',
+                           'content': [
+                               {
+                                   'title': 'Usage Statistics',
+                                   'kind': 'table',
+                                   'data': [
+                                       [period.title()] + period_names,
+                                       ['Distinct Users'] + [distinct_users.get(p, 0) for p in periods],
+                                       ['New Users'] + [new_users.get(p, 0) for p in periods],
+                                       ['Samples Measured'] + [samples_measured.get(p, 0) for p in periods],
+                                       ['Sessions'] + [session_counts.get(p, 0) for p in periods],
+                                       ['Shifts Used'] + [shifts_used.get(p, 0) for p in periods],
+                                       ['Time Used¹ (hr)'] + ['{:0.1f}'.format(time_used.get(p, 0)) for p in periods],
+                                       ['Usage Efficiency² (%)'] + ['{:.0%}'.format(usage_efficiency.get(p, 0)) for p in
+                                                                    periods],
+                                       ['Datasets³ Collected'] + [dataset_counts.get(p, 0) for p in periods],
+                                       ['Minutes/Dataset³'] + ['{:0.1f}'.format(minutes_per_dataset.get(p, 0)) for p in
+                                                               periods],
+                                       ['Datasets³/Hour'] + ['{:0.1f}'.format(dataset_per_hour.get(p, 0)) for p in
+                                                             periods],
+                                       ['Average Exposure (sec)'] + ['{:0.2f}'.format(dataset_exposure.get(p, 0)) for p
+                                                                     in periods],
+                                       ['Samples/Dataset³'] + ['{:0.1f}'.format(samples_per_dataset.get(p, 0)) for p in
+                                                               periods],
+                                       ['Sample Throughput (/h)'] + ['{:0.2f}'.format(sample_throughput.get(p, 0)) for p
+                                                                     in periods],
+                                       ['MX Dataset Throughput (/h)'] + ['{:0.2f}'.format(data_throughput.get(p, 0)) for
+                                                                         p in periods],
+                                   ],
+                                   'style': 'col-12',
+                                   'header': 'column row',
+                                   'description': 'Summary of time, datasets and usage statistics',
+                                   'notes': (
+                                       ' 1. Time Used is the number of hours an active session was running on the beamline.  \n'
+                                       ' 2. Usage efficiency is the percentage of used shifts during which a session was active.  \n'
+                                       ' 3. All datasets are considered for this statistic irrespective of dataset type.'
+                                   )
+                               },
+                               {
+                                   'title': 'Throughput by {} (/h)'.format(period),
+                                   'kind': 'columnchart',
+                                   'data': {
+                                       'x-label': period.title(),
+                                       'data': throughput_data,
+                                   },
+                                   'style': 'col-12 col-md-6'
+                               },
+                               {
+                                   'title': 'Sample Throughput by {} (/h)'.format(period),
+                                   'kind': 'columnchart',
+                                   'data': {
+                                       'x-label': period.title(),
+                                       'data': sample_throughput_types,
+                                       'colors': project_type_colors
+                                   },
+                                   'style': 'col-12 col-md-6'
+                               },
+                               {
+                                   'title': 'MX Dataset Throughput by {} (/h)'.format(period),
+                                   'kind': 'columnchart',
+                                   'data': {
+                                       'x-label': period.title(),
+                                       'data': data_throughput_types,
+                                       'colors': project_type_colors
+                                   },
+                                   'style': 'col-12 col-md-6'
+                               },
+                               {
+                                   'title': 'Usage Statistics',
+                                   'kind': 'columnchart',
+                                   'data': {
+                                       'x-label': period.title(),
+                                       'data': [
+                                           {
+                                               period.title(): period_names[i],
+                                               'Samples': samples_measured.get(per, 0),
+                                               'Datasets': dataset_counts.get(per, 0),
+                                               'Total Time': round(time_used.get(per, 0), 1),
+                                           } for i, per in enumerate(periods)
+                                       ]
+                                   },
+                                   'style': 'col-12 col-md-6'
+                               },
+                               {
+                                   'title': 'Productivity',
+                                   'kind': 'lineplot',
+                                   'data':
+                                       {
+                                           'x': [period.title()] + period_xvalues,
+                                           'y1': [
+                                               ['Datasets/Shift'] + [round(dataset_per_shift.get(per, 0), 2) for per in
+                                                                     periods]],
+                                           'y2': [
+                                               ['Average Exposure'] + [round(dataset_exposure.get(per, 0), 2) for per in
+                                                                       periods]],
+                                           'x-scale': x_scale,
+                                           'time-format': time_format
+                                       },
+                                   'style': 'col-12 col-md-6',
+                               },
+                               {
+                                   'title': 'Datasets by time of week',
+                                   'kind': 'columnchart',
+                                   'data': {
+                                       'x-label': 'Day',
+                                       'data': dataset_per_day
+                                   },
+                                   'style': 'col-12 col-md-6'
+                               },
+                               {
+                                   'title': 'Datasets by Project Type',
+                                   'kind': 'pie',
+                                   'data': {
+                                       'data': [
+                                           {'label': key or 'Unknown', 'value': count} for key, count in
+                                           category_counts.items()
+                                       ],
+                                   },
+                                   'style': 'col-12 col-md-6'
+                               },
+                           ]
+                       },
+                       {
+                           'title': 'Data Summary',
+                           'style': "row",
+                           'content': [
+                               {
+                                   'title': 'Dataset summary by {}'.format(period),
+                                   'kind': 'table',
+                                   'data': data_type_table,
+                                   'header': 'column row',
+                                   'style': 'col-12'
+                               },
+                               {
+                                   'title': 'Dataset summary by {}'.format(period),
+                                   'kind': 'columnchart',
+                                   'data': {
+                                       'x-label': period.title(),
+                                       'stack': [data_types_names],
+                                       'data': data_types_data,
+                                   },
+                                   'style': 'col-12 col-md-6'
+                               },
+                               {
+                                   'title': 'Dataset Types',
+                                   'kind': 'pie',
+                                   'data': {
+                                       "colors": "Live16",
+                                       "data": data_type_chart,
+                                   },
+                                   'style': 'col-12 col-md-6'
+                               }
+                           ]
+                       },
+                       {
+                           'title': 'User Statistics',
+                           'style': "row",
+                           'content': [
+                               {
+                                   'title': 'Datasets',
+                                   'kind': 'barchart',
+                                   'data': user_stats['datasets'],
+                                   'notes': (
+                                       "Dataset counts include all types of datasets. "
+                                       "Only the top {} users by number of datasets are shown"
+                                   ).format(MAX_COLUMN_USERS),
+                                   'style': 'col-12 col-md-4'
+                               },
+                               {
+                                   'title': 'Samples',
+                                   'kind': 'barchart',
+                                   'data': user_stats['samples'],
+                                   'notes': (
+                                       "Sample counts include only samples measured on the beamline. "
+                                       "Only the top {} users sample count shown"
+                                   ).format(MAX_COLUMN_USERS),
+                                   'style': 'col-12 col-md-4'
+                               },
+                               {
+                                   'title': 'Time Used',
+                                   'kind': 'barchart',
+                                   'data': user_stats['time_used'],
+                                   "notes": (
+                                       "Total time is sum of active session durations for each user. Only the top {} "
+                                       "users are shown."
+                                   ).format(MAX_COLUMN_USERS),
+                                   'style': 'col-12 col-md-4'
+                               },
+                               {
+                                   'title': 'Efficiency',
+                                   'kind': 'barchart',
+                                   'data': user_stats['efficiency'],
+                                   "notes": (
+                                       "Efficiency is the percentage of Time Used during which shutters were open. This measures how "
+                                       "effectively users are using their active session for data collection. "
+                                       "Only the top {} users are shown."
+                                   ).format(MAX_COLUMN_USERS),
+                                   'style': 'col-12 col-md-4'
+                               },
+                               {
+                                   'title': 'Schedule Efficiency',
+                                   'kind': 'barchart',
+                                   'data': user_stats['schedule_efficiency'],
+                                   "notes": (
+                                       "Schedule Efficiency is the percentage of shift time during which a session "
+                                       "was active. This measures how effectively users are using full scheduled shifts for "
+                                       "data collection. Only the top {} users are shown."
+                                   ).format(MAX_COLUMN_USERS),
+                                   'style': 'col-12 col-md-4'
+                               },
+                           ],
+                       },
+                   ] + beamtime
     }
     return stats
 
@@ -501,10 +538,12 @@ PARAMETER_NAMES = {
     for field_name in ['exposure_time', 'attenuation', 'energy', 'num_frames']
 }
 
-PARAMETER_NAMES.update({
-    field_name: AnalysisReport._meta.get_field(field_name).verbose_name
-    for field_name in ('score',)
-})
+PARAMETER_NAMES.update(
+    {
+        field_name: AnalysisReport._meta.get_field(field_name).verbose_name
+        for field_name in ('score',)
+    }
+)
 
 PARAMETER_RANGES = {
     'exposure_time': (0.01, 20),
@@ -521,7 +560,7 @@ PARAMETER_BINNING = {
 def get_histogram_points(data, range=None, bins='doane'):
     counts, edges = numpy.histogram(data, bins=bins, range=range)
     centers = (edges[:-1] + edges[1:]) * 0.5
-    return list(zip(centers, counts))
+    return [(float(v[0]), float(v[1])) for v in zip(centers, counts)]
 
 
 def make_parameter_histogram(data_info, report_info):
@@ -547,46 +586,51 @@ def make_parameter_histogram(data_info, report_info):
 
 def parameter_summary(**filters):
     beam_sizes = Data.objects.filter(beam_size__isnull=False, **filters).values(
-        'beam_size').order_by('beam_size').annotate(
+        'beam_size'
+    ).order_by('beam_size').annotate(
         count=Count('id')
     )
     report_filters = {f.replace('beamline', 'data__beamline'): val for f, val in filters.items()}
 
     report_info = AnalysisReport.objects.filter(**report_filters).values('score')
-    data_info = Data.objects.filter(**filters).values('exposure_time', 'attenuation', 'energy',
-                                                                         'num_frames')
+    data_info = Data.objects.filter(**filters).values(
+        'exposure_time', 'attenuation', 'energy',
+        'num_frames'
+    )
     param_histograms = make_parameter_histogram(data_info, report_info)
 
-    stats = {'details': [
-        {
-            'title': 'Parameter Distributions',
-            'style': 'row',
-            'content': [
-                           {
-                               'title': 'Beam Size',
-                               'kind': 'pie',
-                               'data': {
-                                   'data': [
-                                       {'label': "{:0.0f}".format(entry['beam_size']), 'value': entry['count']}
-                                       for entry in beam_sizes
-                                   ]
+    stats = {
+        'details': [
+            {
+                'title': 'Parameter Distributions',
+                'style': 'row',
+                'content': [
+                               {
+                                   'title': 'Beam Size',
+                                   'kind': 'pie',
+                                   'data': {
+                                       'data': [
+                                           {'label': "{:0.0f}".format(entry['beam_size']), 'value': entry['count']}
+                                           for entry in beam_sizes
+                                       ]
+                                   },
+                                   'style': 'col-12 col-md-6'
                                },
-                               'style': 'col-12 col-md-6'
-                           },
-                       ] + [
-                           {
-                               'title': PARAMETER_NAMES[param].title(),
-                               'kind': 'histogram',
-                               'data': {
-                                   'data': [
-                                       {"x": float(row[0]), "y": float(row[1])} for row in param_histograms[param]
-                                   ],
-                               },
-                               'style': 'col-12 col-md-6'
-                           } for param in ('score', 'energy', 'exposure_time', 'attenuation', 'num_frames')
-                       ]
-        }
-    ]}
+                           ] + [
+                               {
+                                   'title': PARAMETER_NAMES[param].title(),
+                                   'kind': 'histogram',
+                                   'data': {
+                                       'data': [
+                                           {"x": float(row[0]), "y": float(row[1])} for row in param_histograms[param]
+                                       ],
+                                   },
+                                   'style': 'col-12 col-md-6'
+                               } for param in ('score', 'energy', 'exposure_time', 'attenuation', 'num_frames')
+                           ]
+            }
+        ]
+    }
     return stats
 
 
@@ -622,101 +666,102 @@ def session_stats(session):
         }
         for data in session.datasets.values('start_time', 'end_time', 'kind__name', 'name')
     ]
-    stats = {'details': [
-        {
-            'title': 'Session Parameters',
-            'description': 'Data Collection Summary',
-            'style': "row",
-            'content': [
-                           {
-                               'title': '',
-                               'kind': 'table',
-                               'data': [
-                                           ['Total Time', humanize_duration(total_time)],
-                                           ['First Login', timezone.localtime(session.start()).strftime('%c')],
-                                           ['Samples', session.samples().count()],
-                                       ] + data_counts,
-                               'header': 'column',
-                               'style': 'col-12 col-md-6',
-                           },
-                           {
-                               'title': '',
-                               'kind': 'table',
-                               'data': [
-                                           ['Shutters Open', "{} ({:.2f}%)".format(
-                                               humanize_duration(shutters),
-                                               shutters * 100 / total_time if total_time else 0)
-                                            ],
-                                           ['Last Dataset', '' if not last_data else last_data.modified.strftime('%c')],
-                                           ['No. of Logins', session.stretches.count()],
-                                       ] + data_stats,
-                               'header': 'column',
-                               'style': 'col-12 col-md-6',
-                           },
-                           {
-                               'title': 'Types of data collected',
-                               'kind': 'columnchart',
-                               'data': {
-                                   'x-label': 'Data Type',
-                                   'data': [{
-                                       'Data Type': row['key'],
-                                       'Total': row['count'],
-                                   }
-                                       for row in data_extras
-                                   ]
-                               },
-                               'style': 'col-12 col-md-6'
+    stats = {
+        'details': [
+            {
+                'title': 'Session Parameters',
+                'description': 'Data Collection Summary',
+                'style': "row",
+                'content': [
+                    {
+                       'title': '',
+                       'kind': 'table',
+                       'data': [
+                                   ['Total Time', humanize_duration(total_time)],
+                                   ['First Login', timezone.localtime(session.start()).strftime('%c')],
+                                   ['Samples', session.samples().count()],
+                               ] + data_counts,
+                       'header': 'column',
+                       'style': 'col-12 col-md-6',
+                    },
+                    {
+                       'title': '',
+                       'kind': 'table',
+                       'data': [
+                                   ['Shutters Open', "{} ({:.2f}%)".format(
+                                       humanize_duration(shutters),
+                                       shutters * 100 / total_time if total_time else 0
+                                   )
+                                    ],
+                                   ['Last Dataset',
+                                    '' if not last_data else last_data.modified.strftime('%c')],
+                                   ['No. of Logins', session.stretches.count()],
+                               ] + data_stats,
+                       'header': 'column',
+                       'style': 'col-12 col-md-6',
+                    },
+                    {
+                       'title': 'Types of data collected',
+                       'kind': 'columnchart',
+                       'data': {
+                           'x-label': 'Data Type',
+                           'data': [{
+                               'Data Type': row['key'],
+                               'Total': row['count'],
                            }
+                               for row in data_extras
+                           ]
+                       },
+                       'style': 'col-12 col-md-6'
+                    }
+                ] + [
+                    {
+                       'title': PARAMETER_NAMES[param].title(),
+                       'kind': 'histogram',
+                       'data': {
+                           'data': [
+                               {"x": row[0], "y": row[1]} for row in param_histograms[param]
+                           ],
+                       },
+                       'style': 'col-12 col-md-6'
+                    } for param in ('score', 'energy', 'exposure_time', 'attenuation', 'num_frames')
+                ]
+            },
+            {
+                'title': 'Session Timeline',
+                'description': (
+                    'Timeline of data collection for various types of '
+                    'datasets during the whole session from {} to {}'
+                ).format(session.start().strftime('%c'), session.end().strftime('%c')),
+                'style': "row",
+                'content': [
+                    {
+                        'title': 'Session Timeline',
+                        'kind': 'timeline',
+                        'start': js_epoch(session.start()),
+                        'end': js_epoch(session.end()),
+                        'data': timeline_data,
+                        'style': 'col-12'
+                    },
+                    {
+                        'title': 'Inactivity Gaps',
+                        'kind': 'table',
+                        'data': [
+                                    ['', 'Start', 'End', 'Duration']] + [
+                                    [i + 1, gap[0].strftime('%c'), gap[1].strftime('%c'), natural_duration(gap[2])]
+                                    for i, gap in enumerate(session.gaps())
+                                ],
+                        'header': 'row',
+                        'notes': "Periods of possible inactivity while the session was open, greater than 10 minutes",
+                        'style': 'col-12',
+                    },
 
-                       ] + [
-                           {
-                               'title': PARAMETER_NAMES[param].title(),
-                               'kind': 'histogram',
-                               'data': {
-                                   'data': [
-                                       {"x": row[0], "y": row[1]} for row in param_histograms[param]
-                                   ],
-                               },
-                               'style': 'col-12 col-md-6'
-                           } for param in ('score', 'energy', 'exposure_time', 'attenuation', 'num_frames')
-                       ] + [
+                ]
 
-                       ]
-        },
-        {
-            'title': 'Session Timeline',
-            'description': (
-                'Timeline of data collection for various types of '
-                'datasets during the whole session from {} to {}'
-            ).format(session.start().strftime('%c'), session.end().strftime('%c')),
-            'style': "row",
-            'content': [
-                {
-                    'title': 'Session Timeline',
-                    'kind': 'timeline',
-                    'start': js_epoch(session.start()),
-                    'end': js_epoch(session.end()),
-                    'data': timeline_data,
-                    'style': 'col-12'
-                },
-                {
-                    'title': 'Inactivity Gaps',
-                    'kind': 'table',
-                    'data': [
-                                ['', 'Start', 'End', 'Duration']] + [
-                                [i + 1, gap[0].strftime('%c'), gap[1].strftime('%c'), natural_duration(gap[2])]
-                                for i, gap in enumerate(session.gaps())
-                            ],
-                    'header': 'row',
-                    'notes': "Periods of possible inactivity while the session was open, greater than 10 minutes",
-                    'style': 'col-12',
-                },
+            }
 
-            ]
-
-        }
-
-    ]}
+        ]
+    }
     return stats
 
 
@@ -797,10 +842,12 @@ def project_stats(project, **filters):
     }
 
     data_types = project.datasets.filter(**filters).values('kind__name').order_by('kind__name').annotate(
-        count=Count('id'))
+        count=Count('id')
+    )
 
     shift_params = project.datasets.filter(**filters).annotate(shift=ShiftIndex('end_time')).values(
-        'shift', 'end_time__week_day').order_by('end_time__week_day', 'shift').annotate(count=Count('id'))
+        'shift', 'end_time__week_day'
+    ).order_by('end_time__week_day', 'shift').annotate(count=Count('id'))
 
     day_shift_counts = defaultdict(dict)
     day_names = list(calendar.day_abbr)
@@ -864,7 +911,9 @@ def project_stats(project, **filters):
         }
         beamtime_shifts = {
             e[sched_field]: ceil(e['shift_duration'].total_seconds() / SHIFT_SECONDS)
-            for e in project.beamtime.filter(**filters, cancelled=False).with_duration().values(sched_field, 'shift_duration').order_by(sched_field)
+            for e in project.beamtime.filter(**filters, cancelled=False).with_duration().values(
+                sched_field, 'shift_duration'
+            ).order_by(sched_field)
         }
         visits = ['Visits Scheduled'] + [beamtime_counts.get(p, 0) for p in periods]
         beamtime = ['Shifts Scheduled'] + [beamtime_shifts.get(p, 0) for p in periods]
@@ -875,106 +924,113 @@ def project_stats(project, **filters):
             ['Shifts Scheduled', '{} ({})'.format(scheduled_shifts, humanize_duration(scheduled_shifts * SHIFT))],
             shifts_used_total
         ]
-        stat_table = [sessions_total,]
+        stat_table = [sessions_total, ]
     else:
         time_table = [
             shifts_used_total,
             sessions_total,
         ]
 
-    stats = {'details': [
-        {
-            'title': 'Data Collection Summary',
-            'style': "row",
-            'content': [
-                {
-                    'title': 'Time Usage',
-                    'kind': 'table',
-                    'data': time_table + [
-                        ['Actual Time', '{:0.0%} ({})'.format(actual_time, humanize_duration(ttime))],
-                        ['Shutters Open', '{}'.format(humanize_duration(shutters))],
-                    ],
-                    'header': 'column',
-                    'style': 'col-sm-6'
-                },
-                {
-                    'title': 'Overall Statistics',
-                    'kind': 'table',
-                    'data': stat_table + [
-                        ['First Session', last_session_time],
-                        ['Last Session', first_session_time],
-                        ['Shipments / Containers', "{} / {}".format(
-                            project.shipments.count(),
-                            project.containers.filter(status__gte=Container.STATES.ON_SITE).count()
-                        )],
-                        ['Groups / Samples', "{} / {}".format(
-                            project.sample_groups.filter(shipment__status__gte=Shipment.STATES.ON_SITE).count(),
-                            project.samples.filter(container__status__gte=Container.STATES.ON_SITE).count())],
-                    ],
-                    'header': 'column',
-                    'style': 'col-sm-6'
-                },
-                {
-                    'title': 'Usage Statistics',
-                    'kind': 'table',
-                    'data': [
-                        ["Year"] + period_names,
-                        ['Samples Measured'] + [sample_counts.get(p, 0) for p in periods],
-                        ['Sessions'] + [session_counts.get(p, 0) for p in periods],
-                        visits,
-                        beamtime,
-                        ['Shifts Used'] + [session_shifts.get(p, 0) for p in periods],
-                        ['Time Used¹ (hr)'] + ['{:0.1f}'.format(session_hours.get(p, 0)) for p in periods],
-                        ['Usage Efficiency² (%)'] + ['{:.0%}'.format(session_efficiency.get(p, 0)) for p in periods],
-                        ['Datasets³ Collected'] + [dataset_counts.get(p, 0) for p in periods],
-                        ['Minutes/Dataset³'] + ['{:0.1f}'.format(minutes_per_dataset.get(p, 0)) for p in periods],
-                        ['Datasets³/Hour'] + ['{:0.1f}'.format(dataset_per_hour.get(p, 0)) for p in periods],
-                        ['Average Exposure (sec)'] + ['{:0.2f}'.format(dataset_exposure.get(p, 0)) for p in periods],
-                        ['Samples/Dataset³'] + ['{:0.1f}'.format(samples_per_dataset.get(p, 0)) for p in periods],
-
-                    ],
-                    'style': 'col-12',
-                    'header': 'column row',
-                    'description': 'Summary of time, datasets and usage statistics',
-                    'notes': (
-                        ' 1. Time Used is the number of hours an active session was running on the beamline.  \n'
-                        ' 2. Usage efficiency is the percentage of used shifts during which a session was active.  \n'
-                        ' 3. All datasets are considered for this statistic irrespective of dataset type.'
-                    )
-                },
-                {
-                    'title': 'Usage Statistics',
-                    'kind': 'columnchart',
-                    'data': {
-                        'x-label': period.title(),
-                        'colors': 'Live8',
-                        'data': [
-                            {
-                                period.title(): period_names[i],
-                                'Samples': sample_counts.get(per, 0),
-                                'Datasets': dataset_counts.get(per, 0),
-                                'Total Time': round(session_hours.get(per, 0), 1),
-                            } for i, per in enumerate(periods)
-                        ]
+    stats = {
+        'details': [
+            {
+                'title': 'Data Collection Summary',
+                'style': "row",
+                'content': [
+                    {
+                        'title': 'Time Usage',
+                        'kind': 'table',
+                        'data': time_table + [
+                            ['Actual Time', '{:0.0%} ({})'.format(actual_time, humanize_duration(ttime))],
+                            ['Shutters Open', '{}'.format(humanize_duration(shutters))],
+                        ],
+                        'header': 'column',
+                        'style': 'col-sm-6'
                     },
-                    'style': 'col-12 col-md-6'
-                },
-                {
-                    'title': 'Productivity',
-                    'kind': 'lineplot',
-                    'data':
-                        {
-                            'x': [period.title()] + period_xvalues,
-                            'y1': [['Datasets/Shift'] + [round(dataset_per_shift.get(per, 0), 2) for per in periods]],
-                            'y2': [['Average Exposure'] + [round(dataset_exposure.get(per, 0), 2) for per in periods]],
-                            'x-scale': x_scale,
-                            'time-format': time_format
+                    {
+                        'title': 'Overall Statistics',
+                        'kind': 'table',
+                        'data': stat_table + [
+                            ['First Session', last_session_time],
+                            ['Last Session', first_session_time],
+                            ['Shipments / Containers', "{} / {}".format(
+                                project.shipments.count(),
+                                project.containers.filter(status__gte=Container.STATES.ON_SITE).count()
+                            )],
+                            ['Groups / Samples', "{} / {}".format(
+                                project.sample_groups.filter(shipment__status__gte=Shipment.STATES.ON_SITE).count(),
+                                project.samples.filter(container__status__gte=Container.STATES.ON_SITE).count()
+                            )],
+                        ],
+                        'header': 'column',
+                        'style': 'col-sm-6'
+                    },
+                    {
+                        'title': 'Usage Statistics',
+                        'kind': 'table',
+                        'data': [
+                            ["Year"] + period_names,
+                            ['Samples Measured'] + [sample_counts.get(p, 0) for p in periods],
+                            ['Sessions'] + [session_counts.get(p, 0) for p in periods],
+                            visits,
+                            beamtime,
+                            ['Shifts Used'] + [session_shifts.get(p, 0) for p in periods],
+                            ['Time Used¹ (hr)'] + ['{:0.1f}'.format(session_hours.get(p, 0)) for p in periods],
+                            ['Usage Efficiency² (%)'] + ['{:.0%}'.format(session_efficiency.get(p, 0)) for p in
+                                                         periods],
+                            ['Datasets³ Collected'] + [dataset_counts.get(p, 0) for p in periods],
+                            ['Minutes/Dataset³'] + ['{:0.1f}'.format(minutes_per_dataset.get(p, 0)) for p in periods],
+                            ['Datasets³/Hour'] + ['{:0.1f}'.format(dataset_per_hour.get(p, 0)) for p in periods],
+                            ['Average Exposure (sec)'] + ['{:0.2f}'.format(dataset_exposure.get(p, 0)) for p in
+                                                          periods],
+                            ['Samples/Dataset³'] + ['{:0.1f}'.format(samples_per_dataset.get(p, 0)) for p in periods],
+
+                        ],
+                        'style': 'col-12',
+                        'header': 'column row',
+                        'description': 'Summary of time, datasets and usage statistics',
+                        'notes': (
+                            ' 1. Time Used is the number of hours an active session was running on the beamline.  \n'
+                            ' 2. Usage efficiency is the percentage of used shifts during which a session was active.  \n'
+                            ' 3. All datasets are considered for this statistic irrespective of dataset type.'
+                        )
+                    },
+                    {
+                        'title': 'Usage Statistics',
+                        'kind': 'columnchart',
+                        'data': {
+                            'x-label': period.title(),
+                            'colors': 'Live8',
+                            'data': [
+                                {
+                                    period.title(): period_names[i],
+                                    'Samples': sample_counts.get(per, 0),
+                                    'Datasets': dataset_counts.get(per, 0),
+                                    'Total Time': round(session_hours.get(per, 0), 1),
+                                } for i, per in enumerate(periods)
+                            ]
                         },
-                    'style': 'col-12 col-md-6',
-                },
-            ]
-        }
-    ]}
+                        'style': 'col-12 col-md-6'
+                    },
+                    {
+                        'title': 'Productivity',
+                        'kind': 'lineplot',
+                        'data':
+                            {
+                                'x': [period.title()] + period_xvalues,
+                                'y1': [
+                                    ['Datasets/Shift'] + [round(dataset_per_shift.get(per, 0), 2) for per in periods]],
+                                'y2': [
+                                    ['Average Exposure'] + [round(dataset_exposure.get(per, 0), 2) for per in periods]],
+                                'x-scale': x_scale,
+                                'time-format': time_format
+                            },
+                        'style': 'col-12 col-md-6',
+                    },
+                ]
+            }
+        ]
+    }
     return stats
 
 
@@ -982,7 +1038,8 @@ def support_stats(beamline, **filters):
     if beamline:
         filters.update({'beamline': beamline})
 
-    area_filters = { "{}{}".format(k.startswith('beamline') and 'feedback__session__' or '', k): v for k, v in filters.items() }
+    area_filters = {"{}{}".format(k.startswith('beamline') and 'feedback__session__' or '', k): v for k, v in
+                    filters.items()}
     area_feedback = UserAreaFeedback.objects.filter(**area_filters)
 
     fbk_filters = {"{}{}".format(k.startswith('beamline') and 'session__' or '', k): v for k, v in filters.items()}
@@ -991,14 +1048,18 @@ def support_stats(beamline, **filters):
     support_filters = {"{}{}".format(k.startswith('beamline') and 'help__' or '', k): v for k, v in filters.items()}
     support_areas = SupportArea.objects.filter(**support_filters).annotate(
         info=Count(Case(When(help__kind='info', then=1), output_field=IntegerField()), filter=Q(**support_filters)),
-        problem=Count(Case(When(help__kind='problem', then=1), output_field=IntegerField()), filter=Q(**support_filters)),
+        problem=Count(
+            Case(When(help__kind='problem', then=1), output_field=IntegerField()), filter=Q(**support_filters)
+        ),
         time_lost=Sum('help__lost_time', filter=Q(**support_filters))
     ).order_by('pk').values('name', 'info', 'problem', 'time_lost')
 
     colors = ['#ffdd33', '#ffa333', '#66ffd5', '#00E6E2']
 
     likerts = []
-    for scale in FeedbackScale.objects.filter(pk__in=SupportArea.objects.filter(user_feedback=True).values_list('scale__pk', flat=True)):
+    for scale in FeedbackScale.objects.filter(
+            pk__in=SupportArea.objects.filter(user_feedback=True).values_list('scale__pk', flat=True)
+    ):
         choices = list(scale.choices())[:-1]
         choices = [choices[1], choices[0]] + choices[2:]
         choice_colors = dict(zip([c[1] for c in choices], colors))
@@ -1008,20 +1069,22 @@ def support_stats(beamline, **filters):
                 'Area': area.name,
                 'data': {
                     c[1]: area_feedback.filter(area=area, rating=c[0]).count() * (c[0] < 0 and -1 or 1)
-                for c in choices }
-             } for area in SupportArea.objects.filter(user_feedback=True, scale=scale).order_by('pk')
+                    for c in choices}
+            } for area in SupportArea.objects.filter(user_feedback=True, scale=scale).order_by('pk')
         ]
         for i, d in enumerate(likert_data):
             likert_data[i].update(d['data'])
             likert_data[i].pop('data')
 
         scale_feedback = area_feedback.exclude(rating=0).filter(area__scale=scale)
-        likerts.append({
-            'data': likert_data,
-            'colors': choice_colors,
-            'choices': choices,
-            'average': scale_feedback and sum([a.rating for a in scale_feedback])/scale_feedback.count() or 0
-        })
+        likerts.append(
+            {
+                'data': likert_data,
+                'colors': choice_colors,
+                'choices': choices,
+                'average': scale_feedback and sum([a.rating for a in scale_feedback]) / scale_feedback.count() or 0
+            }
+        )
 
     total_interactions = sum([a['info'] + a['problem'] for a in support_areas])
     support_areas = sorted(support_areas, key=lambda x: -(x['info'] + x['problem']))
@@ -1030,112 +1093,129 @@ def support_stats(beamline, **filters):
             "Area": area['name'],
             "Info": area['info'],
             "Problem": area['problem'],
-            "Interactions (%)": 100 * sum(a['info'] + a['problem'] for a in support_areas[:i+1]) / total_interactions
+            "Interactions (%)": 100 * sum(a['info'] + a['problem'] for a in support_areas[:i + 1]) / total_interactions
         } for i, area in enumerate(support_areas)
     ]
 
-    stats = {'details': [
-        {
-            'title': 'User Experience and Support',
-            'description': 'Summary of impressions from user experience surveys',
-            'style': "row",
-            'content': [
-                {
-                   'title': 'User Experience Surveys',
-                   'kind': 'barchart',
-                   'data': {
-                       'stack': [[c[1] for c in lt['choices']]],
-                       'x-label': 'Area',
-                       'aspect-ratio': 1,
-                       'colors': lt['colors'],
-                       'data': lt['data'],
-                       "annotations": [
-                           {"value": lt['average'], "text": "AVERAGE"}
-                       ]
-                   },
-                   'notes': "<strong>Overall Average:</strong> {:.2f}".format(lt['average']),
-                   'style': 'col-12 col-md-6'
-                } for lt in likerts
-            ] + [
-                {
-                    'title': 'User Experience Survey Comments',
-                    'notes': '<strong>User Feedback:</strong>\n\n' + linebreaksbr(
-                        '\n\n'.join(feedback.values_list('comments', flat=True).distinct())),
-                    'style': 'col-12'
-                },
-                {
-                    'title': 'User Support Interactions and Lost Time',
-                    'kind': 'columnchart',
-                    'data': {
-                        'aspect-ratio': 4,
-                        'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33'},
-                        'x-label': "Area",
-                        'data': [
-                            {
-                                "Area": area['name'],
-                                "Info": area['info'],
-                                "Problem": area['problem'],
-                                "Lost Time (hours)": area['time_lost'] or 0,
-                            } for area in support_areas
-                        ]
-                    },
-                    'style': 'col-12'
-                },
-                {
-                    'title': 'User Support Areas by Interaction',
-                    'kind': 'columnchart',
-                    'data': {
-                        'aspect-ratio': 2,
-                        'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33', "Interactions (%)": '#777777'},
-                        'x-label': "Area",
-                        'line-limits': [0, 100],
-                        'line': "Interactions (%)",
-                        'stack': [["Info", "Problem"]],
-                        'data': area_interactions
-                    },
-                    'style': 'col-12 col-xl-6'
-                },
-                {
-                    'title': 'User Support Areas by Lost Time',
-                    'kind': 'columnchart',
-                    'data': {
-                        'aspect-ratio': 2,
-                        'colors': {"Lost Time (hours)": '#ffa333', "Percentage (%)": '#777777'},
-                        'x-label': "Area",
-                        'line': "Percentage (%)",
-                        'y2-limits': [0, 100],
-                        'data': [
-                            {
-                                "Area": area['name'],
-                                "Lost Time (hours)": area['time_lost'] or 0,
-                                "Percentage (%)": 100 * sum([a['time_lost'] for a in sorted(support_areas, key=lambda i: -i['time_lost'])[:j+1]]) / sum([a['time_lost'] for a in support_areas])
-                            } for j, area in enumerate(sorted(support_areas, key=lambda i: -i['time_lost']))
-                        ]
-                    },
-                    'style': 'col-12 col-xl-6'
-                },
-                {
-                    'title': 'User Support Interactions Staff Comments',
-                    'notes': '<strong>Staff Comments:</strong>\n\n' + linebreaksbr(
-                        '\n\n'.join(SupportRecord.objects.values_list('staff_comments', flat=True).distinct())),
-                    'style': 'col-12'
-                },
-            ]
-        },
-    ]}
+    stats = {
+        'details': [
+            {
+                'title': 'User Experience and Support',
+                'description': 'Summary of impressions from user experience surveys',
+                'style': "row",
+                'content': [
+                               {
+                                   'title': 'User Experience Surveys',
+                                   'kind': 'barchart',
+                                   'data': {
+                                       'stack': [[c[1] for c in lt['choices']]],
+                                       'x-label': 'Area',
+                                       'aspect-ratio': 1,
+                                       'colors': lt['colors'],
+                                       'data': lt['data'],
+                                       "annotations": [
+                                           {"value": lt['average'], "text": "AVERAGE"}
+                                       ]
+                                   },
+                                   'notes': "<strong>Overall Average:</strong> {:.2f}".format(lt['average']),
+                                   'style': 'col-12 col-md-6'
+                               } for lt in likerts
+                           ] + [
+                               {
+                                   'title': 'User Experience Survey Comments',
+                                   'notes': '<strong>User Feedback:</strong>\n\n' + linebreaksbr(
+                                       '\n\n'.join(feedback.values_list('comments', flat=True).distinct())
+                                   ),
+                                   'style': 'col-12'
+                               },
+                               {
+                                   'title': 'User Support Interactions and Lost Time',
+                                   'kind': 'columnchart',
+                                   'data': {
+                                       'aspect-ratio': 4,
+                                       'colors': {
+                                           "Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33'
+                                       },
+                                       'x-label': "Area",
+                                       'data': [
+                                           {
+                                               "Area": area['name'],
+                                               "Info": area['info'],
+                                               "Problem": area['problem'],
+                                               "Lost Time (hours)": area['time_lost'] or 0,
+                                           } for area in support_areas
+                                       ]
+                                   },
+                                   'style': 'col-12'
+                               },
+                               {
+                                   'title': 'User Support Areas by Interaction',
+                                   'kind': 'columnchart',
+                                   'data': {
+                                       'aspect-ratio': 2,
+                                       'colors': {
+                                           "Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33',
+                                           "Interactions (%)": '#777777'
+                                       },
+                                       'x-label': "Area",
+                                       'line-limits': [0, 100],
+                                       'line': "Interactions (%)",
+                                       'stack': [["Info", "Problem"]],
+                                       'data': area_interactions
+                                   },
+                                   'style': 'col-12 col-xl-6'
+                               },
+                               {
+                                   'title': 'User Support Areas by Lost Time',
+                                   'kind': 'columnchart',
+                                   'data': {
+                                       'aspect-ratio': 2,
+                                       'colors': {"Lost Time (hours)": '#ffa333', "Percentage (%)": '#777777'},
+                                       'x-label': "Area",
+                                       'line': "Percentage (%)",
+                                       'y2-limits': [0, 100],
+                                       'data': [
+                                           {
+                                               "Area": area['name'],
+                                               "Lost Time (hours)": area['time_lost'] or 0,
+                                               "Percentage (%)": 100 * sum(
+                                                   [a['time_lost'] for a in
+                                                    sorted(support_areas, key=lambda i: -i['time_lost'])[:j + 1]]
+                                               ) / sum([a['time_lost'] for a in support_areas])
+                                           } for j, area in
+                                           enumerate(sorted(support_areas, key=lambda i: -i['time_lost']))
+                                       ]
+                                   },
+                                   'style': 'col-12 col-xl-6'
+                               },
+                               {
+                                   'title': 'User Support Interactions Staff Comments',
+                                   'notes': '<strong>Staff Comments:</strong>\n\n' + linebreaksbr(
+                                       '\n\n'.join(
+                                           SupportRecord.objects.values_list('staff_comments', flat=True).distinct()
+                                       )
+                                   ),
+                                   'style': 'col-12'
+                               },
+                           ]
+            },
+        ]
+    }
     return stats
 
 
 def average_difference(td):
-    diffs = [abs(td[i]['created'] - td[i - 1]['end']).total_seconds()/3600 for i in range(1, len(td))]
-    return len(td) > 1 and (sum(diffs)/(len(td) - 1)) or None
+    diffs = [abs(td[i]['created'] - td[i - 1]['end']).total_seconds() / 3600 for i in range(1, len(td))]
+    return len(td) > 1 and (sum(diffs) / (len(td) - 1)) or None
 
 
 def supportrecord_stats(objlist, filters):
     support_filters = {"{}{}".format('help__', k): v for k, v in filters.items()}
     support_areas = SupportArea.objects.filter(pk__in=objlist.values_list('areas__pk', flat=True)).annotate(
         info=Count(Case(When(help__kind='info', then=1), output_field=IntegerField()), filter=Q(**support_filters)),
-        problem=Count(Case(When(help__kind='problem', then=1), output_field=IntegerField()), filter=Q(**support_filters)),
+        problem=Count(
+            Case(When(help__kind='problem', then=1), output_field=IntegerField()), filter=Q(**support_filters)
+        ),
         time_lost=Sum('help__lost_time', filter=Q(**support_filters))
     ).order_by('pk').values('name', 'info', 'problem', 'time_lost', 'external')
 
@@ -1150,18 +1230,23 @@ def supportrecord_stats(objlist, filters):
             "Area": area['name'],
             "Info": area['info'],
             "Problem": area['problem'],
-            "Interactions (%)": 100 * sum(a['info'] + a['problem'] for a in support_areas[:i+1]) / total_interactions
+            "Interactions (%)": 100 * sum(a['info'] + a['problem'] for a in support_areas[:i + 1]) / total_interactions
         } for i, area in enumerate(support_areas)
     ]
 
-
-    failures = objlist.filter(kind__iexact='problem').annotate(end=ExpressionWrapper(F('created') + timedelta(hours=1) * F('lost_time'), output_field=DateTimeField()))
+    failures = objlist.filter(kind__iexact='problem').annotate(
+        end=ExpressionWrapper(F('created') + timedelta(hours=1) * F('lost_time'), output_field=DateTimeField())
+    )
     mtbf = {
         **{
             'Overall': average_difference(list(failures.order_by('created').values('created', 'end'))),
-            'Beamline Overall': average_difference(list(failures.exclude(areas__external=True).order_by('created').values('created', 'end'))),
+            'Beamline Overall': average_difference(
+                list(failures.exclude(areas__external=True).order_by('created').values('created', 'end'))
+            ),
         }, **{
-            area['name']: average_difference(list(failures.filter(areas__name=area['name']).order_by('created').values('created', 'end')))
+            area['name']: average_difference(
+                list(failures.filter(areas__name=area['name']).order_by('created').values('created', 'end'))
+            )
             for area in support_areas
         }
     }
@@ -1176,116 +1261,130 @@ def supportrecord_stats(objlist, filters):
     ]
     total_rows = []
     for name, sa in [('Overall', support_areas), ('Beamline Overall', [s for s in support_areas if not s['external']])]:
-        total_rows.append([
-            name,
-            sum([a['info'] for a in sa]),
-            sum([a['problem'] for a in sa]),
-            mtbf[name] is not None and round(mtbf[name], 2) or '-',
-            round(lost_time[name] / max(sum([a['problem'] for a in sa]), 1), 2),
-            round(sum([a['time_lost'] for a in sa]), 2)
-        ])
-    stats = {'details': [
-        {
-            'title': 'User Support Interactions and Problem Recovery',
-            'description': 'Summary of user support records',
-            'style': "row",
-            'content': [
-                {
-                    'title': 'Support Records by Area',
-                    'kind': 'table',
-                    'header': 'row column',
-                    'data': [['', 'Info', 'Problem', 'MTBF<sup>[1]</sup> (h)', 'MRT<sup>[2]</sup> (h)', 'Time Lost (h)']] +
-                            [['{}{}'.format(area['external'] and '[*] ' or '', area['name']),
-                              area['info'], area['problem'],
-                              mtbf[area['name']] is not None and round(mtbf[area['name']], 2) or '-',
-                              area['problem'] and round(area['time_lost'] / area['problem'], 2) or '-', area['time_lost']] for
-                             area in sorted(support_areas, key=lambda i: -i['time_lost'])
-                             ] +
-                            total_rows,
-                    'notes': """<dl>
+        total_rows.append(
+            [
+                name,
+                sum([a['info'] for a in sa]),
+                sum([a['problem'] for a in sa]),
+                mtbf[name] is not None and round(mtbf[name], 2) or '-',
+                round(lost_time[name] / max(sum([a['problem'] for a in sa]), 1), 2),
+                round(sum([a['time_lost'] for a in sa]), 2)
+            ]
+        )
+    stats = {
+        'details': [
+            {
+                'title': 'User Support Interactions and Problem Recovery',
+                'description': 'Summary of user support records',
+                'style': "row",
+                'content': [
+                    {
+                        'title': 'Support Records by Area',
+                        'kind': 'table',
+                        'header': 'row column',
+                        'data': [['', 'Info', 'Problem', 'MTBF<sup>[1]</sup> (h)', 'MRT<sup>[2]</sup> (h)',
+                                  'Time Lost (h)']] +
+                                [['{}{}'.format(area['external'] and '[*] ' or '', area['name']),
+                                  area['info'], area['problem'],
+                                  mtbf[area['name']] is not None and round(mtbf[area['name']], 2) or '-',
+                                  area['problem'] and round(area['time_lost'] / area['problem'], 2) or '-',
+                                  area['time_lost']] for
+                                 area in sorted(support_areas, key=lambda i: -i['time_lost'])
+                                 ] +
+                                total_rows,
+                        'notes': """<dl>
                             <dd><strong>[*] External Area:</strong> External factor out of the beamline's control; excluded from <strong>Beamline Overall</strong> calculations</dd>
                             <dd><strong>[1] MTBF:</strong> Mean Time Between Failures</dd>
                             <dd><strong>[2] MRT:</strong> Mean Recovery Time</dd>
                         </dl>""",
-                    'style': 'col-12'
-                },
-                {
-                    'title': 'User Support Interactions and Lost Time',
-                    'kind': 'columnchart',
-                    'data': {
-                        'aspect-ratio': 2,
-                        'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33'},
-                        'x-label': "Area",
-                        'data': [
-                            {
-                                "Area": area['name'],
-                                "Info": area['info'],
-                                "Problem": area['problem'],
-                                "Lost Time (hours)": area['time_lost'] or 0,
-                            } for area in support_areas
-                        ]
+                        'style': 'col-12'
                     },
-                    'style': 'col-12'
-                },
-                {
-                    'title': 'User Support Areas by Interaction',
-                    'kind': 'columnchart',
-                    'data': {
-                        'aspect-ratio': 2,
-                        'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33', "Interactions (%)": '#777777'},
-                        'x-label': "Area",
-                        'line-limits': [0, 100],
-                        'line': "Interactions (%)",
-                        'stack': [["Info", "Problem"]],
-                        'data': area_interactions
+                    {
+                        'title': 'User Support Interactions and Lost Time',
+                        'kind': 'columnchart',
+                        'data': {
+                            'aspect-ratio': 2,
+                            'colors': {"Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33'},
+                            'x-label': "Area",
+                            'data': [
+                                {
+                                    "Area": area['name'],
+                                    "Info": area['info'],
+                                    "Problem": area['problem'],
+                                    "Lost Time (hours)": area['time_lost'] or 0,
+                                } for area in support_areas
+                            ]
+                        },
+                        'style': 'col-12'
                     },
-                    'style': 'col-12'
-                },
-                {
-                    'title': 'User Support Areas by Lost Time',
-                    'kind': 'columnchart',
-                    'data': {
-                        'aspect-ratio': 2,
-                        'colors': {"Lost Time (hours)": '#ffa333', "Percentage (%)": '#777777'},
-                        'x-label': "Area",
-                        'line': "Percentage (%)",
-                        'line-limits': [0, 100],
-                        'data': [
-                            {
-                                "Area": area['name'],
-                                "Lost Time (hours)": area['time_lost'] or 0,
-                                "Percentage (%)": lost_time['Overall'] and 100 * sum([
-                                    a['time_lost'] for a in sorted(support_areas, key=lambda i: -i['time_lost'])[:j + 1]
-                                ]) / lost_time['Overall'] or 0
-                            } for j, area in enumerate(sorted(support_areas, key=lambda i: -i['time_lost']))
-                        ]
+                    {
+                        'title': 'User Support Areas by Interaction',
+                        'kind': 'columnchart',
+                        'data': {
+                            'aspect-ratio': 2,
+                            'colors': {
+                                "Info": '#66ffd5', "Lost Time (hours)": '#ffa333', "Problem": '#ffdd33',
+                                "Interactions (%)": '#777777'
+                            },
+                            'x-label': "Area",
+                            'line-limits': [0, 100],
+                            'line': "Interactions (%)",
+                            'stack': [["Info", "Problem"]],
+                            'data': area_interactions
+                        },
+                        'style': 'col-12'
                     },
-                    'style': 'col-12'
-                },
-                {
-                    'title': 'User Support Interactions Staff Comments',
-                    'notes': '<strong>Staff Comments:</strong>\n\n' + linebreaksbr(
-                        '\n\n'.join(SupportRecord.objects.values_list('staff_comments', flat=True).distinct())),
-                    'style': 'col-12'
-                },
-                objlist and {
-                    'title': 'Support Record Timeline',
-                    'kind': 'timeline',
-                    'start': js_epoch(objlist.last().created),
-                    'end': js_epoch(objlist.first().created + timedelta(hours=objlist.first().lost_time)),
-                    'data': timeline_data,
-                    'style': 'col-12'
-                } or {}
-            ]
-        },
-    ]}
+                    {
+                        'title': 'User Support Areas by Lost Time',
+                        'kind': 'columnchart',
+                        'data': {
+                            'aspect-ratio': 2,
+                            'colors': {"Lost Time (hours)": '#ffa333', "Percentage (%)": '#777777'},
+                            'x-label': "Area",
+                            'line': "Percentage (%)",
+                            'line-limits': [0, 100],
+                            'data': [
+                                {
+                                    "Area": area['name'],
+                                    "Lost Time (hours)": area['time_lost'] or 0,
+                                    "Percentage (%)": lost_time['Overall'] and 100 * sum(
+                                        [
+                                            a['time_lost'] for a in
+                                            sorted(support_areas, key=lambda i: -i['time_lost'])[:j + 1]
+                                        ]
+                                    ) / lost_time['Overall'] or 0
+                                } for j, area in enumerate(sorted(support_areas, key=lambda i: -i['time_lost']))
+                            ]
+                        },
+                        'style': 'col-12'
+                    },
+                    {
+                        'title': 'User Support Interactions Staff Comments',
+                        'notes': '<strong>Staff Comments:</strong>\n\n' + linebreaksbr(
+                            '\n\n'.join(SupportRecord.objects.values_list('staff_comments', flat=True).distinct())
+                        ),
+                        'style': 'col-12'
+                    },
+                    objlist and {
+                        'title': 'Support Record Timeline',
+                        'kind': 'timeline',
+                        'start': js_epoch(objlist.last().created),
+                        'end': js_epoch(objlist.first().created + timedelta(hours=objlist.first().lost_time)),
+                        'data': timeline_data,
+                        'style': 'col-12'
+                    } or {}
+                ]
+            },
+        ]
+    }
     return stats
 
 
 def userfeedback_stats(objlist, filters):
     feedback = objlist
 
-    area_filters = { "{}{}".format(k.startswith('beamline') and 'feedback__session__' or 'feedback__', k): v for k, v in filters.items() }
+    area_filters = {"{}{}".format(k.startswith('beamline') and 'feedback__session__' or 'feedback__', k): v for k, v in
+                    filters.items()}
     area_feedback = UserAreaFeedback.objects.filter(**area_filters)
 
     session_filters = {"{}".format('session__' in k and k.split('session__')[1] or k): v for k, v in filters.items()}
@@ -1313,13 +1412,19 @@ def userfeedback_stats(objlist, filters):
     period_dict = {per: period == 'month' and calendar.month_abbr[per].title() or per for per in periods}
     response_rate = [{
         period.title(): name,
-        "Response Rate (%)": round(100. * sessions.filter(**{field: per}).filter(feedback__isnull=False).count() / max(1, sessions.filter(**{field: per}).count()), 2),
+        "Response Rate (%)": round(
+            100. * sessions.filter(**{field: per}).filter(feedback__isnull=False).count() / max(
+                1, sessions.filter(**{field: per}).count()
+            ), 2
+        ),
         "Sessions": sessions.filter(**{field: per}).count(),
         "Responses": sessions.filter(**{field: per}).filter(feedback__isnull=False).count()
     } for per, name in period_dict.items()]
 
     likerts = []
-    for scale in FeedbackScale.objects.filter(pk__in=SupportArea.objects.filter(user_feedback=True).values_list('scale__pk', flat=True)):
+    for scale in FeedbackScale.objects.filter(
+            pk__in=SupportArea.objects.filter(user_feedback=True).values_list('scale__pk', flat=True)
+    ):
         choices = list(scale.choices())[:-1]
         choices = [choices[1], choices[0]] + choices[2:]
         choice_colors = dict(zip([c[1] for c in choices], colors))
@@ -1329,64 +1434,75 @@ def userfeedback_stats(objlist, filters):
                 **{'Area': area.name},
                 **{
                     c[1]: area_feedback.filter(area=area, rating=c[0]).count() * (c[0] < 0 and -1 or 1)
-                for c in choices }
-             } for area in SupportArea.objects.filter(user_feedback=True, scale=scale).order_by('pk')
+                    for c in choices}
+            } for area in SupportArea.objects.filter(user_feedback=True, scale=scale).order_by('pk')
         ]
 
         scale_feedback = area_feedback.exclude(rating=0).filter(area__scale=scale)
-        likerts.append({
-            'data': likert_data,
-            'colors': choice_colors,
-            'choices': choices,
-            'average': scale_feedback and sum([a.rating for a in scale_feedback])/scale_feedback.count() or 0,
-            'averages': {
-                e['Area']: sum([rating * abs(e[ch]) for rating, ch in choices]) / max(sum([abs(e[ch]) for _, ch in choices]), 1)
-                for e in likert_data
+        likerts.append(
+            {
+                'data': likert_data,
+                'colors': choice_colors,
+                'choices': choices,
+                'average': scale_feedback and sum([a.rating for a in scale_feedback]) / scale_feedback.count() or 0,
+                'averages': {
+                    e['Area']: sum([rating * abs(e[ch]) for rating, ch in choices]) / max(
+                        sum([abs(e[ch]) for _, ch in choices]), 1
+                    )
+                    for e in likert_data
+                }
             }
-        })
+        )
 
-    stats = {'details': [
-        {
-            'title': 'User Experience',
-            'description': 'Summary of impressions from user experience surveys',
-            'style': "row",
-            'content': [
-                {
-                   'title': 'User Experience Surveys',
-                   'kind': 'barchart',
-                   'data': {
-                       'stack': [[c[1] for c in lt['choices']]],
-                       'x-label': 'Area',
-                       'aspect-ratio': 1,
-                       'colors': lt['colors'],
-                       'data': lt['data'],
-                       "annotations": [
-                           {"value": lt['average'], "text": "AVERAGE"}
-                       ]
-                   },
-                   'notes': "<br>".join("<strong>{}</strong>: {:0.2f}".format(k, v) for k, v in lt['averages'].items()) +
-                            "<hr><strong>Overall Average:</strong> {:.2f}".format(lt['average']),
-                   'style': 'col-12 col-md-6'
-                } for lt in likerts
-            ] + [
-                {
-                    'title': 'User Experience Survey Comments',
-                    'notes': '<strong>User Feedback:</strong>\n\n' + linebreaksbr(
-                        '\n\n'.join([c for c in feedback.values_list('comments', flat=True).distinct() if c])),
-                    'style': 'col-12'
-                },
-                {
-                    'title': 'Response Rate (%){}{}'.format(year and " in " or '', year or ''),
-                    'kind': 'columnchart',
-                    'data': {
-                        'line': "Response Rate (%)",
-                        'line-limits': [0, 100],
-                        'x-label': period.title(),
-                        'data': response_rate
-                    },
-                    'style': 'col-12'
-                },
-            ]
-        },
-    ]}
+    stats = {
+        'details': [
+            {
+                'title': 'User Experience',
+                'description': 'Summary of impressions from user experience surveys',
+                'style': "row",
+                'content': [
+                               {
+                                   'title': 'User Experience Surveys',
+                                   'kind': 'barchart',
+                                   'data': {
+                                       'stack': [[c[1] for c in lt['choices']]],
+                                       'x-label': 'Area',
+                                       'aspect-ratio': 1,
+                                       'colors': lt['colors'],
+                                       'data': lt['data'],
+                                       "annotations": [
+                                           {"value": lt['average'], "text": "AVERAGE"}
+                                       ]
+                                   },
+                                   'notes': "<br>".join(
+                                       "<strong>{}</strong>: {:0.2f}".format(k, v) for k, v in lt['averages'].items()
+                                   ) +
+                                            "<hr><strong>Overall Average:</strong> {:.2f}".format(lt['average']),
+                                   'style': 'col-12 col-md-6'
+                               } for lt in likerts
+                           ] + [
+                               {
+                                   'title': 'User Experience Survey Comments',
+                                   'notes': '<strong>User Feedback:</strong>\n\n' + linebreaksbr(
+                                       '\n\n'.join(
+                                           [c for c in feedback.values_list('comments', flat=True).distinct() if c]
+                                       )
+                                   ),
+                                   'style': 'col-12'
+                               },
+                               {
+                                   'title': 'Response Rate (%){}{}'.format(year and " in " or '', year or ''),
+                                   'kind': 'columnchart',
+                                   'data': {
+                                       'line': "Response Rate (%)",
+                                       'line-limits': [0, 100],
+                                       'x-label': period.title(),
+                                       'data': response_rate
+                                   },
+                                   'style': 'col-12'
+                               },
+                           ]
+            },
+        ]
+    }
     return stats
