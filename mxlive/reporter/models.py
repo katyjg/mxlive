@@ -2,8 +2,9 @@ from collections import defaultdict
 
 from IPython.lib.pretty import Printable
 from django.apps import apps
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Case, When, Value, CharField, QuerySet
+from django.db.models import Case, When, Value, CharField, QuerySet, F
 from django.db.models.functions import Round, Abs, Sign
 from django.utils.text import gettext_lazy as _
 from model_utils.models import TimeStampedModel
@@ -30,25 +31,20 @@ class WithChoices(Case):
         super().__init__(*whens, output_field=CharField())
 
 
-class DataModel(TimeStampedModel):
-    """
-    Model definition for DataModel. This model is used to define allowed data models
-    and corresponding fields for the reporter app.
-    """
-    name = models.CharField(max_length=150)
-    fields = models.JSONField(default=list, blank=True, null=True)
-
-    def __str__(self):
-        return self.name
-
-
 class DataSource(TimeStampedModel):
     name = models.CharField(max_length=50)
+    group_by = models.JSONField(_("Group Fields"), default=list, blank=True, null=True)
     filters = models.JSONField(default=dict, blank=True)
     limit = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.name
+
+    def groups_fields(self):
+        return self.fields.filter(name__in=self.group_by)
+
+    def non_group_fields(self):
+        return self.fields.exclude(name__in=self.group_by)
 
     def get_labels(self):
         return {field.name: field.label for field in self.fields.all()}
@@ -74,7 +70,7 @@ class DataSource(TimeStampedModel):
 
         # Add aggregations and handle grouping
         group_fields: list = (
-            group_by or list(self.fields.filter(grouped=True).values_list('name', flat=True).distinct())
+            group_by or list(self.fields.filter(name__in=self.group_by).values_list('name', flat=True).distinct())
         )
         aggregations = {}
         if group_fields:
@@ -124,22 +120,42 @@ class DataSource(TimeStampedModel):
         return data
 
 
+class DataModel(TimeStampedModel):
+    """
+    Model definition for DataModel. This model is used to define allowed data models
+    and corresponding fields for the reporter app.
+    """
+    model = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True)
+    name = models.CharField(max_length=150)
+    source = models.ForeignKey(DataSource, on_delete=models.CASCADE, related_name='models')
+
+    def get_group_fields(self):
+        group_names = list(self.source.group_by)
+        if group_names:
+            fields = {
+                field.name: field for field in self.fields.all()
+            }
+            return {name: fields.get(name, None) for name in group_names}
+        return {}
+
+    def __str__(self):
+        return self.name
+
+
 class DataField(TimeStampedModel):
     class FieldType(models.TextChoices):
         ANNOTATION = 'annotation', _('Annotation')
         AGGREGATION = 'aggregation', _('Aggregation')
 
     name = models.SlugField(max_length=50)
-    kind = models.CharField(max_length=50, choices=FieldType.choices, default=FieldType.ANNOTATION)
-    model = models.ForeignKey(DataModel, on_delete=models.CASCADE)
+    kind = models.CharField(max_length=50, choices=FieldType.choices, default=FieldType.AGGREGATION)
+    model = models.ForeignKey(DataModel, on_delete=models.CASCADE, related_name='fields')
     label = models.CharField(max_length=100, null=True)
     default = models.JSONField(null=True, blank=True)
     expression = models.TextField(default="", blank=True)
     precision = models.IntegerField(null=True, blank=True)
     position = models.IntegerField(default=0)
-    grouped = models.BooleanField(default=False)
     ordering = models.IntegerField(null=True, blank=True)
-    filterable = models.BooleanField(default=False)
     source = models.ForeignKey(DataSource, on_delete=models.CASCADE, related_name='fields')
 
     class Meta:

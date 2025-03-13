@@ -219,6 +219,7 @@ RESTRICT_DOWNLOADS = False
 DOWNLOAD_PROXY_URL = "http://mxlive-data/download"
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+REPORT_APP_LABELS = ['lims', 'publications', 'schedule', 'staff']
 
 DEBUG_TOOLBAR_PANELS = [
     'ddt_request_history.panels.request_history.RequestHistoryPanel',  # Here it is

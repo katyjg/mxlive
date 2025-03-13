@@ -1,8 +1,12 @@
+import re
+
 from datetime import datetime
 from crispy_forms.bootstrap import StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Div, Field, Layout
 from django import forms
+from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 
@@ -79,7 +83,7 @@ class DataFieldForm(forms.ModelForm):
         model = models.DataField
         fields = (
             'name', 'kind', 'model', 'label', 'default', 'expression', 'precision',
-            'source', 'position', 'grouped', 'filterable', 'ordering',
+            'source', 'position', 'ordering',
         )
         widgets = {
             'default': forms.TextInput(),
@@ -94,17 +98,18 @@ class DataFieldForm(forms.ModelForm):
         self.footer = FooterHelper(self)
         pk = self.instance.pk
         self.fields['source'].widget = forms.HiddenInput()
-
         if pk:
             self.body.title = _("Edit Field")
             self.body.form_action = reverse_lazy(
                 'edit-source-field', kwargs={'pk': pk, 'source': self.instance.source.pk}
             )
+            self.fields['model'].queryset = self.instance.source.models.all()
         else:
             self.body.title = _("Add Field")
             self.body.form_action = reverse_lazy(
                 'add-source-field', kwargs={'source': self.initial['source']}
             )
+            self.fields['model'].queryset = models.DataModel.objects.filter(source=self.initial['source'])
 
         self.footer.layout = Layout()
         self.body.layout = Layout(
@@ -130,13 +135,6 @@ class DataFieldForm(forms.ModelForm):
                 Field('source'),
                 css_class='row'
             ),
-            Div(
-                Div(
-                    Div('grouped', css_class='col-4'),
-                    Div('filterable', css_class='col-4'),
-                    css_class='row'
-                ),
-            ),
         )
         self.footer.layout = Layout(
             StrictButton('Save', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
@@ -144,11 +142,16 @@ class DataFieldForm(forms.ModelForm):
 
 
 class DataSourceForm(forms.ModelForm):
+    group_fields = forms.CharField(required=False, help_text=_("Comma separated list of field names to group by"))
+
     class Meta:
         model = models.DataSource
         fields = (
-            'name', 'limit'
+            'name', 'group_by', 'limit', 'group_fields'
         )
+        widgets = {
+            'group_by': forms.HiddenInput,
+        }
         help_texts = {
             'limit': _("Maximum number of records"),
         }
@@ -163,13 +166,15 @@ class DataSourceForm(forms.ModelForm):
         if pk:
             self.body.title = u"Edit Data Source"
             self.body.form_action = reverse_lazy('edit-data-source', kwargs={'pk': pk})
+            self.fields['group_fields'].initial = ', '.join(self.instance.group_by)
         else:
             self.body.title = u"Add Data Source"
             self.body.form_action = reverse_lazy('new-data-source')
 
         self.body.layout = Layout(
             Div(
-                Div('name', css_class='col-8'),
+                Div('name', css_class='col-12'),
+                Div('group_fields', css_class='col-8'),
                 Div('limit', css_class='col-4'),
                 css_class='row'
             ),
@@ -178,6 +183,81 @@ class DataSourceForm(forms.ModelForm):
             StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
             StrictButton('Save', type='submit', name="submit", value='save', css_class='btn btn-primary'),
         )
+
+    def clean(self):
+        data = super().clean()
+        group_fields = data.get('group_fields')
+        if group_fields:
+            data['group_by'] = re.split(r'\s*[,;|]\s*', group_fields)
+        return data
+
+
+class DataModelForm(forms.ModelForm):
+    name = forms.CharField(required=False)
+
+    class Meta:
+        model = models.DataModel
+        fields = ('model', 'source', 'name')
+        widgets = {
+            'source': forms.HiddenInput(),
+            'name': forms.HiddenInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.source = kwargs.pop('source')
+        super().__init__(*args, **kwargs)
+        pk = self.instance.pk
+
+        self.body = BodyHelper(self)
+        self.footer = FooterHelper(self)
+        self.fields['model'].queryset = ContentType.objects.filter(app_label__in=settings.REPORT_APP_LABELS)
+
+        self.extra_fields = []
+        if self.instance.model:
+            group_fields = self.instance.get_group_fields()
+            for field_name, field in group_fields.items():
+                self.fields[field_name] = forms.CharField(required=True)
+                self.fields[field_name].help_text = f'Enter expression for {field_name} grouping'
+                if field:
+                    self.fields[field_name].initial = field.expression
+                self.extra_fields.append(field_name)
+        else:
+            for field_name in self.source.group_by:
+                self.fields[field_name] = forms.CharField(required=True)
+                self.fields[field_name].help_text = f'Enter expression for {field_name} grouping'
+                self.extra_fields.append(field_name)
+
+        if pk:
+            self.body.title = _("Edit Data Model")
+            self.body.form_action = reverse_lazy('edit-source-model', kwargs={'pk': pk, 'source': self.source.pk})
+        else:
+            self.body.title = _("Add Data Model")
+            self.body.form_action = reverse_lazy('add-source-model', kwargs={'source': self.source.pk})
+
+        extra_div = Div(*[Div(field, css_class='col-12') for field in self.extra_fields], css_class='row')
+        self.body.layout = Layout(
+            Div(
+                Div('model', css_class='col-12'),
+                css_class='row'
+            ),
+            extra_div,
+            Field('source'),
+        )
+        self.footer.layout = Layout(
+            StrictButton('Revert', type='reset', value='Reset', css_class="btn btn-secondary"),
+            StrictButton('Save', type='submit', name="submit", value='submit', css_class='btn btn-primary'),
+        )
+
+    def clean(self):
+        data = super().clean()
+        model = data.get('model')
+
+        data['name'] = f'{model.app_label}.{model.model}'
+        data['groups'] = {
+            field: data[field] for field in self.extra_fields
+        }
+
+        return data
 
 
 class EntryForm(forms.ModelForm):

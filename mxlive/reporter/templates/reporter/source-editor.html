@@ -35,55 +35,92 @@
     <a href="#!" data-form-link="{% url "delete-data-source" source.pk %}">
         {% tool_icon label='Delete' icon='icon-md bi-trash3' %}
     </a>
+    <a href="#!" data-form-link="{% url "add-source-model" source=source.pk %}">
+        {% tool_icon label='Add Model' icon='icon-md bi-database-add' %}
+    </a>
     <a href="#!" data-form-link="{% url "add-source-field" source=source.pk %}">
-        {% tool_icon label='Add Field' icon='icon-md bi-plus-square-dotted' %}
+        {% tool_icon label='Add Field' icon='icon-md bi-node-plus' %}
     </a>
 {% endblock %}
 
 {% block full %}
     <div class="row report-editor ">
         <div class="col-12">
-        <div class="row">
+            <div class="row">
                 <div class="col-12">
-                    <div class="card alert-info mb-4">
+                    <div class="card mb-3">
                         <div class="card-header py-2 d-flex align-items-center">
-                            HELP
+                            <h4 class="my-0"><span class="text-muted">Models</span></h4>
                         </div>
-                        <div class="card-body">
-                            For each model in the data source, you can define fields that will be used to build reports.
-                            Grouped fields are used to group data in reports and must be defined for each model to be valid.
-                            Grouped fields should be annotations. All other fields for grouped sources must be aggregations.
-                            Multiple grouped fields can be defined for each model but every model in the source must define the same
-                            set of grouped fields.
-                        </div>
+                        <table class="table table-sm table-ruled">
+                            <thead>
+                            <tr>
+                                <th class="col-2 pl-3">App</th>
+                                <th class="col-3">Model</th>
+                                {% for group_field in source.group_by %}
+                                    <th>{{ group_field|title }}<span class="hidden-xs text-muted">&nbsp;&middot;&nbsp;Group</span></th>
+                                {% endfor %}
+                                <th class="col-1">Edit</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for src_model in source.models.all %}
+                                <tr>
+                                    <td class="col-2 pl-3">{{ src_model.model.app_label }}</td>
+                                    <td>{{ src_model.model.model }}</td>
+                                    {% for field_name, group_field in src_model.get_group_fields.items %}
+                                        {% if group_field %}
+                                        <td class="text-monospace text-md">{{ group_field.expression }}</td>
+                                        {% else %}
+                                        <td class="text-danger"><a href="#!" data-form-link="{% url 'add-group-field' source=source.pk group=field_name %}">Undefined</a></td>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <td>
+                                        <div class="tools-box ml-auto pr-0">
+                                            <a href="#!"
+                                               data-form-link="{% url 'edit-source-model' source=source.pk pk=src_model.pk %}"
+                                               title="Edit">
+                                                {% tool_icon icon='bi-pencil' %}
+                                            </a>
+                                            <a href="#!"
+                                               data-form-link="{% url 'delete-source-model' source=source.pk pk=src_model.pk %}"
+                                               title="Delete">
+                                                {% tool_icon icon='bi-x-lg' %}
+                                            </a>
+                                        </div>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No models defined</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
             <div class="row">
                 <div class="col-12">
-                    {% for model, model_fields in fields.items %}
                         <div class="card mb-3">
                             <div class="card-header py-2 d-flex align-items-center">
-                                <h4 class="my-0"><span class="text-muted">Model &mdash; </span><span class="text-monospace">{{ model }}</span></h4>
+                                <h4 class="my-0"><span class="text-muted">Fields</span></h4>
                             </div>
                             <table class="table table-sm table-ruled">
                                 <thead>
                                 <tr>
-                                    <th class="col-1">Group</th>
-                                    <th class="col-2">Field</th>
-                                    <th class="col-1">Type</th>
+                                    <th class="col-2 pl-3">Name</th>
                                     <th class="col-2">Label</th>
+                                    <th class="col-2">Model</th>
                                     <th>Expression</th>
                                     <th class="col-1">Edit</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {% for field in model_fields %}
+                                {% for field in source.non_group_fields %}
                                     <tr>
-                                        <td>{{ field.grouped | boolean_check }}</td>
-                                        <td>{{ field.name }}</td>
-                                        <td>{{ field.get_kind_display }}</td>
+                                        <td class="text-monospace text-md pl-3">{{ field.name }}</td>
                                         <td>{{ field.label }}</td>
+                                        <td>{{ field.model }}</td>
                                         <td class="text-monospace text-md">{{ field.expression }}</td>
                                         <td>
                                             <div class="tools-box ml-auto pr-0">
@@ -103,7 +140,6 @@
                                 </tbody>
                             </table>
                         </div>
-                    {% endfor %}
                 </div>
             </div>
 

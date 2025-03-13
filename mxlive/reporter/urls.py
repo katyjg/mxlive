@@ -22,9 +22,14 @@ urlpatterns = [
     path('sources/<int:pk>/edit/', views.EditDataSource.as_view(), name='edit-data-source'),
     path('sources/<int:pk>/delete/', views.DeleteDataSource.as_view(), name='delete-data-source'),
 
-    path('sources/<int:source>/add/', views.AddSourceField.as_view(), name='add-source-field'),
-    path('sources/<int:source>/edit/<int:pk>/', views.EditSourceField.as_view(), name='edit-source-field'),
-    path('sources/<int:source>/delete/<int:pk>/', views.DeleteSourceField.as_view(), name='delete-source-field'),
+    path('sources/<int:source>/add-field/', views.AddSourceField.as_view(), name='add-source-field'),
+    path('sources/<int:source>/add-field/<slug:group>/', views.AddSourceField.as_view(), name='add-group-field'),
+    path('sources/<int:source>/edit-field/<int:pk>/', views.EditSourceField.as_view(), name='edit-source-field'),
+    path('sources/<int:source>/del-field/<int:pk>/', views.DeleteSourceField.as_view(), name='delete-source-field'),
+
+    path('sources/<int:source>/add-model/', views.AddSourceModel.as_view(), name='add-source-model'),
+    path('sources/<int:source>/edit-model/<int:pk>/', views.EditSourceModel.as_view(), name='edit-source-model'),
+    path('sources/<int:source>/del-model/<int:pk>/', views.DeleteSourceModel.as_view(), name='delete-source-model'),
 
     path('view/<slug:slug>/', views.ReportView.as_view(), name='report-view'),
     path('data/<slug:slug>/', views.ReportData.as_view(), name='report-data'),

@@ -4,6 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http import JsonResponse, Http404
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.views import View
 from django.views.generic import DetailView, edit
 from itemlist.views import ItemListView
@@ -168,7 +169,97 @@ class AddSourceField(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
     def get_initial(self):
         initial = super().get_initial()
         initial['source'] = self.kwargs.get('source')
+        if 'group' in self.kwargs:
+            initial['name'] = self.kwargs.get('group')
+            initial['label'] = initial['name'].title()
+            initial['type'] = models.DataField.FieldType.ANNOTATION
         return initial
+
+
+class AddSourceModel(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.CreateView):
+    form_class = forms.DataModelForm
+    template_name = "modal/form.html"
+    model = models.DataField
+    success_message = "Model has been added"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['source'] = models.DataSource.objects.filter(pk=self.kwargs.get('source')).first()
+        return kwargs
+
+    def get_success_url(self):
+        return reverse('source-editor', kwargs={'pk': self.object.source.pk})
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['source'] = self.kwargs.get('source')
+        return initial
+
+    def form_valid(self, form):
+        data = form.cleaned_data
+        response = super().form_valid(form)
+        groups = data.pop('groups')
+        for i, (name, expression) in enumerate(groups.items()):
+            group, created = models.DataField.objects.get_or_create(
+                name=name, model=self.object, source=self.object.source
+            )
+            models.DataField.objects.filter(pk=group.pk).update(
+                expression=expression,
+                source=self.object.source,
+                kind=models.DataField.FieldType.ANNOTATION,
+                label=name.title(),
+                position=i,
+                modified=timezone.now(),
+            )
+        return response
+
+
+class EditSourceModel(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
+    form_class = forms.DataModelForm
+    template_name = "modal/form.html"
+    model = models.DataModel
+    success_message = "Model has been updated"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['source'] = models.DataSource.objects.filter(pk=self.kwargs.get('source')).first()
+        return kwargs
+
+    def get_success_url(self):
+        return reverse('source-editor', kwargs={'pk': self.object.source.pk})
+
+    def form_valid(self, form):
+        data = form.cleaned_data
+        groups = data.pop('groups')
+        for i, (name, expression) in enumerate(groups.items()):
+            group, created = models.DataField.objects.get_or_create(
+                name=name, model=self.object, source=self.object.source
+            )
+            models.DataField.objects.filter(pk=group.pk).update(
+                expression=expression,
+                source=self.object.source,
+                kind=models.DataField.FieldType.ANNOTATION,
+                label=name.title(),
+                position=i,
+                modified=timezone.now(),
+            )
+        return super().form_valid(form)
+
+
+class DeleteSourceModel(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.DeleteView):
+    model = models.DataModel
+    template_name = "modal/delete.html"
+    success_message = "Model has been deleted"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_action'] = reverse_lazy(
+            'delete-source-model', kwargs={'pk': self.object.pk, 'source': self.object.source.pk}
+        )
+        return context
+
+    def get_success_url(self):
+        return reverse('source-editor', kwargs={'pk': self.object.source.pk})
 
 
 class EditEntry(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edit.UpdateView):
