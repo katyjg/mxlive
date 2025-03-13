@@ -87,7 +87,7 @@ class SourceEditor(AdminRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         field_info = defaultdict(list)
-        for field in self.object.fields.all().order_by('-grouped', 'position'):
+        for field in self.object.fields.all().order_by('position'):
             field_info[field.model].append(field)
         context['source'] = self.object
         context['fields'] = dict(field_info)
@@ -172,7 +172,6 @@ class AddSourceField(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
         if 'group' in self.kwargs:
             initial['name'] = self.kwargs.get('group')
             initial['label'] = initial['name'].title()
-            initial['type'] = models.DataField.FieldType.ANNOTATION
         return initial
 
 
@@ -206,7 +205,6 @@ class AddSourceModel(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
             models.DataField.objects.filter(pk=group.pk).update(
                 expression=expression,
                 source=self.object.source,
-                kind=models.DataField.FieldType.ANNOTATION,
                 label=name.title(),
                 position=i,
                 modified=timezone.now(),
@@ -238,7 +236,6 @@ class EditSourceModel(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, e
             models.DataField.objects.filter(pk=group.pk).update(
                 expression=expression,
                 source=self.object.source,
-                kind=models.DataField.FieldType.ANNOTATION,
                 label=name.title(),
                 position=i,
                 modified=timezone.now(),

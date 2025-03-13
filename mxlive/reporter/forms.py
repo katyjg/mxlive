@@ -82,7 +82,7 @@ class DataFieldForm(forms.ModelForm):
     class Meta:
         model = models.DataField
         fields = (
-            'name', 'kind', 'model', 'label', 'default', 'expression', 'precision',
+            'name', 'model', 'label', 'default', 'expression', 'precision',
             'source', 'position', 'ordering',
         )
         widgets = {
@@ -119,8 +119,7 @@ class DataFieldForm(forms.ModelForm):
                 css_class='row'
             ),
             Div(
-                Div('kind', css_class='col-4'),
-                Div(Field('model', css_class='select'), css_class="col-4"),
+                Div(Field('model', css_class='select'), css_class="col-8"),
                 Div('ordering', css_class='col-4'),
                 css_class='row'
             ),

@@ -63,28 +63,27 @@ class DataSource(TimeStampedModel):
             queryset = queryset.filter(**filters)
 
         # Add annotations
+        group_by = group_by if group_by is not None else list(self.group_by)
+        annotate_filter = {'name__in': group_by} if group_by else {}
         annotations = {
             field.name: field.get_expression()
-            for field in self.fields.filter(model__name=model_name, kind=DataField.FieldType.ANNOTATION)
+            for field in self.fields.filter(model__name=model_name, **annotate_filter)
         }
 
         # Add aggregations and handle grouping
-        group_fields: list = (
-            group_by or list(self.fields.filter(name__in=self.group_by).values_list('name', flat=True).distinct())
-        )
         aggregations = {}
-        if group_fields:
+        if group_by:
             aggregations = {
                 field.name: field.get_expression()
-                for field in self.fields.filter(model__name=model_name, kind=DataField.FieldType.AGGREGATION)
+                for field in self.fields.exclude(name__in=group_by).filter(model__name=model_name)
             }
 
-        if annotations and not group_fields:
+        if annotations and not aggregations:
             queryset = queryset.annotate(**annotations)
-        elif annotations and group_fields:
-            queryset = queryset.annotate(**annotations).values(*group_fields).annotate(**aggregations)
-        elif group_fields:
-            queryset.values(*group_fields).annotate(**aggregations)
+        elif annotations and aggregations:
+            queryset = queryset.annotate(**annotations).values(*group_by).annotate(**aggregations)
+        elif group_by:
+            queryset.values(*group_by).annotate(**aggregations)
 
         # Apply sorting
         order_fields = self.fields.annotate(
@@ -100,7 +99,7 @@ class DataSource(TimeStampedModel):
 
         return queryset
 
-    @utils.cached_model_method(duration=1)
+    #@utils.cached_model_method(duration=1)
     def get_data(self, filters=None, group_by=None, order_by=None) -> list[dict]:
         """
         Generate data for this data source
@@ -148,7 +147,6 @@ class DataField(TimeStampedModel):
         AGGREGATION = 'aggregation', _('Aggregation')
 
     name = models.SlugField(max_length=50)
-    kind = models.CharField(max_length=50, choices=FieldType.choices, default=FieldType.AGGREGATION)
     model = models.ForeignKey(DataModel, on_delete=models.CASCADE, related_name='fields')
     label = models.CharField(max_length=100, null=True)
     default = models.JSONField(null=True, blank=True)
