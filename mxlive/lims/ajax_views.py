@@ -15,6 +15,7 @@ from django.views.generic import View
 from mxlive.utils.mixins import LoginRequiredMixin, AdminRequiredMixin
 from . import models
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class FetchReport(LoginRequiredMixin, View):
 

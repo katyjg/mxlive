@@ -9,12 +9,13 @@ import threading
 from django.core.cache import cache
 from django.apps import apps
 from django.db import models
-from django.db.models import Count, Avg, Sum, Max, Min, F, Value as V
+from django.db.models import Count, Avg, Sum, Max, Min, F, Value as V, Q
 from django.db.models.functions import (
     Greatest, Least, Concat, Abs, Ceil, Floor, Exp, Ln, Log, Power, Sqrt, Sin, Cos, Tan, ASin, ACos, ATan,
     ATan2, Mod, Sign, Trunc, Radians, Degrees, Upper, Lower, Length, Substr, LPad, RPad, Trim, LTrim, RTrim,
     ExtractYear, ExtractMonth, ExtractDay, ExtractHour, ExtractMinute, ExtractSecond, ExtractWeekDay, ExtractWeek
 )
+from django.utils import timezone
 from functools import wraps
 from pyparsing import *
 from pyparsing.exceptions import ParseException
@@ -75,6 +76,48 @@ class Minutes(models.Func):
         )
 
 
+SHIFT = 8
+SHIFT_DURATION = '{:d} hour'.format(SHIFT)
+OFFSET = -timezone.make_aware(datetime.now(), timezone.get_default_timezone()).utcoffset().total_seconds()
+
+
+class ShiftStart(models.Func):
+    function = 'to_timestamp'
+    template = '%(function)s(%(expressions)s)'
+    output_field = models.DateTimeField()
+
+    def as_postgresql(self, compiler, connection):
+        self.arg_joiner = " - "
+        return self.as_sql(
+            compiler, connection, function="to_timestamp",
+            template=(
+                "%(function)s("
+                "   floor((EXTRACT(epoch FROM %(expressions)s)) / EXTRACT(epoch FROM interval '{shift}'))"
+                "   * EXTRACT(epoch FROM interval '{shift}') {offset:+}"
+                ")"
+            ).format(shift=SHIFT_DURATION, offset=OFFSET)
+        )
+
+
+class ShiftEnd(models.Func):
+    function = 'to_timestamp'
+    template = '%(function)s(%(expressions)s)'
+    output_field = models.DateTimeField()
+
+    def as_postgresql(self, compiler, connection):
+        self.arg_joiner = " - "
+        return self.as_sql(
+            compiler, connection, function="to_timestamp",
+            template=(
+                "%(function)s("
+                "   ceil((EXTRACT(epoch FROM %(expressions)s)) / EXTRACT(epoch FROM interval '{shift}'))"
+                "   * EXTRACT(epoch FROM interval '{shift}') {offset:+}"
+                ")"
+            ).format(shift=SHIFT_DURATION, offset=OFFSET)
+        )
+
+
+
 EXPRESSIONS = [
     "Sum(Metrics.Citations) + Avg(Metrics.Mentions)",
     "Sum(Metrics.Citations - Metrics.Mentions)",
@@ -98,7 +141,7 @@ ALLOWED_FUNCTIONS = [
     Abs, Ceil, Floor, Exp, Ln, Log, Power, Sqrt, Sin, Cos, Tan, ASin, ACos, ATan, ATan2, Mod, Sign, Trunc,
     ExtractYear, ExtractMonth, ExtractDay, ExtractHour, ExtractMinute, ExtractSecond, ExtractWeekDay, ExtractWeek,
     Upper, Lower, Length, Substr, LPad, RPad, Trim, LTrim, RTrim,
-    Radians, Degrees, Hours, Minutes
+    Radians, Degrees, Hours, Minutes, ShiftStart, ShiftEnd, Q
 ]
 
 FUNCTIONS = {
@@ -244,6 +287,8 @@ class ExpressionParser:
             return args[0] * args[1]
         elif name == 'DIV':
             return args[0] / args[1]
+        elif name == 'Q' and len(args) == 1:
+            return Q(**args[0])
         elif name in FUNCTIONS:
             ordered_args = [a for a in args if not isinstance(a, dict)]
             kwargs = {k: v for a in args if isinstance(a, dict) for k, v in a.items()}
@@ -251,19 +296,24 @@ class ExpressionParser:
         else:
             raise ParseException(f'Unknown function: {name}')
 
-    def clean(self, expression):
+    def clean(self, expression, wrap_value=True):
         """
         Clean the parsed expression into a Django expression
         :param expression: The parsed expression as a nested list
-        :param distinct: Whether to use distinct in the expression
+        :param wrap_value: Whether to wrap values in a Value function
         :return: A Django expression suitable for use in a QuerySet
         """
+
         if isinstance(expression, str) and expression.startswith('$'):
             return self.clean_variable(expression)
         elif isinstance(expression, (int, float, bool, str)):
             return V(expression)
+        elif isinstance(expression, ParseResults):
+            return self.clean(expression.asList())
         elif isinstance(expression, dict):
-            return expression
+            return {
+                k: self.clean(v) for k, v in expression.items()
+            }
         elif isinstance(expression, list) and len(expression) == 1:
             return self.clean(expression[0])
         elif not isinstance(expression, list):

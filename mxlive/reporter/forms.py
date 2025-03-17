@@ -384,14 +384,17 @@ class TableForm(forms.ModelForm):
 
     def update_initial(self):
         attrs = self.instance.attrs
+        field_queryset = self.instance.source.fields.filter(
+            pk__in= self.instance.source.fields.order_by('name').distinct('name').values_list('pk')
+        )
         for field in ['columns', 'values', 'rows']:
-            self.fields[field].queryset = self.instance.source.fields.all()
+            self.fields[field].queryset = field_queryset
 
         for field in ['columns', 'values']:
             if field in attrs:
-                self.fields[field].initial = self.instance.source.fields.filter(name=attrs[field]).first()
+                self.fields[field].initial = field_queryset.filter(name=attrs[field]).first()
         if 'rows' in attrs:
-            self.fields['rows'].initial = self.instance.source.fields.filter(name__in=attrs['rows'])
+            self.fields['rows'].initial = field_queryset.filter(name__in=attrs['rows'])
 
         for field in ['total_row', 'total_column', 'force_strings', 'transpose']:
             if field in attrs:
@@ -501,18 +504,21 @@ class BarsForm(forms.ModelForm):
 
     def update_initial(self):
         attrs = self.instance.attrs
+        field_queryset = self.instance.source.fields.filter(
+            pk__in= self.instance.source.fields.order_by('name').distinct('name').values_list('pk')
+        )
         for field in ['x_axis', 'y_axis', 'y_value', 'stack_0', 'stack_1', 'stack_2', 'color_field', 'line', 'sort_by']:
-            self.fields[field].queryset = self.instance.source.fields.all()
+            self.fields[field].queryset = field_queryset
 
         for field in ['x_axis', 'y_value', 'line', 'color_field', 'sort_by']:
             if field in attrs:
-                self.fields[field].initial = self.instance.source.fields.filter(name=attrs[field]).first()
+                self.fields[field].initial = field_queryset.filter(name=attrs[field]).first()
         if 'y_axis' in attrs:
-            self.fields['y_axis'].initial = self.instance.source.fields.filter(name__in=attrs['y_axis'])
+            self.fields['y_axis'].initial = field_queryset.filter(name__in=attrs['y_axis'])
 
         if 'stack' in attrs:
             for i, stack in enumerate(attrs['stack']):
-                self.fields[f'stack_{i}'].initial = self.instance.source.fields.filter(name__in=stack)
+                self.fields[f'stack_{i}'].initial = field_queryset.filter(name__in=stack)
 
         for field in ['x_culling', 'wrap_x_labels', 'aspect_ratio', 'sort_desc', 'limit', 'colors']:
             if field in attrs:
@@ -610,15 +616,18 @@ class PlotForm(forms.ModelForm):
 
     def update_initial(self):
         attrs = self.instance.attrs
+        field_queryset = self.instance.source.fields.filter(
+            pk__in= self.instance.source.fields.order_by('name').distinct('name').values_list('pk')
+        )
         for field in ['x_axis', 'y1_axis', 'y2_axis']:
-            self.fields[field].queryset = self.instance.source.fields.all()
+            self.fields[field].queryset = field_queryset
 
         if 'x_axis' in attrs:
-            self.fields['x_axis'].initial = self.instance.source.fields.filter(name=attrs['x_axis']).first()
+            self.fields['x_axis'].initial = field_queryset.filter(name=attrs['x_axis']).first()
 
         if 'y_axis' in attrs:
             for i, y_group in enumerate(attrs['y_axis']):
-                self.fields[f'y{i + 1}_axis'].initial = self.instance.source.fields.filter(name__in=y_group)
+                self.fields[f'y{i + 1}_axis'].initial = field_queryset.filter(name__in=y_group)
 
         for field in ['y1_label', 'y2_label', 'tick_precision', 'scatter', 'aspect_ratio', 'colors']:
             if field in attrs:
@@ -697,15 +706,18 @@ class ListForm(forms.ModelForm):
 
     def update_initial(self):
         attrs = self.instance.attrs
+        field_queryset = self.instance.source.fields.filter(
+            pk__in=self.instance.source.fields.order_by('name').distinct('name').values_list('pk')
+        )
         for field in ['columns', 'order_by']:
-            self.fields[field].queryset = self.instance.source.fields.all()
+            self.fields[field].queryset = field_queryset
 
         if 'columns' in attrs:
-            self.fields['columns'].initial = self.instance.source.fields.filter(name__in=attrs['columns'])
+            self.fields['columns'].initial = field_queryset.filter(name__in=attrs['columns'])
 
         if 'order_by' in attrs:
             order_by, order_desc = (attrs['order_by'][1:], True) if attrs['order_by'][0] == '-' else (attrs['order_by'], False)
-            self.fields['order_by'].initial = self.instance.source.fields.filter(name=order_by).first()
+            self.fields['order_by'].initial = field_queryset.filter(name=order_by).first()
             self.fields['order_desc'].initial = order_desc
 
         if 'limit' in attrs:
@@ -774,12 +786,15 @@ class PieForm(forms.ModelForm):
 
     def update_initial(self):
         attrs = self.instance.attrs
+        field_queryset = self.instance.source.fields.filter(
+            pk__in=self.instance.source.fields.order_by('name').distinct('name').values_list('pk')
+        )
         for field in ['value', 'label']:
-            self.fields[field].queryset = self.instance.source.fields.all()
+            self.fields[field].queryset = field_queryset
 
         for field in ['value', 'label']:
             if field in attrs:
-                self.fields[field].initial = self.instance.source.fields.filter(name=attrs[field]).first()
+                self.fields[field].initial = field_queryset.filter(name=attrs[field]).first()
         for field in ['colors']:
             if field in attrs:
                 self.fields[field].initial = attrs[field]
@@ -852,12 +867,15 @@ class TimelineForm(forms.ModelForm):
 
     def update_initial(self):
         attrs = self.instance.attrs
+        field_queryset = self.instance.source.fields.filter(
+            pk__in=self.instance.source.fields.order_by('name').distinct('name').values_list('pk')
+        )
         for field in ['start_field', 'end_field', 'label_field', 'type_field']:
-            self.fields[field].queryset = self.instance.source.fields.all()
+            self.fields[field].queryset = field_queryset
 
         for field in ['start_field', 'end_field', 'label_field', 'type_field']:
             if field in attrs:
-                self.fields[field].initial = self.instance.source.fields.filter(name=attrs[field]).first()
+                self.fields[field].initial = field_queryset.filter(name=attrs[field]).first()
         for field in ['colors']:
             if field in attrs:
                 self.fields[field].initial = attrs[field]

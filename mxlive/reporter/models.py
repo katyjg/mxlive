@@ -1,6 +1,4 @@
 from collections import defaultdict
-
-from IPython.lib.pretty import Printable
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -99,7 +97,7 @@ class DataSource(TimeStampedModel):
 
         return queryset
 
-    #@utils.cached_model_method(duration=1)
+    @utils.cached_model_method(duration=1)
     def get_data(self, filters=None, group_by=None, order_by=None) -> list[dict]:
         """
         Generate data for this data source

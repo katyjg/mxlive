@@ -172,6 +172,7 @@ class AddSourceField(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, ed
         if 'group' in self.kwargs:
             initial['name'] = self.kwargs.get('group')
             initial['label'] = initial['name'].title()
+        initial['position'] = models.DataField.objects.filter(source=initial['source']).count()
         return initial
 
 
