@@ -63,7 +63,6 @@ class AuthenticationRequiredMixin(object):
             return http.HttpResponseForbidden()
 
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class AccessList(View):
     """
@@ -325,9 +324,9 @@ class AddReport(AuthenticationRequiredMixin, View):
 
         from mxlive.lims.models import Data, AnalysisReport
         project = request.user
-        try:
-            data = Data.objects.filter(pk__in=info.get('data_id'))
-        except:
+        data = Data.objects.filter(pk__in=info.get('data_id'))
+
+        if not data.exists():
             raise http.Http404("Data does not exist")
 
         # Download  key

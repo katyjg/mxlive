@@ -22,6 +22,7 @@ MIN_SUPPORT_HOUR = getattr(settings, 'MIN_SUPPORT_HOUR', 0)
 MAX_SUPPORT_HOUR = getattr(settings, 'MAX_SUPPORT_HOUR', 24)
 APP_NAME = getattr(settings, 'APP_NAME', 'mxlive')
 
+
 class AccessType(models.Model):
     name = models.CharField(blank=True, max_length=30)
     color = ColorField(default="#000000")

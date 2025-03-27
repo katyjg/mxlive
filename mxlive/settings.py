@@ -289,6 +289,3 @@ if LIMS_USE_SCHEDULE:
 
 if LIMS_USE_PUBLICATIONS:
     INSTALLED_APPS.extend(['mxlive.publications'])
-
-if LIMS_USE_REPORTER:
-    INSTALLED_APPS.extend(['mxlive.reporter'])
