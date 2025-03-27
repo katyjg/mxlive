@@ -918,6 +918,16 @@ a[data-link], .back text[port], .cursor {
     background-repeat: no-repeat;
     background-position: center;
     border: 1px solid var(--gray-alpha);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &::before {
+      content: '⌖';
+      font-size: 2.0rem;
+      mix-blend-mode: difference;
+        filter: invert(100%);
+    }
   }
 }
 
