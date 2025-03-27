@@ -43,3 +43,8 @@ def sample_data(sample, session=None):
         'reports': sample.reports().all()
     }
 
+
+@register.simple_tag
+def filter_reports(sample, session=None):
+    return sample.reports(session=session)
+
