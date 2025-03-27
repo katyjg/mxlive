@@ -77,6 +77,12 @@ class OrphanSample(object):
         self.orphaned_datasets = []
         self.orphaned_reports = []
 
+    def reports(self, session=None):
+        if session:
+            return [report for report in self.orphaned_reports if report.data.filter(session=session).exists()]
+        else:
+            return self.orphaned_reports
+
 
 class Beamline(models.Model):
     """
@@ -328,6 +334,12 @@ class Session(models.Model):
 
     def samples(self):
         return self.project.samples.filter(datasets__session=self).distinct()
+
+    def sample_groups(self):
+        return {
+            group: self.project.samples.filter(datasets__session=self, group=group).distinct()
+            for group in self.groups()
+        }
 
     @memoize(60)
     def is_active(self):
@@ -1106,8 +1118,11 @@ class Sample(ProjectObjectMixin):
     def dewar(self):
         return self.container.dewar()
 
-    def reports(self):
-        return AnalysisReport.objects.filter(project=self.project, data__sample=self)
+    def reports(self, session=None):
+        if session:
+            return self.project.reports.filter(data__sample=self, data__session=session)
+        else:
+            return self.project.reports.filter(data__sample=self)
 
     def port(self):
         if hasattr(self, 'port_name'):  # fetch from default annotation
