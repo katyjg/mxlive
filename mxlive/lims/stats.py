@@ -641,12 +641,16 @@ def session_stats(session):
     )
 
     data_stats = [
-        ['Avg Frames/{}'.format(info['key']), round(info['frames'] / info['count'], 1)]
+        ['Avg Frames/{}'.format(info['key']), round(info['frames'] / info['count'], 0)]
         for info in data_extras
+    ] + [
+        ['Avg Report Score', round(session.reports().aggregate(avg_score=Avg('score'))['avg_score'], 2)]
     ]
     data_counts = [
         [info['key'], round(info['count'], 1)]
         for info in data_extras
+    ] + [
+        ['Analysis Reports', session.reports().count()]
     ]
 
     data_info = session.datasets.values('exposure_time', 'attenuation', 'energy', 'num_frames')
@@ -654,6 +658,7 @@ def session_stats(session):
     param_histograms = make_parameter_histogram(data_info, report_info)
 
     shutters = sum([info['time'] for info in data_extras]) / HOUR_SECONDS
+    active_hours = (session.last_record_time() - session.first_record_time()).total_seconds() / HOUR_SECONDS
     total_time = session.total_time()
     last_data = session.datasets.last()
 
@@ -662,7 +667,7 @@ def session_stats(session):
             "type": data['kind__name'],
             "start": js_epoch(data['start_time']),
             "end": js_epoch(data['end_time']),
-            "label": "{}: {}".format(data["kind__name"], data['name'])
+            "label": f"{data['kind__name']}: {data['name']}"
         }
         for data in session.datasets.values('start_time', 'end_time', 'kind__name', 'name')
     ]
@@ -688,15 +693,14 @@ def session_stats(session):
                        'title': '',
                        'kind': 'table',
                        'data': [
-                                   ['Shutters Open', "{} ({:.2f}%)".format(
-                                       humanize_duration(shutters),
-                                       shutters * 100 / total_time if total_time else 0
-                                   )
-                                    ],
-                                   ['Last Dataset',
-                                    '' if not last_data else last_data.modified.strftime('%c')],
-                                   ['No. of Logins', session.stretches.count()],
-                               ] + data_stats,
+                            ['Active Time', humanize_duration(active_hours)],
+                            ['Last Dataset', '' if not last_data else last_data.modified.strftime('%c')],
+                            ['Shutters Open', "{} ({:.2f}%)".format(
+                                   humanize_duration(shutters),
+                                   shutters * 100 / total_time if total_time else 0
+                            )],
+                            #['No. of Logins', session.stretches.count()],
+                       ] + data_stats,
                        'header': 'column',
                        'style': 'col-12 col-md-6',
                     },
@@ -738,8 +742,8 @@ def session_stats(session):
                     {
                         'title': 'Session Timeline',
                         'kind': 'timeline',
-                        'start': js_epoch(session.start()),
-                        'end': js_epoch(session.end()),
+                        'start': js_epoch(session.first_record_time()),
+                        'end': js_epoch(session.last_record_time()),
                         'data': timeline_data,
                         'style': 'col-12'
                     },

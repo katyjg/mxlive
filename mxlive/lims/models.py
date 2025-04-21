@@ -391,6 +391,11 @@ class Session(models.Model):
         last_data = self.datasets.last()
         return last_data.modified if last_data else self.created
 
+    @memoize(60)
+    def first_record_time(self):
+        first_data = self.datasets.first()
+        return first_data.modified if first_data else self.created
+
     def gaps(self):
         data = list(self.datasets.order_by('start_time'))
         max_gap = timedelta(minutes=10)

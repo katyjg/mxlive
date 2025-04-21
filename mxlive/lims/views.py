@@ -347,7 +347,7 @@ class DetailListMixin(OwnerRequiredMixin):
 
 class ShipmentList(ListViewMixin, ItemListView):
     model = models.Shipment
-    list_filters = ['created', 'status']
+    list_filters = [filters.YearFilterFactory('created'), 'status', 'project__designation', 'project__kind']
     list_columns = ['id', 'name', 'date_shipped', 'carrier', 'num_containers', 'status']
     list_search = ['project__username', 'project__name', 'name', 'comments', 'status']
     link_url = 'shipment-detail'
