@@ -102,7 +102,7 @@ class Beamline(models.Model):
 
     def active_session(self):
         """
-        Returns the session that is currently running on the beamline, if there is one.
+        Returns the session currently running on the beamline, if there is one.
         """
         return self.sessions.filter(pk__in=Stretch.objects.active().values_list('session__pk')).first()
 
@@ -253,6 +253,18 @@ class StretchQuerySet(models.QuerySet):
 class ProjectObjectManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().select_related('project')
+
+
+class ShipmentQuerySet(models.QuerySet):
+    def active(self):
+        return self.filter(status__in=[Shipment.STATES.ACTIVE, Shipment.STATES.PROCESSING])
+
+    def recent(self):
+        recently = timezone.now() - timedelta(days=7)
+        return self.filter(Q(date_received__gte=recently) | Q(date_shipped__gte=recently))
+
+    def on_site(self):
+        return self.filter(status__in=[Shipment.STATES.ON_SITE, Shipment.STATES.LOADED])
 
 
 class SessionQuerySet(models.QuerySet):
@@ -571,7 +583,7 @@ class Shipment(TransitStatusMixin):
     carrier = models.ForeignKey(Carrier, null=True, blank=True, on_delete=models.SET_NULL, related_name='projects')
     storage_location = models.CharField(max_length=60, null=True, blank=True)
 
-    objects = ProjectObjectManager()
+    objects = ShipmentQuerySet.as_manager()
 
     def identity(self):
         return 'SHP-{:07,d}'.format(self.id).replace(',', '-')
@@ -771,6 +783,12 @@ class ContainerQuerySet(models.QuerySet):
     def with_port(self):
         return self.annotate(port_name=Concat(*CONTAINER_PORT_FIELDS))
 
+    def on_site(self):
+        return self.filter(shipment__isnull=False, status=Container.STATES.ON_SITE)
+
+    def in_transit(self):
+        return self.filter(shipment__isnull=False, status=Container.STATES.SENT)
+
 
 class ContainerManager(models.Manager.from_queryset(ContainerQuerySet)):
     def get_queryset(self):
@@ -831,6 +849,9 @@ class Container(TransitStatusMixin):
 
     def accepted_by(self):
         return ContainerType.objects.filter(pk__in=self.kind.locations.values_list('contents', flat=True))
+
+    def accepts(self, container: 'Container'):
+        return self.kind.locations.filter(accepts=container.kind).exists()
 
     def children_by_location(self):
         return self.children.order_by('location')

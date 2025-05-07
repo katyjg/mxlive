@@ -13,7 +13,7 @@ from django.template.defaultfilters import linebreaksbr
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.text import slugify
-from django.views.generic import edit, detail, View, TemplateView
+from django.views.generic import edit, detail, View, TemplateView, DetailView
 from formtools.wizard.views import SessionWizardView
 from itemlist.views import ItemListView
 from proxy.views import proxy_view

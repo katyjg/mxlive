@@ -27,6 +27,10 @@ if settings.LIMS_USE_SCHEDULE:
 if settings.LIMS_USE_PUBLICATIONS:
     urlpatterns += [path('publications/', include('mxlive.publications.urls'))]
 
+if settings.LIMS_USE_LOADER:
+    urlpatterns += [path('loader/', include('mxlive.loader.urls'))]
+    urlpatterns += [path('api/v3/loader/', include('mxlive.loader.api_urls'))]
+
 if settings.DEBUG:
     # import debug_toolbar
 

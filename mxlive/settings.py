@@ -66,6 +66,7 @@ INSTALLED_APPS = [
 LIMS_USE_SCHEDULE = False
 LIMS_USE_PUBLICATIONS = False
 LIMS_USE_REPORTER = False
+LIMS_USE_LOADER = False
 
 MIDDLEWARE = [
     # 'debug_toolbar.middleware.DebugToolbarMiddleware',
@@ -289,3 +290,7 @@ if LIMS_USE_SCHEDULE:
 
 if LIMS_USE_PUBLICATIONS:
     INSTALLED_APPS.extend(['mxlive.publications'])
+
+if LIMS_USE_LOADER:
+    INSTALLED_APPS.extend(['mxlive.loader'])
+
