@@ -23,7 +23,7 @@ from . import models
 
 PDB_FACILITY_ACRONYM = getattr(settings, 'PDB_FACILITY_ACRONYM', 'CLSI')
 CONTACT_EMAIL = getattr(settings, 'CONTACT_EMAIL', 'cmcf-support@lightsource.ca')
-CROSSREF_API_KEY =  getattr(settings, 'CROSSREF_API_KEY', None)
+CROSSREF_API_KEY = getattr(settings, 'CROSSREF_API_KEY', None)
 CROSSREF_THROTTLE = getattr(settings, 'CROSSREF_THROTTLE', 1)  # time delay between crossref calls
 CROSSREF_BATCH_SIZE = getattr(settings, 'CROSSREF_THROTTLE', 10)
 GOOGLE_API_KEY = getattr(settings, 'GOOGLE_API_KEY', None)
@@ -229,10 +229,11 @@ class BookParser(ObjectParser):
     from a Google books API report entry
 
     """
-    FIELDS = ['published', 'authors', 'code', 'abstract', 'kind', 'title', 'publisher']
+    FIELDS = ['published', 'author_names', 'code', 'abstract', 'kind', 'title', 'publisher']
     BOOK_KIND = models.Publication.TYPES.book
     KEY_MAPS = {
         'abstract': 'description',
+        'author_names': 'authors'
     }
 
     def get_code(self):
@@ -274,7 +275,7 @@ class ArticleParser(ObjectParser):
     }
 
     FIELDS = [
-        'published', 'authors', 'code', 'kind', 'title', 'publisher', 'volume', 'issue', 'pages'
+        'published', 'author_names', 'code', 'kind', 'title', 'publisher', 'volume', 'issue', 'pages'
     ]
 
     # map crossref work types to PublicationTypes
@@ -317,7 +318,7 @@ class ArticleParser(ObjectParser):
         parts = parts + [1]*(3-len(parts))  # sometimes partial dates are given, assume first of month
         return date(*parts)
 
-    def get_authors(self):
+    def get_author_names(self):
         return '; '.join([
             '{}, {}'.format(author['family'], author.get('given', ''))
             for author in self._entry['author']
@@ -368,10 +369,12 @@ class ArticleParser(ObjectParser):
                 'publisher': self._entry.get('publisher'),
                 'short_name': names[0]
             }
+        return None
 
     def get_main_title(self):
         if self._entry['type'] in ['book-part', 'book-section', 'book-chapter']:
             return '; '.join(self._entry['container-title'])
+        return None
 
     def get_isbn(self):
         return self._entry.get('ISBN', [])
@@ -432,6 +435,56 @@ class SCIMagoParser(ObjectParser):
             re.sub(r'(\w{4})(?!$)', r'\1-', code.strip())
             for code in self._entry['Issn'].split(',')
         })
+
+
+class AuthorParser(ObjectParser):
+    """
+    Used to extract author-specific data suitable for storing in the database
+    from a CrossRef report entry
+
+    """
+    FIELDS = ['last_name', 'other_names', 'orcid']
+    KEY_MAPS = {
+        'last_name': 'family',
+        'other_names': 'given',
+        'orcid': 'ORCID'
+    }
+
+
+class AffiliationParser(ObjectParser):
+    """
+    Used to extract affiliation-specific data suitable for storing in the database
+    from a CrossRef report entry
+
+    """
+    FIELDS = ['description', 'code']
+
+    def get_description(self):
+        description = []
+        if 'name' in self._entry:
+            description.append(self._entry['name'])
+        if 'department' in self._entry:
+            if isinstance(self._entry['department'], str):
+                description.append(self._entry['department'])
+            elif isinstance(self._entry['department'], list):
+                description.extend(self._entry['department'])
+        if 'address' in self._entry:
+            description.append(self._entry['address'])
+        if 'place' in self._entry:
+            if isinstance(self._entry['place'], str):
+                description.append(self._entry['place'])
+            elif isinstance(self._entry['place'], list):
+                description.extend(self._entry['place'])
+
+        return ', '.join(description)
+
+    def get_code(self):
+        if 'id' in self._entry:
+            if isinstance(self._entry['id'], str):
+                return self._entry['id']
+            elif isinstance(self._entry['id'], list) and 'id' in self._entry['id'][0]:
+                return self._entry['id'][0]['id']
+        return None
 
 
 def fetch_deposition_codes():

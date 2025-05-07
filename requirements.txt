@@ -21,7 +21,7 @@ djangorestframework==3.15.2
 djangorestframework-simplejwt==5.4.0
 crispy-bootstrap4
 geopy==2.4.1
-habanero==2.0.0
+habanero==2.2.0
 idna
 jsonfield2
 ldap3==2.9.1

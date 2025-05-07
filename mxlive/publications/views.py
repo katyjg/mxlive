@@ -18,7 +18,7 @@ class PubEntryList(AdminRequiredMixin, ItemListView):
         'tags'
     ]
     list_columns = ['published', 'citation', 'cites', 'mentions', 'impact_factor']
-    list_search = ['title', 'main_title', 'authors', 'code', 'comments', 'journal__title', 'funders__name']
+    list_search = ['title', 'main_title', 'author_names', 'code', 'comments', 'journal__title', 'funders__name']
     list_headers = {
         'impact_factor': mark_safe("<span class='no-wrap'>Impact Factor</span>"),
         'metrics__mentions': "Mentions",

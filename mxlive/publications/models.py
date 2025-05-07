@@ -73,11 +73,47 @@ class PublicationManager(models.Manager):
             cites=Coalesce('metrics__citations', 0),
             mentions=Coalesce('metrics__mentions', 0),
             citation=Concat(
-                'authors', V(" ("), 'published__year', V(") "), 'title', V(". "), "code",
+                'author_names', V(" ("), 'published__year', V(") "), 'title', V(". "), "code",
                 output_field=models.TextField()
             ),
             impact_factor=Coalesce('journal__metrics__impact_factor', 0.0),
         )
+
+#
+# class Affiliation(TimeStampedModel):
+#     class Type(models.TextChoices):
+#         RESEARCH = 'research', _('Research')
+#         GOVERNMENT = 'government', _('Government')
+#         INDUSTRY = 'industry', _('Industry')
+#         NONPROFIT = 'nonprofit', _('Non-Profit')
+#
+#     name = models.CharField(max_length=255, unique=True)
+#     code = models.CharField('ROR ID', max_length=255, blank=True, null=True)
+#     city = models.CharField(max_length=255, blank=True, null=True)
+#     region = models.CharField(max_length=255, blank=True, null=True)
+#     country = models.CharField(max_length=255, blank=True, null=True)
+#     location = models.PointField(blank=True, null=True)
+#     type = models.CharField(max_length=50, choices=Type.choices, default=Type.RESEARCH)
+#
+#     def __str__(self):
+#         return self.name
+#
+#
+# class AuthorAffiliation(models.Model):
+#     author = models.ForeignKey('Author', on_delete=models.CASCADE, related_name='author_affiliations')
+#     affiliation = models.ForeignKey('Affiliation', on_delete=models.CASCADE, related_name='author_affiliations')
+#     comments = models.TextField(blank=True, null=True)
+#     date = models.DateField(null=True, blank=True)
+#
+#
+# class Author(TimeStampedModel):
+#     last_name = models.CharField(max_length=255)
+#     other_names = models.CharField(max_length=255)
+#     orcid = models.CharField(max_length=50, blank=True, null=True)
+#     affiliations = models.ManyToManyField(Affiliation, through=AuthorAffiliation, blank=True)
+#
+#     def __str__(self):
+#         return f"{self.last_name}, {self.other_names}"
 
 
 class Publication(TimeStampedModel):
@@ -92,7 +128,7 @@ class Publication(TimeStampedModel):
         ('patent', _('Patent')))
 
     published = models.DateField(_('Published'))
-    authors = models.TextField()
+    author_names = models.TextField()
     code = models.CharField(max_length=255, null=True, unique=True)
     keywords = fields.StringListField(blank=True)
     abstract = models.TextField(null=True, blank=True)
@@ -124,7 +160,7 @@ class Metric(temporal.TemporalProfile):
     mentions = models.IntegerField(default=0)
 
     def __str__(self):
-        return '{}'.format(self.citations)
+        return f'{self.citations}'
 
 
 class Deposition(TimeStampedModel):
