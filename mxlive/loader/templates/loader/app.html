@@ -110,7 +110,7 @@
                 url: "{% url 'loader-check-pending' beamline=beamline.acronym %}",
                 type: 'GET',
                 success: function (data) {
-                    if ((data.updated) && (data.updated !== config_time)) {
+                    if ((data.time) && (data.updated !== config_time)) {
                         window.location.reload()
                     }
                 },
