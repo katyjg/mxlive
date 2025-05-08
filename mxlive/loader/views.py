@@ -114,7 +114,8 @@ class CheckPending(AdminRequiredMixin, View):
         acronym = kwargs.get('beamline')
         config = models.Config.objects.filter(beamline__acronym=acronym).first()
         config.check_timeout()
+
         if not config:
             return JsonResponse({'time': 0})
 
-        return JsonResponse({'time': int(config.updated.timestamp())})
+        return JsonResponse({'time': round(config.updated.timestamp(), 0)})
