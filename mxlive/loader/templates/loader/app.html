@@ -70,7 +70,7 @@
                        data-container-project="{{ container.project.name }}"
                        data-select-url="{% url 'loader-select-puck' beamline=beamline.acronym project=container.project.name puck=container.pk %}"
                     >
-                        <div class="puck border rounded-circle d-flex flex-column justify-content-center align-items-center {% if container == config.selected and container.location %}bg-danger-subtle{% elif container == config.selected %}text-bg-primary{% endif %}">
+                        <div class="puck border rounded-circle d-flex flex-column justify-content-center align-items-center {% if container == config.selected %}text-bg-primary{% endif %}">
                             <div class="fs-4 fw-bold">{{ container.name }}</div>
                             {% if container.location %}
                                 <span class="fs-5 badge rounded-pill text-bg-secondary">{{ container.port }}</span>
@@ -92,6 +92,7 @@
         crossorigin="anonymous"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <script type="text/javascript">
+    const config_time = {{ config.updated.timestamp|floatformat:0 }};
     $(document).ready(function () {
         {% for message in messages %}
         Toastify({
@@ -109,12 +110,12 @@
                 url: "{% url 'loader-check-pending' beamline=beamline.acronym %}",
                 type: 'GET',
                 success: function (data) {
-                    if (data.pending) {
+                    if ((data.updated) && (data.updated !== config_time)) {
                         window.location.reload()
                     }
                 },
             });
-        }, 5000);
+        }, 2000);
 
         // Handle puck selection
         $('.puck-selector').on('click', function (e) {
@@ -124,6 +125,10 @@
             const puckName = puck.data('container-name');
             const puckProject = puck.data('container-project');
             const selectUrl = puck.data('select-url');
+
+            if (!selectUrl) {
+                return;
+            }
 
             $.ajax({
                 url: selectUrl,
