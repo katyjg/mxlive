@@ -34,6 +34,7 @@ class PuckLoader(AdminRequiredMixin, detail.DetailView):
         context['projects'] = Project.objects.filter(
             shipments__status=Shipment.STATES.ON_SITE,
         )
+        models.Config.objects.filter(pk=config.pk).update(pending=False)
         if self.kwargs.get('project'):
             project = Project.objects.filter(name=self.kwargs['project']).first()
             if project:
@@ -79,12 +80,12 @@ class SelectPuck(AdminRequiredMixin, View):
 
 
 class LoadPuck(AuthenticationRequiredMixin, View):
+
     def post(self, request, *args, **kwargs):
-        beamline = kwargs.get('beamline')
+        acronym = kwargs.get('beamline')
         position = kwargs.get('position')
 
-        beamline = Beamline.objects.get(acronym__iexact=beamline)
-        config = models.Config.objects.filter(beamline=beamline).first()
+        config = models.Config.objects.filter(beamline__acronym=acronym).first()
         if not config:
             return http.HttpResponseBadRequest("Automounter not found")
 
@@ -101,6 +102,7 @@ class LoadPuck(AuthenticationRequiredMixin, View):
 
         puck = config.selected
         config.selected = None
+        config.pending = True
         config.save()
 
         # remove an existing puck from position
@@ -116,12 +118,12 @@ class LoadPuck(AuthenticationRequiredMixin, View):
 
 
 class UnloadPuck(AuthenticationRequiredMixin, View):
+
     def post(self, request, *args, **kwargs):
-        beamline = kwargs.get('beamline')
+        acronym = kwargs.get('beamline')
         position = kwargs.get('position')
 
-        beamline = Beamline.objects.get(acronym__iexact=beamline)
-        config = models.Config.objects.filter(beamline=beamline).first()
+        config = models.Config.objects.filter(beamline__acronym=acronym).first()
         if not config:
             return http.HttpResponseBadRequest("Automounter not found")
 
@@ -134,9 +136,21 @@ class UnloadPuck(AuthenticationRequiredMixin, View):
             return http.HttpResponseBadRequest("No puck found at this location")
 
         config.selected = puck  # Set the selected puck to the one being unloaded in case we need to reload it
+        config.pending = True
         config.save()
 
         LoadHistory.objects.filter(child=puck).active().update(end=timezone.now())
         models.Container.objects.filter(pk=puck.pk).update(parent=None, location=None)
 
         return JsonResponse({'unloaded': puck.name, 'location': location.name})
+
+
+class CheckPending(AuthenticationRequiredMixin, View):
+
+    def get(self, request, *args, **kwargs):
+        acronym = kwargs.get('beamline')
+        config = models.Config.objects.filter(beamline__acronym=acronym).first()
+        if not config:
+            return JsonResponse({'pending': False})
+
+        return JsonResponse({'pending': config.pending})

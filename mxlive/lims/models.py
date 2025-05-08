@@ -820,7 +820,7 @@ class Container(TransitStatusMixin):
         ordering = ('kind', 'location', 'name')
 
     def __str__(self):
-        return "{} | {} | {}".format(self.kind.name.title(), self.project.name.upper(), self.name)
+        return f"{self.kind.name.title()} | {self.project.name.upper()} | {self.name}"
 
     def identity(self):
         return 'CNT-{:07,d}'.format(self.id).replace(',', '-')
