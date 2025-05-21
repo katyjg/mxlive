@@ -137,7 +137,7 @@ class SSHKeys(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class AccessSSHKeys(AuthenticationRequiredMixin, View):
+class AccessKeys(AuthenticationRequiredMixin, View):
     """
     Returns SSH keys for the user if the remote server referenced by the IP number inferred from
     the request exists and the user is specifically allowed to access the host.
