@@ -13,7 +13,7 @@ urlpatterns = [
     path('auth/verify/', TokenVerifyView.as_view(), name='token_verify'),
 
     path('accesslist/', views.AccessList.as_view()),
-    path('keys/<slug:username>/', views.SSHKeys.as_view(), name='project-sshkeys'),
+    path('keys/<slug:username>/', views.AccessSSHKeys.as_view(), name='project-sshkeys'),
 
     path('data/<slug:beamline>/', views.AddData.as_view()),
     path('report/<slug:beamline>/', views.AddReport.as_view()),

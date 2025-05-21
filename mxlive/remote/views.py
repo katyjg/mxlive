@@ -120,8 +120,27 @@ class AccessList(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class SSHKeys(View):
     """
-    Returns SSH keys for specified user  if the remote server referenced by the IP number inferred from
+    Returns SSH keys for specified user if the remote server referenced by the IP number inferred from
     the request exists.
+
+    :key: r'^accesskeys/<username>$'
+    """
+
+    def get(self, request, *args, **kwargs):
+        user = Project.objects.filter(username=self.kwargs.get('username')).first()
+
+        msg = ''
+        if user:
+            msg = '\n'.join(user.sshkeys.values_list('key', flat=True)).encode()
+
+        return HttpResponse(msg, content_type='text/plain')
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AccessSSHKeys(AuthenticationRequiredMixin, View):
+    """
+    Returns SSH keys for the user if the remote server referenced by the IP number inferred from
+    the request exists and the user is specifically allowed to access the host.
 
     :key: r'^keys/<username>$'
     """
@@ -133,7 +152,7 @@ class SSHKeys(View):
         user = Project.objects.filter(username=self.kwargs.get('username')).first()
 
         msg = ''
-        if user:
+        if user and user_list and user.username in user_list.access_users():
             msg = '\n'.join(user.sshkeys.values_list('key', flat=True)).encode()
 
         return HttpResponse(msg, content_type='text/plain')
