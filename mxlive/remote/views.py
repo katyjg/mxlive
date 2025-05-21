@@ -89,7 +89,6 @@ class AccessList(View):
         client_addr = get_client_address(request)
         user_list = UserList.objects.filter(address=client_addr, active=True).first()
 
-        tz = timezone.get_current_timezone()
         errors = []
 
         if user_list:
