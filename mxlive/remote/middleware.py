@@ -97,6 +97,7 @@ def get_v2_user(request):
             if value != kwargs.get('username'):
                 return None
         return user
+    return None
 
 
 def get_v3_user(request):
@@ -107,6 +108,7 @@ def get_v3_user(request):
         user_data = None
     if user_data:
         return user_data[0]
+    return None
 
 
 class APIAuthenticationMiddleware(MiddlewareMixin):
@@ -119,3 +121,4 @@ class APIAuthenticationMiddleware(MiddlewareMixin):
 
         if user:
             request.user = user
+

@@ -97,19 +97,20 @@ class AccessList(View):
             for conn in data:
                 try:
                     project = Project.objects.get(username=conn['project'])
-                except:
+                except Project.DoesNotExist:
                     errors.append("User '{}' not found.".format(conn['project']))
                 status = conn['status']
                 try:
-                    dt = tz.localize(datetime.strptime(conn['date'], "%Y-%m-%d %H:%M:%S"))
+                    event_time = datetime.strptime(conn['date'], "%Y-%m-%d %H:%M:%S")
+                    dt = timezone.make_aware(event_time, timezone.get_current_timezone())
                     r, created = RemoteConnection.objects.get_or_create(name=conn['name'], userlist=user_list, user=project)
                     r.status = status
                     if created:
                         r.created = dt
-                    else:
+                    if r.status != status and not r.end:
                         r.end = dt
                     r.save()
-                except:
+                except Exception as e:
                     pass
 
             return JsonResponse(user_list.access_users(), safe=False)
