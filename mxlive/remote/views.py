@@ -106,7 +106,7 @@ class AccessList(View):
                     r.status = status
                     if created:
                         r.created = dt
-                    if r.status != status and not r.end:
+                    if r.status != r.STATES.CONNECTED and not r.end:
                         r.end = dt
                     r.save()
                 except Exception as e:

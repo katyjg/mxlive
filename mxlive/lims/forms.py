@@ -1062,7 +1062,7 @@ class SSHKeyForm(forms.ModelForm):
         model = SSHKey
         fields = ['name', 'key', 'project']
         widgets = {
-            'key': forms.Textarea(attrs={"placeholder": "Begins with 'ssh-rsa' or 'ssh-dsa'"}),
+            'key': forms.Textarea(attrs={"placeholder": "SSH Public Key, begins with 'ssh-XXX'"}),
             'project': forms.HiddenInput()
         }
 
