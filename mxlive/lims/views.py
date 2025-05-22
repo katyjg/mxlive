@@ -21,7 +21,7 @@ from proxy.views import proxy_view
 from mxlive.staff.models import RemoteConnection, UserList
 from mxlive.utils import filters
 from mxlive.utils.encrypt import decrypt
-from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, HTML2PdfMixin, PlotViewMixin
+from mxlive.utils.mixins import AsyncFormMixin, AdminRequiredMixin, PlotViewMixin
 from . import forms, models, stats
 
 DOWNLOAD_PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', "http://mxlive-data/download")
@@ -264,7 +264,7 @@ class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AsyncFormMixin, edit
     model = models.Project
     success_message = "Profile has been updated."
 
-    def get_object(self):
+    def get_object(self, *args, **kwargs):
         return models.Project.objects.get(username=self.kwargs.get('username'))
 
     def test_func(self):
@@ -280,26 +280,23 @@ class ProjectEdit(UserPassesTestMixin, SuccessMessageMixin, AsyncFormMixin, edit
         return kwargs
 
 
-class ProjectLabels(AdminRequiredMixin, HTML2PdfMixin, detail.DetailView):
+class ProjectLabels(AdminRequiredMixin, detail.DetailView):
     template_name = "users/pdf/return_labels.html"
     model = models.Project
     slug_field = 'username'
     slug_url_kwarg = 'username'
 
-    def get_template_name(self):
-        return self.template_name
-
-    def get_template_context(self):
-        object = self.get_object()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         sender = None
         if settings.LIMS_USE_SCHEDULE:
             sender = BeamlineSupport.objects.filter(date=timezone.localtime().date()).first()
-        context = {
-            'project': object,
+        context.update({
+            'project': self.get_object(),
             'shipment': None,
             'admin_project': models.Project.objects.filter(is_superuser=True).first(),
             'sender': sender
-        }
+        })
         return context
 
 
@@ -367,8 +364,9 @@ class ShipmentDetail(OwnerRequiredMixin, detail.DetailView):
     template_name = "users/entries/shipment.html"
 
 
-class ShipmentLabels(HTML2PdfMixin, ShipmentDetail):
-    template_name = "users/pdf/send_labels.html"
+class ShipmentLabels(OwnerRequiredMixin, detail.DetailView):
+    model = models.Shipment
+    template_name = "users/pdf/return_labels.html"
 
     def get_template_name(self):
         if self.request.user.is_superuser:
@@ -377,17 +375,18 @@ class ShipmentLabels(HTML2PdfMixin, ShipmentDetail):
             template = 'users/pdf/send_labels.html'
         return template
 
-    def get_template_context(self):
-        object = self.get_object()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        shipment = self.get_object()
         sender = None
         if settings.LIMS_USE_SCHEDULE:
             sender = BeamlineSupport.objects.filter(date=timezone.localtime().date()).first()
-        context = {
-            'project': object.project,
-            'shipment': object,
+        context.update({
+            'project': shipment.project,
+            'shipment': shipment,
             'admin_project': models.Project.objects.filter(is_superuser=True).first(),
             'sender': sender
-        }
+        })
         return context
 
 

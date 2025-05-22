@@ -1,18 +1,17 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import JsonResponse, HttpResponse, HttpRequest
-from django.template.loader import get_template
-from django.conf import settings
-from django.core.files.base import ContentFile
-from django.utils.text import slugify
+from urllib import parse
 
 import os
 import shutil
 import subprocess
+from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.core.files.base import ContentFile
+from django.http import JsonResponse, HttpResponse, HttpRequest
+from django.template.loader import get_template
+from django.utils.text import slugify
+
 from tempfile import mkdtemp
-from urllib import parse
-
 from ..utils.stats import generic_stats
-
 
 TEMP_PREFIX = getattr(settings, 'PDF_TEMP_PREFIX', 'render_pdf-')
 CACHE_PREFIX = getattr(settings, 'PDF_CACHE_PREFIX', 'render-pdf')

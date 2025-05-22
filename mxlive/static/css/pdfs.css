@@ -62,15 +62,13 @@ table td {
 
 /* Shipping Form */
 #shipping-form {
-    page-break-before: always !important;
-    padding-right: 2px;
+    margin: 1.5cm;
+    padding: 0.5em;
 }
 #shipping-form p {
     margin-top: 0;
 }
 #shipping-form .dark-blue, #shipping-form table.table-dark-blue td {
-    //border: 1px solid darkblue !important;
-    //border-top: 1px solid darkblue !important;
     background-color: rgba(0,0,139,0.05) !important;
     color: darkblue !important;
 }
@@ -78,15 +76,12 @@ table td {
     color: darkblue !important;
 }
 #shipping-form .dark-red {
-    //border: 1px solid darkred !important;
-    //border-top: 1px solid darkred !important;
     background-color: rgba(139,0,0,0.05) !important;
     color: darkred !important;
 }
 #shipping-form td.input {
     background-color: #fefefe !important;
     border: 1px solid #dddddd !important;
-    //color: blue !important;
     font-weight: bold;
 }
 #shipping-form td.bordered {
@@ -115,3 +110,10 @@ table td {
 .border-black-bottom {  border-bottom: 1px solid black !important; }
 .border-black-left {  border-left: 1px solid black !important; }
 .border-black-right {  border-right: 1px solid black !important; }
+
+@media print {
+    #shipping-form {
+        margin: 1.5cm;
+        break-before: page;
+    }
+}
