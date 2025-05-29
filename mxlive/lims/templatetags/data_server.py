@@ -56,7 +56,7 @@ def get_json_info(path):
     if r.status_code == 200:
         return json.loads(r.content)
     else:
-        print("File not found: {}".format(path))
+        print(f"File not found: {path}")
         return {}
 
 
@@ -66,8 +66,8 @@ def get_xdi_info(path):
     if r.status_code == 200:
         return xdi.read_xdi_data(r.content)
     else:
-        print("File not found: {}".format(url))
-        return {}
+        print(f"File not found: {url}")
+        return None
 
 
 @register.simple_tag(takes_context=True)

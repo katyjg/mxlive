@@ -79,7 +79,7 @@ class OffsetTZ(tzinfo):
 
 
 def isotime(text):
-    patt = re.compile('(?P<date_text>[\d-]{8,10}[T ][\d:]{6,8}(?:\.\d+)?)Z?(?:(?P<sign>[+-])(?P<offset>\d{2}:\d{2}))?')
+    patt = re.compile(r'(?P<date_text>[\d-]{8,10}[T ][\d:]{6,8}(?:\.\d+)?)Z?(?:(?P<sign>[+-])(?P<offset>\d{2}:\d{2}))?')
     m = patt.match(text)
     if m:
         info = m.groupdict()
@@ -229,6 +229,7 @@ class XDIData(object):
     def get_names(self):
         if self.data is not None:
             return self.data.dtype.names
+        return ()
 
     def __getitem__(self, key):
         if '.' in key:
@@ -286,10 +287,14 @@ class XDIData(object):
             output = '\n# '.join(header_lines) + '\n' + '\n'.join(data_lines)
             handle.write(output.encode('utf8'))
 
-    def parse(self, filename, permissive=False):
-        opener = gzip.open if filename.endswith('.gz') else open
-        with opener(filename, 'rb') as handle:
-            raw = XDI_PATTERN.match(handle.read().decode('utf8')).groupdict()
+    def load(self, data, permissive=False):
+        """
+        Load XDI data from a string or file-like object
+        :param data: bytes
+        :param permissive: If True, do not raise errors for missing required fields
+        """
+
+        raw = XDI_PATTERN.match(data.decode("utf-8")).groupdict()
         self.version = raw['version_text']
 
         self.header = {}
@@ -304,7 +309,7 @@ class XDIData(object):
                 if units is None:
                     field = Field(value=fmt(row['text'].strip()), units=None)
                 else:
-                    value_text, unit = re.match('([^\s]+)\s*(.+)?', row['text']).groups()
+                    value_text, unit = re.match(r'([^\s]+)\s*(.+)?', row['text']).groups()
                     try:
                         value = fmt(value_text)
                     except ValueError as e:
@@ -338,10 +343,19 @@ class XDIData(object):
         }
         if not permissive and any(missing.values()):
             sys.stderr.write(
-                'Required fields missing: {}\n'.format([key for key, value in list(missing.items()) if value]))
+                'Required fields missing: {}\n'.format([key for key, value in list(missing.items()) if value])
+            )
 
-        self.data = numpy.genfromtxt(StringIO('{}'.format(raw['data_text'])), dtype=None, names=data_columns,
-                                     deletechars='')
+        self.data = numpy.genfromtxt(
+            StringIO('{}'.format(raw['data_text'])), dtype=None, names=data_columns,
+            deletechars=''
+        )
+
+    def parse(self, filename, permissive=False):
+        opener = gzip.open if filename.endswith('.gz') else open
+        with opener(filename, 'rb') as handle:
+            data = handle.read()
+        self.load(data, permissive=permissive)
 
 
 def read_xdi(filename):
@@ -354,3 +368,4 @@ def read_xdi_data(data):
     obj = XDIData()
     obj.load(data)
     return obj
+
