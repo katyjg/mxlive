@@ -80,7 +80,7 @@ def mad_report(context):
     raw = get_xdi_info(xdi_path)
     analysis = get_json_info(mad_path)
 
-    if not raw and analysis:
+    if not (raw and analysis):
         return {}
 
     x_values = numpy.round(analysis["esf"]['energy'], 4).astype(float).tolist()
@@ -166,11 +166,12 @@ def xrf_report(context):
     data = context['data']
     if not data.url:
         return {}
-    xdi_path = '{}/{}'.format(data.url, data.file_name)
-    xrf_path = '{}/{}.xrf'.format(data.url, data.name)
+    xdi_path = f'{data.url}/{data.file_name}'
+    xrf_path = f'{data.url}/{data.name}.xrf'
     raw = get_xdi_info(xdi_path)
     analysis = get_json_info(xrf_path)
-
+    if not raw:
+        return {}
     if analysis:
         assignments = [
             {

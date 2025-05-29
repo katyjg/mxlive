@@ -7,6 +7,7 @@
 {% block data_content %}
     {% mad_report as mad %}
     <div class="row">
+        {% if mad %}
         <div class="col-9 pr-0">
             <div id="mad-report" class="w-100 p-0"></div>
             <script>
@@ -62,6 +63,18 @@
                 </div>
             </div>
         {% endif %}
+    {% else %}
+            <div class="col-12">
+                <div class="alert alert-warning" role="alert">
+                    <h4>No MAD data</h4>
+                    <hr/>
+                    <p>
+                        This entry does not have any MAD data associated with it. This may be because the files
+                        have been moved or deleted.
+                    </p>
+                </div>
+            </div>
+    {% endif %}
     </div>
 {% endblock %}
 

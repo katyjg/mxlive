@@ -7,15 +7,16 @@
 {% block data_content %}
     {% xrf_report as xrf %}
     <div class="row">
+       {% if xrf %}
         <div class="col-9">
             <div id="xrf-report" class="w-100 p-0"></div>
             <script>
                 // create variables for annotations
-                var edges{{ data.pk }} = {
+                let edges{{ data.pk }} = {
                     {% for element in xrf.assignments %}{{ element.label }}: {{ element.edges | jsonify}},
                     {% endfor %}
                 };
-                var report{{ data.pk }}={{ xrf.report|jsonify }};
+                let report{{ data.pk }}={{ xrf.report|jsonify }};
             </script>
         </div>
         {% if xrf.assignments %}
@@ -49,6 +50,18 @@
                 </div>
             </div>
         {% endif %}
+    {% else %}
+           <div class="col-12">
+                <div class="alert alert-warning" role="alert">
+                     <h4>No XRF data</h4>
+                    <hr/>
+                     <p>
+                         This entry does not have any XRF data associated with it. This may be because the files
+                         have been moved or deleted.
+                     </p>
+                </div>
+           </div>
+    {% endif %}
     </div>
 {% endblock %}
 
