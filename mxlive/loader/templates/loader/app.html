@@ -8,6 +8,9 @@
           integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <style>
+        :root {
+            --bs-body-font-size: 1.85vw;
+        }
         main {
             height: 100vh;
             overflow-y: hidden;
@@ -26,7 +29,7 @@
 </head>
 <body data-bs-theme="dark">
 <main class="d-flex flex-nowrap gap-1">
-    <div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-body-tertiary" style="width: 300px;">
+    <div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-body-tertiary" style="width: 30vw;">
         <div class="d-flex flex-row justify-content-start align-items-center p-2 bg-secondary text-white">
             <a href="" class="p-3 me-3 text-white border-end">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
@@ -63,17 +66,17 @@
         <div class="container-fluid">
             <div class="row">
                 {% for container in containers %}
-                    <a class="col-3 text-decoration-none mb-3 puck-selector"
+                    <a class="col-4 text-decoration-none mb-3 puck-selector"
                        href="#0"
                        data-container-id="{{ container.pk }}"
                        data-container-name="{{ container.name }}"
                        data-container-project="{{ container.project.name }}"
                        data-select-url="{% url 'loader-select-puck' beamline=beamline.acronym project=container.project.name puck=container.pk %}"
                     >
-                        <div class="puck border rounded-circle d-flex flex-column justify-content-center align-items-center {% if container == config.selected %}text-bg-primary{% endif %}">
-                            <div class="fs-4 fw-bold">{{ container.name }}</div>
+                        <div class="puck border border-5 rounded-circle d-flex flex-column justify-content-center align-items-center {% if container == config.selected %}text-bg-primary{% else %}{% endif %}">
+                            <div class="fw-bold">{{ container.name }}</div>
                             {% if container.location %}
-                                <span class="fs-5 badge rounded-pill text-bg-secondary">{{ container.port }}</span>
+                                <span class="badge rounded-pill text-bg-info">{{ container.port }}</span>
                             {% endif %}
                         </div>
                     </a>
@@ -92,8 +95,17 @@
         crossorigin="anonymous"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <script type="text/javascript">
+
+    function goFullScreen() {
+        let el = document.documentElement;
+        let rfs = el.requestFullscreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+        rfs.call(el);
+    }
+
     const config_time = {{ config.updated.timestamp|floatformat:0 }};
     $(document).ready(function () {
+        // Initialize Toastify for displaying messages
+
         {% for message in messages %}
         Toastify({
             text: "{{ message }}",
