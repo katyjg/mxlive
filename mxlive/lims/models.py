@@ -809,8 +809,7 @@ class Container(TransitStatusMixin):
     comments = models.TextField(blank=True, null=True)
     priority = models.IntegerField(default=0)
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, related_name="children")
-    location = models.ForeignKey(ContainerLocation, blank=True, null=True, on_delete=models.SET_NULL,
-                                 related_name='contents')
+    location = models.ForeignKey(ContainerLocation, blank=True, null=True, on_delete=models.SET_NULL, related_name='contents')
     objects = ContainerManager()
 
     class Meta:

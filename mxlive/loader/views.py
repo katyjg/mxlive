@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import detail, View
 
@@ -15,6 +16,7 @@ from .models import SELECT_DURATION
 from ..remote.views import AuthenticationRequiredMixin
 
 
+@method_decorator(never_cache, name='dispatch')
 class PuckLoader(AdminRequiredMixin, detail.DetailView):
     model = Beamline
     template_name = "loader/app.html"
@@ -25,9 +27,11 @@ class PuckLoader(AdminRequiredMixin, detail.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        automounter = self.object.active_automounter()
         config, created = models.Config.objects.get_or_create(
-            beamline=self.object, automounter=self.object.active_automounter()
+            beamline=self.object, automounter=automounter
         )
+
         if config.check_timeout():
             messages.warning(self.request, f'Puck selection expired: {SELECT_DURATION}s')
         context['config'] = config
