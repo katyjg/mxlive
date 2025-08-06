@@ -1,4 +1,4 @@
-Django==4.2.20
+Django==4.2.22
 Markdown
 cryptography==44.0.1
 django-colorfield==0.11.0
@@ -15,7 +15,7 @@ djangorestframework==3.15.2
 djangorestframework-simplejwt==5.4.0
 crispy-bootstrap4
 geopy==2.4.1
-habanero==2.2.0
+habanero>=2.2.0
 jsonfield2
 ldap3==2.9.1
 msgpack==1.1.0
@@ -24,8 +24,9 @@ psycopg2-binary
 python-dateutil==2.9.0.post0
 pymemcache~=4.0.0
 pytz==2024.2
-requests==2.32.3
+requests>=2.32.4
 timezonefinder==6.5.7
 pyparsing==3.2.1
 PyYAML==6.0.2
 Pygments==2.19.1
+isodate>=0.7.2
