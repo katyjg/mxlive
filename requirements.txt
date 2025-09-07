@@ -35,7 +35,7 @@ python-dateutil==2.9.0.post0
 pymemcache~=4.0.0
 pytz==2024.2
 tzdata
-requests==2.32.3
+requests==2.32.4
 setuptools
 six
 sqlparse
