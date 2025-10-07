@@ -11,7 +11,7 @@ import subprocess
 from tempfile import mkdtemp
 from urllib import parse
 
-from ..utils.stats import generic_stats
+from basiclive.utils.stats import generic_stats
 
 
 TEMP_PREFIX = getattr(settings, 'PDF_TEMP_PREFIX', 'render_pdf-')

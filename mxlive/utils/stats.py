@@ -4,6 +4,7 @@ import calendar
 import numpy
 
 
+
 def get_histogram_points(data, range=None, bins='doane'):
     counts, edges = numpy.histogram(data, bins=bins, range=range)
     centers = (edges[:-1] + edges[1:]) * 0.5
