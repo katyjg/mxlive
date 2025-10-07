@@ -57,7 +57,7 @@ To use the :ref:`MxLIVE report format<formatting-reports>`, include the followin
         <script type="text/javascript" src="{% static 'js/d3/d3.timeline.min.js' %}"></script>
         <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
         <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
-        <script type="text/javascript" src="{% static "js/mxlive-reports.v2.min.js" %}"></script>
+        <script type="text/javascript" src="{% static "lims/js/mxlive-reports.min.js" %}"></script>
     {% endblock %}
 
 To create a custom report to display data, you will also need to define a custom tag in `templatetags/data_server.py` to

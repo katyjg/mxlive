@@ -18,13 +18,6 @@ PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(PROJECT_DIR)
 LOCAL_DIR = os.path.join(BASE_DIR, 'local')
 
-# Version number
-try:
-    with open(os.path.join(BASE_DIR, 'VERSION'), 'r', encoding='utf-8') as version_file:
-        APP_VERSION = version_file.read().strip() or 'unknown'
-except FileNotFoundError:
-    APP_VERSION = 'unknown'
-
 APP_NAME = 'mxlive'
 
 
@@ -50,20 +43,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'debug_toolbar',
     'memoize',
     'itemlist',
-    'mxlive.staff',
-    'mxlive.lims',
-    'mxlive.remote',
+    'basiclive.core.lims',
+    'basiclive.core.api',
+    'basiclive.core.crm',
+    'basiclive.core.acl',
     'crispy_forms',
 ]
-
-LIMS_USE_SCHEDULE = False
-LIMS_USE_PUBLICATIONS = False
+LIMS_USE_SCHEDULE = True
+LIMS_USE_PUBLICATIONS = True
 
 MIDDLEWARE = [
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -87,7 +78,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'mxlive.utils.context_processors.version_context_processor'
+                'basiclive.utils.context_processors.version_context_processor'
             ],
         },
     },
@@ -125,12 +116,12 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'django_python3_ldap.auth.LDAPBackend',
     'django.contrib.auth.backends.ModelBackend'
 ]
 
+AUTH_MODULE = 'auth.ldap'
 AUTH_USER_MODEL = 'lims.Project'
-
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
@@ -175,31 +166,7 @@ LDAP_AUTH_USER_LOOKUP_FIELDS = ("username",)
 LDAP_AUTH_USE_TLS = True
 
 
-def clean_user(user, data):
-    # A function to clean up user data from ldap information
 
-    names = data['gecos'][0].split(' ', 1)
-    first_name = names[0].strip()
-    last_name = "" if len(names) < 2 else names[1].strip()
-    email = data.get('mail', [''])[0]
-    user_uids = set(map(int, data['gidnumber']))
-    admin_uids = set(map(int, LDAP_ADMIN_UIDS))
-
-    if user_uids & admin_uids:
-        user.is_superuser = True
-        user.is_staff = True
-
-    if not user.name:
-        user.name = user.username
-
-    if (first_name, last_name, email) != (user.first_name, user.last_name, user.email):
-        user.first_name = first_name
-        user.last_name = last_name
-        user.email = email
-    user.save()
-
-
-LDAP_AUTH_SYNC_USER_RELATIONS = clean_user
 
 # Trusted clients for internal network
 TRUSTED_IPS = ['127.0.0.1/32']
@@ -238,7 +205,7 @@ except ImportError:
     pass
 
 if LIMS_USE_SCHEDULE:
-    INSTALLED_APPS.extend(['mxlive.schedule', 'colorfield'])
+    INSTALLED_APPS.extend(['basiclive.core.schedule', 'colorfield'])
 
 if LIMS_USE_PUBLICATIONS:
-    INSTALLED_APPS.extend(['mxlive.publications'])
+    INSTALLED_APPS.extend(['basiclive.core.publications'])

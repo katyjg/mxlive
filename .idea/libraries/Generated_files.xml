@@ -2,12 +2,13 @@
   <library name="Generated files" type="javaScript">
     <properties>
       <sourceFilesUrls>
-        <item url="file://$PROJECT_DIR$/mxlive/static/js/mxlive-reports.v2.min.js" />
+        <item url="file://$PROJECT_DIR$/mxlive/static/vendor/misc/js/underscore-min.min.js" />
       </sourceFilesUrls>
     </properties>
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/mxlive/static/js/mxlive-reports.v2.min.js" />
+      <root url="file://$PROJECT_DIR$/mxlive/static/vendor/misc/js/underscore-min.min.js" />
     </CLASSES>
+    <JAVADOC />
     <SOURCES />
   </library>
 </component>

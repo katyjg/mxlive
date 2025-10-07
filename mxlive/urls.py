@@ -18,38 +18,33 @@ Including another URLconf
 from django.urls import path
 
 from django.conf import settings
-from django.conf.urls import include, url
+from django.conf.urls import include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.decorators import login_required
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from mxlive.lims.views import ProjectDetail, ProxyView
+from basiclive.core.lims.views import ProjectDetail, ProxyView
 
 urlpatterns = [
-    url(r'^$', login_required(ProjectDetail.as_view()), {}, 'dashboard'),
+    path('', login_required(ProjectDetail.as_view()), name='dashboard'),
     path('admin/', admin.site.urls, name='admin'),
-    url(r'^staff/', include('mxlive.staff.urls')),
-    url(r'^users/',  include('mxlive.lims.urls')),
-    url(r'^files/(?P<section>[^/]+)/(?P<path>.*)$', ProxyView.as_view(), name='files-proxy'),
-
-    path('accounts/login/',  LoginView.as_view(template_name='login.html'), name="mxlive-login"),
-    path('accounts/logout/', LogoutView.as_view(), name="mxlive-logout"),
-    url(r'^api/v2/', include('mxlive.remote.urls')),
+    path('acl/', include('basiclive.core.acl.urls')),
+    path('users/',  include('basiclive.core.lims.urls')),
+    path('crm/', include('basiclive.core.crm.urls')),
+    path('files/<str:section>/<path:path>', ProxyView.as_view(), name='files-proxy'),
+    path('accounts/login/',  LoginView.as_view(template_name='lims/login.html'), name="login"),
+    path('accounts/logout/', LogoutView.as_view(), name="logout"),
+    path('api/v2/', include('basiclive.core.api.urls')),
 ]
 
 if settings.LIMS_USE_SCHEDULE:
-    urlpatterns += [ url(r'^calendar/', include('mxlive.schedule.urls')) ]
+    urlpatterns += [path('calendar/', include('basiclive.core.schedule.urls'))]
 
 if settings.LIMS_USE_PUBLICATIONS:
-    urlpatterns += [ url(r'^publications/', include('mxlive.publications.urls')) ]
+    urlpatterns += [path('publications/', include('basiclive.core.publications.urls'))]
 
 if settings.DEBUG:
-    import debug_toolbar
-
-    urlpatterns = [
-        path('__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
     urlpatterns += staticfiles_urlpatterns()
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Unminimized Javascript" pattern="file:*js&amp;&amp;!file:*.min.*" />
+</component>

@@ -119,8 +119,7 @@ venv.bak/
 local/*
 !local/__init__.py
 !local/settings.py.example
-.idea/workspace.xml
-.idea/*
-
+.idea/copilot.*
 /mxlive/static/bootstrap/scss/
 /docs/_build/
+vendor/

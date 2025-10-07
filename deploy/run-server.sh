@@ -1,6 +1,8 @@
 #!/bin/bash
 
-export SERVER_NAME=${SERVER_NAME:-$(hostname --fqdn)}
+set -ex
+
+export SERVER_NAME=${SERVER_NAME:-$(hostname -f)}
 export CERT_PATH=${CERT_PATH:-/etc/letsencrypt/live/${SERVER_NAME}}
 
 # create key if none present
@@ -17,14 +19,19 @@ fi
 # if it thinks it is already running.
 rm -rf /run/httpd/* /tmp/httpd*
 
-./wait-for-it.sh mxlive-db:5432 -t 60 &&
+/wait-for-it.sh mxlive-db:5432 -t 60
+
+# Make sure the local directory is a Python package
+if [ ! -f /mxlive/local/__init__.py ]; then
+    touch /mxlive/local/__init__.py
+fi
 
 if [ ! -f /mxlive/local/.dbinit ]; then
-    /usr/bin/python3 /mxlive/manage.py migrate --noinput &&
+    /mxlive/manage.py migrate --noinput &&
     touch /mxlive/local/.dbinit
     chown -R apache:apache /mxlive/local/media
 else
-    /usr/bin/python3 /mxlive/manage.py migrate --noinput
+    /mxlive/manage.py migrate --noinput
 fi
 
 # create log directory if missing
