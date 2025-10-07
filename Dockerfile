@@ -16,7 +16,8 @@ RUN set -ex && \
     chmod -v +x /run-server.sh /wait-for-it.sh && \
     /bin/cp -v /mxlive/deploy/mxlive.conf /etc/apache2/conf.d/99-mxlive.conf && \
     sed -i -E 's@#!/usr/bin/env python.*@#!/venv/bin/python3@' /mxlive/manage.py && \
-    /mxlive/manage.py collectstatic --noinput
+    /mxlive/manage.py collectstatic --noinput && \
+    /mxlive/manage.py collectvendor --noinput
 
 EXPOSE 443
 VOLUME ["/mxlive/local"]
