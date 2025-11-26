@@ -228,6 +228,23 @@ class Directory(object):
         with Connection(self.server, user_dn, old_pwd, auto_bind=True) as connection:
             return connection.modify(user_dn, user_record)
 
+    def set_password(self, username, new_pwd):
+        """
+        Change the password for a user
+        :param username: user name to change
+        :param new_pwd: new password to change
+        :return: True or False
+        """
+
+        user_dn = 'uid={username},{user_table},{base_dn}'.format(
+            username=username, user_table=USER_TABLE, base_dn=BASE_DN
+        )
+        user_record = {
+            'userPassword': [(ldap3.MODIFY_REPLACE, [new_pwd])]
+        }
+        with Connection(self.server, user=self.admin_user, password=self.admin_secret, auto_bind=True) as connection:
+            return connection.modify(user_dn, user_record)
+
     def fetch_users(self, *user_names, full=False):
         """
         Fetch users
