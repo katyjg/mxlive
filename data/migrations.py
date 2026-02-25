@@ -98,7 +98,6 @@ def cleanup(mxlive, verbose=False):
     # Transfer dewar__storage_location to shipment__storage_location
     for pk, carrier in entries['lims.carrier'].items():
         if verbose and 'lims.carrier' not in shown:
-            print(carrier)
             shown.append('lims.carrier')
         for f in ['phone_number', 'fax_number', 'code_regex']:
             entries['lims.carrier'][pk]['fields'].pop(f)
@@ -114,7 +113,6 @@ def cleanup(mxlive, verbose=False):
     kind_map = {1: 1, 0: 2, 2: 3, 3: 4}
     for pk, container in entries['lims.container'].items():
         if verbose and 'lims.container' not in shown:
-            print(container)
             shown.append('lims.container')
         if container['fields'].get('dewar'):
             entries['lims.container'][pk]['fields']['shipment'] = entries['lims.dewar'][container['fields']['dewar']]['fields']['shipment']
@@ -126,7 +124,6 @@ def cleanup(mxlive, verbose=False):
     print("Cleaning up {} experiments".format(len(entries['lims.experiment'])))
     for pk, group in entries['lims.experiment'].items():
         if verbose and 'lims.experiment' not in shown:
-            print(group)
             shown.append('lims.experiment')
         entries['lims.experiment'][pk]['model'] = 'lims.group'
         for f in ['i_sigma','multiplicity','r_meas','resolution','total_angle','delta_angle','staff_priority']:
@@ -141,7 +138,6 @@ def cleanup(mxlive, verbose=False):
     print("Cleaning up {} crystals".format(len(entries['lims.crystal'])))
     for pk, sample in entries['lims.crystal'].items():
         if verbose and 'lims.crystal' not in shown:
-            print(sample)
             shown.append('lims.crystal')
         entries['lims.crystal'][pk]['model'] = 'lims.sample'
         entries['lims.crystal'][pk]['fields'].pop('crystal_form')
@@ -155,7 +151,6 @@ def cleanup(mxlive, verbose=False):
     print("Cleaning up {} results".format(len(entries['lims.result'])))
     for pk, result in entries['lims.result'].items():
         if verbose and 'lims.result' not in shown:
-            print(result)
             shown.append('lims.result')
         entries['lims.result'][pk]['fields'].pop('strategy')
         entries['lims.result'][pk]['model'] = 'lims.analysisreport'
@@ -174,7 +169,6 @@ def cleanup(mxlive, verbose=False):
     data_kind_map = {0: "MX_SCREEN", 1: "MX_DATA"}
     for pk, data in entries['lims.data'].items():
         if verbose and 'lims.data' not in shown:
-            print(data)
             shown.append('lims.data')
         entries['lims.data'][pk]['fields']['file_name'] = "{}_".format(data['fields']['name']) + "{:0>4d}." + "{}".format('PILATUS' in data['fields']['detector'] and 'cbf' or 'img')
         entries['lims.data'][pk]['fields']['sample'] = entries['lims.data'][pk]['fields'].pop('crystal')
@@ -193,7 +187,6 @@ def cleanup(mxlive, verbose=False):
     scan_kind_map = {1: "XRF_SCAN", 0: "MAD_SCAN"}
     for pk, scan in entries['lims.scanresult'].items():
         if verbose and 'lims.scanresult' not in shown:
-            print(scan)
             shown.append('lims.scanresult')
         entries['lims.scanresult'][pk]['model'] = 'lims.data'
         entries['lims.scanresult'][pk].pop('pk')
@@ -273,11 +266,9 @@ def build_sessions(directory_map):
     return "Done building sessions"
 
 
-
 def format_reports():
     """Should only be run after database is populated with AnalysisReport objects"""
     for r in AnalysisReport.objects.filter(kind='1'):
-        print(r.pk)
         details = isinstance(r.details, list) and r.details[-1] or r.details
         
         collect_details = [{
@@ -482,14 +473,10 @@ def format_reports():
         },
         details
         ]
-        print(collect_details, r.pk)
         kind = "{}Processing".format(details.get('anomalous') and 'Anomalous ' or "")
         AnalysisReport.objects.filter(pk=r.pk).update(details=collect_details, kind=kind)
 
-
-
     for r in AnalysisReport.objects.filter(kind='0'):
-        print(r.pk)
         details = isinstance(r.details, list) and r.details[-1] or r.details
 
         if 'standard_errors' not in details.keys():

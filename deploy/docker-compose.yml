@@ -36,6 +36,7 @@ services:
     volumes:
       - ./app/local:/mxlive/local:Z
       - ./app/certs:/etc/letsencrypt:Z
+      - /usr/share/dict/words:/usr/share/dict/words
     ports:
       - "443:443"
     restart: always

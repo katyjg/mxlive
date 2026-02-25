@@ -62,6 +62,7 @@
     </main>
 {% endblock %}
 <div id="modal-target"></div>
+<form class="d-none" id="logout-form" action="{% url 'mxlive-logout' %}" method="post">{% csrf_token %}</form>
 {% if user.is_authenticated %}
     <div class="footer text-muted d-print-none">
         <div class="footer-wrapper overflow-ellipsis">
@@ -95,6 +96,11 @@
 
     $(document).ready(function () {
         // enable tooltips
+
+        $(document).on('click', "#logout-action", function (event) {
+            event.preventDefault();
+            $('#logout-form').submit();
+        });
 
         $("[title]").not("[data-toggle]").tooltip({
             container: 'body',

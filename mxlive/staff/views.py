@@ -21,6 +21,7 @@ User = get_user_model()
 
 PASSWORD_COMPLEXITY = getattr(settings, 'LDAP_PASSWORD_COMPLEXITY', 4)
 
+
 def format_beamlines(value, record):
     return ', '.join(record.beamline.values_list('acronym', flat=True))
 

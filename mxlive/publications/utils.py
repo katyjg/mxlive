@@ -749,7 +749,6 @@ def fetch_and_update_depositions():
         doi_list = list(chunk)
         count += len(doi_list)
         print('CREATING PUBLICATIONS: {}'.format(count))
-        print(doi_list)
         create_publications(doi_list)
         time.sleep(CROSSREF_THROTTLE)
 
