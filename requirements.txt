@@ -30,3 +30,4 @@ pyparsing
 PyYAML
 Pygments
 isodate
+python-baseconv
