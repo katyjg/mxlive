@@ -19,6 +19,7 @@ from ..lims import forms, stats
 
 User = get_user_model()
 
+PASSWORD_COMPLEXITY = getattr(settings, 'LDAP_PASSWORD_COMPLEXITY', 4)
 
 def format_beamlines(value, record):
     return ', '.join(record.beamline.values_list('acronym', flat=True))
@@ -126,6 +127,11 @@ class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edi
     model = Project
     success_url = reverse_lazy('user-list')
     success_message = "New Account '%(username)s' has been created."
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['password'] = slap.generate_passphrase(3)
+        return initial
 
     def form_valid(self, form):
         data = form.cleaned_data

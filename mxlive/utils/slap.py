@@ -1,5 +1,6 @@
 import os
 import random
+import secrets
 import string
 
 import ldap3
@@ -16,6 +17,8 @@ USER_ROOT = getattr(settings, 'LDAP_USER_ROOT', '/home')
 GROUP_TABLE = getattr(settings, 'LDAP_GROUP_TABLE', 'ou=Groups')
 USER_SHELL = getattr(settings, 'LDAP_USER_SHELL', '/bin/bash')
 EMAIL_NEW_ACCOUNTS = getattr(settings, 'LDAP_SEND_EMAILS', False)
+WORDS_DICTIONARY = getattr(settings, 'LDAP_WORDS_DICTIONARY', '/usr/share/dict/words')
+PASSPHRASE_SEPARATORS = getattr(settings, 'LDAP_PASSPHRASE_SEPARATORS', ' -/')
 
 USER_ATTRIBUTES = ['cn', 'uid', 'uidNumber', 'gidNumber', 'homeDirectory', 'loginShell', 'description', 'gecos',
                    'objectclass', 'mail']
@@ -84,6 +87,34 @@ def pwd_generator(alpha=6, numeric=3):
     return "{}{}{}".format(start, mid, end)
 
 
+def generate_passphrase(length, separators=PASSPHRASE_SEPARATORS, dictionary: str = WORDS_DICTIONARY):
+    """
+    Generates a secure passphrase using random words from a dictionary file.
+
+    :param length: The number of words in the passphrase.
+    :param separators: The character(s) to use between words, will randomly choose if multiple.
+    :param dictionary: Dictionary file to use.
+    :return: A string containing the generated passphrase.
+    """
+    try:
+        with open(dictionary, 'r') as f:
+            words = [word.strip() for word in f if 3 < len(word.strip()) < 15 and word.strip().isalpha()]  # Filter short and very long words
+    except FileNotFoundError:
+        return "Error: Dictionary file not found at dictionary. Please provide a custom word list."
+    except Exception as e:
+        return f"An error occurred: {e}"
+
+    # Ensure there are enough words in the list
+    if len(words) < length:
+        return "Error: Not enough words in the dictionary to generate the requested passphrase length."
+
+    # Use secrets.choice for cryptographically secure random selection
+    selected_words = [secrets.choice((str.title, str))(secrets.choice(words)) for _ in range(length)]
+    results = [random.choice(separators)]*(2 * length - 1)
+    results[::2] = selected_words
+    return ''.join(results)
+
+
 class Directory(object):
     """
     A Directory manager implementing methods for listing and modifying a directory
@@ -92,7 +123,7 @@ class Directory(object):
     def __init__(self, uri=SERVER_URI, user=MANAGER_DN, secret=MANAGER_SECRET, use_ssl=True):
         """
         :param uri: Server URI
-        :param user: user name to bind or None for anonymous bind
+        :param user: username to bind or None for anonymous bind
         :param secret: password to bind or None for anonymous.
         :param use_ssl: whether to use SSL or not. Default True.
         """
@@ -111,8 +142,6 @@ class Directory(object):
         uidNumber = gidNumber = max(list(users.values())) + 1
         if not info.get('username', '').strip():
             info['username'] = uniquefy(info['last_name'], list(users.keys()))
-        if not info.get('password', '').strip():
-            info['password'] = pwd_generator()
 
         # Create group
         group_dn = 'cn={username},{group_table},{base_dn}'.format(
@@ -143,19 +172,8 @@ class Directory(object):
             'userPassword': info['password'],
         }
         with Connection(self.server, user=self.admin_user, password=self.admin_secret, auto_bind=True) as connection:
-            group_success = connection.add(group_dn, group_object_classes, group_record)
-            user_success = connection.add(user_dn, user_object_classes, user_record)
-
-        if user_success and group_success and EMAIL_NEW_ACCOUNTS:
-            mail_managers(
-                "New Account -  {first_name} {last_name}".format(**info),
-                ("A new account has been created \n"
-                 "-------------------------------\n"
-                 " Full Name: {first_name} {last_name}\n"
-                 " Login: {username}\n"
-                 " Password: {password}\n"
-                 "-------------------------------\n").format(**info)
-            )
+            connection.add(group_dn, group_object_classes, group_record)
+            connection.add(user_dn, user_object_classes, user_record)
 
         del info['password']  # remove password from dictionary before returning
         return info
@@ -226,6 +244,23 @@ class Directory(object):
             'userPassword': [(ldap3.MODIFY_REPLACE, [new_pwd])]
         }
         with Connection(self.server, user_dn, old_pwd, auto_bind=True) as connection:
+            return connection.modify(user_dn, user_record)
+
+    def set_password(self, username, new_pwd):
+        """
+        Change the password for a user
+        :param username: user name to change
+        :param new_pwd: new password to change
+        :return: True or False
+        """
+
+        user_dn = 'uid={username},{user_table},{base_dn}'.format(
+            username=username, user_table=USER_TABLE, base_dn=BASE_DN
+        )
+        user_record = {
+            'userPassword': [(ldap3.MODIFY_REPLACE, [new_pwd])]
+        }
+        with Connection(self.server, user=self.admin_user, password=self.admin_secret, auto_bind=True) as connection:
             return connection.modify(user_dn, user_record)
 
     def fetch_users(self, *user_names, full=False):

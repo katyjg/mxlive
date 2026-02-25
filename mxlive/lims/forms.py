@@ -125,13 +125,13 @@ class NewProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ('first_name', 'last_name', 'email', 'contact_person', 'contact_email', 'contact_phone', 'username',
-                  'kind', 'alias', 'designation')
+                  'kind', 'alias', 'designation', 'password')
 
     def __init__(self, *args, **kwargs):
         super(NewProjectForm, self).__init__(*args, **kwargs)
 
         if getattr(settings, 'LDAP_SEND_EMAILS', False):
-            self.fields['password'].help_text += _(' and sent to staff once this form is submitted')
+            self.fields['password'].help_text += _("Record this password in a safe place. An email won't be sent!")
         self.fields['kind'].initial = ProjectType.objects.first()
         self.body = BodyHelper(self)
         self.footer = FooterHelper(self)
@@ -141,8 +141,8 @@ class NewProjectForm(forms.ModelForm):
         self.footer.layout = Layout()
         self.body.layout = Layout(
             Div(
-                Div('username', css_class='col-6'),
-                Div(Field('password', disabled=True), css_class="col-6"),
+                Div('username', css_class='col-4'),
+                Div(Field('password', disabled=True), css_class="col-8"),
                 css_class="form-row"
             ),
             Div(

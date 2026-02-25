@@ -1,3 +1,4 @@
+from datetime import datetime
 
 from django.db import models
 from django.utils import timezone
@@ -5,7 +6,6 @@ from django.db.models import Q, F, Value, IntegerField, TextField, Subquery, Out
 from django.conf import settings
 from memoize import memoize
 from . import signals
-
 
 class TMQuerySet(models.QuerySet):
 
@@ -45,7 +45,7 @@ class TimedModel(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
-    expired = models.DateTimeField(default=timezone.datetime(9999, 12, 31, tzinfo=timezone.utc), db_index=True, editable=False)
+    expired = models.DateTimeField(default=timezone.datetime(9999, 12, 31, tzinfo=timezone.UTC), db_index=True, editable=False)
 
     objects = TMObjectsManager()
     entries = TMEntriesManager()

@@ -4,9 +4,12 @@ import datetime
 from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
-from django.utils.timezone import utc
+from zoneinfo import ZoneInfo
 import model_utils.fields
 import mxlive.utils.fields
+
+
+utc = ZoneInfo("UTC")
 
 
 class Migration(migrations.Migration):
