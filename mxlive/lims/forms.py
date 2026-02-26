@@ -280,7 +280,7 @@ class SampleForm(forms.ModelForm):
         if 'name' in self.cleaned_data:
             if self.instance.group.samples.exclude(pk=self.instance.pk).filter(name=self.cleaned_data['name']).exists():
                 self._errors['name'] = self.error_class(['Each sample in the group must have a unique name'])
-            if not re.compile('^[a-zA-Z0-9-_]+[\w]+$').match(self.cleaned_data['name']):
+            if not re.compile(r'^[a-zA-Z0-9-_]+\w+$').match(self.cleaned_data['name']):
                 self._errors['name'] = self.error_class(['Name cannot contain any spaces or special characters'])
         return self.cleaned_data
 
