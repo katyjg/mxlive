@@ -120,7 +120,7 @@ class ProjectForm(forms.ModelForm):
 
 
 class NewProjectForm(forms.ModelForm):
-    password = forms.CharField(required=False, help_text=_('A password will be auto-generated for this account'))
+    password = forms.CharField(required=True)
 
     class Meta:
         model = Project
@@ -142,7 +142,7 @@ class NewProjectForm(forms.ModelForm):
         self.body.layout = Layout(
             Div(
                 Div('username', css_class='col-4'),
-                Div(Field('password', disabled=True), css_class="col-8"),
+                Div('password', css_class="col-8"),
                 css_class="form-row"
             ),
             Div(

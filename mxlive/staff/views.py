@@ -141,6 +141,7 @@ class ProjectCreate(AdminRequiredMixin, SuccessMessageMixin, AsyncFormMixin, edi
             for k in ['username', 'password', 'first_name', 'last_name']
             if k in data
         }
+
         # Make sure user with username does not already exist
         if User.objects.filter(username=user_info.get('username')).exists():
             user_info.pop('username', '')
