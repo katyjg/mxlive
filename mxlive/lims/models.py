@@ -7,6 +7,7 @@ import mimetypes
 from collections import OrderedDict, defaultdict
 from datetime import timedelta
 
+from django import http
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -24,6 +25,7 @@ from model_utils import Choices
 from model_utils.models import TimeStampedModel
 from memoize import memoize
 
+from mxlive.utils.misc import make_secure_path
 from mxlive.utils import slap
 from mxlive.utils.data import parse_frames, frame_ranges
 from mxlive.utils.encrypt import encrypt
@@ -316,6 +318,14 @@ class Session(models.Model):
             end=timezone.now())
         self.stretches.recent().update(end=None)
         stretch = self.stretches.active().last() or Stretch.objects.create(session=self, start=timezone.now())
+
+        # update secure path if it is blank
+        if self.url is None or self.url.strip() == '':
+            try:
+                self.url = make_secure_path(os.path.join(self.project.name, self.name))
+                self.save()
+            except ValueError:
+                return http.HttpResponseServerError("Unable to create SecurePath")
         return stretch
 
     def close(self):

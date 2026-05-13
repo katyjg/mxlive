@@ -1,11 +1,9 @@
 import os
 from datetime import datetime, timedelta
 import msgpack
-import json
 import functools
 import operator
 
-import requests
 from django import http
 
 from django.conf import settings
@@ -19,9 +17,8 @@ from django.utils.decorators import method_decorator
 from django.utils.encoding import force_str
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
-from django.contrib.auth.mixins import LoginRequiredMixin
 
-from mxlive.utils.signing import Signer, InvalidSignature
+from mxlive.utils.signing import Signer
 from mxlive.utils.data import parse_frames
 
 from .middleware import get_client_address
@@ -31,23 +28,12 @@ from mxlive.lims.models import Data, DataType
 from mxlive.lims.models import Project, Session
 from mxlive.lims.templatetags.converter import humanize_duration
 from mxlive.staff.models import UserList, RemoteConnection
+from mxlive.utils.misc import make_secure_path
 
 if settings.LIMS_USE_SCHEDULE:
     HALF_SHIFT = int(getattr(settings, 'HOURS_PER_SHIFT', 8)/2)
 
-PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', '')
 MAX_CONTAINER_DEPTH = getattr(settings, 'MAX_CONTAINER_DEPTH', 2)
-
-
-def make_secure_path(path):
-    # Download  key
-    url = PROXY_URL + '/data/create/'
-    r = requests.post(url, data={'path': path})
-    if r.status_code == 200:
-        key = r.json()['key']
-        return key
-    else:
-        raise ValueError('Unable to create SecurePath')
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -131,7 +117,7 @@ class SSHKeys(View):
 
         msg = ''
         if user:
-            msg = '\n'.join(user.sshkeys.values_list('key', flat=True)).encode()
+            msg = '\n'.join([k.replace('\n', '') for k in user.sshkeys.values_list('key', flat=True)]).encode()
 
         return HttpResponse(msg, content_type='text/plain')
 
@@ -153,7 +139,7 @@ class AccessKeys(AuthenticationRequiredMixin, View):
 
         msg = ''
         if user and user_list and user.username in user_list.access_users():
-            msg = '\n'.join(user.sshkeys.values_list('key', flat=True)).encode()
+            msg = '\n'.join([k.replace('\n', '') for k in user.sshkeys.values_list('key', flat=True)]).encode()
 
         return HttpResponse(msg, content_type='text/plain')
 
@@ -215,14 +201,6 @@ class LaunchSession(AuthenticationRequiredMixin, View):
                 end_time = (timezone.now() + timedelta(hours=2)).isoformat()
 
         session, created = Session.objects.get_or_create(project=project, beamline=beamline, name=session_name)
-        if created:
-            # Download  key
-            try:
-                key = make_secure_path(os.path.join(project_name, session.name))
-                session.url = key
-                session.save()
-            except ValueError:
-                return http.HttpResponseServerError("Unable to create SecurePath")
         session.launch()
         if created:
             ActivityLog.objects.log_activity(request, session, ActivityLog.TYPE.CREATE, 'Session launched')
@@ -291,7 +269,7 @@ class ProjectSamples(AuthenticationRequiredMixin, View):
     """
 
     def get(self, request, *args, **kwargs):
-        from mxlive.lims.models import Project, Beamline, Container
+        from mxlive.lims.models import Beamline, Container
         beamline_name = kwargs.get('beamline')
 
         project = request.user

@@ -1,5 +1,9 @@
 from datetime import timedelta
 
+import requests
+from django.conf import settings
+
+
 def humanize_duration(duration, sec=False):
     if isinstance(duration, (int, float)):
         return natural_seconds(timedelta(hours=duration).total_seconds())
@@ -24,6 +28,22 @@ def natural_seconds(seconds, depth=2):
     return ' '.join(entries[:depth]) or '0 minutes'
 
 
-
 def natural_duration(delta):
     return natural_seconds(delta.total_seconds())
+
+
+PROXY_URL = getattr(settings, 'DOWNLOAD_PROXY_URL', '')
+
+
+def make_secure_path(path):
+    # Download  key
+    url = PROXY_URL + '/data/create/'
+    r = requests.post(url, data={'path': path})
+    if r.status_code == 200:
+        key = r.json()['key']
+        return key
+    else:
+        raise ValueError('Unable to create SecurePath')
+
+
+
