@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'itemlist',
     'basiclive.core.lims',
     'basiclive.core.api',
-    'basiclive.core.crm',
     'basiclive.core.acl',
     'crispy_forms',
     'crispy_bootstrap4'
@@ -53,6 +52,7 @@ INSTALLED_APPS = [
 LIMS_USE_SCHEDULE = True
 LIMS_USE_PUBLICATIONS = True
 LIMS_USE_CRM = True
+LIMS_USE_ACL = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -208,3 +208,6 @@ if LIMS_USE_SCHEDULE:
 
 if LIMS_USE_PUBLICATIONS:
     INSTALLED_APPS.extend(['basiclive.core.publications'])
+
+if LIMS_USE_CRM:
+    INSTALLED_APPS.extend(['basiclive.core.crm'])
