@@ -16,7 +16,7 @@ PROJECT_DIR = Path(__file__).parent
 BASE_DIR = PROJECT_DIR.parent
 LOCAL_DIR = BASE_DIR / 'local'
 
-APP_NAME = 'mxlive'
+APP_NAME = 'MxLIVE'
 
 
 # Quick-start development settings - unsuitable for production
