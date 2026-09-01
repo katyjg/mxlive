@@ -137,9 +137,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
+ASSETS_ROOT = PROJECT_DIR / "static" / "assets"     # Location of 3rd party asset files
 STATICFILES_DIRS = [
     PROJECT_DIR / "static",
-    PROJECT_DIR / "static" / "assets",
+    ASSETS_ROOT,
 ]
 
 MEDIA_URL = '/media/'

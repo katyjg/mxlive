@@ -3,10 +3,12 @@
     <properties>
       <sourceFilesUrls>
         <item url="file://$PROJECT_DIR$/mxlive/static/vendor/misc/js/underscore-min.min.js" />
+        <item url="file://$PROJECT_DIR$/static/assets/misc/js/underscore-min.min.js" />
       </sourceFilesUrls>
     </properties>
     <CLASSES>
       <root url="file://$PROJECT_DIR$/mxlive/static/vendor/misc/js/underscore-min.min.js" />
+      <root url="file://$PROJECT_DIR$/static/assets/misc/js/underscore-min.min.js" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
