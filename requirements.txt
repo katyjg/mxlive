@@ -1,4 +1,4 @@
-Django==6.0.2
+Django>=6.1
 Markdown
 cryptography
 django-colorfield
@@ -6,7 +6,7 @@ django-crispy-forms
 django-debug-toolbar
 django-debug-toolbar-request-history
 django-formtools
-django-itemlist
+django-itemlist>=2026.1.11
 django-memoize
 django-model-utils
 django-proxy
