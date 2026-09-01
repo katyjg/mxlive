@@ -23,9 +23,10 @@
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/local" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.13 (mxlive)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.14 (mxlive)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="basic-live" />
+    <orderEntry type="module" module-name="mxlive-dataproxy" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Django" />

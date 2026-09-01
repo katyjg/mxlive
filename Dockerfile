@@ -20,6 +20,8 @@ RUN chmod -v +x /run-server.sh /wait-for-it.sh
 
 COPY deploy/mxlive.conf /etc/apache2/conf.d/zzzmxlive.conf
 
+RUN /usr/bin/python3 /mxlive/manage.py collectassets --noinput
 RUN /usr/bin/python3 /mxlive/manage.py collectstatic --noinput
+
 
 CMD /run-server.sh

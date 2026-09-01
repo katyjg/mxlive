@@ -10,13 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
-import os
-import sys
+from pathlib import Path
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.dirname(PROJECT_DIR)
-LOCAL_DIR = os.path.join(BASE_DIR, 'local')
+PROJECT_DIR = Path(__file__).parent
+BASE_DIR = PROJECT_DIR.parent
+LOCAL_DIR = BASE_DIR / 'local'
 
 APP_NAME = 'mxlive'
 
@@ -50,9 +48,11 @@ INSTALLED_APPS = [
     'basiclive.core.crm',
     'basiclive.core.acl',
     'crispy_forms',
+    'crispy_bootstrap4'
 ]
 LIMS_USE_SCHEDULE = True
 LIMS_USE_PUBLICATIONS = True
+LIMS_USE_CRM = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -70,7 +70,7 @@ ROOT_URLCONF = 'mxlive.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(PROJECT_DIR, 'templates')],
+        'DIRS': [PROJECT_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -93,7 +93,7 @@ WSGI_APPLICATION = 'mxlive.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(LOCAL_DIR, 'mxlive.db'),
+        'NAME': LOCAL_DIR / 'mxlive.db',
     }
 }
 
@@ -136,13 +136,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_DIRS = [
-    os.path.join(PROJECT_DIR, "static"),
+    PROJECT_DIR / "static",
+    PROJECT_DIR / "static" / "assets",
 ]
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'local/media')
+MEDIA_ROOT = BASE_DIR / 'local' / 'media'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
@@ -164,9 +165,6 @@ LDAP_AUTH_SEARCH_BASE = "{}{}".format(LDAP_USER_TABLE, LDAP_BASE_DN)
 LDAP_AUTH_OBJECT_CLASS = "posixAccount"
 LDAP_AUTH_USER_LOOKUP_FIELDS = ("username",)
 LDAP_AUTH_USE_TLS = True
-
-
-
 
 # Trusted clients for internal network
 TRUSTED_IPS = ['127.0.0.1/32']

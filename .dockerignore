@@ -3,7 +3,9 @@ build.sh
 LICENSE
 */*.db
 */.dbinit
-local/media/pdb
+local/
+assets/
+vendor/
 docs/
 junk/
 local/settings_local.*

@@ -52,11 +52,11 @@ To use the :ref:`MxLIVE report format<formatting-reports>`, include the followin
     {% block modal_assets %}
         <link href="{% static "css/c3.min.css" %}" rel="stylesheet">
         <link href="{% static "css/reports.min.css" %}" rel="stylesheet">
-        <script type="text/javascript" src="{% static "js/d3/d3.v5.min.js" %}"></script>
-        <script type="text/javascript" src="{% static "js/d3/d3.legend.js" %}"></script>
-        <script type="text/javascript" src="{% static 'js/d3/d3.timeline.min.js' %}"></script>
-        <script type="text/javascript" src="{% static "js/misc/showdown.min.js" %}"></script>
-        <script type="text/javascript" src="{% static "js/misc/c3.min.js" %}"></script>
+        <script type="text/javascript" src="{% static "d3/js/d3.min.js" %}"></script>
+        <script type="text/javascript" src="{% static "d3/js/d3.legend.js" %}"></script>
+        <script type="text/javascript" src="{% static 'd3/js/d3.timeline.min.js' %}"></script>
+        <script type="text/javascript" src="{% static "misc/js/showdown.min.js" %}"></script>
+        <script type="text/javascript" src="{% static "misc/js/c3.min.js" %}"></script>
         <script type="text/javascript" src="{% static "lims/js/mxlive-reports.min.js" %}"></script>
     {% endblock %}
 
