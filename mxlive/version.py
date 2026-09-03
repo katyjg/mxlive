@@ -18,7 +18,6 @@ def get_version():
         return version.group(1)
 
     package_dir = os.path.dirname(os.path.dirname(__file__))
-    print(package_dir)
 
     if os.path.isdir(os.path.join(package_dir, '.git')):
         # Get the version using "git describe".

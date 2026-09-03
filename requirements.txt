@@ -1,5 +1,5 @@
 basiclive
-Django==6.0.2
+Django>=6.1.1
 Markdown
 cryptography
 django-colorfield
@@ -33,3 +33,4 @@ Pygments
 isodate
 python-baseconv
 fastjsonschema
+python-dotenv

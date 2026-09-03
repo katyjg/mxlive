@@ -200,8 +200,8 @@ DEBUG_TOOLBAR_PANELS = [
 
 try:
     from local.settings import *
-except ImportError:
-    pass
+except ImportError as err:
+    print('Error importing local settings: {}'.format(err))
 
 if LIMS_USE_SCHEDULE:
     INSTALLED_APPS.extend(['basiclive.core.schedule', 'colorfield'])
