@@ -119,7 +119,7 @@ venv.bak/
 local/*
 !local/__init__.py
 !local/settings.py.example
-.idea/copilot.*
+.idea/
 /mxlive/static/bootstrap
 /docs/_build/
 vendor/
