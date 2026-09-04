@@ -59,8 +59,9 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    #'mxlive.remote.middleware.TrustedAccessMiddleware',
+    'basiclive.auth.middleware.TrustedAccessMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'basiclive.auth.middleware.APIAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
