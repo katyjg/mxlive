@@ -120,7 +120,7 @@ local/*
 !local/__init__.py
 !local/settings.py.example
 .idea/copilot.*
-/mxlive/static/bootstrap/scss/
+/mxlive/static/bootstrap
 /docs/_build/
 vendor/
 assets/
