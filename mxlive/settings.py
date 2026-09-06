@@ -201,6 +201,7 @@ DEBUG_TOOLBAR_PANELS = [
 
 try:
     from local.settings import *
+    print('Importing local settings from {}'.format(LOCAL_DIR / 'settings.py'))
 except ImportError as err:
     print('Error importing local settings: {}'.format(err))
 
