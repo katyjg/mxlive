@@ -15,21 +15,21 @@ Including another URLconf
 """
 
 
-from django.urls import path
-
 from django.conf import settings
 from django.conf.urls import include
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.urls import path
+
 from basiclive.core.lims.views import ProjectDetail, ProxyView
 
 urlpatterns = [
     path('', login_required(ProjectDetail.as_view()), name='dashboard'),
     path('admin/', admin.site.urls, name='admin'),
-    path('acl/', include('basiclive.core.acl.urls')),
+    path('access/', include('basiclive.core.acl.urls')),
     path('users/',  include('basiclive.core.lims.urls')),
     path('crm/', include('basiclive.core.crm.urls')),
     path('files/<str:section>/<path:path>', ProxyView.as_view(), name='files-proxy'),

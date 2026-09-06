@@ -11,14 +11,15 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-import sys
 from datetime import date
+
+import sys
 
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../..'))
 
 import django
-from mxlive.version import get_version
+import mxlive
 
 # -- Project information -----------------------------------------------------
 
@@ -27,7 +28,7 @@ copyright = '2010-{}, Canadian Light Source, Inc'.format(date.today().year)
 author = 'Kathryn Janzen & Michel Fodje'
 
 # The full version, including alpha/beta/rc tags
-release = get_version()
+release = mxlive.__version__
 version = release
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'mxlive.settings'
