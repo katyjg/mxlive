@@ -41,6 +41,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+
+    'allauth',
+    'allauth.account',
+
     'memoize',
     'itemlist',
     'basiclive.core.lims',
@@ -53,6 +57,7 @@ LIMS_USE_SCHEDULE = True
 LIMS_USE_PUBLICATIONS = True
 LIMS_USE_CRM = True
 LIMS_USE_ACL = True
+LIMS_LDAP_MANAGER = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -64,6 +69,7 @@ MIDDLEWARE = [
     'basiclive.auth.middleware.APIAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = 'mxlive.urls'
@@ -117,10 +123,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend'
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-AUTH_MODULE = 'auth.ldap'
+AUTH_PROVIDERS = []
 AUTH_USER_MODEL = 'lims.Project'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Internationalization
@@ -182,23 +189,6 @@ DOWNLOAD_PROXY_URL = "http://mxlive-data/download"
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-DEBUG_TOOLBAR_PANELS = [
-    'ddt_request_history.panels.request_history.RequestHistoryPanel',  # Here it is
-    'debug_toolbar.panels.versions.VersionsPanel',
-    'debug_toolbar.panels.timer.TimerPanel',
-    'debug_toolbar.panels.settings.SettingsPanel',
-    'debug_toolbar.panels.headers.HeadersPanel',
-    'debug_toolbar.panels.request.RequestPanel',
-    'debug_toolbar.panels.sql.SQLPanel',
-    'debug_toolbar.panels.templates.TemplatesPanel',
-    'debug_toolbar.panels.staticfiles.StaticFilesPanel',
-    'debug_toolbar.panels.cache.CachePanel',
-    'debug_toolbar.panels.signals.SignalsPanel',
-    'debug_toolbar.panels.logging.LoggingPanel',
-    'debug_toolbar.panels.redirects.RedirectsPanel',
-    'debug_toolbar.panels.profiling.ProfilingPanel',
-]
-
 try:
     from local.settings import *
     print('Importing local settings from {}'.format(LOCAL_DIR / 'settings.py'))
@@ -213,3 +203,13 @@ if LIMS_USE_PUBLICATIONS:
 
 if LIMS_USE_CRM:
     INSTALLED_APPS.extend(['basiclive.core.crm'])
+
+if AUTH_PROVIDERS:
+    INSTALLED_APPS.extend(['allauth.socialaccount'])
+    for provider in AUTH_PROVIDERS:
+        if provider == 'ldap':
+            AUTHENTICATION_BACKENDS[0] = 'django_python3_ldap.auth.LDAPBackend'
+        elif provider == 'cas':
+            AUTHENTICATION_BACKENDS[0] = 'django_cas_ng.backends.CASBackend'
+        else:
+            INSTALLED_APPS.append(f'allauth.socialaccount.providers.{provider}')
