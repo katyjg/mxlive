@@ -50,23 +50,23 @@ INSTALLED_APPS = [
     'basiclive.core.lims',
     'basiclive.core.api',
     'basiclive.core.acl',
+    'basiclive.core.schedule',
+    'basiclive.core.crm',
+    'basiclive.core.publications',
+
     'crispy_forms',
     'crispy_bootstrap4'
 ]
-LIMS_USE_SCHEDULE = True
-LIMS_USE_PUBLICATIONS = True
-LIMS_USE_CRM = True
-LIMS_USE_ACL = True
-LIMS_LDAP_MANAGER = True
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'basiclive.auth.middleware.TrustedAccessMiddleware',
+    'basiclive.core.acl.middleware.TrustedAccessMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'basiclive.auth.middleware.APIAuthenticationMiddleware',
+    'basiclive.core.api.middleware.APIAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "allauth.account.middleware.AccountMiddleware",
@@ -85,7 +85,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'basiclive.utils.context_processors.version_context_processor'
+                'basiclive.core.context_processors.export_settings',
             ],
         },
     },
@@ -139,7 +139,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
@@ -175,34 +174,33 @@ LDAP_AUTH_OBJECT_CLASS = "posixAccount"
 LDAP_AUTH_USER_LOOKUP_FIELDS = ("username",)
 LDAP_AUTH_USE_TLS = True
 
-# Trusted clients for internal network
-TRUSTED_IPS = ['127.0.0.1/32']
-TRUSTED_PROXIES = 1
-TRUSTED_URLS = ['^/json', '^/api']
-
-# Shift parameters
-HOURS_PER_SHIFT = 8
-
-# Downloads
-RESTRICT_DOWNLOADS = False
-DOWNLOAD_PROXY_URL = "http://mxlive-data/download"
+LIMS_LDAP_MANAGER = True
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
+BASICLIVE_LIMS = {
+    'APP_NAME': 'MxLIVE',
+    'USE_SCHEDULE': True,
+    'USE_PUBLICATIONS': True,
+    'USE_CRM': True,
+    'USE_ACL': True,
+}
+
 try:
     from local.settings import *
-    print('Importing local settings from {}'.format(LOCAL_DIR / 'settings.py'))
+    print(f'Importing local settings from {LOCAL_DIR / "settings.py"}')
 except ImportError as err:
-    print('Error importing local settings: {}'.format(err))
+    print(f'Error importing local settings: {err}')
 
-if LIMS_USE_SCHEDULE:
-    INSTALLED_APPS.extend(['basiclive.core.schedule', 'colorfield'])
 
-if LIMS_USE_PUBLICATIONS:
-    INSTALLED_APPS.extend(['basiclive.core.publications'])
+if BASICLIVE_LIMS.get('USE_SCHEDULE') is False:
+    INSTALLED_APPS.remove('basiclive.core.schedule')
 
-if LIMS_USE_CRM:
-    INSTALLED_APPS.extend(['basiclive.core.crm'])
+if BASICLIVE_LIMS.get('USE_USE_CRM') is False:
+    INSTALLED_APPS.remove('basiclive.core.crm')
+
+if BASICLIVE_LIMS.get('USE_PUBLICATIONS') is False:
+    INSTALLED_APPS.remove('basiclive.core.publications')
 
 if AUTH_PROVIDERS:
     INSTALLED_APPS.extend(['allauth.socialaccount'])

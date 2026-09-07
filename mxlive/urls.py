@@ -24,6 +24,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import path
 
+from basiclive.core.lims.conf import settings as lims_settings
 from basiclive.core.lims.views import ProjectDetail, ProxyView
 
 urlpatterns = [
@@ -33,16 +34,16 @@ urlpatterns = [
     path('users/',  include('basiclive.core.lims.urls')),
     path('crm/', include('basiclive.core.crm.urls')),
     path('files/<str:section>/<path:path>', ProxyView.as_view(), name='files-proxy'),
-    path('accounts/', include('allauth.urls')),
+    # path('accounts/', include('allauth.urls')),
     path('accounts/login/',  LoginView.as_view(template_name='lims/login.html'), name="login"),
     path('accounts/logout/', LogoutView.as_view(), name="logout"),
     path('api/v2/', include('basiclive.core.api.urls')),
 ]
 
-if settings.LIMS_USE_SCHEDULE:
+if lims_settings.USE_SCHEDULE:
     urlpatterns += [path('calendar/', include('basiclive.core.schedule.urls'))]
 
-if settings.LIMS_USE_PUBLICATIONS:
+if lims_settings.USE_PUBLICATIONS:
     urlpatterns += [path('publications/', include('basiclive.core.publications.urls'))]
 
 if settings.DEBUG:
