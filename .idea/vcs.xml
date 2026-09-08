@@ -3,6 +3,5 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../basic-live" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../mxlive-dataproxy" vcs="Git" />
   </component>
 </project>
